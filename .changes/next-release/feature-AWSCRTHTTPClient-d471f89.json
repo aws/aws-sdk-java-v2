@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Add a minTlsVersion(TlsVersion) builder option on AwsCrtHttpClient and AwsCrtAsyncHttpClient that enforces a minimum TLS protocol version for outbound connections. Currently supports TlsVersion.TLS_1_3 and TlsVersion.SYSTEM_DEFAULT (the default). Fixes [#5619](https://github.com/aws/aws-sdk-java-v2/issues/5619)."
-}
