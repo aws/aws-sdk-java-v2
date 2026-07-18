@@ -94,11 +94,15 @@ public final class CrtUtils {
             int httpErrorCode = httpException.getErrorCode();
 
             if (httpErrorCode == CRT_TLS_NEGOTIATION_ERROR_CODE) {
-                return new SSLHandshakeException(httpException.getMessage());
+                SSLHandshakeException sslHandshakeException = new SSLHandshakeException(httpException.getMessage());
+                sslHandshakeException.initCause(httpException);
+                return sslHandshakeException;
             }
 
             if (httpErrorCode == CRT_SOCKET_TIMEOUT) {
-                return new ConnectException(httpException.getMessage());
+                ConnectException connectException = new ConnectException(httpException.getMessage());
+                connectException.initCause(httpException);
+                return connectException;
             }
 
             return wrapWithIoExceptionIfRetryable((HttpException) throwable);
