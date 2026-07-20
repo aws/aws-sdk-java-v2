@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Inspector2",
-    "contributor": "",
-    "description": "Adds Windows path support for deep inspection. Fixes tag propagation for connector CloudFormation stack operations."
-}
