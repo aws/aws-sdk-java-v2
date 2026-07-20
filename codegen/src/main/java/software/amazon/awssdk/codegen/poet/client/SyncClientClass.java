@@ -129,9 +129,6 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
-
-        type.addField(ClientClassUtils.authSchemeOptionsResolverField());
-        type.addField(ClientClassUtils.endpointResolverField());
     }
 
     @Override

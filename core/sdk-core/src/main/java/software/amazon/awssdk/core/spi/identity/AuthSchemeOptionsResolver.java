@@ -30,25 +30,11 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 @SdkProtectedApi
 public interface AuthSchemeOptionsResolver {
     /**
-     * Resolves auth scheme options for the given request.
-     *
-     * @param request The request (after interceptors have modified it)
-     * @return List of auth scheme options in priority order
-     */
-    List<AuthSchemeOption> resolve(SdkRequest request);
-
-    /**
      * Resolves auth scheme options for the given request and execution attributes.
-     * <p>
-     * This is the method called by the SDK core pipeline. The default implementation delegates
-     * to {@link #resolve(SdkRequest)} for backward compatibility with service modules that
-     * only implement the 1-arg method.
      *
      * @param request The request (after interceptors have modified it)
      * @param executionAttributes The execution attributes for the current request execution
      * @return List of auth scheme options in priority order
      */
-    default List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes) {
-        return resolve(request);
-    }
+    List<AuthSchemeOption> resolve(SdkRequest request, ExecutionAttributes executionAttributes);
 }

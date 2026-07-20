@@ -20,7 +20,6 @@ import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
-import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -581,48 +580,4 @@ public final class ClientClassUtils {
         return b.build();
     }
 
-    static FieldSpec authSchemeOptionsResolverField() {
-        ClassName resolverType = ClassName.get("software.amazon.awssdk.core.spi.identity", "AuthSchemeOptionsResolver");
-        ClassName sdkRequest = ClassName.get(SdkRequest.class);
-        ClassName executionAttributes = ClassName.get(ExecutionAttributes.class);
-        ClassName authSchemeOption = ClassName.get(AuthSchemeOption.class);
-
-        return FieldSpec.builder(resolverType, "authSchemeOptionsResolver", PRIVATE, Modifier.FINAL)
-                        .initializer("new $T() {\n"
-                                     + "    @Override\n"
-                                     + "    public $T<$T> resolve($T request) {\n"
-                                     + "        throw new $T(\"Use resolve(SdkRequest, ExecutionAttributes) instead\");\n"
-                                     + "    }\n"
-                                     + "\n"
-                                     + "    @Override\n"
-                                     + "    public $T<$T> resolve($T request, $T executionAttributes) {\n"
-                                     + "        return resolveAuthSchemeOptions(request, executionAttributes);\n"
-                                     + "    }\n"
-                                     + "}",
-                                     resolverType,
-                                     ClassName.get(List.class), authSchemeOption, sdkRequest,
-                                     ClassName.get(UnsupportedOperationException.class),
-                                     ClassName.get(List.class), authSchemeOption,
-                                     sdkRequest, executionAttributes)
-                        .build();
-    }
-
-    static FieldSpec endpointResolverField() {
-        ClassName resolverType = ClassName.get("software.amazon.awssdk.core.endpoint", "EndpointResolver");
-        ClassName sdkRequest = ClassName.get(SdkRequest.class);
-        ClassName executionAttributes = ClassName.get(ExecutionAttributes.class);
-        ClassName endpoint = ClassName.get(Endpoint.class);
-
-        return FieldSpec.builder(resolverType, "endpointResolverInstance", PRIVATE, Modifier.FINAL)
-                        .initializer("new $T() {\n"
-                                     + "    @Override\n"
-                                     + "    public $T resolve($T request, $T executionAttributes) {\n"
-                                     + "        return resolveEndpoint(request, executionAttributes);\n"
-                                     + "    }\n"
-                                     + "}",
-                                     resolverType,
-                                     endpoint,
-                                     sdkRequest, executionAttributes)
-                        .build();
-    }
 }

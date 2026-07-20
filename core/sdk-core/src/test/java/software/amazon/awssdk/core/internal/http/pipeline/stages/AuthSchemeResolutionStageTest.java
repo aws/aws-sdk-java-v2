@@ -101,7 +101,7 @@ class AuthSchemeResolutionStageTest {
     void execute_resolverReturnsEmpty_returnsRequestUnchanged() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            resolverReturning(Collections.emptyList()));
+            (req, attrs) -> Collections.emptyList());
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
 
@@ -157,7 +157,7 @@ class AuthSchemeResolutionStageTest {
 
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            resolverReturning(createAuthOptions()));
+            (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, baseProviders);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER, resolver);
 
@@ -170,7 +170,7 @@ class AuthSchemeResolutionStageTest {
     void execute_withoutRequestIdentityProviderResolver_doesNotFail() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            resolverReturning(createAuthOptions()));
+            (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
         // No IDENTITY_PROVIDER_RESOLVER set
 
@@ -184,7 +184,7 @@ class AuthSchemeResolutionStageTest {
     void execute_happyPath_setsSelectedAuthScheme() throws Exception {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            resolverReturning(createAuthOptions()));
+            (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
@@ -230,14 +230,7 @@ class AuthSchemeResolutionStageTest {
         );
     }
 
-    /**
-     * Creates a mock AuthSchemeOptionsResolver that returns the given options when the 2-arg resolve is called.
-     */
-    private AuthSchemeOptionsResolver resolverReturning(List<AuthSchemeOption> options) {
-        AuthSchemeOptionsResolver resolver = mock(AuthSchemeOptionsResolver.class);
-        doReturn(options).when(resolver).resolve(any(SdkRequest.class), any(ExecutionAttributes.class));
-        return resolver;
-    }
+
 
     @Test
     void execute_authSchemeAlreadyResolved_skipsResolution() throws Exception {
@@ -250,7 +243,7 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, alreadyResolved);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            resolverReturning(createAuthOptions()));
+            (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
         SdkHttpFullRequest.Builder result = stage.execute(httpRequestBuilder, context);
@@ -272,7 +265,7 @@ class AuthSchemeResolutionStageTest {
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, unsetPlaceholder);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, createAuthSchemes());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-            resolverReturning(createAuthOptions()));
+            (req, attrs) -> createAuthOptions());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, createIdentityProviders());
 
         stage.execute(httpRequestBuilder, context);
