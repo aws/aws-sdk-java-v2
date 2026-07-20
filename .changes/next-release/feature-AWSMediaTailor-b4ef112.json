@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaTailor",
+    "contributor": "",
+    "description": "This change adds api support for configuring ad decision server timeouts and concurrency fields on MediaTailor playback configurations"
+}
