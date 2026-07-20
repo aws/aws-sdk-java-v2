@@ -1,0 +1,32 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "serviceId": "SameTypeCollision",
+    "serviceFullName": "Same Type Shape Name Collision Test Service"
+  },
+  "operations": {
+    "TestOperation": {
+      "name": "TestOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "TestOperationRequest"}
+    }
+  },
+  "shapes": {
+    "TestOperationRequest": {
+      "type": "structure",
+      "members": {
+        "Token": {"shape": "Token"},
+        "OtherToken": {"shape": "token"}
+      }
+    },
+    "Token": {
+      "type": "string"
+    },
+    "token": {
+      "type": "string"
+    }
+  }
+}

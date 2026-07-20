@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -28,6 +29,10 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 
 public class IntermediateModelBuilderTest {
 
@@ -45,6 +50,27 @@ public class IntermediateModelBuilderTest {
         assertThat(testModel.getShapes().values())
             .extracting(ShapeModel::getShapeName)
             .containsExactlyInAnyOrder("DefaultCollisionException", "DefaultCollisionRequest", "DefaultCollisionResponse");
+    }
+
+    @Test
+    public void build_shapesCollideByCase_throwsModelInvalid() {
+        final File modelFile = new File(IntermediateModelBuilderTest.class
+                                            .getResource("poet/client/c2j/collision/case-insensitive-service-2.json").getFile());
+
+        assertThatThrownBy(() -> new IntermediateModelBuilder(
+            C2jModels.builder()
+                     .serviceModel(ModelLoaderUtils.loadModel(ServiceModel.class, modelFile))
+                     .customizationConfig(CustomizationConfig.create())
+                     .build())
+            .build())
+            .isInstanceOf(ModelInvalidException.class)
+            .hasMessageContaining("ReservationType")
+            .hasMessageContaining("reservationType")
+            .matches(e -> {
+                ValidationEntry entry = ((ModelInvalidException) e).validationEntries().get(0);
+                return entry.getErrorId() == ValidationErrorId.INVALID_IDENTIFIER_NAME
+                       && entry.getSeverity() == ValidationErrorSeverity.DANGER;
+            }, "validation entry is INVALID_IDENTIFIER_NAME / DANGER");
     }
 
     @Test
