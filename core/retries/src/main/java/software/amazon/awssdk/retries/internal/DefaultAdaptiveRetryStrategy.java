@@ -43,15 +43,12 @@ public final class DefaultAdaptiveRetryStrategy
 
     @Override
     protected Duration computeInitialBackoff(AcquireInitialTokenRequest request) {
-        RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(request.scope());
-        return bucket.tryAcquire().delay();
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override
     protected Duration computeBackoff(RefreshRetryTokenRequest request, DefaultRetryToken token) {
-        Duration backoff = super.computeBackoff(request, token);
-        RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(token.scope());
-        return backoff.plus(bucket.tryAcquire().delay());
+        throw new UnsupportedOperationException("TODO");
     }
 
     @Override

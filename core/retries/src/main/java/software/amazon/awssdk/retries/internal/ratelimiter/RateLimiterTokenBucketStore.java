@@ -15,8 +15,10 @@
 
 package software.amazon.awssdk.retries.internal.ratelimiter;
 
+import java.util.concurrent.ScheduledExecutorService;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ToBuilderIgnoreField;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -27,17 +29,26 @@ import software.amazon.awssdk.utils.cache.lru.LruCache;
  */
 @SdkInternalApi
 public final class RateLimiterTokenBucketStore
-    implements ToCopyableBuilder<RateLimiterTokenBucketStore.Builder, RateLimiterTokenBucketStore> {
+    implements ToCopyableBuilder<RateLimiterTokenBucketStore.Builder, RateLimiterTokenBucketStore>, SdkAutoCloseable {
     private static final int MAX_ENTRIES = 128;
     private static final RateLimiterClock DEFAULT_CLOCK = new SystemClock();
     private final LruCache<String, RateLimiterTokenBucket> scopeToTokenBucket;
     private final RateLimiterClock clock;
+    private final ScheduledExecutorService scheduler;
 
     private RateLimiterTokenBucketStore(Builder builder) {
         this.clock = Validate.paramNotNull(builder.clock, "clock");
-        this.scopeToTokenBucket = LruCache.<String, RateLimiterTokenBucket>builder(x -> new RateLimiterTokenBucket(clock))
+        this.scheduler = Validate.paramNotNull(builder.scheduler, "scheduler");
+        this.scopeToTokenBucket = LruCache.<String, RateLimiterTokenBucket>builder(
+            x -> new RateLimiterTokenBucket(clock, scheduler))
                                           .maxSize(MAX_ENTRIES)
                                           .build();
+    }
+
+    @Override
+    public void close() {
+        scopeToTokenBucket.evictAll();
+        scheduler.shutdownNow();
     }
 
     public RateLimiterTokenBucket tokenBucketForScope(String scope) {
@@ -56,6 +67,7 @@ public final class RateLimiterTokenBucketStore
 
     public static class Builder implements CopyableBuilder<Builder, RateLimiterTokenBucketStore> {
         private RateLimiterClock clock;
+        private ScheduledExecutorService scheduler;
 
         Builder() {
             this.clock = DEFAULT_CLOCK;
@@ -63,10 +75,16 @@ public final class RateLimiterTokenBucketStore
 
         Builder(RateLimiterTokenBucketStore store) {
             this.clock = store.clock;
+            this.scheduler = store.scheduler;
         }
 
         public Builder clock(RateLimiterClock clock) {
             this.clock = clock;
+            return this;
+        }
+
+        public Builder executor(ScheduledExecutorService scheduler) {
+            this.scheduler = scheduler;
             return this;
         }
 
