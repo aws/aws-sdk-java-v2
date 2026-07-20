@@ -563,6 +563,49 @@ public class BaseClientBuilderClass implements ClassSpec {
                         ClassName.get("software.amazon.awssdk.core", "ClientEndpointProvider"))
                .addCode("});\n");
 
+        builder.addCode("builder.lazyOptionIfAbsent($T.SIGNING_REGION, c -> {\n", AwsClientOption.class)
+               .addCode("  $T region = c.get($T.AWS_REGION);\n",
+                        ClassName.get("software.amazon.awssdk.regions", "Region"),
+                        AwsClientOption.class)
+               .addCode("  try {\n")
+               .addCode("    $T endpointParams = $T.builder()\n",
+                        endpointRulesSpecUtils.parametersClassName(), endpointRulesSpecUtils.parametersClassName())
+               .addCode("      .region(region)\n");
+
+        if (hasBuiltIn(BuiltInParameter.AWS_USE_DUAL_STACK)) {
+            builder.addCode("      .useDualStack(c.get($T.DUALSTACK_ENDPOINT_ENABLED))\n", AwsClientOption.class);
+        }
+        if (hasBuiltIn(BuiltInParameter.AWS_USE_FIPS)) {
+            builder.addCode("      .useFips(c.get($T.FIPS_ENDPOINT_ENABLED))\n", AwsClientOption.class);
+        }
+
+        builder.addCode("      .build();\n")
+               .addCode("    $T endpoint = $T.joinLikeSync(defaultEndpointProvider().resolveEndpoint(endpointParams));\n",
+                        ClassName.get("software.amazon.awssdk.endpoints", "Endpoint"),
+                        ClassName.get("software.amazon.awssdk.utils", "CompletableFutureUtils"))
+               .addCode("    $T<$T> authSchemes = endpoint.attribute($T.AUTH_SCHEMES);\n",
+                        List.class,
+                        ClassName.get("software.amazon.awssdk.awscore.endpoints.authscheme", "EndpointAuthScheme"),
+                        ClassName.get("software.amazon.awssdk.awscore.endpoints", "AwsEndpointAttribute"))
+               .addCode("    if (authSchemes != null && !authSchemes.isEmpty()) {\n")
+               .addCode("      $T firstScheme = authSchemes.get(0);\n",
+                        ClassName.get("software.amazon.awssdk.awscore.endpoints.authscheme", "EndpointAuthScheme"))
+               .addCode("      if (firstScheme instanceof $T) {\n",
+                        ClassName.get("software.amazon.awssdk.awscore.endpoints.authscheme", "SigV4AuthScheme"))
+               .addCode("        String signingRegion = (($T) firstScheme).signingRegion();\n",
+                        ClassName.get("software.amazon.awssdk.awscore.endpoints.authscheme", "SigV4AuthScheme"))
+               .addCode("        if (signingRegion != null) {\n")
+               .addCode("          return $T.of(signingRegion);\n",
+                        ClassName.get("software.amazon.awssdk.regions", "Region"))
+               .addCode("        }\n")
+               .addCode("      }\n")
+               .addCode("    }\n")
+               .addCode("  } catch (Exception e) {\n")
+               .addCode("    // Endpoint resolution failed. Fall back to using the client region as signing region.\n")
+               .addCode("  }\n")
+               .addCode("  return region;\n")
+               .addCode("});\n");
+
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("builder.option($1T.ENABLE_FAST_UNMARSHALLER, true)",
                                  SdkClientJsonProtocolAdvancedOption.class);

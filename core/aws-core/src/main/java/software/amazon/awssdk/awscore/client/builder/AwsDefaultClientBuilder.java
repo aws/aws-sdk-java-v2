@@ -64,7 +64,6 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.regions.ServiceMetadata;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.retries.api.RetryStrategy;
@@ -192,7 +191,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                             // Set ENDPOINT and ENDPOINT_OVERRIDDEN, because older clients may be relying on it
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT_OVERRIDDEN, this::resolveEndpointOverridden)
-                            .lazyOption(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
+                            .lazyOptionIfAbsent(AwsClientOption.SIGNING_REGION, this::resolveSigningRegion)
                             .lazyOption(SdkClientOption.HTTP_CLIENT_CONFIG, this::resolveHttpClientConfig)
                             .applyMutation(this::configureRetryPolicy)
                             .applyMutation(this::configureRetryStrategy)
@@ -313,11 +312,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Resolve the signing region from the default-applied configuration.
+     * Fallback signing region resolution. Returns the client region as-is.
+     * Generated service builders resolve the signing region from endpoint rules in finalizeServiceConfiguration,
+     * which takes precedence over this fallback via lazyOptionIfAbsent ordering.
      */
     private Region resolveSigningRegion(LazyValueSource config) {
-        return ServiceMetadata.of(serviceEndpointPrefix())
-                              .signingRegion(config.get(AwsClientOption.AWS_REGION));
+        return config.get(AwsClientOption.AWS_REGION);
     }
 
     /**
