@@ -28,20 +28,20 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
  */
 @SdkProtectedApi
 public final class HelpfulUnknownHostExceptionInterceptor implements ExecutionInterceptor {
+    private static final String ERROR_MESSAGE =
+        "Received an UnknownHostException when attempting to interact with a service. "
+        + "See cause for the exact endpoint that is failing to resolve. "
+        + "If this is happening on an endpoint that previously worked, "
+        + "there may be a network connectivity issue or your DNS cache "
+        + "could be storing endpoints for too long.";
+
     @Override
     public Throwable modifyException(Context.FailedExecution context, ExecutionAttributes executionAttributes) {
         if (!hasCause(context.exception(), UnknownHostException.class)) {
             return context.exception();
         }
 
-        StringBuilder error = new StringBuilder();
-        error.append("Received an UnknownHostException when attempting to interact with a service. See cause for the "
-                     + "exact endpoint that is failing to resolve. ");
-
-        error.append("If this is happening on an endpoint that previously worked, there may be a network connectivity "
-                     + "issue or your DNS cache could be storing endpoints for too long.");
-
-        return SdkClientException.builder().message(error.toString()).cause(context.exception()).build();
+        return SdkClientException.builder().message(ERROR_MESSAGE).cause(context.exception()).build();
     }
 
     private boolean hasCause(Throwable thrown, Class<? extends Throwable> cause) {
