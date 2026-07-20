@@ -38,20 +38,17 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     private final SymbolTable symbolTable;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
     private final Map<String, ComputeScopeTree.Scope> ruleIdToScope;
-    private final boolean endpointCaching;
 
     public CodeGeneratorVisitor(RuleRuntimeTypeMirror typeMirror,
                                 SymbolTable symbolTable,
                                 Map<String, KeyTypePair> knownEndpointAttributes,
                                 Map<String, ComputeScopeTree.Scope> ruleIdToScope,
-                                boolean endpointCaching,
                                 CodeBlock.Builder builder) {
         this.builder = builder;
         this.symbolTable = symbolTable;
         this.knownEndpointAttributes = knownEndpointAttributes;
         this.ruleIdToScope = ruleIdToScope;
         this.typeMirror = typeMirror;
-        this.endpointCaching = endpointCaching;
     }
 
     @Override
