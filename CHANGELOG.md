@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.48.4__ __2026-07-20__
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Preserve the underlying CRT HttpException (including the CRT error code) as the cause of the SSLHandshakeException and ConnectException surfaced for TLS negotiation failures and socket timeouts, so callers can differentiate transient failures from persistent ones by inspecting the exception cause chain.
+
+## __AWS MediaTailor__
+  - ### Features
+    - This change adds api support for configuring ad decision server timeouts and concurrency fields on MediaTailor playback configurations
+
+## __AWS Organizations__
+  - ### Features
+    - Updated InvalidInputException error documentation to clarify that the service validates free-text field values against common cross-site scripting (XSS) patterns.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - For new SaaS product integrations, CustomerIdentifier is not populated in ResolveCustomer responses and is not supported in BatchMeterUsage. Use CustomerAWSAccountId and LicenseArn instead.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Add W3C trace context headers (traceparent, tracestate, baggage) and X-Amzn-Trace-Id to InvokeHarness request for end-to-end observability propagation. Add toolResultMetadata to the streaming content block delta for MCP tool result meta delivery without oversized SSE frames.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - This release adds support for specifying a connector version on Gateway targets to pin the connector's tool schema. It also introduces web-search connector version 1.2.0, which adds agent-side domain filtering, published date range filtering, and admin-side domain allowlisting.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds support for custom permissions for Triggers, allowing administrators to control user access to Schedule, Inbound Email and Quick Event triggers.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Amazon SES introduces three new Pricing Plans (Essentials, Pro, Enterprise), which bundle SES features under one pricing umbrella.  The new PutAccountPricingAttributes API lets the user set the account's plan, while current plan retrievalif done through the new PricingAttributes field on GetAccount.
+
+## __Inspector2__
+  - ### Features
+    - Adds Windows path support for deep inspection. Fixes tag propagation for connector CloudFormation stack operations.
+
 # __2.48.3__ __2026-07-17__
 ## __AWS CRT HTTP Client__
   - ### Features

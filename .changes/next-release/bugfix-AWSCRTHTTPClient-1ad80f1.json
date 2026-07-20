@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Preserve the underlying CRT HttpException (including the CRT error code) as the cause of the SSLHandshakeException and ConnectException surfaced for TLS negotiation failures and socket timeouts, so callers can differentiate transient failures from persistent ones by inspecting the exception cause chain."
-}
