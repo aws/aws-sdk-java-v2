@@ -25,13 +25,13 @@ import software.amazon.awssdk.endpoints.EndpointUrl;
  *
  * <p>This class encapsulates both the analysis of the URL expression structure (determining whether
  * it can be statically decomposed) and the code emission. When the URL starts with a literal scheme
- * prefix ({@code https://} or {@code http://}), the components (scheme, host, port, path) can be
- * identified at codegen time and emitted as {@code EndpointUrl.fromComponents()} — eliminating all
- * runtime string parsing. Otherwise, falls back to {@code EndpointUrl.fromString()}.
+ * prefix ({@code https://} or {@code http://}) and the components (scheme, host, port, path) can be
+ * identified at codegen time then we eliminate runtime parsing and use {@code EndpointUrl.fromComponents()}.
+ * Otherwise, falls back to {@code EndpointUrl.fromString()} for runtime parsing.
  *
  * <p>The endpoint URL spec guarantees that URLs contain only scheme, host, optional port, and optional
- * base path (no query or fragment). This means any expression appearing after the path boundary is
- * still part of the path component, allowing dynamic paths to be pre-parsed as well.
+ * base path (no query or fragment). Dynamic (template based) resolution are only supported in the host
+ * and path segments in pre-parsing.  Otherwise, we fall back to runtime parsing.
  */
 final class EndpointUrlCodeEmitter {
 
@@ -57,22 +57,21 @@ final class EndpointUrlCodeEmitter {
      */
     static void emit(RuleExpression urlExpr, CodeBlock.Builder builder, CodeGeneratorVisitor codegenVisitor) {
         if (urlExpr instanceof LiteralStringExpression) {
-            emitStaticUrl(((LiteralStringExpression) urlExpr).value(), builder);
+            emitFromLiteralString(((LiteralStringExpression) urlExpr).value(), builder);
             return;
         }
         if (urlExpr instanceof StringConcatExpression) {
-            if (tryEmitFromComponents((StringConcatExpression) urlExpr, builder, codegenVisitor)) {
-                return;
-            }
+            emitFromStringConcat((StringConcatExpression) urlExpr, builder, codegenVisitor);
+            return;
         }
-        // Fallback: emit EndpointUrl.fromString(fullUrl)
-        emitFromString(urlExpr, builder, codegenVisitor);
+        // Expression type we can't decompose (e.g. variable reference, function call)
+        emitRuntimeParse(urlExpr, builder, codegenVisitor);
     }
 
     /**
      * Emit a fully static URL as EndpointUrl.fromComponents() with all literal arguments.
      */
-    private static void emitStaticUrl(String url, CodeBlock.Builder builder) {
+    private static void emitFromLiteralString(String url, CodeBlock.Builder builder) {
         int schemeEnd = url.indexOf("://");
         if (schemeEnd < 0) {
             // No scheme found — shouldn't happen per spec, but fall back safely
@@ -112,23 +111,45 @@ final class EndpointUrlCodeEmitter {
     }
 
     /**
-     * Attempt to emit EndpointUrl.fromComponents() for a StringConcatExpression URL template.
+     * Emit code for a StringConcatExpression URL template. If the URL can be statically decomposed
+     * (starts with a literal scheme prefix), emits {@code EndpointUrl.fromComponents()}. Otherwise,
+     * falls back to {@code EndpointUrl.fromString()} for runtime parsing.
      *
-     * <p>Returns {@code true} if successful (the URL could be decomposed), {@code false} if the
-     * caller should fall back to fromString().
+     * <p> StringConcatExpressions are created by our codegen pre-parser: {@link ExpressionParser}.
+     *  It splits on "{...}" boundaries, producing alternating literal strings and variable/member-access references. The
+     *  result is a StringConcatExpression whose expressions() list interleaves:
+     *  <ul>
+     *      <li>LiteralStringExpression — static text fragments</li>
+     *      <li>VariableReferenceExpression — "{Region}" eg a variable reference to "Region"</li>
+     *      <li>MemberAccessExpression — "{PartitionResult#dnsSuffix}" → member access on variable "PartitionResult"</li>
+     *  </ul>
+     *
+     *  <p>Typical service endpoints follow something like: "https://sts.{Region}.{PartitionResult#dnsSuffix}" which
+     *  parses to something like:
+     * {@snippet :
+     * StringConcatExpression([
+     *     LiteralStringExpression("https://sts."),
+     *     VariableReferenceExpression("Region"),
+     *     LiteralStringExpression("."),
+     *     MemberAccessExpression(source=VarRef("PartitionResult"), name="dnsSuffix")
+     * ])
+     * }
+     *
      */
-    private static boolean tryEmitFromComponents(StringConcatExpression concatExpr,
-                                                 CodeBlock.Builder builder,
-                                                 CodeGeneratorVisitor codegenVisitor) {
+    private static void emitFromStringConcat(StringConcatExpression concatExpr,
+                                             CodeBlock.Builder builder,
+                                             CodeGeneratorVisitor codegenVisitor) {
         List<RuleExpression> expressions = concatExpr.expressions();
         if (expressions.isEmpty()) {
-            return false;
+            emitRuntimeParse(concatExpr, builder, codegenVisitor);
+            return;
         }
 
-        // The first expression must be a literal starting with a scheme
+        // The first expression must be a literal starting with a scheme to preparse
         RuleExpression firstExpr = expressions.get(0);
         if (!(firstExpr instanceof LiteralStringExpression)) {
-            return false;
+            emitRuntimeParse(concatExpr, builder, codegenVisitor);
+            return;
         }
 
         String firstLiteral = ((LiteralStringExpression) firstExpr).value();
@@ -141,7 +162,8 @@ final class EndpointUrlCodeEmitter {
             scheme = "http";
             hostStartStr = firstLiteral.substring(HTTP_SCHEME_PREFIX.length());
         } else {
-            return false;
+            emitRuntimeParse(concatExpr, builder, codegenVisitor);
+            return;
         }
 
         // Scan expressions to find port and path boundaries, collecting host and path parts
@@ -154,7 +176,8 @@ final class EndpointUrlCodeEmitter {
         if (!hostStartStr.isEmpty()) {
             ScanResult scanResult = scanLiteral(hostStartStr, hostParts, pathParts);
             if (!scanResult.parseable) {
-                return false;
+                emitRuntimeParse(concatExpr, builder, codegenVisitor);
+                return;
             }
             if (scanResult.foundPort) {
                 port = scanResult.port;
@@ -168,11 +191,7 @@ final class EndpointUrlCodeEmitter {
 
             if (foundPath) {
                 // Everything after the path boundary is path — literals and expressions alike
-                if (expr instanceof LiteralStringExpression) {
-                    pathParts.add(expr);
-                } else {
-                    pathParts.add(expr);
-                }
+                pathParts.add(expr);
                 continue;
             }
 
@@ -180,7 +199,8 @@ final class EndpointUrlCodeEmitter {
                 String literal = ((LiteralStringExpression) expr).value();
                 ScanResult scanResult = scanLiteral(literal, hostParts, pathParts);
                 if (!scanResult.parseable) {
-                    return false;
+                    emitRuntimeParse(concatExpr, builder, codegenVisitor);
+                    return;
                 }
                 if (scanResult.foundPort) {
                     port = scanResult.port;
@@ -198,14 +218,13 @@ final class EndpointUrlCodeEmitter {
         builder.add(", $L, ", port);
         emitConcatExpression(pathParts, builder, codegenVisitor);
         builder.add(")");
-        return true;
     }
 
     /**
-     * Emit EndpointUrl.fromString(urlExpr) as the fallback.
+     * Emit EndpointUrl.fromString(urlExpr) for runtime parsing when static decomposition isn't possible.
      */
-    private static void emitFromString(RuleExpression urlExpr, CodeBlock.Builder builder,
-                                       CodeGeneratorVisitor codegenVisitor) {
+    private static void emitRuntimeParse(RuleExpression urlExpr, CodeBlock.Builder builder,
+                                         CodeGeneratorVisitor codegenVisitor) {
         builder.add("$T.fromString(", EndpointUrl.class);
         urlExpr.accept(codegenVisitor);
         builder.add(")");
@@ -214,8 +233,9 @@ final class EndpointUrlCodeEmitter {
     /**
      * Emit a list of expression parts as a concatenated expression.
      *
-     * <p>If the list is empty, emits an empty string literal. If it contains a single literal string,
-     * emits that literal directly. Otherwise, emits the parts joined with {@code +}.
+     * <p>If the list is empty, emits an empty string literal. Otherwise, wraps them in a
+     * {@link StringConcatExpression} and delegates to the code generator's existing concat
+     * emission logic.
      */
     private static void emitConcatExpression(List<RuleExpression> parts, CodeBlock.Builder builder,
                                              CodeGeneratorVisitor codegenVisitor) {
@@ -223,18 +243,11 @@ final class EndpointUrlCodeEmitter {
             builder.add("$S", "");
             return;
         }
-        if (parts.size() == 1 && parts.get(0) instanceof LiteralStringExpression) {
-            builder.add("$S", ((LiteralStringExpression) parts.get(0)).value());
-            return;
-        }
-        boolean isFirst = true;
+        StringConcatExpression.Builder concatBuilder = StringConcatExpression.builder();
         for (RuleExpression part : parts) {
-            if (!isFirst) {
-                builder.add(" + ");
-            }
-            part.accept(codegenVisitor);
-            isFirst = false;
+            concatBuilder.addExpression(part);
         }
+        concatBuilder.build().accept(codegenVisitor);
     }
 
     /**
@@ -255,7 +268,8 @@ final class EndpointUrlCodeEmitter {
             }
             pathParts.add(new LiteralStringExpression(literal.substring(slashIdx)));
             return ScanResult.pathFound();
-        } else if (portColonIdx >= 0) {
+        }
+        if (portColonIdx >= 0) {
             // Port found
             String hostPart = literal.substring(0, portColonIdx);
             if (!hostPart.isEmpty()) {
