@@ -40,7 +40,7 @@ public class ShapeNameCollisionValidatorProcessorTest {
 
     @Test
     public void preprocess_shapesCollideByCase_throwsException() throws IOException {
-        ServiceModel serviceModel = loadModel("collision/case-insensitive-service-2.json");
+        ServiceModel serviceModel = loadModel("shape-name-collision-validator/case-insensitive-service-2.json");
         assertThatThrownBy(() -> processor.preprocess(serviceModel))
             .isInstanceOf(ModelInvalidException.class)
             .hasMessageContaining("ReservationType")
@@ -54,12 +54,11 @@ public class ShapeNameCollisionValidatorProcessorTest {
     }
 
     @Test
-    public void preprocess_shapesOfSameTypeCollideByCase_throwsException() throws IOException {
+    public void preprocess_sameTypeShapesCollideByCase_doesNotThrow() throws IOException {
+        // Token/token both resolve to the same class but are both strings, so one harmlessly overwrites the other with
+        // equivalent output. Such pairs exist in shipping models (e.g. String/string) and must not be rejected.
         ServiceModel serviceModel = loadModel("shape-name-collision-validator/same-type-service-2.json");
-        assertThatThrownBy(() -> processor.preprocess(serviceModel))
-            .isInstanceOf(ModelInvalidException.class)
-            .hasMessageContaining("Token")
-            .hasMessageContaining("token");
+        assertThatCode(() -> processor.preprocess(serviceModel)).doesNotThrowAnyException();
     }
 
     @Test

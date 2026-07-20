@@ -55,7 +55,7 @@ public class IntermediateModelBuilderTest {
     @Test
     public void build_shapesCollideByCase_throwsModelInvalid() {
         final File modelFile = new File(IntermediateModelBuilderTest.class
-                                            .getResource("poet/client/c2j/collision/case-insensitive-service-2.json").getFile());
+                                            .getResource("poet/client/c2j/shape-name-collision-validator/case-insensitive-service-2.json").getFile());
 
         assertThatThrownBy(() -> new IntermediateModelBuilder(
             C2jModels.builder()
