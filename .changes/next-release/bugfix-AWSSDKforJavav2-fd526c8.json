@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Update `ResponseInputStream`, to never return `0` from `available()` to avoid cases where other classes such as [`java.util.zip.GZIPInputStream`](https://docs.oracle.com/javase/8/docs/api/java/util/zip/GZIPInputStream.html) misinterpret this as meaning the stream is closed."
+}
