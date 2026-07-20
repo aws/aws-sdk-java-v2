@@ -230,8 +230,6 @@ class AuthSchemeResolutionStageTest {
         );
     }
 
-
-
     @Test
     void execute_authSchemeAlreadyResolved_skipsResolution() throws Exception {
         // Simulate old service interceptor already resolved auth scheme
