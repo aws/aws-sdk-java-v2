@@ -38,6 +38,7 @@ public final class JsonWarmUpProvider implements SdkWarmUpProvider {
             try (JsonClient client = JsonClient.builder().httpClient(httpClient)
                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                client.paginatedOperationWithResultKey();
             }
         }
         if (clientType == ClientType.ASYNC) {
@@ -46,6 +47,7 @@ public final class JsonWarmUpProvider implements SdkWarmUpProvider {
             try (JsonAsyncClient asyncClient = JsonAsyncClient.builder().httpClient(asyncHttpClient)
                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                asyncClient.paginatedOperationWithResultKey().join();
             }
         }
     }

@@ -15,6 +15,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.xml.XmlAsyncClient;
 import software.amazon.awssdk.services.xml.XmlClient;
+import software.amazon.awssdk.services.xml.model.GetOperationWithChecksumRequest;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
@@ -38,6 +39,7 @@ public final class XmlWarmUpProvider implements SdkWarmUpProvider {
             try (XmlClient client = XmlClient.builder().httpClient(httpClient)
                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                client.getOperationWithChecksum(GetOperationWithChecksumRequest.builder().build());
             }
         }
         if (clientType == ClientType.ASYNC) {
@@ -46,6 +48,7 @@ public final class XmlWarmUpProvider implements SdkWarmUpProvider {
             try (XmlAsyncClient asyncClient = XmlAsyncClient.builder().httpClient(asyncHttpClient)
                     .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                asyncClient.getOperationWithChecksum(GetOperationWithChecksumRequest.builder().build()).join();
             }
         }
     }
