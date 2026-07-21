@@ -55,7 +55,7 @@ public final class S3ExpressUtils {
         AuthSchemeOptionsResolver resolver =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER);
         if (resolver != null) {
-            List<AuthSchemeOption> options = resolver.resolve(request);
+            List<AuthSchemeOption> options = resolver.resolve(request, executionAttributes);
             return options.stream().anyMatch(o -> S3ExpressAuthScheme.SCHEME_ID.equals(o.schemeId()));
         }
         return false;

@@ -82,7 +82,7 @@ public final class AuthSchemeResolver {
             identityProviders = resolver.resolve(request, identityProviders, executionAttributes);
         }
 
-        List<AuthSchemeOption> authOptions = optionsResolver.resolve(request);
+        List<AuthSchemeOption> authOptions = optionsResolver.resolve(request, executionAttributes);
         return selectAuthScheme(authOptions, authSchemes, identityProviders, null);
     }
 

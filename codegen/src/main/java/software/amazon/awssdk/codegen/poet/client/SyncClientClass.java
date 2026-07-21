@@ -141,9 +141,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(resolveMetricPublishersMethod())
             .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
-            .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
-            .addMethod(ClientClassUtils.authSchemeResolverFactoryMethod())
-            .addMethod(ClientClassUtils.endpointResolverFactoryMethod());
+            .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
