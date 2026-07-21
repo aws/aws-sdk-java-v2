@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS EntityResolution",
+    "contributor": "",
+    "description": "Add support for real time matching with AWS Entity Resolution matching workflows with advanced rule sets."
+}
