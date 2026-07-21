@@ -345,7 +345,7 @@ public abstract class BaseRetryStrategy implements DefaultAwareRetryStrategy {
                              response.maxCapacity());
     }
 
-    private void logAcquireInitialToken(AcquireInitialTokenRequest request) {
+    protected void logAcquireInitialToken(AcquireInitialTokenRequest request) {
         // Request attempt 1 token acquired (backoff: 0ms, cost: 0, capacity: 500/500)
         TokenBucket tokenBucket = tokenBucketStore.tokenBucketForScope(request.scope());
         log.debug(() -> String.format("Request attempt 1 token acquired "

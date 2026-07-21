@@ -58,6 +58,7 @@ public final class DefaultAdaptiveRetryStrategy
 
     @Override
     public CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
+        logAcquireInitialToken(request);
         RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(request.scope());
         CompletableFuture<Void> acquireResult = bucket.acquireAsync();
 
@@ -70,19 +71,23 @@ public final class DefaultAdaptiveRetryStrategy
     @Override
     public CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
         DefaultRetryToken token = (DefaultRetryToken) request.token();
-        Pair<DefaultRetryToken, AcquireResponse> refreshedToken;
+        Pair<DefaultRetryToken, AcquireResponse> refreshResult;
         try {
-            refreshedToken = refreshTokenOrThrow(request);
+            refreshResult = refreshTokenOrThrow(request);
         } catch (Throwable t) {
             return CompletableFutureUtils.failedFuture(t);
         }
 
+        DefaultRetryToken refreshedToken = refreshResult.left();
+        AcquireResponse acquireResponse = refreshResult.right();
         RateLimiterTokenBucket bucket = rateLimiterTokenBucketStore.tokenBucketForScope(token.scope());
         CompletableFuture<Void> acquireResult = bucket.acquireAsync();
         return acquireResult.thenApply(r -> {
-            Duration backoff = computeBackoff(request, refreshedToken.left());
-            logRefreshTokenSuccess(refreshedToken.left(), refreshedToken.right(), backoff);
-            return RefreshRetryTokenResponse.create(refreshedToken.left(), backoff);
+            // Note: This is the backoff imposed standard retry strategy, *not* the rate limiter. This must still be honored by
+            // the caller before sending the request.
+            Duration backoff = computeBackoff(request, refreshedToken);
+            logRefreshTokenSuccess(refreshedToken, acquireResponse, backoff);
+            return RefreshRetryTokenResponse.create(refreshedToken, backoff);
         });
     }
 
