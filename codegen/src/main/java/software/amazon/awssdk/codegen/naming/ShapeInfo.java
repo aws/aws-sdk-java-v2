@@ -17,7 +17,10 @@ package software.amazon.awssdk.codegen.naming;
 
 import java.util.Map;
 import software.amazon.awssdk.codegen.internal.Utils;
-import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.shapes.MapShape;
+import software.amazon.smithy.model.shapes.Shape;
+import software.amazon.smithy.model.traits.ErrorTrait;
 
 /**
  * A read-only view of a service model shape, exposing the predicates
@@ -26,7 +29,8 @@ import software.amazon.awssdk.codegen.model.service.Shape;
  * consults when deriving Java names for members and accessors.
  *
  * <p>Adapters for specific model formats are provided as static factories;
- * see {@link #ofC2j(Shape, Map)}.
+ * see {@link #ofC2j(software.amazon.awssdk.codegen.model.service.Shape, Map)}
+ * for C2J and {@link #ofSmithy(Shape, Model)} for Smithy.
  */
 public interface ShapeInfo {
 
@@ -57,16 +61,17 @@ public interface ShapeInfo {
     boolean isMap();
 
     /**
-     * Adapts a C2J {@link Shape} into a {@link ShapeInfo}. Uses the same
-     * predicates {@link Utils} exposes today, so behavior is unchanged from
-     * pre-refactor call sites.
+     * Adapts a C2J {@link software.amazon.awssdk.codegen.model.service.Shape}
+     * into a {@link ShapeInfo}. Uses the same predicates {@link Utils} exposes
+     * today, so behavior is unchanged from pre-refactor call sites.
      *
      * @param shape the C2J shape (must not be null when the caller intends to
      *              query any of the shape-relative predicates).
      * @param allShapes the service's full shape map, needed for the
      *                  {@code isOrContainsEnum} recursion into list/map targets.
      */
-    static ShapeInfo ofC2j(Shape shape, Map<String, Shape> allShapes) {
+    static ShapeInfo ofC2j(software.amazon.awssdk.codegen.model.service.Shape shape,
+                           Map<String, software.amazon.awssdk.codegen.model.service.Shape> allShapes) {
         return new ShapeInfo() {
             @Override
             public boolean isUnion() {
@@ -93,5 +98,67 @@ public interface ShapeInfo {
                 return Utils.isMapShape(shape);
             }
         };
+    }
+
+    /**
+     * Adapts a Smithy {@link Shape} into a {@link ShapeInfo}. Predicates are
+     * derived from the shape's type (union, list, map) and traits (exception
+     * via {@link ErrorTrait}); enum recursion looks at Smithy 2.0
+     * {@code EnumShape}/{@code IntEnumShape} members through list and map
+     * targets using the provided {@code Model}.
+     *
+     * @param shape the Smithy shape (must not be null when the caller
+     *              intends to query any of the shape-relative predicates).
+     * @param model the loaded Smithy model, needed to resolve list element
+     *              and map key/value targets for the enum-recursion check.
+     */
+    static ShapeInfo ofSmithy(Shape shape, Model model) {
+        return new ShapeInfo() {
+            @Override
+            public boolean isUnion() {
+                return shape.isUnionShape();
+            }
+
+            @Override
+            public boolean isException() {
+                return shape.hasTrait(ErrorTrait.class);
+            }
+
+            @Override
+            public boolean isOrContainsEnum() {
+                return isOrContainsEnumSmithy(shape, model);
+            }
+
+            @Override
+            public boolean isList() {
+                return shape.isListShape();
+            }
+
+            @Override
+            public boolean isMap() {
+                return shape.isMapShape();
+            }
+        };
+    }
+
+    /**
+     * Recursively determines whether a Smithy shape is (or transitively
+     * contains) a Smithy 2.0 enum shape.
+     */
+    static boolean isOrContainsEnumSmithy(Shape shape, Model model) {
+        if (shape.isEnumShape() || shape.isIntEnumShape()) {
+            return true;
+        }
+        if (shape.isListShape()) {
+            Shape element = model.expectShape(shape.asListShape().get().getMember().getTarget());
+            return isOrContainsEnumSmithy(element, model);
+        }
+        if (shape.isMapShape()) {
+            MapShape map = shape.asMapShape().get();
+            Shape key = model.expectShape(map.getKey().getTarget());
+            Shape value = model.expectShape(map.getValue().getTarget());
+            return isOrContainsEnumSmithy(key, model) || isOrContainsEnumSmithy(value, model);
+        }
+        return false;
     }
 }
