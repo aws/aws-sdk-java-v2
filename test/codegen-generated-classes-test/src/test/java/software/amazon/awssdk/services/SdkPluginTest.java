@@ -40,6 +40,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -147,19 +148,6 @@ public class SdkPluginTest {
                 })),
             new TestCase<Region>("region")
                 .defaultValue(Region.US_WEST_2)
-                .nonDefaultValue(Region.US_EAST_1)
-                .clientSetter(AwsClientBuilder::region)
-                .pluginSetter(ProtocolRestJsonServiceClientConfiguration.Builder::region)
-                .pluginValidator((c, v) -> assertThat(c.region()).isEqualTo(v))
-                .beforeTransmissionValidator((r, a, v) -> {
-                    assertThat(r.httpRequest()
-                                .firstMatchingHeader("Authorization")).get()
-                                                                      .asString()
-                                                                      .contains(v.id());
-                    assertThat(r.httpRequest().getUri().getHost()).contains(v.id());
-                }),
-            new TestCase<Region>("noDefaultRegion")
-                .useNoRegionClient()
                 .nonDefaultValue(Region.US_EAST_1)
                 .clientSetter(AwsClientBuilder::region)
                 .pluginSetter(ProtocolRestJsonServiceClientConfiguration.Builder::region)
@@ -391,7 +379,7 @@ public class SdkPluginTest {
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void clientPluginSeesDefaultValue(TestCase<T> testCase) {
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
 
         AtomicInteger timesCalled = new AtomicInteger(0);
         SdkPlugin plugin = config -> {
@@ -411,7 +399,7 @@ public class SdkPluginTest {
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void requestPluginSeesDefaultValue(TestCase<T> testCase) {
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
 
         AtomicInteger timesCalled = new AtomicInteger(0);
         SdkPlugin plugin = config -> {
@@ -432,7 +420,7 @@ public class SdkPluginTest {
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void clientPluginSeesCustomerClientConfiguredValue(TestCase<T> testCase) {
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
         testCase.clientSetter.accept(clientBuilder, testCase.nonDefaultValue);
 
         AtomicInteger timesCalled = new AtomicInteger(0);
@@ -455,7 +443,7 @@ public class SdkPluginTest {
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void requestPluginSeesCustomerClientConfiguredValue(TestCase<T> testCase) {
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
         testCase.clientSetter.accept(clientBuilder, testCase.nonDefaultValue);
 
         AtomicInteger timesCalled = new AtomicInteger(0);
@@ -482,7 +470,7 @@ public class SdkPluginTest {
             return;
         }
 
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
 
         AtomicInteger timesCalled = new AtomicInteger(0);
         SdkPlugin plugin = config -> {
@@ -515,7 +503,7 @@ public class SdkPluginTest {
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void clientPluginSetValueIsUsed(TestCase<T> testCase) {
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
         testCase.clientSetter.accept(clientBuilder, testCase.defaultValue);
 
         AtomicInteger timesPluginCalled = new AtomicInteger(0);
@@ -556,7 +544,7 @@ public class SdkPluginTest {
     @ParameterizedTest
     @MethodSource("testCases")
     public <T> void requestPluginSetValueIsUsed(TestCase<T> testCase) {
-        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder(testCase.noRegionClient);
+        ProtocolRestJsonClientBuilder clientBuilder = defaultClientBuilder();
         testCase.clientSetter.accept(clientBuilder, testCase.defaultValue);
 
         AtomicInteger timesPluginCalled = new AtomicInteger(0);
@@ -608,12 +596,17 @@ public class SdkPluginTest {
         assertThat(timesInterceptorCalled).hasValueGreaterThanOrEqualTo(1);
     }
 
-    private static ProtocolRestJsonClientBuilder defaultClientBuilder(boolean useNoRegionClient) {
-        if (useNoRegionClient) {
-            return ProtocolRestJsonClient.builder().credentialsProvider(DEFAULT_CREDENTIALS);
-        } else {
-            return ProtocolRestJsonClient.builder().region(Region.US_WEST_2).credentialsProvider(DEFAULT_CREDENTIALS);
-        }
+    @Test
+    public void pluginSetRegionIsUsed() {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+            .addPlugin(config -> ((ProtocolRestJsonServiceClientConfiguration.Builder) config).region(Region.US_EAST_1))
+            .credentialsProvider(DEFAULT_CREDENTIALS)
+            .build();
+        assertThat(client.serviceClientConfiguration().region()).isEqualTo(Region.US_EAST_1);
+    }
+
+    private static ProtocolRestJsonClientBuilder defaultClientBuilder() {
+        return ProtocolRestJsonClient.builder().region(Region.US_WEST_2).credentialsProvider(DEFAULT_CREDENTIALS);
     }
 
     private SdkClientConfiguration extractClientConfiguration(ProtocolRestJsonClient client) {
@@ -630,7 +623,6 @@ public class SdkPluginTest {
 
     static class TestCase<T> {
         private final String configName;
-        boolean noRegionClient = false;
         T defaultValue;
         T nonDefaultValue;
         BiConsumer<ProtocolRestJsonClientBuilder, T> clientSetter;
@@ -682,11 +674,6 @@ public class SdkPluginTest {
 
         public TestCase<T> beforeTransmissionValidator(TriConsumer<Context.BeforeTransmission, ExecutionAttributes, T> beforeTransmissionValidator) {
             this.beforeTransmissionValidator = beforeTransmissionValidator;
-            return this;
-        }
-
-        public TestCase<T> useNoRegionClient() {
-            this.noRegionClient = true;
             return this;
         }
 
