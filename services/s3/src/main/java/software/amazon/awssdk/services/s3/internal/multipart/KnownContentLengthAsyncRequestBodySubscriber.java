@@ -268,14 +268,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
     }
 
     private void completeMultipartUploadIfFinished() {
-        // asyncRequestBodyInFlight MUST be re-read here rather than passed in by the caller. In the upload
-        // completion callback, subscription.request(1) is invoked between decrementAndGet() and this method,
-        // which can synchronously deliver the final AsyncRequestBody (starting a new upload) followed by
-        // onComplete() (setting isDone). A stale snapshot of 0 taken before those deliveries would then
-        // initiate CompleteMultipartUpload while the final part is still in flight, completing the upload
-        // with a missing (null) part. Reading isDone (volatile) before the counter guarantees that, once
-        // isDone is observed as true, all onNext() increments are visible, so a fresh read of 0 means every
-        // upload that was started has finished and its CompletedPart is visible in completedParts.
+        // All atomics including asyncRequestBodyInFlight MUST be re-read here rather than passed in by the caller.
         if (isDone && asyncRequestBodyInFlight.get() == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
             CompletedPart[] parts;
 
