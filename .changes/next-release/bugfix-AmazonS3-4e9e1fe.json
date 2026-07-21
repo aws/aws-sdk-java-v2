@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "rishabhjainps",
+    "description": "Fixed an issue in multipart download where a failed download could surface a bare CancellationException with no root cause. ParallelMultipartDownloaderSubscriber.onError now completes the result future with the original throwable before cancelling in-flight part requests, matching the sibling ParallelPresignedUrlMultipartDownloaderSubscriber, and logs the cause at debug level."
+}
