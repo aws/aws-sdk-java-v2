@@ -32,6 +32,7 @@ import java.net.URI;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -47,11 +48,16 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
+import software.amazon.awssdk.services.json.JsonAsyncClient;
+import software.amazon.awssdk.services.json.JsonAsyncClientBuilder;
 import software.amazon.awssdk.services.json.JsonClient;
+import software.amazon.awssdk.services.json.JsonClientBuilder;
 
 /**
  * End-to-end testing for testing the correctness of the rate limiting implementation of the adaptive retry strategy.
@@ -93,24 +99,61 @@ class AdaptiveRetryRateLimitingTest {
         }
     }
 
+    @Test
+    void staticServerThrottling_sync() throws Exception {
+        JsonClientBuilder builder = JsonClient.builder();
+        configure(builder);
+        JsonClient client = builder.build();
+
+        Callable<Void> c = () -> {
+            client.allType(r -> {});
+            return null;
+        };
+
+        try {
+            testStaticServerThrottling(c);
+        } finally {
+            client.close();
+        }
+    }
+
+    @Test
+    void staticServerThrottling_async() throws Exception {
+        JsonAsyncClientBuilder builder = JsonAsyncClient.builder();
+        configure(builder);
+        JsonAsyncClient client = builder.build();
+
+        Callable<Void> c = () -> {
+            client.allType(r -> {}).join();
+            return null;
+        };
+
+        try {
+            testStaticServerThrottling(c);
+        } finally {
+            client.close();
+        }
+    }
+
+    private void configure(AwsClientBuilder<?, ?> builder) {
+        AdaptiveRetryStrategy adaptiveRetryStrategy = AwsRetryStrategy.adaptiveRetryStrategy(true);
+
+        builder.endpointOverride(URI.create(wm.baseUrl()))
+               .region(Region.US_WEST_2)
+               .credentialsProvider(StaticCredentialsProvider.create(
+                   AwsBasicCredentials.create("akid", "secret")))
+               .overrideConfiguration(o -> o.retryStrategy(adaptiveRetryStrategy))
+               .build();
+    }
+
     /**
      * The server has a static max TPS of 20 before responding with throttling exceptions. The client sending rate should match
      * this within an acceptable margin.
      */
-    @Test
-    void staticServerThrottling() throws Exception {
+    void testStaticServerThrottling(Callable<?> operationInvoker) throws Exception {
 
         wm.stubFor(any(anyUrl()).willReturn(aResponse().withTransformers("throttling")));
 
-        AdaptiveRetryStrategy adaptiveRetryStrategy = AwsRetryStrategy.adaptiveRetryStrategy(true);
-
-        JsonClient client = JsonClient.builder()
-                                      .endpointOverride(URI.create(wm.baseUrl()))
-                                      .region(Region.US_WEST_2)
-                                      .credentialsProvider(StaticCredentialsProvider.create(
-                                          AwsBasicCredentials.create("akid", "secret")))
-                                      .overrideConfiguration(o -> o.retryStrategy(adaptiveRetryStrategy))
-                                      .build();
 
         Instant startT = Instant.now();
         Instant endAt = startT.plus(testDuration);
@@ -122,8 +165,7 @@ class AdaptiveRetryRateLimitingTest {
                                                .mapToObj(i -> pool.submit(() -> {
                                                    while (!stop.get() && Instant.now().isBefore(endAt)) {
                                                        try {
-                                                           client.allType(r -> {
-                                                           });
+                                                           operationInvoker.call();
                                                        } catch (Exception e) {
                                                            // We measure wire-level TPS, not call success.
                                                            // Throttling exceptions surface here once retries are exhausted.
