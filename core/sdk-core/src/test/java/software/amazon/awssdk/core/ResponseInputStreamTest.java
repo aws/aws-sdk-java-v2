@@ -135,17 +135,24 @@ class ResponseInputStreamTest {
     }
 
     @Test
-    void zeroAvailable_returns1() throws IOException {
+    void zeroAvailable_availableReturns1() throws IOException {
         when(stream.available()).thenReturn(0);
         ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ZERO);
         assertThat(responseInputStream.available()).isEqualTo(1);
     }
 
     @Test
-    void nonZeroAvailable_returnsValue() throws IOException {
+    void nonZeroAvailable_availableReturnsValue() throws IOException {
         when(stream.available()).thenReturn(42);
         ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ZERO);
         assertThat(responseInputStream.available()).isEqualTo(42);
+    }
+
+    @Test
+    void closed_AvailableReturns0() throws IOException {
+        ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ZERO);
+        responseInputStream.close();
+        assertThat(responseInputStream.available()).isZero();
     }
 
     private ResponseInputStream<Object> responseInputStream(Duration timeout) {

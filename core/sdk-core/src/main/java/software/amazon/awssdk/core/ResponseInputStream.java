@@ -119,13 +119,17 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     }
 
     /**
-     * Note: Unlike the default implementation, this class will never return 0 to avoid cases where other classes mistake this
-     * value as a signal that the stream is closed.
+     * Note: Unlike the default implementation, this class will only return 0 if the stream is closed. This is to avoid cases
+     * where other classes mistake this value as a signal that the stream is closed when it isn't.
      * <p>
      * {@inheritDoc}
      */
     @Override
     public int available() throws IOException {
+        if (isClosed()) {
+            return 0;
+        }
+
         int estimate = super.available();
         // Some utilities like java.util.zip.GZIPInputStream use this incorrectly to determine if the stream is *closed* when the
         // return value is 0. Guard against misuse of this by returning 1 instead of 0.

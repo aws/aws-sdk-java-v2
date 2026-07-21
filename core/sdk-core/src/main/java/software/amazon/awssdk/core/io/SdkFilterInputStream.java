@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.io;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.internal.io.Releasable;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.utils.IoUtils;
  */
 @SdkProtectedApi
 public class SdkFilterInputStream extends FilterInputStream implements Releasable {
+    private final AtomicBoolean closed = new AtomicBoolean(false);
 
     protected SdkFilterInputStream(InputStream in) {
         super(in);
@@ -41,6 +43,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
      */
     protected final void abortIfNeeded() {
         if (Thread.currentThread().isInterrupted()) {
+            closed.compareAndSet(false, true);
             abort();    // execute subclass specific abortion logic
             throw AbortedException.builder().build();
         }
@@ -54,16 +57,24 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
         // no-op by default, but subclass such as S3ObjectInputStream may override
     }
 
+    protected boolean isClosed() {
+        return closed.get();
+    }
+
     @Override
     public int read() throws IOException {
         abortIfNeeded();
-        return in.read();
+        int b = in.read();
+        closed.compareAndSet(false, b == -1);
+        return b;
     }
 
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         abortIfNeeded();
-        return in.read(b, off, len);
+        int nRead = in.read(b, off, len);
+        closed.compareAndSet(false, nRead == -1);
+        return nRead;
     }
 
     @Override
@@ -80,6 +91,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
 
     @Override
     public void close() throws IOException {
+        closed.compareAndSet(false, true);
         in.close();
         abortIfNeeded();
     }
@@ -104,6 +116,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
 
     @Override
     public void release() {
+        closed.compareAndSet(false, true);
         // Don't call IOUtils.release(in, null) or else could lead to infinite loop
         IoUtils.closeQuietly(this, null);
         if (in instanceof Releasable) {
