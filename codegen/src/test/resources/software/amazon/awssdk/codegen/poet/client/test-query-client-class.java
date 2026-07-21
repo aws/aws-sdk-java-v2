@@ -7,7 +7,7 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -28,10 +28,10 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
-import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
@@ -39,7 +39,6 @@ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
-import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.endpoints.Endpoint;
@@ -181,8 +180,7 @@ final class DefaultQueryClient implements QueryClient {
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
                                              .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(authSchemeResolver("APostOperation", clientConfiguration))
-                                             .withEndpointResolver(endpointResolver("APostOperation"))
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -233,9 +231,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("APostOperationWithOutput", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("APostOperationWithOutput"))
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -281,8 +278,7 @@ final class DefaultQueryClient implements QueryClient {
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
                                              .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(authSchemeResolver("BearerAuthOperation", clientConfiguration))
-                                             .withEndpointResolver(endpointResolver("BearerAuthOperation"))
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -333,8 +329,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(getOperationWithChecksumRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("GetOperationWithChecksum", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("GetOperationWithChecksum"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
@@ -390,9 +386,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithChecksumRequiredRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 authSchemeResolver("OperationWithChecksumRequired", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithChecksumRequired"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create())
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
@@ -441,9 +436,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithContextParam").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("OperationWithContextParam", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithContextParam"))
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -491,9 +485,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithCustomMember").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithCustomMemberRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("OperationWithCustomMember", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithCustomMember"))
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithCustomMemberRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -539,15 +532,11 @@ final class DefaultQueryClient implements QueryClient {
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithCustomizedOperationContextParamRequest, OperationWithCustomizedOperationContextParamResponse>()
                              .withOperationName("OperationWithCustomizedOperationContextParam")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
+                             .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithCustomizedOperationContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 authSchemeResolver("OperationWithCustomizedOperationContextParam", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithCustomizedOperationContextParam"))
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithCustomizedOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -592,16 +581,12 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithMapOperationContextParamRequest, OperationWithMapOperationContextParamResponse>()
-                             .withOperationName("OperationWithMapOperationContextParam")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
+                             .withOperationName("OperationWithMapOperationContextParam").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithMapOperationContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 authSchemeResolver("OperationWithMapOperationContextParam", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithMapOperationContextParam"))
+                             .withInput(operationWithMapOperationContextParamRequest).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithMapOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -648,9 +633,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("OperationWithNoneAuthType", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithNoneAuthType"))
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -695,16 +679,11 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithOperationContextParamRequest, OperationWithOperationContextParamResponse>()
-                             .withOperationName("OperationWithOperationContextParam")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithOperationContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 authSchemeResolver("OperationWithOperationContextParam", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithOperationContextParam"))
+                             .withOperationName("OperationWithOperationContextParam").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(operationWithOperationContextParamRequest)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -755,9 +734,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithRequestCompressionRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 authSchemeResolver("OperationWithRequestCompression", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithRequestCompression"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
@@ -803,16 +781,11 @@ final class DefaultQueryClient implements QueryClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithStaticContextParamsRequest, OperationWithStaticContextParamsResponse>()
-                             .withOperationName("OperationWithStaticContextParams")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithStaticContextParamsRequest)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 authSchemeResolver("OperationWithStaticContextParams", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("OperationWithStaticContextParams"))
+                             .withOperationName("OperationWithStaticContextParams").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(operationWithStaticContextParamsRequest)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -889,8 +862,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(putOperationWithChecksumRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("PutOperationWithChecksum", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("PutOperationWithChecksum"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum
@@ -969,8 +942,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(streamingInputOperationRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("StreamingInputOperation", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("StreamingInputOperation"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withRequestBody(requestBody)
                              .withMarshaller(
                                  StreamingRequestMarshaller.builder()
@@ -1028,10 +1001,8 @@ final class DefaultQueryClient implements QueryClient {
                     .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(authSchemeResolver("StreamingOutputOperation", clientConfiguration))
-                    .withEndpointResolver(endpointResolver("StreamingOutputOperation"))
-                    .withResponseTransformer(responseTransformer)
+                    .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint).withResponseTransformer(responseTransformer)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1071,23 +1042,25 @@ final class DefaultQueryClient implements QueryClient {
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         QueryAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
             .map(p -> Validate.isInstanceOf(QueryAuthSchemeProvider.class, p,
                                             "Expected an instance of QueryAuthSchemeProvider")).orElse(null);
         QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(QueryAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            .isInstanceOf(QueryAuthSchemeProvider.class,
+                          executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of QueryAuthSchemeProvider");
         QueryAuthSchemeParams.Builder paramsBuilder = QueryAuthSchemeParams.builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
@@ -1116,14 +1089,6 @@ final class DefaultQueryClient implements QueryClient {
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
-    }
-
-    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
-        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
-    }
-
-    private EndpointResolver endpointResolver(String operationName) {
-        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
