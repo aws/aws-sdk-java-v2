@@ -100,6 +100,17 @@ public class SdkFilterInputStreamTest {
         }
     }
 
+    @Test
+    void isClosed_eofThenReset_returnsTrue() throws IOException {
+        when(mockStream.read()).thenReturn(-1);
+        filterInputStream.read();
+        assertThat(filterInputStream.isClosed()).isTrue();
+
+        filterInputStream.reset();
+
+        assertThat(filterInputStream.isClosed()).isFalse();
+    }
+
     private static class TestInputStream extends SdkFilterInputStream {
 
         protected TestInputStream(InputStream in) {

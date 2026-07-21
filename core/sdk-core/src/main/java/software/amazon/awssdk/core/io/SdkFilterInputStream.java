@@ -105,6 +105,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
     @Override
     public synchronized void reset() throws IOException {
         abortIfNeeded();
+        closed.set(false);
         in.reset();
     }
 
