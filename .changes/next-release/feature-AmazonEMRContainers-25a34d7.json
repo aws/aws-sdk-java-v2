@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EMR Containers",
-    "contributor": "",
-    "description": "Added support for the DeleteSecurityConfiguration API, which allows customers to delete security configurations in Amazon EMR on EKS. Also added authenticationConfiguration in securityConfigurationdata structure."
-}
