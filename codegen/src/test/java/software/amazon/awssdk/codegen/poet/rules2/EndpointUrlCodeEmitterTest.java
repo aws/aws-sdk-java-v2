@@ -304,4 +304,31 @@ class EndpointUrlCodeEmitterTest {
         assertThat(code).contains("Bucket");
         assertThat(code).doesNotContain("fromString");
     }
+
+    /**
+     * Custom endpoint override: "{url#scheme}://{url#authority}{url#path}"
+     *
+     * <p>This is the standard representation when a user provides a custom endpoint URL via
+     * client configuration. The endpoint rule decomposes the user-provided URL into its parts
+     * (scheme, authority, path) and reassembles them with possible modifications (e.g., host prefix).
+     * Since the scheme is a dynamic expression (not a literal "https://" or "http://"), this
+     * cannot be pre-parsed and must fall back to runtime parsing.
+     */
+    @Test
+    void emit_customEndpointOverride_emitsFromString() {
+        StringConcatExpression urlExpr = StringConcatExpression.builder()
+            .addExpression(memberAccess("url", "scheme"))
+            .addExpression(literal("://"))
+            .addExpression(memberAccess("url", "authority"))
+            .addExpression(memberAccess("url", "path"))
+            .build();
+
+        String code = emitUrl(urlExpr);
+
+        assertThat(code).contains("EndpointUrl.fromString(");
+        assertThat(code).contains("url.scheme()");
+        assertThat(code).contains("url.authority()");
+        assertThat(code).contains("url.path()");
+        assertThat(code).doesNotContain("fromComponents");
+    }
 }
