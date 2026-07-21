@@ -18,24 +18,34 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.utils.Pair;
 
 public class UnknownContentLengthAsyncRequestBodySubscriberTest {
 
@@ -163,6 +173,158 @@ public class UnknownContentLengthAsyncRequestBodySubscriberTest {
         subscriber.onComplete();
 
         verify(multipartUploadHelper).uploadInOneChunk(eq(putObjectRequest), any(), eq(returnFuture));
+    }
+
+    /**
+     * Regression test for the "Expected: N, Actual: N-1" part-count failure seen with low maxInFlightParts.
+     *
+     * <p>In the upload completion callback, {@code subscription.request(1)} is invoked between
+     * {@code asyncRequestBodyInFlight.decrementAndGet()} and {@code completeMultipartUploadIfFinish}.
+     * The upstream SimplePublisher delivers queued signals synchronously on the requesting thread, so that
+     * request can deliver the final AsyncRequestBody (starting a new upload) followed by onComplete()
+     * (setting isDone) before the callback finishes. If completion is then decided using the stale
+     * decrement snapshot of 0, CompleteMultipartUpload is initiated while the final part is still in
+     * flight, and the upload fails with "The number of UploadParts requests is not equal to the expected
+     * number of parts" (or, without the part-count validation, would complete with a missing part).
+     *
+     * <p>This test scripts that exact delivery order with a Subscription that mimics SimplePublisher's
+     * synchronous, demand-gated delivery.
+     */
+    @Test
+    void lastBodyAndOnCompleteDeliveredInsideCompletionCallback_shouldCompleteWithAllParts() {
+        int maxInFlight = 2;
+        int numParts = 5;
+        UnknownContentLengthAsyncRequestBodySubscriber subscriber = createSubscriber(maxInFlight);
+
+        stubSuccessfulCreateMultipartCall();
+        when(genericMultipartHelper.determinePartCount(anyLong(), anyLong()))
+            .thenAnswer(invocation -> (int) Math.ceil(invocation.getArgument(0, Long.class)
+                                                      / (double) invocation.getArgument(1, Long.class)));
+        UploadPartRecorder recorder = new UploadPartRecorder();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(any(), any(), any(), any(), any()))
+            .thenAnswer(recorder);
+
+        ScriptedSubscription subscription = new ScriptedSubscription(subscriber);
+        subscriber.onSubscribe(subscription);
+
+        subscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // held as firstRequestBody
+        subscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // triggers MPU; parts 1, 2 start
+        recorder.completePart(1);                                                  // frees a slot
+        subscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // part 3 starts
+        recorder.completePart(2);
+        subscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // part 4 starts
+
+        // Part 3 completes while the final chunk is not buffered yet: its request(1) delivers nothing.
+        recorder.completePart(3);
+
+        // The producer now queues the final body and the stream-complete signal. They will be delivered
+        // synchronously inside the next request(1), which happens in part 4's completion callback,
+        // between its decrementAndGet() (returning the stale 0) and completeMultipartUploadIfFinish.
+        subscription.enqueueBodyQuietly(createMockAsyncRequestBody(PART_SIZE));
+        subscription.enqueueStreamCompleteQuietly();
+        recorder.completePart(4);
+
+        // With the stale-snapshot bug, completion was initiated here with only 4 parts:
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+        verify(multipartUploadHelper, never()).completeMultipartUpload(any(), any(), any(), any(), anyLong());
+
+        // Part 5's upload finishes; only now should CompleteMultipartUpload be sent, with all 5 parts.
+        recorder.completePart(5);
+
+        ArgumentCaptor<CompletedPart[]> partsCaptor = ArgumentCaptor.forClass(CompletedPart[].class);
+        verify(multipartUploadHelper).completeMultipartUpload(eq(returnFuture), eq(UPLOAD_ID), partsCaptor.capture(),
+                                                              eq(putObjectRequest), eq(numParts * PART_SIZE));
+        assertThat(partsCaptor.getValue()).hasSize(numParts).doesNotContainNull();
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+    }
+
+    /**
+     * Records the consumer and pending future of each UploadPart request so the test can complete parts
+     * the same way MultipartUploadHelper does: consumer.accept(completedPart) followed by future completion.
+     */
+    private static final class UploadPartRecorder implements org.mockito.stubbing.Answer<CompletableFuture<CompletedPart>> {
+        private final Map<Integer, Consumer<CompletedPart>> consumers = new HashMap<>();
+        private final Map<Integer, CompletableFuture<CompletedPart>> futures = new HashMap<>();
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public CompletableFuture<CompletedPart> answer(org.mockito.invocation.InvocationOnMock invocation) {
+            Consumer<CompletedPart> consumer = invocation.getArgument(1, Consumer.class);
+            Pair<UploadPartRequest, AsyncRequestBody> pair = invocation.getArgument(3, Pair.class);
+            int partNumber = pair.left().partNumber();
+            CompletableFuture<CompletedPart> future = new CompletableFuture<>();
+            consumers.put(partNumber, consumer);
+            futures.put(partNumber, future);
+            return future;
+        }
+
+        void completePart(int partNumber) {
+            CompletableFuture<CompletedPart> future = futures.get(partNumber);
+            assertThat(future).withFailMessage("UploadPart request for part %d was never sent", partNumber).isNotNull();
+            CompletedPart part = CompletedPart.builder().partNumber(partNumber).eTag("etag-" + partNumber).build();
+            consumers.get(partNumber).accept(part);
+            future.complete(part);
+        }
+    }
+
+    /**
+     * A Subscription that mimics {@link software.amazon.awssdk.utils.async.SimplePublisher}: queued signals
+     * are delivered synchronously on the thread that calls request(), onNext delivery is gated on demand,
+     * and onComplete is delivered once the queue drains, without needing demand.
+     */
+    private static final class ScriptedSubscription implements Subscription {
+        private final UnknownContentLengthAsyncRequestBodySubscriber subscriber;
+        private final Deque<CloseableAsyncRequestBody> queuedBodies = new ArrayDeque<>();
+        private long demand;
+        private boolean streamComplete;
+        private boolean onCompleteDelivered;
+        private boolean draining;
+
+        ScriptedSubscription(UnknownContentLengthAsyncRequestBodySubscriber subscriber) {
+            this.subscriber = subscriber;
+        }
+
+        @Override
+        public void request(long n) {
+            demand += n;
+            drain();
+        }
+
+        @Override
+        public void cancel() {
+        }
+
+        void enqueueBodyAndDeliver(CloseableAsyncRequestBody body) {
+            queuedBodies.add(body);
+            drain();
+        }
+
+        void enqueueBodyQuietly(CloseableAsyncRequestBody body) {
+            queuedBodies.add(body);
+        }
+
+        void enqueueStreamCompleteQuietly() {
+            streamComplete = true;
+        }
+
+        private void drain() {
+            if (draining) {
+                return; // mirrors SimplePublisher's processingQueue flag: no re-entrant delivery
+            }
+            draining = true;
+            try {
+                while (demand > 0 && !queuedBodies.isEmpty()) {
+                    demand--;
+                    subscriber.onNext(queuedBodies.poll());
+                }
+                if (streamComplete && queuedBodies.isEmpty() && !onCompleteDelivered) {
+                    onCompleteDelivered = true;
+                    subscriber.onComplete();
+                }
+            } finally {
+                draining = false;
+            }
+        }
     }
 
     private UnknownContentLengthAsyncRequestBodySubscriber createSubscriber(int maxInFlightParts) {
