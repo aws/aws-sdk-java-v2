@@ -97,11 +97,13 @@ final class EndpointUrlCodeEmitter {
         String host;
         int colonPos = authority.lastIndexOf(':');
         if (colonPos >= 0) {
-            host = authority.substring(0, colonPos);
             try {
                 port = Integer.parseInt(authority.substring(colonPos + 1));
+                host = authority.substring(0, colonPos);
             } catch (NumberFormatException e) {
-                host = authority;
+                // Not a valid port — can't reliably decompose, fall back to runtime parsing
+                builder.add("$T.fromString($S)", EndpointUrl.class, url);
+                return;
             }
         } else {
             host = authority;
@@ -252,7 +254,10 @@ final class EndpointUrlCodeEmitter {
 
     /**
      * Scan a literal string segment for port (:{digits}) and path (/) boundaries.
-     * Adds host portions to hostParts and path portions to pathParts.
+     *
+     * <p>This method mutates {@code hostParts} and {@code pathParts} as a side effect, appending
+     * the relevant portions of the literal to each list. On a {@code NOT_PARSEABLE} result, the
+     * lists may have been partially modified — callers must not reuse the lists after a failure.
      */
     private static ScanResult scanLiteral(String literal,
                                           List<RuleExpression> hostParts,
