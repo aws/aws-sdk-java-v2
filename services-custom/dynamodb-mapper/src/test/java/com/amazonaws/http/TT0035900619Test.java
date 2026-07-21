@@ -1,9 +1,10 @@
 package com.amazonaws.http;
 
+
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.LocalDynamoDBTestBase;
-import com.amazonaws.test.retry.RetryRule;
+import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
+import software.amazon.awssdk.mapper.dynamodb.test.retry.RetryRule;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;

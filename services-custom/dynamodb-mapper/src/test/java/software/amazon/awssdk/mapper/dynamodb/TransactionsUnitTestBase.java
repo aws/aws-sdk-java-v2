@@ -15,7 +15,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.dynamodbv2.test.util.DynamoDBUnitTestBase;
+import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBUnitTestBase;
 import com.amazonaws.services.dynamodbv2.model.CancellationReason;
 import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
 

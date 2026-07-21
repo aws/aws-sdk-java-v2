@@ -15,16 +15,16 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getMultiVersionRangeKeyObject;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getUniqueRangeKeyObject;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getMultiVersionRangeKeyObject;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getUniqueRangeKeyObject;
 import static org.junit.Assert.assertEquals;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.pojos.MultiVersionRangeKeyClass;
-import com.amazonaws.services.dynamodbv2.pojos.RangeKeyClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.MultiVersionRangeKeyClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import org.junit.Test;
 
 public class VersionAttributeConditionExpressionGeneratorUnitTest {

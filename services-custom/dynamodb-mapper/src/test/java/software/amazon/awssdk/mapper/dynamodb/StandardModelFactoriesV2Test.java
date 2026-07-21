@@ -38,9 +38,9 @@ import org.junit.Test;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.pojos.SubClass;
-import com.amazonaws.services.dynamodbv2.pojos.TestClass;
-import com.amazonaws.services.dynamodbv2.pojos.UnannotatedSubClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.SubClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.UnannotatedSubClass;
 
 public class StandardModelFactoriesV2Test {
 

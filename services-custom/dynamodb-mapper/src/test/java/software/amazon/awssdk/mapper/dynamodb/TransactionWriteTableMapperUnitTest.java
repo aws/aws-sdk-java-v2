@@ -15,9 +15,9 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createStringHashKeyTable;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getStringAttributeClass;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getTestItemObject;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.createStringHashKeyTable;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getStringAttributeClass;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getTestItemObject;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -27,8 +27,8 @@ import java.util.List;
 import java.util.Map;
 
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.pojos.StringAttributeClass;
-import com.amazonaws.services.dynamodbv2.pojos.TestItem;
+import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

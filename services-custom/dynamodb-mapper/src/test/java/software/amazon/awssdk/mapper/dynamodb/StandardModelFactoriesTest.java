@@ -18,10 +18,10 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
-import com.amazonaws.services.dynamodbv2.pojos.AutoKeyAndVal;
-import com.amazonaws.services.dynamodbv2.pojos.Currency;
-import com.amazonaws.services.dynamodbv2.pojos.DateRange;
-import com.amazonaws.services.dynamodbv2.pojos.KeyAndVal;
+import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
+import software.amazon.awssdk.mapper.dynamodb.pojos.Currency;
+import software.amazon.awssdk.mapper.dynamodb.pojos.DateRange;
+import software.amazon.awssdk.mapper.dynamodb.pojos.KeyAndVal;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;

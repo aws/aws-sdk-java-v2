@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import com.amazonaws.services.dynamodbv2.pojos.TestDocClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.TestDocClass;
 import org.junit.AfterClass;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -34,9 +34,9 @@ import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.TableStatus;
-import com.amazonaws.test.AWSTestBase;
+import software.amazon.awssdk.mapper.dynamodb.test.AWSTestBase;
 
-import static com.amazonaws.services.dynamodbv2.pojos.TestDocClass.ChildClass;
+import static software.amazon.awssdk.mapper.dynamodb.pojos.TestDocClass.ChildClass;
 
 public class JsonIntegrationTest extends AWSTestBase {
 
