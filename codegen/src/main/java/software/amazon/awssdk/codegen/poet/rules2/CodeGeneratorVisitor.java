@@ -28,7 +28,6 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.endpoints.EndpointUrl;
 
 public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     private static final Logger log = LoggerFactory.getLogger(CodeGeneratorVisitor.class);
@@ -329,9 +328,9 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
         builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
-        builder.add("$T.builder().endpointUrl($T.fromString(", Endpoint.class, EndpointUrl.class);
-        e.url().accept(this);
-        builder.add("))");
+        builder.add("$T.builder().endpointUrl(", Endpoint.class);
+        EndpointUrlCodeEmitter.emit(e.url(), builder, this);
+        builder.add(")");
         e.headers().accept(this);
         e.properties().accept(this);
         builder.add(".build()");

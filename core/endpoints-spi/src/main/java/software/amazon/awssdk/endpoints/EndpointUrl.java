@@ -154,6 +154,11 @@ public final class EndpointUrl {
      * The {@code rawUrl} field is {@code null} in this case, so {@link #toUri()} reconstructs
      * the URI from components. No query or fragment is included.
      *
+     * <p><b>Equivalence contract:</b> For any valid endpoint URL string {@code s} with no query or fragment,
+     * {@code fromComponents(scheme, host, port, path)} MUST produce an {@code EndpointUrl} that equals
+     * {@code fromString(scheme + "://" + host + (port >= 0 ? ":" + port : "") + path)}.
+     * The codegen relies on this equivalence — see {@code EndpointUrlCodeEmitter}.
+     *
      * @param scheme      the URL scheme (e.g., "https")
      * @param host        the hostname (e.g., "s3.us-east-1.amazonaws.com")
      * @param port        the port number, or -1 if not specified
