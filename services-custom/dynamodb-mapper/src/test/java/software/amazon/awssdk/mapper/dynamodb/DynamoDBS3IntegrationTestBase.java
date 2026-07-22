@@ -21,7 +21,7 @@ import java.util.Iterator;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
-import com.amazonaws.dynamodbv2.test.util.DynamoDBIntegrationTestBase;
+import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBIntegrationTestBase;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;

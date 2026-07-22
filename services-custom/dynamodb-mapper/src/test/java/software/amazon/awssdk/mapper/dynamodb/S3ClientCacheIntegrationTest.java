@@ -24,7 +24,7 @@ import static org.junit.Assert.fail;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.test.AWSTestBase;
+import software.amazon.awssdk.mapper.dynamodb.test.AWSTestBase;
 import org.junit.Before;
 import org.junit.Test;
 

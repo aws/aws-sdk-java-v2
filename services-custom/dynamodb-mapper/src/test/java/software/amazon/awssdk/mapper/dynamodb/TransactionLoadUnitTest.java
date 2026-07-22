@@ -15,15 +15,15 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.DEFAULT_PROVISIONED_THROUGHPUT;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createSdkMapperSaveConfigTable;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createSdkRangeTestTable;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createStringHashKeyTable;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.createTestTable;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getMultiTableObjects;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getSchemaViolatingTestItemObject;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getStringAttributeClass;
-import static com.amazonaws.services.dynamodbv2.TestObjectCreator.getUniqueRangeKeyObject;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.DEFAULT_PROVISIONED_THROUGHPUT;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.createSdkMapperSaveConfigTable;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.createSdkRangeTestTable;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.createStringHashKeyTable;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.createTestTable;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getMultiTableObjects;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getSchemaViolatingTestItemObject;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getStringAttributeClass;
+import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getUniqueRangeKeyObject;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.fail;
@@ -32,13 +32,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.amazonaws.services.dynamodbv2.mapper.NoSuchTableClass;
+import software.amazon.awssdk.mapper.dynamodb.mapper.NoSuchTableClass;
 import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
 import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
-import com.amazonaws.services.dynamodbv2.pojos.RangeKeyClass;
-import com.amazonaws.services.dynamodbv2.pojos.StringAttributeClass;
-import com.amazonaws.services.dynamodbv2.pojos.TestItem;
+import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
 import org.junit.BeforeClass;
 import org.junit.Test;
 

@@ -24,11 +24,11 @@ import java.util.UUID;
 import org.junit.Test;
 
 import com.amazonaws.internal.StaticCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.pojos.S3LinksTestClass;
+import software.amazon.awssdk.mapper.dynamodb.pojos.S3LinksTestClass;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.Region;
-import com.amazonaws.test.util.RandomTempFile;
+import software.amazon.awssdk.mapper.dynamodb.test.util.RandomTempFile;
 
 public class DynamoDBS3IntegrationTest extends DynamoDBS3IntegrationTestBase {
 
