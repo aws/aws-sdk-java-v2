@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -101,7 +102,7 @@ public class SdkFilterInputStreamTest {
     }
 
     @Test
-    void isClosed_eofThenReset_returnsTrue() throws IOException {
+    void isClosed_eofThenReset_returnsFalse() throws IOException {
         when(mockStream.read()).thenReturn(-1);
         filterInputStream.read();
         assertThat(filterInputStream.isClosed()).isTrue();
@@ -109,6 +110,18 @@ public class SdkFilterInputStreamTest {
         filterInputStream.reset();
 
         assertThat(filterInputStream.isClosed()).isFalse();
+    }
+
+    @Test
+    void isClosed_closedThenReset_resetThrows_returnsTrue() throws IOException {
+        when(mockStream.read()).thenReturn(-1);
+        filterInputStream.read();
+        assertThat(filterInputStream.isClosed()).isTrue();
+
+        doThrow(new RuntimeException("no reset")).when(mockStream).reset();
+        assertThatThrownBy(filterInputStream::reset).isInstanceOf(RuntimeException.class);
+
+        assertThat(filterInputStream.isClosed()).isTrue();
     }
 
     private static class TestInputStream extends SdkFilterInputStream {
