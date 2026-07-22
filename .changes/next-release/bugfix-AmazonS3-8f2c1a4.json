@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon S3",
-    "contributor": "",
-    "description": "Fix a race condition in multipart upload with low maxInFlightParts where CompleteMultipartUpload could be initiated while the final part was still uploading."
-}

@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Do not set the Content-Length header on a request that already carries Transfer-Encoding. Emitting both violates RFC 7230 and was rejected by the underlying CRT layer; this aligns the CRT client with the Netty client's existing behavior for chunked requests."
-}
