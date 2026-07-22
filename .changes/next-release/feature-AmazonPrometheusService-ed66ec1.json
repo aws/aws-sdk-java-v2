@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Prometheus Service",
+    "contributor": "",
+    "description": "Add CloudWatch dataset destinations for Amazon Managed Service for Prometheus collectors."
+}
