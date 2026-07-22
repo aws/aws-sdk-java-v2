@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.crac;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.internal.crac.WarmUpDiscovery;
 
 /**
  * Service Provider Interface for warming up an SDK service's request path before a Coordinated Restore at Checkpoint
@@ -33,11 +34,12 @@ import software.amazon.awssdk.core.ClientType;
 public interface SdkWarmUpProvider {
 
     /**
-     * Exercises the service's request path so the Just-In-Time compiled code is captured in a CRaC snapshot.
+     * Exercises the service's request path so the Just-In-Time compiled code is captured in a CRaC snapshot. The sync
+     * and async clients are warmed independently: a failure warming one is logged at warn and does not stop the other.
      */
     default void warmUp() {
-        warmUpClient(ClientType.SYNC);
-        warmUpClient(ClientType.ASYNC);
+        WarmUpDiscovery.runSafely(syncClientClassName(), () -> warmUpClient(ClientType.SYNC));
+        WarmUpDiscovery.runSafely(asyncClientClassName(), () -> warmUpClient(ClientType.ASYNC));
     }
 
     /**

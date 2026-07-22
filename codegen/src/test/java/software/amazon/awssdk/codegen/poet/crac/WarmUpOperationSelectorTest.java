@@ -25,14 +25,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
+import software.amazon.awssdk.codegen.model.intermediate.ParameterHttpMapping;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
+import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
+import software.amazon.awssdk.codegen.model.service.ContextParam;
+import software.amazon.awssdk.codegen.model.service.Location;
 
 public class WarmUpOperationSelectorTest {
 
@@ -167,8 +173,103 @@ public class WarmUpOperationSelectorTest {
                 .operation(op("DescribeLimits").withOutput())
                 .operation(op("GetItem").withOutput().withRequiredMembers(2))
                 .operation(op("PutItem").withRequiredMembers(2))
-                .expect("ListTables")
+                .expect("ListTables"),
+
+            // Hard gate: a required URI/endpoint-bound member is dummy-fillable only when it is a string.
+            scenario("requiredStringUriMember_isStillEligible")
+                .operation(op("GetThing").withOutput().withRequiredUriMember("ThingName", "String"))
+                .expect("GetThing"),
+            scenario("requiredNonStringUriMemberOnly_isNotSelected")
+                .operation(op("GetThing").withOutput().withRequiredUriMember("ThingVersion", "Integer"))
+                .expectNothing(),
+            scenario("requiredNonStringUriMember_fallsBackToNextBestOperation")
+                .operation(op("GetThing").withOutput().withRequiredUriMember("ThingVersion", "Integer"))
+                .operation(op("PutThing").withOutput().withRequiredMembers(2))
+                .expect("PutThing"),
+            // An ARN context param is a string, so it is fillable with an ARN-shaped dummy value.
+            scenario("requiredArnContextParamMember_isStillEligible")
+                .operation(op("GetResource").withOutput().withRequiredContextParamMember("ResourceArn", "String"))
+                .expect("GetResource"),
+            scenario("requiredNonArnContextParamMember_isStillEligible")
+                .operation(op("ListGrants").withOutput().withRequiredContextParamMember("AccountId", "String"))
+                .expect("ListGrants")
         );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("dummyValueScenarios")
+    public void membersRequiringDummyValue_returnsOnlyUriAndEndpointBoundRequiredMembers(DummyValueScenario scenario) {
+        List<String> memberNames = WarmUpOperationSelector.membersRequiringDummyValue(scenario.operation).stream()
+                                                          .map(MemberModel::getName)
+                                                          .collect(java.util.stream.Collectors.toList());
+        assertThat(memberNames).containsExactlyElementsOf(scenario.expectedMemberNames);
+    }
+
+    private static Stream<DummyValueScenario> dummyValueScenarios() {
+        return Stream.of(
+            new DummyValueScenario("requiredUriMember_needsDummy",
+                                   op("GetThing").withRequiredUriMember("ThingName", "String").build(),
+                                   Collections.singletonList("ThingName")),
+            new DummyValueScenario("requiredEndpointContextParamMember_needsDummy",
+                                   op("ListGrants").withRequiredContextParamMember("AccountId", "String").build(),
+                                   Collections.singletonList("AccountId")),
+            new DummyValueScenario("requiredBodyMember_staysNull",
+                                   op("ListThings").withRequiredMembers(2).build(),
+                                   Collections.emptyList()),
+            new DummyValueScenario("optionalUriMember_staysNull",
+                                   op("GetThing").withOptionalUriMember("ThingName", "String").build(),
+                                   Collections.emptyList()),
+            new DummyValueScenario("noInputShape_needsNothing",
+                                   op("ListThings").build(),
+                                   Collections.emptyList())
+        );
+    }
+
+    @ParameterizedTest(name = "isArnMember({0}) == {1}")
+    @MethodSource("arnMemberScenarios")
+    public void isArnMember_matchesOnlyConventionalArnSuffix(String memberName, boolean expected) {
+        MemberModel member = new MemberModel();
+        member.setName(memberName);
+        member.setContextParam(new ContextParam());
+        assertThat(WarmUpOperationSelector.isArnMember(member)).isEqualTo(expected);
+    }
+
+    private static Stream<Arguments> arnMemberScenarios() {
+        return Stream.of(
+            // Conventional ARN suffix, capitalized. Both the "ARN" and "Arn" forms occur in real models.
+            Arguments.of("resourceARN", true),
+            Arguments.of("resourceArn", true),
+            Arguments.of("RoleArn", true),
+            // Lookalikes: contain the letters "arn" but are not ARN members.
+            Arguments.of("learn", false),
+            Arguments.of("warning", false),
+            Arguments.of("yarnConfig", false),
+            Arguments.of("AccountId", false)
+        );
+    }
+
+    @Test
+    public void isArnMember_withoutContextParam_isFalse() {
+        MemberModel member = new MemberModel();
+        member.setName("resourceArn");
+        assertThat(WarmUpOperationSelector.isArnMember(member)).isFalse();
+    }
+
+    private static final class DummyValueScenario {
+        private final String name;
+        private final OperationModel operation;
+        private final List<String> expectedMemberNames;
+
+        private DummyValueScenario(String name, OperationModel operation, List<String> expectedMemberNames) {
+            this.name = name;
+            this.operation = operation;
+            this.expectedMemberNames = expectedMemberNames;
+        }
+
+        @Override
+        public String toString() {
+            return name;
+        }
     }
 
     private static Scenario scenario(String name) {
@@ -254,6 +355,23 @@ public class WarmUpOperationSelectorTest {
             return this;
         }
 
+        private OperationBuilder withRequiredUriMember(String memberName, String simpleType) {
+            addMember(uriMember(memberName, simpleType, true));
+            return this;
+        }
+
+        private OperationBuilder withOptionalUriMember(String memberName, String simpleType) {
+            addMember(uriMember(memberName, simpleType, false));
+            return this;
+        }
+
+        private OperationBuilder withRequiredContextParamMember(String memberName, String simpleType) {
+            MemberModel member = member(memberName, simpleType, true);
+            member.setContextParam(new ContextParam());
+            addMember(member);
+            return this;
+        }
+
         private OperationBuilder withStreamingInput() {
             operation.setInputShape(streamingShape());
             return this;
@@ -286,6 +404,32 @@ public class WarmUpOperationSelectorTest {
 
         private OperationModel build() {
             return operation;
+        }
+
+        private void addMember(MemberModel member) {
+            ShapeModel shape = operation.getInputShape();
+            if (shape == null) {
+                shape = new ShapeModel();
+                shape.setMembers(new ArrayList<>());
+                operation.setInputShape(shape);
+            }
+            shape.getMembers().add(member);
+        }
+
+        private static MemberModel uriMember(String memberName, String simpleType, boolean required) {
+            MemberModel member = member(memberName, simpleType, required);
+            ParameterHttpMapping http = new ParameterHttpMapping();
+            http.setLocation(Location.URI);
+            member.setHttp(http);
+            return member;
+        }
+
+        private static MemberModel member(String memberName, String simpleType, boolean required) {
+            MemberModel member = new MemberModel();
+            member.setName(memberName);
+            member.setRequired(required);
+            member.setVariable(new VariableModel(memberName, simpleType));
+            return member;
         }
 
         private static ShapeModel streamingShape() {

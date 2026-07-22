@@ -22,7 +22,8 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Shared best-effort {@link java.util.ServiceLoader} iteration for the CRaC warm-up paths.
+ * Shared best-effort helpers for the CRaC warm-up paths: {@link java.util.ServiceLoader} iteration and running a
+ * single warm-up task without letting its failure stop the others.
  */
 @SdkInternalApi
 public final class WarmUpDiscovery {
@@ -50,17 +51,28 @@ public final class WarmUpDiscovery {
 
             discoveredAny = true;
             T discovered = element;
-            try {
-                action.accept(discovered);
-            } catch (RuntimeException | LinkageError e) {
-                // LinkageError because a discovered element can fail to link (missing deps/native lib, failed static init),
-                // which is an Error, not an Exception. Skip it to keep warm-up best-effort; fatal Errors still propagate.
-                log.warn(() -> "Warm-up failed for " + discovered.getClass().getName() + " and was skipped.", e);
-            }
+            runSafely(discovered.getClass().getName(), () -> action.accept(discovered));
         }
 
         if (!discoveredAny) {
             log.debug(() -> "No warm-up tasks were discovered on the classpath.");
+        }
+    }
+
+    /**
+     * Runs one warm-up {@code task}. Returns {@code true} if it completed. If it fails, logs at warn with
+     * {@code description} and returns {@code false}, so a sibling task still runs.
+     *
+     * <p>Also catches {@link LinkageError}: a task can fail to link (missing dependency or native library) and that
+     * is an {@link Error}, not an {@link Exception}. Other errors still propagate.
+     */
+    public static boolean runSafely(String description, Runnable task) {
+        try {
+            task.run();
+            return true;
+        } catch (RuntimeException | LinkageError e) {
+            log.warn(() -> "Warm-up failed for " + description + " and was skipped.", e);
+            return false;
         }
     }
 }

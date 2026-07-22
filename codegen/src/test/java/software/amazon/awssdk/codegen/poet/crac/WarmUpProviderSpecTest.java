@@ -60,4 +60,22 @@ public class WarmUpProviderSpecTest {
         ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.cborServiceModels());
         assertThat(spec, generatesTo("warmup-provider-cbor.java"));
     }
+
+    @Test
+    public void warmUpProvider_bearerAuthService_setsDummyTokenProvider() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.bearerAuthServiceModels());
+        assertThat(spec, generatesTo("warmup-provider-bearer-auth.java"));
+    }
+
+    @Test
+    public void warmUpProvider_endpointDiscoveryService_disablesEndpointDiscovery() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.endpointDiscoveryModels());
+        assertThat(spec, generatesTo("warmup-provider-endpoint-discovery.java"));
+    }
+
+    @Test
+    public void warmUpProvider_requiredEndpointBoundMember_getsDummyValue() {
+        ClassSpec spec = new WarmUpProviderSpec(ClientTestModels.serviceS3Control());
+        assertThat(spec, generatesTo("warmup-provider-s3control.java"));
+    }
 }

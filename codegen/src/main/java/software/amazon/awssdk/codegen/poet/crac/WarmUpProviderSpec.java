@@ -26,11 +26,13 @@ import java.util.Optional;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.utils.AuthUtils;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 
@@ -54,7 +56,12 @@ public class WarmUpProviderSpec implements ClassSpec {
     private static final int SUCCESS_STATUS_CODE = 200;
     private static final String DUMMY_ACCESS_KEY_ID = "akid";
     private static final String DUMMY_SECRET_ACCESS_KEY = "skid";
+    private static final String DUMMY_TOKEN = "warmup-dummy-token";
     private static final String LOCAL_ENDPOINT = "http://localhost";
+
+    private static final String DUMMY_MEMBER_VALUE = "warmup";
+
+    private static final String DUMMY_ARN_VALUE = "arn:aws:service:us-east-1:123456789012:warmup";
 
     private static final ClassName CANNED_RESPONSE_HTTP_CLIENT =
         ClassName.get("software.amazon.awssdk.core.crac.http", "CannedResponseHttpClient");
@@ -68,6 +75,8 @@ public class WarmUpProviderSpec implements ClassSpec {
         ClassName.get("software.amazon.awssdk.auth.credentials", "StaticCredentialsProvider");
     private static final ClassName AWS_BASIC_CREDENTIALS =
         ClassName.get("software.amazon.awssdk.auth.credentials", "AwsBasicCredentials");
+    private static final ClassName STATIC_TOKEN_PROVIDER =
+        ClassName.get("software.amazon.awssdk.auth.token.credentials", "StaticTokenProvider");
     private static final ClassName REGION =
         ClassName.get("software.amazon.awssdk.regions", "Region");
 
@@ -162,21 +171,7 @@ public class WarmUpProviderSpec implements ClassSpec {
             .addStatement("$T $N = $T.builder().responseBody($L).statusCode($L).build()",
                           httpClientType, httpClientVar, cannedHttpClientType, CANNED_RESPONSE_FIELD,
                           SUCCESS_STATUS_CODE)
-            .beginControlFlow("try ($1T $2N = $1T.builder()\n"
-                              + ".httpClient($3N)\n"
-                              + ".credentialsProvider($4T.create($5T.create($6S, $7S)))\n"
-                              + ".region($8T.US_EAST_1)\n"
-                              + ".endpointOverride($9T.create($10S))\n"
-                              + ".build())",
-                              clientType,
-                              clientVar,
-                              httpClientVar,
-                              STATIC_CREDENTIALS_PROVIDER,
-                              AWS_BASIC_CREDENTIALS,
-                              DUMMY_ACCESS_KEY_ID, DUMMY_SECRET_ACCESS_KEY,
-                              REGION,
-                              URI.class,
-                              LOCAL_ENDPOINT);
+            .beginControlFlow("try ($L)", clientBuilder(clientType, clientVar, httpClientVar));
 
         warmUpOperation.ifPresent(op -> block.add(warmUpOperationCall(op, clientVar, async)));
 
@@ -185,8 +180,38 @@ public class WarmUpProviderSpec implements ClassSpec {
     }
 
     /**
-     * Verified simple methods generate a no-arg overload on both clients, so the call uses it. Other operations pass
-     * an empty request.
+     * Builds the warm-up client: canned HTTP client, dummy credentials, local endpoint, plus any service-specific
+     * options from {@link #addServiceSpecificOptions}.
+     */
+    private CodeBlock clientBuilder(ClassName clientType, String clientVar, String httpClientVar) {
+        CodeBlock.Builder builder = CodeBlock.builder()
+            .add("$1T $2N = $1T.builder()\n", clientType, clientVar)
+            .add(".httpClient($N)\n", httpClientVar)
+            .add(".credentialsProvider($T.create($T.create($S, $S)))\n",
+                 STATIC_CREDENTIALS_PROVIDER, AWS_BASIC_CREDENTIALS, DUMMY_ACCESS_KEY_ID, DUMMY_SECRET_ACCESS_KEY);
+        addServiceSpecificOptions(builder);
+        return builder.add(".region($T.US_EAST_1)\n", REGION)
+                      .add(".endpointOverride($T.create($S))\n", URI.class, LOCAL_ENDPOINT)
+                      .add(".build()")
+                      .build();
+    }
+
+    /**
+     * Options only some services need: a dummy token for bearer-auth services, and disabling endpoint discovery for
+     * services that have it (avoids a WARN about the endpoint override disabling it).
+     */
+    private void addServiceSpecificOptions(CodeBlock.Builder builder) {
+        if (AuthUtils.usesBearerAuth(model)) {
+            builder.add(".tokenProvider($T.create(() -> $S))\n", STATIC_TOKEN_PROVIDER, DUMMY_TOKEN);
+        }
+        if (model.getEndpointOperation().isPresent()) {
+            builder.add(".endpointDiscoveryEnabled(false)\n");
+        }
+    }
+
+    /**
+     * Verified simple methods use the generated no-arg overload. Other operations pass an empty request, except for
+     * members from {@link WarmUpOperationSelector#membersRequiringDummyValue} which get a dummy value.
      */
     private CodeBlock warmUpOperationCall(OperationModel operation, String clientVar, boolean async) {
         String join = async ? ".join()" : "";
@@ -196,8 +221,14 @@ public class WarmUpProviderSpec implements ClassSpec {
                             .build();
         }
         ClassName requestType = poetExtensions.getModelClass(operation.getInputShape().getShapeName());
+        CodeBlock.Builder request = CodeBlock.builder().add("$T.builder()", requestType);
+        for (MemberModel member : WarmUpOperationSelector.membersRequiringDummyValue(operation)) {
+            String value = WarmUpOperationSelector.isArnMember(member) ? DUMMY_ARN_VALUE : DUMMY_MEMBER_VALUE;
+            request.add(".$N($S)", member.getFluentSetterMethodName(), value);
+        }
+        request.add(".build()");
         return CodeBlock.builder()
-                        .addStatement("$N.$N($T.builder().build())" + join, clientVar, operation.getMethodName(), requestType)
+                        .addStatement("$N.$N($L)" + join, clientVar, operation.getMethodName(), request.build())
                         .build();
     }
 
