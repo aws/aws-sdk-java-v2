@@ -2,10 +2,6 @@ name: Build SDK
 on:
   merge_group:
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '.all-contributorsrc'
-      - 'docs/**'
 
 concurrency:
   group: start-pull-request-build-${{ github.ref }}
