@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch",
+    "contributor": "",
+    "description": "Adds documented value constraints for CloudWatch Log Alarm scheduled query configuration fields, and makes LogGroupIdentifiers optional for log alarms."
+}
