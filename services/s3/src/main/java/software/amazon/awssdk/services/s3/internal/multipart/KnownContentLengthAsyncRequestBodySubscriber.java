@@ -207,7 +207,7 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
                                              subscription.request(1);
                                          }
                                      }
-                                     completeMultipartUploadIfFinished(inFlight);
+                                     completeMultipartUploadIfFinished();
                                  }
                              });
     }
@@ -263,12 +263,13 @@ public class KnownContentLengthAsyncRequestBodySubscriber implements Subscriber<
         log.debug(() -> "Received onComplete()");
         isDone = true;
         if (!isPaused) {
-            completeMultipartUploadIfFinished(asyncRequestBodyInFlight.get());
+            completeMultipartUploadIfFinished();
         }
     }
 
-    private void completeMultipartUploadIfFinished(int requestsInFlight) {
-        if (isDone && requestsInFlight == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
+    private void completeMultipartUploadIfFinished() {
+        // All atomics including asyncRequestBodyInFlight MUST be re-read here rather than passed in by the caller.
+        if (isDone && asyncRequestBodyInFlight.get() == 0 && completedMultipartInitiated.compareAndSet(false, true)) {
             CompletedPart[] parts;
 
             if (existingParts.isEmpty()) {
