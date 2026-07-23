@@ -213,6 +213,17 @@
                     </archive>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <!-- Enable CRT native-resource tracking for the whole fork. The flag is latched once at CrtResource
+                         class-load, so it must be present at JVM launch (before any test loads a CRT type). -->
+                    <systemPropertyVariables>
+                        <aws.crt.debugnative>true</aws.crt.debugnative>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
