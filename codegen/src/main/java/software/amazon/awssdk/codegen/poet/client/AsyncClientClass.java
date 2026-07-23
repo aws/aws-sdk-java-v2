@@ -25,6 +25,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.resolveMetricPublishersMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.updateSdkClientConfigurationMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
@@ -41,7 +42,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -75,7 +75,6 @@ import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -565,41 +564,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                   .build();
         
         type.addMethod(presignedUrlExtension);
-    }
-
-    private MethodSpec resolveMetricPublishersMethod() {
-        String clientConfigName = "clientConfiguration";
-        String requestOverrideConfigName = "requestOverrideConfiguration";
-
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("resolveMetricPublishers")
-                .addModifiers(PRIVATE, STATIC)
-                .returns(ParameterizedTypeName.get(List.class, MetricPublisher.class))
-                .addParameter(SdkClientConfiguration.class, clientConfigName)
-                .addParameter(RequestOverrideConfiguration.class, requestOverrideConfigName);
-
-        String publishersName = "publishers";
-
-        methodBuilder.addStatement("$T $N = null", ParameterizedTypeName.get(List.class, MetricPublisher.class), publishersName);
-
-        methodBuilder.beginControlFlow("if ($N != null)", requestOverrideConfigName)
-                .addStatement("$N = $N.metricPublishers()", publishersName, requestOverrideConfigName)
-                .endControlFlow();
-
-        methodBuilder.beginControlFlow("if ($1N == null || $1N.isEmpty())", publishersName)
-                .addStatement("$N = $N.option($T.$N)",
-                              publishersName,
-                              clientConfigName,
-                              SdkClientOption.class,
-                              "METRIC_PUBLISHERS")
-                .endControlFlow();
-
-        methodBuilder.beginControlFlow("if ($1N == null)", publishersName)
-                .addStatement("$N = $T.emptyList()", publishersName, Collections.class)
-                .endControlFlow();
-
-        methodBuilder.addStatement("return $N", publishersName);
-
-        return methodBuilder.build();
     }
 
     private void addScheduledExecutorIfNeeded(Builder classBuilder) {
