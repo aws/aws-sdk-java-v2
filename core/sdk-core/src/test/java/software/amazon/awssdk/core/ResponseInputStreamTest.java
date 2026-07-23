@@ -133,6 +133,42 @@ class ResponseInputStreamTest {
         assertThat(responseInputStream.hasTimeoutTask()).isFalse();
     }
 
+    @Test
+    void available_returnsAtLeastOne_whenStreamNotClosed() throws IOException {
+        Mockito.when(stream.available()).thenReturn(0);
+        ResponseInputStream<Object> responseInputStream = new ResponseInputStream<>(new Object(), abortableInputStream);
+
+        assertThat(responseInputStream.available()).isEqualTo(1);
+    }
+
+    @Test
+    void available_delegatesNonZeroValue() throws IOException {
+        Mockito.when(stream.available()).thenReturn(42);
+        ResponseInputStream<Object> responseInputStream = new ResponseInputStream<>(new Object(), abortableInputStream);
+
+        assertThat(responseInputStream.available()).isEqualTo(42);
+    }
+
+    @Test
+    void available_returnsZero_afterAbort() throws IOException {
+        Mockito.when(stream.available()).thenReturn(0);
+        ResponseInputStream<Object> responseInputStream = new ResponseInputStream<>(new Object(), abortableInputStream);
+
+        responseInputStream.abort();
+
+        assertThat(responseInputStream.available()).isEqualTo(0);
+    }
+
+    @Test
+    void available_returnsZero_afterClose() throws IOException {
+        Mockito.when(stream.available()).thenReturn(0);
+        ResponseInputStream<Object> responseInputStream = new ResponseInputStream<>(new Object(), abortableInputStream);
+
+        responseInputStream.close();
+
+        assertThat(responseInputStream.available()).isEqualTo(0);
+    }
+
     private ResponseInputStream<Object> responseInputStream(Duration timeout) {
         return new ResponseInputStream<>(new Object(), abortableInputStream, timeout);
     }

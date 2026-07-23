@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fixed ResponseInputStream.available() to return 1 instead of 0 when the stream is still open, preventing java.util.zip.GZIPInputStream from silently truncating concatenated gzip streams (e.g., ALB logs from S3). This restores SDK v1 parity.",
+    "contributor": "rnishtala-sumo"
+}
