@@ -1,4 +1,65 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.49.2__ __2026-07-23__
+## __AWS Backup Gateway__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __AWS Billing and Cost Management Recommended Actions__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __AWS CRT HTTP Client__
+  - ### Features
+    - Add `numEventLoopThreads(Integer)` to `AwsCrtAsyncHttpClient.Builder` and `AwsCrtHttpClient.Builder` to configure the number of CRT event-loop (IO) threads. When set, the client owns a private `EventLoopGroup` of that size (must be greater than 1); when unset, it shares the process-wide default group.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for non-epoch-locked CMAF ingest in MediaPackageV2 channels.
+
+## __Amazon AppStream__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds support for the Bring Your Own Storage(BYOS) feature in AgentCore Browser and Code Interpreter. Enables mounting S3Files and EFS File Systems via Access points.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for the Bring Your Own Storage(BYOS) feature in AgentCore Browser and Code Interpreter. Enables mounting S3Files and EFS File Systems via Access points.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for notebook sync with S3 ipynb files
+
+## __Amazon GameLift Streams__
+  - ### Features
+    - GameLift Streams now supports configuring a custom aspect ratio per stream session to accommodate different player devices. Supported aspect ratios include landscape, portrait, and square - delivering a full-screen experience without letterboxing or cropping.
+
+## __Amazon Kendra Intelligent Ranking__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added new capabilities to custom permissions profiles to control access to Amazon Quick through the browser extension and Microsoft Word, Outlook, Excel, and PowerPoint add-ins.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for c6a, m6a, m6g, m7g, m8g instance types for SageMaker HyperPod
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __Redshift Data API Service__
+  - ### Features
+    - This release include long polling provids a new parameter wait-time-seconds to 5 API operations, new API ListSessions, and a new parameter execution-mode to BatchExecuteStatement
+
 # __2.49.1__ __2026-07-22__
 ## __ARC - Region switch__
   - ### Features
