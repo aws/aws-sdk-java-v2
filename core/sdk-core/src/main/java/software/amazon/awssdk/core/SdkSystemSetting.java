@@ -270,7 +270,13 @@ public enum SdkSystemSetting implements SystemSetting {
      * defaults including STANDARD as the default retry mode, reduced base backoff delays, differentiated token bucket
      * costs, and other v2.1 retry specification changes. When {@code false} (the default), the SDK uses v2.0 retry behavior.
      */
-    AWS_NEW_RETRIES_2026("aws.newRetries2026", null);
+    AWS_NEW_RETRIES_2026("aws.newRetries2026", null),
+
+    /**
+     * Configure a list of exception classes to ignore when marking OpenTelemetry span status.
+     * This is a comma-delimited list of fully qualified exception class names.
+     */
+    AWS_OTEL_IGNORED_EXCEPTIONS("aws.otel.ignoredExceptions", null);
 
     private final String systemProperty;
     private final String defaultValue;
