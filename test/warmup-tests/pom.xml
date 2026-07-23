@@ -26,9 +26,11 @@
     </parent>
     <artifactId>warmup-tests</artifactId>
     <name>AWS Java SDK :: Test :: Warm-up Tests</name>
-    <description>Centralized tests for the CRaC HTTP-client warm-up, run against every sync HTTP client so each client does not
-        need its own warm-up test. This is a leaf test module: nothing depends on it, so depending on the HTTP clients here
-        does not create a dependency cycle.</description>
+    <description>Centralized tests for the CRaC warm-up feature. Covers the SdkWarmUp orchestrator and HTTP-client warm-up
+        (run against every HTTP client), plus the generated SdkWarmUpProvider of every service module: the aws-sdk-java
+        aggregate dependency puts all services on the test classpath, so new services are tested automatically. This is a
+        leaf test module: nothing depends on it, so depending on the HTTP clients and all services here does not create a
+        dependency cycle.</description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencyManagement>
@@ -43,6 +45,14 @@
         </dependencies>
     </dependencyManagement>
 
+    <properties>
+        <!-- This module loads every service client on the classpath. When JaCoCo measures code coverage it rewrites
+             each class to add counters, and this makes the largest generated clients (e.g. SSM, Glue) exceed the
+             JVM class-size limit and fail to load (ClassTooLargeException). We do not need coverage numbers for this
+             test module, so turn JaCoCo off here. -->
+        <jacoco.skip>true</jacoco.skip>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
@@ -52,6 +62,12 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws-crt</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
@@ -89,6 +105,31 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>dynamodb</artifactId>
             <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Every service module, so the generated SdkWarmUpProviders of all services are on the test classpath.
+             This artifact is updated automatically when a new service is added (FinalizeNewServiceModuleMain),
+             so new services are covered by the warm-up tests without any change to this module. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-sdk-java</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>test-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
