@@ -112,6 +112,16 @@ public class TransactDeleteItemEnhancedRequestTest {
     }
 
     @Test
+    public void equals_NullObject() {
+        Key key1 = Key.builder().partitionValue("key1").build();
+
+        TransactDeleteItemEnhancedRequest builtObject1 = TransactDeleteItemEnhancedRequest.builder().key(key1).build();
+        TransactDeleteItemEnhancedRequest builtObject2 = null;
+
+        assertThat(builtObject1, not(equalTo(builtObject2)));
+    }
+
+    @Test
     public void equals_keyNotEqual() {
         Key key1 = Key.builder().partitionValue("key1").build();
         Key key2 = Key.builder().partitionValue("key2").build();
