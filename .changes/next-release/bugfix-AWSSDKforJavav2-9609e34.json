@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed several delegating AsyncRequestBody implementations (including those used by S3 Transfer Manager uploads) that reported the request-body type as unknown in the user-agent business metric instead of the actual type (file, bytes, or stream)."
+}
