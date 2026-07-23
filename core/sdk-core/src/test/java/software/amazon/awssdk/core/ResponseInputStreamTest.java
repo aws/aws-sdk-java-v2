@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -102,7 +103,7 @@ class ResponseInputStreamTest {
     }
 
     @Test
-    void customTimouet_readBeforeTimeout_cancelsTimeout() throws Exception {
+    void customTimeout_readBeforeTimeout_cancelsTimeout() throws Exception {
         ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ofSeconds(1));
         responseInputStream.read();
         Thread.sleep(2000);
@@ -131,6 +132,27 @@ class ResponseInputStreamTest {
         verify(abortable, never()).abort();
         verify(stream, never()).close();
         assertThat(responseInputStream.hasTimeoutTask()).isFalse();
+    }
+
+    @Test
+    void zeroAvailable_availableReturns1() throws IOException {
+        when(stream.available()).thenReturn(0);
+        ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ZERO);
+        assertThat(responseInputStream.available()).isEqualTo(1);
+    }
+
+    @Test
+    void nonZeroAvailable_availableReturnsValue() throws IOException {
+        when(stream.available()).thenReturn(42);
+        ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ZERO);
+        assertThat(responseInputStream.available()).isEqualTo(42);
+    }
+
+    @Test
+    void closed_AvailableReturns0() throws IOException {
+        ResponseInputStream<Object> responseInputStream = responseInputStream(Duration.ZERO);
+        responseInputStream.close();
+        assertThat(responseInputStream.available()).isZero();
     }
 
     private ResponseInputStream<Object> responseInputStream(Duration timeout) {
