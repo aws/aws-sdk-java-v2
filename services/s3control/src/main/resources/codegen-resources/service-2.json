@@ -2224,7 +2224,11 @@
         "CRC64NVME",
         "MD5",
         "SHA1",
-        "SHA256"
+        "SHA256",
+        "SHA512",
+        "XXHASH64",
+        "XXHASH3",
+        "XXHASH128"
       ]
     },
     "ComputeObjectChecksumType":{
@@ -6280,7 +6284,7 @@
     "MinStorageBytesPercentage":{
       "type":"double",
       "max":100,
-      "min":0.1
+      "min":1
     },
     "Minutes":{"type":"integer"},
     "MultiRegionAccessPointAlias":{
@@ -7780,7 +7784,12 @@
         "CRC32C",
         "SHA1",
         "SHA256",
-        "CRC64NVME"
+        "CRC64NVME",
+        "SHA512",
+        "MD5",
+        "XXHASH64",
+        "XXHASH3",
+        "XXHASH128"
       ]
     },
     "S3ComputeObjectChecksumOperation":{

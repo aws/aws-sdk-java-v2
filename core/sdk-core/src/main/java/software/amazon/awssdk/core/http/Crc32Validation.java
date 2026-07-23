@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import java.util.Optional;
 import java.util.zip.GZIPInputStream;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -37,6 +38,16 @@ public final class Crc32Validation {
                                                SdkHttpFullResponse httpResponse) {
 
         if (!httpResponse.content().isPresent()) {
+            // CRC32 of zero bytes is 0, so a 0 header is a valid match for an empty body.
+            // A non-zero header with no content means the Crc32 mismatch error.
+            Optional<Long> expectedChecksum = getCrc32Checksum(httpResponse);
+            if (expectedChecksum.isPresent() && expectedChecksum.get() != 0L) {
+                throw Crc32MismatchException.builder()
+                                            .message(String.format("Expected %d as the Crc32 checksum but the response "
+                                                                   + "had no content",
+                                                                   expectedChecksum.get()))
+                                            .build();
+            }
             return httpResponse;
         }
 

@@ -128,7 +128,47 @@ class AsyncBufferingSubscriberTest {
         subscriber.onSubscribe(mockSubscription);
         subscriber.onNext("item");
 
-        verify(mockSubscription, times(1)).cancel();
+        /*
+        subscription.cancel() now exists in two codepaths:
+        - in onNext() catch block.
+        - in future.whenComplete()
+         */
+        verify(mockSubscription, times(2)).cancel();
         assertThatThrownBy(future::join).hasCause(exception);
+    }
+
+    @Test
+    void returnFutureCancelled_shouldCancelUpstreamSubscription() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(
+            s -> new CompletableFuture<>(), future, 10);
+
+        Subscription mockSubscription = mock(Subscription.class);
+        subscriber.onSubscribe(mockSubscription);
+        subscriber.onNext("item");
+
+        future.cancel(true);
+        verify(mockSubscription, times(1)).cancel();
+    }
+
+    @Test
+    void returnFutureCancelledDuringOnNext_shouldCancelInFlightFuture() {
+        CompletableFuture<Void> returnFuture = new CompletableFuture<>();
+        CompletableFuture<Object> consumerFuture = new CompletableFuture<>();
+
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(
+            item -> {
+                returnFuture.completeExceptionally(new RuntimeException("cancelled"));
+                return consumerFuture;
+            },
+            returnFuture,
+            1
+        );
+
+        SimplePublisher<String> publisher = new SimplePublisher<>();
+        publisher.subscribe(subscriber);
+        publisher.send("item1");
+
+        assertThat(consumerFuture.isCancelled()).isTrue();
     }
 }

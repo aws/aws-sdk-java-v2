@@ -5511,12 +5511,14 @@
           "shape": "KafkaClusterSaslScramAuthentication",
           "locationName": "saslScram",
           "documentation": "<p>Details for SASL/SCRAM client authentication.</p>"
+        },
+        "MTLS": {
+          "shape": "KafkaClusterMTLSAuthentication",
+          "locationName": "mTLS",
+          "documentation": "<p>Details for mTLS client authentication.</p>"
         }
       },
-      "documentation": "<p>Details of the client authentication used by the Apache Kafka cluster.</p>",
-      "required": [
-        "SaslScram"
-      ]
+      "documentation": "<p>Details of the client authentication used by the Apache Kafka cluster.</p>"
     },
     "KafkaClusterSaslScramAuthentication": {
       "type": "structure",
@@ -5535,6 +5537,20 @@
       "documentation": "<p>Details for SASL/SCRAM client authentication.</p>",
       "required": [
         "Mechanism",
+        "SecretArn"
+      ]
+    },
+    "KafkaClusterMTLSAuthentication": {
+      "type": "structure",
+      "members": {
+        "SecretArn": {
+          "shape": "__string",
+          "locationName": "secretArn",
+          "documentation": "<p>The Amazon Resource Name (ARN) of the Secrets Manager secret.</p>"
+        }
+      },
+      "documentation": "<p>Details for mTLS client authentication.</p>",
+      "required": [
         "SecretArn"
       ]
     },
@@ -6343,6 +6359,11 @@
           "locationName": "openMonitoring",
           "documentation": "\n            <p>The settings for open monitoring.</p>\n         "
         },
+        "ZookeeperAccess": {
+          "shape": "ZookeeperAccess",
+          "locationName": "zookeeperAccess",
+          "documentation": "\n            <p>Access control settings for zookeeper</p>\n         "
+        },
         "KafkaVersion": {
           "shape": "__string",
           "locationName": "kafkaVersion",
@@ -6760,6 +6781,17 @@
         "IPV4",
         "DUAL"
       ]
+    },
+    "ZookeeperAccess": {
+      "type": "structure",
+      "members": {
+        "Enabled": {
+          "shape": "__boolean",
+          "locationName": "enabled",
+          "documentation": "\n            <p>Zookeeper Access was on or off for the cluster</p>\n         "
+        }
+      },
+      "documentation": "\n            <p>Access control settings for zookeeper</p>\n         "
     },
     "NodeType": {
       "type": "string",
@@ -7838,12 +7870,16 @@
           "shape": "__string",
           "locationName": "currentVersion",
           "documentation": "\n            <p>The version of the MSK cluster to update. Cluster versions aren't simple numbers. You can describe an MSK cluster to find its version. When this update operation is successful, it generates a new cluster version.</p>\n         "
+        },
+        "ZookeeperAccess": {
+          "shape": "ZookeeperAccess",
+          "locationName": "zookeeperAccess",
+          "documentation": "\n            <p>Access control settings for zookeeper</p>\n         "
         }
       },
       "documentation": "Request body for UpdateConnectivity.",
       "required": [
         "ClusterArn",
-        "ConnectivityInfo",
         "CurrentVersion"
       ]
     },

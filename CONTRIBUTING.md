@@ -78,8 +78,8 @@ Open an [issue][issues] with the following:
   how it should work.
 * [Markdown][markdown] formatting as appropriate to make the request easier to
   read.
-* If you intend to implement this feature, indicate that you'd like to the
-  issue to be assigned to you
+* If you intend to implement this feature, check the "I may be able to
+  implement this feature request" option in the issue template
 
 ## Code Contributions
 Code contributions to the SDK are done through [Pull Requests][pull-requests].
@@ -95,10 +95,9 @@ Please keep the following in mind when considering a code contribution:
   by another person.
 
   If you're working on a bug fix, check to see if the bug has already been
-  reported. If it has but no one is assigned to it, ask one of the maintainers
-  to assign it to you before beginning work.  If you're confident the bug
-  hasn't been reported yet, create a new [Bug Report](#bug-reports) then ask to
-  be assigned to it.
+  reported. If it has, comment on the issue to indicate you intend to submit a
+  fix. If you're confident the bug hasn't been reported yet, create a new [Bug
+  Report](#bug-reports).
 
   If you are thinking about adding entirely new functionality, open a [Feature
   Request](#feature-requests) to ask for feedback first before beginning work;

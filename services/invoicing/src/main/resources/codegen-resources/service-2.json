@@ -47,7 +47,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>This creates a new invoice unit with the provided definition.</p>"
+      "documentation":"<p>This creates a new invoice unit with the provided definition.</p>",
+      "idempotent":true
     },
     "CreateProcurementPortalPreference":{
       "name":"CreateProcurementPortalPreference",
@@ -65,7 +66,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Creates a procurement portal preference configuration for e-invoice delivery and purchase order retrieval. This preference defines how invoices are delivered to a procurement portal and how purchase orders are retrieved.</p>",
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Creates a procurement portal preference configuration for e-invoice delivery and purchase order retrieval. This preference defines how invoices are delivered to a procurement portal and how purchase orders are retrieved.</p>",
       "idempotent":true
     },
     "DeleteInvoiceUnit":{
@@ -83,7 +84,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>This deletes an invoice unit with the provided invoice unit ARN. </p>"
+      "documentation":"<p>This deletes an invoice unit with the provided invoice unit ARN. </p>",
+      "idempotent":true
     },
     "DeleteProcurementPortalPreference":{
       "name":"DeleteProcurementPortalPreference",
@@ -101,7 +103,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Deletes an existing procurement portal preference. This action cannot be undone. Active e-invoice delivery and PO retrieval configurations will be terminated.</p>"
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Deletes an existing procurement portal preference. This action cannot be undone. Active e-invoice delivery and PO retrieval configurations will be terminated.</p>",
+      "idempotent":true
     },
     "GetInvoicePDF":{
       "name":"GetInvoicePDF",
@@ -156,7 +159,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves the details of a specific procurement portal preference configuration.</p>"
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Retrieves the details of a specific procurement portal preference configuration.</p>"
     },
     "ListInvoiceSummaries":{
       "name":"ListInvoiceSummaries",
@@ -208,7 +211,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Retrieves a list of procurement portal preferences associated with the Amazon Web Services account.</p>"
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Retrieves a list of procurement portal preferences associated with the Amazon Web Services account.</p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -245,7 +248,26 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Updates an existing procurement portal preference configuration. This operation can modify settings for e-invoice delivery and purchase order retrieval.</p>"
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Updates an existing procurement portal preference configuration. This operation can modify settings for e-invoice delivery and purchase order retrieval.</p>",
+      "idempotent":true
+    },
+    "SendProcurementPortalValidation":{
+      "name":"SendProcurementPortalValidation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"SendProcurementPortalValidationRequest"},
+      "output":{"shape":"SendProcurementPortalValidationResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Sends a validation request for a procurement portal preference. This operation initiates the validation process by issuing a validation code that confirms ownership and connectivity of the configured procurement portal endpoint. Use <code>VerifyProcurementPortalValidation</code> to submit the received code and complete validation.</p>",
+      "idempotent":true
     },
     "TagResource":{
       "name":"TagResource",
@@ -297,7 +319,8 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>You can update the invoice unit configuration at any time, and Amazon Web Services will use the latest configuration at the end of the month.</p>"
+      "documentation":"<p>You can update the invoice unit configuration at any time, and Amazon Web Services will use the latest configuration at the end of the month.</p>",
+      "idempotent":true
     },
     "UpdateProcurementPortalPreferenceStatus":{
       "name":"UpdateProcurementPortalPreferenceStatus",
@@ -316,7 +339,26 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Updates the status of a procurement portal preference, including the activation state of e-invoice delivery and purchase order retrieval features.</p>"
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Updates the status of a procurement portal preference, including the activation state of e-invoice delivery and purchase order retrieval features.</p>",
+      "idempotent":true
+    },
+    "VerifyProcurementPortalValidation":{
+      "name":"VerifyProcurementPortalValidation",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"VerifyProcurementPortalValidationRequest"},
+      "output":{"shape":"VerifyProcurementPortalValidationResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p> <i> <b>This feature API is subject to changing at any time. For more information, see the <a href=\"https://aws.amazon.com/service-terms/\">Amazon Web Services Service Terms</a> (Betas and Previews).</b> </i> </p> <p>Submits a validation code to complete the validation of a procurement portal preference. Use this operation after calling <code>SendProcurementPortalValidation</code> to confirm ownership and connectivity of the configured procurement portal endpoint.</p>",
+      "idempotent":true
     }
   },
   "shapes":{
@@ -395,6 +437,25 @@
           "documentation":"<p> A list of invoice profiles corresponding to the requested accounts. </p>"
         }
       }
+    },
+    "BillSourceAccountList":{
+      "type":"list",
+      "member":{"shape":"AccountIdString"}
+    },
+    "BillType":{
+      "type":"string",
+      "enum":[
+        "ANNIVERSARY",
+        "PURCHASE",
+        "REFUND"
+      ]
+    },
+    "BillingEntity":{
+      "type":"string",
+      "enum":[
+        "AWS",
+        "AWS_MARKETPLACE"
+      ]
     },
     "BillingPeriod":{
       "type":"structure",
@@ -497,6 +558,11 @@
         "ResourceTags":{
           "shape":"ResourceTagList",
           "documentation":"<p> The tag structure that contains a tag key and value. </p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p> A unique, case-sensitive identifier that you provide to ensure idempotency of the request. </p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -640,6 +706,11 @@
         "InvoiceUnitArn":{
           "shape":"InvoiceUnitArnString",
           "documentation":"<p> The ARN to identify an invoice unit. This information can't be modified or deleted. </p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p> A unique, case-sensitive identifier that you provide to ensure idempotency of the request. </p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -659,6 +730,11 @@
         "ProcurementPortalPreferenceArn":{
           "shape":"ProcurementPortalPreferenceArnString",
           "documentation":"<p>The Amazon Resource Name (ARN) of the procurement portal preference to delete.</p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -778,6 +854,13 @@
       },
       "documentation":"<p>Specifies the preferences for e-invoice delivery, including document types, attachment types, and customization settings.</p>"
     },
+    "EinvoiceDeliveryStatus":{
+      "type":"string",
+      "enum":[
+        "DELIVERED",
+        "NOT_DELIVERED"
+      ]
+    },
     "EmailString":{
       "type":"string",
       "max":1024,
@@ -790,6 +873,10 @@
         "InvoicingEntity":{
           "shape":"BasicString",
           "documentation":"<p>The name of the entity that issues the Amazon Web Services invoice.</p>"
+        },
+        "BillingEntity":{
+          "shape":"BillingEntity",
+          "documentation":"<p>Helps you identify whether your invoices are for Amazon Web Services Marketplace or for purchases of other Amazon Web Services services.</p>"
         }
       },
       "documentation":"<p>The organization name providing Amazon Web Services services.</p>"
@@ -847,7 +934,7 @@
         },
         "BillSourceAccounts":{
           "shape":"AccountIdList",
-          "documentation":"<p> A list of Amazon Web Services account account IDs used to filter invoice units. These are payer accounts from other Organizations that have delegated their billing responsibility to the receiver account through the billing transfer feature. </p>"
+          "documentation":"<p> A list of Amazon Web Services account IDs used to filter invoice units. These are payer accounts from other Organizations that have delegated their billing responsibility to the receiver account through the billing transfer feature. </p>"
         }
       },
       "documentation":"<p>An optional input to the list API. If multiple filters are specified, the returned list will be a configuration that match all of the provided filters. Supported filter types are <code>InvoiceReceivers</code>, <code>Names</code>, and <code>Accounts</code>. </p>"
@@ -979,6 +1066,13 @@
       },
       "documentation":"<p> The amount charged after taxes, in the preferred currency. </p>"
     },
+    "InvoiceFrequency":{
+      "type":"string",
+      "enum":[
+        "ONE_TIME",
+        "RECURRING"
+      ]
+    },
     "InvoicePDF":{
       "type":"structure",
       "members":{
@@ -1049,6 +1143,10 @@
         "InvoicingEntity":{
           "shape":"BasicString",
           "documentation":"<p>The name of the entity that issues the Amazon Web Services invoice.</p>"
+        },
+        "ReceiverRole":{
+          "shape":"ReceiverRole",
+          "documentation":"<p>The role of the invoice receiver to filter by.</p> <note> <p>When <code>ReceiverRole</code> is specified:</p> <ul> <li> <p>Data is available starting <code>2025-06-01</code>. Queries for periods before <code>2025-06-01</code> return a validation error.</p> </li> <li> <p> <code>TimeInterval</code> supports a time interval of up to 5 years. Without <code>ReceiverRole</code>, <code>TimeInterval</code> is limited to one month.</p> </li> </ul> </note>"
         }
       },
       "documentation":"<p> Filters for your invoice summaries. </p>"
@@ -1096,6 +1194,18 @@
           "shape":"Timestamp",
           "documentation":"<p> The invoice due date. </p>"
         },
+        "BillSourceAccounts":{
+          "shape":"BillSourceAccountList",
+          "documentation":"<p> The list of Amazon Web Services account IDs that are the bill source of the invoice. Currently, only a single bill source account is returned.</p>"
+        },
+        "BillSourceAccountsTotalCount":{
+          "shape":"Integer",
+          "documentation":"<p> The total number of accounts that are the bill source of the invoice. </p>"
+        },
+        "ReceiverRole":{
+          "shape":"ReceiverRole",
+          "documentation":"<p>The role of the invoice receiver.</p>"
+        },
         "Entity":{
           "shape":"Entity",
           "documentation":"<p>The organization name providing Amazon Web Services services.</p>"
@@ -1104,9 +1214,21 @@
           "shape":"BillingPeriod",
           "documentation":"<p> The billing period of the invoice-related document. </p>"
         },
+        "InvoiceFrequency":{
+          "shape":"InvoiceFrequency",
+          "documentation":"<p> The frequency of the invoice. </p>"
+        },
+        "BillType":{
+          "shape":"BillType",
+          "documentation":"<p> The type of the bill. </p>"
+        },
         "InvoiceType":{
           "shape":"InvoiceType",
           "documentation":"<p> The type of invoice. </p>"
+        },
+        "CommercialInvoiceId":{
+          "shape":"BasicString",
+          "documentation":"<p> The commercial invoice ID. This is only applicable for tax invoices and identifies the associated commercial invoice. </p>"
         },
         "OriginalInvoiceId":{
           "shape":"BasicString",
@@ -1115,6 +1237,14 @@
         "PurchaseOrderNumber":{
           "shape":"BasicString",
           "documentation":"<p> The purchase order number associated to the invoice.</p>"
+        },
+        "EinvoiceDeliveryStatus":{
+          "shape":"EinvoiceDeliveryStatus",
+          "documentation":"<p> The e-invoice delivery status. </p>"
+        },
+        "TaxAuthorityStatus":{
+          "shape":"TaxAuthorityStatus",
+          "documentation":"<p> The current status of an invoice as reported to the tax authority. This captures scenarios where an invoice may be cancelled after issuance. </p>"
         },
         "BaseCurrencyAmount":{
           "shape":"InvoiceCurrencyAmount",
@@ -1135,7 +1265,8 @@
       "type":"string",
       "enum":[
         "INVOICE",
-        "CREDIT_MEMO"
+        "CREDIT_MEMO",
+        "PAYMENT_RECEIPT"
       ]
     },
     "InvoiceUnit":{
@@ -1204,7 +1335,7 @@
         },
         "BillSourceAccounts":{
           "shape":"RuleAccountIdList",
-          "documentation":"<p> A list of Amazon Web Services account account IDs that have delegated their billing responsibility to the receiver account through transfer billing. Unlike linked accounts, these bill source accounts can be payer accounts from other organizations that have authorized billing transfer to this account. </p>"
+          "documentation":"<p> A list of Amazon Web Services account IDs that have delegated their billing responsibility to the receiver account through transfer billing. Unlike linked accounts, these bill source accounts can be payer accounts from other organizations that have authorized billing transfer to this account. </p>"
         }
       },
       "documentation":"<p> This is used to categorize the invoice unit. Values are Amazon Web Services account IDs. Currently, the only supported rule is <code>LINKED_ACCOUNT</code>. </p>"
@@ -1228,7 +1359,7 @@
         },
         "NextToken":{
           "shape":"NextTokenString",
-          "documentation":"<p>The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size.</p>"
+          "documentation":"<p>The token for the next set of results. (You received this token from a previous call.)</p>"
         },
         "MaxResults":{
           "shape":"InvoiceSummariesMaxResults",
@@ -1253,7 +1384,7 @@
         },
         "NextToken":{
           "shape":"NextTokenString",
-          "documentation":"<p>The token to retrieve the next set of results. Amazon Web Services provides the token when the response from a previous call has more results than the maximum page size.</p>"
+          "documentation":"<p>The token to use to retrieve the next set of results, or null if there are no more results.</p>"
         }
       }
     },
@@ -1503,6 +1634,7 @@
       "type":"string",
       "enum":[
         "PENDING_VERIFICATION",
+        "VALIDATED",
         "TEST_INITIALIZED",
         "TEST_INITIALIZATION_FAILED",
         "TEST_FAILED",
@@ -1673,6 +1805,11 @@
         "Contacts":{
           "shape":"Contacts",
           "documentation":"<p>Updated list of contact information for portal administrators and technical contacts.</p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -1728,6 +1865,14 @@
       },
       "documentation":"<p> The details of the address associated with the receiver. </p>",
       "sensitive":true
+    },
+    "ReceiverRole":{
+      "type":"string",
+      "enum":[
+        "SELLER",
+        "RESELLER",
+        "BUYER"
+      ]
     },
     "ResourceNotFoundException":{
       "type":"structure",
@@ -1793,6 +1938,31 @@
       "max":100,
       "min":0
     },
+    "SendProcurementPortalValidationRequest":{
+      "type":"structure",
+      "required":["ProcurementPortalPreferenceArn"],
+      "members":{
+        "ProcurementPortalPreferenceArn":{
+          "shape":"ProcurementPortalPreferenceArnString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the procurement portal preference to validate.</p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "SendProcurementPortalValidationResponse":{
+      "type":"structure",
+      "required":["ProcurementPortalPreferenceArn"],
+      "members":{
+        "ProcurementPortalPreferenceArn":{
+          "shape":"ProcurementPortalPreferenceArnString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the procurement portal preference for which the validation request was sent.</p>"
+        }
+      }
+    },
     "SensitiveBasicStringWithoutSpace":{
       "type":"string",
       "max":1024,
@@ -1818,6 +1988,14 @@
     "SupplementalDocument":{
       "type":"structure",
       "members":{
+        "DocumentType":{
+          "shape":"SupplementalDocumentType",
+          "documentation":"<p>The type of supplemental document.</p>"
+        },
+        "DocumentId":{
+          "shape":"StringWithoutNewLine",
+          "documentation":"<p>The ID of the supplemental document.</p>"
+        },
         "DocumentUrl":{
           "shape":"StringWithoutNewLine",
           "documentation":"<p>The pre-signed URL to download invoice supplemental document.</p>"
@@ -1828,6 +2006,15 @@
         }
       },
       "documentation":"<p>Supplemental document associated with the invoice.</p>"
+    },
+    "SupplementalDocumentType":{
+      "type":"string",
+      "enum":[
+        "GOVERNMENT_INVOICE",
+        "TAX_E_INVOICE",
+        "PAYMENT_RECEIPT",
+        "SUPPLEMENT"
+      ]
     },
     "SupplementalDocuments":{
       "type":"list",
@@ -1863,6 +2050,13 @@
       "max":2048,
       "min":20,
       "pattern":"arn:aws[-a-z0-9]*:(invoicing)::[0-9]{12}:[-a-zA-Z0-9/:_]+"
+    },
+    "TaxAuthorityStatus":{
+      "type":"string",
+      "enum":[
+        "ISSUED",
+        "CANCELLED"
+      ]
     },
     "TaxInheritanceDisabledFlag":{"type":"boolean"},
     "TaxesBreakdown":{
@@ -2027,6 +2221,11 @@
         "Rule":{
           "shape":"InvoiceUnitRule",
           "documentation":"<p>The <code>InvoiceUnitRule</code> object used to update invoice units. </p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p> A unique, case-sensitive identifier that you provide to ensure idempotency of the request. </p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -2062,6 +2261,11 @@
         "PurchaseOrderRetrievalPreferenceStatusReason":{
           "shape":"BasicString",
           "documentation":"<p>The reason for the purchase order retrieval preference status update, providing context for the change.</p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
         }
       }
     },
@@ -2135,6 +2339,38 @@
         "unknownOperation",
         "other"
       ]
+    },
+    "VerifyProcurementPortalValidationRequest":{
+      "type":"structure",
+      "required":[
+        "ProcurementPortalPreferenceArn",
+        "Code"
+      ],
+      "members":{
+        "ProcurementPortalPreferenceArn":{
+          "shape":"ProcurementPortalPreferenceArnString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the procurement portal preference to validate.</p>"
+        },
+        "Code":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p>The validation code received from the procurement portal in response to a previous <code>SendProcurementPortalValidation</code> request.</p>"
+        },
+        "ClientToken":{
+          "shape":"BasicStringWithoutSpace",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "VerifyProcurementPortalValidationResponse":{
+      "type":"structure",
+      "required":["ProcurementPortalPreferenceArn"],
+      "members":{
+        "ProcurementPortalPreferenceArn":{
+          "shape":"ProcurementPortalPreferenceArnString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the procurement portal preference for which validation was completed.</p>"
+        }
+      }
     },
     "Year":{
       "type":"integer",

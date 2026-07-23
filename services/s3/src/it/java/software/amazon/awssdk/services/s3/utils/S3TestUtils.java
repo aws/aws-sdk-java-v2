@@ -34,7 +34,9 @@ import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.S3Object;
+import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.testutils.Waiter;
+import software.amazon.awssdk.testutils.service.S3BucketUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TestUtils {
@@ -46,6 +48,17 @@ public class S3TestUtils {
 
     public static String getTestBucket(S3Client s3) {
         return getBucketWithPrefix(s3, TEST_BUCKET_PREFIX);
+    }
+
+    /**
+     * Returns the {@link Tag} used to mark buckets created by tests so any residual test buckets can be cleaned up
+     * based on the tag.
+     */
+    public static Tag integTestTag() {
+        return Tag.builder()
+                  .key(S3BucketUtils.INTEG_TEST_RESOURCE_TAG_KEY)
+                  .value(S3BucketUtils.INTEG_TEST_RESOURCE_TAG_VALUE)
+                  .build();
     }
 
     public static String getNonDnsCompatibleTestBucket(S3Client s3) {
@@ -64,7 +77,9 @@ public class S3TestUtils {
 
         if (testBucket == null) {
             String newTestBucket = bucketPrefix + UUID.randomUUID();
-            s3.createBucket(r -> r.bucket(newTestBucket));
+            // Tag test buckets so any residual buckets can be cleaned up based on the tag.
+            s3.createBucket(r -> r.bucket(newTestBucket)
+                                  .createBucketConfiguration(cfg -> cfg.tags(integTestTag())));
             Waiter.run(() -> s3.headBucket(r -> r.bucket(newTestBucket)))
                   .ignoringException(NoSuchBucketException.class)
                   .orFail();

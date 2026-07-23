@@ -16,6 +16,24 @@
     "uid":"ecs-2014-11-13"
   },
   "operations":{
+    "ContinueServiceDeployment":{
+      "name":"ContinueServiceDeployment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ContinueServiceDeploymentRequest"},
+      "output":{"shape":"ContinueServiceDeploymentResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServerException"},
+        {"shape":"InvalidParameterException"},
+        {"shape":"ClientException"},
+        {"shape":"ServiceDeploymentNotFoundException"},
+        {"shape":"UnsupportedFeatureException"}
+      ],
+      "documentation":"<p>Continues or rolls back an Amazon ECS service deployment that is paused at a lifecycle hook.</p> <p>When a service deployment reaches a lifecycle stage that has a <code>PAUSE</code> hook configured, the deployment pauses and waits for an explicit action. Use this API to either continue the deployment to the next stage or roll back to the previous service revision.</p> <p>To find the <code>hookId</code> of the paused hook, call <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeServiceDeployments.html\">DescribeServiceDeployments</a> and inspect the <code>lifecycleHookDetails</code> field.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/continue-service-deployment.html\">Continuing Amazon ECS service deployments</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p>"
+    },
     "CreateCapacityProvider":{
       "name":"CreateCapacityProvider",
       "http":{
@@ -1680,6 +1698,23 @@
       "type":"list",
       "member":{"shape":"Attribute"}
     },
+    "AutoRepairActionsStatus":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "AutoRepairConfiguration":{
+      "type":"structure",
+      "members":{
+        "actionsStatus":{
+          "shape":"AutoRepairActionsStatus",
+          "documentation":"<p>The status of auto repair actions for the capacity provider. When set to <code>ENABLED</code>, Amazon ECS automatically replaces container instances with an <code>IMPAIRED</code> health status. When set to <code>DISABLED</code>, Amazon ECS still monitors container instance health but does not automatically replace impaired instances.</p>"
+        }
+      },
+      "documentation":"<p>The auto repair configuration for an Amazon ECS Managed Instances capacity provider. When enabled, Amazon ECS automatically replaces container instances that are detected as unhealthy based on container instance health checks, including accelerated compute device and daemon health checks.</p>"
+    },
     "AutoScalingGroupProvider":{
       "type":"structure",
       "required":["autoScalingGroupArn"],
@@ -2293,6 +2328,10 @@
         "gpuIds":{
           "shape":"GpuIds",
           "documentation":"<p>The IDs of each GPU assigned to the container.</p>"
+        },
+        "neuronDeviceIds":{
+          "shape":"NeuronDeviceIds",
+          "documentation":"<p>The IDs of each Neuron device assigned to the container.</p>"
         }
       },
       "documentation":"<p>A Docker container that's part of a task.</p>"
@@ -2467,7 +2506,7 @@
         },
         "resourceRequirements":{
           "shape":"ResourceRequirements",
-          "documentation":"<p>The type and amount of a resource to assign to a container. The only supported resource is a GPU.</p>"
+          "documentation":"<p>The type and amount of a resource to assign to a container. The supported resources are GPUs and Neuron devices.</p>"
         },
         "firelensConfiguration":{
           "shape":"FirelensConfiguration",
@@ -2678,7 +2717,7 @@
         },
         "resourceRequirements":{
           "shape":"ResourceRequirements",
-          "documentation":"<p>The type and amount of a resource to assign to a container, instead of the default value from the task definition. The only supported resource is a GPU.</p>"
+          "documentation":"<p>The type and amount of a resource to assign to a container, instead of the default value from the task definition. The supported resources are GPUs and Neuron devices.</p>"
         }
       },
       "documentation":"<p>The overrides that are sent to a container. An empty container override can be passed in. An example of an empty container override is <code>{\"containerOverrides\": [ ] }</code>. If a non-empty container override is specified, the <code>name</code> parameter must be included.</p> <p>You can use Secrets Manager or Amazon Web Services Systems Manager Parameter Store to store the sensitive data. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/secrets-envvar.html\">Retrieve secrets through environment variables</a> in the Amazon ECS Developer Guide.</p>"
@@ -2747,6 +2786,36 @@
     "Containers":{
       "type":"list",
       "member":{"shape":"Container"}
+    },
+    "ContinueServiceDeploymentRequest":{
+      "type":"structure",
+      "required":[
+        "serviceDeploymentArn",
+        "hookId"
+      ],
+      "members":{
+        "serviceDeploymentArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the service deployment to continue or roll back.</p>"
+        },
+        "hookId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the paused lifecycle hook to act on. You can find the <code>hookId</code> by calling <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeServiceDeployments.html\">DescribeServiceDeployments</a> and inspecting the <code>lifecycleHookDetails</code> field of the service deployment.</p>"
+        },
+        "action":{
+          "shape":"DeploymentLifecycleHookAction",
+          "documentation":"<p>The action to take on the paused lifecycle hook. Valid values are:</p> <ul> <li> <p> <code>CONTINUE</code> - Proceeds the deployment to the next lifecycle stage.</p> </li> <li> <p> <code>ROLLBACK</code> - Rolls back the deployment to the previous service revision.</p> </li> </ul> <p>If no value is specified, the default action is <code>CONTINUE</code>.</p>"
+        }
+      }
+    },
+    "ContinueServiceDeploymentResponse":{
+      "type":"structure",
+      "members":{
+        "serviceDeploymentArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the service deployment that was continued or rolled back.</p>"
+        }
+      }
     },
     "CpuManufacturer":{
       "type":"string",
@@ -2912,11 +2981,7 @@
     },
     "CreateExpressGatewayServiceRequest":{
       "type":"structure",
-      "required":[
-        "executionRoleArn",
-        "infrastructureRoleArn",
-        "primaryContainer"
-      ],
+      "required":["infrastructureRoleArn"],
       "members":{
         "executionRoleArn":{
           "shape":"String",
@@ -2965,6 +3030,10 @@
         "tags":{
           "shape":"Tags",
           "documentation":"<p>The metadata that you apply to the Express service to help categorize and organize it. Each tag consists of a key and an optional value. You can apply up to 50 tags to a service.</p>"
+        },
+        "taskDefinitionArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a task definition to use to create the Express Gateway service. This allows you to manage your own task definition, giving you more control over the service configuration such as adding sidecar containers.</p> <p>The task definition must have a container named <code>Main</code> with a single TCP port mapping that includes a container port and port name. The task definition must also have <code>FARGATE</code> compatibility.</p> <p>If you provide a task definition ARN, you cannot also specify <code>primaryContainer</code>, <code>executionRoleArn</code>, <code>taskRoleArn</code>, <code>cpu</code>, or <code>memory</code>.</p>"
         }
       }
     },
@@ -2999,6 +3068,10 @@
         "infrastructureOptimization":{
           "shape":"InfrastructureOptimization",
           "documentation":"<p>Defines how Amazon ECS Managed Instances optimizes the infrastastructure in your capacity provider. Provides control over the delay between when EC2 instances become idle or underutilized and when Amazon ECS optimizes them.</p>"
+        },
+        "autoRepairConfiguration":{
+          "shape":"AutoRepairConfiguration",
+          "documentation":"<p>The auto repair configuration for the Amazon ECS Managed Instances capacity provider. Use this to enable or disable automatic replacement of container instances that are detected as unhealthy.</p>"
         }
       },
       "documentation":"<p>The configuration for creating a Amazon ECS Managed Instances provider. This specifies how Amazon ECS should manage Amazon EC2 instances, including the infrastructure role, instance launch template, and whether to propagate tags from the capacity provider to the instances.</p>"
@@ -3110,6 +3183,10 @@
         "vpcLatticeConfigurations":{
           "shape":"VpcLatticeConfigurations",
           "documentation":"<p>The VPC Lattice configuration for the service being created.</p>"
+        },
+        "monitoring":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>The optional monitoring configuration for the service, which defines the resolution for the service-level <code>CPUUtilization</code> and <code>MemoryUtilization</code> Amazon CloudWatch metrics. When not specified, Amazon ECS uses the default resolution of <code>60</code> seconds.</p>"
         }
       },
       "documentation":"<zonbook></zonbook><xhtml></xhtml>"
@@ -3119,7 +3196,7 @@
       "members":{
         "service":{
           "shape":"Service",
-          "documentation":"<p>The full description of your service following the create call.</p> <p>A service will return either a <code>capacityProviderStrategy</code> or <code>launchType</code> parameter, but not both, depending where one was specified when it was created.</p> <p>If a service is using the <code>ECS</code> deployment controller, the <code>deploymentController</code> and <code>taskSets</code> parameters will not be returned.</p> <p>if the service uses the <code>CODE_DEPLOY</code> deployment controller, the <code>deploymentController</code>, <code>taskSets</code> and <code>deployments</code> parameters will be returned, however the <code>deployments</code> parameter will be an empty list.</p>"
+          "documentation":"<p>The full description of your service following the create call.</p> <p>A service will return either a <code>capacityProviderStrategy</code> or <code>launchType</code> parameter, but not both, depending where one was specified when it was created.</p> <p>If a service is using the <code>ECS</code> deployment controller, the <code>deploymentController</code> and <code>taskSets</code> parameters will not be returned.</p> <p>if the service uses the <code>CODE_DEPLOY</code> deployment controller, the <code>deploymentController</code>, <code>taskSets</code> and <code>deployments</code> parameters will be returned, however the <code>deployments</code> parameter will be an empty list.</p> <p>The response includes a <code>lifecycleHookDetails</code> field, which is an empty array when the service is created or updated. The values are populated when a lifecycle hook executes and are available as part of the service deployment details (<a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeServiceDeployments.html\">DescribeServiceDeployments</a>).</p>"
         }
       },
       "documentation":"<zonbook></zonbook><xhtml></xhtml>"
@@ -3674,6 +3751,13 @@
       "max":100.0,
       "min":0.0
     },
+    "DaemonIpcMode":{
+      "type":"string",
+      "enum":[
+        "none",
+        "shared"
+      ]
+    },
     "DaemonLinuxParameters":{
       "type":"structure",
       "members":{
@@ -3717,6 +3801,13 @@
       },
       "documentation":"<p>The specified daemon wasn't found. You can view your available daemons with <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ListDaemons.html\">ListDaemons</a>. Amazon ECS daemons are cluster specific and Region specific.</p>",
       "exception":true
+    },
+    "DaemonPidMode":{
+      "type":"string",
+      "enum":[
+        "none",
+        "shared"
+      ]
     },
     "DaemonPropagateTags":{
       "type":"string",
@@ -3902,6 +3993,14 @@
         "registeredBy":{
           "shape":"String",
           "documentation":"<p>The principal that registered the daemon task definition.</p>"
+        },
+        "pidMode":{
+          "shape":"DaemonPidMode",
+          "documentation":"<p>The PID namespace mode for the daemon. The valid values are <code>none</code> and <code>shared</code>. The default is <code>none</code>.</p> <p>If <code>none</code> is specified or no value is provided, the daemon runs with its own PID namespace, isolated from other tasks. If <code>shared</code> is specified, the daemon joins the host PID namespace, making it accessible to non-daemon tasks that use <code>pidMode: \"host\"</code> or other daemons that use <code>pidMode: \"shared\"</code>.</p>"
+        },
+        "ipcMode":{
+          "shape":"DaemonIpcMode",
+          "documentation":"<p>The IPC namespace mode for the daemon. The valid values are <code>none</code> and <code>shared</code>. The default is <code>none</code>.</p> <p>If <code>none</code> is specified or no value is provided, the daemon runs with its own IPC namespace, isolated from other tasks. If <code>shared</code> is specified, the daemon joins the host IPC namespace, making it accessible to non-daemon tasks that use <code>ipcMode: \"host\"</code> or other daemons that use <code>ipcMode: \"shared\"</code>.</p>"
         }
       },
       "documentation":"<p>The details of a daemon task definition. A daemon task definition is a template that describes the containers that form a daemon. Daemons deploy cross-cutting software agents independently across your Amazon ECS infrastructure.</p>"
@@ -4353,6 +4452,14 @@
         "rollback":{
           "shape":"Boolean",
           "documentation":"<p>Determines whether to configure Amazon ECS to roll back the service if a service deployment fails. If rollback is on, when a service deployment fails, the service is rolled back to the last deployment that completed successfully.</p>"
+        },
+        "resetOnHealthyTask":{
+          "shape":"BoxedBoolean",
+          "documentation":"<p>Specifies whether the deployment circuit breaker resets its failure count when a task reaches a healthy state. When set to <code>true</code>, a task that reaches a healthy state resets the failure count to <code>0</code>. When set to <code>false</code>, Amazon ECS does not reset the failure count. The default is <code>true</code>.</p>"
+        },
+        "thresholdConfiguration":{
+          "shape":"ThresholdConfiguration",
+          "documentation":"<p>The threshold configuration that controls when the deployment circuit breaker triggers. The <code>type</code> and <code>value</code> together determine how many task failures are tolerated before the circuit breaker activates.</p>"
         }
       },
       "documentation":"<p><note> <p>The deployment circuit breaker can only be used for services using the rolling update (<code>ECS</code>) deployment type.</p> </note> <p>The <b>deployment circuit breaker</b> determines whether a service deployment will fail if the service can't reach a steady state. If it is turned on, a service deployment will transition to a failed state and stop launching new tasks. You can also configure Amazon ECS to roll back your service to the last completed deployment after a failure. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-type-ecs.html\">Rolling update</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <p>For more information about API failure reasons, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/api_failures_messages.html\">API failure reasons</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p></p>"
@@ -4386,7 +4493,7 @@
         },
         "lifecycleHooks":{
           "shape":"DeploymentLifecycleHookList",
-          "documentation":"<p>An array of deployment lifecycle hook objects to run custom logic at specific stages of the deployment lifecycle.</p>"
+          "documentation":"<p>An array of deployment lifecycle hook objects to run custom logic or pause the deployment at specific stages of the deployment lifecycle.</p>"
         },
         "linearConfiguration":{
           "shape":"LinearConfiguration",
@@ -4431,9 +4538,13 @@
     "DeploymentLifecycleHook":{
       "type":"structure",
       "members":{
+        "targetType":{
+          "shape":"DeploymentLifecycleHookTargetType",
+          "documentation":"<p>The type of action the lifecycle hook performs. Valid values are:</p> <ul> <li> <p> <code>AWS_LAMBDA</code> - Invokes a Lambda function at the specified lifecycle stage. This is the default value.</p> </li> <li> <p> <code>PAUSE</code> - Pauses the deployment at the specified lifecycle stage until you call <code>ContinueServiceDeployment</code> to continue or roll back.</p> </li> </ul> <p>This field is optional. If not specified, the default value is <code>AWS_LAMBDA</code>.</p>"
+        },
         "hookTargetArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the hook target. Currently, only Lambda function ARNs are supported.</p> <p>You must provide this parameter when configuring a deployment lifecycle hook.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hook target. For <code>AWS_LAMBDA</code> hooks, this is the Lambda function ARN. This field is not applicable for <code>PAUSE</code> hooks.</p> <p>You must provide this parameter when configuring an <code>AWS_LAMBDA</code> lifecycle hook.</p>"
         },
         "roleArn":{
           "shape":"IAMRoleArn",
@@ -4441,14 +4552,65 @@
         },
         "lifecycleStages":{
           "shape":"DeploymentLifecycleHookStageList",
-          "documentation":"<p>The lifecycle stages at which to run the hook. Choose from these valid values:</p> <ul> <li> <p>RECONCILE_SERVICE</p> <p>The reconciliation stage that only happens when you start a new service deployment with more than 1 service revision in an ACTIVE state.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>PRE_SCALE_UP</p> <p>The green service revision has not started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>POST_SCALE_UP</p> <p>The green service revision has started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>TEST_TRAFFIC_SHIFT</p> <p>The blue and green service revisions are running. The blue service revision handles 100% of the production traffic. The green service revision is migrating from 0% to 100% of test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>POST_TEST_TRAFFIC_SHIFT</p> <p>The test traffic shift is complete. The green service revision handles 100% of the test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>PRODUCTION_TRAFFIC_SHIFT</p> <p>Production traffic is shifting to the green service revision. The green service revision is migrating from 0% to 100% of production traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>POST_PRODUCTION_TRAFFIC_SHIFT</p> <p>The production traffic shift is complete.</p> <p>You can use a lifecycle hook for this stage.</p> </li> </ul> <p>You must provide this parameter when configuring a deployment lifecycle hook.</p>"
+          "documentation":"<p>The lifecycle stages at which to run the hook. Choose from these valid values:</p> <ul> <li> <p>RECONCILE_SERVICE</p> <p>The reconciliation stage that only happens when you start a new service deployment with more than 1 service revision in an ACTIVE state.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>PRE_SCALE_UP</p> <p>The green service revision has not started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>POST_SCALE_UP</p> <p>The green service revision has started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>TEST_TRAFFIC_SHIFT</p> <p>The blue and green service revisions are running. The blue service revision handles 100% of the production traffic. The green service revision is migrating from 0% to 100% of test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>POST_TEST_TRAFFIC_SHIFT</p> <p>The test traffic shift is complete. The green service revision handles 100% of the test traffic.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>PRE_PRODUCTION_TRAFFIC_SHIFT</p> <p>Occurs before production traffic shift. For linear and canary deployments, this stage is invoked before every traffic shift step.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>PRODUCTION_TRAFFIC_SHIFT</p> <p>Production traffic is shifting to the green service revision. The green service revision is migrating from 0% to 100% of production traffic. For linear and canary deployments, this stage is invoked at every traffic shift step.</p> <p>You can use a lifecycle hook for this stage.</p> </li> <li> <p>POST_PRODUCTION_TRAFFIC_SHIFT</p> <p>The production traffic shift is complete.</p> <p>You can use a lifecycle hook for this stage.</p> </li> </ul> <note> <p> <code>PAUSE</code> hooks cannot be configured at <code>TEST_TRAFFIC_SHIFT</code> or <code>PRODUCTION_TRAFFIC_SHIFT</code> stages. These stages are only valid for <code>AWS_LAMBDA</code> hooks.</p> </note> <p>You must provide this parameter when configuring a deployment lifecycle hook.</p>"
         },
         "hookDetails":{
           "shape":"HookDetails",
-          "documentation":"<p>Use this field to specify custom parameters that Amazon ECS will pass to your hook target invocations (such as a Lambda function).</p>"
+          "documentation":"<p>Use this field to specify custom parameters that Amazon ECS passes to your Lambda function on each invocation. This field is not used for <code>PAUSE</code> hooks.</p>"
+        },
+        "timeoutConfiguration":{
+          "shape":"DeploymentLifecycleHookTimeoutConfiguration",
+          "documentation":"<p>The timeout configuration for the lifecycle hook. This specifies how long Amazon ECS waits before taking the timeout action if the hook is not resolved.</p>"
         }
       },
-      "documentation":"<p>A deployment lifecycle hook runs custom logic at specific stages of the deployment process. Currently, you can use Lambda functions as hook targets.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-lifecycle-hooks.html\">Lifecycle hooks for Amazon ECS service deployments</a> in the <i> Amazon Elastic Container Service Developer Guide</i>.</p>"
+      "documentation":"<p>A deployment lifecycle hook runs custom logic or pauses the deployment at specific stages of the deployment process. You can use Lambda functions or pause hooks as hook targets.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/deployment-lifecycle-hooks.html\">Lifecycle hooks for Amazon ECS service deployments</a> in the <i> Amazon Elastic Container Service Developer Guide</i>.</p>"
+    },
+    "DeploymentLifecycleHookAction":{
+      "type":"string",
+      "enum":[
+        "ROLLBACK",
+        "CONTINUE"
+      ]
+    },
+    "DeploymentLifecycleHookDetail":{
+      "type":"structure",
+      "members":{
+        "hookId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the lifecycle hook. Use this value when calling <code>ContinueServiceDeployment</code> to continue or roll back a paused deployment.</p>"
+        },
+        "targetType":{
+          "shape":"DeploymentLifecycleHookTargetType",
+          "documentation":"<p>The type of action the lifecycle hook performs, such as <code>AWS_LAMBDA</code> or <code>PAUSE</code>.</p>"
+        },
+        "targetArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hook target. For <code>AWS_LAMBDA</code> hooks, this is the Lambda function ARN. For <code>PAUSE</code> hooks, this field is not set.</p>"
+        },
+        "status":{
+          "shape":"DeploymentLifecycleHookStatus",
+          "documentation":"<p>The status of the lifecycle hook. Valid values include <code>AWAITING_ACTION</code>, <code>IN_PROGRESS</code>, <code>SUCCEEDED</code>, <code>FAILED</code>, and <code>TIMED_OUT</code>.</p>"
+        },
+        "expiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the lifecycle hook times out. If the hook has not been completed by this time, Amazon ECS takes the timeout action.</p>"
+        },
+        "timeoutAction":{
+          "shape":"DeploymentLifecycleHookAction",
+          "documentation":"<p>The action Amazon ECS takes when the lifecycle hook times out. Valid values are <code>CONTINUE</code> and <code>ROLLBACK</code>.</p>"
+        }
+      },
+      "documentation":"<p>The details of a deployment lifecycle hook that is active during a service deployment.</p> <p>You can view lifecycle hook details by calling <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeServiceDeployments.html\">DescribeServiceDeployments</a>.</p>"
+    },
+    "DeploymentLifecycleHookDetailList":{
+      "type":"list",
+      "member":{"shape":"DeploymentLifecycleHookDetail"}
+    },
+    "DeploymentLifecycleHookDuration":{
+      "type":"integer",
+      "box":true,
+      "max":20160,
+      "min":1
     },
     "DeploymentLifecycleHookList":{
       "type":"list",
@@ -4462,6 +4624,7 @@
         "POST_SCALE_UP",
         "TEST_TRAFFIC_SHIFT",
         "POST_TEST_TRAFFIC_SHIFT",
+        "PRE_PRODUCTION_TRAFFIC_SHIFT",
         "PRODUCTION_TRAFFIC_SHIFT",
         "POST_PRODUCTION_TRAFFIC_SHIFT"
       ]
@@ -4469,6 +4632,37 @@
     "DeploymentLifecycleHookStageList":{
       "type":"list",
       "member":{"shape":"DeploymentLifecycleHookStage"}
+    },
+    "DeploymentLifecycleHookStatus":{
+      "type":"string",
+      "enum":[
+        "AWAITING_ACTION",
+        "IN_PROGRESS",
+        "SUCCEEDED",
+        "FAILED",
+        "TIMED_OUT"
+      ]
+    },
+    "DeploymentLifecycleHookTargetType":{
+      "type":"string",
+      "enum":[
+        "AWS_LAMBDA",
+        "PAUSE"
+      ]
+    },
+    "DeploymentLifecycleHookTimeoutConfiguration":{
+      "type":"structure",
+      "members":{
+        "timeoutInMinutes":{
+          "shape":"DeploymentLifecycleHookDuration",
+          "documentation":"<p>The number of minutes Amazon ECS waits for the lifecycle hook to complete before taking the timeout action.</p> <p>Default: 1440 (24 hours)</p>"
+        },
+        "action":{
+          "shape":"DeploymentLifecycleHookAction",
+          "documentation":"<p>The action Amazon ECS takes when the lifecycle hook times out. Valid values are:</p> <ul> <li> <p> <code>CONTINUE</code> - Proceeds the deployment to the next lifecycle stage.</p> </li> <li> <p> <code>ROLLBACK</code> - Rolls back the deployment to the previous service revision.</p> </li> </ul> <p>Default: <code>ROLLBACK</code> </p>"
+        }
+      },
+      "documentation":"<p>The timeout configuration for a deployment lifecycle hook. This determines how long Amazon ECS waits for the hook to complete before taking the specified timeout action.</p>"
     },
     "DeploymentRolloutState":{
       "type":"string",
@@ -5466,6 +5660,10 @@
           "shape":"String",
           "documentation":"<p>The ARN of the task role for the service revision.</p>"
         },
+        "taskDefinitionArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the task definition used by this service revision. This is present for all Express services and reflects the task definition in use, whether managed by Amazon ECS or provided by the customer.</p>"
+        },
         "cpu":{
           "shape":"String",
           "documentation":"<p>The CPU allocation for tasks in this service revision.</p>"
@@ -5856,6 +6054,10 @@
         "status":{
           "shape":"InstanceHealthCheckState",
           "documentation":"<p>The container instance health status.</p>"
+        },
+        "statusReason":{
+          "shape":"String",
+          "documentation":"<p>The reason for the container instance health status.</p>"
         },
         "lastUpdated":{
           "shape":"Timestamp",
@@ -6449,7 +6651,7 @@
       "members":{
         "clusterArn":{
           "shape":"String",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the cluster to filter daemons by. If not specified, daemons from all clusters are returned.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the cluster to filter daemons by. If you do not specify a cluster, the default cluster is assumed.</p>"
         },
         "capacityProviderArns":{
           "shape":"StringList",
@@ -7091,6 +7293,10 @@
         "infrastructureOptimization":{
           "shape":"InfrastructureOptimization",
           "documentation":"<p>Defines how Amazon ECS Managed Instances optimizes the infrastastructure in your capacity provider. Configure it to turn on or off the infrastructure optimization in your capacity provider, and to control the idle or underutilized EC2 instances optimization delay.</p>"
+        },
+        "autoRepairConfiguration":{
+          "shape":"AutoRepairConfiguration",
+          "documentation":"<p>The auto repair configuration for the Amazon ECS Managed Instances capacity provider. Indicates whether Amazon ECS automatically replaces container instances that are detected as unhealthy.</p>"
         }
       },
       "documentation":"<p>The configuration for a Amazon ECS Managed Instances provider. Amazon ECS uses this configuration to automatically launch, manage, and terminate Amazon EC2 instances on your behalf. Managed instances provide access to the full range of Amazon EC2 instance types and features while offloading infrastructure management to Amazon Web Services.</p>"
@@ -7483,6 +7689,47 @@
       },
       "documentation":"<p>The minimum and maximum amount of memory in mebibytes (MiB) for instance type selection. This ensures that selected instance types have adequate memory for your workloads.</p>"
     },
+    "MetricConfiguration":{
+      "type":"structure",
+      "required":[
+        "metricNames",
+        "resolutionSeconds"
+      ],
+      "members":{
+        "metricNames":{
+          "shape":"MetricNamesList",
+          "documentation":"<p>The list of metric names to configure. The supported metric names are <code>CPUUtilization</code> and <code>MemoryUtilization</code>.</p>"
+        },
+        "resolutionSeconds":{
+          "shape":"MetricResolutionSeconds",
+          "documentation":"<p>The resolution, in seconds, at which to collect the metrics. The valid values are <code>20</code> and <code>60</code>.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for a specific set of metrics to collect for a service.</p>"
+    },
+    "MetricConfigurationList":{
+      "type":"list",
+      "member":{"shape":"MetricConfiguration"},
+      "max":5,
+      "min":0
+    },
+    "MetricName":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "MetricNamesList":{
+      "type":"list",
+      "member":{"shape":"MetricName"},
+      "max":5,
+      "min":1
+    },
+    "MetricResolutionSeconds":{
+      "type":"integer",
+      "box":true,
+      "max":60,
+      "min":20
+    },
     "MissingVersionException":{
       "type":"structure",
       "members":{
@@ -7493,6 +7740,16 @@
       },
       "documentation":"<p>Amazon ECS can't determine the current version of the Amazon ECS container agent on the container instance and doesn't have enough information to proceed with an update. This could be because the agent running on the container instance is a previous or custom version that doesn't use our version information.</p>",
       "exception":true
+    },
+    "MonitoringConfiguration":{
+      "type":"structure",
+      "members":{
+        "metricConfigurations":{
+          "shape":"MetricConfigurationList",
+          "documentation":"<p>The list of metric configurations for the service monitoring.</p>"
+        }
+      },
+      "documentation":"<p>The optional monitoring configuration for a service, which defines the resolution for the service-level <code>CPUUtilization</code> and <code>MemoryUtilization</code> Amazon CloudWatch metrics. When not specified, Amazon ECS uses the default resolution of <code>60</code> seconds.</p>"
     },
     "MountPoint":{
       "type":"structure",
@@ -7630,6 +7887,10 @@
         "none"
       ]
     },
+    "NeuronDeviceIds":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "NoUpdateAvailableException":{
       "type":"structure",
       "members":{
@@ -7723,18 +7984,21 @@
       "members":{
         "id":{
           "shape":"String",
-          "documentation":"<p>The ID for the GPUs on the container instance. The available GPU IDs can also be obtained on the container instance in the <code>/var/lib/ecs/gpu/nvidia_gpu_info.json</code> file.</p>"
+          "documentation":"<p>The ID for the GPU or Neuron device on the container instance. For GPUs, the available GPU IDs can also be obtained on the container instance in the <code>/var/lib/ecs/gpu/nvidia_gpu_info.json</code> file. For Neuron devices, the ID corresponds to the device index (for example, <code>0</code> for <code>/dev/neuron0</code>).</p>"
         },
         "type":{
           "shape":"PlatformDeviceType",
-          "documentation":"<p>The type of device that's available on the container instance. The only supported value is <code>GPU</code>.</p>"
+          "documentation":"<p>The type of device that's available on the container instance. The supported values are <code>GPU</code> and <code>NEURON_DEVICE</code>.</p>"
         }
       },
-      "documentation":"<p>The devices that are available on the container instance. The only supported device type is a GPU.</p>"
+      "documentation":"<p>The devices that are available on the container instance. The supported device types are GPUs and Neuron devices.</p>"
     },
     "PlatformDeviceType":{
       "type":"string",
-      "enum":["GPU"]
+      "enum":[
+        "GPU",
+        "NEURON_DEVICE"
+      ]
     },
     "PlatformDevices":{
       "type":"list",
@@ -8011,7 +8275,7 @@
         },
         "platformDevices":{
           "shape":"PlatformDevices",
-          "documentation":"<p>The devices that are available on the container instance. The only supported device type is a GPU.</p>"
+          "documentation":"<p>The devices that are available on the container instance. The supported device types are GPUs and Neuron devices.</p>"
         },
         "tags":{
           "shape":"Tags",
@@ -8068,6 +8332,14 @@
         "tags":{
           "shape":"Tags",
           "documentation":"<p>The metadata that you apply to the daemon task definition to help you categorize and organize them. Each tag consists of a key and an optional value. You define both of them.</p> <p>The following basic restrictions apply to tags:</p> <ul> <li> <p>Maximum number of tags per resource - 50</p> </li> <li> <p>For each resource, each tag key must be unique, and each tag key can have only one value.</p> </li> <li> <p>Maximum key length - 128 Unicode characters in UTF-8</p> </li> <li> <p>Maximum value length - 256 Unicode characters in UTF-8</p> </li> <li> <p>If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.</p> </li> <li> <p>Tag keys and values are case-sensitive.</p> </li> <li> <p>Do not use <code>aws:</code>, <code>AWS:</code>, or any upper or lowercase combination of such as a prefix for either keys or values as it is reserved for Amazon Web Services use. You cannot edit or delete tag keys or values with this prefix. Tags with this prefix do not count against your tags per resource limit.</p> </li> </ul>"
+        },
+        "pidMode":{
+          "shape":"DaemonPidMode",
+          "documentation":"<p>The PID namespace mode for the daemon. The valid values are <code>none</code> and <code>shared</code>. The default is <code>none</code>.</p> <p>If <code>none</code> is specified or no value is provided, the daemon runs with its own PID namespace, isolated from other tasks. If <code>shared</code> is specified, the daemon joins the host PID namespace, making it accessible to non-daemon tasks that use <code>pidMode: \"host\"</code> or other daemons that use <code>pidMode: \"shared\"</code>.</p>"
+        },
+        "ipcMode":{
+          "shape":"DaemonIpcMode",
+          "documentation":"<p>The IPC namespace mode for the daemon. The valid values are <code>none</code> and <code>shared</code>. The default is <code>none</code>.</p> <p>If <code>none</code> is specified or no value is provided, the daemon runs with its own IPC namespace, isolated from other tasks. If <code>shared</code> is specified, the daemon joins the host IPC namespace, making it accessible to non-daemon tasks that use <code>ipcMode: \"host\"</code> or other daemons that use <code>ipcMode: \"shared\"</code>.</p>"
         }
       }
     },
@@ -8277,14 +8549,14 @@
       "members":{
         "value":{
           "shape":"String",
-          "documentation":"<p>The value for the specified resource type.</p> <p>When the type is <code>GPU</code>, the value is the number of physical <code>GPUs</code> the Amazon ECS container agent reserves for the container. The number of GPUs that's reserved for all containers in a task can't exceed the number of available GPUs on the container instance that the task is launched on.</p> <p>When the type is <code>InferenceAccelerator</code>, the <code>value</code> matches the <code>deviceName</code> for an <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_InferenceAccelerator.html\">InferenceAccelerator</a> specified in a task definition.</p>"
+          "documentation":"<p>The value for the specified resource type.</p> <p>When the type is <code>GPU</code>, the value is the number of physical <code>GPUs</code> the Amazon ECS container agent reserves for the container. The number of GPUs that's reserved for all containers in a task can't exceed the number of available GPUs on the container instance that the task is launched on. You can also specify <code>ALL</code> to allocate all available GPUs on the instance to the container.</p> <p>When the type is <code>NeuronDevice</code>, the value must be <code>ALL</code>. This allocates all available Neuron devices on the instance to the container. Only one container in a task can specify <code>NeuronDevice</code> resources. This resource type is only supported on Managed Instances.</p> <p>When the type is <code>InferenceAccelerator</code>, the <code>value</code> matches the <code>deviceName</code> for an <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_InferenceAccelerator.html\">InferenceAccelerator</a> specified in a task definition.</p>"
         },
         "type":{
           "shape":"ResourceType",
           "documentation":"<p>The type of resource to assign to a container. </p>"
         }
       },
-      "documentation":"<p>The type and amount of a resource to assign to a container. The supported resource types are GPUs and Elastic Inference accelerators. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-gpu.html\">Working with GPUs on Amazon ECS</a> or <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-inference.html\">Working with Amazon Elastic Inference on Amazon ECS</a> in the <i>Amazon Elastic Container Service Developer Guide</i> </p>"
+      "documentation":"<p>The type and amount of a resource to assign to a container. The supported resource types are GPUs, Neuron devices, and Elastic Inference accelerators. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-gpu.html\">Working with GPUs on Amazon ECS</a> or <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/ecs-inference.html\">Working with Amazon Elastic Inference on Amazon ECS</a> in the <i>Amazon Elastic Container Service Developer Guide</i> </p>"
     },
     "ResourceRequirements":{
       "type":"list",
@@ -8294,7 +8566,8 @@
       "type":"string",
       "enum":[
         "GPU",
-        "InferenceAccelerator"
+        "InferenceAccelerator",
+        "NeuronDevice"
       ]
     },
     "Resources":{
@@ -8431,6 +8704,16 @@
       },
       "documentation":"<p>Information about the platform for the Amazon ECS service or task.</p> <p>For more information about <code>RuntimePlatform</code>, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#runtime-platform\">RuntimePlatform</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p>"
     },
+    "RuntimePlatformOverride":{
+      "type":"structure",
+      "members":{
+        "cpuArchitecture":{
+          "shape":"String",
+          "documentation":"<p>The CPU architecture that tasks in this service revision run on. This value might differ from the architecture declared in the task definition—for example, when Amazon ECS detects an architecture mismatch during an Amazon ECS Express deployment and runs tasks on a different architecture. You can't set this value.</p> <p>Valid values:</p> <ul> <li> <p> <code>X86_64</code> - The x86 64-bit architecture.</p> </li> <li> <p> <code>ARM64</code> - The 64-bit ARM architecture.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The runtime platform that Amazon ECS applies to a service revision. This value overrides the runtime platform specified in the task definition. You can't set this value.</p>"
+    },
     "S3FilesVolumeConfiguration":{
       "type":"structure",
       "required":["fileSystemArn"],
@@ -8452,7 +8735,7 @@
           "documentation":"<p>The full ARN of the S3 Files access point to use. If an access point is specified, the root directory value specified in the <code>S3FilesVolumeConfiguration</code> must either be omitted or set to <code>/</code> which will enforce the path set on the S3 Files access point. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-access-points-creating.html\">Creating S3 Files access points</a>.</p>"
         }
       },
-      "documentation":"<p>This parameter is specified when you're using an Amazon S3 Files file system for task storage. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/s3files-volumes.html\">Amazon S3 Files volumes</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <important> <p>Your task definition must include a Task IAM Role. See <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-prereq-policies.html#s3-files-prereq-iam-compute-role\"> IAM role for attaching your file system to AWS compute resources</a> for required permissions.</p> </important>"
+      "documentation":"<p>This parameter is specified when you're using an Amazon S3 Files file system for task storage. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/s3files-volumes.html\">Amazon S3 Files volumes</a> in the <i>Amazon Elastic Container Service Developer Guide</i>.</p> <important> <p>Your task definition must include a Task IAM Role. See <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/userguide/s3-files-prereq-policies.html#s3-files-prereq-iam-compute-role\"> IAM role for attaching your file system to Amazon Web Services compute resources</a> for required permissions.</p> </important>"
     },
     "Scale":{
       "type":"structure",
@@ -8946,7 +9229,11 @@
         },
         "lifecycleStage":{
           "shape":"ServiceDeploymentLifecycleStage",
-          "documentation":"<p>The current lifecycle stage of the deployment. Possible values include:</p> <ul> <li> <p>RECONCILE_SERVICE</p> <p>The reconciliation stage that only happens when you start a new service deployment with more than 1 service revision in an ACTIVE state.</p> </li> <li> <p>PRE_SCALE_UP</p> <p>The green service revision has not started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> </li> <li> <p>SCALE_UP</p> <p>The stage when the green service revision scales up to 100% and launches new tasks. The green service revision is not serving any traffic at this point.</p> </li> <li> <p>POST_SCALE_UP</p> <p>The green service revision has started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> </li> <li> <p>TEST_TRAFFIC_SHIFT</p> <p>The blue and green service revisions are running. The blue service revision handles 100% of the production traffic. The green service revision is migrating from 0% to 100% of test traffic.</p> </li> <li> <p>POST_TEST_TRAFFIC_SHIFT</p> <p>The test traffic shift is complete. The green service revision handles 100% of the test traffic.</p> </li> <li> <p>PRODUCTION_TRAFFIC_SHIFT</p> <p>Production traffic is shifting to the green service revision. The green service revision is migrating from 0% to 100% of production traffic.</p> </li> <li> <p>POST_PRODUCTION_TRAFFIC_SHIFT</p> <p>The production traffic shift is complete.</p> </li> <li> <p>BAKE_TIME</p> <p>The stage when both blue and green service revisions are running simultaneously after the production traffic has shifted.</p> </li> <li> <p>CLEAN_UP</p> <p>The stage when the blue service revision has completely scaled down to 0 running tasks. The green service revision is now the production service revision after this stage.</p> </li> </ul>"
+          "documentation":"<p>The current lifecycle stage of the deployment. Possible values include:</p> <ul> <li> <p>RECONCILE_SERVICE</p> <p>The reconciliation stage that only happens when you start a new service deployment with more than 1 service revision in an ACTIVE state.</p> </li> <li> <p>PRE_SCALE_UP</p> <p>The green service revision has not started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> </li> <li> <p>SCALE_UP</p> <p>The stage when the green service revision scales up to 100% and launches new tasks. The green service revision is not serving any traffic at this point.</p> </li> <li> <p>POST_SCALE_UP</p> <p>The green service revision has started. The blue service revision is handling 100% of the production traffic. There is no test traffic.</p> </li> <li> <p>TEST_TRAFFIC_SHIFT</p> <p>The blue and green service revisions are running. The blue service revision handles 100% of the production traffic. The green service revision is migrating from 0% to 100% of test traffic.</p> </li> <li> <p>POST_TEST_TRAFFIC_SHIFT</p> <p>The test traffic shift is complete. The green service revision handles 100% of the test traffic.</p> </li> <li> <p>PRE_PRODUCTION_TRAFFIC_SHIFT</p> <p>Occurs before production traffic shift. For linear and canary deployments, this stage is invoked before every traffic shift step.</p> </li> <li> <p>PRODUCTION_TRAFFIC_SHIFT</p> <p>Production traffic is shifting to the green service revision. The green service revision is migrating from 0% to 100% of production traffic. For linear and canary deployments, this stage is invoked at every traffic shift step.</p> </li> <li> <p>POST_PRODUCTION_TRAFFIC_SHIFT</p> <p>The production traffic shift is complete.</p> </li> <li> <p>BAKE_TIME</p> <p>The stage when both blue and green service revisions are running simultaneously after the production traffic has shifted.</p> </li> <li> <p>CLEAN_UP</p> <p>The stage when the blue service revision has completely scaled down to 0 running tasks. The green service revision is now the production service revision after this stage.</p> </li> </ul>"
+        },
+        "lifecycleHookDetails":{
+          "shape":"DeploymentLifecycleHookDetailList",
+          "documentation":"<p>The details of the lifecycle hooks for the current service deployment.</p>"
         },
         "deploymentConfiguration":{"shape":"DeploymentConfiguration"},
         "rollback":{
@@ -9065,7 +9352,7 @@
           "documentation":"<p> Message that describes the cause of the exception.</p>"
         }
       },
-      "documentation":"<p>The service deploy ARN that you specified in the <code>StopServiceDeployment</code> doesn't exist. You can use <code>ListServiceDeployments</code> to retrieve the service deployment ARNs.</p>",
+      "documentation":"<p>The service deploy ARN that you specified in the <code>ContinueServiceDeployment</code> doesn't exist. You can use <code>ListServiceDeployments</code> to retrieve the service deployment ARNs.</p>",
       "exception":true
     },
     "ServiceDeploymentRollbackMonitorsStatus":{
@@ -9305,6 +9592,14 @@
         "ecsManagedResources":{
           "shape":"ECSManagedResources",
           "documentation":"<p>The resources created and managed by Amazon ECS when you create an Express service for Amazon ECS.</p>"
+        },
+        "overrides":{
+          "shape":"ServiceRevisionOverrides",
+          "documentation":"<p>The effective runtime overrides that Amazon ECS applies to this service revision. This value is present only when Amazon ECS detects a difference between the task definition and the actual runtime configuration.</p>"
+        },
+        "monitoring":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>The optional monitoring configuration for the service, which defines the resolution for the service-level <code>CPUUtilization</code> and <code>MemoryUtilization</code> Amazon CloudWatch metrics. When not specified, Amazon ECS uses the default resolution of <code>60</code> seconds.</p>"
         }
       },
       "documentation":"<p>Information about the service revision.</p> <p>A service revision contains a record of the workload configuration Amazon ECS is attempting to deploy. Whenever you create or deploy a service, Amazon ECS automatically creates and captures the configuration that you're trying to deploy in the service revision. For information about service revisions, see <a href=\"https://docs.aws.amazon.com/AmazonECS/latest/developerguide/service-revision.html\">Amazon ECS service revisions</a> in the <i> <i>Amazon Elastic Container Service Developer Guide</i> </i>.</p>"
@@ -9326,6 +9621,16 @@
     "ServiceRevisionLoadBalancers":{
       "type":"list",
       "member":{"shape":"ServiceRevisionLoadBalancer"}
+    },
+    "ServiceRevisionOverrides":{
+      "type":"structure",
+      "members":{
+        "runtimePlatform":{
+          "shape":"RuntimePlatformOverride",
+          "documentation":"<p>The runtime platform override that Amazon ECS automatically applies to the service revision. You can't set this value.</p>"
+        }
+      },
+      "documentation":"<p>Contains the runtime overrides that Amazon ECS automatically applies to a service revision when the effective runtime configuration differs from the task definition. This value is read-only.</p>"
     },
     "ServiceRevisionSummary":{
       "type":"structure",
@@ -10461,6 +10766,33 @@
       "type":"list",
       "member":{"shape":"Task"}
     },
+    "ThresholdConfiguration":{
+      "type":"structure",
+      "required":[
+        "type",
+        "value"
+      ],
+      "members":{
+        "type":{
+          "shape":"ThresholdType",
+          "documentation":"<p>Determines how Amazon ECS uses <code>value</code> to calculate the failure threshold. For the percentage types (<code>BOUNDED_PERCENT</code> and <code>UNBOUNDED_PERCENT</code>), Amazon ECS multiplies <code>value</code> by the latest service desired count. For <code>COUNT</code>, Amazon ECS uses <code>value</code> directly as the threshold. The default is <code>BOUNDED_PERCENT</code>.</p>"
+        },
+        "value":{
+          "shape":"Integer",
+          "documentation":"<p>Specifies the integer that Amazon ECS uses to calculate the failure threshold. When <code>type</code> is <code>COUNT</code>, this value is the failure threshold itself. When <code>type</code> is a percentage type, Amazon ECS multiplies this value by the latest service desired count to produce the failure threshold. The default is <code>50</code>.</p>"
+        }
+      },
+      "documentation":"<p>Defines the failure threshold that the deployment circuit breaker uses to monitor a deployment. The <code>type</code> and <code>value</code> together determine the number of task failures that are tolerated before the circuit breaker triggers.</p> <p>By default, the threshold configuration uses a <code>type</code> of <code>BOUNDED_PERCENT</code> with a <code>value</code> of <code>50</code>.</p>"
+    },
+    "ThresholdType":{
+      "type":"string",
+      "documentation":"<p>Determines how the deployment circuit breaker calculates the number of task failures tolerated before it triggers, based on the configured <code>value</code>.</p>",
+      "enum":[
+        "COUNT",
+        "BOUNDED_PERCENT",
+        "UNBOUNDED_PERCENT"
+      ]
+    },
     "TimeoutConfiguration":{
       "type":"structure",
       "members":{
@@ -10853,6 +11185,10 @@
         "scalingTarget":{
           "shape":"ExpressGatewayScalingTarget",
           "documentation":"<p>The auto-scaling configuration for the Express service.</p>"
+        },
+        "taskDefinitionArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a task definition to use to update the Express Gateway service. This allows you to manage your own task definition, giving you more control over the service configuration such as adding sidecar containers.</p> <p>The task definition must have a container named <code>Main</code> with a single TCP port mapping that includes a container port and port name. The task definition must also have <code>FARGATE</code> compatibility.</p> <p>If you provide a task definition ARN, you cannot also specify <code>primaryContainer</code>, <code>executionRoleArn</code>, <code>taskRoleArn</code>, <code>cpu</code>, or <code>memory</code>.</p>"
         }
       }
     },
@@ -10898,6 +11234,10 @@
         "infrastructureOptimization":{
           "shape":"InfrastructureOptimization",
           "documentation":"<p>The updated infrastructure optimization configuration. Changes to this setting affect how Amazon ECS optimizes instances going forward.</p>"
+        },
+        "autoRepairConfiguration":{
+          "shape":"AutoRepairConfiguration",
+          "documentation":"<p>The updated auto repair configuration for the Amazon ECS Managed Instances capacity provider.</p>"
         }
       },
       "documentation":"<p>The updated configuration for a Amazon ECS Managed Instances provider. You can modify the infrastructure role, instance launch template, and tag propagation settings. Changes apply to new instances launched after the update.</p>"
@@ -11021,6 +11361,10 @@
         "vpcLatticeConfigurations":{
           "shape":"VpcLatticeConfigurations",
           "documentation":"<p>An object representing the VPC Lattice configuration for the service being updated.</p> <p>This parameter triggers a new service deployment.</p>"
+        },
+        "monitoring":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>The optional monitoring configuration for the service, which defines the resolution for the service-level <code>CPUUtilization</code> and <code>MemoryUtilization</code> Amazon CloudWatch metrics. When not specified, Amazon ECS uses the default resolution of <code>60</code> seconds.</p>"
         }
       },
       "documentation":"<zonbook></zonbook><xhtml></xhtml>"
@@ -11030,7 +11374,7 @@
       "members":{
         "service":{
           "shape":"Service",
-          "documentation":"<p>The full description of your service following the update call.</p>"
+          "documentation":"<p>The full description of your service following the update call.</p> <p>The response includes a <code>lifecycleHookDetails</code> field, which is an empty array when the service is created or updated. The values are populated when a lifecycle hook executes and are available as part of the service deployment details (<a href=\"https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_DescribeServiceDeployments.html\">DescribeServiceDeployments</a>).</p>"
         }
       },
       "documentation":"<zonbook></zonbook><xhtml></xhtml>"

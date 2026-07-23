@@ -56,6 +56,11 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         returnFuture.whenComplete((r, t) -> {
             if (t != null) {
                 requestsInFlight.forEach(f -> f.cancel(true));
+                synchronized (this) {
+                    if (subscription != null) {
+                        subscription.cancel();
+                    }
+                }
             }
         });
     }
@@ -88,6 +93,13 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         }
 
         requestsInFlight.add(currentRequest);
+
+        // When returnFuture completes exceptionally, the cancel handler iterates requestsInFlight and cancels every future in
+        // it. That iteration only happens once. If it already ran before we added currentRequest to the set, currentRequest
+        // was missed. This check ensures we cancel it ourselves in that case.
+        if (returnFuture.isCompletedExceptionally()) {
+            currentRequest.cancel(true);
+        }
         currentRequest.whenComplete((r, t) -> {
             checkForCompletion(numRequestsInFlight.decrementAndGet());
             requestsInFlight.remove(currentRequest);

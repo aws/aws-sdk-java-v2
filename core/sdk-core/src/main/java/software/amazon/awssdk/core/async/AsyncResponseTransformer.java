@@ -138,6 +138,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
             .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
+            .responseMapper(splitConfig.responseMapper())
             .resultFuture(future)
             .build();
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()
@@ -177,6 +178,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
      *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
+     *
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
      * @return AsyncResponseTransformer instance.
@@ -189,6 +193,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
      * {@link FileTransformerConfiguration}.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
      * @param config      configuration for the transformer
@@ -216,6 +223,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param file        File to write to.
      * @param <ResponseT> Pojo Response type.

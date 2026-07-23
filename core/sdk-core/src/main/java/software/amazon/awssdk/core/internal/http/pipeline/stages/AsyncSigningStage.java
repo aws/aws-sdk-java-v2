@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -38,6 +39,7 @@ import software.amazon.awssdk.core.signer.AsyncSigner;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
@@ -154,6 +156,19 @@ public class AsyncSigningStage implements RequestPipeline<SdkHttpFullRequest,
             Publisher<ByteBuffer> signedPayload = optionalPayload.get();
             if (signedPayload instanceof AsyncRequestBody) {
                 newAsyncRequestBody = (AsyncRequestBody) signedPayload;
+            } else if (signedPayload instanceof SdkHttpContentPublisher) {
+                SdkHttpContentPublisher contentPublisher = (SdkHttpContentPublisher) signedPayload;
+                newAsyncRequestBody = new AsyncRequestBody() {
+                    @Override
+                    public Optional<Long> contentLength() {
+                        return contentPublisher.contentLength();
+                    }
+
+                    @Override
+                    public void subscribe(Subscriber<? super ByteBuffer> s) {
+                        contentPublisher.subscribe(s);
+                    }
+                };
             } else {
                 newAsyncRequestBody = AsyncRequestBody.fromPublisher(signedPayload);
             }

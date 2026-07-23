@@ -889,6 +889,10 @@
         "DestinationLogsConfiguration":{
           "shape":"DestinationLogsConfiguration",
           "documentation":"<p>Log specific configuration for centralization destination log groups.</p>"
+        },
+        "DestinationMetricsConfiguration":{
+          "shape":"DestinationMetricsConfiguration",
+          "documentation":"<p>Metric specific configuration for centralization destination metrics.</p>"
         }
       },
       "documentation":"<p>Configuration specifying the primary destination for centralized telemetry data.</p>"
@@ -908,6 +912,10 @@
         "SourceLogsConfiguration":{
           "shape":"SourceLogsConfiguration",
           "documentation":"<p>Log specific configuration for centralization source log groups.</p>"
+        },
+        "SourceMetricsConfiguration":{
+          "shape":"SourceMetricsConfiguration",
+          "documentation":"<p>Metric specific configuration for centralization source metrics.</p>"
         }
       },
       "documentation":"<p>Configuration specifying the source of telemetry data to be centralized.</p>"
@@ -1283,6 +1291,16 @@
         }
       },
       "documentation":"<p>Configuration for centralization destination log groups, including encryption and backup settings.</p>"
+    },
+    "DestinationMetricsConfiguration":{
+      "type":"structure",
+      "members":{
+        "BackupConfiguration":{
+          "shape":"MetricsBackupConfiguration",
+          "documentation":"<p>Configuration defining the backup region for the metrics backup destination.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for centralization destination metrics, including backup settings.</p>"
     },
     "DestinationType":{
       "type":"string",
@@ -2095,7 +2113,11 @@
         "USAGE_LOGS",
         "SECURITY_FINDING_LOGS",
         "ACCESS_LOGS",
-        "CONNECTION_LOGS"
+        "CONNECTION_LOGS",
+        "S3_SERVER_ACCESS_LOGS",
+        "ALB_ACCESS_LOGS",
+        "ALB_CONNECTION_LOGS",
+        "ALB_HEALTH_CHECK_LOGS"
       ]
     },
     "LogTypes":{
@@ -2158,6 +2180,42 @@
     "Long":{
       "type":"long",
       "box":true
+    },
+    "MetricsBackupConfiguration":{
+      "type":"structure",
+      "required":["Region"],
+      "members":{
+        "Region":{
+          "shape":"Region",
+          "documentation":"<p>Metrics specific backup destination region within the primary destination account to which metrics data should be centralized.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for backing up centralized metrics data to a secondary region.</p>"
+    },
+    "MetricsFilterString":{
+      "type":"string",
+      "max":2000,
+      "min":1
+    },
+    "MskEnhancedMonitoringLevel":{
+      "type":"string",
+      "documentation":"<p> Enumeration of supported enhanced monitoring levels for Amazon MSK clusters: DEFAULT, PER_BROKER, PER_TOPIC_PER_BROKER, and PER_TOPIC_PER_PARTITION. </p>",
+      "enum":[
+        "DEFAULT",
+        "PER_BROKER",
+        "PER_TOPIC_PER_BROKER",
+        "PER_TOPIC_PER_PARTITION"
+      ]
+    },
+    "MskMonitoringParameters":{
+      "type":"structure",
+      "members":{
+        "EnhancedMonitoring":{
+          "shape":"MskEnhancedMonitoringLevel",
+          "documentation":"<p> The level of enhanced monitoring for the MSK cluster. </p>"
+        }
+      },
+      "documentation":"<p> Configuration parameters for Amazon MSK cluster monitoring, including enhanced monitoring level settings. </p>"
     },
     "NextToken":{"type":"string"},
     "OrganizationUnitIdentifier":{
@@ -2324,9 +2382,14 @@
         "AWS::BedrockAgentCore::CodeInterpreter",
         "AWS::BedrockAgentCore::Gateway",
         "AWS::BedrockAgentCore::Memory",
+        "AWS::BedrockAgentCore::WorkloadIdentity",
         "AWS::SecurityHub::Hub",
         "AWS::CloudFront::Distribution",
-        "AWS::SecurityHub::HubV2"
+        "AWS::SecurityHub::HubV2",
+        "AWS::CloudWatch::OTelEnrichment",
+        "AWS::MSK::Cluster",
+        "AWS::S3::Bucket",
+        "AWS::Bedrock::KnowledgeBase"
       ]
     },
     "ResourceTypes":{
@@ -2401,6 +2464,13 @@
       },
       "exception":true
     },
+    "SignalType":{
+      "type":"string",
+      "enum":[
+        "LOG",
+        "METRIC"
+      ]
+    },
     "SingleHeader":{
       "type":"structure",
       "members":{
@@ -2453,6 +2523,16 @@
         }
       },
       "documentation":"<p>Configuration for selecting and handling source log groups for centralization.</p>"
+    },
+    "SourceMetricsConfiguration":{
+      "type":"structure",
+      "members":{
+        "MetricsSelectionCriteria":{
+          "shape":"MetricsFilterString",
+          "documentation":"<p>The filter expression that selects which source metrics to centralize. Currently, only <code>*</code> (all metrics) is supported. Other values return a validation error.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for selecting source metrics for centralization.</p>"
     },
     "Sources":{
       "type":"list",
@@ -2644,6 +2724,10 @@
         "LogDeliveryParameters":{
           "shape":"LogDeliveryParameters",
           "documentation":"<p>Configuration parameters specific to Amazon Bedrock AgentCore logging when Amazon Bedrock AgentCore is the resource type.</p>"
+        },
+        "MskMonitoringParameters":{
+          "shape":"MskMonitoringParameters",
+          "documentation":"<p> Configuration parameters specific to MSK monitoring when MSK is the resource type. </p>"
         }
       },
       "documentation":"<p> Configuration specifying where and how telemetry data should be delivered for Amazon Web Services resources. </p>"
@@ -2909,6 +2993,10 @@
         "Configuration":{
           "shape":"TelemetryPipelineConfiguration",
           "documentation":"<p>The pipeline configuration to test with the provided sample records.</p>"
+        },
+        "SignalType":{
+          "shape":"SignalType",
+          "documentation":"<p>The type of telemetry signal to test. If not specified, defaults to log processing.</p>"
         }
       }
     },

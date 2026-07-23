@@ -38,12 +38,34 @@ public class ResponseHandlerHelper {
         this.responseBuilder = responseBuilder;
     }
 
-    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+    /**
+     * Set the stream reference and activate it as soon as it is acquired from the pool.
+     *
+     * <p>Activate must be called before any other methods on the stream including
+     * {@code cancel()} or {@code close()}.  Calling it here ensures this is done.
+     *
+     * <p>{@code activate()} is idempotent per the CRT contract — safe to call even if
+     * {@code Http1StreamManager} has already activated the stream.
+     */
+    public void onAcquireStream(HttpStreamBase stream) {
         synchronized (streamLock) {
             if (this.stream == null) {
                 this.stream = stream;
+                if (this.stream != null) {
+                    this.stream.activate();
+
+                    // closeConnection() was requested before the stream was acquired; close it now.
+                    if (streamClosed) {
+                        this.stream.cancel();
+                        this.stream.close();
+                    }
+                }
             }
         }
+    }
+
+    public void onResponseHeaders(HttpStreamBase stream, int responseStatusCode, int headerType, HttpHeader[] nextHeaders) {
+        onAcquireStream(stream);
         if (headerType == HttpHeaderBlock.MAIN.getValue()) {
             for (HttpHeader h : nextHeaders) {
                 responseBuilder.appendHeader(h.getName(), h.getValue());
@@ -76,14 +98,22 @@ public class ResponseHandlerHelper {
     /**
      * Cancel and close the stream, forcing the underlying connection to shut down rather than be returned to the
      * connection pool. This should be called on error paths or when the stream is aborted before the response is
-     * fully consumed. {@code cancel()} must be invoked before {@code close()} per the CRT contract.
+     * fully consumed.
+     *
+     * <p>Calls {@code activate()} before {@code cancel()} to ensure the CRT native layer will deliver
+     * {@code onResponseComplete}. This is critical for {@code Http1StreamManager} to release the
+     * connection slot back to the pool. {@code activate()} is idempotent — calling it on an
+     * already-activated stream is safe.
      */
     public void closeConnection() {
         synchronized (streamLock) {
-            if (!streamClosed && stream != null) {
+            if (!streamClosed) {
                 streamClosed = true;
-                stream.cancel();
-                stream.close();
+                if (stream != null) {
+                    stream.activate();
+                    stream.cancel();
+                    stream.close();
+                }
             }
         }
     }

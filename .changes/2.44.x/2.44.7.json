@@ -1,0 +1,30 @@
+{
+    "version": "2.44.7",
+    "date": "2026-05-15",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Updating the max limit for start query api parameter."
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Selling API",
+            "contributor": "",
+            "description": "Enable TCV intake on Opportunity to improve Opportunities Hygiene and downstream revenue attribution."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "This release adds support for AvailabilityStartTimeConfiguration in MediaPackageV2 DASH manifests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.docdb.internal;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
@@ -32,6 +31,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -106,7 +106,7 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
             return request.toBuilder().removeQueryParameter(PARAM_SOURCE_REGION).build();
         }
 
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+        SelectedAuthScheme<?> selectedAuthScheme = resolveAuthScheme(context.request(), executionAttributes);
         String sourceRegion = presignableRequest.getSourceRegion();
         String destinationRegion = selectedAuthScheme.authSchemeOption().signerProperty(AwsV4HttpSigner.REGION_NAME);
         URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME, executionAttributes);
@@ -118,7 +118,7 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
                              .removeQueryParameter(PARAM_SOURCE_REGION)
                              .build();
 
-        requestToPresign = sraPresignRequest(executionAttributes, requestToPresign, sourceRegion);
+        requestToPresign = sraPresignRequest(selectedAuthScheme, requestToPresign, sourceRegion);
 
         String presignedUrl = requestToPresign.getUri().toString();
 
@@ -127,6 +127,14 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
                       // Remove the unmodeled params to stop them getting onto the wire
                       .removeQueryParameter(PARAM_SOURCE_REGION)
                       .build();
+    }
+
+    /**
+     * Resolves the auth scheme from execution attributes, applying any request-level credential overrides.
+     */
+    private SelectedAuthScheme<? extends Identity> resolveAuthScheme(SdkRequest request,
+                                                                     ExecutionAttributes executionAttributes) {
+        return AuthSchemeResolver.resolveAuthScheme(request, executionAttributes);
     }
 
     /**
@@ -159,11 +167,8 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
     /**
      * Presign the provided HTTP request using SRA HttpSigner
      */
-    private SdkHttpFullRequest sraPresignRequest(ExecutionAttributes executionAttributes, SdkHttpFullRequest request,
+    private SdkHttpFullRequest sraPresignRequest(SelectedAuthScheme<?> selectedAuthScheme, SdkHttpFullRequest request,
                                                  String signingRegion) {
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
-
-
         Instant signingInstant;
         if (signingClockOverride != null) {
             signingInstant = signingClockOverride.instant();
