@@ -35,6 +35,7 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -62,6 +63,7 @@ public class TransferManagerUploadUserAgentBusinessMetricWireMockTest {
     private static final long PART_SIZE = 100L;
     private static Path smallFile;
     private static Path largeFile;
+    private static ExecutorService streamExecutor;
 
     @BeforeAll
     public static void setup() throws IOException {
@@ -69,6 +71,7 @@ public class TransferManagerUploadUserAgentBusinessMetricWireMockTest {
         writeTestFile(smallFile, PART_SIZE / 2);
         largeFile = Files.createTempFile("multi-part", ".dat");
         writeTestFile(largeFile, PART_SIZE * 2);
+        streamExecutor = Executors.newSingleThreadExecutor();
         wireMock.start();
     }
 
@@ -76,6 +79,7 @@ public class TransferManagerUploadUserAgentBusinessMetricWireMockTest {
     public static void teardown() throws IOException {
         Files.deleteIfExists(smallFile);
         Files.deleteIfExists(largeFile);
+        streamExecutor.shutdownNow();
         wireMock.stop();
     }
 
@@ -256,7 +260,7 @@ public class TransferManagerUploadUserAgentBusinessMetricWireMockTest {
             @Override
             void runUpload(S3TransferManager tm) {
                 upload(tm, AsyncRequestBody.fromInputStream(new ByteArrayInputStream(new byte[16]), 16L,
-                                                            Executors.newSingleThreadExecutor()));
+                                                            streamExecutor));
             }
 
             @Override
