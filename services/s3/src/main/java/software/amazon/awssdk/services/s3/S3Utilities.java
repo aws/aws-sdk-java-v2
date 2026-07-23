@@ -417,22 +417,25 @@ public final class S3Utilities {
     }
 
     /**
-     * If endpoint is not present, construct a default endpoint using the region information.
+     * Resolve the client endpoint provider for request marshalling. Checks client override,
+     * environment variables, system properties, and profile configuration. If no override is found,
+     * a localhost placeholder is used — the actual endpoint is resolved by S3EndpointProvider
+     * during the getUrl flow.
      */
     private ClientEndpointProvider clientEndpointProvider(URI overrideEndpoint, Region region) {
-        return AwsClientEndpointProvider.builder()
-                                        .clientEndpointOverride(overrideEndpoint)
-                                        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
-                                        .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
-                                        .serviceProfileProperty("s3")
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol("https")
-                                        .region(region)
-                                        .profileFile(profileFile)
-                                        .profileName(profileName)
-                                        .dualstackEnabled(s3Configuration.dualstackEnabled())
-                                        .fipsEnabled(fipsEnabled)
-                                        .build();
+        Optional<URI> resolvedOverride = AwsClientEndpointProvider.builder()
+                                             .clientEndpointOverride(overrideEndpoint)
+                                             .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_S3")
+                                             .serviceEndpointOverrideSystemProperty("aws.endpointUrlS3")
+                                             .serviceProfileProperty("s3")
+                                             .profileFile(profileFile)
+                                             .profileName(profileName)
+                                             .resolveFromOverrides();
+
+        return resolvedOverride
+            .map(uri -> ClientEndpointProvider.create(uri, true))
+            // Need an endpoint to marshall but this will be overwritten later with Endpoints 2.0 resolution
+            .orElseGet(() -> ClientEndpointProvider.create(URI.create("https://localhost"), false));
     }
 
     private URI getEndpointOverride(GetUrlRequest request) {

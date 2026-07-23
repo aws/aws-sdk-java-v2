@@ -95,7 +95,8 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         return clientEndpoint.getValue().isEndpointOverridden;
     }
 
-    private ClientEndpoint resolveClientEndpoint(Builder builder) {
+    // TODO: Remove once all callers are migrated to use resolveFromOverrides
+    private static ClientEndpoint resolveClientEndpoint(Builder builder) {
         return OptionalUtils.firstPresent(clientEndpointFromClientOverride(builder),
                                           () -> clientEndpointFromEnvironment(builder),
                                           () -> clientEndpointFromServiceMetadata(builder))
@@ -107,14 +108,14 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                          AwsClientEndpointProvider.class.getName() + " for more information.");
     }
 
-    private Optional<ClientEndpoint> clientEndpointFromClientOverride(Builder builder) {
+    private static Optional<ClientEndpoint> clientEndpointFromClientOverride(Builder builder) {
         Optional<ClientEndpoint> result = Optional.ofNullable(builder.clientEndpointOverride)
                                                   .map(uri -> new ClientEndpoint(uri, true));
         result.ifPresent(e -> log.trace(() -> "Client was configured with endpoint override: " + e.clientEndpoint));
         return result;
     }
 
-    private Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
+    private static Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
         if (builder.serviceEndpointOverrideEnvironmentVariable == null ||
             builder.serviceEndpointOverrideSystemProperty == null ||
             builder.serviceProfileProperty == null) {
@@ -147,19 +148,19 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                             .map(uri -> new ClientEndpoint(uri, true));
     }
 
-    private Optional<URI> systemProperty(String systemProperty) {
+    private static Optional<URI> systemProperty(String systemProperty) {
         // CHECKSTYLE:OFF - We have to read system properties directly here to match the load order of the other SDKs
         return createUri("system property " + systemProperty,
                          Optional.ofNullable(System.getProperty(systemProperty)));
         // CHECKSTYLE:ON
     }
 
-    private Optional<URI> environmentVariable(String environmentVariable) {
+    private static Optional<URI> environmentVariable(String environmentVariable) {
         return createUri("environment variable " + environmentVariable,
                          SystemSettingUtils.resolveEnvironmentVariable(environmentVariable));
     }
 
-    private Optional<URI> profileProperty(Builder builder, String profileProperty) {
+    private static Optional<URI> profileProperty(Builder builder, String profileProperty) {
         initializeProfileFileDefaults(builder);
         return createUri("profile property " + profileProperty,
                          Optional.ofNullable(builder.profileFile.get())
@@ -167,7 +168,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                  .flatMap(p -> p.property(profileProperty)));
     }
 
-    private Optional<URI> servicesProperty(Builder builder) {
+    private static Optional<URI> servicesProperty(Builder builder) {
         Optional<ProfileFile> profileFile = Optional.ofNullable(builder.profileFile.get());
         Optional<String> servicesSectionName = profileFile
             .flatMap(pf -> pf.profile(builder.profileName))
@@ -181,7 +182,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         return createUri("services section property", serviceEndpoint);
     }
 
-    private Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {
+    private static Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {
         // This value is generally overridden after endpoints 2.0. It seems to exist for backwards-compatibility
         // with older client versions or interceptors.
 
@@ -258,7 +259,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         return Optional.of(new ClientEndpoint(endpoint, false));
     }
 
-    private Optional<URI> createUri(String source, Optional<String> uri) {
+    private static Optional<URI> createUri(String source, Optional<String> uri) {
         return uri.map(u -> {
             try {
                 URI parsedUri = SdkUri.getInstance().newUri(uri.get());
@@ -270,7 +271,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         });
     }
 
-    private void initializeProfileFileDefaults(Builder builder) {
+    private static void initializeProfileFileDefaults(Builder builder) {
         if (builder.profileFile == null) {
             builder.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
         }
@@ -481,6 +482,20 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
 
         public AwsClientEndpointProvider build() {
             return new AwsClientEndpointProvider(this);
+        }
+
+        /**
+         * Resolve an endpoint from overrides and environment configuration.
+         * Checks client override, system properties, environment variables, and profile configuration.
+         * Returns {@link Optional#empty()} if no override is configured, allowing callers to provide
+         * their own fallback.
+         */
+        public Optional<URI> resolveFromOverrides() {
+            Builder copy = new Builder(this);
+            initializeProfileFileDefaults(copy);
+            return OptionalUtils.firstPresent(clientEndpointFromClientOverride(copy),
+                                              () -> clientEndpointFromEnvironment(copy))
+                                .map(endpoint -> endpoint.clientEndpoint);
         }
     }
 }
