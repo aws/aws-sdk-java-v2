@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sts.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +28,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.Credentials;
@@ -100,6 +103,61 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     protected abstract ResponseT callClient(StsClient client, RequestT request);
 
     protected abstract String providerName();
+
+    @Test
+    public void refreshFailureReturnsCachedCredentials_staticStability() {
+        // First call returns valid credentials that are already expired (to force a refresh on next call)
+        Credentials validCredentials = Credentials.builder()
+                                                  .accessKeyId("a")
+                                                  .secretAccessKey("b")
+                                                  .sessionToken("c")
+                                                  .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                  .build();
+        RequestT request = getRequest();
+        ResponseT response = getResponse(validCredentials);
+
+        // First call succeeds, second call fails
+        when(callClient(stsClient, request))
+            .thenReturn(response)
+            .thenThrow(SdkClientException.create("STS service unavailable"));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // First call should succeed and cache credentials
+            AwsCredentials firstResult = credentialsProvider.resolveCredentials();
+            assertThat(firstResult).isInstanceOf(AwsSessionCredentials.class);
+            assertThat(((AwsSessionCredentials) firstResult).accessKeyId()).isEqualTo("a");
+
+            // Second call should return cached credentials instead of throwing
+            // because StaleValueBehavior.ALLOW is now set
+            AwsCredentials secondResult = credentialsProvider.resolveCredentials();
+            assertThat(secondResult).isInstanceOf(AwsSessionCredentials.class);
+            assertThat(((AwsSessionCredentials) secondResult).accessKeyId()).isEqualTo("a");
+            assertThat(((AwsSessionCredentials) secondResult).secretAccessKey()).isEqualTo("b");
+            assertThat(((AwsSessionCredentials) secondResult).sessionToken()).isEqualTo("c");
+        }
+    }
+
+    @Test
+    public void initialFetchFailureThrowsException_noCachedCredentials() {
+        RequestT request = getRequest();
+
+        // The very first call to STS fails — no credentials have ever been cached
+        when(callClient(stsClient, request))
+            .thenThrow(SdkClientException.create("STS service unavailable"));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // Should throw because there are no cached credentials to fall back on
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(SdkClientException.class)
+                .hasMessageContaining("STS service unavailable");
+        }
+    }
 
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider, boolean overrideStaleAndPrefetchTimes) {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
