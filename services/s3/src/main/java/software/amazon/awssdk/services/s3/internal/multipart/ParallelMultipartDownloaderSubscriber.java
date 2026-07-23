@@ -415,9 +415,12 @@ public class ParallelMultipartDownloaderSubscriber
         // Signal received from the publisher this is subscribed to
         // (in the case of file download, that's FileAsyncResponseTransformerPublisher)
         // Failed state, something really wrong has happened, cancel everything
+        // Complete the result future with the original cause before cancelling in-flight parts.
+        // Cancelling first races a CancellationException onto resultFuture and masks t.
+        log.debug(() -> "Error in parallel multipart download", t);
+        resultFuture.completeExceptionally(t);
         inFlightRequests.values().forEach(future -> future.cancel(true));
         inFlightRequests.clear();
-        resultFuture.completeExceptionally(t);
     }
 
     @Override
