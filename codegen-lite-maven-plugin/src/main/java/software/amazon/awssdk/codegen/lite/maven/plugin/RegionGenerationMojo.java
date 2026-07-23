@@ -15,11 +15,15 @@
 
 package software.amazon.awssdk.codegen.lite.maven.plugin;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -79,7 +83,7 @@ public class RegionGenerationMojo extends AbstractMojo {
         generateRegions(baseSourcesDirectory, regionPartitions);
         generatePartitionProvider(baseSourcesDirectory, regionPartitions);
         generateRegionProvider(baseSourcesDirectory, regionPartitions);
-        generateServiceProvider(baseSourcesDirectory, partitions);
+        generateServiceProvider(baseSourcesDirectory);
         generateEndpointTags(baseSourcesDirectory, partitions);
 
         project.addCompileSourceRoot(baseSourcesDirectory.toFile().getAbsolutePath());
@@ -105,7 +109,10 @@ public class RegionGenerationMojo extends AbstractMojo {
         Set<String> services = new HashSet<>();
         partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
 
-        services.forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
+        Set<String> allowedServices = loadServiceMetadataAllowlist();
+        services.stream()
+                .filter(allowedServices::contains)
+                .forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
                                                                                                           s,
                                                                                                           SERVICE_METADATA_BASE,
                                                                                                           REGION_BASE))
@@ -141,16 +148,32 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate();
     }
 
-    public void generateServiceProvider(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateServiceProvider(Path baseSourcesDirectory) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
-        new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataProviderGenerator(partitions,
-                                                                                            SERVICE_METADATA_BASE,
-                                                                                            REGION_BASE))
+        Set<String> allowedServices = loadServiceMetadataAllowlist();
+        new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataProviderGenerator(SERVICE_METADATA_BASE,
+                                                                                            REGION_BASE,
+                                                                                            allowedServices))
             .generate();
     }
 
     public void generateEndpointTags(Path baseSourcesDirectory, Partitions partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new EndpointTagGenerator(partitions, REGION_BASE)).generate();
+    }
+
+    private Set<String> loadServiceMetadataAllowlist() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                java.util.Objects.requireNonNull(
+                    getClass().getResourceAsStream("/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt"),
+                    "Failed to load service-metadata-allowlist.txt"),
+                StandardCharsets.UTF_8))) {
+            return reader.lines()
+                         .map(String::trim)
+                         .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                         .collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load service-metadata-allowlist.txt", e);
+        }
     }
 }

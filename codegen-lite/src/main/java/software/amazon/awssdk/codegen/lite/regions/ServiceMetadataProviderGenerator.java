@@ -28,7 +28,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -37,21 +36,20 @@ import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.lite.PoetClass;
 import software.amazon.awssdk.codegen.lite.Utils;
-import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class ServiceMetadataProviderGenerator implements PoetClass {
 
-    private final Partitions partitions;
     private final String basePackage;
     private final String regionBasePackage;
+    private final Set<String> allowedServices;
 
-    public ServiceMetadataProviderGenerator(Partitions partitions,
-                                           String basePackage,
-                                           String regionBasePackage) {
-        this.partitions = partitions;
+    public ServiceMetadataProviderGenerator(String basePackage,
+                                           String regionBasePackage,
+                                           Set<String> allowedServices) {
         this.basePackage = basePackage;
         this.regionBasePackage = regionBasePackage;
+        this.allowedServices = new java.util.HashSet<>(allowedServices);
     }
 
     @Override
@@ -69,7 +67,7 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
                        .addModifiers(FINAL)
                        .addField(FieldSpec.builder(mapOfServiceMetadata, "SERVICE_METADATA")
                                           .addModifiers(PRIVATE, FINAL, STATIC)
-                                          .initializer(regions(partitions))
+                                          .initializer(regions())
                                           .build())
                        .addMethod(getter())
                        .build();
@@ -80,20 +78,11 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
         return ClassName.get(regionBasePackage, "GeneratedServiceMetadataProvider");
     }
 
-    private CodeBlock regions(Partitions partitions) {
+    private CodeBlock regions() {
         CodeBlock.Builder builder = CodeBlock.builder().add("$T.<String, ServiceMetadata>builder()", ImmutableMap.class);
 
-        Set<String> seenServices = new HashSet<>();
-
-        partitions.getPartitions()
-                  .forEach(p -> p.getServices()
-                                 .keySet()
-                                 .forEach(s -> {
-                                     if (!seenServices.contains(s)) {
-                                         builder.add(".put($S, new $T())", s, serviceMetadataClass(s));
-                                         seenServices.add(s);
-                                     }
-                                 }));
+        allowedServices.stream().sorted().forEach(s ->
+            builder.add(".put($S, new $T())", s, serviceMetadataClass(s)));
 
         return builder.add(".build()").build();
     }
