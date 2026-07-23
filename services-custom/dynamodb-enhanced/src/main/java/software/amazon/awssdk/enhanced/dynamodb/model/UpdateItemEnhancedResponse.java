@@ -22,6 +22,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.DynamoDbResponseMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ItemCollectionMetrics;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
@@ -39,11 +40,13 @@ public final class UpdateItemEnhancedResponse<T> {
     private final T attributes;
     private final ConsumedCapacity consumedCapacity;
     private final ItemCollectionMetrics itemCollectionMetrics;
+    private final DynamoDbResponseMetadata responseMetadata;
 
     private UpdateItemEnhancedResponse(Builder<T> builder) {
         this.attributes = builder.attributes;
         this.consumedCapacity = builder.consumedCapacity;
         this.itemCollectionMetrics = builder.itemCollectionMetrics;
+        this.responseMetadata = builder.responseMetadata;
     }
 
     /**
@@ -72,6 +75,14 @@ public final class UpdateItemEnhancedResponse<T> {
         return itemCollectionMetrics;
     }
 
+    /**
+     * The response metadata, f.e. requestId
+     * @see UpdateItemResponse#responseMetadata() ()
+     */
+    public DynamoDbResponseMetadata responseMetadata() {
+        return responseMetadata;
+    }
+
     public static <T> Builder<T> builder(Class<? extends T> clzz) {
         return new Builder<>();
     }
@@ -88,7 +99,8 @@ public final class UpdateItemEnhancedResponse<T> {
         UpdateItemEnhancedResponse<?> that = (UpdateItemEnhancedResponse<?>) o;
         return Objects.equals(attributes, that.attributes)
                && Objects.equals(consumedCapacity, that.consumedCapacity)
-               && Objects.equals(itemCollectionMetrics, that.itemCollectionMetrics);
+               && Objects.equals(itemCollectionMetrics, that.itemCollectionMetrics)
+               && Objects.equals(responseMetadata, that.responseMetadata);
     }
 
     @Override
@@ -96,6 +108,7 @@ public final class UpdateItemEnhancedResponse<T> {
         int result = Objects.hashCode(attributes);
         result = 31 * result + Objects.hashCode(consumedCapacity);
         result = 31 * result + Objects.hashCode(itemCollectionMetrics);
+        result = 31 * result + Objects.hashCode(responseMetadata);
         return result;
     }
 
@@ -104,6 +117,7 @@ public final class UpdateItemEnhancedResponse<T> {
         private T attributes;
         private ConsumedCapacity consumedCapacity;
         private ItemCollectionMetrics itemCollectionMetrics;
+        private DynamoDbResponseMetadata responseMetadata;
 
         public Builder<T> attributes(T attributes) {
             this.attributes = attributes;
@@ -117,6 +131,11 @@ public final class UpdateItemEnhancedResponse<T> {
 
         public Builder<T> itemCollectionMetrics(ItemCollectionMetrics itemCollectionMetrics) {
             this.itemCollectionMetrics = itemCollectionMetrics;
+            return this;
+        }
+
+        public Builder<T> responseMetadata(DynamoDbResponseMetadata responseMetadata) {
+            this.responseMetadata = responseMetadata;
             return this;
         }
 
