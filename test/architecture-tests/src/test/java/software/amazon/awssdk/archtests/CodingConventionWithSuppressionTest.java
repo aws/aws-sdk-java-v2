@@ -57,6 +57,10 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
                       ArchUtils.classNameToPattern(
                           "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter"),
                       ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
                       ArchUtils.classNameToPattern(KnownContentLengthAsyncRequestBodySubscriber.class),
                       ArchUtils.classNameToPattern(UnknownContentLengthAsyncRequestBodySubscriber.class),
@@ -65,6 +69,7 @@ public class CodingConventionWithSuppressionTest {
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(
             ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
+            ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.CrtAsyncRequestExecutor"),
             ArchUtils.classWithInnerClassesToPattern(ResponseTransformer.class)));
 
     @Test
