@@ -34,7 +34,6 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
-import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
@@ -75,6 +74,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * An SDK-internal implementation of the methods in {@link AwsClientBuilder}, {@link AwsAsyncClientBuilder} and
@@ -97,7 +97,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     extends SdkDefaultClientBuilder<BuilderT, ClientT>
     implements AwsClientBuilder<BuilderT, ClientT> {
     private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
-    private static final String DEFAULT_ENDPOINT_PROTOCOL = "https";
     private static final String[] FIPS_SEARCH = {"fips-", "-fips"};
     private static final String[] FIPS_REPLACE = {"", ""};
 
@@ -188,7 +187,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                 this::resolveCredentialsIdentityProvider)
                             // Set CREDENTIALS_PROVIDER, because older clients may be relying on it
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::resolveCredentialsProvider)
-                            .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, this::resolveClientEndpointProvider)
                             // Set ENDPOINT and ENDPOINT_OVERRIDDEN, because older clients may be relying on it
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT_OVERRIDDEN, this::resolveEndpointOverridden)
@@ -321,32 +319,15 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Specify the client endpoint provider to use for the client, if the client didn't specify one itself.
-     * <p>
-     * This is only used for older client versions. Newer clients specify this value themselves.
-     */
-    private ClientEndpointProvider resolveClientEndpointProvider(LazyValueSource config) {
-        ServiceMetadataAdvancedOption<String> useGlobalS3EndpointProperty =
-            ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT;
-        return AwsClientEndpointProvider.builder()
-                                        .serviceEndpointPrefix(serviceEndpointPrefix())
-                                        .defaultProtocol(DEFAULT_ENDPOINT_PROTOCOL)
-                                        .region(config.get(AwsClientOption.AWS_REGION))
-                                        .profileFile(config.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                        .profileName(config.get(SdkClientOption.PROFILE_NAME))
-                                        .putAdvancedOption(useGlobalS3EndpointProperty,
-                                                           config.get(useGlobalS3EndpointProperty))
-                                        .dualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                                        .fipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
-                                        .build();
-    }
-
-    /**
      * Resolve the client endpoint. This code is only needed by old SDK client versions. Newer SDK client versions resolve this
      * information from the client endpoint provider.
      */
     private URI resolveEndpoint(LazyValueSource config) {
-        return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint();
+        ClientEndpointProvider clientEndpointProvider = config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        Validate.notNull(clientEndpointProvider,
+                         "No CLIENT_ENDPOINT_PROVIDER was configured. Client builders must set "
+                         + "SdkClientOption.CLIENT_ENDPOINT_PROVIDER in finalizeServiceConfiguration().");
+        return clientEndpointProvider.clientEndpoint();
     }
 
     /**
@@ -354,7 +335,11 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * client versions resolve this information from the client endpoint provider.
      */
     private boolean resolveEndpointOverridden(LazyValueSource config) {
-        return config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden();
+        ClientEndpointProvider clientEndpointProvider = config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
+        Validate.notNull(clientEndpointProvider,
+                         "No CLIENT_ENDPOINT_PROVIDER was configured. Client builders must set "
+                         + "SdkClientOption.CLIENT_ENDPOINT_PROVIDER in finalizeServiceConfiguration().");
+        return clientEndpointProvider.isEndpointOverridden();
     }
 
     /**
