@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.services.signin.auth;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.services.signin.SigninClient;
@@ -64,6 +66,11 @@ public class LoginProfileCredentialsProviderFactory implements ProfileCredential
         @Override
         public AwsCredentials resolveCredentials() {
             return this.credentialsProvider.resolveCredentials();
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+            return this.credentialsProvider.invalidate(identity);
         }
 
         @Override

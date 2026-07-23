@@ -20,11 +20,13 @@ import static software.amazon.awssdk.utils.StringUtils.trim;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityCredentialsUtils;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ToString;
@@ -163,6 +165,14 @@ public class WebIdentityTokenFileCredentialsProvider
         IoUtils.closeIfCloseable(credentialsProvider, null);
     }
 
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (credentialsProvider != null) {
+            return credentialsProvider.invalidate(identity);
+        }
+        return CompletableFuture.completedFuture(null);
+    }
+
     /**
      * A builder for creating a custom {@link WebIdentityTokenFileCredentialsProvider}.
      */
@@ -189,21 +199,39 @@ public class WebIdentityTokenFileCredentialsProvider
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered close to
-         * stale and should be updated.
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
          *
-         * <p>Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch
-         * updates may be asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
          *
-         * <p>By default, this is 5 minutes.
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
         Builder prefetchTime(Duration prefetchTime);
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered stale and
-         * must be updated. All threads will block until the value is updated.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>By default, this is 1 minute.
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
         Builder staleTime(Duration staleTime);
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -24,6 +25,7 @@ import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
@@ -32,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.ContainerCredentialsRetryPolicy;
@@ -41,14 +44,15 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.regions.util.ResourcesEndpointProvider;
 import software.amazon.awssdk.regions.util.ResourcesEndpointRetryPolicy;
-import software.amazon.awssdk.utils.ComparableUtils;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -85,6 +89,8 @@ public final class ContainerCredentialsProvider
     private static final List<String> VALID_LOOP_BACK_IPV4 = Arrays.asList(ECS_CONTAINER_HOST, EKS_CONTAINER_HOST_IPV4);
     private static final List<String> VALID_LOOP_BACK_IPV6 = Arrays.asList(EKS_CONTAINER_HOST_IPV6);
 
+    private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
+
     private final String endpoint;
     private final HttpCredentialsLoader httpCredentialsLoader;
     private final CachedSupplier<AwsCredentials> credentialsCache;
@@ -94,6 +100,8 @@ public final class ContainerCredentialsProvider
     private final String asyncThreadName;
     private final String sourceChain;
     private final String providerName;
+    private final Duration staleTime;
+    private final Duration prefetchTime;
 
     /**
      * @see #builder()
@@ -107,16 +115,24 @@ public final class ContainerCredentialsProvider
             ? PROVIDER_NAME 
             : builder.sourceChain + "," + PROVIDER_NAME;
         this.httpCredentialsLoader = HttpCredentialsLoader.create(this.providerName);
+        this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
+                                                  .staleValueBehavior(ALLOW)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
+                                                  .staleValueBehavior(ALLOW)
                                                   .build();
         }
     }
@@ -153,24 +169,30 @@ public final class ContainerCredentialsProvider
             return null;
         }
 
-        return expiration.minus(1, ChronoUnit.MINUTES);
+        return expiration.minus(staleTime);
     }
 
     private Instant prefetchTime(Instant expiration) {
-        Instant oneHourFromNow = Instant.now().plus(1, ChronoUnit.HOURS);
-
         if (expiration == null) {
-            return oneHourFromNow;
+            return Instant.now().plus(1, ChronoUnit.HOURS);
         }
 
-        Instant fifteenMinutesBeforeExpiration = expiration.minus(15, ChronoUnit.MINUTES);
+        Instant now = Instant.now();
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(expiration, prefetchTime, now);
 
-        return ComparableUtils.minimum(oneHourFromNow, fifteenMinutesBeforeExpiration);
+        return expiration.minus(effectivePrefetchWindow);
     }
 
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialsCache.get();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        String rejectedAccessKeyId = identity.accessKeyId();
+        credentialsCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
@@ -316,6 +338,43 @@ public final class ContainerCredentialsProvider
      */
     public interface Builder extends HttpCredentialsProvider.Builder<ContainerCredentialsProvider, Builder>,
                                      CopyableBuilder<Builder, ContainerCredentialsProvider> {
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>By default, this is 1 minute.
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
+         */
+        Builder staleTime(Duration staleTime);
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
+         */
+        Builder prefetchTime(Duration prefetchTime);
     }
 
     private static final class BuilderImpl implements Builder {
@@ -323,6 +382,8 @@ public final class ContainerCredentialsProvider
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
         private String sourceChain;
+        private Duration staleTime;
+        private Duration prefetchTime;
 
         private BuilderImpl() {
             asyncThreadName("container-credentials-provider");
@@ -333,6 +394,8 @@ public final class ContainerCredentialsProvider
             this.asyncCredentialUpdateEnabled = credentialsProvider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = credentialsProvider.asyncThreadName;
             this.sourceChain = credentialsProvider.sourceChain;
+            this.staleTime = credentialsProvider.staleTime;
+            this.prefetchTime = credentialsProvider.prefetchTime;
         }
 
         @Override
@@ -363,6 +426,26 @@ public final class ContainerCredentialsProvider
 
         public void setAsyncThreadName(String asyncThreadName) {
             asyncThreadName(asyncThreadName);
+        }
+
+        @Override
+        public Builder staleTime(Duration staleTime) {
+            this.staleTime = staleTime;
+            return this;
+        }
+
+        public void setStaleTime(Duration staleTime) {
+            staleTime(staleTime);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration prefetchTime) {
+            this.prefetchTime = prefetchTime;
+            return this;
+        }
+
+        public void setPrefetchTime(Duration prefetchTime) {
+            prefetchTime(prefetchTime);
         }
 
         /**

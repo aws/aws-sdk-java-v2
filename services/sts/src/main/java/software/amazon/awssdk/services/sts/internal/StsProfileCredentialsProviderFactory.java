@@ -16,10 +16,12 @@
 package software.amazon.awssdk.services.sts.internal;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ChildProfileCredentialsProviderFactory;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.regions.Region;
@@ -115,6 +117,11 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
         @Override
         public AwsCredentials resolveCredentials() {
             return this.credentialsProvider.resolveCredentials();
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+            return this.credentialsProvider.invalidate(identity);
         }
 
         @Override

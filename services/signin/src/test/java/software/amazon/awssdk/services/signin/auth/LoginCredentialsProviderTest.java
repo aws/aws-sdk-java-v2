@@ -26,8 +26,11 @@ import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.verifySignature;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -54,6 +57,7 @@ import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
 import software.amazon.awssdk.services.signin.model.CreateOAuth2TokenRequest;
+import software.amazon.awssdk.services.signin.model.AccessDeniedException;
 import software.amazon.awssdk.services.signin.model.OAuth2ErrorCode;
 import software.amazon.awssdk.services.signin.model.SigninException;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
@@ -182,7 +186,7 @@ public class LoginCredentialsProviderTest {
 
     @Test
     public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithGeneric500_raisesException() {
-        // expired
+        // expired - no cached value in CachedSupplier yet, so ALLOW still throws on first failure
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
         LoginAccessToken token = buildAccessToken(creds);
         tokenManager.storeToken(token);
@@ -196,6 +200,50 @@ public class LoginCredentialsProviderTest {
     }
 
     @Test
+    public void resolveCredentials_transientFailureAfterSuccessfulCache_returnsCachedCredentials() {
+        // First: store token with expired credentials so it triggers refresh from service
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(600));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        // First response: successful refresh with short-lived credentials (expires in 30s)
+        // staleTime will be now+30s - 1min = now-30s (already stale), so next get() will refresh again
+        String shortLivedJsonBody =
+            "{\"accessToken\":"
+            + "{\"accessKeyId\":\"new-akid\","
+            + "\"secretAccessKey\":\"new-skid\","
+            + "\"sessionToken\":\"new-session-token\"},"
+            + "\"tokenType\":\"aws_sigv4\","
+            + "\"expiresIn\":30,"
+            + "\"refreshToken\":\"new-refresh-token\"}";
+
+        HttpExecuteResponse successResponse = HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(200).build())
+            .responseBody(AbortableInputStream.create(
+                new ByteArrayInputStream(shortLivedJsonBody.getBytes(StandardCharsets.UTF_8))))
+            .build();
+
+        // Second response: transient 500 error
+        HttpExecuteResponse failureResponse = HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(500).build())
+            .build();
+
+        mockHttpClient.stubResponses(successResponse, failureResponse);
+
+        // First call: succeeds and populates the CachedSupplier cache
+        AwsCredentials firstResolve = loginCredentialsProvider.resolveCredentials();
+        assertEquals("new-akid", firstResolve.accessKeyId());
+
+        // Second call: the cached value is already stale (30s expiry - 1min staleTime < now),
+        // so CachedSupplier tries to refresh, gets 500, and with ALLOW behavior returns cached value
+        AwsCredentials secondResolve = loginCredentialsProvider.resolveCredentials();
+        assertEquals("new-akid", secondResolve.accessKeyId());
+        assertEquals("new-skid", secondResolve.secretAccessKey());
+    }
+
+    @Test
     public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithTokenExpired_raisesException() {
         // expired
         AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
@@ -203,8 +251,9 @@ public class LoginCredentialsProviderTest {
         tokenManager.storeToken(token);
 
         stubAccessDeniedException(OAuth2ErrorCode.TOKEN_EXPIRED);
-        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
-        assertTrue(e.getMessage().contains("Your session has expired"));
+        AccessDeniedException e = assertThrows(AccessDeniedException.class,
+                                               () -> loginCredentialsProvider.resolveCredentials());
+        assertNotNull(e);
     }
 
     @Test
@@ -215,8 +264,9 @@ public class LoginCredentialsProviderTest {
         tokenManager.storeToken(token);
 
         stubAccessDeniedException(OAuth2ErrorCode.USER_CREDENTIALS_CHANGED);
-        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
-        assertTrue(e.getMessage().contains("change in your password"));
+        AccessDeniedException e = assertThrows(AccessDeniedException.class,
+                                               () -> loginCredentialsProvider.resolveCredentials());
+        assertNotNull(e);
     }
 
     @Test
@@ -229,6 +279,132 @@ public class LoginCredentialsProviderTest {
         stubAccessDeniedException(OAuth2ErrorCode.INSUFFICIENT_PERMISSIONS);
         SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertTrue(e.getMessage().contains("insufficient permissions"));
+    }
+
+    @Test
+    public void resolveCredentials_tokenCacheMissingAfterSuccessfulCache_throwsAndBypassesStaticStability() throws Exception {
+        // Build a provider without async updates so refresh is synchronous
+        LoginCredentialsProvider syncProvider = LoginCredentialsProvider
+            .builder()
+            .loginSession(LOGIN_SESSION_ID)
+            .signinClient(signinClient)
+            .tokenCacheLocation(tempDir)
+            .asyncCredentialUpdateEnabled(false)
+            .build();
+
+        // First: store token with expired credentials so it triggers refresh from service
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(600));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        // First response: successful refresh with short-lived credentials (expires in 30s)
+        String shortLivedJsonBody =
+            "{\"accessToken\":"
+            + "{\"accessKeyId\":\"new-akid\","
+            + "\"secretAccessKey\":\"new-skid\","
+            + "\"sessionToken\":\"new-session-token\"},"
+            + "\"tokenType\":\"aws_sigv4\","
+            + "\"expiresIn\":30,"
+            + "\"refreshToken\":\"new-refresh-token\"}";
+
+        HttpExecuteResponse successResponse = HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(200).build())
+            .responseBody(AbortableInputStream.create(
+                new ByteArrayInputStream(shortLivedJsonBody.getBytes(StandardCharsets.UTF_8))))
+            .build();
+
+        mockHttpClient.stubResponses(successResponse);
+
+        // First call: succeeds and populates the CachedSupplier cache
+        AwsCredentials firstResolve = syncProvider.resolveCredentials();
+        assertEquals("new-akid", firstResolve.accessKeyId());
+
+        // Now delete all token cache files from the temp directory to simulate token being removed
+        Files.list(tempDir)
+             .filter(p -> p.toString().endsWith(".json"))
+             .forEach(p -> {
+                 try {
+                     Files.delete(p);
+                 } catch (IOException e) {
+                     throw new UncheckedIOException(e);
+                 }
+             });
+
+        // Second call: the cached value is stale (handleFetchedSuccess extended it with jitter, but
+        // we wait for it to expire). Since the stale time was extended 1-10 minutes into the future,
+        // we instead rely on the prefetch window triggering a synchronous OneCallerBlocks refresh.
+        // With OneCallerBlocks, the refresh happens inline and the InvalidTokenException propagates.
+        // Give a brief pause and then call again - the prefetch time should already be in the past
+        // since the credentials expired in 30s and handleFetchedSuccess sets prefetch = stale time.
+        // Actually, with the extended stale time, the value enters prefetch window immediately.
+        // With OneCallerBlocks, the failing refresh throws through to the caller.
+        SdkClientException e = assertThrows(SdkClientException.class,
+                                            () -> syncProvider.resolveCredentials());
+        assertTrue(e.getMessage().contains("not found"));
+        syncProvider.close();
+    }
+
+    @Test
+    public void resolveCredentials_tokenMalformedAfterSuccessfulCache_staticStabilityReturnsCachedCredentials()
+        throws Exception {
+        // First: store token with expired credentials so it triggers refresh from service
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(600));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        // First response: successful refresh with short-lived credentials (expires in 30s)
+        String shortLivedJsonBody =
+            "{\"accessToken\":"
+            + "{\"accessKeyId\":\"new-akid\","
+            + "\"secretAccessKey\":\"new-skid\","
+            + "\"sessionToken\":\"new-session-token\"},"
+            + "\"tokenType\":\"aws_sigv4\","
+            + "\"expiresIn\":30,"
+            + "\"refreshToken\":\"new-refresh-token\"}";
+
+        HttpExecuteResponse successResponse = HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(200).build())
+            .responseBody(AbortableInputStream.create(
+                new ByteArrayInputStream(shortLivedJsonBody.getBytes(StandardCharsets.UTF_8))))
+            .build();
+
+        mockHttpClient.stubResponses(successResponse);
+
+        // First call: succeeds and populates the CachedSupplier cache
+        AwsCredentials firstResolve = loginCredentialsProvider.resolveCredentials();
+        assertEquals("new-akid", firstResolve.accessKeyId());
+
+        // Now overwrite the token file with one that is missing the expiresAt field.
+        // This simulates a corrupted or malformed token file on disk.
+        String malformedTokenJson =
+            "{\"accessToken\":"
+            + "{\"accessKeyId\":\"akid\","
+            + "\"secretAccessKey\":\"skid\","
+            + "\"sessionToken\":\"sessionToken\","
+            + "\"accountId\":\"123456789012\"},"
+            + "\"clientId\":\"client-123\","
+            + "\"dpopKey\":\"" + VALID_TEST_PEM.replace("\n", "\\n") + "\","
+            + "\"refreshToken\":\"refresh-token\","
+            + "\"tokenType\":\"aws_sigv4\","
+            + "\"identityToken\":\"id-token\"}";
+        Files.list(tempDir)
+             .filter(p -> p.toString().endsWith(".json"))
+             .forEach(p -> {
+                 try {
+                     Files.write(p, malformedTokenJson.getBytes(StandardCharsets.UTF_8));
+                 } catch (IOException e) {
+                     throw new UncheckedIOException(e);
+                 }
+             });
+
+        // Second call: the cached value is stale, CachedSupplier refreshes, but token has no expiresAt.
+        // OnDiskTokenManager throws a plain SdkClientException (not InvalidTokenException), so static
+        // stability kicks in and returns the cached credentials rather than throwing.
+        AwsCredentials secondResolve = loginCredentialsProvider.resolveCredentials();
+        assertEquals("new-akid", secondResolve.accessKeyId());
+        assertEquals("new-skid", secondResolve.secretAccessKey());
     }
 
     private static void verifyResolvedCredentialsAreUpdated(AwsCredentials resolvedCredentials) {

@@ -15,25 +15,31 @@
 
 package software.amazon.awssdk.services.sso.auth;
 
+import static software.amazon.awssdk.utils.Validate.isTrue;
 import static software.amazon.awssdk.utils.Validate.notNull;
+import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.internal.SessionCredentialsHolder;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
+import software.amazon.awssdk.services.sso.model.UnauthorizedException;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -56,7 +62,6 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_SSO.value();
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     private static final String ASYNC_THREAD_NAME = "sdk-sso-credentials-provider";
 
@@ -80,7 +85,11 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.getRoleCredentialsRequestSupplier = builder.getRoleCredentialsRequestSupplier;
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                   "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
         this.sourceChain = builder.sourceChain;
 
         this.providerName = StringUtils.isEmpty(builder.sourceChain)
@@ -90,7 +99,10 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<SessionCredentialsHolder> cacheBuilder =
             CachedSupplier.builder(this::updateSsoCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(ALLOW)
+                          .nonRecoverableErrorPredicate(
+                              e -> e instanceof ExpiredTokenException || e instanceof UnauthorizedException);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
         }
@@ -106,15 +118,19 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         SessionCredentialsHolder credentials = getUpdatedCredentials(ssoClient);
         Instant actualTokenExpiration = credentials.sessionCredentialsExpiration();
 
+        Instant now = Instant.now();
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(actualTokenExpiration, prefetchTime, now);
+
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))
-                            .prefetchTime(actualTokenExpiration.minus(prefetchTime))
+                            .prefetchTime(actualTokenExpiration.minus(effectivePrefetchWindow))
                             .build();
     }
 
     private SessionCredentialsHolder getUpdatedCredentials(SsoClient ssoClient) {
         GetRoleCredentialsRequest request = getRoleCredentialsRequestSupplier.get();
         notNull(request, "GetRoleCredentialsRequest can't be null.");
+
         RoleCredentials roleCredentials = ssoClient.getRoleCredentials(request).roleCredentials();
         AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
                                                                         .accessKeyId(roleCredentials.accessKeyId())
@@ -127,16 +143,16 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     }
 
     /**
-     * The amount of time, relative to session token expiration, that the cached credentials are considered stale and
-     * should no longer be used. All threads will block until the value is updated.
+     * The amount of time, relative to credential expiration, that defines the mandatory refresh window. When credentials are
+     * within this window, all threads will block until the credentials are updated.
      */
     public Duration staleTime() {
         return staleTime;
     }
 
     /**
-     * The amount of time, relative to session token expiration, that the cached credentials are considered close to stale
-     * and should be updated.
+     * The amount of time, relative to credential expiration, that defines the advisory refresh window. When credentials are
+     * within this window, the provider proactively attempts to refresh them.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -152,6 +168,13 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialCache.get().sessionCredentials();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        String rejectedAccessKeyId = identity.accessKeyId();
+        credentialCache.invalidate(holder -> rejectedAccessKeyId.equals(holder.sessionCredentials().accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
@@ -176,30 +199,52 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         Builder ssoClient(SsoClient ssoclient);
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
-         * threads are less likely to block when credentials are loaded, but addtiional resources are used to maintian
-         * the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. When enabled, a
+         * dedicated thread performs credential refreshes during the advisory refresh window (defined by
+         * {@link #prefetchTime(Duration)}), so that callers are less likely to block waiting for credentials. Additional
+         * resources (a thread) are used to maintain the provider.
+         *
+         * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
+         * {@link #staleTime(Duration)}).
          *
          * <p>By default, this is disabled.</p>
          */
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
 
         /**
-         * Configure the amount of time, relative to SSO session token expiration, that the cached credentials are considered
-         * stale and should no longer be used. All threads will block until the value is updated.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>By default, this is 1 minute.</p>
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
         Builder staleTime(Duration staleTime);
 
         /**
-         * Configure the amount of time, relative to SSO session token expiration, that the cached credentials are considered
-         * close to stale and should be updated.
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
          *
-         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
-         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
          *
-         * <p>By default, this is 5 minutes.</p>
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.</p>
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
         Builder prefetchTime(Duration prefetchTime);
 

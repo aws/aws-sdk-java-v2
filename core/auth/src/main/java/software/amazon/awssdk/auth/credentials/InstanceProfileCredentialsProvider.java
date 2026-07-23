@@ -16,7 +16,6 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
-import static software.amazon.awssdk.utils.ComparableUtils.maximum;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
@@ -27,6 +26,7 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -93,6 +95,8 @@ public final class InstanceProfileCredentialsProvider
 
     private final Duration staleTime;
 
+    private final Duration prefetchTime;
+
     private final String sourceChain;
     private final String providerName;
 
@@ -120,7 +124,12 @@ public final class InstanceProfileCredentialsProvider
                                      .profileName(profileName)
                                      .build();
 
-        this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofSeconds(1));
+        this.staleTime = Validate.getOrDefault(builder.staleTime, () -> Duration.ofMinutes(1));
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
 
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
@@ -158,6 +167,13 @@ public final class InstanceProfileCredentialsProvider
     @Override
     public AwsCredentials resolveCredentials() {
         return credentialsCache.get();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        String rejectedAccessKeyId = identity.accessKeyId();
+        credentialsCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
     }
 
     private RefreshResult<AwsCredentials> refreshCredentials() {
@@ -204,7 +220,14 @@ public final class InstanceProfileCredentialsProvider
             return null;
         }
 
-        return now.plus(maximum(timeUntilExpiration.dividedBy(2), Duration.ofMinutes(5)));
+        // Use dynamic window when user has not explicitly configured prefetchTime
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(expiration, prefetchTime, now);
+
+        // If remaining lifetime < the advisory window, refresh immediately.
+        if (timeUntilExpiration.compareTo(effectivePrefetchWindow) < 0) {
+            return now;
+        }
+        return expiration.minus(effectivePrefetchWindow);
     }
 
     @Override
@@ -355,16 +378,41 @@ public final class InstanceProfileCredentialsProvider
         Builder profileName(String profileName);
 
         /**
-         * Configure the amount of time before the moment of expiration of credentials for which to consider the credentials to
-         * be stale. A higher value can lead to a higher rate of request being made to the Amazon EC2 Instance Metadata Service.
-         * The default is 1 sec.
-         * <p>Increasing this value to a higher value (10s or more) may help with situations where a higher load on the instance
-         * metadata service causes it to return 503s error, for which the SDK may not be able to recover fast enough and
-         * returns expired credentials.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
          *
-         * @param duration the amount of time before expiration for when to consider the credentials to be stale and need refresh
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>By default, this is 1 minute.
+         *
+         * @param duration the duration before expiration that triggers mandatory (blocking) refresh
          */
         Builder staleTime(Duration duration);
+
+        /**
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
+         *
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.
+         *
+         * @param duration the duration before expiration that triggers advisory (proactive) refresh
+         */
+        Builder prefetchTime(Duration duration);
 
         /**
          * Build a {@link InstanceProfileCredentialsProvider} from the provided configuration.
@@ -382,6 +430,7 @@ public final class InstanceProfileCredentialsProvider
         private Supplier<ProfileFile> profileFile;
         private String profileName;
         private Duration staleTime;
+        private Duration prefetchTime;
         private String sourceChain;
 
         private BuilderImpl() {
@@ -396,6 +445,7 @@ public final class InstanceProfileCredentialsProvider
             this.profileFile = provider.profileFile;
             this.profileName = provider.profileName;
             this.staleTime = provider.staleTime;
+            this.prefetchTime = provider.prefetchTime;
             this.sourceChain = provider.sourceChain;
         }
 
@@ -473,6 +523,16 @@ public final class InstanceProfileCredentialsProvider
 
         public void setStaleTime(Duration duration) {
             staleTime(duration);
+        }
+
+        @Override
+        public Builder prefetchTime(Duration duration) {
+            this.prefetchTime = duration;
+            return this;
+        }
+
+        public void setPrefetchTime(Duration duration) {
+            prefetchTime(duration);
         }
 
         /**

@@ -345,6 +345,7 @@
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.internal\.HttpCredentialsLoader" />
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.ContainerCredentialsProvider" />
             <Class name="~software\.amazon\.awssdk\.auth\.credentials\.InstanceProfileCredentialsProvider" />
+            <Class name="~software\.amazon\.awssdk\.core\.internal\.http\.pipeline\.stages\.utils\.AuthErrorInvalidationHelper" />
 
             <Class name="~software\.amazon\.awssdk\.messagemanager\.sns\.internal\.SnsHostProvider" />
 

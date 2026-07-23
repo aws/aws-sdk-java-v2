@@ -135,6 +135,19 @@ public class AwsServiceException extends SdkServiceException {
     }
 
     /**
+     * Checks if the exception indicates an authentication error where the credentials were rejected,
+     * based on the AWS error code (e.g., {@code ExpiredToken}, {@code InvalidToken}, {@code AuthFailure}).
+     *
+     * @return true if the AWS error code indicates an authentication error, otherwise false.
+     */
+    @Override
+    public boolean isAuthenticationError() {
+        return Optional.ofNullable(awsErrorDetails)
+                       .map(a -> AwsErrorCode.isAuthenticationErrorCode(a.errorCode()))
+                       .orElse(false);
+    }
+
+    /**
      * @return {@link Builder} instance to construct a new {@link AwsServiceException}.
      */
     public static Builder builder() {
