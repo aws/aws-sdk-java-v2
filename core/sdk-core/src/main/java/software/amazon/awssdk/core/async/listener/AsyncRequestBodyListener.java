@@ -68,6 +68,11 @@ public interface AsyncRequestBodyListener extends PublisherListener<ByteBuffer> 
         }
 
         @Override
+        public String body() {
+            return delegate.body();
+        }
+
+        @Override
         public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
             return delegate.split(splitConfiguration);
         }
