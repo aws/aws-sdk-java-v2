@@ -19,6 +19,7 @@ import static software.amazon.awssdk.codegen.lite.PoetMatchers.generatesTo;
 
 import java.io.File;
 import java.nio.file.Paths;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
@@ -96,9 +97,10 @@ public class RegionGenerationTest {
 
     @Test
     public void serviceMetadataProviderClass() {
-        ServiceMetadataProviderGenerator serviceMetadataProviderGenerator = new ServiceMetadataProviderGenerator(partitions,
-                                                                                                                 SERVICE_METADATA_BASE,
-                                                                                                                 REGION_BASE);
+        Set<String> allowedServices = loadTestAllowlist();
+        ServiceMetadataProviderGenerator serviceMetadataProviderGenerator = new ServiceMetadataProviderGenerator(SERVICE_METADATA_BASE,
+                                                                                                                 REGION_BASE,
+                                                                                                                 allowedServices);
 
         assertThat(serviceMetadataProviderGenerator, generatesTo("service-metadata-provider.java"));
     }
@@ -125,5 +127,18 @@ public class RegionGenerationTest {
             new PartitionMetadataProviderGenerator(partitionsRegions, PARTITION_METADATA_BASE, REGION_BASE);
 
         assertThat(partitionMetadataProviderGenerator, generatesTo("partition-metadata-provider.java"));
+    }
+
+    private Set<String> loadTestAllowlist() {
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(
+                getClass().getResourceAsStream("/software/amazon/awssdk/codegen/lite/regions/test-service-metadata-allowlist.txt"),
+                java.nio.charset.StandardCharsets.UTF_8))) {
+            return reader.lines()
+                         .map(String::trim)
+                         .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                         .collect(java.util.stream.Collectors.toSet());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load test allowlist", e);
+        }
     }
 }
