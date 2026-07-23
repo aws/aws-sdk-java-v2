@@ -22,6 +22,7 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.awscore.client.config.AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.SIGNER;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -30,8 +31,10 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
@@ -120,6 +123,17 @@ public class FipsPseudoRegionTest {
         @Override
         protected TestClient buildClient() {
             return new TestClient(super.syncClientConfiguration());
+        }
+
+        @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
         }
 
         @Override
