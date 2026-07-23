@@ -72,8 +72,8 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * Required members the warm-up call must populate: those bound to the URI path or an endpoint context param,
-     * which reject null. Other members stay null.
+     * The required input members the warm-up call must give a dummy value. A member needs one when it is bound to the
+     * URI path (a null breaks marshalling) or is an endpoint context param (a null breaks endpoint resolution).
      */
     static List<MemberModel> membersRequiringDummyValue(OperationModel operation) {
         return inputMembers(operation).stream()
@@ -112,16 +112,12 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * A dummy member is fillable if it is a string. The warm-up call emits {@code "warmup"} for a plain member and an
-     * ARN-shaped value for an ARN member; see {@link #isArnMember}.
+     * A member is fillable only if it is a string, since the warm-up call emits string dummies: {@code "warmup"} for a
+     * plain member and an ARN-shaped value for an ARN member (see {@link #isArnMember}).
      */
     private static boolean allDummyMembersAreFillable(OperationModel operation) {
         return membersRequiringDummyValue(operation).stream()
-                                                    .allMatch(WarmUpOperationSelector::isDummyFillable);
-    }
-
-    private static boolean isDummyFillable(MemberModel member) {
-        return "String".equals(member.getVariable().getSimpleType());
+                                                    .allMatch(member -> "String".equals(member.getVariable().getSimpleType()));
     }
 
     /**

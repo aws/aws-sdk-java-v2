@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -201,7 +202,7 @@ public class WarmUpOperationSelectorTest {
     public void membersRequiringDummyValue_returnsOnlyUriAndEndpointBoundRequiredMembers(DummyValueScenario scenario) {
         List<String> memberNames = WarmUpOperationSelector.membersRequiringDummyValue(scenario.operation).stream()
                                                           .map(MemberModel::getName)
-                                                          .collect(java.util.stream.Collectors.toList());
+                                                          .collect(Collectors.toList());
         assertThat(memberNames).containsExactlyElementsOf(scenario.expectedMemberNames);
     }
 
