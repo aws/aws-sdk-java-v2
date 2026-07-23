@@ -96,7 +96,16 @@ public final class SimplePublisher<T> implements Publisher<T> {
     private final FailureMessage failureMessage = new FailureMessage();
 
     /**
+     * Whether {@link #subscribe(Subscriber)} has already been called, used to reject a second subscription. Tracked
+     * separately from {@link #subscriber} because that field is cleared on termination and must not re-open subscription.
+     */
+    private final AtomicBoolean subscribed = new AtomicBoolean(false);
+
+    /**
      * The subscriber provided via {@link #subscribe(Subscriber)}. This publisher only supports a single subscriber.
+     *
+     * <p>Cleared when the stream terminates (complete, error, or cancel) so the publisher does not retain the subscriber
+     * reference, per Reactive Streams rule 3.13.
      */
     private Subscriber<? super T> subscriber;
 
@@ -196,7 +205,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
      */
     @Override
     public void subscribe(Subscriber<? super T> s) {
-        if (subscriber != null) {
+        if (!subscribed.compareAndSet(false, true)) {
             s.onSubscribe(new NoOpSubscription());
             s.onError(new IllegalStateException("Only one subscription may be active at a time."));
             return;
@@ -275,6 +284,7 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
                         log.trace(() -> "Calling onComplete()");
                         subscriber.onComplete();
+                        subscriber = null;
                         break;
                     case ON_ERROR:
 
@@ -283,9 +293,11 @@ public final class SimplePublisher<T> implements Publisher<T> {
                                                                               onErrorEntry.failure));
                         log.trace(() -> "Calling onError() with " + onErrorEntry.failure, onErrorEntry.failure);
                         subscriber.onError(onErrorEntry.failure);
+                        subscriber = null;
                         break;
                     case CANCEL:
                         failureMessage.trySet(() -> new CancellationException("subscription has been cancelled."));
+                        subscriber = null;
                         break;
                     default:
                         // Should never happen. Famous last words?
@@ -338,7 +350,10 @@ public final class SimplePublisher<T> implements Publisher<T> {
             // Create exception here instead of in supplier to preserve a more-useful stack trace.
             RuntimeException failure = new IllegalStateException("Encountered fatal error in publisher", cause);
             failureMessage.trySet(() -> failure);
-            subscriber.onError(cause instanceof Error ? cause : failure);
+            if (subscriber != null) {
+                subscriber.onError(cause instanceof Error ? cause : failure);
+                subscriber = null;
+            }
 
             while (true) {
                 QueueEntry<T> entry = standardPriorityQueue.poll();
