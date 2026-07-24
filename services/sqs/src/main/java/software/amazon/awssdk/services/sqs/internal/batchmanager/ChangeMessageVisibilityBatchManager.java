@@ -59,21 +59,21 @@ public class ChangeMessageVisibilityBatchManager extends RequestBatchManager<Cha
                                   identifiedRequest.message()))
                               .collect(Collectors.toList());
 
-        // All requests have the same overrideConfiguration, so it's sufficient to retrieve it from the first request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0)
-                                                                                            .message()
-                                                                                            .overrideConfiguration();
+        // All requests have the same queueUrl and overrideConfiguration, so retrieve them from the first request.
+        ChangeMessageVisibilityRequest firstRequest = identifiedRequests.get(0).message();
+        String queueUrl = firstRequest.queueUrl();
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = firstRequest.overrideConfiguration();
 
         return overrideConfiguration
             .map(config -> ChangeMessageVisibilityBatchRequest.builder()
-                                                              .queueUrl(batchKey)
+                                                              .queueUrl(queueUrl)
                                                               .overrideConfiguration(config.toBuilder()
                                                                                            .applyMutation(USER_AGENT_APPLIER)
                                                                                            .build())
                                                               .entries(entries)
                                                               .build())
             .orElseGet(() -> ChangeMessageVisibilityBatchRequest.builder()
-                                                                .queueUrl(batchKey)
+                                                                .queueUrl(queueUrl)
                                                                 .overrideConfiguration(o -> o
                                                                     .applyMutation(USER_AGENT_APPLIER)
                                                                     .build())
