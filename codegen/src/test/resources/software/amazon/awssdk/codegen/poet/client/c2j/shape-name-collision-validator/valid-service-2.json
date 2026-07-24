@@ -1,0 +1,42 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "serviceId": "ShapeNameNoCollision",
+    "serviceFullName": "Shape Name No Collision Validation Test Service"
+  },
+  "operations": {
+    "TestOperation": {
+      "name": "TestOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "TestOperationRequest"}
+    }
+  },
+  "shapes": {
+    "TestOperationRequest": {
+      "type": "structure",
+      "members": {
+        "IpAddress": {
+          "shape": "IpAddress"
+        },
+        "IpAddr": {
+          "shape": "IPAddress"
+        },
+        "Token": {
+          "shape": "nextToken"
+        }
+      }
+    },
+    "IpAddress": {
+      "type": "string"
+    },
+    "IPAddress": {
+      "type": "string"
+    },
+    "nextToken": {
+      "type": "string"
+    }
+  }
+}

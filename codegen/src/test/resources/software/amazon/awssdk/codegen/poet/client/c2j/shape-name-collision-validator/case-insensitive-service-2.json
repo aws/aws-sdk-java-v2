@@ -1,0 +1,56 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2024-01-01",
+    "endpointPrefix": "collision",
+    "jsonVersion": "1.1",
+    "protocol": "json",
+    "serviceAbbreviation": "Collision",
+    "serviceFullName": "Shape Name Collision Build Test Service",
+    "serviceId": "Collision",
+    "signatureVersion": "v4",
+    "targetPrefix": "Collision",
+    "uid": "collision-2024-01-01"
+  },
+  "operations": {
+    "GetReservation": {
+      "name": "GetReservation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "GetReservationRequest"},
+      "output": {"shape": "GetReservationResponse"}
+    }
+  },
+  "shapes": {
+    "GetReservationRequest": {
+      "type": "structure",
+      "members": {
+        "Name": {"shape": "String"}
+      }
+    },
+    "GetReservationResponse": {
+      "type": "structure",
+      "members": {
+        "ReservationTypes": {"shape": "ReservationTypeList"}
+      }
+    },
+    "ReservationTypeList": {
+      "type": "list",
+      "member": {"shape": "reservationType"}
+    },
+    "ReservationType": {
+      "type": "structure",
+      "members": {
+        "Name": {"shape": "String"}
+      }
+    },
+    "reservationType": {
+      "type": "string"
+    },
+    "String": {
+      "type": "string"
+    }
+  }
+}
