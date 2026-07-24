@@ -41,6 +41,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 
 /**
  * V1 roundtrip benchmark for SmithyRpcV2 CBOR protocol using CloudWatch GetMetricData via HTTP servlet.
@@ -65,10 +66,11 @@ public class V1CborRoundtripBenchmark {
         server = new ProtocolRoundtripServer(servlet);
         server.start();
 
+        // Use AnonymousCredentialsProvider for local benchmark - no real AWS credentials needed
         client = AmazonCloudWatchClientBuilder.standard()
             .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(
                 server.getHttpUri().toString(), "us-east-1"))
-            .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("test", "test")))
+            .withCredentials(new AnonymousCredentialsProvider())
             .build();
     }
 
