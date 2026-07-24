@@ -103,7 +103,7 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>s3</artifactId>
-            <version>2.20.136</version> <!-- Pre-SRA version -->
+            <version>2.28.1</version>
         </dependency>
 
         <!-- Test Dependencies -->
