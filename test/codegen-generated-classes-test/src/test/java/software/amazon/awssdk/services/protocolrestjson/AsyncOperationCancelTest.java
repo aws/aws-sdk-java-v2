@@ -89,7 +89,6 @@ public class AsyncOperationCancelTest {
         CompletableFuture<AllTypesResponse> responseFuture = client.allTypes(r -> {
         });
         responseFuture.cancel(true);
-        // Thread.sleep(1000);
         assertThat(executeFuture.isCompletedExceptionally()).isTrue();
         assertThat(executeFuture.isCancelled()).isTrue();
     }

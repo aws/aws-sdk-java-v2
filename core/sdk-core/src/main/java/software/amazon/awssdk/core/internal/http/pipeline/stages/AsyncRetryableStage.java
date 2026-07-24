@@ -94,6 +94,11 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     future.completeExceptionally(t);
                     return;
                 }
+
+                if (!r.isZero()) {
+                    retryableStageHelper.logBackingOff(r);
+                }
+
                 scheduledExecutor.schedule(() -> attemptExecute(future), r.toMillis(), MILLISECONDS);
             });
 

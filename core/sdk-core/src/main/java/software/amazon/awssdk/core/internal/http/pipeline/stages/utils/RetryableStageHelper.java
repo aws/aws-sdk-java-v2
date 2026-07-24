@@ -207,8 +207,10 @@ public final class RetryableStageHelper {
 
         retryStrategy().refreshRetryTokenAsync(refreshRequest).whenComplete((r, t) -> {
             if (t != null) {
-                if (t instanceof TokenAcquisitionFailedException) {
-                    TokenAcquisitionFailedException e = (TokenAcquisitionFailedException) t;
+                Throwable cause = t instanceof CompletionException ? t.getCause() : t;
+                if (cause instanceof TokenAcquisitionFailedException) {
+                    TokenAcquisitionFailedException e = (TokenAcquisitionFailedException) cause;
+
                     context.executionAttributes().putAttribute(RETRY_TOKEN, e.token());
                     Optional<Duration> acquireFailureDelay = e.delay();
                     if (acquireFailureDelay.isPresent()) {
