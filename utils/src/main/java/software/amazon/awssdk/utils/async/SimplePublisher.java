@@ -102,6 +102,12 @@ public final class SimplePublisher<T> implements Publisher<T> {
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
     /**
+     * True while the subscriber's {@code onSubscribe} is executing. Used to prevent {@link #processEventQueue()} from
+     * delivering {@code onNext} signals before {@code onSubscribe} has returned, as required by Reactive Streams rule 1.03.
+     */
+    private volatile boolean onSubscribeInProgress = false;
+
+    /**
      * The subscriber provided via {@link #subscribe(Subscriber)}. This publisher only supports a single subscriber.
      *
      * <p>Cleared when the stream terminates (complete, error, or cancel) so the publisher does not retain the subscriber
@@ -212,7 +218,12 @@ public final class SimplePublisher<T> implements Publisher<T> {
         }
 
         this.subscriber = s;
-        s.onSubscribe(new SubscriptionImpl());
+        onSubscribeInProgress = true;
+        try {
+            s.onSubscribe(new SubscriptionImpl());
+        } finally {
+            onSubscribeInProgress = false;
+        }
         processEventQueue();
     }
 
@@ -326,6 +337,11 @@ public final class SimplePublisher<T> implements Publisher<T> {
 
         if (subscriber == null) {
             // We don't have a subscriber yet.
+            return false;
+        }
+
+        if (onSubscribeInProgress) {
+            // Do not deliver signals until onSubscribe has returned (Reactive Streams rule 1.03).
             return false;
         }
 
