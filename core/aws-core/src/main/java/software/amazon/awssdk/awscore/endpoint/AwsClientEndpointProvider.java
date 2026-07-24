@@ -481,8 +481,10 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         }
 
         /**
-         * @deprecated Use {@link #resolveFromOverrides()} instead, combined with the service's EndpointProvider
-         * for default resolution. This method triggers expensive ServiceMetadata initialization.
+         * @deprecated Since 2.x.x. Use {@link #resolveFromOverrides()} instead, combined with the service's
+         * EndpointProvider for default endpoint resolution. This method triggers expensive
+         * {@code ServiceMetadata} initialization which is unnecessary when the service
+         * EndpointProvider can resolve the default endpoint directly.
          */
         @Deprecated
         public AwsClientEndpointProvider build() {

@@ -323,11 +323,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * information from the client endpoint provider.
      */
     private URI resolveEndpoint(LazyValueSource config) {
-        ClientEndpointProvider clientEndpointProvider = config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
-        Validate.notNull(clientEndpointProvider,
-                         "No CLIENT_ENDPOINT_PROVIDER was configured. Client builders must set "
-                         + "SdkClientOption.CLIENT_ENDPOINT_PROVIDER in finalizeServiceConfiguration().");
-        return clientEndpointProvider.clientEndpoint();
+        return requireClientEndpointProvider(config).clientEndpoint();
     }
 
     /**
@@ -335,11 +331,16 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * client versions resolve this information from the client endpoint provider.
      */
     private boolean resolveEndpointOverridden(LazyValueSource config) {
+        return requireClientEndpointProvider(config).isEndpointOverridden();
+    }
+
+    private ClientEndpointProvider requireClientEndpointProvider(LazyValueSource config) {
         ClientEndpointProvider clientEndpointProvider = config.get(SdkClientOption.CLIENT_ENDPOINT_PROVIDER);
         Validate.notNull(clientEndpointProvider,
-                         "No CLIENT_ENDPOINT_PROVIDER was configured. Client builders must set "
-                         + "SdkClientOption.CLIENT_ENDPOINT_PROVIDER in finalizeServiceConfiguration().");
-        return clientEndpointProvider.isEndpointOverridden();
+                         "No CLIENT_ENDPOINT_PROVIDER was configured. This is typically caused by using "
+                         + "an older service client version with a newer sdk-core. "
+                         + "Please align all SDK dependency versions.");
+        return clientEndpointProvider;
     }
 
     /**
