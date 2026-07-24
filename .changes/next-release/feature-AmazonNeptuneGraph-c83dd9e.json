@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Neptune Graph",
+    "contributor": "",
+    "description": "Update validations for Tag Keys and KMS Key ARNs."
+}
