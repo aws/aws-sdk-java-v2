@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.49.3__ __2026-07-24__
+## __AWS Artifact__
+  - ### Features
+    - Added the PutComplianceInquiryFeedback API, enabling customers to submit feedback on compliance inquiry responses. Customers can rate responses as helpful or not helpful and provide optional reason codes and comments.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Fixed several delegating AsyncRequestBody implementations (including those used by S3 Transfer Manager uploads) that reported the request-body type as unknown in the user-agent business metric instead of the actual type (file, bytes, or stream).
+    - Update `ResponseInputStream`, to only return `0` from `available()` if the stream is closed; in other cases, if the wrapped stream returns 0 from `available()`, `1` is returned instead. This is to avoid cases where other classes such as [`java.util.zip.GZIPInputStream`](https://docs.oracle.com/javase/8/docs/api/java/util/zip/GZIPInputStream.html) misinterpret this as meaning the stream is closed.
+
+## __Amazon CloudWatch Application Insights__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Amazon Cognito user pools now support the AdminGetUserAuthFactors operation, which lets administrators retrieve the configured authentication factors (such as password, SMS, email, and TOTP) available for a specific user in a user pool.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Endpoint test standardizations
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Update validations for Tag Keys and KMS Key ARNs.
+
+## __RTBFabric__
+  - ### Features
+    - The deprecated inboundLinksCount field has been removed from the GetResponderGateway API response. Customers who previously relied on this field should use linksRequestedCount instead.
+
+## __odb__
+  - ### Features
+    - Documentation-only update to clarify the operation-specific valid values for the externalIdType field.
+
 # __2.49.2__ __2026-07-23__
 ## __AWS Backup Gateway__
   - ### Features
