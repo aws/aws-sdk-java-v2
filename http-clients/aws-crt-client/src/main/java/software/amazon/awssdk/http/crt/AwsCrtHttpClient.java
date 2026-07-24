@@ -56,12 +56,16 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkHttpClient {
 
     private AwsCrtHttpClient(DefaultBuilder builder, AttributeMap config) {
-        super(builder, config);
-        if (this.protocol == Protocol.HTTP2) {
+        super(builder, validateProtocol(config));
+    }
+
+    private static AttributeMap validateProtocol(AttributeMap config) {
+        if (config.get(SdkHttpConfigurationOption.PROTOCOL) == Protocol.HTTP2) {
             throw new UnsupportedOperationException(
                 "HTTP/2 is not supported for sync HTTP clients. Either use HTTP/1.1 (the default) or use an async "
                 + "HTTP client (e.g., AwsCrtAsyncHttpClient).");
         }
+        return config;
     }
 
     public static AwsCrtHttpClient.Builder builder() {
@@ -180,6 +184,26 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @return The builder of the method chaining.
          */
         AwsCrtHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
+
+        /**
+         * Configure the number of event-loop (IO) threads in this client's event-loop group.
+         *
+         * <p>By default (when this is not set), the client shares a single, process-wide event-loop group sized to
+         * {@code Runtime.getRuntime().availableProcessors()}, shared with every other CRT client in the JVM. When this value is
+         * set, the client instead creates and owns a private event-loop group of the given size; that group is shut down when
+         * this client is closed and is not shared with any other client.
+         *
+         * <p>This is an advanced tuning and isolation control, and each client configured with an explicit size consumes that
+         * many additional IO threads. Oversizing wastes threads and adds context-switching and memory overhead without improving
+         * throughput; undersizing can leave the client's IO as a bottleneck and underutilize available cores. The best value
+         * depends on your workload and hardware, so benchmark your own application before changing it from the default. An
+         * excessively high value relative to the number of available processors is logged as a warning.
+         *
+         * @param numEventLoopThreads the number of event-loop threads; must be greater than 1, or {@code null} to use the shared
+         *                           default.
+         * @return The builder for method chaining.
+         */
+        AwsCrtHttpClient.Builder numEventLoopThreads(Integer numEventLoopThreads);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -303,6 +327,28 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
          * @return The builder of the method chaining.
          */
         AwsCrtHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
+
+        /**
+         * Configure the minimum TLS protocol version the client will accept when negotiating
+         * a TLS connection. Handshakes that would negotiate a lower version will fail.
+         *
+         * <p>If not set, the platform + CRT default is used (equivalent to
+         * {@link TlsVersion#SYSTEM_DEFAULT}).
+         *
+         * <p>This option is mutually exclusive with {@link #postQuantumTlsEnabled(Boolean)
+         * postQuantumTlsEnabled(false)}. Attempting to set both will cause client construction
+         * to fail with an {@link IllegalStateException}.
+         *
+         * <p><b>macOS:</b> the default CRT TLS backend on macOS (Apple Secure Transport) does not
+         * support TLS 1.3. To use {@link TlsVersion#TLS_1_3} on macOS you must set the environment
+         * variable {@code AWS_CRT_USE_NON_FIPS_TLS_13} to any non-empty value at process startup so
+         * the CRT selects its s2n-tls backend. See {@link TlsVersion} for details.
+         *
+         * @param minTlsVersion the minimum acceptable TLS version; {@code null} clears
+         *                      the value and reverts to the platform default
+         * @return this builder for method chaining
+         */
+        AwsCrtHttpClient.Builder minTlsVersion(TlsVersion minTlsVersion);
     }
 
     /**
