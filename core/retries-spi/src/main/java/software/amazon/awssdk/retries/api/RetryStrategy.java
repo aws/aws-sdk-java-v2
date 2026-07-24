@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -68,8 +69,12 @@ public interface RetryStrategy extends SdkAutoCloseable {
      * <p>The future is completed exceptionally with {@link TokenAcquisitionFailedException} if a token cannot be acquired.
      */
     default CompletableFuture<AcquireInitialTokenResponse> acquireInitialTokenAsync(AcquireInitialTokenRequest request) {
-        AcquireInitialTokenResponse response = acquireInitialToken(request);
-        return CompletableFuture.completedFuture(response);
+        try {
+            AcquireInitialTokenResponse response = acquireInitialToken(request);
+            return CompletableFuture.completedFuture(response);
+        } catch (Throwable t) {
+            return CompletableFutureUtils.failedFuture(t);
+        }
     }
 
     /**
@@ -103,8 +108,12 @@ public interface RetryStrategy extends SdkAutoCloseable {
      * <p>The future is completed exceptionally with {@link TokenAcquisitionFailedException} if a token cannot be acquired.
      */
     default CompletableFuture<RefreshRetryTokenResponse> refreshRetryTokenAsync(RefreshRetryTokenRequest request) {
-        RefreshRetryTokenResponse response = refreshRetryToken(request);
-        return CompletableFuture.completedFuture(response);
+        try {
+            RefreshRetryTokenResponse response = refreshRetryToken(request);
+            return CompletableFuture.completedFuture(response);
+        } catch (Throwable t) {
+            return CompletableFutureUtils.failedFuture(t);
+        }
     }
 
     /**
