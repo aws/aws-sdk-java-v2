@@ -17,22 +17,32 @@ package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBody.BodyType;
 import software.amazon.awssdk.core.internal.compression.Compressor;
 import software.amazon.awssdk.core.internal.compression.GzipCompressor;
 import software.amazon.awssdk.core.internal.util.Mimetype;
@@ -124,6 +134,36 @@ public final class CompressionAsyncRequestBodyTest {
         assertThat(byteBuffer.array()).isEmpty();
         assertThat(byteBuffer.array()).isEqualTo(new byte[0]);
         assertThat(requestBody.contentType()).isEqualTo(Mimetype.MIMETYPE_OCTET_STREAM);
+    }
+
+    private static Stream<Arguments> bodyTypeCases() {
+        return Stream.of(
+            Arguments.of("file source -> File", AsyncRequestBody.fromFile(fileBody()), BodyType.FILE),
+            Arguments.of("bytes source -> Bytes", AsyncRequestBody.fromString("Hello world"), BodyType.BYTES));
+    }
+
+    @ParameterizedTest(name = "{index} {0}")
+    @MethodSource("bodyTypeCases")
+    public void body_forwardsUnderlyingBodyType(String description, AsyncRequestBody wrapped, BodyType expected) {
+        assertThat(compressionBody(wrapped).body()).isEqualTo(expected.getName());
+    }
+
+    private static CompressionAsyncRequestBody compressionBody(AsyncRequestBody wrapped) {
+        return CompressionAsyncRequestBody.builder()
+                                          .compressor(compressor)
+                                          .asyncRequestBody(wrapped)
+                                          .build();
+    }
+
+    private static Path fileBody() {
+        try {
+            FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+            Path path = fs.getPath("./test");
+            Files.write(path, "Hello world".getBytes());
+            return path;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     private static String createCompressibleStringOfGivenSize(int size) {
