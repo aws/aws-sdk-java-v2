@@ -26,11 +26,11 @@
     </parent>
     <artifactId>warmup-tests</artifactId>
     <name>AWS Java SDK :: Test :: Warm-up Tests</name>
-    <description>Centralized tests for the CRaC warm-up feature. Covers the SdkWarmUp orchestrator and HTTP-client warm-up
-        (run against every HTTP client), plus the generated SdkWarmUpProvider of every service module: the aws-sdk-java
-        aggregate dependency puts all services on the test classpath, so new services are tested automatically. This is a
-        leaf test module: nothing depends on it, so depending on the HTTP clients and all services here does not create a
-        dependency cycle.</description>
+    <description>Centralized tests for the warm-up feature across all modules. Covers the SdkWarmUp orchestrator, HTTP-client
+        warm-up (run against every HTTP client), and the generated SdkWarmUpProvider of every service module: the
+        aws-sdk-java aggregate dependency puts all services on the test classpath, so new services are tested
+        automatically. This is a leaf test module: nothing depends on it, so depending on the HTTP clients and all
+        services here does not create a dependency cycle.</description>
     <url>https://aws.amazon.com/sdkforjava</url>
 
     <dependencyManagement>
