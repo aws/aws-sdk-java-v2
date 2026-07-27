@@ -61,8 +61,6 @@ public class WarmUpProviderSpec implements ClassSpec {
 
     private static final String DUMMY_MEMBER_VALUE = "warmup";
 
-    private static final String DUMMY_ARN_VALUE = "arn:aws:service:us-east-1:123456789012:warmup";
-
     private static final ClassName CANNED_RESPONSE_HTTP_CLIENT =
         ClassName.get("software.amazon.awssdk.core.crac.http", "CannedResponseHttpClient");
     private static final ClassName CANNED_RESPONSE_ASYNC_HTTP_CLIENT =
@@ -223,8 +221,7 @@ public class WarmUpProviderSpec implements ClassSpec {
         ClassName requestType = poetExtensions.getModelClass(operation.getInputShape().getShapeName());
         CodeBlock.Builder request = CodeBlock.builder().add("$T.builder()", requestType);
         for (MemberModel member : WarmUpOperationSelector.membersRequiringDummyValue(operation)) {
-            String value = WarmUpOperationSelector.isArnMember(member) ? DUMMY_ARN_VALUE : DUMMY_MEMBER_VALUE;
-            request.add(".$N($S)", member.getFluentSetterMethodName(), value);
+            request.add(".$N($S)", member.getFluentSetterMethodName(), DUMMY_MEMBER_VALUE);
         }
         request.add(".build()");
         return CodeBlock.builder()

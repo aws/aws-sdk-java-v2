@@ -28,7 +28,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -187,11 +186,8 @@ public class WarmUpOperationSelectorTest {
                 .operation(op("GetThing").withOutput().withRequiredUriMember("ThingVersion", "Integer"))
                 .operation(op("PutThing").withOutput().withRequiredMembers(2))
                 .expect("PutThing"),
-            // An ARN context param is a string, so it is fillable with an ARN-shaped dummy value.
-            scenario("requiredArnContextParamMember_isStillEligible")
-                .operation(op("GetResource").withOutput().withRequiredContextParamMember("ResourceArn", "String"))
-                .expect("GetResource"),
-            scenario("requiredNonArnContextParamMember_isStillEligible")
+            // A required string context param is dummy-fillable, so the operation stays eligible.
+            scenario("requiredContextParamMember_isStillEligible")
                 .operation(op("ListGrants").withOutput().withRequiredContextParamMember("AccountId", "String"))
                 .expect("ListGrants")
         );
@@ -224,36 +220,6 @@ public class WarmUpOperationSelectorTest {
                                    op("ListThings").build(),
                                    Collections.emptyList())
         );
-    }
-
-    @ParameterizedTest(name = "isArnMember({0}) == {1}")
-    @MethodSource("arnMemberScenarios")
-    public void isArnMember_matchesOnlyConventionalArnSuffix(String memberName, boolean expected) {
-        MemberModel member = new MemberModel();
-        member.setName(memberName);
-        member.setContextParam(new ContextParam());
-        assertThat(WarmUpOperationSelector.isArnMember(member)).isEqualTo(expected);
-    }
-
-    private static Stream<Arguments> arnMemberScenarios() {
-        return Stream.of(
-            // Conventional ARN suffix, capitalized. Both the "ARN" and "Arn" forms occur in real models.
-            Arguments.of("resourceARN", true),
-            Arguments.of("resourceArn", true),
-            Arguments.of("RoleArn", true),
-            // Lookalikes: contain the letters "arn" but are not ARN members.
-            Arguments.of("learn", false),
-            Arguments.of("warning", false),
-            Arguments.of("yarnConfig", false),
-            Arguments.of("AccountId", false)
-        );
-    }
-
-    @Test
-    public void isArnMember_withoutContextParam_isFalse() {
-        MemberModel member = new MemberModel();
-        member.setName("resourceArn");
-        assertThat(WarmUpOperationSelector.isArnMember(member)).isFalse();
     }
 
     private static final class DummyValueScenario {

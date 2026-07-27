@@ -72,8 +72,9 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * The required input members the warm-up call must give a dummy value. A member needs one when it is bound to the
-     * URI path (a null breaks marshalling) or is an endpoint context param (a null breaks endpoint resolution).
+     * Returns the required input members that need a dummy value in the warm-up call. A member needs one when it is
+     * bound to the URI path (a null breaks marshalling) or is an endpoint context param (a null breaks endpoint
+     * resolution).
      */
     static List<MemberModel> membersRequiringDummyValue(OperationModel operation) {
         return inputMembers(operation).stream()
@@ -112,23 +113,12 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * A member is fillable only if it is a string, since the warm-up call emits string dummies: {@code "warmup"} for a
-     * plain member and an ARN-shaped value for an ARN member (see {@link #isArnMember}).
+     * A member is fillable only if it is a string, since the warm-up call emits a string dummy value
+     * ({@code "warmup"}).
      */
     private static boolean allDummyMembersAreFillable(OperationModel operation) {
         return membersRequiringDummyValue(operation).stream()
                                                     .allMatch(member -> "String".equals(member.getVariable().getSimpleType()));
-    }
-
-    /**
-     * An ARN endpoint context param needs an ARN-shaped dummy, since the endpoint rules parse it as an ARN. Identified
-     * by the conventional capitalized {@code Arn}/{@code ARN} name suffix (e.g. {@code resourceArn}), so a name that
-     * merely contains those letters (e.g. {@code learn}) does not match.
-     */
-    static boolean isArnMember(MemberModel member) {
-        String name = member.getName();
-        return member.getContextParam() != null
-               && (name.endsWith("Arn") || name.endsWith("ARN"));
     }
 
     private static boolean isUriOrEndpointBound(MemberModel member) {
