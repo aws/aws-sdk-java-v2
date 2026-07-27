@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Clean Rooms ML",
-    "contributor": "",
-    "description": "This release adds support for the CR.8X worker type for SQL (32 vCPU)"
-}

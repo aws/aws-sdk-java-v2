@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fix race condition when invoking pausing upload that can cause a `NullPointerException`."
-}
