@@ -14,9 +14,8 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.annotation.SdkInternalApi;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.util.DateUtils;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -686,7 +685,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         private static final ToDate<String> FromString = new ToDate<String>() {
             @Override
             public final Date convert(final String o) {
-                return DateUtils.parseISO8601Date(o);
+                return MapperDateUtils.parseISO8601Date(o);
             }
         };
     }
@@ -856,7 +855,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         private static final ToString<Date> FromDate = new ToString<Date>() {
             @Override
             public final String convert(final Date o) {
-                return DateUtils.formatISO8601Date(o);
+                return MapperDateUtils.formatISO8601Date(o);
             }
         };
 

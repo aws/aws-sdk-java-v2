@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.NumberSetAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A legacy marshaller that marshals sets of Java {@code Booleans} into DynamoDB
@@ -54,6 +54,6 @@ public class BooleanSetToNumberSetMarshaller
             }
         }
 
-        return new AttributeValue().withNS(booleanAttributes);
+        return AttributeValue.builder().ns(booleanAttributes).build();
     }
 }

@@ -14,12 +14,13 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.mapper.dynamodb.MapperDateUtils;
+
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.util.DateUtils;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals sets of ISO-8601-formatted dates as sets of
@@ -41,8 +42,8 @@ public class DateSetUnmarshaller extends SSUnmarshaller {
     public Object unmarshall(AttributeValue value) {
         Set<Date> result = new HashSet<Date>();
 
-        for (String s : value.getSS()) {
-            result.add(DateUtils.parseISO8601Date(s));
+        for (String s : value.ss()) {
+            result.add(MapperDateUtils.parseISO8601Date(s));
         }
 
         return result;

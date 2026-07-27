@@ -33,7 +33,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.SubClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.UnannotatedSubClass;
@@ -55,115 +56,115 @@ public class StandardModelFactoriesV1Test {
 
     @Test
     public void testBoolean() {
-        assertEquals("1", convert("getBoolean", true).getN());
-        assertEquals("0", convert("getBoolean", false).getN());
-        assertEquals("1", convert("getBoxedBoolean", true).getN());
-        assertEquals("0", convert("getBoxedBoolean", false).getN());
+        assertEquals("1", convert("getBoolean", true).n());
+        assertEquals("0", convert("getBoolean", false).n());
+        assertEquals("1", convert("getBoxedBoolean", true).n());
+        assertEquals("0", convert("getBoxedBoolean", false).n());
 
-        assertEquals(true, convert("getNativeBoolean", true).getBOOL());
-        assertEquals(false, convert("getNativeBoolean", false).getBOOL());
+        assertEquals(true, convert("getNativeBoolean", true).bool());
+        assertEquals(false, convert("getNativeBoolean", false).bool());
     }
 
     @Test
     public void testString() {
-        assertEquals("abc", convert("getString", "abc").getS());
+        assertEquals("abc", convert("getString", "abc").s());
 
         assertEquals(RandomUUIDMarshaller.randomUUID,
-                convert("getCustomString", "abc").getS());
+                convert("getCustomString", "abc").s());
     }
 
     @Test
     public void testUuid() {
         UUID uuid = UUID.randomUUID();
-        assertEquals(uuid.toString(), convert("getUuid", uuid).getS());
+        assertEquals(uuid.toString(), convert("getUuid", uuid).s());
     }
 
     @Test
     public void testDate() {
         assertEquals("1970-01-01T00:00:00.000Z",
-                convert("getDate", new Date(0)).getS());
+                convert("getDate", new Date(0)).s());
 
         Calendar c = GregorianCalendar.getInstance();
         c.setTimeInMillis(0);
 
         assertEquals("1970-01-01T00:00:00.000Z",
-                convert("getCalendar", c).getS());
+                convert("getCalendar", c).s());
     }
 
     @Test
     public void testNumbers() {
-        assertEquals("0", convert("getByte", (byte) 0).getN());
-        assertEquals("1", convert("getByte", (byte) 1).getN());
-        assertEquals("0", convert("getBoxedByte", (byte) 0).getN());
-        assertEquals("1", convert("getBoxedByte", (byte) 1).getN());
+        assertEquals("0", convert("getByte", (byte) 0).n());
+        assertEquals("1", convert("getByte", (byte) 1).n());
+        assertEquals("0", convert("getBoxedByte", (byte) 0).n());
+        assertEquals("1", convert("getBoxedByte", (byte) 1).n());
 
-        assertEquals("0", convert("getShort", (short) 0).getN());
-        assertEquals("1", convert("getShort", (short) 1).getN());
-        assertEquals("0", convert("getBoxedShort", (short) 0).getN());
-        assertEquals("1", convert("getBoxedShort", (short) 1).getN());
+        assertEquals("0", convert("getShort", (short) 0).n());
+        assertEquals("1", convert("getShort", (short) 1).n());
+        assertEquals("0", convert("getBoxedShort", (short) 0).n());
+        assertEquals("1", convert("getBoxedShort", (short) 1).n());
 
-        assertEquals("0", convert("getInt", 0).getN());
-        assertEquals("1", convert("getInt", 1).getN());
-        assertEquals("0", convert("getBoxedInt", 0).getN());
-        assertEquals("1", convert("getBoxedInt", 1).getN());
+        assertEquals("0", convert("getInt", 0).n());
+        assertEquals("1", convert("getInt", 1).n());
+        assertEquals("0", convert("getBoxedInt", 0).n());
+        assertEquals("1", convert("getBoxedInt", 1).n());
 
-        assertEquals("0", convert("getLong", 0l).getN());
-        assertEquals("1", convert("getLong", 1l).getN());
-        assertEquals("0", convert("getBoxedLong", 0l).getN());
-        assertEquals("1", convert("getBoxedLong", 1l).getN());
+        assertEquals("0", convert("getLong", 0l).n());
+        assertEquals("1", convert("getLong", 1l).n());
+        assertEquals("0", convert("getBoxedLong", 0l).n());
+        assertEquals("1", convert("getBoxedLong", 1l).n());
 
-        assertEquals("0", convert("getBigInt", BigInteger.ZERO).getN());
-        assertEquals("1", convert("getBigInt", BigInteger.ONE).getN());
+        assertEquals("0", convert("getBigInt", BigInteger.ZERO).n());
+        assertEquals("1", convert("getBigInt", BigInteger.ONE).n());
 
-        assertEquals("0.0", convert("getFloat", 0f).getN());
-        assertEquals("1.0", convert("getFloat", 1f).getN());
-        assertEquals("0.0", convert("getBoxedFloat", 0f).getN());
-        assertEquals("1.0", convert("getBoxedFloat", 1f).getN());
+        assertEquals("0.0", convert("getFloat", 0f).n());
+        assertEquals("1.0", convert("getFloat", 1f).n());
+        assertEquals("0.0", convert("getBoxedFloat", 0f).n());
+        assertEquals("1.0", convert("getBoxedFloat", 1f).n());
 
-        assertEquals("0.0", convert("getDouble", 0d).getN());
-        assertEquals("1.0", convert("getDouble", 1d).getN());
-        assertEquals("0.0", convert("getBoxedDouble", 0d).getN());
-        assertEquals("1.0", convert("getBoxedDouble", 1d).getN());
+        assertEquals("0.0", convert("getDouble", 0d).n());
+        assertEquals("1.0", convert("getDouble", 1d).n());
+        assertEquals("0.0", convert("getBoxedDouble", 0d).n());
+        assertEquals("1.0", convert("getBoxedDouble", 1d).n());
 
-        assertEquals("0", convert("getBigDecimal", BigDecimal.ZERO).getN());
-        assertEquals("1", convert("getBigDecimal", BigDecimal.ONE).getN());
+        assertEquals("0", convert("getBigDecimal", BigDecimal.ZERO).n());
+        assertEquals("1", convert("getBigDecimal", BigDecimal.ONE).n());
     }
 
     @Test
     public void testBinary() {
         ByteBuffer value = ByteBuffer.wrap("value".getBytes());
-        assertEquals(value.slice(), convert("getByteArray", "value".getBytes()).getB());
-        assertEquals(value.slice(), convert("getByteBuffer", value.slice()).getB());
+        assertEquals(value.slice(), convert("getByteArray", "value".getBytes()).b().asByteBuffer());
+        assertEquals(value.slice(), convert("getByteBuffer", value.slice()).b().asByteBuffer());
     }
 
     @Test
     public void testBooleanSet() {
         assertEquals(Collections.singletonList("1"),
-                convert("getBooleanSet", Collections.singleton(true)).getNS());
+                convert("getBooleanSet", Collections.singleton(true)).ns());
 
         assertEquals(Collections.singletonList("0"),
-                convert("getBooleanSet", Collections.singleton(false)).getNS());
+                convert("getBooleanSet", Collections.singleton(false)).ns());
 
         assertEquals(Arrays.asList("0", "1"),
                 convert("getBooleanSet", new TreeSet<Boolean>() {{
                     add(true);
                     add(false);
-                }}).getNS());
+                }}).ns());
     }
 
     @Test
     public void testStringSet() {
         assertEquals(Collections.singletonList("a"),
-                convert("getStringSet", Collections.singleton("a")).getSS());
+                convert("getStringSet", Collections.singleton("a")).ss());
         assertEquals(Collections.singletonList("b"),
-                convert("getStringSet", Collections.singleton("b")).getSS());
+                convert("getStringSet", Collections.singleton("b")).ss());
 
         assertEquals(Arrays.asList("a", "b", "c"),
                 convert("getStringSet", new TreeSet<String>() {{
                     add("a");
                     add("b");
                     add("c");
-                }}).getSS());
+                }}).ss());
     }
 
     @Test
@@ -173,10 +174,10 @@ public class StandardModelFactoriesV1Test {
         final UUID three = UUID.randomUUID();
 
         assertEquals(Collections.singletonList(one.toString()),
-                convert("getUuidSet", Collections.singleton(one)).getSS());
+                convert("getUuidSet", Collections.singleton(one)).ss());
 
         assertEquals(Collections.singletonList(two.toString()),
-                convert("getUuidSet", Collections.singleton(two)).getSS());
+                convert("getUuidSet", Collections.singleton(two)).ss());
 
         assertEquals(
                 Arrays.asList(
@@ -187,50 +188,50 @@ public class StandardModelFactoriesV1Test {
                     add(one);
                     add(two);
                     add(three);
-                }}).getSS());
+                }}).ss());
     }
 
     @Test
     public void testDateSet() {
         assertEquals(Collections.singletonList("1970-01-01T00:00:00.000Z"),
                 convert("getDateSet", Collections.singleton(new Date(0)))
-                        .getSS());
+                        .ss());
 
         Calendar c = GregorianCalendar.getInstance();
         c.setTimeInMillis(0);
 
         assertEquals(Collections.singletonList("1970-01-01T00:00:00.000Z"),
                 convert("getCalendarSet", Collections.singleton(c))
-                        .getSS());
+                        .ss());
     }
 
     @Test
     public void testNumberSet() {
         assertEquals(Collections.singletonList("0"),
-                convert("getByteSet", Collections.singleton((byte) 0)).getNS());
+                convert("getByteSet", Collections.singleton((byte) 0)).ns());
         assertEquals(Collections.singletonList("0"),
-                convert("getShortSet", Collections.singleton((short) 0)).getNS());
+                convert("getShortSet", Collections.singleton((short) 0)).ns());
         assertEquals(Collections.singletonList("0"),
-                convert("getIntSet", Collections.singleton(0)).getNS());
+                convert("getIntSet", Collections.singleton(0)).ns());
         assertEquals(Collections.singletonList("0"),
-                convert("getLongSet", Collections.singleton(0l)).getNS());
+                convert("getLongSet", Collections.singleton(0l)).ns());
         assertEquals(Collections.singletonList("0"),
                 convert("getBigIntegerSet", Collections.singleton(BigInteger.ZERO))
-                    .getNS());
+                    .ns());
         assertEquals(Collections.singletonList("0.0"),
-                convert("getFloatSet", Collections.singleton(0f)).getNS());
+                convert("getFloatSet", Collections.singleton(0f)).ns());
         assertEquals(Collections.singletonList("0.0"),
-                convert("getDoubleSet", Collections.singleton(0d)).getNS());
+                convert("getDoubleSet", Collections.singleton(0d)).ns());
         assertEquals(Collections.singletonList("0"),
                 convert("getBigDecimalSet", Collections.singleton(BigDecimal.ZERO))
-                    .getNS());
+                    .ns());
 
         assertEquals(Arrays.asList("0", "1", "2"),
                 convert("getLongSet", new TreeSet<Number>() {{
                     add(0);
                     add(1);
                     add(2);
-                }}).getNS());
+                }}).ns());
     }
 
     @Test
@@ -238,19 +239,19 @@ public class StandardModelFactoriesV1Test {
         final ByteBuffer test = ByteBuffer.wrap("test".getBytes());
         final ByteBuffer test2 = ByteBuffer.wrap("test2".getBytes());
 
-        assertEquals(Collections.singletonList(test.slice()),
+        assertEquals(Collections.singletonList(SdkBytes.fromByteBuffer(test.slice())),
                 convert("getByteArraySet", Collections.singleton("test".getBytes()))
-                    .getBS());
+                    .bs());
 
-        assertEquals(Collections.singletonList(test.slice()),
+        assertEquals(Collections.singletonList(SdkBytes.fromByteBuffer(test.slice())),
                 convert("getByteBufferSet", Collections.singleton(test.slice()))
-                    .getBS());
+                    .bs());
 
-        assertEquals(Arrays.asList(test.slice(), test2.slice()),
+        assertEquals(Arrays.asList(SdkBytes.fromByteBuffer(test.slice()), SdkBytes.fromByteBuffer(test2.slice())),
                 convert("getByteBufferSet",new TreeSet<ByteBuffer>() {{
                     add(test.slice());
                     add(test2.slice());
-                }}).getBS());
+                }}).bs());
     }
 
     @Test
@@ -263,7 +264,7 @@ public class StandardModelFactoriesV1Test {
         };
 
         assertEquals(Collections.singletonList("hello"),
-                convert("getObjectSet", Collections.singleton(o)).getSS());
+                convert("getObjectSet", Collections.singleton(o)).ss());
     }
 
     @Test
@@ -313,7 +314,7 @@ public class StandardModelFactoriesV1Test {
                      + "\"bucket\":\"bucket\","
                      + "\"key\":\"key\","
                      + "\"region\":null}}",
-                convert("getS3Link", link).getS());
+                convert("getS3Link", link).s());
     }
 
     private AttributeValue convert(String getter, Object value) {

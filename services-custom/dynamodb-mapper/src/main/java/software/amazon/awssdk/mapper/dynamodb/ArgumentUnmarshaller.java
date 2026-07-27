@@ -17,7 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Unmarshaller interface to make it possible to cache the expensive

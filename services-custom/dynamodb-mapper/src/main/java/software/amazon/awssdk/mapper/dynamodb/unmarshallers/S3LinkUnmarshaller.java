@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
 import software.amazon.awssdk.mapper.dynamodb.S3ClientCache;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class S3LinkUnmarshaller extends SUnmarshaller {
 
@@ -45,6 +45,6 @@ public class S3LinkUnmarshaller extends SUnmarshaller {
                     + "load S3Link");
         }
 
-        return S3Link.fromJson(clientCache, value.getS());
+        return S3Link.fromJson(clientCache, value.s());
     }
 }

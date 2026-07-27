@@ -30,7 +30,7 @@ import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NE;
 import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NOT_CONTAINS;
 import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NOT_NULL;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
@@ -224,7 +224,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition beginsWith(final V value) {
-        return new Condition().withComparisonOperator(BEGINS_WITH).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(BEGINS_WITH).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -236,7 +237,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition between(final V lo, final V hi) {
-        return new Condition().withComparisonOperator(BETWEEN).withAttributeValueList(convert(lo), convert(hi));
+//        return new Condition().withComparisonOperator(BETWEEN).withAttributeValueList(convert(lo), convert(hi));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -247,7 +249,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition contains(final V value) {
-        return new Condition().withComparisonOperator(CONTAINS).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(CONTAINS).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -258,7 +261,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition eq(final V value) {
-        return new Condition().withComparisonOperator(EQ).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(EQ).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -269,7 +273,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition ge(final V value) {
-        return new Condition().withComparisonOperator(GE).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(GE).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -280,7 +285,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition gt(final V value) {
-        return new Condition().withComparisonOperator(GT).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(GT).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -291,7 +297,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition in(final Collection<V> values) {
-        return new Condition().withComparisonOperator(IN).withAttributeValueList(LIST.convert(values, this));
+//        return new Condition().withComparisonOperator(IN).withAttributeValueList(LIST.convert(values, this));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -323,7 +330,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition le(final V value) {
-        return new Condition().withComparisonOperator(LE).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(LE).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -334,7 +342,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition lt(final V value) {
-        return new Condition().withComparisonOperator(LT).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(LT).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -345,7 +354,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition ne(final V value) {
-        return new Condition().withComparisonOperator(NE).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(NE).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**
@@ -356,7 +366,8 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition notContains(final V value) {
-        return new Condition().withComparisonOperator(NOT_CONTAINS).withAttributeValueList(convert(value));
+//        return new Condition().withComparisonOperator(NOT_CONTAINS).withAttributeValueList(convert(value));
+        throw new UnsupportedOperationException("Condition building not yet ported to v2 (query/scan deferred to a later PR).");
     }
 
     /**

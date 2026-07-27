@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.amazonaws.annotation.SdkInternalApi;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * This class contains logic to generate condition expressions for version attribute

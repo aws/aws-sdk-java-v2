@@ -14,7 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals Binary values as Java {@code ByteBuffer}s.
@@ -33,6 +33,6 @@ public class ByteBufferUnmarshaller extends BUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        return value.getB();
+        return value.b().asByteBuffer();
     }
 }

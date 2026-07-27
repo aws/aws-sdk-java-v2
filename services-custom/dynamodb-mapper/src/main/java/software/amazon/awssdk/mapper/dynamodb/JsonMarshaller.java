@@ -14,8 +14,6 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import static com.amazonaws.util.Throwables.failure;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -66,9 +64,9 @@ public class JsonMarshaller<T extends Object> implements DynamoDBMarshaller<T> {
         try {
             return writer.writeValueAsString(obj);
         } catch (JsonProcessingException e) {
-            throw failure(e,
+            throw new DynamoDBMappingException(
                     "Unable to marshall the instance of " + obj.getClass()
-                            + "into a string");
+                            + "into a string", e);
         }
     }
 
@@ -76,9 +74,11 @@ public class JsonMarshaller<T extends Object> implements DynamoDBMarshaller<T> {
     public T unmarshall(Class<T> clazz, String json) {
         try {
             return mapper.readValue(json, (getValueType() == null ? clazz : getValueType()));
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            throw failure(e, "Unable to unmarshall the string " + json
-                    + "into " + clazz);
+            throw new DynamoDBMappingException("Unable to unmarshall the string " + json
+                    + "into " + clazz, e);
         }
     }
 }

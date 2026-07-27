@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals {@code S3Link} objects to DynamoDB Strings,
@@ -44,6 +44,6 @@ public class S3LinkToStringMarshaller implements StringAttributeMarshaller {
             return null;
         }
 
-        return new AttributeValue().withS(s3link.toJson());
+        return AttributeValue.builder().s(s3link.toJson()).build();
     }
 }

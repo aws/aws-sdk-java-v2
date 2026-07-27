@@ -19,7 +19,7 @@ import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.MapAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class MapToMapMarshaller implements MapAttributeMarshaller {
 
@@ -59,7 +59,7 @@ public class MapToMapMarshaller implements MapAttributeMarshaller {
         for (Map.Entry<String, ?> entry : map.entrySet()) {
             AttributeValue value;
             if (entry.getValue() == null) {
-                value = new AttributeValue().withNULL(true);
+                value = AttributeValue.builder().nul(true).build();
             } else {
                 value = memberMarshaller.marshall(entry.getValue());
             }
@@ -67,9 +67,7 @@ public class MapToMapMarshaller implements MapAttributeMarshaller {
             values.put(entry.getKey(), value);
         }
 
-        AttributeValue result = new AttributeValue();
-        result.setM(values);
-        return result;
+        return AttributeValue.builder().m(values).build();
     }
 
     public ArgumentMarshaller getMemberMarshaller() {

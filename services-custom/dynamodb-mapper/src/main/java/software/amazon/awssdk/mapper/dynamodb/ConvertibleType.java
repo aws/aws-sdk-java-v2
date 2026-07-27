@@ -19,7 +19,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBA
 import software.amazon.awssdk.mapper.dynamodb.StandardAnnotationMaps.TypedMap;
 import software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scalar;
 import software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;

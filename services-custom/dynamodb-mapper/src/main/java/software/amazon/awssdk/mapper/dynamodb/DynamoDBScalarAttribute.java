@@ -14,7 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -38,7 +38,7 @@ public @interface DynamoDBScalarAttribute {
 
     /**
      * The scalar attirbute type.
-     * @see com.amazonaws.services.dynamodbv2.model.ScalarAttributeType
+     * @see software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
      */
     ScalarAttributeType type();
 

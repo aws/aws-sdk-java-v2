@@ -14,8 +14,6 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import static com.amazonaws.util.Throwables.failure;
-
 /**
  * Generic marshaller for enumerations.
  *
@@ -41,7 +39,7 @@ public abstract class AbstractEnumMarshaller<T extends Enum<T>> implements Dynam
         try {
             return obj.name();
         } catch (final RuntimeException e) {
-            throw failure(e, "Unable to marshall the instance of " + obj.getClass() + " into a string");
+            throw e;
         }
     }
 
@@ -53,7 +51,7 @@ public abstract class AbstractEnumMarshaller<T extends Enum<T>> implements Dynam
         try {
             return Enum.valueOf(clazz, obj);
         } catch (final RuntimeException e) {
-            throw failure(e, "Unable to unmarshall the string " + obj + " into " + clazz);
+            throw e;
         }
     }
 

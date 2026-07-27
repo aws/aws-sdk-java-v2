@@ -21,7 +21,7 @@ import java.util.Set;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ObjectSetUnmarshaller extends LUnmarshaller {
 
@@ -47,7 +47,7 @@ public class ObjectSetUnmarshaller extends LUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) throws ParseException {
-        List<AttributeValue> values = value.getL();
+        List<AttributeValue> values = value.l();
 
         // As in the LinkedHashSet(Collection) constructor.
         int size = Math.max(values.size() * 2, 11);

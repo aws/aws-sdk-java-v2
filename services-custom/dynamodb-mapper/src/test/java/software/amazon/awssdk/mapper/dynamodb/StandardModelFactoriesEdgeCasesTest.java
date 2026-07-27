@@ -24,7 +24,7 @@ import java.math.BigInteger;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
 
@@ -76,14 +76,14 @@ public class StandardModelFactoriesEdgeCasesTest {
 
     @Test
     public void convert_unicodeString_preserved() {
-        assertEquals("こんにちは", convert("getString", "こんにちは").getS());
-        assertEquals("emoji-😀", convert("getString", "emoji-😀").getS());
+        assertEquals("こんにちは", convert("getString", "こんにちは").s());
+        assertEquals("emoji-😀", convert("getString", "emoji-😀").s());
     }
 
     @Test
     public void unconvert_unicodeString_preserved() {
         assertEquals("こんにちは",
-                unconvert("getString", "setString", new AttributeValue("こんにちは")));
+                unconvert("getString", "setString", AttributeValue.builder().s("こんにちは").build()));
     }
 
     @Test
@@ -93,30 +93,30 @@ public class StandardModelFactoriesEdgeCasesTest {
 
     @Test
     public void convert_numericBoundaries_exactStrings() {
-        assertEquals(String.valueOf(Integer.MIN_VALUE), convert("getInt", Integer.MIN_VALUE).getN());
-        assertEquals(String.valueOf(Integer.MAX_VALUE), convert("getInt", Integer.MAX_VALUE).getN());
-        assertEquals(String.valueOf(Long.MIN_VALUE), convert("getLong", Long.MIN_VALUE).getN());
-        assertEquals(String.valueOf(Long.MAX_VALUE), convert("getLong", Long.MAX_VALUE).getN());
+        assertEquals(String.valueOf(Integer.MIN_VALUE), convert("getInt", Integer.MIN_VALUE).n());
+        assertEquals(String.valueOf(Integer.MAX_VALUE), convert("getInt", Integer.MAX_VALUE).n());
+        assertEquals(String.valueOf(Long.MIN_VALUE), convert("getLong", Long.MIN_VALUE).n());
+        assertEquals(String.valueOf(Long.MAX_VALUE), convert("getLong", Long.MAX_VALUE).n());
     }
 
     @Test
     public void convert_bigNumbers_precisionPreserved() {
         BigInteger big = new BigInteger("99999999999999999999");
-        assertEquals("99999999999999999999", convert("getBigInt", big).getN());
+        assertEquals("99999999999999999999", convert("getBigInt", big).n());
 
         BigDecimal dec = new BigDecimal("12345.6789");
-        assertEquals("12345.6789", convert("getBigDecimal", dec).getN());
+        assertEquals("12345.6789", convert("getBigDecimal", dec).n());
     }
 
     @Test
     public void convert_bigDecimal_scalePreserved() {
-        assertEquals("43.0", convert("getBigDecimal", new BigDecimal("43.0")).getN());
+        assertEquals("43.0", convert("getBigDecimal", new BigDecimal("43.0")).n());
     }
 
     @Test
     public void unconvert_integralType_fromDecimalString_throws() {
         try {
-            unconvert("getInt", "setInt", new AttributeValue().withN("1.0"));
+            unconvert("getInt", "setInt", AttributeValue.builder().n("1.0").build());
             fail("Expected NumberFormatException for decimal string on integral type");
         } catch (NumberFormatException e) {
             // expected
@@ -125,9 +125,9 @@ public class StandardModelFactoriesEdgeCasesTest {
 
     @Test
     public void convert_nonFiniteDouble() {
-        assertEquals("NaN", convert("getDouble", Double.NaN).getN());
-        assertEquals("Infinity", convert("getDouble", Double.POSITIVE_INFINITY).getN());
-        assertEquals("-Infinity", convert("getDouble", Double.NEGATIVE_INFINITY).getN());
+        assertEquals("NaN", convert("getDouble", Double.NaN).n());
+        assertEquals("Infinity", convert("getDouble", Double.POSITIVE_INFINITY).n());
+        assertEquals("-Infinity", convert("getDouble", Double.NEGATIVE_INFINITY).n());
     }
 
     public enum Color { RED, GREEN, BLUE }
@@ -141,20 +141,20 @@ public class StandardModelFactoriesEdgeCasesTest {
     @Test
     public void convert_enum_asString() {
         DynamoDBMapperTableModel<EnumPojo> model = table(new EnumPojo());
-        assertEquals("GREEN", model.field("val").convert(Color.GREEN).getS());
+        assertEquals("GREEN", model.field("val").convert(Color.GREEN).s());
     }
 
     @Test
     public void unconvert_enum_fromString() {
         DynamoDBMapperTableModel<EnumPojo> model = table(new EnumPojo());
-        assertEquals(Color.BLUE, model.field("val").unconvert(new AttributeValue("BLUE")));
+        assertEquals(Color.BLUE, model.field("val").unconvert(AttributeValue.builder().s("BLUE").build()));
     }
 
     @Test
     public void unconvert_enum_unknownValue_throws() {
         DynamoDBMapperTableModel<EnumPojo> model = table(new EnumPojo());
         try {
-            model.field("val").unconvert(new AttributeValue("PURPLE"));
+            model.field("val").unconvert(AttributeValue.builder().s("PURPLE").build());
             fail("Expected exception for unknown enum constant");
         } catch (RuntimeException e) {
             // expected
@@ -198,9 +198,9 @@ public class StandardModelFactoriesEdgeCasesTest {
         DynamoDBMapperTableModel<JsonPojo> model = table(new JsonPojo());
         AttributeValue av = model.field("val").convert(payload);
 
-        Assert.assertNotNull(av.getS());
-        Assert.assertTrue(av.getS().contains("widget"));
-        Assert.assertTrue(av.getS().contains("7"));
+        Assert.assertNotNull(av.s());
+        Assert.assertTrue(av.s().contains("widget"));
+        Assert.assertTrue(av.s().contains("7"));
     }
 
     @Test

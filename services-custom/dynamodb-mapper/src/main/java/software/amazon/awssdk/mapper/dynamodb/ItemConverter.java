@@ -17,7 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * The concrete realization of a strategy for converting between Java objects

@@ -21,7 +21,7 @@ import java.util.Set;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A special unmarshaller for Set&lt;Boolean>, which the V1 schema stores as
@@ -42,7 +42,7 @@ public class BooleanSetUnmarshaller implements ArgumentUnmarshaller {
 
     @Override
     public void typeCheck(AttributeValue value, Method setter) {
-        if (value.getNS() == null && value.getL() == null) {
+        if (!value.hasNs() && !value.hasL()) {
             throw new DynamoDBMappingException(
                     "Expected either L or NS in value " + value
                     + " when invoking " + setter);
@@ -51,10 +51,10 @@ public class BooleanSetUnmarshaller implements ArgumentUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        if (value.getL() != null) {
-            return unmarshallList(value.getL());
+        if (value.hasL()) {
+            return unmarshallList(value.l());
         } else {
-            return unmarshallNS(value.getNS());
+            return unmarshallNS(value.ns());
         }
     }
 
@@ -63,10 +63,10 @@ public class BooleanSetUnmarshaller implements ArgumentUnmarshaller {
 
         for (AttributeValue value : values) {
             Boolean bool;
-            if (Boolean.TRUE.equals(value.isNULL())) {
+            if (Boolean.TRUE.equals(value.nul())) {
                 bool = null;
             } else {
-                bool = value.getBOOL();
+                bool = value.bool();
                 if (bool == null) {
                     throw new DynamoDBMappingException(
                             value + " is not a boolean");

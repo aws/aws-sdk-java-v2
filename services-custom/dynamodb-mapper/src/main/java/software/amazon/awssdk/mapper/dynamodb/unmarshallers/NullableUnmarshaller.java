@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 import java.text.ParseException;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class NullableUnmarshaller implements ArgumentUnmarshaller {
 
@@ -33,14 +33,14 @@ public class NullableUnmarshaller implements ArgumentUnmarshaller {
 
     @Override
     public void typeCheck(AttributeValue value, Method setter) {
-        if (value.isNULL() == null) {
+        if (value.nul() == null) {
             wrapped.typeCheck(value, setter);
         }
     }
 
     @Override
     public Object unmarshall(AttributeValue value) throws ParseException {
-        if (value.isNULL() != null) {
+        if (value.nul() != null) {
             return null;
         }
         return wrapped.unmarshall(value);

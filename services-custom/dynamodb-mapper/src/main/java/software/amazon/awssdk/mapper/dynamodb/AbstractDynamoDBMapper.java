@@ -15,7 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
 import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
 import com.amazonaws.services.s3.model.Region;

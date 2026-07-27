@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class MapUnmarshaller extends MUnmarshaller {
 
@@ -44,7 +44,7 @@ public class MapUnmarshaller extends MUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) throws ParseException {
-        Map<String, AttributeValue> map = value.getM();
+        Map<String, AttributeValue> map = value.m();
         Map<String, Object> result = new HashMap<String, Object>();
 
         for (Map.Entry<String, AttributeValue> entry : map.entrySet()) {

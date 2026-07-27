@@ -22,9 +22,9 @@ import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
 import software.amazon.awssdk.mapper.dynamodb.pojos.Currency;
 import software.amazon.awssdk.mapper.dynamodb.pojos.DateRange;
 import software.amazon.awssdk.mapper.dynamodb.pojos.KeyAndVal;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -126,8 +126,8 @@ public class StandardModelFactoriesTest {
         final DynamoDBMapperTableModel<Object> model = getTable(obj);
         final DynamoDBMapperFieldModel<Object,AttributeValue> val = model.field("val");
         assertEquals(DynamoDBAttributeType.N, val.attributeType());
-        assertEquals("123", val.convert(new AttributeValue().withN("123")).getN());
-        assertEquals("123", val.unconvert(new AttributeValue().withN("123")).getN());
+        assertEquals("123", val.convert(AttributeValue.builder().n("123").build()).n());
+        assertEquals("123", val.unconvert(AttributeValue.builder().n("123").build()).n());
     }
 
     @Test
@@ -142,11 +142,11 @@ public class StandardModelFactoriesTest {
         assertEquals(DynamoDBAttributeType.M, val.attributeType());
 
         Map<String,AttributeValue> map = new HashMap<String,AttributeValue>();
-        map.put("A", new AttributeValue().withN("123"));
+        map.put("A", AttributeValue.builder().n("123").build());
         map = Collections.unmodifiableMap(map);
 
-        assertEquals("123", val.convert(new AttributeValue().withM(map)).getM().get("A").getN());
-        assertEquals("123", val.unconvert(new AttributeValue().withM(map)).getM().get("A").getN());
+        assertEquals("123", val.convert(AttributeValue.builder().m(map).build()).m().get("A").n());
+        assertEquals("123", val.unconvert(AttributeValue.builder().m(map).build()).m().get("A").n());
     }
 
     /**
@@ -164,8 +164,8 @@ public class StandardModelFactoriesTest {
         final DynamoDBMapperTableModel<Object> model = getTable(obj);
         final DynamoDBMapperFieldModel<Object,TimeZone> val = model.field("val");
         assertEquals(DynamoDBAttributeType.S, val.attributeType());
-        assertEquals("America/New_York", val.convert(TimeZone.getTimeZone("America/New_York")).getS());
-        assertEquals("America/New_York", val.unconvert(new AttributeValue().withS("America/New_York")).getID());
+        assertEquals("America/New_York", val.convert(TimeZone.getTimeZone("America/New_York")).s());
+        assertEquals("America/New_York", val.unconvert(AttributeValue.builder().s("America/New_York").build()).getID());
     }
 
     /**
@@ -183,8 +183,8 @@ public class StandardModelFactoriesTest {
         final DynamoDBMapperTableModel<Object> model = getTable(obj);
         final DynamoDBMapperFieldModel<Object,Locale> val = model.field("val");
         assertEquals(DynamoDBAttributeType.S, val.attributeType());
-        assertEquals("en-CA", val.convert(new Locale("en","CA")).getS());
-        assertEquals("en-CA", val.unconvert(new AttributeValue().withS("en-CA")).toString().replaceAll("_","-"));
+        assertEquals("en-CA", val.convert(new Locale("en","CA")).s());
+        assertEquals("en-CA", val.unconvert(AttributeValue.builder().s("en-CA").build()).toString().replaceAll("_","-"));
     }
 
     /**
@@ -203,7 +203,7 @@ public class StandardModelFactoriesTest {
         assertEquals(DynamoDBAttributeType.B, model.field("val").attributeType());
         final UUID val = UUID.randomUUID();
         final AttributeValue converted = model.field("val").convert(val);
-        assertNotNull(converted.getB());
+        assertNotNull(converted.b());
         assertEquals(val, model.field("val").unconvert(converted));
     }
 
@@ -254,10 +254,10 @@ public class StandardModelFactoriesTest {
         final DynamoDBMapperTableModel<Object> model = getTable(obj);
         final DynamoDBMapperFieldModel<Object,Boolean> val = model.field("val");
         assertEquals(DynamoDBAttributeType.S, val.attributeType());
-        assertEquals("Y", val.convert(Boolean.TRUE).getS());
-        assertEquals(Boolean.TRUE, val.unconvert(new AttributeValue().withS("Y")));
-        assertEquals("N", val.convert(Boolean.FALSE).getS());
-        assertEquals(Boolean.FALSE, val.unconvert(new AttributeValue().withS("N")));
+        assertEquals("Y", val.convert(Boolean.TRUE).s());
+        assertEquals(Boolean.TRUE, val.unconvert(AttributeValue.builder().s("Y").build()));
+        assertEquals("N", val.convert(Boolean.FALSE).s());
+        assertEquals(Boolean.FALSE, val.unconvert(AttributeValue.builder().s("N").build()));
         assertEquals(null, val.convert(null));
     }
 

@@ -17,7 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb.marshallers;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that delegates to an instance of a
@@ -48,7 +48,7 @@ public class CustomMarshaller implements StringAttributeMarshaller {
         if (stringValue == null) {
             return null;
         } else {
-            return new AttributeValue(stringValue);
+            return AttributeValue.builder().s(stringValue).build();
         }
     }
 

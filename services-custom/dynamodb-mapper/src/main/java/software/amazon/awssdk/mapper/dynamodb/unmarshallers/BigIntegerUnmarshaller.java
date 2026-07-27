@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
 import java.math.BigInteger;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals DynamoDB Numbers into Java
@@ -36,6 +36,6 @@ public class BigIntegerUnmarshaller extends NUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        return new BigInteger(value.getN());
+        return new BigInteger(value.n());
     }
 }

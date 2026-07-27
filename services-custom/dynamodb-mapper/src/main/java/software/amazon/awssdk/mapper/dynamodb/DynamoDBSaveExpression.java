@@ -18,8 +18,8 @@ package software.amazon.awssdk.mapper.dynamodb;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 
 /**
  * Enables adding options to a save operation.

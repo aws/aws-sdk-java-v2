@@ -14,11 +14,12 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.mapper.dynamodb.MapperDateUtils;
+
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.util.DateUtils;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals ISO-8601-formatted dates as Java
@@ -39,7 +40,7 @@ public class CalendarUnmarshaller extends SUnmarshaller {
     @Override
     public Object unmarshall(AttributeValue value) {
         Calendar cal = GregorianCalendar.getInstance();
-        cal.setTime(DateUtils.parseISO8601Date(value.getS()));
+        cal.setTime(MapperDateUtils.parseISO8601Date(value.s()));
         return cal;
     }
 }

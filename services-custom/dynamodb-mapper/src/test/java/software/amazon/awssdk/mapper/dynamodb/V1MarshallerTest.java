@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import java.lang.reflect.Method;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class V1MarshallerTest extends StandardModelFactoriesV1Test {
 
