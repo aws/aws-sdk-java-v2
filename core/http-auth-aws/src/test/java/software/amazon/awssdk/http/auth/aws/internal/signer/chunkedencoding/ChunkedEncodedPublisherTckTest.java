@@ -61,9 +61,14 @@ public class ChunkedEncodedPublisherTckTest extends PublisherVerification<ByteBu
 
         Publisher<ByteBuffer> inputPublisher = Flowable.fromIterable(elements);
 
+        // Required by the builder; must match the data the input publisher produces. Production sets this from the
+        // x-amz-decoded-content-length header (see AwsChunkedV4PayloadSigner).
+        long contentLength = (long) totalElements * INPUT_STREAM_ELEMENT_SIZE;
+
         return ChunkedEncodedPublisher.builder()
                                       .chunkSize(CHUNK_SIZE)
                                       .publisher(inputPublisher)
+                                      .contentLength(contentLength)
                                       .addEmptyTrailingChunk(false)
                                       .build();
     }

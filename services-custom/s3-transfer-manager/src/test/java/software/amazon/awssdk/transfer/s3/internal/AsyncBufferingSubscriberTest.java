@@ -128,12 +128,9 @@ class AsyncBufferingSubscriberTest {
         subscriber.onSubscribe(mockSubscription);
         subscriber.onNext("item");
 
-        /*
-        subscription.cancel() now exists in two codepaths:
-        - in onNext() catch block.
-        - in future.whenComplete()
-         */
-        verify(mockSubscription, times(2)).cancel();
+        // Cancelled once, from the onNext() catch block. The whenComplete() handler does not cancel again, which would
+        // violate Reactive Streams rule 2.3 (cancel from within onError).
+        verify(mockSubscription, times(1)).cancel();
         assertThatThrownBy(future::join).hasCause(exception);
     }
 
