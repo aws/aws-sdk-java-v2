@@ -217,6 +217,7 @@ public final class RetryableStageHelper {
                         Duration acquireDelay = acquireFailureDelay.get();
                         context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireDelay);
                         cf.complete(Either.right(acquireDelay));
+                        return;
                     }
                     cf.complete(Either.right(Duration.ZERO));
                 } else {
