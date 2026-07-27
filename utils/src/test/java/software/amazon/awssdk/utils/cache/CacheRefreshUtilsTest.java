@@ -51,8 +51,16 @@ public class CacheRefreshUtilsTest {
     }
 
     @Test
-    public void remainingLifetimeExactly20Minutes_returns15MinuteWindow() {
+    public void remainingLifetimeExactly20Minutes_returns5MinuteWindow() {
         Instant expiration = NOW.plus(Duration.ofMinutes(20));
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
+        assertThat(window).isEqualTo(Duration.ofMinutes(5));
+    }
+
+    @Test
+    public void remainingLifetimeJustOver20Minutes_returns15MinuteWindow() {
+        // 21 minutes — above the 20 minute boundary, enters the medium tier
+        Instant expiration = NOW.plus(Duration.ofMinutes(21));
         Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, NOW);
         assertThat(window).isEqualTo(Duration.ofMinutes(15));
     }

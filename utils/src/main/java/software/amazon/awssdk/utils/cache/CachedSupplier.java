@@ -311,26 +311,45 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     /**
      * Perform necessary transformations of the successfully-fetched value based on the stale value behavior of this supplier.
+     * A response whose staleTime is at or before now is treated as stale, meaning the credential source returned
+     * credentials that are already expired. In ALLOW mode this is treated the same as a failed refresh: the SDK
+     * retains the previously cached credentials and applies the refresh backoff.
      */
     private RefreshResult<T> handleFetchedSuccess(RefreshResult<T> fetch) {
-        this.nextAllowedRefreshTime = null; // Clear backoff gate on success
         Instant now = clock.instant();
 
         if (now.isBefore(fetch.staleTime())) {
+            this.nextAllowedRefreshTime = null; // Clear backoff gate on success
             return fetch;
         }
 
         switch (staleValueBehavior) {
             case STRICT:
+                this.nextAllowedRefreshTime = null; // Clear backoff gate on success
                 Instant newStale = now.plusSeconds(1);
                 log.debug(() -> "(" + cachedValueName + ") Retrieved value expiration is in the past (" + fetch.staleTime() +
                                "). Using expiration of " + newStale);
                 return fetch.toBuilder().staleTime(newStale).build(); // Refresh again in 1 second
             case ALLOW:
+                // Per spec: a response with Expiration at or before now MUST be treated the same as a failed refresh.
+                // Retain previously cached credentials and apply the refresh backoff.
+                RefreshResult<T> previousCachedValue = this.cachedValue;
+                if (previousCachedValue != null) {
+                    long backoffSeconds = STATIC_STABILITY_BACKOFF_MIN.getSeconds()
+                        + jitterRandom.nextInt(
+                            (int) (STATIC_STABILITY_BACKOFF_MAX.getSeconds()
+                                   - STATIC_STABILITY_BACKOFF_MIN.getSeconds() + 1));
+                    this.nextAllowedRefreshTime = now.plusSeconds(backoffSeconds);
+                    log.debug(() -> "(" + cachedValueName + ") Credential source returned already-expired credentials ("
+                                   + fetch.staleTime() + "). Retaining previously cached credentials. "
+                                   + "Will retry after " + backoffSeconds + " seconds.");
+                    return previousCachedValue;
+                }
+                // No previous value — accept the stale credentials with extended stale time (initial fetch edge case)
+                this.nextAllowedRefreshTime = null;
                 Instant newStaleTime = jitterTime(now, Duration.ofMinutes(1), Duration.ofMinutes(10));
-                log.debug(() -> "(" + cachedValueName + ") Cached value expiration has been extended to " + newStaleTime +
-                               " because the downstream service returned a time in the past: " + fetch.staleTime());
-
+                log.debug(() -> "(" + cachedValueName + ") Initial fetch returned already-expired credentials ("
+                               + fetch.staleTime() + "). Extending expiration to " + newStaleTime);
                 return fetch.toBuilder()
                             .staleTime(newStaleTime)
                             .build();

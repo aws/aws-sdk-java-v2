@@ -136,7 +136,7 @@ public class AwsServiceException extends SdkServiceException {
 
     /**
      * Checks if the exception indicates an authentication error where the credentials were rejected,
-     * based on the AWS error code (e.g., {@code ExpiredToken}, {@code InvalidToken}, {@code AuthFailure}).
+     * based on the AWS error code (e.g., {@code ExpiredToken}, {@code InvalidToken}).
      *
      * @return true if the AWS error code indicates an authentication error, otherwise false.
      */

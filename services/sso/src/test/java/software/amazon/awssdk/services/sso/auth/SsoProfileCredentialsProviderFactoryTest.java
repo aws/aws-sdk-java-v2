@@ -333,11 +333,13 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-4").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
+        // Use expiration far enough in the future that staleTime (expiration - 1min) is also in the future,
+        // but with short remaining lifetime so the advisory window (5min) causes immediate prefetch.
         RoleCredentials roleCredentials = RoleCredentials.builder()
                                                          .accessKeyId("AKID")
                                                          .secretAccessKey("secret")
                                                          .sessionToken("session")
-                                                         .expiration(Instant.now().minusSeconds(1).toEpochMilli())
+                                                         .expiration(Instant.now().plusSeconds(90).toEpochMilli())
                                                          .build();
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
@@ -378,11 +380,13 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-C").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
+        // Use expiration far enough in the future that staleTime (expiration - 1min) is also in the future,
+        // but with short remaining lifetime so the advisory window (5min) causes immediate prefetch.
         RoleCredentials roleCredentials = RoleCredentials.builder()
                                                          .accessKeyId("AKID")
                                                          .secretAccessKey("secret")
                                                          .sessionToken("session")
-                                                         .expiration(Instant.now().minusSeconds(1).toEpochMilli())
+                                                         .expiration(Instant.now().plusSeconds(90).toEpochMilli())
                                                          .build();
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
@@ -609,11 +613,13 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-5").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
+        // Use expiration far enough in the future that staleTime (expiration - 1min) is also in the future,
+        // but with short remaining lifetime so the advisory window (5min) causes immediate prefetch.
         RoleCredentials roleCredentials = RoleCredentials.builder()
                                                          .accessKeyId("AKID")
                                                          .secretAccessKey("secret")
                                                          .sessionToken("session")
-                                                         .expiration(Instant.now().minusSeconds(1).toEpochMilli())
+                                                         .expiration(Instant.now().plusSeconds(90).toEpochMilli())
                                                          .build();
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());

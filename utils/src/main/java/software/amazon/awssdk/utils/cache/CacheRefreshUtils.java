@@ -43,8 +43,8 @@ public final class CacheRefreshUtils {
      *
      * <p>Dynamic window selection:
      * <ul>
-     *   <li>remaining lifetime &lt; 20 minutes → 5 minute window</li>
-     *   <li>20 minutes ≤ remaining lifetime &lt; 90 minutes → 15 minute window</li>
+     *   <li>remaining lifetime &lt;= 20 minutes → 5 minute window</li>
+     *   <li>20 minutes &lt; remaining lifetime &lt; 90 minutes → 15 minute window</li>
      *   <li>remaining lifetime ≥ 90 minutes → 60 minute window</li>
      * </ul>
      *
@@ -61,7 +61,7 @@ public final class CacheRefreshUtils {
         Duration remainingLifetime = Duration.between(now, expiration);
         long remainingMinutes = remainingLifetime.toMinutes();
 
-        if (remainingMinutes < THRESHOLD_MEDIUM_MINUTES) {
+        if (remainingMinutes <= THRESHOLD_MEDIUM_MINUTES) {
             return WINDOW_SHORT;
         } else if (remainingMinutes < THRESHOLD_LONG_MINUTES) {
             return WINDOW_MEDIUM;

@@ -1013,4 +1013,238 @@ public class CachedSupplierTest {
             assertThat(cache.get()).isNotNull();
         }
     }
+
+    // --- stale credentials from source tests ---
+
+    @Test
+    public void allowMode_staleCredentialsFromSource_advisoryWindow_retainsCachedAndAppliesBackoff() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch: stale at +3600s, prefetch at +300s
+            supplier.set(RefreshResult.builder("original-creds")
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(300))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("original-creds");
+
+            // Advance into advisory window (past prefetch but before stale)
+            clock.time = now.plusSeconds(301);
+
+            // Source returns credentials with staleTime in the past (already expired)
+            supplier.set(RefreshResult.builder("stale-creds")
+                                      .staleTime(now.plusSeconds(100))  // stale time in the past relative to clock
+                                      .prefetchTime(now.plusSeconds(50))
+                                      .build());
+
+            // Should return the original cached credentials, not the stale ones
+            assertThat(cachedSupplier.get()).isEqualTo("original-creds");
+
+            // Verify backoff was applied: a subsequent call should still return cached without contacting source
+            clock.time = now.plusSeconds(302);
+            supplier.set(RefreshResult.builder("should-not-reach")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("original-creds");
+
+            // Advance past max backoff (600s from the stale response time)
+            clock.time = now.plusSeconds(301 + 601);
+            assertThat(cachedSupplier.get()).isEqualTo("should-not-reach");
+        }
+    }
+
+    @Test
+    public void allowMode_staleCredentialsFromSource_mandatoryWindow_retainsCachedAndAppliesBackoff() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch: stale at +60s, prefetch at +30s
+            supplier.set(RefreshResult.builder("original-creds")
+                                      .staleTime(now.plusSeconds(60))
+                                      .prefetchTime(now.plusSeconds(30))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("original-creds");
+
+            // Advance past stale time (mandatory refresh territory)
+            clock.time = now.plusSeconds(61);
+
+            // Source returns credentials with staleTime in the past (already expired)
+            supplier.set(RefreshResult.builder("stale-creds")
+                                      .staleTime(now.plusSeconds(30))  // stale time in the past relative to clock
+                                      .prefetchTime(now.plusSeconds(15))
+                                      .build());
+
+            // Should return the original cached credentials, not the stale ones
+            assertThat(cachedSupplier.get()).isEqualTo("original-creds");
+
+            // Verify backoff was applied: a subsequent call should still be rate limited
+            clock.time = now.plusSeconds(62);
+            supplier.set(RefreshResult.builder("fresh-creds")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("original-creds");
+
+            // Advance past max backoff (600s from the stale response time)
+            clock.time = now.plusSeconds(61 + 601);
+            assertThat(cachedSupplier.get()).isEqualTo("fresh-creds");
+        }
+    }
+
+    // --- non-recoverable error follow-up tests ---
+
+    @Test
+    public void allowMode_nonRecoverableError_noBackoff_nextCallContactsSource() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(300))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past prefetch time (advisory window)
+            clock.time = now.plusSeconds(301);
+            supplier.set(new CacheInvalidatingRuntimeException("non-recoverable"));
+
+            // Non-recoverable error is thrown
+            assertThatThrownBy(cachedSupplier::get).isInstanceOf(CacheInvalidatingRuntimeException.class);
+
+            // Immediately call again — no backoff should be applied, source should be contacted
+            clock.time = now.plusSeconds(302);
+            supplier.set(RefreshResult.builder("refreshed-creds")
+                                      .staleTime(now.plusSeconds(7200))
+                                      .prefetchTime(now.plusSeconds(5400))
+                                      .build());
+            // If backoff were applied, this would return "cached-creds"; instead it contacts the source
+            assertThat(cachedSupplier.get()).isEqualTo("refreshed-creds");
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableError_mandatoryWindow_noBackoff_nextCallContactsSource() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(60))
+                                      .prefetchTime(now.plusSeconds(30))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past stale time (mandatory window / expired)
+            clock.time = now.plusSeconds(61);
+            supplier.set(new CacheInvalidatingRuntimeException("non-recoverable"));
+
+            // Non-recoverable error is thrown
+            assertThatThrownBy(cachedSupplier::get).isInstanceOf(CacheInvalidatingRuntimeException.class);
+
+            // Immediately call again — no backoff should be applied, source should be contacted
+            clock.time = now.plusSeconds(62);
+            supplier.set(RefreshResult.builder("refreshed-creds")
+                                      .staleTime(now.plusSeconds(7200))
+                                      .prefetchTime(now.plusSeconds(5400))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("refreshed-creds");
+        }
+    }
+
+    // --- integrated advisory window recomputation test ---
+
+    @Test
+    public void allowMode_advisoryWindowRecomputedOnRefreshWithDifferentLifetime() {
+        AdjustableClock clock = new AdjustableClock();
+        AtomicInteger fetchCount = new AtomicInteger(0);
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        // First fetch: 6-hour credentials (should select 60-minute advisory window)
+        // Expiration = now + 6h, staleTime = expiration - 1min, prefetchTime = expiration - 60min
+        Instant firstExpiration = now.plus(Duration.ofHours(6));
+        Instant firstStale = firstExpiration.minus(Duration.ofMinutes(1));
+        Instant firstPrefetch = firstExpiration.minus(Duration.ofMinutes(60));
+
+        // Second fetch: 10-minute credentials (should select 5-minute advisory window)
+        // These will be set up when the time advances
+        Instant secondFetchTime = firstPrefetch.plusSeconds(1); // just past the first prefetch time
+        Instant secondExpiration = secondFetchTime.plus(Duration.ofMinutes(10));
+        Instant secondStale = secondExpiration.minus(Duration.ofMinutes(1));
+        Instant secondPrefetch = secondExpiration.minus(Duration.ofMinutes(5));
+
+        Supplier<RefreshResult<String>> dynamicSupplier = () -> {
+            int count = fetchCount.incrementAndGet();
+            if (count == 1) {
+                return RefreshResult.builder("6h-creds")
+                                    .staleTime(firstStale)
+                                    .prefetchTime(firstPrefetch)
+                                    .build();
+            } else {
+                return RefreshResult.builder("10m-creds")
+                                    .staleTime(secondStale)
+                                    .prefetchTime(secondPrefetch)
+                                    .build();
+            }
+        };
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(dynamicSupplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .clock(clock)
+                                                                   .jitterEnabled(false)
+                                                                   .build()) {
+            // Initial fetch — 6-hour creds
+            assertThat(cachedSupplier.get()).isEqualTo("6h-creds");
+            assertThat(fetchCount.get()).isEqualTo(1);
+
+            // Advance to just before the 60-minute advisory window — should NOT trigger refresh
+            clock.time = firstPrefetch.minusSeconds(1);
+            assertThat(cachedSupplier.get()).isEqualTo("6h-creds");
+            assertThat(fetchCount.get()).isEqualTo(1);
+
+            // Advance into the 60-minute advisory window — should trigger refresh
+            clock.time = secondFetchTime;
+            assertThat(cachedSupplier.get()).isEqualTo("10m-creds");
+            assertThat(fetchCount.get()).isEqualTo(2);
+
+            // Verify new advisory window: advance to just before the 5-minute window — should NOT trigger
+            clock.time = secondPrefetch.minusSeconds(1);
+            assertThat(cachedSupplier.get()).isEqualTo("10m-creds");
+            assertThat(fetchCount.get()).isEqualTo(2);
+        }
+    }
 }

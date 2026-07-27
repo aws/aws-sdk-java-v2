@@ -679,14 +679,15 @@ public class InstanceProfileCredentialsProviderTest {
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
         AwsCredentials validCreds = provider.resolveCredentials();
 
-        // failure while cache is stale
+        // Source returns stale credentials (expiration in the past) — treated as a failed refresh.
+        // The SDK retains the previously cached credentials and applies backoff.
         clock.time = expiration.minus(staleTime.minus(Duration.ofMinutes(2)));
         stubTokenFetchErrorResponse(aResponse().withFixedDelay(2000).withBody(STUB_CREDENTIALS), 500);
         stubSecureCredentialsResponse(aResponse().withBody(staleResponse));
         AwsCredentials refreshedWhileStale = provider.resolveCredentials();
 
-        assertThat(refreshedWhileStale).isNotEqualTo(validCreds);
-        assertThat(refreshedWhileStale.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY_2");
+        // Per spec: stale credentials from source are treated as a failure — original creds retained
+        assertThat(refreshedWhileStale).isEqualTo(validCreds);
     }
 
     @Test
