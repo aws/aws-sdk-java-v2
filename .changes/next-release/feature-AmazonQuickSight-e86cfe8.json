@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon QuickSight",
-    "contributor": "",
-    "description": "Added new Governance fields to Custom Permissions API to support Deny By Default functionality."
-}
