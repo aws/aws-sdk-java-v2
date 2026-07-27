@@ -60,6 +60,7 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public class AsyncRetryableStageTest extends BaseRetryableStageTest {
     private RetryStrategy mockRetryStrategy;
@@ -89,7 +90,8 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         when(mockAcquireInitialTokenResponse.token()).thenReturn(mockRetryToken);
         when(mockAcquireInitialTokenResponse.delay()).thenReturn(Duration.ZERO);
 
-        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireInitialTokenResponse);
+        when(mockRetryStrategy.acquireInitialTokenAsync(any()))
+            .thenReturn(CompletableFuture.completedFuture(mockAcquireInitialTokenResponse));
 
         mockDelegatePipeline = mock(RequestPipeline.class);
     }
@@ -141,17 +143,22 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         when(mockDelegatePipeline.execute(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
 
         if (testCase.isFailure()) {
-            when(mockRetryStrategy.refreshRetryToken(any())).thenThrow(
-                new TokenAcquisitionFailedException("Acquire failed", mockRetryToken, null, testCase.failureDelay())
+            when(mockRetryStrategy.refreshRetryTokenAsync(any())).thenReturn(
+                CompletableFutureUtils.failedFuture(new TokenAcquisitionFailedException("Acquire failed", mockRetryToken, null,
+                                                                           testCase.failureDelay()))
             );
         } else {
             // only retry once, otherwise we'll get into an infinite loop
             AtomicBoolean first = new AtomicBoolean();
-            when(mockRetryStrategy.refreshRetryToken(any())).thenAnswer(i -> {
+            when(mockRetryStrategy.refreshRetryTokenAsync(any())).thenAnswer(i -> {
                 if (first.compareAndSet(false, true)) {
-                    return RefreshRetryTokenResponse.create(mockRetryToken, testCase.successDelay());
+                    return CompletableFuture.completedFuture(RefreshRetryTokenResponse.create(mockRetryToken,
+                                                                                              testCase.successDelay()));
                 }
-                throw new TokenAcquisitionFailedException("Acquire failed", mockRetryToken, null, Duration.ZERO);
+                return CompletableFutureUtils.failedFuture(new TokenAcquisitionFailedException("Acquire failed",
+                                                                                               mockRetryToken,
+                                                                                               null,
+                                                                                               Duration.ZERO));
             });
         }
 
@@ -229,7 +236,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
         ArgumentCaptor<RefreshRetryTokenRequest> refreshRequestCaptor = ArgumentCaptor.forClass(RefreshRetryTokenRequest.class);
 
-        verify(mockRetryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
+        verify(mockRetryStrategy).refreshRetryTokenAsync(refreshRequestCaptor.capture());
 
         RefreshRetryTokenRequest refreshRequest = refreshRequestCaptor.getValue();
 
@@ -292,7 +299,7 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
 
         ArgumentCaptor<RefreshRetryTokenRequest> refreshRequestCaptor = ArgumentCaptor.forClass(RefreshRetryTokenRequest.class);
 
-        verify(mockRetryStrategy).refreshRetryToken(refreshRequestCaptor.capture());
+        verify(mockRetryStrategy).refreshRetryTokenAsync(refreshRequestCaptor.capture());
 
         RefreshRetryTokenRequest refreshRequest = refreshRequestCaptor.getValue();
 

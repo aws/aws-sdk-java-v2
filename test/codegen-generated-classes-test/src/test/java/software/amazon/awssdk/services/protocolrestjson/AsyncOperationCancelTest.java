@@ -17,10 +17,14 @@ package software.amazon.awssdk.services.protocolrestjson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.reactivex.Flowable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,7 +47,8 @@ import software.amazon.awssdk.services.protocolrestjson.model.StreamingInputOper
 import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 
 /**
- * Test to ensure that cancelling the future returned for an async operation will cancel the future returned by the async HTTP client.
+ * Test to ensure that cancelling the future returned for an async operation will cancel the future returned by the async HTTP
+ * client.
  */
 @RunWith(MockitoJUnitRunner.class)
 public class AsyncOperationCancelTest {
@@ -54,22 +59,35 @@ public class AsyncOperationCancelTest {
 
     private CompletableFuture<Void> executeFuture;
 
+    private ScheduledExecutorService scheduledExec;
+
     @Before
     public void setUp() {
+        scheduledExec = mock(ScheduledExecutorService.class);
+
+        when(scheduledExec.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenAnswer(i -> {
+            Runnable r = i.getArgument(0);
+            r.run();
+            return null;
+        });
+
         client = ProtocolRestJsonAsyncClient.builder()
-                .region(Region.US_EAST_1)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                        AwsBasicCredentials.create("foo", "bar")))
-                .httpClient(mockHttpClient)
-                .build();
+                                            .region(Region.US_EAST_1)
+                                            .credentialsProvider(StaticCredentialsProvider.create(
+                                                AwsBasicCredentials.create("foo", "bar")))
+                                            .httpClient(mockHttpClient)
+                                            .overrideConfiguration(o -> o.scheduledExecutorService(scheduledExec))
+                                            .build();
 
         executeFuture = new CompletableFuture<>();
+
         when(mockHttpClient.execute(any())).thenReturn(executeFuture);
     }
 
     @Test
-    public void testNonStreamingOperation() {
-        CompletableFuture<AllTypesResponse> responseFuture = client.allTypes(r -> {});
+    public void testNonStreamingOperation() throws InterruptedException {
+        CompletableFuture<AllTypesResponse> responseFuture = client.allTypes(r -> {
+        });
         responseFuture.cancel(true);
         assertThat(executeFuture.isCompletedExceptionally()).isTrue();
         assertThat(executeFuture.isCancelled()).isTrue();
@@ -77,7 +95,8 @@ public class AsyncOperationCancelTest {
 
     @Test
     public void testStreamingOperation() {
-        CompletableFuture<StreamingInputOperationResponse> responseFuture = client.streamingInputOperation(r -> {}, AsyncRequestBody.empty());
+        CompletableFuture<StreamingInputOperationResponse> responseFuture = client.streamingInputOperation(r -> {
+        }, AsyncRequestBody.empty());
         responseFuture.cancel(true);
         assertThat(executeFuture.isCompletedExceptionally()).isTrue();
         assertThat(executeFuture.isCancelled()).isTrue();
@@ -95,25 +114,26 @@ public class AsyncOperationCancelTest {
     @Test
     public void testEventStreamingOperation() throws InterruptedException {
         CompletableFuture<Void> responseFuture =
-            client.eventStreamOperation(r -> {},
+            client.eventStreamOperation(r -> {
+                                        },
                                         Flowable.just(InputEventStream.inputEventBuilder().build()),
-                new EventStreamOperationResponseHandler() {
-                    @Override
-                    public void responseReceived(EventStreamOperationResponse response) {
-                    }
+                                        new EventStreamOperationResponseHandler() {
+                                            @Override
+                                            public void responseReceived(EventStreamOperationResponse response) {
+                                            }
 
-                    @Override
-                    public void onEventStream(SdkPublisher<EventStream> publisher) {
-                    }
+                                            @Override
+                                            public void onEventStream(SdkPublisher<EventStream> publisher) {
+                                            }
 
-                    @Override
-                    public void exceptionOccurred(Throwable throwable) {
-                    }
+                                            @Override
+                                            public void exceptionOccurred(Throwable throwable) {
+                                            }
 
-                    @Override
-                    public void complete() {
-                    }
-                });
+                                            @Override
+                                            public void complete() {
+                                            }
+                                        });
         responseFuture.cancel(true);
         assertThat(executeFuture.isCompletedExceptionally()).isTrue();
         assertThat(executeFuture.isCancelled()).isTrue();
