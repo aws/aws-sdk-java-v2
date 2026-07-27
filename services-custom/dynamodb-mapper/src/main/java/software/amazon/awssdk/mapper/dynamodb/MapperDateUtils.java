@@ -1,8 +1,5 @@
 /*
- * Copyright 2010-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- * Portions copyright 2006-2009 James Murty. Please see LICENSE.txt
- * for applicable license terms and NOTICE.txt for applicable notices.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -30,22 +27,9 @@ import org.joda.time.tz.FixedDateTimeZone;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Narrowly-scoped ISO-8601 date parsing and formatting for the mapper's converter layer.
- *
- * <p>The v1 {@code DynamoDBMapper} formatted and parsed {@link Date}/{@code Calendar} attributes
- * with {@code com.amazonaws.util.DateUtils} from {@code aws-java-sdk-core}. That class is v1 SDK
- * infrastructure (it pulls in {@code com.amazonaws.SdkClientException} and
- * {@code com.amazonaws.util.JodaTime}) and cannot be depended on from a v2 module. The v2 SDK's
- * own {@code software.amazon.awssdk.utils.DateUtils} is {@code java.time}-based and is <em>not</em>
- * a drop-in: its parser rejects some ISO-8601 shapes v1 accepts (e.g. basic-format offsets like
- * {@code -0700}) and its formatter omits trailing-zero milliseconds ({@code .000Z}), which would
- * silently change the string form of data written by v1.</p>
- *
- * <p>To preserve byte-for-byte read/write compatibility with data produced by the v1 mapper, this
- * class reproduces exactly the two ISO-8601 methods the converter layer uses, using the same
- * Joda-Time formatters v1 used. It intentionally excludes the other 11 methods of the v1 utility
- * (RFC-822, compressed-ISO, Unix-timestamp, etc.) that the mapper never calls. Do not grow this
- * class beyond ISO-8601 parse/format.</p>
+ * A thin port of only the ISO-8601 parse/format methods of the v1 {@code com.amazonaws.util.DateUtils}
+ * that the mapper's converter layer uses, kept on the same Joda-Time formatters to preserve byte-for-byte
+ * compatibility with dates written by the v1 mapper.
  */
 @SdkInternalApi
 public final class MapperDateUtils {

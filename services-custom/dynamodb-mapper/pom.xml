@@ -52,16 +52,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <!--
-                      This PR ports only the converter/marshalling layer to v2 AttributeValue; every
-                      operation on DynamoDBMapper (load, save, query, scan, batch, transaction,
-                      table-admin) is stubbed and ported in later PRs. Only the pure converter unit
-                      tests are compiled here. Tests for stubbed operations (including save+load
-                      roundtrips) still reference v1 SDK types or drive the stubbed paths and are
-                      excluded from compilation until their operation is ported.
-                      NOTE: @Ignore does not exempt a file from compilation, so this must be a compiler
-                      include-list, not a surefire filter. The excluded files remain in the source tree.
-                    -->
                     <testIncludes>
                         <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesTest.java</testInclude>
                         <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesV1Test.java</testInclude>
