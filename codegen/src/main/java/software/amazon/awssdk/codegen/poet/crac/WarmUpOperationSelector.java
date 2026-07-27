@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -29,7 +30,8 @@ import software.amazon.awssdk.utils.NumericUtils;
 
 /**
  * Selects the operation used for the CRaC warm-up call: filters out streaming/event-stream and deprecated
- * operations, then ranks the rest (see {@link #warmUpPreference}).
+ * operations, plus operations that cannot be dummy-filled (see {@link #membersRequiringDummyValue}), then ranks the
+ * rest (see {@link #warmUpPreference}).
  */
 public final class WarmUpOperationSelector {
 
@@ -70,6 +72,18 @@ public final class WarmUpOperationSelector {
     }
 
     /**
+     * Returns the required input members that need a dummy value in the warm-up call. A member needs one when it is
+     * bound to the URI path (a null breaks marshalling) or is an endpoint context param (a null breaks endpoint
+     * resolution).
+     */
+    static List<MemberModel> membersRequiringDummyValue(OperationModel operation) {
+        return inputMembers(operation).stream()
+                                      .filter(MemberModel::isRequired)
+                                      .filter(WarmUpOperationSelector::isUriOrEndpointBound)
+                                      .collect(Collectors.toList());
+    }
+
+    /**
      * Preference order: returns output (so the unmarshaller is primed too), is authenticated (so signing is primed
      * too; {@code noAuth} operations skip signing entirely), verified simple method, accepts an empty request,
      * fewest required input members, read-only verb, then operation name as the deterministic tie-break.
@@ -94,7 +108,22 @@ public final class WarmUpOperationSelector {
 
     private static boolean passesHardGates(OperationModel operation) {
         return !isStreamingOrEventStream(operation)
-               && !operation.isDeprecated();
+               && !operation.isDeprecated()
+               && allDummyMembersAreFillable(operation);
+    }
+
+    /**
+     * A member is fillable only if it is a string, since the warm-up call emits a string dummy value
+     * ({@code "warmup"}).
+     */
+    private static boolean allDummyMembersAreFillable(OperationModel operation) {
+        return membersRequiringDummyValue(operation).stream()
+                                                    .allMatch(member -> "String".equals(member.getVariable().getSimpleType()));
+    }
+
+    private static boolean isUriOrEndpointBound(MemberModel member) {
+        return (member.getHttp() != null && member.getHttp().isUri())
+               || member.getContextParam() != null;
     }
 
     private static boolean isStreamingOrEventStream(OperationModel operation) {

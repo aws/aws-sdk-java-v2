@@ -71,11 +71,9 @@ public final class TargetedWarmUpInvoker {
                     continue;
                 }
                 matched.add(clientType);
-                try {
-                    provider.warmUpClient(clientType);
-                } catch (RuntimeException | LinkageError e) {
+                if (!WarmUpDiscovery.runSafely(provider.getClass().getName(),
+                                               () -> provider.warmUpClient(clientType))) {
                     warmFailed = true;
-                    log.warn(() -> "Warm-up failed for " + provider.getClass().getName() + " and was skipped.", e);
                 }
             }
             if (matched.isEmpty()) {
