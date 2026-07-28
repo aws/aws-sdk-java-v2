@@ -231,11 +231,6 @@ public class AsyncClientHandlerSignerValidationTest {
 
     private SdkClientConfiguration testClientConfiguration() {
         ScheduledExecutorService exec = mock(ScheduledExecutorService.class);
-        when(exec.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenAnswer(i -> {
-            Runnable r = i.getArgument(0);
-            r.run();
-            return null;
-        });
 
         return HttpTestUtils.testClientConfiguration()
                             .toBuilder()

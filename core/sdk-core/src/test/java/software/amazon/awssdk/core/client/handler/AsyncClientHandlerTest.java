@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.client.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -147,11 +146,6 @@ public class AsyncClientHandlerTest {
 
     public SdkClientConfiguration clientConfiguration() {
         ScheduledExecutorService exec = mock(ScheduledExecutorService.class);
-        when(exec.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenAnswer(i -> {
-            Runnable r = i.getArgument(0);
-            r.run();
-            return null;
-        });
         return HttpTestUtils.testClientConfiguration().toBuilder()
                             .option(SdkClientOption.ASYNC_HTTP_CLIENT, httpClient)
                             .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
