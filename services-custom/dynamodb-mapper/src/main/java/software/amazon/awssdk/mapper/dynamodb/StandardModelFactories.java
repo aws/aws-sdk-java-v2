@@ -15,6 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.Reflect;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperModelFactory.TableFactory;
@@ -334,7 +335,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(ByteBuffer o) {
-                return AttributeValue.builder().b(software.amazon.awssdk.core.SdkBytes.fromByteBuffer(o)).build();
+                return AttributeValue.builder().b(SdkBytes.fromByteBuffer(o)).build();
             }
         }
 
@@ -409,7 +410,7 @@ final class StandardModelFactories {
                     return null;
                 }
                 final List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
-                for (software.amazon.awssdk.core.SdkBytes sb : value.bs()) {
+                for (SdkBytes sb : value.bs()) {
                     // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
                     result.add(ByteBuffer.wrap(sb.asByteArray()));
                 }
@@ -417,10 +418,10 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<ByteBuffer> o) {
-                final List<software.amazon.awssdk.core.SdkBytes> sdkBytes =
-                    new ArrayList<software.amazon.awssdk.core.SdkBytes>(o.size());
+                final List<SdkBytes> sdkBytes =
+                    new ArrayList<SdkBytes>(o.size());
                 for (ByteBuffer bb : o) {
-                    sdkBytes.add(software.amazon.awssdk.core.SdkBytes.fromByteBuffer(bb));
+                    sdkBytes.add(SdkBytes.fromByteBuffer(bb));
                 }
                 return AttributeValue.builder().bs(sdkBytes).build();
             }

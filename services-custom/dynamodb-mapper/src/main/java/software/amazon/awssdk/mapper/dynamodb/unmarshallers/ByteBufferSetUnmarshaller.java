@@ -18,6 +18,7 @@ import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -39,7 +40,7 @@ public class ByteBufferSetUnmarshaller extends BSUnmarshaller {
     @Override
     public Object unmarshall(AttributeValue value) {
         Set<ByteBuffer> result = new HashSet<ByteBuffer>();
-        for (software.amazon.awssdk.core.SdkBytes sdkBytes : value.bs()) {
+        for (SdkBytes sdkBytes : value.bs()) {
             // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
             result.add(ByteBuffer.wrap(sdkBytes.asByteArray()));
         }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 import java.util.HashSet;
 import java.util.Set;
 
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -39,7 +40,7 @@ public class ByteArraySetUnmarshaller extends BSUnmarshaller {
     public Object unmarshall(AttributeValue value) {
         Set<byte[]> result = new HashSet<byte[]>();
 
-        for (software.amazon.awssdk.core.SdkBytes sdkBytes : value.bs()) {
+        for (SdkBytes sdkBytes : value.bs()) {
             result.add(sdkBytes.asByteArray());
         }
 
