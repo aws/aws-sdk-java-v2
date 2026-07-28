@@ -77,13 +77,20 @@ public class RegionGenerationMojo extends AbstractMojo {
         Partitions partitions = RegionMetadataLoader.build(endpoints);
         PartitionsRegionsMetadata regionPartitions = PartitionsRegionsMetadataLoader.build(partitionsJson);
 
+        Set<String> allEndpointServices = new HashSet<>();
+        partitions.getPartitions().forEach(p -> allEndpointServices.addAll(p.getServices().keySet()));
+        Set<String> allowedServices = loadServiceMetadataAllowlist();
+        Set<String> effectiveServices = allowedServices.stream()
+                                                       .filter(allEndpointServices::contains)
+                                                       .collect(Collectors.toSet());
+
         generatePartitionMetadataClass(baseSourcesDirectory, regionPartitions);
         generateRegionClass(baseSourcesDirectory, regionPartitions);
-        generateServiceMetadata(baseSourcesDirectory, partitions);
+        generateServiceMetadata(baseSourcesDirectory, partitions, effectiveServices);
         generateRegions(baseSourcesDirectory, regionPartitions);
         generatePartitionProvider(baseSourcesDirectory, regionPartitions);
         generateRegionProvider(baseSourcesDirectory, regionPartitions);
-        generateServiceProvider(baseSourcesDirectory);
+        generateServiceProvider(baseSourcesDirectory, effectiveServices);
         generateEndpointTags(baseSourcesDirectory, partitions);
 
         project.addCompileSourceRoot(baseSourcesDirectory.toFile().getAbsolutePath());
@@ -104,18 +111,13 @@ public class RegionGenerationMojo extends AbstractMojo {
         new CodeGenerator(sourcesDirectory.toString(), new RegionGenerator(partitions, REGION_BASE)).generate();
     }
 
-    public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions, Set<String> effectiveServices) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(SERVICE_METADATA_BASE, ".", "/"));
-        Set<String> services = new HashSet<>();
-        partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
-
-        Set<String> allowedServices = loadServiceMetadataAllowlist();
-        services.stream()
-                .filter(allowedServices::contains)
-                .forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
-                                                                                                          s,
-                                                                                                          SERVICE_METADATA_BASE,
-                                                                                                          REGION_BASE))
+        effectiveServices.forEach(s -> new CodeGenerator(sourcesDirectory.toString(),
+                                                         new ServiceMetadataGenerator(partitions,
+                                                                                      s,
+                                                                                      SERVICE_METADATA_BASE,
+                                                                                      REGION_BASE))
             .generate());
     }
 
@@ -148,12 +150,11 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate();
     }
 
-    public void generateServiceProvider(Path baseSourcesDirectory) {
+    public void generateServiceProvider(Path baseSourcesDirectory, Set<String> effectiveServices) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
-        Set<String> allowedServices = loadServiceMetadataAllowlist();
         new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataProviderGenerator(SERVICE_METADATA_BASE,
                                                                                             REGION_BASE,
-                                                                                            allowedServices))
+                                                                                            effectiveServices))
             .generate();
     }
 
