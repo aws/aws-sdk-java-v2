@@ -164,7 +164,7 @@ public class ServiceMetadataGenerator implements PoetClass {
     private CodeBlock signingRegionsByRegion(Partitions partitions) {
         Map<Partition, Service> services = getServiceData(partitions);
 
-        CodeBlock.Builder builder = CodeBlock.builder().add("$T.<$T, $T>builder()",
+        CodeBlock.Builder builder = CodeBlock.builder().add("$T.<$T, $T>builder().allowDuplicateKeys(true)",
                                                             ImmutableMap.class, serviceEndpointKeyClass(), String.class);
 
         services.forEach((partition, service) -> {
