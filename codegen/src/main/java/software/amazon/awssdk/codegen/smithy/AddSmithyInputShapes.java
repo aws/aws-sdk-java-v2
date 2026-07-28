@@ -127,7 +127,6 @@ final class AddSmithyInputShapes extends AddSmithyShapes implements Intermediate
                                   : targetPrefix + "." + op.toShapeId().getName());
         }
 
-        // XML namespace on the input shape (rest-xml)
         if (!UNIT.equals(op.getInputShape())) {
             StructureShape input = getModel().expectShape(op.getInputShape(), StructureShape.class);
             input.getTrait(XmlNamespaceTrait.class)

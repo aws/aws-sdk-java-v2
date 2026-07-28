@@ -125,7 +125,6 @@ final class AddSmithyModelShapes extends AddSmithyShapes implements Intermediate
             ShapeModel shapeModel = generateShapeModel(javaClassName, shape, null);
             shapeModel.setType(isEnumKind(shape) ? ShapeType.Enum.getValue() : ShapeType.Model.getValue());
 
-            // Model shapes get a plain unmarshaller with the flattened flag.
             ShapeUnmarshaller unmarshaller = new ShapeUnmarshaller();
             unmarshaller.setFlattened(shape.hasTrait(XmlFlattenedTrait.class));
             shapeModel.setUnmarshaller(unmarshaller);

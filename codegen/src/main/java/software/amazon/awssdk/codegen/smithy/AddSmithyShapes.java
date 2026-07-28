@@ -567,8 +567,8 @@ abstract class AddSmithyShapes {
                     location = Location.STATUS_CODE;
                     break;
                 default:
-                    // DOCUMENT, QUERY_PARAMS, and similar are body members with no
-                    // explicit location.
+                    // No explicit location: serialized in the body (DOCUMENT) or a binding not
+                    // mapped in the first-batch scope (e.g. QUERY_PARAMS).
                     break;
             }
         }

@@ -103,8 +103,8 @@ final class AddSmithyExceptionShapes extends AddSmithyShapes implements Intermed
 
     private boolean protocolSupportsErrorCodeOverride() {
         String protocol = getProtocol();
-        // The awsJson family and smithy-rpc-v2-cbor use the shape name as the code.
-        // Every other protocol allows AwsQueryErrorTrait to override it.
+        // json (awsJson) and smithy-rpc-v2-cbor use the shape name as the code; every other
+        // protocol allows AwsQueryErrorTrait to override it.
         return !"json".equals(protocol) && !"smithy-rpc-v2-cbor".equals(protocol);
     }
 }
