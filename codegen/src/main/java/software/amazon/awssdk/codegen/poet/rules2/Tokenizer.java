@@ -82,6 +82,13 @@ public class Tokenizer {
         if (ch == '#') {
             return new Token(TokenKind.HASH, "#");
         }
+        if (ch == '-') {
+            // Only treat as MINUS token when followed by a digit (for negative index patterns like [-2])
+            if (isDigit(state.peek())) {
+                return new Token(TokenKind.MINUS, "-");
+            }
+            // Otherwise fall through to string handling
+        }
         if (isDigit(ch)) {
             return consumeNumber(state, ch);
         }
@@ -224,6 +231,19 @@ public class Tokenizer {
         index += 3;
     }
 
+    // e.g., [-2]
+    public boolean isDirectNegativeIndexedAccess() {
+        return matches(TokenKind.OPEN_SQUARE, TokenKind.MINUS, TokenKind.NUMBER, TokenKind.CLOSE_SQUARE);
+    }
+
+    public void consumeDirectNegativeIndexed(Consumer<Integer> consumer) {
+        if (!isDirectNegativeIndexedAccess()) {
+            throw new IllegalStateException("not at direct negative indexed");
+        }
+        consumer.accept(-Integer.parseInt(tokens.get(index + 2).value));
+        index += 4;
+    }
+
     // e.g., {url#scheme}
     public boolean isNamedAccess() {
         return matches(TokenKind.OPEN_CURLY, TokenKind.IDENTIFIER, TokenKind.HASH, TokenKind.IDENTIFIER, TokenKind.CLOSE_CURLY);
@@ -278,6 +298,7 @@ public class Tokenizer {
         NUMBER,
         IDENTIFIER,
         HASH,
+        MINUS,
         OPEN_CURLY,
         CLOSE_CURLY,
         OPEN_SQUARE,
