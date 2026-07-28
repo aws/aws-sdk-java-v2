@@ -28,6 +28,7 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -49,7 +50,7 @@ public class ServiceMetadataProviderGenerator implements PoetClass {
                                            Set<String> allowedServices) {
         this.basePackage = basePackage;
         this.regionBasePackage = regionBasePackage;
-        this.allowedServices = new java.util.HashSet<>(allowedServices);
+        this.allowedServices = new HashSet<>(allowedServices);
     }
 
     @Override

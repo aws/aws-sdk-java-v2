@@ -22,6 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
@@ -165,7 +166,7 @@ public class RegionGenerationMojo extends AbstractMojo {
 
     private Set<String> loadServiceMetadataAllowlist() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                java.util.Objects.requireNonNull(
+                Objects.requireNonNull(
                     getClass().getResourceAsStream("/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt"),
                     "Failed to load service-metadata-allowlist.txt"),
                 StandardCharsets.UTF_8))) {
