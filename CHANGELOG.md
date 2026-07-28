@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.49.5__ __2026-07-28__
+## __AWS DataSync__
+  - ### Features
+    - Adds Enhanced mode support for EFS and FSx Lustre locations without an agent, and for HDFS (TDE), Azure Blob, and object storage locations with an agent. HDFS Enhanced mode supports multiple NameNodes for High Availability. Enhanced mode agents can now be deployed on Microsoft Hyper-V.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Identity now supports Private Key JWT client authentication for OAuth 2.0 credential providers. Agents can authenticate to identity provider token endpoints with a JWT client assertion signed by a customer-managed AWS KMS asymmetric key, eliminating the need for client secrets.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Documentation updates for SearchRules, AssociateRoutingProfileQueues, CreateRoutingProfile, AssociateContactWithUser CreateTaskTemplate, and UpdateTaskTemplate
+
+## __IAM Roles Anywhere__
+  - ### Features
+    - Increases certificate string length for trust anchor source data to support new adjustable trust anchor limits.
+
+## __TrustedAdvisor Public API__
+  - ### Features
+    - Adds ListRecommendationsForResource API and four CheckSummary fields (resourceArnQueryable, awsResourceTypes, checkGranularity, recommendationId) to retrieve recommendations for a given resource ARN.
+
 # __2.49.4__ __2026-07-27__
 ## __AWS Account__
   - ### Features
