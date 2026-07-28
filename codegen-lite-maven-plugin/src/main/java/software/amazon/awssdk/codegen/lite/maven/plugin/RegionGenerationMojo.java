@@ -55,6 +55,8 @@ public class RegionGenerationMojo extends AbstractMojo {
     private static final String SERVICE_METADATA_BASE = "software.amazon.awssdk.regions.servicemetadata";
     private static final String REGION_METADATA_BASE = "software.amazon.awssdk.regions.regionmetadata";
     private static final String REGION_BASE = "software.amazon.awssdk.regions";
+    private static final String SERVICE_METADATA_ALLOWLIST_PATH =
+        "/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt";
 
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
@@ -166,8 +168,7 @@ public class RegionGenerationMojo extends AbstractMojo {
 
     private Set<String> loadServiceMetadataAllowlist() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
-                Objects.requireNonNull(
-                    RegionGenerationMojo.class.getResourceAsStream("/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt"),
+                Objects.requireNonNull(RegionGenerationMojo.class.getResourceAsStream(SERVICE_METADATA_ALLOWLIST_PATH),
                     "Failed to load service-metadata-allowlist.txt"),
                 StandardCharsets.UTF_8))) {
             return reader.lines()
