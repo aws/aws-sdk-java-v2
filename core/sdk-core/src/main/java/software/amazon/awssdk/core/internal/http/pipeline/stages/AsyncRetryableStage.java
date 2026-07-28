@@ -89,6 +89,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public void attemptFirstExecute(CompletableFuture<Response<OutputT>> future) {
+            Thread caller = Thread.currentThread();
             retryableStageHelper.acquireInitialTokenAsync().whenComplete((r, t) -> {
                 if (t != null) {
                     future.completeExceptionally(t);
@@ -99,7 +100,13 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     retryableStageHelper.logBackingOff(r);
                 }
 
-                scheduledExecutor.schedule(() -> attemptExecute(future), r.toMillis(), MILLISECONDS);
+                // Avoid scheduling if there's no delay and we're still on the calling thread (e.g. not on a retry strategy
+                // owned thread such as the rate limiter
+                if (r.isZero() && Thread.currentThread().equals(caller)) {
+                    attemptExecute(future);
+                } else {
+                    scheduledExecutor.schedule(() -> attemptExecute(future), r.toMillis(), MILLISECONDS);
+                }
             });
 
         }

@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.client.handler;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +28,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -231,11 +229,6 @@ public class AsyncClientHandlerSignerValidationTest {
 
     private SdkClientConfiguration testClientConfiguration() {
         ScheduledExecutorService exec = mock(ScheduledExecutorService.class);
-        when(exec.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenAnswer(i -> {
-            Runnable r = i.getArgument(0);
-            r.run();
-            return null;
-        });
 
         return HttpTestUtils.testClientConfiguration()
                             .toBuilder()
