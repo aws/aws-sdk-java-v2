@@ -17,14 +17,12 @@ package software.amazon.awssdk.services.protocolrestjson;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import io.reactivex.Flowable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,12 +62,6 @@ public class AsyncOperationCancelTest {
     @Before
     public void setUp() {
         scheduledExec = mock(ScheduledExecutorService.class);
-
-        when(scheduledExec.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenAnswer(i -> {
-            Runnable r = i.getArgument(0);
-            r.run();
-            return null;
-        });
 
         client = ProtocolRestJsonAsyncClient.builder()
                                             .region(Region.US_EAST_1)
