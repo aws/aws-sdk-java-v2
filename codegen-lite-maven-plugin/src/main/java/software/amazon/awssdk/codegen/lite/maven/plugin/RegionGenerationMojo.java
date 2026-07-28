@@ -167,7 +167,7 @@ public class RegionGenerationMojo extends AbstractMojo {
     private Set<String> loadServiceMetadataAllowlist() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(
                 Objects.requireNonNull(
-                    getClass().getResourceAsStream("/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt"),
+                    RegionGenerationMojo.class.getResourceAsStream("/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt"),
                     "Failed to load service-metadata-allowlist.txt"),
                 StandardCharsets.UTF_8))) {
             return reader.lines()
