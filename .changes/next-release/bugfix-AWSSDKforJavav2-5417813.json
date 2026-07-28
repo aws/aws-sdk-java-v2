@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed the client-side rate limiting behavior of `AdaptiveRetryStrategy` under throttling conditions. Previously, the computed rate limit was overly aggressive, potentially allowing a request rate much lower than what the service allows, and was unstable, varying over time even when the service's allowed throughput was constant."
+}
