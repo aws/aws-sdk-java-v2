@@ -18,12 +18,18 @@ package software.amazon.awssdk.warmup.allservices;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.ServiceLoader;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.crac.SdkWarmUp;
+import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
 import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
@@ -44,6 +50,22 @@ class SdkWarmUpPrimeAllServicesTest {
      */
     private static final String CUSTOMIZATION_REQUIRED_PROVIDER =
         "software.amazon.awssdk.services.cloudfrontkeyvaluestore.internal.crac.CloudFrontKeyValueStoreWarmUpProvider";
+
+    /**
+     * The client class names {@link SdkWarmUp#prime()} logs for {@link #CUSTOMIZATION_REQUIRED_PROVIDER}. prime()
+     * reports a warm-up failure with the client class name (the default {@code SdkWarmUpProvider.warmUp()} calls
+     * {@code WarmUpDiscovery.runSafely(syncClientClassName()/asyncClientClassName(), ...)}), not the provider class
+     * name, so the failure must be excluded by client name. Derived from the provider so the two stay in sync.
+     */
+    private static final Set<String> CUSTOMIZATION_REQUIRED_CLIENTS = customizationRequiredClients();
+
+    private static Set<String> customizationRequiredClients() {
+        return StreamSupport.stream(ServiceLoader.load(SdkWarmUpProvider.class).spliterator(), false)
+                            .filter(p -> p.getClass().getName().equals(CUSTOMIZATION_REQUIRED_PROVIDER))
+                            .flatMap(p -> Stream.of(p.syncClientClassName(), p.asyncClientClassName()))
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet());
+    }
 
     private String savedRegionProperty;
 
@@ -73,7 +95,7 @@ class SdkWarmUpPrimeAllServicesTest {
                          .map(e -> e.getMessage().getFormattedMessage())
                          .filter(msg -> msg.contains("software.amazon"))
                          // TODO : Remove after customization is added
-                         .filter(msg -> !msg.contains(CUSTOMIZATION_REQUIRED_PROVIDER))
+                         .filter(msg -> CUSTOMIZATION_REQUIRED_CLIENTS.stream().noneMatch(msg::contains))
                          .collect(Collectors.toList());
 
             assertThat(serviceWarmUpFailures)
