@@ -63,10 +63,9 @@ public class JsonMarshaller<T extends Object> implements DynamoDBMarshaller<T> {
 
         try {
             return writer.writeValueAsString(obj);
-        } catch (JsonProcessingException e) {
-            throw new DynamoDBMappingException(
-                    "Unable to marshall the instance of " + obj.getClass()
-                            + "into a string", e);
+        } catch (Exception e) {
+            throw MapperExceptions.failure(e,
+                    "Unable to marshall the instance of " + obj.getClass() + "into a string");
         }
     }
 
@@ -74,11 +73,8 @@ public class JsonMarshaller<T extends Object> implements DynamoDBMarshaller<T> {
     public T unmarshall(Class<T> clazz, String json) {
         try {
             return mapper.readValue(json, (getValueType() == null ? clazz : getValueType()));
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new DynamoDBMappingException("Unable to unmarshall the string " + json
-                    + "into " + clazz, e);
+            throw MapperExceptions.failure(e, "Unable to unmarshall the string " + json + "into " + clazz);
         }
     }
 }

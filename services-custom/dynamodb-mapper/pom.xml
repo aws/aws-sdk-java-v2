@@ -50,43 +50,6 @@
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <testIncludes>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesV1Test.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesV2Test.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesV2CompatibleTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesV2UnconvertTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesEdgeCasesTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StandardModelFactoriesOverrideTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/V1MarshallerTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/V2MarshallerTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/V2CompatMarshallerTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/UnmarshallerTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/CachingMarshallerSetTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/CachingUnmarshallerSetTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/ConversionToAttributeValuesTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/AttributeTransformerChainTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/IncompatibleSubclassTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/StringListMapTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/S3LinkTest.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/S3LinkIDTest.java</testInclude>
-                        <!-- Test support required by the tests above -->
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/TestParameters.java</testInclude>
-                        <!-- POJO fixtures required by the tests above -->
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/TestClass.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/SubClass.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/UnannotatedSubClass.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/KeyAndVal.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/AutoKeyAndVal.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/DateRange.java</testInclude>
-                        <testInclude>software/amazon/awssdk/mapper/dynamodb/pojos/Currency.java</testInclude>
-                    </testIncludes>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>

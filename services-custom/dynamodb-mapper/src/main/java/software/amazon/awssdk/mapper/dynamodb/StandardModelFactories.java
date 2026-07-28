@@ -329,7 +329,8 @@ final class StandardModelFactories {
             }
             @Override
             public ByteBuffer get(AttributeValue value) {
-                return value.b() == null ? null : value.b().asByteBuffer();
+                // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
+                return value.b() == null ? null : ByteBuffer.wrap(value.b().asByteArray());
             }
             @Override
             public AttributeValue build(ByteBuffer o) {
@@ -409,7 +410,8 @@ final class StandardModelFactories {
                 }
                 final List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
                 for (software.amazon.awssdk.core.SdkBytes sb : value.bs()) {
-                    result.add(sb.asByteBuffer());
+                    // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
+                    result.add(ByteBuffer.wrap(sb.asByteArray()));
                 }
                 return result;
             }

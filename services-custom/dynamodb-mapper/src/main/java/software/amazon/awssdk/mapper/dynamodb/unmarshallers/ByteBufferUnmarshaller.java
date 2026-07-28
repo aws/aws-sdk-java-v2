@@ -14,6 +14,8 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import java.nio.ByteBuffer;
+
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -33,6 +35,9 @@ public class ByteBufferUnmarshaller extends BUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        return value.b().asByteBuffer();
+        // v2 SdkBytes.asByteBuffer() returns a read-only buffer; v1 getB() returned a
+        // writable one. Return a writable defensive copy to preserve v1 behavior for
+        // callers that mutate the returned buffer. asByteArray() already copies the bytes.
+        return ByteBuffer.wrap(value.b().asByteArray());
     }
 }

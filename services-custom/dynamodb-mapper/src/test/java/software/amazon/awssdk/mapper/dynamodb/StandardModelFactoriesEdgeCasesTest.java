@@ -20,10 +20,12 @@ import static org.junit.Assert.fail;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 
 import org.junit.Assert;
 import org.junit.Test;
 
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
@@ -75,24 +77,24 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void convert_unicodeString_preserved() {
+    public void convert_withUnicodeString_preservesCharacters() {
         assertEquals("こんにちは", convert("getString", "こんにちは").s());
         assertEquals("emoji-😀", convert("getString", "emoji-😀").s());
     }
 
     @Test
-    public void unconvert_unicodeString_preserved() {
+    public void unconvert_withUnicodeString_preservesCharacters() {
         assertEquals("こんにちは",
                 unconvert("getString", "setString", AttributeValue.builder().s("こんにちは").build()));
     }
 
     @Test
-    public void convert_emptyString_isDropped() {
+    public void convert_withEmptyString_returnsNull() {
         Assert.assertNull(convert("getString", ""));
     }
 
     @Test
-    public void convert_numericBoundaries_exactStrings() {
+    public void convert_withNumericBoundaries_producesExactStrings() {
         assertEquals(String.valueOf(Integer.MIN_VALUE), convert("getInt", Integer.MIN_VALUE).n());
         assertEquals(String.valueOf(Integer.MAX_VALUE), convert("getInt", Integer.MAX_VALUE).n());
         assertEquals(String.valueOf(Long.MIN_VALUE), convert("getLong", Long.MIN_VALUE).n());
@@ -100,7 +102,7 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void convert_bigNumbers_precisionPreserved() {
+    public void convert_withBigNumbers_preservesPrecision() {
         BigInteger big = new BigInteger("99999999999999999999");
         assertEquals("99999999999999999999", convert("getBigInt", big).n());
 
@@ -109,12 +111,12 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void convert_bigDecimal_scalePreserved() {
+    public void convert_withBigDecimal_preservesScale() {
         assertEquals("43.0", convert("getBigDecimal", new BigDecimal("43.0")).n());
     }
 
     @Test
-    public void unconvert_integralType_fromDecimalString_throws() {
+    public void unconvert_withDecimalStringOnIntegralType_throwsNumberFormatException() {
         try {
             unconvert("getInt", "setInt", AttributeValue.builder().n("1.0").build());
             fail("Expected NumberFormatException for decimal string on integral type");
@@ -124,7 +126,7 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void convert_nonFiniteDouble() {
+    public void convert_withNonFiniteDouble_producesExactStrings() {
         assertEquals("NaN", convert("getDouble", Double.NaN).n());
         assertEquals("Infinity", convert("getDouble", Double.POSITIVE_INFINITY).n());
         assertEquals("-Infinity", convert("getDouble", Double.NEGATIVE_INFINITY).n());
@@ -139,19 +141,19 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void convert_enum_asString() {
+    public void convert_withEnum_producesString() {
         DynamoDBMapperTableModel<EnumPojo> model = table(new EnumPojo());
         assertEquals("GREEN", model.field("val").convert(Color.GREEN).s());
     }
 
     @Test
-    public void unconvert_enum_fromString() {
+    public void unconvert_withEnumString_producesEnum() {
         DynamoDBMapperTableModel<EnumPojo> model = table(new EnumPojo());
         assertEquals(Color.BLUE, model.field("val").unconvert(AttributeValue.builder().s("BLUE").build()));
     }
 
     @Test
-    public void unconvert_enum_unknownValue_throws() {
+    public void unconvert_withUnknownEnumValue_throwsException() {
         DynamoDBMapperTableModel<EnumPojo> model = table(new EnumPojo());
         try {
             model.field("val").unconvert(AttributeValue.builder().s("PURPLE").build());
@@ -190,7 +192,7 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void convert_json_asString() {
+    public void convert_withJsonPayload_producesString() {
         JsonPayload payload = new JsonPayload();
         payload.setName("widget");
         payload.setCount(7);
@@ -204,7 +206,7 @@ public class StandardModelFactoriesEdgeCasesTest {
     }
 
     @Test
-    public void json_roundTrip() {
+    public void convertAndUnconvert_withJsonPayload_roundTrips() {
         JsonPayload payload = new JsonPayload();
         payload.setName("widget");
         payload.setCount(7);
@@ -214,5 +216,19 @@ public class StandardModelFactoriesEdgeCasesTest {
         Object back = model.field("val").unconvert(av);
 
         assertEquals(payload, back);
+    }
+
+    @Test
+    public void unconvert_withByteBuffer_returnsWritableBuffer() {
+        // v1 parity: v1 getB() returned a writable buffer. v2 SdkBytes.asByteBuffer() is
+        // read-only, so the unmarshaller returns a writable copy for callers that mutate it.
+        DynamoDBMapperTableModel<TestClass> model = v2Models.getTable(TestClass.class);
+        AttributeValue stored = AttributeValue.builder().b(SdkBytes.fromUtf8String("data")).build();
+
+        ByteBuffer result = (ByteBuffer) model.field("byteBuffer").unconvert(stored);
+
+        Assert.assertFalse("returned buffer is writable (v1 parity)", result.isReadOnly());
+        result.put(0, (byte) 'X');
+        assertEquals((byte) 'X', result.get(0));
     }
 }

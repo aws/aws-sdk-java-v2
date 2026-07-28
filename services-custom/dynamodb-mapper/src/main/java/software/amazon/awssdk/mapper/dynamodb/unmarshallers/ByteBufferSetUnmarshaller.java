@@ -40,7 +40,8 @@ public class ByteBufferSetUnmarshaller extends BSUnmarshaller {
     public Object unmarshall(AttributeValue value) {
         Set<ByteBuffer> result = new HashSet<ByteBuffer>();
         for (software.amazon.awssdk.core.SdkBytes sdkBytes : value.bs()) {
-            result.add(sdkBytes.asByteBuffer());
+            // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
+            result.add(ByteBuffer.wrap(sdkBytes.asByteArray()));
         }
         return result;
     }

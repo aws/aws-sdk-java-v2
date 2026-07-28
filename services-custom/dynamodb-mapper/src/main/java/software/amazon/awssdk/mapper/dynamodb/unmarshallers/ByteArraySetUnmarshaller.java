@@ -14,7 +14,6 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
-import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -41,14 +40,7 @@ public class ByteArraySetUnmarshaller extends BSUnmarshaller {
         Set<byte[]> result = new HashSet<byte[]>();
 
         for (software.amazon.awssdk.core.SdkBytes sdkBytes : value.bs()) {
-            ByteBuffer buffer = sdkBytes.asByteBuffer();
-            if (buffer.hasArray()) {
-                result.add(buffer.array());
-            } else {
-                byte[] array = new byte[buffer.remaining()];
-                buffer.get(array);
-                result.add(array);
-            }
+            result.add(sdkBytes.asByteArray());
         }
 
         return result;
