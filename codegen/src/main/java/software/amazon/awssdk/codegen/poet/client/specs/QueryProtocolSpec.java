@@ -116,10 +116,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withInput($L)", opModel.getInput().getVariableName())
                      .add(".withMetricCollector(apiCallMetricCollector)")
-                     .add(".withAuthSchemeOptionsResolver(authSchemeResolver($S, clientConfiguration))\n",
-                          opModel.getOperationName())
-                     .add(".withEndpointResolver(endpointResolver($S))\n",
-                          opModel.getOperationName())
+                     .add(".withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)\n")
+                     .add(".withEndpointResolver(this::resolveEndpoint)\n")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
@@ -159,10 +157,8 @@ public class QueryProtocolSpec implements ProtocolSpec {
                      .add(credentialType(opModel, intermediateModel))
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withMetricCollector(apiCallMetricCollector)\n")
-                     .add(".withAuthSchemeOptionsResolver(authSchemeResolver($S, clientConfiguration))\n",
-                          opModel.getOperationName())
-                     .add(".withEndpointResolver(endpointResolver($S))\n",
-                          opModel.getOperationName())
+                     .add(".withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)\n")
+                     .add(".withEndpointResolver(this::resolveEndpoint)\n")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
