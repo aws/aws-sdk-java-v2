@@ -28,6 +28,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -75,6 +77,12 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  */
 @FunctionalInterface
 @SdkPublicApi
+@SdkAdvancedApi(
+    caution = Caution.WHEN_IMPLEMENTED,
+    guidance = "transform() must fully drain and close the response stream and honor thread interrupts. A "
+          + "transformer that blocks or returns without consuming the stream hangs the calling thread and leaks "
+          + "the underlying HTTP connection.",
+    saferAlternative = "Prefer the ResponseTransformer.toFile/toBytes/toOutputStream/toInputStream factories.")
 public interface ResponseTransformer<ResponseT, ReturnT> {
     /**
      * Process the response contents.

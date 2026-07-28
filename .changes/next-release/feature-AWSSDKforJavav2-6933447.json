@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add the `@SdkAdvancedApi` annotation, which marks APIs that are error-prone to implement, override, call, or configure so that using them incorrectly compiles cleanly but can fail or misbehave at runtime. The annotation records structured guidance (the risky usage kind, an explanation of the contract to uphold, a safer alternative, and a documentation link) and is applied to several streaming and interceptor extension points, including AsyncRequestBody, AsyncResponseTransformer, ResponseTransformer, ContentStreamProvider, the mutating ExecutionInterceptor content hooks, and the FUTURE_COMPLETION_EXECUTOR advanced client option."
+}

@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.client.config;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -52,6 +54,13 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
      */
+    @SdkAdvancedApi(
+        caution = Caution.WHEN_CONFIGURED,
+        guidance = "An executor that runs on the client's I/O threads (e.g. Runnable::run) can block "
+              + "them and deadlock the client, especially when the future chain issues another "
+              + "SDK request. If you set a custom executor, verify it under your own load tests, "
+              + "including request chains that issue further SDK calls.",
+        saferAlternative = "Leave unset to use the SDK-managed per-client ThreadPoolExecutor.")
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);
 
