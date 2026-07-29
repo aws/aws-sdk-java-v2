@@ -13,12 +13,13 @@
  * permissions and limitations under the License.
  */
 
+package software.amazon.awssdk.services.backwardcompat;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
@@ -40,18 +41,6 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
-import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner;
-import software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner;
-import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
-import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
-import software.amazon.awssdk.http.auth.spi.signer.AsyncSignedRequest;
-import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
-import software.amazon.awssdk.http.auth.spi.signer.SignRequest;
-import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
-import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
-import software.amazon.awssdk.identity.spi.IdentityProvider;
-import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
@@ -76,10 +65,10 @@ public class InterceptorSignerAttributeTest {
                 attributeModifications.accept(executionAttributes);
             }
         },
-             AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, // Endpoint rules override signing name
-             AwsSignerExecutionAttribute.SIGNING_REGION, // Endpoint rules override signing region
-             AwsSignerExecutionAttribute.AWS_CREDENTIALS, // Legacy auth strategy overrides credentials
-             AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE); // Endpoint rules override double-url-encode
+             AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME,
+             AwsSignerExecutionAttribute.SIGNING_REGION,
+             AwsSignerExecutionAttribute.AWS_CREDENTIALS,
+             AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE);
     }
 
     @Test
@@ -91,7 +80,7 @@ public class InterceptorSignerAttributeTest {
                 return context.request();
             }
         },
-             AwsSignerExecutionAttribute.AWS_CREDENTIALS); // Legacy auth strategy overrides credentials
+             AwsSignerExecutionAttribute.AWS_CREDENTIALS);
     }
 
     @Test
@@ -145,24 +134,19 @@ public class InterceptorSignerAttributeTest {
              MockAsyncHttpClient asyncHttpClient = new MockAsyncHttpClient()) {
             stub200Responses(httpClient, asyncHttpClient);
 
-            S3ClientBuilder s3Builder = createS3Builder(configBuilder, httpClient);
-            S3AsyncClientBuilder s3AsyncBuilder = createS3AsyncBuilder(configBuilder, asyncHttpClient);
-
             CapturingSigner signer1 = new CapturingSigner();
-            try (S3Client s3 = s3Builder.overrideConfiguration(configBuilder.putAdvancedOption(SdkAdvancedClientOption.SIGNER,
-                                                                                               signer1)
-                                                                            .build())
-                                        .build()) {
+            try (S3Client s3 = createS3Builder(configBuilder, httpClient)
+                    .overrideConfiguration(configBuilder.putAdvancedOption(SdkAdvancedClientOption.SIGNER, signer1).build())
+                    .build()) {
                 callS3(s3);
                 validateLegacySignRequest(attributesToExclude, signer1);
             }
 
             CapturingSigner signer2 = new CapturingSigner();
-            try (S3AsyncClient s3 =
-                     s3AsyncBuilder.overrideConfiguration(configBuilder.putAdvancedOption(SdkAdvancedClientOption.SIGNER, signer2)
-                                                                       .build())
-                                   .build()) {
-                callS3(s3);
+            try (S3AsyncClient s3 = createS3AsyncBuilder(configBuilder, asyncHttpClient)
+                    .overrideConfiguration(configBuilder.putAdvancedOption(SdkAdvancedClientOption.SIGNER, signer2).build())
+                    .build()) {
+                callS3Async(s3);
                 validateLegacySignRequest(attributesToExclude, signer2);
             }
         }
@@ -171,15 +155,14 @@ public class InterceptorSignerAttributeTest {
     private static void stub200Responses(MockSyncHttpClient httpClient, MockAsyncHttpClient asyncHttpClient) {
         HttpExecuteResponse response =
             HttpExecuteResponse.builder()
-                               .response(SdkHttpResponse.builder()
-                                                        .statusCode(200)
-                                                        .build())
+                               .response(SdkHttpResponse.builder().statusCode(200).build())
                                .build();
         httpClient.stubResponses(response);
         asyncHttpClient.stubResponses(response);
     }
 
-    private static S3ClientBuilder createS3Builder(ClientOverrideConfiguration.Builder configBuilder, MockSyncHttpClient httpClient) {
+    private static S3ClientBuilder createS3Builder(ClientOverrideConfiguration.Builder configBuilder,
+                                                   MockSyncHttpClient httpClient) {
         return S3Client.builder()
                        .region(Region.US_WEST_2)
                        .credentialsProvider(AnonymousCredentialsProvider.create())
@@ -187,7 +170,8 @@ public class InterceptorSignerAttributeTest {
                        .overrideConfiguration(configBuilder.build());
     }
 
-    private static S3AsyncClientBuilder createS3AsyncBuilder(ClientOverrideConfiguration.Builder configBuilder, MockAsyncHttpClient asyncHttpClient) {
+    private static S3AsyncClientBuilder createS3AsyncBuilder(ClientOverrideConfiguration.Builder configBuilder,
+                                                             MockAsyncHttpClient asyncHttpClient) {
         return S3AsyncClient.builder()
                             .region(Region.US_WEST_2)
                             .credentialsProvider(AnonymousCredentialsProvider.create())
@@ -196,18 +180,13 @@ public class InterceptorSignerAttributeTest {
     }
 
     private static void callS3(S3Client s3) {
-        s3.putObject(r -> r.bucket("foo")
-                           .key("bar")
-                           .checksumAlgorithm(ChecksumAlgorithm.CRC32),
+        s3.putObject(r -> r.bucket("foo").key("bar").checksumAlgorithm(ChecksumAlgorithm.CRC32),
                      RequestBody.fromString("text"));
     }
 
-    private void callS3(S3AsyncClient s3) {
-        s3.putObject(r -> r.bucket("foo")
-                           .key("bar")
-                           .checksumAlgorithm(ChecksumAlgorithm.CRC32),
-                     AsyncRequestBody.fromString("text"))
-          .join();
+    private void callS3Async(S3AsyncClient s3) {
+        s3.putObject(r -> r.bucket("foo").key("bar").checksumAlgorithm(ChecksumAlgorithm.CRC32),
+                     AsyncRequestBody.fromString("text")).join();
     }
 
     private void validateLegacySignRequest(Set<ExecutionAttribute<?>> attributesToExclude, CapturingSigner signer) {
