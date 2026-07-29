@@ -28,8 +28,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.Map;
-import software.amazon.awssdk.annotations.SdkAdvancedApi;
-import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -77,13 +75,6 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  */
 @FunctionalInterface
 @SdkPublicApi
-@SdkAdvancedApi(
-    caution = Caution.WHEN_IMPLEMENTED,
-    guidance = "transform() runs on the calling thread; for long-running work, check the thread interrupt status "
-          + "and throw InterruptedException so the SDK can stop the request in a timely manner on timeout or "
-          + "cancellation. A transformer that blocks indefinitely stalls that thread. The SDK drains and closes "
-          + "the response stream after transform() returns, so the implementation does not need to close it.",
-    saferAlternative = "Prefer the ResponseTransformer.toFile/toBytes/toOutputStream/toInputStream factories.")
 public interface ResponseTransformer<ResponseT, ReturnT> {
     /**
      * Process the response contents.
