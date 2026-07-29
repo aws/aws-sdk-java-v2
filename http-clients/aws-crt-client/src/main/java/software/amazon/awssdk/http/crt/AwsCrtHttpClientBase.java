@@ -40,6 +40,7 @@ import software.amazon.awssdk.crt.http.HttpStreamManager;
 import software.amazon.awssdk.crt.http.HttpStreamManagerOptions;
 import software.amazon.awssdk.crt.http.HttpVersion;
 import software.amazon.awssdk.crt.io.ClientBootstrap;
+import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsConnectionOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
@@ -72,6 +73,10 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private static final String AWS_COMMON_RUNTIME = "AwsCommonRuntime";
     private static final long DEFAULT_STREAM_WINDOW_SIZE = 16L * 1024L * 1024L; // 16 MB
 
+    // Heuristic threshold (not an API contract) for warning about likely-accidental oversizing of the per-client
+    // event-loop group. A value at or above this multiple of the available processors is almost certainly unintended.
+    private static final int NUM_EVENT_LOOP_THREADS_WARN_MULTIPLIER = 4;
+
     protected final long readBufferSize;
     protected final Protocol protocol;
     private final Map<URI, HttpStreamManager> connectionPools = new ConcurrentHashMap<>();
@@ -89,35 +94,77 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
     private boolean isClosed = false;
 
     AwsCrtHttpClientBase(AwsCrtClientBuilderBase builder, AttributeMap config) {
-        ClientBootstrap clientBootstrap = new ClientBootstrap(null, null);
-        SocketOptions clientSocketOptions = buildSocketOptions(builder.getTcpKeepAliveConfiguration(),
-                                                               config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
-        TlsContextOptions clientTlsContextOptions =
-            TlsContextOptions.createDefaultClient()
-                             .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
-                             .withMinimumTlsVersion(resolveMinTlsVersion(builder.getMinTlsVersion()))
-                             .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
-        this.protocol = config.get(PROTOCOL);
-        if (protocol == Protocol.HTTP2) {
-            clientTlsContextOptions = clientTlsContextOptions.withAlpnList("h2");
+        // These native resources are created before being registered as owned, and each creation can throw
+        // (e.g. CrtRuntimeException). Because close() is never invoked on a client that failed to construct, any
+        // already-created resource must be released here if a later step throws - otherwise the private EventLoopGroup
+        // (and its OS threads) and the other native handles would leak.
+        EventLoopGroup eventLoopGroup = null;
+        ClientBootstrap clientBootstrap = null;
+        SocketOptions clientSocketOptions = null;
+        TlsContextOptions clientTlsContextOptions = null;
+        TlsContext clientTlsContext = null;
+        try {
+            Integer numEventLoopThreads = builder.getNumEventLoopThreads();
+            if (numEventLoopThreads != null) {
+                warnIfNumEventLoopThreadsIsExcessive(numEventLoopThreads);
+                eventLoopGroup = new EventLoopGroup(numEventLoopThreads);
+            }
+            clientBootstrap = new ClientBootstrap(eventLoopGroup, null);
+            clientSocketOptions = buildSocketOptions(builder.getTcpKeepAliveConfiguration(),
+                                                     config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+            clientTlsContextOptions =
+                TlsContextOptions.createDefaultClient()
+                                 .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
+                                 .withMinimumTlsVersion(resolveMinTlsVersion(builder.getMinTlsVersion()))
+                                 .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
+            this.protocol = config.get(PROTOCOL);
+            if (protocol == Protocol.HTTP2) {
+                clientTlsContextOptions = clientTlsContextOptions.withAlpnList("h2");
+            }
+
+            this.tlsContextOptions = registerOwnedResource(clientTlsContextOptions);
+            clientTlsContext = new TlsContext(clientTlsContextOptions);
+
+            // The bootstrap holds a native reference to its event-loop group, so the group is registered before (and thus
+            // closed after) the bootstrap to keep CRT teardown ordering correct. A null group leaves the shared static
+            // default group untouched.
+            registerOwnedResource(eventLoopGroup);
+            this.bootstrap = registerOwnedResource(clientBootstrap);
+            this.socketOptions = registerOwnedResource(clientSocketOptions);
+            this.tlsContext = registerOwnedResource(clientTlsContext);
+            this.tlsNegotiationTimeout = config.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT);
+            this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
+                                  DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
+            this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
+            this.monitoringOptions =
+                resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration())
+                    .orElse(null);
+            this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
+            this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
+            this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
+        } catch (RuntimeException e) {
+            // Release in reverse dependency order: the TlsContext wraps its options, and the bootstrap holds a
+            // reference to the event-loop group, so those wrappers are closed before what they depend on.
+            IoUtils.closeQuietly(clientTlsContext, log.logger());
+            IoUtils.closeQuietly(clientTlsContextOptions, log.logger());
+            IoUtils.closeQuietly(clientSocketOptions, log.logger());
+            IoUtils.closeQuietly(clientBootstrap, log.logger());
+            IoUtils.closeQuietly(eventLoopGroup, log.logger());
+            throw e;
         }
+    }
 
-        this.tlsContextOptions = registerOwnedResource(clientTlsContextOptions);
-        TlsContext clientTlsContext = new TlsContext(clientTlsContextOptions);
-
-        this.bootstrap = registerOwnedResource(clientBootstrap);
-        this.socketOptions = registerOwnedResource(clientSocketOptions);
-        this.tlsContext = registerOwnedResource(clientTlsContext);
-        this.tlsNegotiationTimeout = config.get(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT);
-        this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
-                              DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
-        this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-        this.monitoringOptions =
-            resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration())
-                .orElse(null);
-        this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
-        this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
-        this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);
+    private static void warnIfNumEventLoopThreadsIsExcessive(int numEventLoopThreads) {
+        int availableProcessors = Math.max(1, Runtime.getRuntime().availableProcessors());
+        if (numEventLoopThreads >= NUM_EVENT_LOOP_THREADS_WARN_MULTIPLIER * availableProcessors) {
+            log.warn(() -> String.format(
+                "numEventLoopThreads is set to %d, which is unusually high relative to the %d available processor(s). "
+                + "Each client configured with numEventLoopThreads gets its own private event-loop group, so a high count "
+                + "multiplied across multiple clients can lead to thread explosion, excessive context-switching, and increased "
+                + "memory use without improving throughput. Consider benchmarking your workload to confirm this value is "
+                + "necessary.",
+                numEventLoopThreads, availableProcessors));
+        }
     }
 
     /**

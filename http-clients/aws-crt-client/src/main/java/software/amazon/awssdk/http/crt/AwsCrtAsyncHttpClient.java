@@ -130,6 +130,26 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
 
         /**
+         * Configure the number of event-loop (IO) threads in this client's event-loop group.
+         *
+         * <p>By default (when this is not set), the client shares a single, process-wide event-loop group sized to
+         * {@code Runtime.getRuntime().availableProcessors()}, shared with every other CRT client in the JVM. When this value is
+         * set, the client instead creates and owns a private event-loop group of the given size; that group is shut down when
+         * this client is closed and is not shared with any other client.
+         *
+         * <p>This is an advanced tuning and isolation control, and each client configured with an explicit size consumes that
+         * many additional IO threads. Oversizing wastes threads and adds context-switching and memory overhead without improving
+         * throughput; undersizing can leave the client's IO as a bottleneck and underutilize available cores. The best value
+         * depends on your workload and hardware, so benchmark your own application before changing it from the default. An
+         * excessively high value relative to the number of available processors is logged as a warning.
+         *
+         * @param numEventLoopThreads the number of event-loop threads; must be greater than 1, or {@code null} to use the shared
+         *                           default.
+         * @return The builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder numEventLoopThreads(Integer numEventLoopThreads);
+
+        /**
          * Sets the http proxy configuration to use for this client.
          * @param proxyConfiguration The http proxy configuration to use
          * @return The builder of the method chaining.
