@@ -38,7 +38,7 @@ import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests the generated {@link SdkWarmUpProvider} of every service module on the classpath. For each provider, warm-up
- * must complete without throwing, must invoke the selected warm-up operation (checked with
+ * must complete without throwing any exceptions, must invoke the selected warm-up operation (checked with
  * {@link OperationRecordingInterceptor}), and must not emit SDK warn or error logs.
  *
  * <p>The {@code aws-sdk-java} aggregate artifact puts all service modules on the classpath and is updated when a new
