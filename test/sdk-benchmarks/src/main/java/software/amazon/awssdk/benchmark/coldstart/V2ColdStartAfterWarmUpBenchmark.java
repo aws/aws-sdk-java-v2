@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.benchmark.coldstart;
 
-import static software.amazon.awssdk.benchmark.coldstart.ColdStartRequests.CONTENT_TYPE;
-import static software.amazon.awssdk.benchmark.coldstart.ColdStartRequests.FIXTURE;
-import static software.amazon.awssdk.benchmark.coldstart.ColdStartRequests.putItemRequest;
-
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -44,34 +42,19 @@ import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.crac.SdkWarmUp;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 /**
- * Primed arm: identical to {@link V2ColdStartNoWarmUpBenchmark} except that {@link SdkWarmUp#prime(Class[])} runs in
- * {@code @Setup}, outside the timing window. The measured number is therefore post-prime construction plus post-prime
- * first call, and the difference from the baseline arm is the first-call work that priming front-loads.
- *
- * <p>Uses the targeted overload rather than {@code SdkWarmUp.prime()}. The no-arg form warms every
- * {@code SdkWarmUpProvider} on the classpath, which on this module's classpath includes services unrelated to this
- * measurement.
- *
- * <p>Priming also warms each sync {@code SdkHttpService} on the classpath by sending a {@code GET} to the regional STS
- * endpoint, which is intended: exercising a real request is how the SPI lookup, TLS stack and connection machinery get
- * initialized ahead of time. Those calls happen in {@code @Setup}, outside the measured window, and are best effort:
- * a failure never fails the benchmark, but it does affect the score. On a host without network access the HTTP client
- * stack is only partially warmed, the measured first call is slower, and the primed-vs-no-prime delta silently shrinks.
- * Only compare the two arms when both ran in the same network environment. The cost of priming itself is measured
- * separately by {@link V2SdkWarmUpExecutionTimeBenchmark}.
- *
- * <p>The provider primes DynamoDB with {@code ListBackups} while the measured call is {@code PutItem}. That is
- * deliberate: the measured delta is the cross-operation transfer benefit, the realistic case, since shared work
- * (signing, HTTP, base marshalling) dominates over operation-specific marshallers.
- *
- * <p>See {@link V2ColdStartNoWarmUpBenchmark} for why the JMH parameters below differ from the rest of this module and why
- * they must not be overridden from the command line.
+ * Same measurement as {@link V2ColdStartNoWarmUpBenchmark}, but {@link SdkWarmUp#prime(Class[])} runs in {@code @Setup}
+ * (untimed, needs network for the STS warm-up GET). The score difference between the two is the first-call work that
+ * warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long prime() itself takes.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
@@ -79,20 +62,21 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @Warmup(iterations = 0)
 @Measurement(iterations = 1)
 @Fork(20)
-public class V2ColdStartAfterWarmUpBenchmark implements SdkClientColdStartBenchmark {
+public class V2ColdStartAfterWarmUpBenchmark {
 
-    private ColdStartMockServer server;
+    private static final String FIXTURE = "json-protocol/putitem-response.json";
+    private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
+
+    private MockHttpServer server;
     private DynamoDbClient client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        server = new ColdStartMockServer(ColdStartMockServer.loadFixture(FIXTURE), CONTENT_TYPE);
+        server = new MockHttpServer(MockHttpServer.loadFixture(FIXTURE), CONTENT_TYPE);
         server.start();
 
         SdkWarmUp.prime(DynamoDbClient.class);
     }
-
-    @Override
     @Benchmark
     public void coldFirstCall(Blackhole blackhole) throws Exception {
         client = DynamoDbClient.builder()
@@ -124,5 +108,37 @@ public class V2ColdStartAfterWarmUpBenchmark implements SdkClientColdStartBenchm
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
+    }
+
+    private static PutItemRequest putItemRequest() {
+        return PutItemRequest.builder()
+                             .tableName("benchmark-table")
+                             .item(itemMap())
+                             .build();
+    }
+
+    private static Map<String, AttributeValue> itemMap() {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("pk", AttributeValue.fromS("benchmark-key"));
+        item.put("sk", AttributeValue.fromN("100"));
+        item.put("stringField", AttributeValue.fromS("test-value"));
+        item.put("numberField", AttributeValue.fromN("123.456"));
+        item.put("binaryField", AttributeValue.fromB(SdkBytes.fromUtf8String("hello world")));
+        item.put("stringSetField", AttributeValue.builder().ss("value1", "value2", "value3").build());
+        item.put("numberSetField", AttributeValue.builder().ns("1.1", "2.2", "3.3").build());
+        item.put("boolField", AttributeValue.fromBool(false));
+        item.put("nullField", AttributeValue.builder().nul(true).build());
+        Map<String, AttributeValue> deep = new HashMap<>();
+        deep.put("level2", AttributeValue.fromN("999"));
+        Map<String, AttributeValue> nested = new HashMap<>();
+        nested.put("nested", AttributeValue.fromS("nested-value"));
+        nested.put("deepNested", AttributeValue.fromM(deep));
+        item.put("mapField", AttributeValue.fromM(nested));
+        item.put("listField", AttributeValue.builder().l(
+            AttributeValue.fromS("item1"),
+            AttributeValue.fromN("42"),
+            AttributeValue.fromBool(true),
+            AttributeValue.builder().nul(true).build()).build());
+        return item;
     }
 }

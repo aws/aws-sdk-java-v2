@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.coldstart;
+package software.amazon.awssdk.benchmark.utils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,26 +26,19 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import software.amazon.awssdk.benchmark.utils.BenchmarkUtils;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
- * Lightweight plain-HTTP Jetty server that answers every request with a fixed status, body and content type, so a real
- * service client can complete an operation without leaving the machine.
- *
- * <p>This mirrors {@code apicall.protocol.ProtocolRoundtripServer}, which is package-private to its own package. It is
- * duplicated here rather than shared so the cold-start benchmarks do not force a visibility change on the throughput
- * benchmarks that use the original.
- *
- * <p>Only the plain HTTP connector is exposed. That is deliberate: the cold-start benchmarks take a single measurement per
- * JVM, and TLS handshake plus trust-all keystore setup would add variance to the one sample that matters.
+ * Lightweight plain-HTTP Jetty server that answers every request with a fixed 200 status, body and content type, so a
+ * real service client can complete an operation without leaving the machine. Used by the protocol roundtrip and
+ * cold-start benchmarks.
  */
-final class ColdStartMockServer {
+public final class MockHttpServer {
 
     private final Server server;
     private final int port;
 
-    ColdStartMockServer(byte[] responseBody, String contentType) throws IOException {
+    public MockHttpServer(byte[] responseBody, String contentType) throws IOException {
         port = BenchmarkUtils.getUnusedPort();
         server = new Server();
         ServerConnector connector = new ServerConnector(server);
@@ -57,20 +50,20 @@ final class ColdStartMockServer {
         server.setHandler(context);
     }
 
-    void start() throws Exception {
+    public void start() throws Exception {
         server.start();
     }
 
-    void stop() throws Exception {
+    public void stop() throws Exception {
         server.stop();
     }
 
-    URI getHttpUri() {
+    public URI getHttpUri() {
         return URI.create("http://localhost:" + port);
     }
 
-    static byte[] loadFixture(String path) throws IOException {
-        try (InputStream is = ColdStartMockServer.class.getClassLoader().getResourceAsStream("fixtures/" + path)) {
+    public static byte[] loadFixture(String path) throws IOException {
+        try (InputStream is = MockHttpServer.class.getClassLoader().getResourceAsStream("fixtures/" + path)) {
             if (is == null) {
                 throw new IOException("Fixture not found: fixtures/" + path);
             }

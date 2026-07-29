@@ -30,6 +30,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
@@ -53,16 +54,14 @@ import software.amazon.awssdk.services.cloudwatch.model.MetricStat;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V2CborRoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private CloudWatchClient client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
         byte[] response = createCborResponseFixture();
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "application/cbor");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "application/cbor");
         server.start();
 
         client = CloudWatchClient.builder()

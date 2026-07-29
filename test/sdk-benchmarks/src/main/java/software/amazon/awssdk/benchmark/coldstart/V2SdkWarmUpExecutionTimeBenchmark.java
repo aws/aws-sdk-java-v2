@@ -38,16 +38,9 @@ import software.amazon.awssdk.core.crac.SdkWarmUp;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Measures how long {@link SdkWarmUp#prime(Class[])} takes to run: the one-time upfront work an application pays
- * during initialization to get the first-call saving that {@link V2ColdStartAfterWarmUpBenchmark} shows against
- * {@link V2ColdStartNoWarmUpBenchmark}.
- *
- * <p>Priming makes a real STS {@code GET} per sync HTTP client on the classpath, so the score includes network time,
- * varies by host, and is an upper bound (this module has several HTTP clients; typical apps have one). Do not add it
- * to {@code baseline.json}.
- *
- * <p>See {@link V2ColdStartNoWarmUpBenchmark} for the single-shot JMH parameters. Priming is once-per-JVM, so only the
- * first invocation in a fork is a real measurement.
+ * Measures how long {@link SdkWarmUp#prime(Class[])} takes: the upfront price for the first-call saving shown by
+ * {@link V2ColdStartAfterWarmUpBenchmark}. The score includes real network time (STS GET per HTTP client on the
+ * classpath), so it varies by host — do not add it to {@code baseline.json}.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
