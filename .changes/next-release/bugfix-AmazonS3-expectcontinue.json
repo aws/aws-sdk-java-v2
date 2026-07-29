@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Honor an explicit `S3Configuration.expectContinueEnabled(false)` when cross region access is enabled."
+}
