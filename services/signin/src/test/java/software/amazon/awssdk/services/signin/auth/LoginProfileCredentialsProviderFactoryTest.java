@@ -20,6 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.services.signin.auth.internal.DpopTestUtils.VALID_TEST_PEM;
 
+import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.Optional;
@@ -33,12 +34,16 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
+import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.signin.SigninClient;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.LoginCacheDirectorySystemSetting;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.StringInputStream;
 
 public class LoginProfileCredentialsProviderFactoryTest {
@@ -48,9 +53,11 @@ public class LoginProfileCredentialsProviderFactoryTest {
     Path tempDir;
 
     private AccessTokenManager tokenManager;
+    private String originalRegion;
 
     @BeforeEach
     public void setup() {
+        originalRegion = System.getProperty(SdkSystemSetting.AWS_REGION.property());
         System.setProperty(new LoginCacheDirectorySystemSetting().property(), tempDir.toString());
         tokenManager = OnDiskTokenManager.create(tempDir, LOGIN_SESSION_ID);
     }
@@ -58,6 +65,11 @@ public class LoginProfileCredentialsProviderFactoryTest {
     @AfterEach
     public void teardown() {
         System.clearProperty(new LoginCacheDirectorySystemSetting().property());
+        if (originalRegion == null) {
+            System.clearProperty(SdkSystemSetting.AWS_REGION.property());
+        } else {
+            System.setProperty(SdkSystemSetting.AWS_REGION.property(), originalRegion);
+        }
     }
 
     @Test
@@ -86,6 +98,31 @@ public class LoginProfileCredentialsProviderFactoryTest {
         assertEquals(creds.sessionToken(), resolvedCredentials.sessionToken());
         assertEquals(creds.accountId(), resolvedCredentials.accountId());
         assertEquals(BusinessMetricFeatureId.CREDENTIALS_LOGIN.value(), resolvedCredentials.providerName().get());
+    }
+
+    @Test
+    public void create_usesRegionFromProfile() throws IllegalAccessException, NoSuchFieldException {
+        System.setProperty(SdkSystemSetting.AWS_REGION.property(), Region.US_EAST_1.id());
+        ProfileFile profileFile = configFile("[profile foo]\n" +
+                                             "login_session=" + LOGIN_SESSION_ID + "\n" +
+                                             "region=" + Region.US_WEST_2.id() + "\n");
+
+        AwsCredentialsProvider provider = new LoginProfileCredentialsProviderFactory().create(
+            ProfileProviderCredentialsContext
+                .builder()
+                .profile(profileFile.profile("foo").get())
+                .profileFile(profileFile)
+                .build()
+        );
+
+        try {
+            Field signinClientField = provider.getClass().getDeclaredField("signinClient");
+            signinClientField.setAccessible(true);
+            SigninClient signinClient = (SigninClient) signinClientField.get(provider);
+            assertEquals(Region.US_WEST_2, signinClient.serviceClientConfiguration().region());
+        } finally {
+            ((SdkAutoCloseable) provider).close();
+        }
     }
 
     /**

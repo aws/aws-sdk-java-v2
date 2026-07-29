@@ -22,7 +22,9 @@ import software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileProperty;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.signin.SigninClient;
+import software.amazon.awssdk.services.signin.SigninClientBuilder;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -51,7 +53,11 @@ public class LoginProfileCredentialsProviderFactory implements ProfileCredential
             String loginSession = profile.property(ProfileProperty.LOGIN_SESSION)
                                          .orElseThrow(() -> new IllegalArgumentException("login_session property is required"));
 
-            this.signinClient = SigninClient.create();
+            SigninClientBuilder signinClientBuilder = SigninClient.builder();
+            profile.property(ProfileProperty.REGION)
+                   .map(Region::of)
+                   .ifPresent(signinClientBuilder::region);
+            this.signinClient = signinClientBuilder.build();
             this.credentialsProvider = LoginCredentialsProvider
                 .builder()
                 .loginSession(loginSession)
