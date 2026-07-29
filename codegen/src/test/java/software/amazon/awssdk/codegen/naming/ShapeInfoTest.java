@@ -25,6 +25,8 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.service.Member;
 import software.amazon.awssdk.codegen.model.service.Shape;
+import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.shapes.ShapeId;
 
 class ShapeInfoTest {
 
@@ -95,5 +97,79 @@ class ShapeInfoTest {
         assertThat(ShapeInfo.ofC2j(mapOf("Name", "Status"), shapes).isOrContainsEnum()).isTrue();
 
         assertThat(ShapeInfo.ofC2j(listOf("Name"), shapes).isOrContainsEnum()).isFalse();
+    }
+
+    // ---- ofSmithy ---------------------------------------------------------
+
+    private static Model smithyModel(String idl) {
+        return Model.assembler()
+                    .addUnparsedModel("test.smithy", "$version: \"2.0\"\nnamespace demo\n\n" + idl)
+                    .assemble()
+                    .unwrap();
+    }
+
+    @Test
+    void ofSmithy_unionAndExceptionPredicates_wireToBackingShape() {
+        Model model = smithyModel(
+            "union U { a: String }\n"
+            + "@error(\"client\") structure E { message: String }\n"
+            + "structure S { name: String }\n");
+
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#U")), model).isUnion())
+            .isTrue();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#U")), model).isException())
+            .isFalse();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#E")), model).isException())
+            .isTrue();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#S")), model).isUnion())
+            .isFalse();
+    }
+
+    @Test
+    void ofSmithy_listAndMapPredicates_notSwapped() {
+        Model model = smithyModel(
+            "list StringList { member: String }\n"
+            + "map StringMap { key: String, value: String }\n");
+
+        ShapeInfo list = ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#StringList")), model);
+        ShapeInfo map = ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#StringMap")), model);
+
+        assertThat(list.isList()).isTrue();
+        assertThat(list.isMap()).isFalse();
+        assertThat(map.isMap()).isTrue();
+        assertThat(map.isList()).isFalse();
+    }
+
+    @Test
+    void ofSmithy_isOrContainsEnum_recursesThroughListAndMap() {
+        Model model = smithyModel(
+            "enum Status { A, B }\n"
+            + "list StatusList { member: Status }\n"
+            + "map NameToStatus { key: String, value: Status }\n"
+            + "list StringList { member: String }\n");
+
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#Status")), model).isOrContainsEnum())
+            .isTrue();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#StatusList")), model).isOrContainsEnum())
+            .isTrue();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#NameToStatus")), model).isOrContainsEnum())
+            .isTrue();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#StringList")), model).isOrContainsEnum())
+            .isFalse();
+    }
+
+    @Test
+    void ofSmithy_intEnumIsAlsoOrContainsEnum() {
+        Model model = smithyModel(
+            "intEnum Priority {\n"
+            + "    LOW = 1\n"
+            + "    HIGH = 2\n"
+            + "}\n"
+            + "list Priorities { member: Priority }\n");
+
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#Priority")), model).isOrContainsEnum())
+            .isTrue();
+        assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#Priorities")), model).isOrContainsEnum())
+            .isTrue();
     }
 }

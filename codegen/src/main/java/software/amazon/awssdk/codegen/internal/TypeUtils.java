@@ -31,6 +31,9 @@ import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.document.Document;
+import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.shapes.ShapeType;
+import software.amazon.smithy.model.traits.StreamingTrait;
 
 /**
  * Used to determine the Java types for the service model.
@@ -156,6 +159,82 @@ public class TypeUtils {
                         "Equivalent Java data type cannot be found for data type : " + shapeType);
             }
             return dataType;
+        }
+    }
+
+    /**
+     * Returns the Java type string for a Smithy shape. This mirrors
+     * {@link #getJavaDataType(Map, String)} so that equivalent shapes produce
+     * the same type regardless of which model format the codegen was given.
+     *
+     * <p>Enum shapes ({@code EnumShape} and {@code IntEnumShape}) return their
+     * underlying primitive type ({@code "String"} or {@code "Integer"}). The
+     * enum class name is recorded separately on {@code MemberModel.enumType}.
+     */
+    public String getJavaDataType(Model model, software.amazon.smithy.model.shapes.Shape shape) {
+        if (shape == null) {
+            throw new IllegalArgumentException("Cannot derive shape type. Shape cannot be null");
+        }
+
+        ShapeType type = shape.getType();
+
+        switch (type) {
+            case STRUCTURE:
+            case UNION:
+                return namingStrategy.getShapeClassName(shape.getId().getName());
+            case LIST:
+            case SET: {
+                software.amazon.smithy.model.shapes.Shape member =
+                    model.expectShape(shape.asListShape().get().getMember().getTarget());
+                return DATA_TYPE_MAPPINGS.get(TypeKey.LIST_INTERFACE) + "<"
+                       + getJavaDataType(model, member) + ">";
+            }
+            case MAP: {
+                software.amazon.smithy.model.shapes.MapShape mapShape = shape.asMapShape().get();
+                software.amazon.smithy.model.shapes.Shape key =
+                    model.expectShape(mapShape.getKey().getTarget());
+                software.amazon.smithy.model.shapes.Shape value =
+                    model.expectShape(mapShape.getValue().getTarget());
+                return DATA_TYPE_MAPPINGS.get(TypeKey.MAP_INTERFACE) + "<"
+                       + getJavaDataType(model, key) + ","
+                       + getJavaDataType(model, value) + ">";
+            }
+            case BLOB:
+                if (shape.hasTrait(StreamingTrait.class)) {
+                    return DATA_TYPE_MAPPINGS.get("stream");
+                }
+                return DATA_TYPE_MAPPINGS.get("blob");
+            // Enum shapes surface their underlying primitive Java type here; the enum
+            // class name is tracked separately on MemberModel.enumType (C2J convention).
+            case STRING:
+            case ENUM:
+                return DATA_TYPE_MAPPINGS.get("string");
+            case INTEGER:
+            case INT_ENUM:
+                return DATA_TYPE_MAPPINGS.get("integer");
+            case DOCUMENT:
+                return DATA_TYPE_MAPPINGS.get("document");
+            case BOOLEAN:
+                return DATA_TYPE_MAPPINGS.get("boolean");
+            case BYTE:
+                return DATA_TYPE_MAPPINGS.get("byte");
+            case SHORT:
+                return DATA_TYPE_MAPPINGS.get("short");
+            case LONG:
+                return DATA_TYPE_MAPPINGS.get("long");
+            case FLOAT:
+                return DATA_TYPE_MAPPINGS.get("float");
+            case DOUBLE:
+                return DATA_TYPE_MAPPINGS.get("double");
+            case BIG_INTEGER:
+                return DATA_TYPE_MAPPINGS.get("biginteger");
+            case BIG_DECIMAL:
+                return DATA_TYPE_MAPPINGS.get("bigdecimal");
+            case TIMESTAMP:
+                return DATA_TYPE_MAPPINGS.get("timestamp");
+            default:
+                throw new RuntimeException(
+                    "Equivalent Java data type cannot be found for Smithy shape type: " + type);
         }
     }
 }
