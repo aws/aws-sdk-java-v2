@@ -56,10 +56,10 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      */
     @SdkAdvancedApi(
         caution = Caution.WHEN_CONFIGURED,
-        guidance = "An executor that runs on the client's I/O threads (e.g. Runnable::run) can block "
-              + "them and deadlock the client, especially when the future chain issues another "
-              + "SDK request. If you set a custom executor, verify it under your own load tests, "
-              + "including request chains that issue further SDK calls.",
+        guidance = "An executor that does not dispatch to a separate thread (e.g. Runnable::run) runs the "
+              + "completion inline on the calling thread and can deadlock the client, especially when the "
+              + "future chain issues another SDK request. If you set a custom executor, verify it under your "
+              + "own load tests, including request chains that issue further SDK calls.",
         saferAlternative = "Leave unset to use the SDK-managed per-client ThreadPoolExecutor.")
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);

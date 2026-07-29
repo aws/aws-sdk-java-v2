@@ -79,9 +79,10 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
 @SdkPublicApi
 @SdkAdvancedApi(
     caution = Caution.WHEN_IMPLEMENTED,
-    guidance = "transform() must fully drain and close the response stream and honor thread interrupts. A "
-          + "transformer that blocks or returns without consuming the stream hangs the calling thread and leaks "
-          + "the underlying HTTP connection.",
+    guidance = "transform() runs on the calling thread; for long-running work, check the thread interrupt status "
+          + "and throw InterruptedException so the SDK can stop the request in a timely manner on timeout or "
+          + "cancellation. A transformer that blocks indefinitely stalls that thread. The SDK drains and closes "
+          + "the response stream after transform() returns, so the implementation does not need to close it.",
     saferAlternative = "Prefer the ResponseTransformer.toFile/toBytes/toOutputStream/toInputStream factories.")
 public interface ResponseTransformer<ResponseT, ReturnT> {
     /**

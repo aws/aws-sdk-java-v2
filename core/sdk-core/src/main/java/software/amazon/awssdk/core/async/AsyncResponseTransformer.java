@@ -95,8 +95,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
           + "exceptionOccurred() should release any resources the attempt opened (for example an open file channel) "
           + "so retries do not leak them. onStream() receives the response body as a reactive-streams Publisher that "
           + "the implementation subscribes to, and that subscriber must comply with the reactive-streams "
-          + "specification; a subscriber that never "
-          + "requests data stalls the response.",
+          + "specification; a subscriber that never requests data stalls the response.",
     saferAlternative = "Prefer the AsyncResponseTransformer.toFile/toBytes/toBlockingInputStream factories.")
 public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
