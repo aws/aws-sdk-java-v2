@@ -24,8 +24,7 @@ import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 
 /**
  * Records invoked operation names. Registered as a global interceptor via
- * {@code software/amazon/awssdk/global/handlers/execution.interceptors} so tests can observe calls made by clients
- * they cannot configure, such as the client a generated {@code SdkWarmUpProvider} builds internally.
+ * {@code software/amazon/awssdk/global/handlers/execution.interceptors} to observe clients built inside providers.
  */
 public class OperationRecordingInterceptor implements ExecutionInterceptor {
 

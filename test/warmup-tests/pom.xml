@@ -166,6 +166,16 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
+            <!-- Fork a fresh JVM per test class so SdkWarmUp's per-JVM primed state does not leak between
+                 warm-up test classes. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <forkCount>1</forkCount>
+                    <reuseForks>false</reuseForks>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
