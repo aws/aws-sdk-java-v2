@@ -41,7 +41,6 @@ public final class AsyncApiCallMetricCollectionStage<OutputT> implements Request
     @Override
     public CompletableFuture<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         MetricCollector metricCollector = context.executionContext().metricCollector();
-        MetricUtils.collectServiceEndpointMetrics(metricCollector, input);
 
         CompletableFuture<OutputT> future = new CompletableFuture<>();
 
@@ -51,6 +50,13 @@ public final class AsyncApiCallMetricCollectionStage<OutputT> implements Request
         executeFuture.whenComplete((r, t) -> {
             long duration = System.nanoTime() - callStart;
             metricCollector.reportMetric(CoreMetric.API_CALL_DURATION, Duration.ofNanos(duration));
+
+            // Collect SERVICE_ENDPOINT after pipeline execution so that EndpointResolutionStage
+            // has applied the resolved URL to the request.
+            SdkHttpFullRequest finalRequest = context.executionContext().interceptorContext().httpRequest() != null
+                ? (SdkHttpFullRequest) context.executionContext().interceptorContext().httpRequest()
+                : input;
+            MetricUtils.collectServiceEndpointMetrics(metricCollector, finalRequest);
 
             if (t != null) {
                 future.completeExceptionally(t);

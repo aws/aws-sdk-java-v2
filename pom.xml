@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.46.18-SNAPSHOT</version>
+    <version>2.49.7-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -104,10 +104,10 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.46.17</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.46.16</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.49.6</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.49.5</awsjavasdk.previous-previous.version>
         <jackson.version>2.21.4</jackson.version>
-        <jackson.databind.version>2.21.4</jackson.databind.version>
+        <jackson.databind.version>2.21.5</jackson.databind.version>
         <jacksonjr.version>2.21.4</jacksonjr.version>
         <jackson.annotations.version>2.21</jackson.annotations.version>
         <smithy.version>1.71.0</smithy.version>
@@ -120,7 +120,7 @@
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.135.Final</netty.version>
+        <netty.version>4.1.136.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -132,7 +132,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.46.1</awscrt.version>
+        <awscrt.version>0.48.0</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>
@@ -190,7 +190,7 @@
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
-        <httpcomponents.client5.version>5.6.1</httpcomponents.client5.version>
+        <httpcomponents.client5.version>5.6.2</httpcomponents.client5.version>
         <httpcomponents.core5.version>5.4.3</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
@@ -198,7 +198,7 @@
         <!-- S3 Access Grants plugin version -->
         <s3accessgrants.version>2.4.1</s3accessgrants.version>
 
-        <lakeformations3accessgrants.version>1.4.1</lakeformations3accessgrants.version>
+        <lakeformations3accessgrants.version>1.4.3</lakeformations3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <v2.migration.tests.skip>true</v2.migration.tests.skip>
@@ -214,6 +214,15 @@
 
     <dependencies>
         <!-- Internal dependencies are managed in the bom-internal module. -->
+
+        <!-- reactive-streams-tck brings TestNG, which is needed globally so the surefire-testng provider
+             can discover TCK tests in any module without per-module surefire configuration. -->
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams-tck</artifactId>
+            <version>${reactive-streams.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -303,12 +312,24 @@
                             <include>**/*TestCase.java</include>
                         </includes>
                         <skipTests>${skip.unit.tests}</skipTests>
+                        <!-- Prevent TestNG from re-running JUnit tests -->
+                        <properties>
+                            <property>
+                                <name>junit</name>
+                                <value>false</value>
+                            </property>
+                        </properties>
                     </configuration>
                     <!-- Have to explicitly set surefire provider because reactivestreamsTCK is using TestNG-->
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit-platform</artifactId>
+                            <version>${maven.surefire.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.maven.surefire</groupId>
+                            <artifactId>surefire-testng</artifactId>
                             <version>${maven.surefire.version}</version>
                         </dependency>
                     </dependencies>
@@ -646,6 +667,7 @@
                             <exclude>*.internal.*</exclude>
                             <exclude>software.amazon.awssdk.thirdparty.*</exclude>
                             <exclude>software.amazon.awssdk.regions.*</exclude>
+                            <exclude>software.amazon.awssdk.core.client.handler.ClientExecutionParams</exclude>
                         </excludes>
 
                         <ignoreMissingOldVersion>true</ignoreMissingOldVersion>

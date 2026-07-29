@@ -40,20 +40,20 @@ public class ProfileCredentialProviderTest {
                                                  "[sso-session foo]\n" +
                                                  "sso_start_url=https//d-abc123.awsapps.com/start\n" +
                                                  "sso_region=region")
-                             , "Unable to load SSO token"),
+                             , "expired or is otherwise invalid"),
                          Arguments.of(configFile("[profile test]\n" +
                                                  "sso_account_id=accountId\n" +
                                                  "sso_role_name=roleName\n" +
                                                  "sso_session=foo\n" +
                                                  "[sso-session foo]\n" +
                                                  "sso_region=region")
-                             , "Property 'sso_start_url' was not configured for profile 'test'"),
+                             , "Property 'sso_start_url' was not configured for profile"),
                          Arguments.of(configFile("[profile test]\n" +
                                                  "sso_account_id=accountId\n" +
                                                  "sso_role_name=roleName\n" +
                                                  "sso_region=region\n" +
                                                  "sso_start_url=https//non-existing-Token/start")
-                             , "java.nio.file.NoSuchFileException")
+                             , "expired or is otherwise invalid")
 
 
         );
@@ -71,10 +71,13 @@ public class ProfileCredentialProviderTest {
     void validateSsoFactoryErrorWithIncorrectProfiles(ProfileFile profiles, String expectedValue) {
         assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
             SsoProfileCredentialsProviderFactory factory = new SsoProfileCredentialsProviderFactory();
-            assertThatThrownBy(() -> factory.create(ProfileProviderCredentialsContext.builder()
-                                                                                     .profile(profile)
-                                                                                     .profileFile(profiles)
-                                                                                     .build())).hasMessageContaining(expectedValue);
+            assertThatThrownBy(() -> {
+                factory.create(ProfileProviderCredentialsContext.builder()
+                                                               .profile(profile)
+                                                               .profileFile(profiles)
+                                                               .build())
+                       .resolveCredentials();
+            }).hasMessageContaining(expectedValue);
         });
     }
 

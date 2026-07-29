@@ -108,9 +108,11 @@ public final class CrtRequestAdapter {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 
-        // Set Content-Length if needed
+        // Set Content-Length if needed, but never alongside Transfer-Encoding. RFC 7230 forbids sending both
         Optional<Long> contentLength = sdkExecuteRequest.requestContentPublisher().contentLength();
-        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent()
+            && !sdkRequest.firstMatchingHeader(Header.TRANSFER_ENCODING).isPresent()
+            && contentLength.isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
         }
 
@@ -134,8 +136,6 @@ public final class CrtRequestAdapter {
         if (!sdkRequest.firstMatchingHeader(Header.CONNECTION).isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
-
-        // We assume content length was set by the caller if a stream was present, so don't set it here.
 
         // Add the rest of the Headers
         sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add));

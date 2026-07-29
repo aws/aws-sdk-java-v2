@@ -72,4 +72,9 @@
     <!-- ResponseHandlerHelper has helper method closeConnection() which handles safe closing of connection -->
     <suppress id="NoCrtStreamCancel"
               files=".*ResponseHandlerHelper\.java$"/>
+
+    <!-- Shared HTTP client test suites live in src/main/java so client modules can consume them;
+         allow test-style underscore method names. -->
+    <suppress checks="MethodName"
+              files=".*[\\/]http-client-tests[\\/]src[\\/]main[\\/]java[\\/].*TestSuite\.java$"/>
 </suppressions>

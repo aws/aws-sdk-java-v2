@@ -19,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
@@ -227,6 +228,17 @@ public final class DefaultS3EventNotificationWriter implements S3EventNotificati
             writer.writeEndObject();
         }
         writeStringField(writer, "arn", bucket.getArn());
+        Map<String, String> awsGeneratedTags = bucket.getAwsGeneratedTags();
+        if (awsGeneratedTags != null && !awsGeneratedTags.isEmpty()) {
+            writeStringMap(writer, "awsGeneratedTags", awsGeneratedTags);
+        }
+        writer.writeEndObject();
+    }
+
+    private void writeStringMap(JsonWriter writer, String field, Map<String, String> map) {
+        writer.writeFieldName(field);
+        writer.writeStartObject();
+        map.forEach((k, v) -> writeStringField(writer, k, v));
         writer.writeEndObject();
     }
 

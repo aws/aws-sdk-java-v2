@@ -72,10 +72,7 @@ public class ExecutionAttributeBackwardsCompatibilityTest {
                  public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
                      attributeModifications.accept(executionAttributes);
                  }
-             },
-             AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, // Endpoint rules override signing name
-             AwsSignerExecutionAttribute.SIGNING_REGION, // Endpoint rules override signing region
-             AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE); // Endpoint rules override double-url-encode
+             });
     }
 
     @Test

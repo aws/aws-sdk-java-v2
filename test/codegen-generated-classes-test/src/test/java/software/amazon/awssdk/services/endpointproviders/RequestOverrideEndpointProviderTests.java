@@ -18,16 +18,12 @@ package software.amazon.awssdk.services.endpointproviders;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.net.URI;
-import java.util.concurrent.CompletableFuture;
-import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.regions.Region;
@@ -37,6 +33,7 @@ import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpoin
 import software.amazon.awssdk.services.restjsonendpointproviders.RestJsonEndpointProvidersClientBuilder;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.RestJsonEndpointProvidersEndpointParams;
 import software.amazon.awssdk.services.restjsonendpointproviders.endpoints.RestJsonEndpointProvidersEndpointProvider;
+import org.junit.Test;
 
 public class RequestOverrideEndpointProviderTests {
 
@@ -49,34 +46,28 @@ public class RequestOverrideEndpointProviderTests {
             .build();
 
         assertThatThrownBy(() -> client.operationWithHostPrefix(
-            r -> r.overrideConfiguration(o -> o.endpointProvider(new CustomEndpointProvider(Region.AWS_GLOBAL))))
-
-        )
+            r -> r.overrideConfiguration(o -> o.endpointProvider(new CustomEndpointProvider(Region.AWS_GLOBAL)))))
             .hasMessageContaining("stop");
-        Endpoint endpoint = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-        assertThat(endpoint.url().getHost()).isEqualTo("restjson.aws-global.amazonaws.com");
+
+        assertThat(interceptor.httpRequest.host()).isEqualTo("restjson.aws-global.amazonaws.com");
     }
 
     @Test
     public void sync_endpointOverridden_equals_ClientsWhenNoRequestOverride() {
         CapturingInterceptor interceptor = new CapturingInterceptor();
-        RestJsonEndpointProvidersClient client = syncClientBuilder().endpointProvider(new CustomEndpointProvider(Region.EU_WEST_2))
+        RestJsonEndpointProvidersClient client = syncClientBuilder()
+            .endpointProvider(new CustomEndpointProvider(Region.EU_WEST_2))
             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
                                          .putAdvancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, true))
             .build();
 
         assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {})).hasMessageContaining("stop");
 
-        Endpoint endpoint = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-
-        assertThat(endpoint.url().getHost()).isEqualTo("restjson.eu-west-2.amazonaws.com");
+        assertThat(interceptor.httpRequest.host()).isEqualTo("restjson.eu-west-2.amazonaws.com");
     }
-
 
     @Test
     public void async_endpointOverridden_equals_requestOverride() {
-
-
         CapturingInterceptor interceptor = new CapturingInterceptor();
         RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
@@ -88,18 +79,14 @@ public class RequestOverrideEndpointProviderTests {
         ).join())
             .hasMessageContaining("stop");
 
-        Endpoint endpoint = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-
-        assertThat(endpoint.url().getHost()).isEqualTo("restjson.aws-global.amazonaws.com");
+        assertThat(interceptor.httpRequest.host()).isEqualTo("restjson.aws-global.amazonaws.com");
     }
-
 
     @Test
     public void async_endpointOverridden_equals_ClientsWhenNoRequestOverride() {
-
-
         CapturingInterceptor interceptor = new CapturingInterceptor();
-        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder().endpointProvider(new CustomEndpointProvider(Region.EU_WEST_2))
+        RestJsonEndpointProvidersAsyncClient client = asyncClientBuilder()
+            .endpointProvider(new CustomEndpointProvider(Region.EU_WEST_2))
             .overrideConfiguration(o -> o.addExecutionInterceptor(interceptor)
                                          .putAdvancedOption(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, true))
             .build();
@@ -107,23 +94,16 @@ public class RequestOverrideEndpointProviderTests {
         assertThatThrownBy(() -> client.operationWithHostPrefix(r -> {}).join())
             .hasMessageContaining("stop");
 
-        Endpoint endpoint = interceptor.executionAttributes().getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-
-        assertThat(endpoint.url().getHost()).isEqualTo("restjson.eu-west-2.amazonaws.com");
+        assertThat(interceptor.httpRequest.host()).isEqualTo("restjson.eu-west-2.amazonaws.com");
     }
 
     public static class CapturingInterceptor implements ExecutionInterceptor {
-
-        private ExecutionAttributes executionAttributes;
+        private SdkHttpRequest httpRequest;
 
         @Override
-        public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-            this.executionAttributes = executionAttributes;
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+            this.httpRequest = context.httpRequest();
             throw new CaptureCompletedException("stop");
-        }
-
-        public ExecutionAttributes executionAttributes() {
-            return executionAttributes;
         }
 
         public class CaptureCompletedException extends RuntimeException {
@@ -132,6 +112,7 @@ public class RequestOverrideEndpointProviderTests {
             }
         }
     }
+
     private RestJsonEndpointProvidersClientBuilder syncClientBuilder() {
         return RestJsonEndpointProvidersClient.builder()
                                               .region(Region.US_WEST_2)
@@ -142,23 +123,23 @@ public class RequestOverrideEndpointProviderTests {
 
     private RestJsonEndpointProvidersAsyncClientBuilder asyncClientBuilder() {
         return RestJsonEndpointProvidersAsyncClient.builder()
-                                            .region(Region.US_WEST_2)
-                                            .credentialsProvider(
-                                                StaticCredentialsProvider.create(
-                                                    AwsBasicCredentials.create("akid", "skid")));
+                                                   .region(Region.US_WEST_2)
+                                                   .credentialsProvider(
+                                                       StaticCredentialsProvider.create(
+                                                           AwsBasicCredentials.create("akid", "skid")));
     }
 
+    public static class CustomEndpointProvider implements RestJsonEndpointProvidersEndpointProvider {
+        private final Region region;
 
-    class CustomEndpointProvider implements RestJsonEndpointProvidersEndpointProvider{
-        final RestJsonEndpointProvidersEndpointProvider endpointProvider;
-        final Region overridingRegion;
-        CustomEndpointProvider (Region region){
-            this.endpointProvider = RestJsonEndpointProvidersEndpointProvider.defaultProvider();
-            this.overridingRegion = region;
+        CustomEndpointProvider(Region region) {
+            this.region = region;
         }
+
         @Override
-        public CompletableFuture<Endpoint> resolveEndpoint(RestJsonEndpointProvidersEndpointParams endpointParams) {
-            return endpointProvider.resolveEndpoint(endpointParams.toBuilder().region(overridingRegion).build());
+        public java.util.concurrent.CompletableFuture<Endpoint> resolveEndpoint(RestJsonEndpointProvidersEndpointParams params) {
+            return RestJsonEndpointProvidersEndpointProvider.defaultProvider()
+                .resolveEndpoint(params.toBuilder().region(region).build());
         }
     }
 }

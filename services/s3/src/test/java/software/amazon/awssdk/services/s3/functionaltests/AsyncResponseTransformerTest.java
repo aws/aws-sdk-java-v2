@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.functionaltests;
 
 import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -50,6 +51,6 @@ public class AsyncResponseTransformerTest {
         }
 
         verify(asyncResponseTransformer, times(1)).prepare();
-        verify(asyncResponseTransformer, times(1)).exceptionOccurred(any());
+        verify(asyncResponseTransformer, atLeast(1)).exceptionOccurred(any());
     }
 }

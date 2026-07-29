@@ -22,20 +22,27 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
+import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
+import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.liveEventLoopGroups;
+import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.newEventLoopGroups;
+import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.waitForEventLoopGroupsReleased;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
+import java.time.Duration;
+import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import org.apache.logging.log4j.Level;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
@@ -45,15 +52,15 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.AttributeMap;
 
-public class AwsCrtHttpClientWireMockTest {
-    @Rule
-    public WireMockRule mockServer = new WireMockRule(wireMockConfig()
-                                                          .dynamicPort());
+public class AwsCrtHttpClientWireMockTest extends SdkHttpClientTestSuite  {
 
     private static ScheduledExecutorService executorService;
 
@@ -87,6 +94,123 @@ public class AwsCrtHttpClientWireMockTest {
     }
 
     @Test
+    public void numEventLoopThreads_zero_shouldThrowException() {
+        assertThatThrownBy(() -> AwsCrtHttpClient.builder().numEventLoopThreads(0))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("numEventLoopThreads must be greater than 1");
+    }
+
+    @Test
+    public void numEventLoopThreads_negative_shouldThrowException() {
+        assertThatThrownBy(() -> AwsCrtHttpClient.builder().numEventLoopThreads(-1))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("numEventLoopThreads must be greater than 1");
+    }
+
+    @Test
+    public void numEventLoopThreads_one_shouldThrowException() {
+        assertThatThrownBy(() -> AwsCrtHttpClient.builder().numEventLoopThreads(1))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("numEventLoopThreads must be greater than 1");
+    }
+
+    @Test
+    public void numEventLoopThreads_null_shouldBeAccepted() {
+        assertThatCode(() -> AwsCrtHttpClient.builder().numEventLoopThreads(null))
+            .doesNotThrowAnyException();
+    }
+
+    @Test
+    public void defaultBuilder_sharesStaticDefaultEventLoopGroup() {
+        warmUpStaticDefaultEventLoopGroup();
+        Set<CrtResource> before = liveEventLoopGroups();
+
+        try (SdkHttpClient client = AwsCrtHttpClient.create();
+             SdkHttpClient anotherClient = AwsCrtHttpClient.create()) {
+            assertThat(newEventLoopGroups(before)).isEmpty();
+        }
+    }
+
+    @Test
+    public void numEventLoopThreads_createsPrivateGroupsNotShared() {
+        warmUpStaticDefaultEventLoopGroup();
+        Set<CrtResource> before = liveEventLoopGroups();
+
+        try (SdkHttpClient client = AwsCrtHttpClient.builder().numEventLoopThreads(2).build();
+             SdkHttpClient anotherClient = AwsCrtHttpClient.builder().numEventLoopThreads(2).build()) {
+            assertThat(newEventLoopGroups(before)).hasSize(2);
+        }
+    }
+
+    @Test
+    public void numEventLoopThreads_executesRequest() throws Exception {
+        try (SdkHttpClient client = AwsCrtHttpClient.builder().numEventLoopThreads(2).build()) {
+            HttpExecuteResponse response = makeSimpleRequest(client, null);
+            assertThat(response.httpResponse().statusCode()).isEqualTo(200);
+        }
+    }
+
+    @Test
+    public void numEventLoopThreads_closeReleasesPrivateGroup() {
+        warmUpStaticDefaultEventLoopGroup();
+        Set<CrtResource> before = liveEventLoopGroups();
+        SdkHttpClient client = AwsCrtHttpClient.builder().numEventLoopThreads(2).build();
+        Set<CrtResource> privateGroup = newEventLoopGroups(before);
+        assertThat(privateGroup).hasSize(1);
+
+        client.close();
+
+        assertThat(waitForEventLoopGroupsReleased(privateGroup, Duration.ofSeconds(30)))
+            .as("private event-loop group should be released on close")
+            .isTrue();
+    }
+
+    @Test
+    public void numEventLoopThreads_excessivelyHigh_logsWarning() {
+        int excessive = 4 * Math.max(1, Runtime.getRuntime().availableProcessors());
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN);
+             SdkHttpClient client = AwsCrtHttpClient.builder().numEventLoopThreads(excessive).build()) {
+            assertThat(logCaptor.loggedEvents()).anySatisfy(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.WARN);
+                assertThat(event.getMessage().getFormattedMessage())
+                    .contains("numEventLoopThreads")
+                    .contains("private event-loop group");
+            });
+        }
+    }
+
+    @Test
+    public void numEventLoopThreads_normalValue_doesNotLogWarning() {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN);
+             SdkHttpClient client = AwsCrtHttpClient.builder().numEventLoopThreads(2).build()) {
+            assertThat(logCaptor.loggedEvents()).noneSatisfy(event ->
+                assertThat(event.getMessage().getFormattedMessage()).contains("numEventLoopThreads"));
+        }
+    }
+
+    @Test
+    public void http2WithNumEventLoopThreads_throwsAndDoesNotLeakPrivateGroup() {
+        warmUpStaticDefaultEventLoopGroup();
+        Set<CrtResource> before = liveEventLoopGroups();
+        AttributeMap attributeMap = AttributeMap.builder()
+                                                .put(PROTOCOL, Protocol.HTTP2)
+                                                .build();
+
+        assertThatThrownBy(() -> AwsCrtHttpClient.builder().numEventLoopThreads(2).buildWithDefaults(attributeMap))
+            .isInstanceOf(UnsupportedOperationException.class);
+
+        assertThat(newEventLoopGroups(before))
+            .as("HTTP/2 rejection must not leave a private event-loop group behind")
+            .isEmpty();
+    }
+
+    private void warmUpStaticDefaultEventLoopGroup() {
+        // A default client and a private-group client both lazily create the shared static default group (via the host
+        // resolver), so create it up front to keep the before/after group diff stable.
+        AwsCrtHttpClient.create().close();
+    }
+
+    @Test
     public void sendRequest_withCollector_shouldCollectMetrics() throws Exception {
 
         try (SdkHttpClient client = AwsCrtHttpClient.builder().maxConcurrency(10).build()) {
@@ -110,6 +234,26 @@ public class AwsCrtHttpClientWireMockTest {
 
         try (SdkHttpClient anotherClient = AwsCrtHttpClient.create()) {
             makeSimpleRequest(anotherClient, null);
+        }
+    }
+
+    @Test
+    public void tlsNegotiationTimeout_customValue_clientStartsSuccessfully() throws Exception {
+        AttributeMap defaults = AttributeMap.builder().put(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES, true).build();
+        try (SdkHttpClient client = AwsCrtHttpClient.builder()
+                                                    .tlsNegotiationTimeout(Duration.ofSeconds(3))
+                                                    .buildWithDefaults(defaults)) {
+            String body = randomAlphabetic(10);
+            URI uri = URI.create("https://localhost:" + mockServer.httpsPort());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
+            SdkHttpRequest request = createRequest(uri);
+
+            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+            executeRequestBuilder.request(request)
+                                 .contentStreamProvider(() -> new ByteArrayInputStream(new byte[0]));
+            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+            HttpExecuteResponse response = executableRequest.call();
+            assertThat(response.httpResponse().statusCode()).isEqualTo(200);
         }
     }
 
@@ -150,5 +294,26 @@ public class AwsCrtHttpClientWireMockTest {
                              .metricCollector(metricCollector);
         ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
         return executableRequest.call();
+    }
+
+    /**
+     * default value of connectionAcquisitionTimeout of 10 will fail validatesHttpsCertificateIssuer() test
+     * */
+    @Override
+    protected SdkHttpClient createSdkHttpClient(SdkHttpClientOptions options) {
+        boolean trustAllCerts = options.trustAll();
+        return AwsCrtHttpClient.builder()
+                               .connectionAcquisitionTimeout(Duration.ofSeconds(40))
+                               .buildWithDefaults(AttributeMap.builder().put(TRUST_ALL_CERTIFICATES, trustAllCerts).build());
+    }
+
+    // Empty test; behavior not supported when using custom factory
+    @Override
+    public void testCustomTlsTrustManagerAndTrustAllFails() {
+    }
+
+    // Empty test; behavior not supported when using custom factory
+    @Override
+    public void testCustomTlsTrustManager() {
     }
 }

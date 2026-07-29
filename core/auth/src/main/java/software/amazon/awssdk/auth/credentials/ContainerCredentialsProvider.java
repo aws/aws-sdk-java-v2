@@ -307,11 +307,7 @@ public final class ContainerCredentialsProvider
         }
 
         public boolean isMetadataServiceEndpoint(String host) {
-            String mode = SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT_MODE.getStringValueOrThrow();
-            if ("IPV6".equalsIgnoreCase(mode)) {
-                return VALID_LOOP_BACK_IPV6.contains(host);
-            }
-            return VALID_LOOP_BACK_IPV4.contains(host);
+            return VALID_LOOP_BACK_IPV4.contains(host) || VALID_LOOP_BACK_IPV6.contains(host);
         }
     }
 

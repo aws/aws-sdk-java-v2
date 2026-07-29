@@ -28,12 +28,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
+import software.amazon.awssdk.awscore.internal.identity.AwsRequestIdentityProviderResolver;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
@@ -147,8 +149,25 @@ public final class AwsExecutionContextBuilder {
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
 
+        if (executionParams.authSchemeOptionsResolver() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+                                             executionParams.authSchemeOptionsResolver());
+        }
+
+        if (executionParams.endpointResolver() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER,
+                                             executionParams.endpointResolver());
+        }
+
+        // Set the identity provider resolver for the pipeline stage to use
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER,
+                                         AwsRequestIdentityProviderResolver.create());
+
         ExecutionInterceptorChain executionInterceptorChain =
             new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
 
         InterceptorContext interceptorContext = InterceptorContext.builder()
                                                                   .request(originalRequest)
@@ -172,6 +191,13 @@ public final class AwsExecutionContextBuilder {
                                          resolveSigningMethodUsed(
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
+
+        Signer resolvedSigner = signer;
+        AwsCredentials capturedCredentials = executionAttributes.getOptionalAttribute(
+            AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER, attrs ->
+            attrs.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                               resolveSigningMethodUsed(resolvedSigner, attrs, capturedCredentials)));
 
         putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
         putHttpClientConfigTypeMetadata(executionAttributes, clientConfig);
@@ -292,8 +318,7 @@ public final class AwsExecutionContextBuilder {
 
     private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
                                                               SdkClientConfiguration clientConfig) {
-        IdentityProviders identityProviders =
-            clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
+        IdentityProviders identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
 
         // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
         // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
@@ -306,12 +331,10 @@ public final class AwsExecutionContextBuilder {
             .overrideConfiguration()
             .filter(c -> c instanceof AwsRequestOverrideConfiguration)
             .map(c -> (AwsRequestOverrideConfiguration) c)
-            .map(c -> {
-                return identityProviders.copy(b -> {
-                    c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
-                    c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
-                });
-            })
+            .map(c -> identityProviders.copy(b -> {
+                c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
+                c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
+            }))
             .orElse(identityProviders);
     }
 
@@ -377,7 +400,7 @@ public final class AwsExecutionContextBuilder {
     }
 
     private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection
-        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig, 
+        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig,
                                         ClientExecutionParams<InputT, OutputT> executionParams) {
         BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
         Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
@@ -395,4 +418,5 @@ public final class AwsExecutionContextBuilder {
         return protocolMetadata != null &&
                SMITHY_RPC_V2_CBOR.toString().equals(protocolMetadata.serviceProtocol());
     }
+
 }

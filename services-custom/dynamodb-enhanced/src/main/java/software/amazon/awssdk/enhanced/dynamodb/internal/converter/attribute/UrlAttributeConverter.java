@@ -55,7 +55,7 @@ public final class UrlAttributeConverter implements AttributeConverter<URL> {
 
     @Override
     public AttributeValue transformFrom(URL input) {
-        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.createS(STRING_CONVERTER.toString(input));
     }
 
     @Override
