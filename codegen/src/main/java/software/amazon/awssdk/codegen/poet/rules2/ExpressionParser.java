@@ -334,6 +334,13 @@ public final class ExpressionParser {
             tokenizer.expectAtEof("negative indexed access");
             return indexedAccessBuilder.build();
         }
+        if (tokenizer.isNegativeIndexedAccess()) {
+            IndexedAccessExpression.Builder indexedAccessBuilder = IndexedAccessExpression.builder();
+            tokenizer.consumeNegativeIndexed((n, i) -> indexedAccessBuilder.source(memberAccessBuilder.name(n).build())
+                                                                           .index(i));
+            tokenizer.expectAtEof("negative indexed access");
+            return indexedAccessBuilder.build();
+        }
         if (tokenizer.isIdentifier()) {
             tokenizer.consumeIdentifier(memberAccessBuilder::name);
             tokenizer.expectAtEof("member access");

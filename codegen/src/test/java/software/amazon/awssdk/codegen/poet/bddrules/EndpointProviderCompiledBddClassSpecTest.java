@@ -15,16 +15,52 @@
 
 package software.amazon.awssdk.codegen.poet.bddrules;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.poet.rules2.bdd.BddEndpointProviderSpec;
 
 public class EndpointProviderCompiledBddClassSpecTest {
+
     @Test
-    public void endpointProviderClass() {
-        ClassSpec endpointProviderSpec = new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints());
-        // Verify it generates without throwing
-        endpointProviderSpec.poetSpec();
+    public void endpointProviderClass_generatesWithoutError() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints());
+        assertThat(spec.poetSpec()).isNotNull();
+    }
+
+    /**
+     * The S3 BDD merges results that differ only in their auth scheme name, so the name is resolved at runtime via
+     * {@code DynamicEndpointAuthSchemeFactory.create(name)}. The sibling properties must still be emitted, otherwise
+     * the signing configuration would be silently dropped.
+     */
+    @Test
+    public void dynamicAuthSchemeName_delegatesToFactoryAndKeepsProperties() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints());
+
+        String generated = spec.poetSpec().toString();
+
+        assertThat(generated).contains("DynamicEndpointAuthSchemeFactory.builder()");
+        assertThat(generated).contains(".create(_s3e_auth)");
+        // Properties alongside the dynamic name must be carried through to the factory.
+        assertThat(generated).contains(".signingName(\"s3express\")");
+        assertThat(generated).contains(".disableDoubleEncoding(true)");
+        // The dynamic factory must never be emitted with a trailing build() - create(name) terminates the chain.
+        assertThat(generated).doesNotContain("DynamicEndpointAuthSchemeFactory.builder().build()");
+    }
+
+    /**
+     * {@code DynamicEndpointAuthSchemeFactory} is S3-specific, so a dynamically resolved auth scheme name in any other
+     * service must fail codegen rather than emitting code that cannot compile.
+     */
+    @Test
+    public void dynamicAuthSchemeName_withoutS3ExpressCustomization_failsCodegen() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints(false));
+
+        assertThatThrownBy(spec::poetSpec)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("useS3ExpressSessionAuth")
+            .hasMessageContaining("resolved at runtime");
     }
 }

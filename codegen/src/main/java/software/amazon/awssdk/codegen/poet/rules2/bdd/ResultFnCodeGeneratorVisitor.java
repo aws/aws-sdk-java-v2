@@ -55,24 +55,29 @@ import software.amazon.awssdk.endpoints.Endpoint;
 
 public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleType> {
     private static final Logger log = LoggerFactory.getLogger(RuleExpressionVisitor.class);
+
+    private static final ClassName DYNAMIC_ENDPOINT_AUTH_SCHEME_FACTORY =
+        ClassName.get("software.amazon.awssdk.services.s3.endpoints.authscheme", "DynamicEndpointAuthSchemeFactory");
+
     private final CodeBlock.Builder builder;
-    private final ClassName dynamicAuthBuilderType;
     private final RuleRuntimeTypeMirror typeMirror;
     private final Map<String, RegistryInfo> registerInfoMap;
     private final Map<String, KeyTypePair> knownEndpointAttributes;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
+    private final boolean useS3ExpressSessionAuth;
 
     public ResultFnCodeGeneratorVisitor(
-        CodeBlock.Builder builder, ClassName dynamicAuthBuilderType, RuleRuntimeTypeMirror typeMirror,
+        CodeBlock.Builder builder, RuleRuntimeTypeMirror typeMirror,
         Map<String, RegistryInfo> registerInfoMap,
         Map<String, KeyTypePair> knownEndpointAttributes,
-        EndpointRulesSpecUtils endpointRulesSpecUtils) {
+        EndpointRulesSpecUtils endpointRulesSpecUtils,
+        boolean useS3ExpressSessionAuth) {
         this.builder = builder;
-        this.dynamicAuthBuilderType = dynamicAuthBuilderType;
         this.typeMirror = typeMirror;
         this.registerInfoMap = registerInfoMap;
         this.knownEndpointAttributes = knownEndpointAttributes;
         this.endpointRulesSpecUtils = endpointRulesSpecUtils;
+        this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
     }
 
     @Override
@@ -310,23 +315,51 @@ public class ResultFnCodeGeneratorVisitor implements RuleExpressionVisitor<RuleT
             throw new RuntimeException("Expecting properties, got: " + e);
         }
         PropertiesExpression expr = (PropertiesExpression) e;
-        // use static/codegen classes to build authscheme
-        if (expr.properties().get("name").kind() == RuleExpression.RuleExpressionKind.STRING_VALUE) {
-            String name = stringValueOf(expr.properties().get("name"));
-            builder.add("$T.builder()", authSchemeClass(name));
-            expr.properties().forEach((k, v) -> {
-                if (!"name".equals(k)) {
-                    builder.add(".$L(", k);
-                    v.accept(this);
-                    builder.add(")");
-                }
-            });
+        RuleExpression nameExpr = expr.properties().get("name");
+        boolean isStaticName = nameExpr.kind() == RuleExpression.RuleExpressionKind.STRING_VALUE;
+
+        if (isStaticName) {
+            // The name is a literal, so the concrete auth scheme type is known at codegen time.
+            builder.add("$T.builder()", authSchemeClass(stringValueOf(nameExpr)));
+        } else {
+            validateDynamicAuthSchemeSupported(nameExpr);
+            builder.add("$T.builder()", DYNAMIC_ENDPOINT_AUTH_SCHEME_FACTORY);
+        }
+
+        // Property emission is identical for both paths: the dynamic factory declares the same property
+        // setters as the concrete auth scheme builders.
+        expr.properties().forEach((k, v) -> {
+            if (!"name".equals(k)) {
+                builder.add(".$L(", k);
+                v.accept(this);
+                builder.add(")");
+            }
+        });
+
+        if (isStaticName) {
             builder.add(".build()");
         } else {
-            // dynamic case, we need to evaluate the name expression and use a dynamic builder for the endpoint auth scheme
-            builder.add("$T.builder().name(", dynamicAuthBuilderType);
-            expr.properties().get("name").accept(this);
-            builder.add(").build()");
+            // Defer the type selection to runtime by passing the resolved name to the factory.
+            builder.add(".create(");
+            nameExpr.accept(this);
+            builder.add(")");
+        }
+    }
+
+    /**
+     * A dynamically resolved auth scheme name means the BDD merged two results that differed only in their auth scheme
+     * name, lifting the difference into a runtime conditional. S3 is the only service where this occurs (choosing
+     * between {@code sigv4} and {@code sigv4-s3express}), and {@code DynamicEndpointAuthSchemeFactory} is S3-specific,
+     * so fail fast rather than generating code that will not compile.
+     */
+    private void validateDynamicAuthSchemeSupported(RuleExpression nameExpr) {
+        if (!useS3ExpressSessionAuth) {
+            throw new IllegalStateException(
+                "Endpoint ruleset contains an auth scheme whose name is resolved at runtime (" + nameExpr + "), but the "
+                + "'useS3ExpressSessionAuth' customization is not enabled for this service. Dynamically resolved auth "
+                + "scheme names are currently only supported for S3, which selects between 'sigv4' and 'sigv4-s3express' "
+                + "via " + DYNAMIC_ENDPOINT_AUTH_SCHEME_FACTORY.reflectionName() + ". If another service now requires this, "
+                + "add an equivalent factory for it and extend this check to cover it.");
         }
     }
 

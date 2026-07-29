@@ -19,14 +19,12 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -34,7 +32,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.EndpointAuthSchemeConfig;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -64,9 +61,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private final RuleRuntimeTypeMirror typeMirror;
     private final Map<String, RegistryInfo> registerInfoMap;
     private final ClassName evaluatorType;
-    private final ClassName conditionFnType;
-    private final ClassName resultFnType;
-    private final ClassName dynamicAuthBuilderType;
 
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -77,9 +71,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
         this.knownEndpointAttributes = knownEndpointAttributes(intermediateModel);
         this.registerInfoMap = buildRegisterInfoMap();
         this.evaluatorType = className().nestedClass("Evaluator");
-        this.conditionFnType = className().nestedClass("ConditionFn");
-        this.resultFnType = className().nestedClass("ResultFn");
-        this.dynamicAuthBuilderType = className().nestedClass("DynamicAuthBuilder");
     }
 
     @Override
@@ -88,7 +79,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
                                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
                                             .addType(evaluatorClass())
-                                            .addType(dynamicAuthBuilderClass())
                                             .addField(bddDefinition())
                                             .addStaticBlock(staticInitLoadBddDefinition())
                                             .addAnnotation(SdkInternalApi.class);
@@ -184,53 +174,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
         return methodSpec.build();
     }
 
-    // TODO: We can optimize this out in many cases
-    private TypeSpec dynamicAuthBuilderClass() {
-        TypeSpec.Builder builder =
-            TypeSpec.classBuilder(dynamicAuthBuilderType)
-                    .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
-                    .addField(FieldSpec.builder(String.class, "name").build())
-                    .addField(FieldSpec.builder(
-                                          ParameterizedTypeName.get(
-                                              Map.class,
-                                              String.class,
-                                              String.class),
-                                          "properties",
-                                          Modifier.PRIVATE)
-                                      .initializer("new $T<>()", HashMap.class)
-                                      .build())
-                    .addMethod(MethodSpec.methodBuilder("builder")
-                                        .addModifiers(Modifier.STATIC, Modifier.PUBLIC)
-                                        .returns(dynamicAuthBuilderType)
-                                        .addStatement("return new $T()", dynamicAuthBuilderType)
-                                        .build())
-                    .addMethod(MethodSpec.methodBuilder("name")
-                                        .addParameter(String.class, "name")
-                                        .returns(dynamicAuthBuilderType)
-                                        .addCode(CodeBlock.builder()
-                                                          .addStatement("this.name = name")
-                                                          .addStatement("return this")
-                                                          .build())
-                                        .build())
-                    .addMethod(MethodSpec.methodBuilder("property")
-                                        .addParameter(String.class, "key")
-                                        .addParameter(String.class, "value")
-                                        .returns(dynamicAuthBuilderType)
-                                        .addCode(CodeBlock.builder()
-                                                          .addStatement("properties.put(key, value)")
-                                                          .addStatement("return this")
-                                                          .build())
-                                        .build());
-
-        builder.addMethod(MethodSpec.methodBuilder("build")
-                                    .addModifiers(Modifier.PUBLIC)
-                                    .returns(EndpointAuthScheme.class)
-                                    // TODO
-                                    .addCode(CodeBlock.builder().addStatement("return null").build())
-                                    .build());
-        return builder.build();
-    }
-
     // generate the BDD_DEFINITION array which defines the nodes in a compact form:
     // an array of 3*numNodes.  3 integers per node, (conditionRef, highRef, lowRef)
     private FieldSpec bddDefinition() {
@@ -272,8 +215,8 @@ public class BddEndpointProviderSpec implements ClassSpec {
                 .parseRuleSetExpression(endpointBddModel.getResults().get(rI))
                 .accept(new PrepareForCodegenVisitor());
             parsedSynthetic.accept(new ResultFnCodeGeneratorVisitor(
-                codeBuilder, dynamicAuthBuilderType, typeMirror, registerInfoMap,
-                knownEndpointAttributes, endpointRulesSpecUtils));
+                codeBuilder, typeMirror, registerInfoMap, knownEndpointAttributes, endpointRulesSpecUtils,
+                intermediateModel.getCustomizationConfig().useS3ExpressSessionAuth()));
             methods.add(MethodSpec
                             .methodBuilder("result" + rI)
                             .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
