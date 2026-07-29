@@ -18,6 +18,9 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointMode;
 import software.amazon.awssdk.awscore.endpoints.AccountIdEndpointModeResolver;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPlugin;
@@ -114,10 +117,10 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
             c -> {
                 Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
-                                                                                                  .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
-                                                                                                  .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
-                                                                                                  .serviceProfileProperty("query_service").profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                                                                                  .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+                                                                          .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
+                                                                          .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
+                                                                          .serviceProfileProperty("query_service").profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                          .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
                 if (overrideEndpoint.isPresent()) {
                     return ClientEndpointProvider.create(overrideEndpoint.get(), true);
                 }
@@ -140,6 +143,31 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
                                                     + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
                 }
                 return ClientEndpointProvider.create(clientEndpointUri, false);
+            });
+        builder.lazyOptionIfAbsent(
+            AwsClientOption.SIGNING_REGION,
+            c -> {
+                Region region = c.get(AwsClientOption.AWS_REGION);
+                try {
+                    QueryEndpointParams endpointParams = QueryEndpointParams.builder().region(region)
+                                                                            .useDualStack(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
+                                                                            .useFips(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build();
+                    Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                        endpointParams));
+                    List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+                    if (authSchemes != null && !authSchemes.isEmpty()) {
+                        EndpointAuthScheme firstScheme = authSchemes.get(0);
+                        if (firstScheme instanceof SigV4AuthScheme) {
+                            String signingRegion = ((SigV4AuthScheme) firstScheme).signingRegion();
+                            if (signingRegion != null) {
+                                return Region.of(signingRegion);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Endpoint resolution failed. Fall back to using the client region as signing region.
+                }
+                return region;
             });
         SdkClientConfiguration clientConfig = config;
         builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));

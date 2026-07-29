@@ -88,7 +88,6 @@
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
         <module>test/auth-tests</module>
-        <module>test/region-testing</module>
         <module>test/ruleset-testing-core</module>
         <module>test/service-client-backward-compat-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
