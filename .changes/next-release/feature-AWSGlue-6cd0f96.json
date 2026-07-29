@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Glue",
+    "contributor": "",
+    "description": "Adding filtering, partitioning, and VPC support to AWS Glue REST API connector"
+}
