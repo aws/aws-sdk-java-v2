@@ -153,6 +153,142 @@ public class EndpointUrlTest {
     }
 
     @Test
+    void malformedUrl_noScheme_messageExplainsSchemeIsRequired() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("lambda.us-east-1.amazonaws.com"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("lambda.us-east-1.amazonaws.com")
+            .hasMessageContaining("scheme")
+            .hasMessageContaining("required")
+            .hasMessageContaining("https://");
+    }
+
+    static List<String> userInfoUrls() {
+        return Arrays.asList(
+            "https://user:pass@example.com",
+            "https://user@example.com",
+            "https://user:pass@example.com:8443/path",
+            "https://user@example.com:8443",
+            "https://@example.com"
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("userInfoUrls")
+    void fromString_userInfo_excludedFromHostMatchingUri(String url) {
+        EndpointUrl endpointUrl = EndpointUrl.fromString(url);
+        URI uri = URI.create(url);
+
+        assertThat(endpointUrl.host()).isEqualTo(uri.getHost());
+        assertThat(endpointUrl.port()).isEqualTo(uri.getPort());
+        assertThat(endpointUrl.encodedPath()).isEqualTo(uri.getRawPath());
+    }
+
+    @ParameterizedTest
+    @MethodSource("userInfoUrls")
+    void fromString_userInfo_retainedInToUri(String url) {
+        assertThat(EndpointUrl.fromString(url).toUri()).isEqualTo(URI.create(url));
+    }
+
+    @Test
+    void fromString_userInfoContainingColon_doesNotParseAsPort() {
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://user:pass@example.com");
+        assertThat(endpointUrl.host()).isEqualTo("example.com");
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+    }
+
+    @Test
+    void fromString_trailingColonWithNoPort_portIsUnset() {
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com:");
+        assertThat(endpointUrl.host()).isEqualTo("example.com");
+        assertThat(endpointUrl.port()).isEqualTo(URI.create("https://example.com:").getPort());
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+    }
+
+    @Test
+    void fromString_trailingColonWithPath_portIsUnset() {
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com:/path");
+        assertThat(endpointUrl.host()).isEqualTo("example.com");
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+        assertThat(endpointUrl.encodedPath()).isEqualTo("/path");
+    }
+
+    @Test
+    void fromString_nonNumericPort_throwsWithActionableMessage() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("https://example.com:notanumber"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("https://example.com:notanumber")
+            .hasMessageContaining("port")
+            .hasMessageContaining("notanumber");
+    }
+
+    @Test
+    void fromString_negativePort_throws() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("https://example.com:-1"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("port");
+    }
+
+    @Test
+    void fromString_portOutOfIntRange_throws() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("https://example.com:99999999999"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("out of range");
+    }
+
+    @Test
+    void fromString_multipleColonsInAuthority_throws() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("https://example.com:80:90"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("host");
+    }
+
+    @Test
+    void fromString_unbracketedIpv6_throws() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("https://::1/path"))
+            .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void fromString_ipv6MissingClosingBracket_throws() {
+        assertThatThrownBy(() -> EndpointUrl.fromString("https://[::1:8080"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("IPv6");
+    }
+
+    @Test
+    void fromString_ipv6WithUserInfo() {
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://user:pass@[::1]:8080/path");
+        assertThat(endpointUrl.host()).isEqualTo("[::1]");
+        assertThat(endpointUrl.port()).isEqualTo(8080);
+        assertThat(endpointUrl.encodedPath()).isEqualTo("/path");
+    }
+
+    @Test
+    void fromString_ipv6NoPortWithPath_portIsUnset() {
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://[2001:db8::1]/path");
+        assertThat(endpointUrl.host()).isEqualTo("[2001:db8::1]");
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+        assertThat(endpointUrl.encodedPath()).isEqualTo("/path");
+    }
+
+    @Test
+    void fromString_userInfoWithSlashInPath_authorityScanStopsAtPath() {
+        // The '@' and ':' delimiters must only be looked for inside the authority, never in the path.
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com/path/with@at/and:colon");
+        assertThat(endpointUrl.host()).isEqualTo("example.com");
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+        assertThat(endpointUrl.encodedPath()).isEqualTo("/path/with@at/and:colon");
+    }
+
+    @Test
+    void fromString_atAndColonInQuery_notTreatedAsAuthority() {
+        EndpointUrl endpointUrl = EndpointUrl.fromString("https://example.com?a=b@c:1");
+        assertThat(endpointUrl.host()).isEqualTo("example.com");
+        assertThat(endpointUrl.port()).isEqualTo(-1);
+        assertThat(endpointUrl.queryAndFragment()).isEqualTo("?a=b@c:1");
+    }
+
+    @Test
     void fromString_noPath_encodedPathIsEmpty() {
         EndpointUrl endpointUrl = EndpointUrl.fromString("https://dynamodb.us-west-2.amazonaws.com");
         assertThat(endpointUrl.encodedPath()).isEmpty();

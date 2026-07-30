@@ -58,46 +58,60 @@ public final class EndpointUrl {
     /**
      * Parse a URL string into its components without constructing a {@link URI}.
      *
-     * <p>Performs minimal string splitting only — no validation beyond checking for the {@code ://} separator.
-     * The original URL string is retained for faithful URI reconstruction via {@link #toUri()}. Path, query and fragment
-     * components (if present) MUST already be url encoded.
+     * <p>Performs minimal string splitting only. The original URL string is retained for faithful URI reconstruction
+     * via {@link #toUri()}. Path, query and fragment components (if present) MUST already be url encoded.
      *
-     * <p>Expected format: {@code scheme://host[:port][/encodedPath][?query][#fragment]}
+     * <p>Expected format: {@code scheme://[userinfo@]host[:port][/encodedPath][?query][#fragment]}
+     *
+     * <p>Component extraction matches {@link URI} for well-formed URLs:
+     * <ul>
+     *   <li>Userinfo is excluded from {@link #host()}, matching {@link URI#getHost()}. It remains part of the
+     *       string returned by {@link #toUri()}, matching {@link URI#toString()}.</li>
+     *   <li>A trailing {@code ':'} with no digits (e.g. {@code https://example.com:}) yields a port of {@code -1},
+     *       matching {@link URI#getPort()}.</li>
+     *   <li>An IPv6 literal is stored with its enclosing brackets (e.g. {@code [::1]}).</li>
+     * </ul>
      *
      * @param url the URL string to parse
      * @return a new {@code EndpointUrl} with pre-parsed components
-     * @throws IllegalArgumentException if the URL does not contain {@code ://}
+     * @throws IllegalArgumentException if the URL has no scheme, has a non-numeric or out-of-range port, has more
+     *                                  than one {@code ':'} separating host and port, or has an unterminated IPv6
+     *                                  literal
      */
     public static EndpointUrl fromString(String url) {
         int schemeEnd = url.indexOf("://");
         if (schemeEnd < 0) {
-            throw new IllegalArgumentException("Invalid URL: missing '://' separator: " + url);
+            throw invalidUrl(url, "unable to parse a scheme, which is required. Endpoint URLs must be absolute and "
+                                  + "begin with a scheme such as 'https://'");
         }
 
         String scheme = url.substring(0, schemeEnd);
         int authorityStart = schemeEnd + 3;
 
-        // Find where authority ends: first '/', '?', or '#' after authority start, or end of string.
-        // RFC 3986: authority is terminated by '/', '?', '#', or end of URI.
-        int pathStart = -1;
+        // Single pass over the authority. This locates where the authority ends and, at the same time, records the
+        // positions needed to split it into [userinfo '@'] host [':' port], so the authority is only scanned once.
+        // RFC 3986: the authority is terminated by '/', '?', '#', or the end of the URI.
         int len = url.length();
+        int authorityEnd = len;
+        int lastAt = -1;
+        int lastColon = -1;
+        int closeBracket = -1;
         for (int i = authorityStart; i < len; i++) {
             char c = url.charAt(i);
             if (c == '/' || c == '?' || c == '#') {
-                pathStart = i;
+                authorityEnd = i;
                 break;
+            }
+            if (c == ':') {
+                lastColon = i;
+            } else if (c == '@') {
+                lastAt = i;
+            } else if (c == ']') {
+                closeBracket = i;
             }
         }
 
-        String authority;
-        String pathAndRest;
-        if (pathStart < 0) {
-            authority = url.substring(authorityStart);
-            pathAndRest = "";
-        } else {
-            authority = url.substring(authorityStart, pathStart);
-            pathAndRest = url.substring(pathStart);
-        }
+        String pathAndRest = authorityEnd < len ? url.substring(authorityEnd) : "";
 
         // Separate path from query/fragment
         String encodedPath;
@@ -121,30 +135,55 @@ public final class EndpointUrl {
             queryAndFragment = "";
         }
 
-        // Split authority into host and optional port, handling IPv6 addresses
-        String host;
-        int port;
-        if (!authority.isEmpty() && authority.charAt(0) == '[') {
-            // IPv6: [::1]:8080
-            int bracketEnd = authority.indexOf(']');
-            host = authority.substring(0, bracketEnd + 1);
-            if (bracketEnd + 1 < authority.length() && authority.charAt(bracketEnd + 1) == ':') {
-                port = Integer.parseInt(authority.substring(bracketEnd + 2));
-            } else {
-                port = -1;
+        // Userinfo, when present, runs up to the last '@' and is not part of the host.
+        int hostStart = lastAt >= 0 ? lastAt + 1 : authorityStart;
+
+        // A ':' only separates host from port when it falls after any userinfo and, for a bracketed IPv6 literal,
+        // after the closing ']'. Colons inside userinfo (user:pass@) or inside brackets ([::1]) are not port
+        // separators.
+        boolean hasPort = lastColon >= hostStart && lastColon > closeBracket;
+        int hostEnd = hasPort ? lastColon : authorityEnd;
+        String host = url.substring(hostStart, hostEnd);
+
+        if (!host.isEmpty() && host.charAt(0) == '[') {
+            if (closeBracket < hostStart || closeBracket >= hostEnd) {
+                throw invalidUrl(url, "malformed IPv6 host: missing closing ']'");
             }
-        } else {
-            int colonPos = authority.lastIndexOf(':');
-            if (colonPos < 0) {
-                host = authority;
-                port = -1;
-            } else {
-                host = authority.substring(0, colonPos);
-                port = Integer.parseInt(authority.substring(colonPos + 1));
-            }
+        } else if (host.indexOf(':') >= 0) {
+            throw invalidUrl(url, "malformed host '" + host + "': expected at most one ':' separating host and port");
         }
 
+        int port = hasPort ? parsePort(url, lastColon + 1, authorityEnd) : -1;
+
         return new EndpointUrl(scheme, host, port, encodedPath, queryAndFragment, url, null);
+    }
+
+    /**
+     * Parse the port from {@code url} in the range {@code [start, end)}.
+     *
+     * <p>An empty range means the URL ended with a bare ':', which {@link URI} treats as no port.
+     */
+    private static int parsePort(String url, int start, int end) {
+        if (start == end) {
+            return -1;
+        }
+
+        long port = 0;
+        for (int i = start; i < end; i++) {
+            char c = url.charAt(i);
+            if (c < '0' || c > '9') {
+                throw invalidUrl(url, "invalid port '" + url.substring(start, end) + "': port must be a number");
+            }
+            port = port * 10 + (c - '0');
+            if (port > Integer.MAX_VALUE) {
+                throw invalidUrl(url, "invalid port '" + url.substring(start, end) + "': port is out of range");
+            }
+        }
+        return (int) port;
+    }
+
+    private static IllegalArgumentException invalidUrl(String url, String reason) {
+        return new IllegalArgumentException("Invalid endpoint URL '" + url + "': " + reason);
     }
 
     /**
