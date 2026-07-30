@@ -550,6 +550,11 @@ public class DefaultAwsClientBuilderTest {
         @Override
         protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
             return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
                          .lazyOptionIfAbsent(AwsClientOption.SIGNING_REGION, c -> resolvedSigningRegion)
                          .build();
         }
@@ -593,7 +598,13 @@ public class DefaultAwsClientBuilderTest {
 
         @Override
         protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
-            return config;
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
         }
 
         @Override
