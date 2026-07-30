@@ -19,7 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 import software.amazon.awssdk.annotations.SdkAdvancedApi;
-import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -55,7 +55,7 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
      */
     @SdkAdvancedApi(
-        caution = Caution.WHEN_CONFIGURED,
+        cautionWhen = Usage.CONFIGURED,
         guidance = "An executor that does not dispatch to a separate thread (e.g. Runnable::run) runs the "
               + "completion inline on the calling thread and can deadlock the client, especially when the "
               + "future chain issues another SDK request. If you set a custom executor, verify it under your "

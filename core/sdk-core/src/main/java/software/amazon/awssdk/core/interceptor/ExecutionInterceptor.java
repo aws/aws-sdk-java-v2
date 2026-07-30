@@ -20,7 +20,7 @@ import java.nio.ByteBuffer;
 import java.util.Optional;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkAdvancedApi;
-import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -186,7 +186,7 @@ public interface ExecutionInterceptor {
     }
 
     @SdkAdvancedApi(
-        caution = Caution.WHEN_OVERRIDDEN,
+        cautionWhen = Usage.OVERRIDDEN,
         guidance = "Replacing the request body from an interceptor is discouraged: the returned RequestBody becomes the "
               + "content the SDK sends, and the request's Content-Length and content hash or checksum are derived from "
               + "it, so a body whose content or length does not match what the operation expects corrupts the request "
@@ -200,7 +200,7 @@ public interface ExecutionInterceptor {
     }
 
     @SdkAdvancedApi(
-        caution = Caution.WHEN_OVERRIDDEN,
+        cautionWhen = Usage.OVERRIDDEN,
         guidance = "Replacing the async request body from an interceptor is discouraged: the returned AsyncRequestBody "
               + "becomes the content the SDK sends, and the request's Content-Length and content hash or checksum are "
               + "derived from it, so a body whose content or length does not match what the operation expects corrupts "

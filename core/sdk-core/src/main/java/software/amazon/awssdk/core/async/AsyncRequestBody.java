@@ -30,7 +30,7 @@ import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkAdvancedApi;
-import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
@@ -66,7 +66,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  */
 @SdkPublicApi
 @SdkAdvancedApi(
-    caution = Caution.WHEN_IMPLEMENTED,
+    cautionWhen = Usage.IMPLEMENTED,
     guidance = "This is a reactive-streams Publisher and must obey the reactive-streams specification. "
           + "The SDK re-subscribes on each retry attempt, "
           + "so to support retries, reproduce the full content on every subscribe; a body that cannot should fail the "
@@ -106,7 +106,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @return Implementation of {@link AsyncRequestBody} that produces data send by the publisher
      */
     @SdkAdvancedApi(
-        caution = Caution.WHEN_CALLED,
+        cautionWhen = Usage.CALLED,
         guidance = "The returned AsyncRequestBody passes each subscribe straight through to the supplied publisher, so "
               + "the publisher must itself meet the AsyncRequestBody contract: obey the reactive-streams "
               + "specification, and since the SDK re-subscribes on each "

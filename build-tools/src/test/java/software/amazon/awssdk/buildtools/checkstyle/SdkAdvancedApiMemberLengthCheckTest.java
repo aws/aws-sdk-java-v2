@@ -96,7 +96,7 @@ class SdkAdvancedApiMemberLengthCheckTest {
     private static String classWithRawGuidanceAndSafer(String rawGuidanceExpr, String rawSaferExpr) {
         return "package p;\n"
                + "@SdkAdvancedApi(\n"
-               + "    caution = Caution.WHEN_IMPLEMENTED,\n"
+               + "    cautionWhen = Usage.IMPLEMENTED,\n"
                + "    guidance = " + rawGuidanceExpr + ",\n"
                + "    saferAlternative = " + rawSaferExpr + ")\n"
                + "public interface Foo {\n"

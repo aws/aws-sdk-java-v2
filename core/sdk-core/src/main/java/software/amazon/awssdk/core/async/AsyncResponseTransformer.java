@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkAdvancedApi;
-import software.amazon.awssdk.annotations.SdkAdvancedApi.Caution;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
@@ -89,7 +89,7 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  */
 @SdkPublicApi
 @SdkAdvancedApi(
-    caution = Caution.WHEN_IMPLEMENTED,
+    cautionWhen = Usage.IMPLEMENTED,
     guidance = "prepare() is called on each request attempt; if the CompletableFuture it returned on a previous "
           + "attempt has already completed, it must return a new instance so the result of a retry is not lost, and "
           + "exceptionOccurred() should release any resources the attempt opened (for example an open file channel) "
@@ -316,7 +316,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @return AsyncResponseTransformer instance.
      */
     @SdkAdvancedApi(
-        caution = Caution.WHEN_CALLED,
+        cautionWhen = Usage.CALLED,
         guidance = "The returned ResponsePublisher is a reactive-streams Publisher you must subscribe to and drive: "
               + "your subscriber must obey the reactive-streams specification and honor back-pressure. A subscriber "
               + "that never requests data stalls the response, and requesting unbounded data can exhaust memory.",
@@ -351,7 +351,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @see #toPublisher()
      */
     @SdkAdvancedApi(
-        caution = Caution.WHEN_CALLED,
+        cautionWhen = Usage.CALLED,
         guidance = "The returned ResponsePublisher is a reactive-streams Publisher you must subscribe to and drive: "
               + "your subscriber must obey the reactive-streams specification and honor back-pressure. A subscriber "
               + "that never requests data stalls the response, and requesting unbounded data can exhaust memory.",

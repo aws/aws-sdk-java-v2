@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * configuring it with an unsafe value, compiles cleanly but can fail or misbehave at runtime rather
  * than reporting a clear error.
  *
- * <p>The annotation records the risk information on the API in a structured form: {@link #caution()}
+ * <p>The annotation records the risk information on the API in a structured form: {@link #cautionWhen()}
  * classifies which kind of use is error-prone, {@link #guidance()} explains the contract that must
  * be upheld, {@link #saferAlternative()} points to a lower-risk approach, and {@link #link()} points
  * to further documentation.
@@ -40,13 +40,13 @@ import java.lang.annotation.Target;
 public @interface SdkAdvancedApi {
 
     /**
-     * Which kind of use of this API is error-prone: WHEN_IMPLEMENTED if the risk is in implementing
-     * or extending the annotated type, WHEN_OVERRIDDEN if it is in overriding the annotated method,
-     * WHEN_CONFIGURED if it is in setting the annotated field or option, and WHEN_CALLED if it is in
+     * Which kind of use of this API is error-prone: IMPLEMENTED if the risk is in implementing
+     * or extending the annotated type, OVERRIDDEN if it is in overriding the annotated method,
+     * CONFIGURED if it is in setting the annotated field or option, and CALLED if it is in
      * calling the annotated method (for example a factory that accepts an object you supply and does
      * not shield you from that object's contract). Required.
      */
-    Caution caution();
+    Usage cautionWhen();
 
     /**
      * Explains why this API is error-prone and what you must uphold to use it safely: the parts of
@@ -67,10 +67,10 @@ public @interface SdkAdvancedApi {
      */
     String link() default "";
 
-    enum Caution {
-        WHEN_IMPLEMENTED,
-        WHEN_OVERRIDDEN,
-        WHEN_CONFIGURED,
-        WHEN_CALLED
+    enum Usage {
+        IMPLEMENTED,
+        OVERRIDDEN,
+        CONFIGURED,
+        CALLED
     }
 }
