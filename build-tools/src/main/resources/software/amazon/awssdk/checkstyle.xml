@@ -444,6 +444,11 @@
         <!-- Checks that every class is marked with Sdk Annotation -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.MissingSdkAnnotationCheck" />
 
+        <!-- Caps the length of @SdkAdvancedApi guidance and saferAlternative member values -->
+        <module name="software.amazon.awssdk.buildtools.checkstyle.SdkAdvancedApiMemberLengthCheck">
+            <property name="max" value="1000"/>
+        </module>
+
         <!-- Checks that no 'final' are added on local variables -->
         <module name="software.amazon.awssdk.buildtools.checkstyle.UnnecessaryFinalOnLocalVariableCheck" />
 
