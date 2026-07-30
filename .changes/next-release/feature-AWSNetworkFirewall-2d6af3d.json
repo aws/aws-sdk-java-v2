@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Network Firewall",
+    "contributor": "",
+    "description": "Adds UPDATING field to Container Association Status"
+}
