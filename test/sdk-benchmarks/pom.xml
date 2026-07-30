@@ -272,6 +272,17 @@
             <version>${awsjavasdk.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Used by the temporary BDD endpoint resolution benchmarks. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>connect</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
     </dependencies>
 
     <dependencyManagement>
