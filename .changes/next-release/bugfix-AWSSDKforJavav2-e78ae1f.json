@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Improve endpoint resolution performance by replacing URI.create with a lightweight EndpointUrl."
+}

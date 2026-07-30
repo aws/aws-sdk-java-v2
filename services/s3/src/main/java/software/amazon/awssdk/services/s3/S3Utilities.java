@@ -518,7 +518,7 @@ public final class S3Utilities {
         ClientEndpointProvider clientEndpointProvider =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
         SdkHttpRequest result = AwsEndpointProviderUtils.setUri(httpRequest,
-                                                                clientEndpointProvider.clientEndpoint(), endpoint.url());
+                                                                clientEndpointProvider.clientEndpoint(), endpoint.endpointUrl());
 
         if (!endpoint.headers().isEmpty()) {
             SdkHttpRequest.Builder builder = result.toBuilder();

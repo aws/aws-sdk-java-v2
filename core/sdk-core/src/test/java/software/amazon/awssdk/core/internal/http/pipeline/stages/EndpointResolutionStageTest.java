@@ -273,4 +273,45 @@ class EndpointResolutionStageTest {
         assertThat(result).isSameAs(request);
         assertThat(executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT)).isSameAs(preResolved);
     }
+
+    @Test
+    void execute_resolvedEndpointWithPort_appliesPort() throws Exception {
+        Endpoint endpoint = Endpoint.builder().url(URI.create("https://resolved.amazonaws.com:8443/v2")).build();
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                                .method(SdkHttpMethod.GET)
+                                                                .protocol("https")
+                                                                .host("myservice.amazonaws.com")
+                                                                .encodedPath("/operation");
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
+        RequestExecutionContext context = createContext();
+
+        SdkHttpFullRequest.Builder result = stage.execute(request, context);
+
+        assertThat(result.host()).isEqualTo("resolved.amazonaws.com");
+        assertThat(result.port()).isEqualTo(8443);
+        assertThat(result.protocol()).isEqualTo("https");
+    }
+
+    @Test
+    void execute_resolvedPathWithEncodedCharacters_preservesEncoding() throws Exception {
+        URI clientEndpoint = URI.create("https://s3.amazonaws.com");
+        Endpoint endpoint = Endpoint.builder()
+                                    .url(URI.create("https://s3.amazonaws.com/bucket%20name"))
+                                    .build();
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                                .method(SdkHttpMethod.GET)
+                                                                .protocol("https")
+                                                                .host("s3.amazonaws.com")
+                                                                .encodedPath("/key%2Fwith%2Fslashes");
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(clientEndpoint));
+        RequestExecutionContext context = createContext();
+
+        SdkHttpFullRequest.Builder result = stage.execute(request, context);
+
+        assertThat(result.encodedPath()).isEqualTo("/bucket%20name/key%2Fwith%2Fslashes");
+    }
 }
