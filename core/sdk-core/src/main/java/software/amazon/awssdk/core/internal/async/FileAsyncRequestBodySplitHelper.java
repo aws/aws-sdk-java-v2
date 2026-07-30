@@ -196,5 +196,10 @@ public final class FileAsyncRequestBodySplitHelper {
         public Optional<Long> contentLength() {
             return fileAsyncRequestBody.contentLength();
         }
+
+        @Override
+        public String body() {
+            return fileAsyncRequestBody.body();
+        }
     }
 }

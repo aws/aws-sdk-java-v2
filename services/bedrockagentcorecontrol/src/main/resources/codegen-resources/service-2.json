@@ -3148,6 +3148,25 @@
         }
       }
     },
+    "AdditionalClaimName":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9_.:#-]+"
+    },
+    "AdditionalClaimValue":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "sensitive":true
+    },
+    "AdditionalClaims":{
+      "type":"map",
+      "key":{"shape":"AdditionalClaimName"},
+      "value":{"shape":"AdditionalClaimValue"},
+      "max":10,
+      "min":1
+    },
     "AdditionalModelRequestFields":{
       "type":"structure",
       "members":{},
@@ -3236,7 +3255,7 @@
     },
     "AgentRuntimeArn":{
       "type":"string",
-      "pattern":"arn:(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:agent/[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}:([0-9]{0,4}[1-9][0-9]{0,4})"
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:runtime/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
     },
     "AgentRuntimeArtifact":{
       "type":"structure",
@@ -3310,7 +3329,7 @@
     },
     "AgentRuntimeEndpointArn":{
       "type":"string",
-      "pattern":"arn:(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:agentEndpoint/[A-Fa-f0-9]{8}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}-[A-Fa-f0-9]{12}"
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:runtime/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}/runtime-endpoint/[a-zA-Z][a-zA-Z0-9_]{0,47}"
     },
     "AgentRuntimeEndpointId":{
       "type":"string",
@@ -3837,7 +3856,7 @@
     },
     "BrowserProfileArn":{
       "type":"string",
-      "pattern":"arn:(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:browser-profile/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:browser-profile/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
     },
     "BrowserProfileId":{
       "type":"string",
@@ -4090,7 +4109,8 @@
       "enum":[
         "CLIENT_SECRET_BASIC",
         "CLIENT_SECRET_POST",
-        "AWS_IAM_ID_TOKEN_JWT"
+        "AWS_IAM_ID_TOKEN_JWT",
+        "PRIVATE_KEY_JWT"
       ]
     },
     "ClientIdType":{
@@ -4670,6 +4690,10 @@
         "connectorId":{
           "shape":"ConnectorId",
           "documentation":"<p>The identifier for the connector integration (for example, <code>bedrock-knowledge-bases</code>).</p>"
+        },
+        "version":{
+          "shape":"ConnectorVersion",
+          "documentation":"<p>The version of the connector to use (for example, <code>1.1.0</code>). If you don't specify a version, the service uses the latest available version.</p>"
         }
       },
       "documentation":"<p>The source identifying the connector integration.</p>"
@@ -4692,6 +4716,12 @@
         }
       },
       "documentation":"<p>Configuration for a connector integration target. Connectors provide pre-built integrations with Amazon Web Services services and third-party tools.</p>"
+    },
+    "ConnectorVersion":{
+      "type":"string",
+      "max":32,
+      "min":5,
+      "pattern":"(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)"
     },
     "ConsolidationConfiguration":{
       "type":"structure",
@@ -5070,6 +5100,10 @@
           "shape":"Certificates",
           "documentation":"<p>A list of certificates to install in the browser.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations to mount into the browser. Use these configurations to mount your own Amazon Simple Storage Service (Amazon S3) Files or Amazon Elastic File System (Amazon EFS) access points. Your sessions can then access your data. If you don't specify this field, no file systems are mounted.</p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon Bedrock AgentCore ignores the request but does not return an error.</p>",
@@ -5134,6 +5168,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>A list of certificates to install in the code interpreter.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations to mount into the code interpreter. Use these configurations to mount your own Amazon Simple Storage Service (Amazon S3) Files or Amazon Elastic File System (Amazon EFS) access points. Your sessions can then access your data. If you don't specify this field, no file systems are mounted.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -7099,6 +7137,7 @@
           "shape":"ClientAuthenticationMethodType",
           "documentation":"<p>The client authentication method to use when authenticating with the token endpoint.</p>"
         },
+        "privateKeyJwtConfig":{"shape":"PrivateKeyJwtConfig"},
         "privateEndpoint":{
           "shape":"PrivateEndpoint",
           "documentation":"<p>The default private endpoint for the custom OAuth2 provider, enabling secure connectivity through a VPC Lattice resource configuration.</p>"
@@ -7122,6 +7161,14 @@
           "shape":"ClientIdType",
           "documentation":"<p>The client ID for the custom OAuth2 provider.</p>"
         },
+        "onBehalfOfTokenExchangeConfig":{
+          "shape":"OnBehalfOfTokenExchangeConfigType",
+          "documentation":"<p>The configuration for on-behalf-of token exchange.</p>"
+        },
+        "clientAuthenticationMethod":{
+          "shape":"ClientAuthenticationMethodType",
+          "documentation":"<p>The client authentication method used when authenticating with the token endpoint.</p>"
+        },
         "privateEndpoint":{
           "shape":"PrivateEndpoint",
           "documentation":"<p>The default private endpoint for the custom OAuth2 provider, enabling secure connectivity through a VPC Lattice resource configuration.</p>"
@@ -7130,14 +7177,7 @@
           "shape":"PrivateEndpointOverrides",
           "documentation":"<p>The private endpoint overrides for the custom OAuth2 provider configuration.</p>"
         },
-        "onBehalfOfTokenExchangeConfig":{
-          "shape":"OnBehalfOfTokenExchangeConfigType",
-          "documentation":"<p>The configuration for on-behalf-of token exchange.</p>"
-        },
-        "clientAuthenticationMethod":{
-          "shape":"ClientAuthenticationMethodType",
-          "documentation":"<p>The client authentication method used when authenticating with the token endpoint.</p>"
-        }
+        "privateKeyJwtConfig":{"shape":"PrivateKeyJwtConfig"}
       },
       "documentation":"<p>Output configuration for a custom OAuth2 provider.</p>"
     },
@@ -8489,6 +8529,36 @@
         }
       },
       "documentation":"<p>Configuration for an Amazon EFS access point filesystem mounted into the AgentCore Runtime. EFS access points provide shared file storage accessible from your AgentCore Runtime sessions.</p>"
+    },
+    "EfsConfiguration":{
+      "type":"structure",
+      "required":[
+        "accessPointArn",
+        "mountPath",
+        "fileSystemArn"
+      ],
+      "members":{
+        "accessPointArn":{
+          "shape":"EfsAccessPointArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Elastic File System (Amazon EFS) access point to mount.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The absolute path within the session at which the access point is mounted, for example <code>/mnt/efs</code>. Each mount path must be unique across all file system configurations in the session.</p>"
+        },
+        "fileSystemArn":{
+          "shape":"EfsFileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Elastic File System (Amazon EFS) file system that owns the access point.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for mounting an Amazon Elastic File System (Amazon EFS) access point that you own into a session.</p>"
+    },
+    "EfsFileSystemArn":{
+      "type":"string",
+      "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Elastic File System (Amazon EFS) file system. The access points you specify must belong to this file system.</p>",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:elasticfilesystem:[a-z0-9-]+:[0-9]{12}:file-system/fs-[0-9a-f]{8,40}"
     },
     "EnabledConnectors":{
       "type":"list",
@@ -9864,6 +9934,10 @@
           "shape":"Certificates",
           "documentation":"<p>The list of certificates configured for the browser.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations mounted into the browser. Each entry describes an access point and its mount path.</p>"
+        },
         "status":{
           "shape":"BrowserStatus",
           "documentation":"<p>The current status of the browser.</p>"
@@ -9934,6 +10008,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>The list of certificates configured for the code interpreter.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations mounted into the code interpreter. Each entry describes an access point and its mount path.</p>"
         },
         "failureReason":{
           "shape":"String",
@@ -13390,6 +13468,17 @@
       "max":2048,
       "min":1,
       "pattern":"arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}"
+    },
+    "KmsKeySourceType":{
+      "type":"structure",
+      "required":["kmsKeyArn"],
+      "members":{
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to sign the JWT client assertion. The key must be an asymmetric key with key usage SIGN_VERIFY and a key spec compatible with the configured signing algorithm.</p>"
+        }
+      },
+      "documentation":"<p>Contains the KMS key configuration for a JWT client assertion.</p>"
     },
     "LambdaArn":{
       "type":"string",
@@ -17180,6 +17269,39 @@
       "max":5,
       "min":0
     },
+    "PrivateKeyJwtConfig":{
+      "type":"structure",
+      "members":{
+        "privateKeySource":{
+          "shape":"PrivateKeySource",
+          "documentation":"<p>The private key source for the JWT client assertion.</p>"
+        },
+        "signingAlgorithm":{
+          "shape":"SigningAlgorithm",
+          "documentation":"<p>The algorithm used to sign the JWT client assertion. Valid values are <code>RS256</code>, <code>PS256</code>, and <code>ES256</code>.</p>"
+        },
+        "additionalHeaderClaims":{
+          "shape":"AdditionalClaims",
+          "documentation":"<p>A map of additional claims to include in the JWT client assertion header. Standard header claims such as <code>alg</code> and <code>typ</code> cannot be added.</p>"
+        },
+        "additionalPayloadClaims":{
+          "shape":"AdditionalClaims",
+          "documentation":"<p>A map of additional claims to include in the JWT client assertion payload. Payload claims generated by the service, such as <code>iss</code>, <code>sub</code>, <code>jti</code>, and <code>exp</code>, cannot be added.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for private_key_jwt client authentication (RFC 7523). On Create: privateKeySource and signingAlgorithm are required (enforced server-side). On Update: all fields are optional — only provided fields are updated.</p>"
+    },
+    "PrivateKeySource":{
+      "type":"structure",
+      "members":{
+        "kmsKeySource":{
+          "shape":"KmsKeySourceType",
+          "documentation":"<p>The KMS key source for the JWT client assertion.</p>"
+        }
+      },
+      "documentation":"<p>Contains the private key source configuration for a JWT client assertion.</p>",
+      "union":true
+    },
     "Prompt":{
       "type":"string",
       "max":30000,
@@ -17839,6 +17961,36 @@
       },
       "documentation":"<p>Configuration for an Amazon S3 Files access point filesystem mounted into the AgentCore Runtime. S3 Files access points provide shared file storage accessible from your AgentCore Runtime sessions.</p>"
     },
+    "S3FilesConfiguration":{
+      "type":"structure",
+      "required":[
+        "accessPointArn",
+        "mountPath",
+        "fileSystemArn"
+      ],
+      "members":{
+        "accessPointArn":{
+          "shape":"S3FilesAccessPointArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Simple Storage Service (Amazon S3) Files access point to mount.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The absolute path within the session at which the access point is mounted, for example <code>/mnt/s3data</code>. Each mount path must be unique across all file system configurations in the session.</p>"
+        },
+        "fileSystemArn":{
+          "shape":"S3FilesFileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Simple Storage Service (Amazon S3) Files file system that owns the access point.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for mounting an Amazon Simple Storage Service (Amazon S3) Files access point that you own into a session.</p>"
+    },
+    "S3FilesFileSystemArn":{
+      "type":"string",
+      "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Simple Storage Service (Amazon S3) Files file system. The access points you specify must belong to this file system.</p>",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:s3files:[a-z0-9-]+:[0-9]{12}:file-system/fs-[0-9a-f]{17,40}"
+    },
     "S3Location":{
       "type":"structure",
       "required":[
@@ -18410,6 +18562,14 @@
           "documentation":"<p>The timestamp when the token vault was last modified.</p>"
         }
       }
+    },
+    "SigningAlgorithm":{
+      "type":"string",
+      "enum":[
+        "RS256",
+        "PS256",
+        "ES256"
+      ]
     },
     "SkillDefinition":{
       "type":"structure",
@@ -19480,6 +19640,28 @@
         }
       },
       "documentation":"<p>The tools definition for an MCP descriptor. Contains the protocol version and inline content describing the available tools.</p>"
+    },
+    "ToolsFileSystemConfiguration":{
+      "type":"structure",
+      "members":{
+        "s3FilesConfiguration":{
+          "shape":"S3FilesConfiguration",
+          "documentation":"<p>The configuration for mounting your own Amazon Simple Storage Service (Amazon S3) Files access point into the session.</p>"
+        },
+        "efsConfiguration":{
+          "shape":"EfsConfiguration",
+          "documentation":"<p>The configuration for mounting your own Amazon Elastic File System (Amazon EFS) access point into the session.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a file system to mount into the session by providing exactly one of the following:</p> <ul> <li> <p> <code>s3FilesConfiguration</code> - Mounts an Amazon Simple Storage Service (Amazon S3) Files access point.</p> </li> <li> <p> <code>efsConfiguration</code> - Mounts an Amazon Elastic File System (Amazon EFS) access point.</p> </li> </ul>",
+      "union":true
+    },
+    "ToolsFileSystemConfigurations":{
+      "type":"list",
+      "member":{"shape":"ToolsFileSystemConfiguration"},
+      "documentation":"<p>The file system configurations to mount into the session. Each configuration maps an access point to a path inside the session. You can specify up to 4 configurations. The maximum is 2 Amazon Simple Storage Service (Amazon S3) Files access points and 2 Amazon Elastic File System (Amazon EFS) access points.</p>",
+      "max":10,
+      "min":0
     },
     "TopK":{
       "type":"integer",

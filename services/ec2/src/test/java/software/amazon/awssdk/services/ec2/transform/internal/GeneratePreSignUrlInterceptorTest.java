@@ -142,7 +142,7 @@ public class GeneratePreSignUrlInterceptorTest {
         attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
         attrs.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
         attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
-                           request -> Collections.singletonList(
+                           (request, executionAttributes) -> Collections.singletonList(
                                software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption.builder()
                                    .schemeId(authScheme.schemeId())
                                    .putSignerProperty(software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner
