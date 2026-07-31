@@ -30,6 +30,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
 
+/**
+ * Regression coverage for v1/v2 converter parity on edge inputs, beyond the single
+ * representative value each type gets in the other {@code StandardModelFactories*} tests.
+ */
 public class StandardModelFactoriesEdgeCasesTest {
 
     private static final DynamoDBMapperConfig V1_CONFIG = new DynamoDBMapperConfig.Builder()

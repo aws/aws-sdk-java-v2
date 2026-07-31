@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.mapper.dynamodb.MapperBinaryUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -41,8 +42,7 @@ public class ByteBufferSetUnmarshaller extends BSUnmarshaller {
     public Object unmarshall(AttributeValue value) {
         Set<ByteBuffer> result = new HashSet<ByteBuffer>();
         for (SdkBytes sdkBytes : value.bs()) {
-            // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
-            result.add(ByteBuffer.wrap(sdkBytes.asByteArray()));
+            result.add(MapperBinaryUtils.toWritableByteBuffer(sdkBytes));
         }
         return result;
     }

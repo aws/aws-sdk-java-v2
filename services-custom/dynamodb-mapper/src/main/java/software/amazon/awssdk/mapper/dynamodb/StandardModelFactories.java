@@ -330,8 +330,7 @@ final class StandardModelFactories {
             }
             @Override
             public ByteBuffer get(AttributeValue value) {
-                // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
-                return value.b() == null ? null : ByteBuffer.wrap(value.b().asByteArray());
+                return MapperBinaryUtils.toWritableByteBuffer(value.b());
             }
             @Override
             public AttributeValue build(ByteBuffer o) {
@@ -411,8 +410,7 @@ final class StandardModelFactories {
                 }
                 final List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
                 for (SdkBytes sb : value.bs()) {
-                    // Writable copy for v1 parity; SdkBytes.asByteBuffer() would be read-only.
-                    result.add(ByteBuffer.wrap(sb.asByteArray()));
+                    result.add(MapperBinaryUtils.toWritableByteBuffer(sb));
                 }
                 return result;
             }
