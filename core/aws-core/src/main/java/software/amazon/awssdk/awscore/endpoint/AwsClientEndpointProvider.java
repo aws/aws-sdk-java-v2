@@ -480,6 +480,12 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
             return this;
         }
 
+        /**
+         * @deprecated This method triggers expensive ServiceMetadata
+         * initialization and is no longer used by the SDK. Service endpoint resolution is handled
+         * by Endpoints 2.0 at request time.
+         */
+        @Deprecated
         public AwsClientEndpointProvider build() {
             return new AwsClientEndpointProvider(this);
         }

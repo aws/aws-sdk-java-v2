@@ -13,6 +13,8 @@
  * permissions and limitations under the License.
  */
 
+package software.amazon.awssdk.services.backwardcompat;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.AfterEach;
