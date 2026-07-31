@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import com.sun.security.auth.module.Krb5LoginModule;
+import io.netty.handler.codec.http.HttpRequest;
 import java.net.URI;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -62,12 +63,12 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
     }
 
     @Override
-    public String generateAuthParams(SdkHttpRequest request) {
+    public String generateAuthParams(URI proxyEndpoint) {
         try {
             Subject subject = getSubject();
 
             byte[] token = Subject.doAs(subject, (PrivilegedExceptionAction<byte[]>) () -> {
-                GSSContext ctx = createGSSContext(getManager(), request.getUri());
+                GSSContext ctx = createGSSContext(getManager(), proxyEndpoint);
                 ctx.requestMutualAuth(true);
                 return ctx.initSecContext(new byte[0], 0, 0);
             });

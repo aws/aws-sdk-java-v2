@@ -16,22 +16,28 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.handler.codec.http.HttpRequest;
+import io.netty.util.CharsetUtil;
 import java.net.URI;
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import java.util.Base64;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 
-/**
- * Generates the auth params for an {@code Authorization} HTTP header.
- */
-@SdkInternalApi
-public interface ProxyAuthGenerator {
-    /**
-     * The name of the auth scheme this generator supports.
-     */
-    ProxyAuthScheme scheme();
+public class BasicProxyAuthGenerator implements ProxyAuthGenerator {
+    private final String username;
+    private final String password;
 
-    /**
-     * Generate the auth params for this request.
-     */
-    String generateAuthParams(URI proxyEndpoint);
+    public BasicProxyAuthGenerator(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    @Override
+    public ProxyAuthScheme scheme() {
+        return ProxyAuthScheme.BASIC;
+    }
+
+    @Override
+    public String generateAuthParams(URI proxyEndpoint) {
+        String authToken = String.format("%s:%s", this.username, this.password);
+        return Base64.getEncoder().encodeToString(authToken.getBytes(CharsetUtil.UTF_8));
+    }
 }
