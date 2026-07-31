@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Removed ServiceMetadata usages from client creation and request processing code paths to improve cold start performance. Endpoint and signing region resolution now uses Endpoints 2.0 directly instead of triggering eager initialization of all service metadata classes."
+}
