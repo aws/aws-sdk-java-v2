@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Resilience Hub V2",
+    "contributor": "",
+    "description": "Adding support for new testing capability in AWS Resilience Hub."
+}
