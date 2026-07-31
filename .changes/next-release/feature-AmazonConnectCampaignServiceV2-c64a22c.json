@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AmazonConnectCampaignServiceV2",
+    "contributor": "",
+    "description": "Launching feature for abandonment rate pacing control for outbound campaigns."
+}
