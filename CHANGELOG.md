@@ -1,4 +1,18 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.50.1__ __2026-07-30__
+## __AWS Billing and Cost Management Pricing Calculator__
+  - ### Features
+    - Removing Smithy RPC v2 CBOR support that was added in previous SDK release.
+
+## __AWS Billing and Cost Management Recommended Actions__
+  - ### Features
+    - Removing Smithy RPC v2 CBOR support that was added in previous SDK release.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add the `@SdkAdvancedApi` annotation, which marks APIs that are error-prone to implement, override, call, or configure so that using them incorrectly compiles cleanly but can fail or misbehave at runtime. The annotation records structured guidance (the risky usage kind, an explanation of the contract to uphold, a safer alternative, and a documentation link) and is applied to several streaming and interceptor extension points, including AsyncRequestBody, AsyncResponseTransformer, ContentStreamProvider, the mutating ExecutionInterceptor content hooks, and the FUTURE_COMPLETION_EXECUTOR advanced client option.
+    - Updated endpoint and partition metadata.
+
 # __2.50.0__ __2026-07-30__
 ## __AWS Identity and Access Management__
   - ### Features
