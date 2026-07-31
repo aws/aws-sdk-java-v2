@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -26,14 +26,13 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
-import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -137,8 +136,8 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .withRequestConfiguration(clientConfiguration).withInput(oneOperationRequest)
                                              .withMetricCollector(apiCallMetricCollector)
-                                             .withAuthSchemeOptionsResolver(authSchemeResolver("OneOperation", clientConfiguration))
-                                             .withEndpointResolver(endpointResolver("OneOperation"))
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -165,8 +164,9 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
+            ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
@@ -174,16 +174,17 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
                                             "Expected an instance of ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider")).orElse(null);
         ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
                                                                                                                        : Validate.isInstanceOf(ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider.class,
-                                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                                               executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                                "Expected an instance of ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider");
         ProtocolRestJsonWithCustomContentTypeAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomContentTypeAuthSchemeParams
             .builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         ProtocolRestJsonWithCustomContentTypeEndpointProvider provider = (ProtocolRestJsonWithCustomContentTypeEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
@@ -214,14 +215,6 @@ final class DefaultProtocolRestJsonWithCustomContentTypeClient implements Protoc
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
-    }
-
-    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
-        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
-    }
-
-    private EndpointResolver endpointResolver(String operationName) {
-        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,

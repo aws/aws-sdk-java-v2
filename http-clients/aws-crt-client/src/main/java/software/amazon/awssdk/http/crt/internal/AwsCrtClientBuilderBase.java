@@ -35,6 +35,7 @@ public class AwsCrtClientBuilderBase<BuilderT> {
     private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
     private Boolean postQuantumTlsEnabled;
     private TlsVersion minTlsVersion;
+    private Integer numEventLoopThreads;
 
     protected AwsCrtClientBuilderBase() {
     }
@@ -61,6 +62,17 @@ public class AwsCrtClientBuilderBase<BuilderT> {
 
     public Long getReadBufferSizeInBytes() {
         return this.readBufferSize;
+    }
+
+    public BuilderT numEventLoopThreads(Integer numEventLoopThreads) {
+        Validate.isTrue(numEventLoopThreads == null || numEventLoopThreads > 1,
+                        "numEventLoopThreads must be greater than 1");
+        this.numEventLoopThreads = numEventLoopThreads;
+        return thisBuilder();
+    }
+
+    public Integer getNumEventLoopThreads() {
+        return this.numEventLoopThreads;
     }
 
 
