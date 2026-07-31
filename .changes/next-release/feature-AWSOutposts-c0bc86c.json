@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "Adds the \"EKS\" value to the AWSServiceName enum and marks the Address field as sensitive."
-}

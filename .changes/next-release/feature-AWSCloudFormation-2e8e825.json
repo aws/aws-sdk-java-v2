@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS CloudFormation",
-    "contributor": "",
-    "description": "Adding enum for sensitive property to DriftIgnoredReason"
-}
