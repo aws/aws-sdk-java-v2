@@ -69,15 +69,13 @@ public class SsoCredentialsProviderTest {
         callClient(verify(ssoClient, times(1)), Mockito.any());
     }
 
+    /**
+     * A 90 second session is shorter than the 5 minute advisory refresh window it selects, so it is inside that window as
+     * soon as SSO returns it and the next call refreshes.
+     */
     @Test
-    public void distantExpiringCredentialsUpdatedInBackground() throws InterruptedException {
+    public void expiringCredentialsAreRefreshedOnTheFollowingCall() {
         callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2, false);
-
-        Instant endCheckTime = Instant.now().plus(Duration.ofSeconds(5));
-        while (Mockito.mockingDetails(ssoClient).getInvocations().size() < 2 && endCheckTime.isAfter(Instant.now())) {
-            Thread.sleep(100);
-        }
-
         callClient(verify(ssoClient, times(2)), Mockito.any());
     }
 
@@ -91,6 +89,38 @@ public class SsoCredentialsProviderTest {
         }
 
         callClient(verify(ssoClient, times(2)), Mockito.any());
+    }
+
+    /**
+     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
+     * configured window covers the credential's entire lifetime, so the advisory window opens the moment the credentials are
+     * issued and the very next call must contact SSO. A jittered window would instead open at a random point up to a minute
+     * before the mandatory refresh window, and the second call would be served from the cache.
+     */
+    @Test
+    public void resolveCredentials_advisoryWindowIsNotJittered() {
+        ssoClient = mock(SsoClient.class);
+        Duration lifetime = Duration.ofMinutes(10);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().plus(lifetime).toEpochMilli())
+                                                     .build();
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        when(ssoClient.getRoleCredentials(supplier.get())).thenReturn(getResponse(credentials));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .prefetchTime(lifetime)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            credentialsProvider.resolveCredentials();
+            callClient(verify(ssoClient, times(1)), Mockito.any());
+
+            credentialsProvider.resolveCredentials();
+            callClient(verify(ssoClient, times(2)), Mockito.any());
+        }
     }
 
     @Test

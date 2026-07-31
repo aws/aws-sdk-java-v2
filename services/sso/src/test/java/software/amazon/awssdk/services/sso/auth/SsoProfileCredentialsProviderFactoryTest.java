@@ -42,6 +42,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
@@ -333,14 +334,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-4").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
-        // Use expiration far enough in the future that staleTime (expiration - 1min) is also in the future,
-        // but with short remaining lifetime so the advisory window (5min) causes immediate prefetch.
-        RoleCredentials roleCredentials = RoleCredentials.builder()
-                                                         .accessKeyId("AKID")
-                                                         .secretAccessKey("secret")
-                                                         .sessionToken("session")
-                                                         .expiration(Instant.now().plusSeconds(90).toEpochMilli())
-                                                         .build();
+        RoleCredentials roleCredentials = roleCredentials();
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
@@ -355,9 +349,34 @@ public class SsoProfileCredentialsProviderFactoryTest {
 
         for (int i = 0; i < numberOfRefreshCalls; i++) {
             credentialsProvider.resolveCredentials();
+            forceRefreshOnNextResolve(credentialsProvider);
         }
 
         Mockito.verify(sdkTokenProvider, Mockito.atLeast(numberOfRefreshCalls)).resolveToken();
+    }
+
+    /**
+     * Credentials vended by the mock SSO client. The lifetime is long enough that the advisory refresh window never opens
+     * during a test, so refreshes only happen when a test asks for one through {@link
+     * #forceRefreshOnNextResolve(AwsCredentialsProvider)}.
+     */
+    private RoleCredentials roleCredentials() {
+        return RoleCredentials.builder()
+                              .accessKeyId("AKID")
+                              .secretAccessKey("secret")
+                              .sessionToken("session")
+                              .expiration(Instant.now().plusSeconds(3600).toEpochMilli())
+                              .build();
+    }
+
+    /**
+     * Marks the cached credentials for a mandatory refresh, so that the next {@code resolveCredentials()} call goes back to
+     * the SSO client. The tests below are about which token each refresh uses, not about what triggers the refresh, and
+     * invalidation is the only trigger available without advancing a clock: the advisory refresh window of a healthy
+     * credential is always in the future.
+     */
+    private void forceRefreshOnNextResolve(AwsCredentialsProvider credentialsProvider) {
+        credentialsProvider.invalidate(AwsBasicCredentials.create("AKID", "secret")).join();
     }
 
     @Test
@@ -380,14 +399,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-C").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
-        // Use expiration far enough in the future that staleTime (expiration - 1min) is also in the future,
-        // but with short remaining lifetime so the advisory window (5min) causes immediate prefetch.
-        RoleCredentials roleCredentials = RoleCredentials.builder()
-                                                         .accessKeyId("AKID")
-                                                         .secretAccessKey("secret")
-                                                         .sessionToken("session")
-                                                         .expiration(Instant.now().plusSeconds(90).toEpochMilli())
-                                                         .build();
+        RoleCredentials roleCredentials = roleCredentials();
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
@@ -401,7 +413,9 @@ public class SsoProfileCredentialsProviderFactoryTest {
             mockSsoClient);
 
         credentialsProvider.resolveCredentials();
+        forceRefreshOnNextResolve(credentialsProvider);
         credentialsProvider.resolveCredentials();
+        forceRefreshOnNextResolve(credentialsProvider);
         credentialsProvider.resolveCredentials();
 
         ArgumentCaptor<GetRoleCredentialsRequest> requestCaptor =
@@ -613,14 +627,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
             SsoAccessToken.builder().accessToken("token-5").expiresAt(Instant.now().plusSeconds(3600)).build()
         );
 
-        // Use expiration far enough in the future that staleTime (expiration - 1min) is also in the future,
-        // but with short remaining lifetime so the advisory window (5min) causes immediate prefetch.
-        RoleCredentials roleCredentials = RoleCredentials.builder()
-                                                         .accessKeyId("AKID")
-                                                         .secretAccessKey("secret")
-                                                         .sessionToken("session")
-                                                         .expiration(Instant.now().plusSeconds(90).toEpochMilli())
-                                                         .build();
+        RoleCredentials roleCredentials = roleCredentials();
         when(mockSsoClient.getRoleCredentials(Mockito.any(GetRoleCredentialsRequest.class)))
             .thenReturn(GetRoleCredentialsResponse.builder().roleCredentials(roleCredentials).build());
 
@@ -635,6 +642,7 @@ public class SsoProfileCredentialsProviderFactoryTest {
 
         for (int i = 0; i < 5; i++) {
             credentialsProvider.resolveCredentials();
+            forceRefreshOnNextResolve(credentialsProvider);
         }
 
         ArgumentCaptor<GetRoleCredentialsRequest> requestCaptor =

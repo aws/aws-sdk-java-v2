@@ -130,9 +130,9 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
-        Validate.notNull(builder.jitterEnabled, "builder.jitterEnabled");
+        Validate.notNull(builder.prefetchJitterEnabled, "builder.prefetchJitterEnabled");
 
-        this.valueSupplier = jitteredPrefetchValueSupplier(builder.supplier, builder.jitterEnabled);
+        this.valueSupplier = jitteredPrefetchValueSupplier(builder.supplier, builder.prefetchJitterEnabled);
         this.prefetchStrategy = Validate.notNull(builder.prefetchStrategy, "builder.prefetchStrategy");
         this.staleValueBehavior = Validate.notNull(builder.staleValueBehavior, "builder.staleValueBehavior");
         this.clock = Validate.notNull(builder.clock, "builder.clock");
@@ -419,7 +419,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     /**
-     * Wrap a value supplier with one that jitters its prefetch time.
+     * Wrap a value supplier with one that jitters its prefetch time, spreading refreshes out over the window between the
+     * requested prefetch time and one minute before the stale time.
+     *
+     * <p>Note that this makes the effective prefetch time non-deterministic. Callers that require the prefetch time they
+     * requested to be honored exactly must disable it via {@link Builder#prefetchJitterEnabled(Boolean)}.
      */
     private Supplier<RefreshResult<T>> jitteredPrefetchValueSupplier(Supplier<RefreshResult<T>> supplier,
                                                                      boolean prefetchJitterEnabled) {
@@ -497,7 +501,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     public static final class Builder<T> {
         private final Supplier<RefreshResult<T>> supplier;
         private PrefetchStrategy prefetchStrategy = new OneCallerBlocks();
-        private Boolean jitterEnabled = true;
+        private Boolean prefetchJitterEnabled = true;
         private StaleValueBehavior staleValueBehavior = StaleValueBehavior.STRICT;
         private Clock clock = Clock.systemUTC();
         private String cachedValueName = "unknown";
@@ -568,11 +572,18 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         }
 
         /**
-         * Whether jitter is enabled on the prefetch time. Can be disabled for testing.
+         * Whether jitter is applied to the {@link RefreshResult#prefetchTime()} returned by the supplier.
+         *
+         * <p>When enabled (the default), the prefetch time is moved later by a uniformly random amount, up to one minute
+         * before the {@link RefreshResult#staleTime()}. This spreads refreshes out so that many suppliers sharing the same
+         * refresh schedule do not all contact the underlying source at the same instant.
+         *
+         * <p>Jitter makes the effective prefetch time non-deterministic, so it must be disabled by callers whose prefetch
+         * time carries meaning of its own. Credential providers disable it because the prefetch time is the advisory refresh
+         * window, which is required to be a fixed, known distance from credential expiration.
          */
-        @SdkTestInternalApi
-        Builder<T> jitterEnabled(Boolean jitterEnabled) {
-            this.jitterEnabled = jitterEnabled;
+        public Builder<T> prefetchJitterEnabled(Boolean prefetchJitterEnabled) {
+            this.prefetchJitterEnabled = prefetchJitterEnabled;
             return this;
         }
 

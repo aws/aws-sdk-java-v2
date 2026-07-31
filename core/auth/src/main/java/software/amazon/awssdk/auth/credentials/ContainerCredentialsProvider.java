@@ -128,11 +128,13 @@ public final class ContainerCredentialsProvider
                                                   .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
                                                   .staleValueBehavior(ALLOW)
+                                                  .prefetchJitterEnabled(false)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .staleValueBehavior(ALLOW)
+                                                  .prefetchJitterEnabled(false)
                                                   .build();
         }
     }
@@ -368,7 +370,7 @@ public final class ContainerCredentialsProvider
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
-         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * remaining lifetime: 5 minutes for credentials with 20 minutes or less remaining, 15 minutes for 20-90
          * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
          * successful refresh.
          *

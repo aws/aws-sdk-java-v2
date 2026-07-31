@@ -32,6 +32,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -243,6 +244,38 @@ public class LoginCredentialsProviderTest {
         assertEquals("new-skid", secondResolve.secretAccessKey());
     }
 
+    /**
+     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
+     * configured window covers the lifetime of the refreshed credentials, so the advisory window opens the moment the Sign-In
+     * service returns them and the very next call must refresh again. A jittered window would instead open at a random point
+     * up to a minute before the mandatory refresh window, and the second call would be served from the cache.
+     */
+    @Test
+    public void resolveCredentials_advisoryWindowIsNotJittered() {
+        // Expired token on disk, so the first resolve refreshes from the Sign-In service.
+        tokenManager.storeToken(buildAccessToken(buildCredentials(Instant.now().minusSeconds(600))));
+
+        // Both responses vend credentials with a 600 second lifetime, matching the configured advisory window below.
+        mockHttpClient.stubResponses(successfulRefreshResponse("first-akid"), successfulRefreshResponse("second-akid"));
+
+        // Async updates are disabled explicitly, rather than relying on that being the default, so that the advisory refresh
+        // below happens on the calling thread and the assertions do not race a background refresh.
+        try (LoginCredentialsProvider credentialsProvider = LoginCredentialsProvider.builder()
+                                                                                   .loginSession(LOGIN_SESSION_ID)
+                                                                                   .signinClient(signinClient)
+                                                                                   .tokenCacheLocation(tempDir)
+                                                                                   .prefetchTime(Duration.ofSeconds(600))
+                                                                                   .asyncCredentialUpdateEnabled(false)
+                                                                                   .build()) {
+            assertEquals("first-akid", credentialsProvider.resolveCredentials().accessKeyId());
+            assertEquals(1, mockHttpClient.getRequests().size());
+
+            String secondAkid = credentialsProvider.resolveCredentials().accessKeyId();
+            assertEquals(2, mockHttpClient.getRequests().size());
+            assertEquals("second-akid", secondAkid);
+        }
+    }
+
     @Test
     public void resolveCredentials_whenCredentialsExpired_serviceCallFailsWithTokenExpired_raisesException() {
         // expired
@@ -441,22 +474,24 @@ public class LoginCredentialsProviderTest {
     }
 
     private void stubSuccessfulRefreshResponse() {
+        mockHttpClient.stubNextResponse(successfulRefreshResponse("new-akid"));
+    }
+
+    private HttpExecuteResponse successfulRefreshResponse(String accessKeyId) {
         String jsonBody =
             "{\"accessToken\":"
-            + "{\"accessKeyId\":\"new-akid\","
+            + "{\"accessKeyId\":\"" + accessKeyId + "\","
             + "\"secretAccessKey\":\"new-skid\","
             + "\"sessionToken\":\"new-session-token\"},"
             + "\"tokenType\":\"aws_sigv4\","
             + "\"expiresIn\":600,"
             + "\"refreshToken\":\"new-refresh-token\"}";
 
-        mockHttpClient.stubNextResponse(
-            HttpExecuteResponse
-                .builder()
-                .response(SdkHttpResponse.builder().statusCode(200).build())
-                .responseBody(AbortableInputStream.create(new ByteArrayInputStream(jsonBody.getBytes(StandardCharsets.UTF_8))))
-                .build()
-        );
+        return HttpExecuteResponse
+            .builder()
+            .response(SdkHttpResponse.builder().statusCode(200).build())
+            .responseBody(AbortableInputStream.create(new ByteArrayInputStream(jsonBody.getBytes(StandardCharsets.UTF_8))))
+            .build();
     }
 
     private void stubAccessDeniedException(OAuth2ErrorCode errorCode) {

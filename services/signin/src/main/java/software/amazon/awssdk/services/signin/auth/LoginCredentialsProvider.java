@@ -131,6 +131,7 @@ public final class LoginCredentialsProvider implements
             CachedSupplier.builder(this::updateSigninCredentials)
                           .cachedValueName(toString())
                           .staleValueBehavior(ALLOW)
+                          .prefetchJitterEnabled(false)
                           .nonRecoverableErrorPredicate(LoginCredentialsProvider::isNonRecoverableError);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(ASYNC_THREAD_NAME));
@@ -342,7 +343,7 @@ public final class LoginCredentialsProvider implements
          * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
          * {@link #staleTime(Duration)}).
          *
-         * <p>By default, this is enabled.
+         * <p>By default, this is disabled.
          */
         Builder asyncCredentialUpdateEnabled(Boolean asyncCredentialUpdateEnabled);
 
@@ -375,7 +376,7 @@ public final class LoginCredentialsProvider implements
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
-         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
+         * remaining lifetime: 5 minutes for credentials with 20 minutes or less remaining, 15 minutes for 20-90
          * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
          * successful refresh.
          *
@@ -420,7 +421,7 @@ public final class LoginCredentialsProvider implements
     }
 
     protected static final class BuilderImpl implements Builder {
-        private Boolean asyncCredentialUpdateEnabled = true;
+        private Boolean asyncCredentialUpdateEnabled = false;
         private SigninClient signinClient;
         private Duration staleTime;
         private Duration prefetchTime;

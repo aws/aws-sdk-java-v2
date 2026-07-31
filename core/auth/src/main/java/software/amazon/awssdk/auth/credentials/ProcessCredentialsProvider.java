@@ -128,7 +128,8 @@ public final class ProcessCredentialsProvider
         }
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
-                                                                            .cachedValueName(toString());
+                                                                            .cachedValueName(toString())
+                                                                            .prefetchJitterEnabled(false);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking("process-credentials-provider"));
         }
@@ -206,7 +207,9 @@ public final class ProcessCredentialsProvider
             return Instant.MAX;
         }
         Instant now = Instant.now();
-        Duration dynamicWindow = CacheRefreshUtils.computePrefetchWindow(expiration, prefetchTime, now);
+        // Unlike the AWS credential services, the process decides its own expiration and may emit credentials that are
+        // shorter-lived than the smallest standard advisory refresh window, so the window has to adapt to the lifetime.
+        Duration dynamicWindow = CacheRefreshUtils.computePrefetchWindowForArbitraryLifetime(expiration, prefetchTime, now);
         return expiration.minus(dynamicWindow);
     }
 
@@ -396,9 +399,13 @@ public final class ProcessCredentialsProvider
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
-         * remaining lifetime: 5 minutes for credentials with less than 20 minutes remaining, 15 minutes for 20-90
-         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
-         * successful refresh.
+         * remaining lifetime: half the remaining lifetime (but never less than 1 minute) for credentials with 10 minutes
+         * or less remaining, 5 minutes for 10-20 minutes remaining, 15 minutes for 20-90 minutes remaining, and 60
+         * minutes for 90+ minutes remaining. This dynamic window is recomputed on each successful refresh.
+         *
+         * <p>The halved window for short-lived credentials is specific to this provider. Because the process decides its
+         * own expiration, it may emit credentials that are shorter-lived than the smallest standard window, which would
+         * otherwise place them inside their advisory refresh window as soon as they are produced.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */

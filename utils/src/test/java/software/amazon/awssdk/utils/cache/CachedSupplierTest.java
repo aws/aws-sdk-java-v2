@@ -34,6 +34,7 @@ import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -372,7 +373,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             Instant now = Instant.now();
             clock.time = now;
@@ -402,7 +403,7 @@ public class CachedSupplierTest {
                                                                    .nonRecoverableErrorPredicate(
                                                                        e -> e instanceof CacheInvalidatingRuntimeException)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             Instant now = Instant.now();
             clock.time = now;
@@ -435,7 +436,7 @@ public class CachedSupplierTest {
             try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                        .staleValueBehavior(ALLOW)
                                                                        .clock(clock)
-                                                                       .jitterEnabled(false)
+                                                                       .prefetchJitterEnabled(false)
                                                                        .build()) {
                 Instant now = Instant.parse("2024-01-01T00:00:00Z");
                 clock.time = now;
@@ -479,7 +480,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             Instant now = Instant.parse("2024-01-01T00:00:00Z");
             clock.time = now;
@@ -517,7 +518,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             Instant now = Instant.parse("2024-01-01T00:00:00Z");
             clock.time = now;
@@ -558,7 +559,7 @@ public class CachedSupplierTest {
                                                                    .nonRecoverableErrorPredicate(
                                                                        e -> e instanceof CacheInvalidatingRuntimeException)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             Instant now = Instant.parse("2024-01-01T00:00:00Z");
             clock.time = now;
@@ -609,7 +610,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past())) {
             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                   .prefetchStrategy(new OneCallerBlocks())
-                                                                  .jitterEnabled(false)
+                                                                  .prefetchJitterEnabled(false)
                                                                   .build();
 
             // Perform one successful "get" to prime the cache.
@@ -637,7 +638,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(future(), past());
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Perform one successful "get" to prime the cache.
             waitingSupplier.permits.release(1);
@@ -659,7 +660,7 @@ public class CachedSupplierTest {
         try (WaitingSupplier waitingSupplier = new WaitingSupplier(now().plusSeconds(62), now().plusSeconds(1));
              CachedSupplier<String> cachedSupplier = CachedSupplier.builder(waitingSupplier)
                                                                    .prefetchStrategy(new NonBlocking("test-%s"))
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             waitingSupplier.permits.release(2);
             cachedSupplier.get();
@@ -725,7 +726,7 @@ public class CachedSupplierTest {
                                                               .staleTime(future())
                                                               .build())
                                   .prefetchStrategy(new NonBlocking("test"))
-                                  .jitterEnabled(false)
+                                  .prefetchJitterEnabled(false)
                                   .build();
                 supplier.get();
                 css.add(supplier);
@@ -753,7 +754,7 @@ public class CachedSupplierTest {
                                                               .staleTime(now().plusSeconds(60))
                                                               .build();
                                       }).prefetchStrategy(new NonBlocking("test"))
-                                      .jitterEnabled(false)
+                                      .prefetchJitterEnabled(false)
                                       .build();
                     executor.submit(supplier::get);
                     css.add(supplier);
@@ -883,7 +884,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
                                                           .staleValueBehavior(ALLOW)
                                                           .clock(clock)
-                                                          .jitterEnabled(false)
+                                                          .prefetchJitterEnabled(false)
                                                           .build()) {
             supplier.set(RefreshResult.builder("value-1").staleTime(now.plusSeconds(3600)).prefetchTime(now.plusSeconds(1800)).build());
             assertThat(cache.get()).isEqualTo("value-1");
@@ -906,7 +907,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
                                                           .staleValueBehavior(ALLOW)
                                                           .clock(clock)
-                                                          .jitterEnabled(false)
+                                                          .prefetchJitterEnabled(false)
                                                           .build()) {
             supplier.set(RefreshResult.builder("value-1").staleTime(now.plusSeconds(3600)).prefetchTime(now.plusSeconds(1800)).build());
             assertThat(cache.get()).isEqualTo("value-1");
@@ -927,7 +928,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
                                                           .staleValueBehavior(ALLOW)
                                                           .clock(clock)
-                                                          .jitterEnabled(false)
+                                                          .prefetchJitterEnabled(false)
                                                           .build()) {
             cache.invalidate(v -> true); // should not throw
 
@@ -946,7 +947,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cache = CachedSupplier.builder(supplier)
                                                           .staleValueBehavior(ALLOW)
                                                           .clock(clock)
-                                                          .jitterEnabled(false)
+                                                          .prefetchJitterEnabled(false)
                                                           .build()) {
             supplier.set(RefreshResult.builder("old").staleTime(now.plusSeconds(60)).prefetchTime(now.plusSeconds(30)).build());
             assertThat(cache.get()).isEqualTo("old");
@@ -983,7 +984,7 @@ public class CachedSupplierTest {
                               .build())
                  .staleValueBehavior(ALLOW)
                  .clock(clock)
-                 .jitterEnabled(false)
+                 .prefetchJitterEnabled(false)
                  .build()) {
 
             cache.get(); // prime
@@ -1026,7 +1027,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Initial successful fetch: stale at +3600s, prefetch at +300s
             supplier.set(RefreshResult.builder("original-creds")
@@ -1071,7 +1072,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
                                                                    .staleValueBehavior(ALLOW)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Initial successful fetch: stale at +60s, prefetch at +30s
             supplier.set(RefreshResult.builder("original-creds")
@@ -1120,7 +1121,7 @@ public class CachedSupplierTest {
                                                                    .nonRecoverableErrorPredicate(
                                                                        e -> e instanceof CacheInvalidatingRuntimeException)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Initial successful fetch
             supplier.set(RefreshResult.builder("cached-creds")
@@ -1159,7 +1160,7 @@ public class CachedSupplierTest {
                                                                    .nonRecoverableErrorPredicate(
                                                                        e -> e instanceof CacheInvalidatingRuntimeException)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Initial successful fetch
             supplier.set(RefreshResult.builder("cached-creds")
@@ -1225,7 +1226,7 @@ public class CachedSupplierTest {
         try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(dynamicSupplier)
                                                                    .staleValueBehavior(ALLOW)
                                                                    .clock(clock)
-                                                                   .jitterEnabled(false)
+                                                                   .prefetchJitterEnabled(false)
                                                                    .build()) {
             // Initial fetch — 6-hour creds
             assertThat(cachedSupplier.get()).isEqualTo("6h-creds");
@@ -1246,5 +1247,74 @@ public class CachedSupplierTest {
             assertThat(cachedSupplier.get()).isEqualTo("10m-creds");
             assertThat(fetchCount.get()).isEqualTo(2);
         }
+    }
+
+    // --- prefetch jitter tests ---
+
+    /**
+     * Records the {@link RefreshResult} the cache actually stores, which is the supplier's result after jitter has been
+     * applied to it.
+     */
+    private static class RecordingPrefetchStrategy implements CachedSupplier.PrefetchStrategy {
+        private final List<Instant> recordedPrefetchTimes = new ArrayList<>();
+
+        @Override
+        public void prefetch(Runnable valueUpdater) {
+            valueUpdater.run();
+        }
+
+        @Override
+        public <T> RefreshResult<T> fetch(Supplier<RefreshResult<T>> supplier) {
+            RefreshResult<T> result = supplier.get();
+            recordedPrefetchTimes.add(result.prefetchTime());
+            return result;
+        }
+    }
+
+    private List<Instant> recordPrefetchTimes(Instant staleTime, Instant prefetchTime, Boolean jitterEnabled, int iterations) {
+        List<Instant> prefetchTimes = new ArrayList<>();
+        for (int i = 0; i < iterations; i++) {
+            RecordingPrefetchStrategy strategy = new RecordingPrefetchStrategy();
+            CachedSupplier.Builder<String> builder =
+                CachedSupplier.builder(() -> RefreshResult.builder("value")
+                                                          .staleTime(staleTime)
+                                                          .prefetchTime(prefetchTime)
+                                                          .build())
+                              .prefetchStrategy(strategy);
+            if (jitterEnabled != null) {
+                builder.prefetchJitterEnabled(jitterEnabled);
+            }
+            try (CachedSupplier<String> cachedSupplier = builder.build()) {
+                cachedSupplier.get();
+            }
+            prefetchTimes.addAll(strategy.recordedPrefetchTimes);
+        }
+        return prefetchTimes;
+    }
+
+    @Test
+    public void prefetchJitterEnabledByDefault_movesPrefetchTimeLater() {
+        Instant expiration = now().plus(Duration.ofMinutes(60));
+        Instant staleTime = expiration.minus(Duration.ofMinutes(1));
+        Instant prefetchTime = expiration.minus(Duration.ofMinutes(5));
+
+        List<Instant> prefetchTimes = recordPrefetchTimes(staleTime, prefetchTime, null, 100);
+
+        // Jitter never moves the prefetch time earlier, and never past one minute before the stale time.
+        assertThat(prefetchTimes).allSatisfy(t -> assertThat(t).isBetween(prefetchTime,
+                                                                         staleTime.minus(Duration.ofMinutes(1))));
+        // The requested prefetch time is not honored as-is: the effective time varies from fetch to fetch.
+        assertThat(new HashSet<>(prefetchTimes)).hasSizeGreaterThan(50);
+    }
+
+    @Test
+    public void prefetchJitterDisabled_honorsRequestedPrefetchTimeExactly() {
+        Instant expiration = now().plus(Duration.ofMinutes(60));
+        Instant staleTime = expiration.minus(Duration.ofMinutes(1));
+        Instant prefetchTime = expiration.minus(Duration.ofMinutes(5));
+
+        List<Instant> prefetchTimes = recordPrefetchTimes(staleTime, prefetchTime, false, 100);
+
+        assertThat(prefetchTimes).containsOnly(prefetchTime);
     }
 }

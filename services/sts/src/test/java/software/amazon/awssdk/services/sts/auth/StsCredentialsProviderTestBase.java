@@ -71,15 +71,14 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
         callClient(verify(stsClient, times(1)), Mockito.any());
     }
 
+    /**
+     * A 90 second session is shorter than the 5 minute advisory refresh window it selects, so it is inside that window as
+     * soon as STS returns it and the next call refreshes. STS enforces a 15 minute minimum session duration, so this only
+     * happens with a mock or a badly skewed host clock.
+     */
     @Test
-    public void distantExpiringCredentialsUpdatedInBackground() throws InterruptedException {
+    public void expiringCredentialsAreRefreshedOnTheFollowingCall() {
         callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2, false);
-
-        Instant endCheckTime = Instant.now().plus(Duration.ofSeconds(5));
-        while (Mockito.mockingDetails(stsClient).getInvocations().size() < 2 && endCheckTime.isAfter(Instant.now())) {
-            Thread.sleep(100);
-        }
-
         callClient(verify(stsClient, times(2)), Mockito.any());
     }
 
@@ -158,6 +157,35 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
             assertThatThrownBy(credentialsProvider::resolveCredentials)
                 .isInstanceOf(SdkClientException.class)
                 .hasMessageContaining("STS service unavailable");
+        }
+    }
+
+    /**
+     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
+     * configured window covers the credential's entire lifetime, so the advisory window opens the moment the credentials are
+     * issued and the very next call must contact STS. A jittered window would instead open at a random point up to a minute
+     * before the mandatory refresh window, and the second call would be served from the cache.
+     */
+    @Test
+    public void resolveCredentials_advisoryWindowIsNotJittered() {
+        Duration lifetime = Duration.ofMinutes(10);
+        Credentials credentials = Credentials.builder()
+                                             .accessKeyId("a").secretAccessKey("b").sessionToken("c")
+                                             .expiration(Instant.now().plus(lifetime))
+                                             .build();
+        RequestT request = getRequest();
+        when(callClient(stsClient, request)).thenReturn(getResponse(credentials));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+        credentialsProviderBuilder.prefetchTime(lifetime);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            credentialsProvider.resolveCredentials();
+            callClient(verify(stsClient, times(1)), Mockito.any());
+
+            credentialsProvider.resolveCredentials();
+            callClient(verify(stsClient, times(2)), Mockito.any());
         }
     }
 
