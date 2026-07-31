@@ -16,8 +16,6 @@
 package software.amazon.awssdk.benchmark.coldstart;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.BenchmarkMode;
@@ -43,18 +41,17 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.benchmark.utils.MockHttpServer;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.crac.SdkWarmUp;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 /**
- * Same measurement as {@link V2ColdStartNoWarmUpBenchmark}, but {@link SdkWarmUp#prime(Class[])} runs in {@code @Setup}
- * (untimed, needs network for the STS warm-up GET). The score difference between the two is the first-call work that
- * warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long prime() itself takes.
+ * Same measured work as {@link V2DefaultFirstRequestBenchmark} (the first {@code putItem} on an already-built client),
+ * but {@link SdkWarmUp#prime(Class[])} runs in the untimed {@code @Setup}. The score difference between the two is the
+ * first-call work that warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long prime() itself
+ * takes. Single-shot, zero warmup, high fork count: only the first invocation per JVM is cold. Do not override these
+ * JMH parameters from the CLI, or the two variants converge.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)
@@ -62,7 +59,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 @Warmup(iterations = 0)
 @Measurement(iterations = 1)
 @Fork(20)
-public class V2ColdStartAfterWarmUpBenchmark {
+public class V2PrimedFirstRequestBenchmark implements FirstRequestBenchmark {
 
     private static final String FIXTURE = "json-protocol/putitem-response.json";
     private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
@@ -76,9 +73,7 @@ public class V2ColdStartAfterWarmUpBenchmark {
         server.start();
 
         SdkWarmUp.prime(DynamoDbClient.class);
-    }
-    @Benchmark
-    public void coldFirstCall(Blackhole blackhole) throws Exception {
+
         client = DynamoDbClient.builder()
                                .endpointOverride(server.getHttpUri())
                                .region(Region.US_EAST_1)
@@ -87,8 +82,12 @@ public class V2ColdStartAfterWarmUpBenchmark {
                                .httpClient(Apache5HttpClient.create())
                                .endpointDiscoveryEnabled(false)
                                .build();
+    }
 
-        blackhole.consume(client.putItem(putItemRequest()));
+    @Override
+    @Benchmark
+    public void firstRequest(Blackhole blackhole) throws Exception {
+        blackhole.consume(client.putItem(FirstRequestBenchmark.v2PutItemRequest()));
     }
 
     @TearDown(Level.Trial)
@@ -104,41 +103,9 @@ public class V2ColdStartAfterWarmUpBenchmark {
     public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
             .parent(new CommandLineOptions())
-            .include(V2ColdStartAfterWarmUpBenchmark.class.getSimpleName())
+            .include(V2PrimedFirstRequestBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
-    }
-
-    private static PutItemRequest putItemRequest() {
-        return PutItemRequest.builder()
-                             .tableName("benchmark-table")
-                             .item(itemMap())
-                             .build();
-    }
-
-    private static Map<String, AttributeValue> itemMap() {
-        Map<String, AttributeValue> item = new HashMap<>();
-        item.put("pk", AttributeValue.fromS("benchmark-key"));
-        item.put("sk", AttributeValue.fromN("100"));
-        item.put("stringField", AttributeValue.fromS("test-value"));
-        item.put("numberField", AttributeValue.fromN("123.456"));
-        item.put("binaryField", AttributeValue.fromB(SdkBytes.fromUtf8String("hello world")));
-        item.put("stringSetField", AttributeValue.builder().ss("value1", "value2", "value3").build());
-        item.put("numberSetField", AttributeValue.builder().ns("1.1", "2.2", "3.3").build());
-        item.put("boolField", AttributeValue.fromBool(false));
-        item.put("nullField", AttributeValue.builder().nul(true).build());
-        Map<String, AttributeValue> deep = new HashMap<>();
-        deep.put("level2", AttributeValue.fromN("999"));
-        Map<String, AttributeValue> nested = new HashMap<>();
-        nested.put("nested", AttributeValue.fromS("nested-value"));
-        nested.put("deepNested", AttributeValue.fromM(deep));
-        item.put("mapField", AttributeValue.fromM(nested));
-        item.put("listField", AttributeValue.builder().l(
-            AttributeValue.fromS("item1"),
-            AttributeValue.fromN("42"),
-            AttributeValue.fromBool(true),
-            AttributeValue.builder().nul(true).build()).build());
-        return item;
     }
 }

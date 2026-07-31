@@ -51,10 +51,12 @@ import software.amazon.awssdk.benchmark.apicall.protocol.JsonProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.SmithyRpcV2ProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
-import software.amazon.awssdk.benchmark.coldstart.V2ColdStartAfterWarmUpBenchmark;
-import software.amazon.awssdk.benchmark.coldstart.V2ColdStartNoWarmUpBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V1ClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2DefaultFirstRequestBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2PrimedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2PrimedFirstRequestBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2SdkWarmUpExecutionTimeBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
@@ -89,10 +91,12 @@ public class BenchmarkRunner {
         CrtHttpClientBenchmark.class.getSimpleName());
 
     private static final List<String> COLD_START_BENCHMARKS = Arrays.asList(
+        V1ClientCreationBenchmark.class.getSimpleName(),
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
         V2DefaultClientCreationBenchmark.class.getSimpleName(),
-        V2ColdStartNoWarmUpBenchmark.class.getSimpleName(),
-        V2ColdStartAfterWarmUpBenchmark.class.getSimpleName(),
+        V2PrimedClientCreationBenchmark.class.getSimpleName(),
+        V2DefaultFirstRequestBenchmark.class.getSimpleName(),
+        V2PrimedFirstRequestBenchmark.class.getSimpleName(),
         V2SdkWarmUpExecutionTimeBenchmark.class.getSimpleName());
 
     private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(
