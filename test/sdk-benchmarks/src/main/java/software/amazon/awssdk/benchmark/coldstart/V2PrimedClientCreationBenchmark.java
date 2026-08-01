@@ -25,6 +25,7 @@ import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
@@ -37,11 +38,14 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import software.amazon.awssdk.core.crac.SdkWarmUp;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Benchmark for creating the clients
+ * Client-creation counterpart to {@link V2DefaultClientCreationBenchmark}, with {@link SdkWarmUp#prime(Class[])} run once
+ * in {@code @Setup} (untimed). The measured work is the same client build; comparing the two scores shows how much of
+ * client construction the warm-up front-loads.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SampleTime)
@@ -49,9 +53,14 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @Warmup(iterations = 3)
 @Measurement(iterations = 5)
 @Fork(3)
-public class V2DefaultClientCreationBenchmark implements SdkClientCreationBenchmark {
+public class V2PrimedClientCreationBenchmark implements SdkClientCreationBenchmark {
 
     private DynamoDbClient client;
+
+    @Setup(Level.Trial)
+    public void setup() {
+        SdkWarmUp.prime(DynamoDbClient.class);
+    }
 
     @Override
     @Benchmark
@@ -72,7 +81,7 @@ public class V2DefaultClientCreationBenchmark implements SdkClientCreationBenchm
     public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
             .parent(new CommandLineOptions())
-            .include(V2DefaultClientCreationBenchmark.class.getSimpleName())
+            .include(V2PrimedClientCreationBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();

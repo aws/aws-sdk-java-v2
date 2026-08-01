@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.benchmark.apicall.protocol;
+package software.amazon.awssdk.benchmark.coldstart;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -23,6 +23,7 @@ import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
 import java.nio.ByteBuffer;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -39,27 +40,33 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import org.openjdk.jmh.profile.StackProfiler;
+import org.openjdk.jmh.results.RunResult;
+import org.openjdk.jmh.runner.Runner;
+import org.openjdk.jmh.runner.RunnerException;
+import org.openjdk.jmh.runner.options.CommandLineOptionException;
+import org.openjdk.jmh.runner.options.CommandLineOptions;
+import org.openjdk.jmh.runner.options.Options;
+import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 
-/**
- * V1 roundtrip benchmark for JSON protocol (aws-json) using DynamoDB PutItem via HTTP servlet.
- */
 @State(Scope.Benchmark)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
-@Fork(2)
-@BenchmarkMode(Mode.Throughput)
-@OutputTimeUnit(TimeUnit.SECONDS)
-public class V1JsonRoundtripBenchmark {
+@BenchmarkMode(Mode.SingleShotTime)
+@OutputTimeUnit(TimeUnit.MILLISECONDS)
+@Warmup(iterations = 0)
+@Measurement(iterations = 1)
+@Fork(20)
+public class V1FirstRequestBenchmark implements FirstRequestBenchmark {
+
+    private static final String FIXTURE = "json-protocol/putitem-response.json";
+    private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
 
     private MockHttpServer server;
     private AmazonDynamoDB client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = MockHttpServer.loadFixture("json-protocol/putitem-response.json");
-
-        server = new MockHttpServer(response, "application/x-amz-json-1.0");
+        server = new MockHttpServer(MockHttpServer.loadFixture(FIXTURE), CONTENT_TYPE);
         server.start();
 
         client = AmazonDynamoDBClientBuilder.standard()
@@ -69,19 +76,35 @@ public class V1JsonRoundtripBenchmark {
             .build();
     }
 
-    @TearDown(Level.Trial)
-    public void tearDown() throws Exception {
-        client.shutdown();
-        server.stop();
+    @Override
+    @Benchmark
+    public void firstRequest(Blackhole blackhole) throws Exception {
+        blackhole.consume(client.putItem(putItemRequest()));
     }
 
-    @Benchmark
-    public void putItem(Blackhole bh) {
-        PutItemRequest putItemRequest = new PutItemRequest()
+    @TearDown(Level.Trial)
+    public void tearDown() throws Exception {
+        if (client != null) {
+            client.shutdown();
+        }
+        if (server != null) {
+            server.stop();
+        }
+    }
+
+    public static void main(String... args) throws RunnerException, CommandLineOptionException {
+        Options opt = new OptionsBuilder()
+            .parent(new CommandLineOptions())
+            .include(V1FirstRequestBenchmark.class.getSimpleName())
+            .addProfiler(StackProfiler.class)
+            .build();
+        Collection<RunResult> run = new Runner(opt).run();
+    }
+
+    private static PutItemRequest putItemRequest() {
+        return new PutItemRequest()
             .withTableName("benchmark-table")
             .withItem(itemMap());
-
-        bh.consume(client.putItem(putItemRequest));
     }
 
     private static Map<String, AttributeValue> itemMap() {

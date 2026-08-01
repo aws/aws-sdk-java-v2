@@ -25,6 +25,7 @@ import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Scope;
+import org.openjdk.jmh.annotations.Setup;
 import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
@@ -37,29 +38,56 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
+import software.amazon.awssdk.core.crac.SdkWarmUp;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Benchmark for creating the clients
+ * Same measured work as {@link V2DefaultFirstRequestBenchmark} (the first {@code putItem} on an already-built client),
+ * but {@link SdkWarmUp#prime(Class[])} runs in the untimed {@code @Setup}. The score difference between the two is the
+ * first-call work that warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long prime() itself
+ * takes. Single-shot, zero warmup, high fork count: only the first invocation per JVM is cold. Do not override these
+ * JMH parameters from the CLI, or the two variants converge.
  */
 @State(Scope.Benchmark)
-@BenchmarkMode(Mode.SampleTime)
+@BenchmarkMode(Mode.SingleShotTime)
 @OutputTimeUnit(TimeUnit.MILLISECONDS)
-@Warmup(iterations = 3)
-@Measurement(iterations = 5)
-@Fork(3)
-public class V2DefaultClientCreationBenchmark implements SdkClientCreationBenchmark {
+@Warmup(iterations = 0)
+@Measurement(iterations = 1)
+@Fork(20)
+public class V2PrimedFirstRequestBenchmark implements FirstRequestBenchmark {
 
+    private static final String FIXTURE = "json-protocol/putitem-response.json";
+    private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
+
+    private MockHttpServer server;
     private DynamoDbClient client;
+
+    @Setup(Level.Trial)
+    public void setup() throws Exception {
+        server = new MockHttpServer(MockHttpServer.loadFixture(FIXTURE), CONTENT_TYPE);
+        server.start();
+
+        SdkWarmUp.prime(DynamoDbClient.class);
+
+        client = DynamoDbClient.builder()
+                               .endpointOverride(server.getHttpUri())
+                               .region(Region.US_EAST_1)
+                               .credentialsProvider(StaticCredentialsProvider.create(
+                                   AwsBasicCredentials.create("test", "test")))
+                               .httpClient(Apache5HttpClient.create())
+                               .endpointDiscoveryEnabled(false)
+                               .build();
+    }
 
     @Override
     @Benchmark
-    public void createClient(Blackhole blackhole) throws Exception {
-        client = DynamoDbClient.builder()
-                               .endpointDiscoveryEnabled(false)
-                               .httpClient(Apache5HttpClient.builder().build()).build();
-        blackhole.consume(client);
+    public void firstRequest(Blackhole blackhole) throws Exception {
+        blackhole.consume(client.putItem(FirstRequestBenchmark.v2PutItemRequest()));
     }
 
     @TearDown(Level.Trial)
@@ -67,12 +95,15 @@ public class V2DefaultClientCreationBenchmark implements SdkClientCreationBenchm
         if (client != null) {
             client.close();
         }
+        if (server != null) {
+            server.stop();
+        }
     }
 
     public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
             .parent(new CommandLineOptions())
-            .include(V2DefaultClientCreationBenchmark.class.getSimpleName())
+            .include(V2PrimedFirstRequestBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
