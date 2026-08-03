@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import io.netty.handler.codec.http.HttpRequest;
-import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 
 /**
@@ -33,5 +32,5 @@ public interface ProxyAuthGenerator {
     /**
      * Generate the auth params for this request.
      */
-    String generateAuthParams(URI proxyEndpoint);
+    String generateAuthParams(SdkHttpRequest request);
 }
