@@ -23,7 +23,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -37,8 +36,8 @@ class S3BenchmarkRunnerTest {
     @Test
     void outputJson_hasExpectedStructure() throws IOException {
         List<Map<String, Object>> results = new ArrayList<>();
-        results.add(buildResult("s3express.S3Benchmark.putObject", 12.5, "ms/op", "s3express", "64KB", "Apache"));
-        results.add(buildResult("s3express.S3Benchmark.readThroughput", 96000000.0, "bytes/s", "s3express", "64KB", "Apache"));
+        results.add(S3BenchmarkRunner.buildResult("s3express.S3Benchmark.putObject", 12.5, "ms/op", "s3express", "64KB", "Apache"));
+        results.add(S3BenchmarkRunner.buildResult("s3express.S3Benchmark.readThroughput", 96000000.0, "bytes/s", "s3express", "64KB", "Apache"));
 
         Path outputFile = tempDir.resolve("results.json");
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
@@ -61,31 +60,5 @@ class S3BenchmarkRunnerTest {
         JsonNode second = root.get(1);
         assertThat(second.get("benchmark").asText()).isEqualTo("s3express.S3Benchmark.readThroughput");
         assertThat(second.get("primaryMetric").get("scoreUnit").asText()).isEqualTo("bytes/s");
-    }
-
-    private static Map<String, Object> buildResult(String benchmarkName, double score, String scoreUnit,
-                                                   String bucketType, String objectSize, String httpClient) {
-        Map<String, Object> result = new LinkedHashMap<>();
-        result.put("benchmark", benchmarkName);
-        result.put("mode", "avgt");
-
-        Map<String, String> params = new LinkedHashMap<>();
-        params.put("bucketType", bucketType);
-        params.put("objectSize", objectSize);
-        params.put("httpClient", httpClient);
-        result.put("params", params);
-
-        Map<String, Object> primaryMetric = new LinkedHashMap<>();
-        primaryMetric.put("score", score);
-        primaryMetric.put("scoreUnit", scoreUnit);
-
-        List<List<Double>> rawData = new ArrayList<>();
-        List<Double> fork = new ArrayList<>();
-        fork.add(score);
-        rawData.add(fork);
-        primaryMetric.put("rawData", rawData);
-
-        result.put("primaryMetric", primaryMetric);
-        return result;
     }
 }

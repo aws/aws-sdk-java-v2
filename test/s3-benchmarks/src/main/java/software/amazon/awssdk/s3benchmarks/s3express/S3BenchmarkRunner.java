@@ -168,8 +168,8 @@ public class S3BenchmarkRunner {
         return results;
     }
 
-    private static Map<String, Object> buildResult(String benchmarkName, double score, String scoreUnit,
-                                                   String bucketType, String objectSize, String httpClient) {
+    static Map<String, Object> buildResult(String benchmarkName, double score, String scoreUnit,
+                                            String bucketType, String objectSize, String httpClient) {
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("benchmark", benchmarkName);
         result.put("mode", "avgt");
