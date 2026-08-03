@@ -2,7 +2,7 @@
   "version": "1.2",
   "serviceId": "query",
   "parameters": {
-    "endpoint": {
+    "Endpoint": {
       "type": "string",
       "builtIn": "SDK::Endpoint",
       "documentation": "Override the endpoint used to send this request"
@@ -15,7 +15,7 @@
           "fn": "isSet",
           "argv": [
             {
-              "ref": "endpoint"
+              "ref": "Endpoint"
             }
           ]
         }
