@@ -44,6 +44,8 @@ import software.amazon.awssdk.utils.BinaryUtils;
  */
 @SdkInternalApi
 public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
+    // SPNEGO pseudo-mechanism OID. Lets the proxy negotiate Kerberos over HTTP "Negotiate".
+    // See https://www.ietf.org/rfc/rfc4178.txt for more info
     private static final String OID = "1.3.6.1.5.5.2";
     private static final String SERVICE_NAME = "HTTP";
     private final Configuration config;
