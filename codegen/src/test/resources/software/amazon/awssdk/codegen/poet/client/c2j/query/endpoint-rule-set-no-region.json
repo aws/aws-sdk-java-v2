@@ -1,0 +1,54 @@
+{
+  "version": "1.2",
+  "serviceId": "query",
+  "parameters": {
+    "endpoint": {
+      "type": "string",
+      "builtIn": "SDK::Endpoint",
+      "documentation": "Override the endpoint used to send this request"
+    }
+  },
+  "rules": [
+    {
+      "conditions": [
+        {
+          "fn": "isSet",
+          "argv": [
+            {
+              "ref": "endpoint"
+            }
+          ]
+        }
+      ],
+      "endpoint": {
+        "url": "{endpoint}",
+        "properties": {
+          "authSchemes": [
+            {
+              "name": "sigv4",
+              "signingRegion": "us-east-1",
+              "signingName": "query-service"
+            }
+          ]
+        }
+      },
+      "type": "endpoint"
+    },
+    {
+      "conditions": [],
+      "endpoint": {
+        "url": "https://query-service.us-east-1.amazonaws.com",
+        "properties": {
+          "authSchemes": [
+            {
+              "name": "sigv4",
+              "signingRegion": "us-east-1",
+              "signingName": "query-service"
+            }
+          ]
+        }
+      },
+      "type": "endpoint"
+    }
+  ]
+}

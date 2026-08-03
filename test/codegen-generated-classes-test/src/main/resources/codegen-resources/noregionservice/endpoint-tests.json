@@ -1,0 +1,14 @@
+{
+  "testCases": [
+    {
+      "documentation": "Default endpoint",
+      "params": {},
+      "expect": {
+        "endpoint": {
+          "url": "https://noregionservice.us-east-1.amazonaws.com"
+        }
+      }
+    }
+  ],
+  "version": "1.0"
+}

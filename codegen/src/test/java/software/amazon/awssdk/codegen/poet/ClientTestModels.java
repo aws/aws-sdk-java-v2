@@ -622,6 +622,27 @@ public class ClientTestModels {
         return ModelLoaderUtils.loadModel(ServiceModel.class, file);
     }
 
+    public static IntermediateModel queryServiceModelsNoRegionEndpointRules() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/query/customization.config").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-no-region.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-no-region.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .waitersModel(getWaiters(waitersModel))
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     private static CustomizationConfig getCustomizationConfig(File file) {
         return ModelLoaderUtils.loadModel(CustomizationConfig.class, file);
     }
