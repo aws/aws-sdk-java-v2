@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EKS Auth",
+    "contributor": "",
+    "description": "Added eksNodeName, instanceId, and zone optional parameters to the AssumeRoleForPodIdentity API."
+}
