@@ -15,11 +15,9 @@
 
 package software.amazon.awssdk.s3benchmarks.s3express;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -197,71 +195,7 @@ public class S3BenchmarkRunner {
     }
 
     private static void writeResultsJson(List<Map<String, Object>> results, String outputFile) throws IOException {
-        try (PrintWriter writer = new PrintWriter(new OutputStreamWriter(
-                Files.newOutputStream(Paths.get(outputFile)), StandardCharsets.UTF_8))) {
-            writer.println("[");
-            for (int i = 0; i < results.size(); i++) {
-                writer.print("  ");
-                writer.print(toJson(results.get(i)));
-                if (i < results.size() - 1) {
-                    writer.println(",");
-                } else {
-                    writer.println();
-                }
-            }
-            writer.println("]");
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static String toJson(Object obj) {
-        if (obj == null) {
-            return "null";
-        }
-        if (obj instanceof String) {
-            return "\"" + escapeJson((String) obj) + "\"";
-        }
-        if (obj instanceof Number) {
-            return obj.toString();
-        }
-        if (obj instanceof Boolean) {
-            return obj.toString();
-        }
-        if (obj instanceof List) {
-            List<?> list = (List<?>) obj;
-            StringBuilder sb = new StringBuilder("[");
-            for (int i = 0; i < list.size(); i++) {
-                if (i > 0) {
-                    sb.append(",");
-                }
-                sb.append(toJson(list.get(i)));
-            }
-            sb.append("]");
-            return sb.toString();
-        }
-        if (obj instanceof Map) {
-            Map<String, Object> map = (Map<String, Object>) obj;
-            StringBuilder sb = new StringBuilder("{");
-            boolean first = true;
-            for (Map.Entry<String, Object> entry : map.entrySet()) {
-                if (!first) {
-                    sb.append(",");
-                }
-                first = false;
-                sb.append("\"").append(escapeJson(entry.getKey())).append("\":");
-                sb.append(toJson(entry.getValue()));
-            }
-            sb.append("}");
-            return sb.toString();
-        }
-        return "\"" + escapeJson(obj.toString()) + "\"";
-    }
-
-    private static String escapeJson(String s) {
-        return s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+        ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
+        mapper.writeValue(Paths.get(outputFile).toFile(), results);
     }
 }
