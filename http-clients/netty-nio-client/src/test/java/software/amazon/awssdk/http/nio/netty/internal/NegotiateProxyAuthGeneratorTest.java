@@ -20,7 +20,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -34,6 +33,8 @@ import org.apache.kerby.kerberos.kerb.type.ticket.TgtTicket;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.testutils.FileUtils;
 
 public class NegotiateProxyAuthGeneratorTest {
@@ -102,9 +103,13 @@ public class NegotiateProxyAuthGeneratorTest {
     void generateAuthParams_configValid_successfullyGeneratesToken() {
         NegotiateProxyAuthGenerator authGenerator = new NegotiateProxyAuthGenerator(config);
 
-        URI proxyEndpoint = URI.create("https://localhost:8192");
+        SdkHttpRequest request = SdkHttpRequest.builder()
+                                               .protocol("http")
+                                               .host("localhost")
+                                               .method(SdkHttpMethod.GET)
+                                               .build();
 
-        assertThat(authGenerator.generateAuthParams(proxyEndpoint)).startsWith("YII");
+        assertThat(authGenerator.generateAuthParams(request)).startsWith("YII");
     }
 
 }

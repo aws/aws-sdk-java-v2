@@ -49,30 +49,41 @@ public class Http1TunnelConnectionPool implements ChannelPool {
     private final ChannelPool delegate;
     private final SslContext sslContext;
     private final URI proxyAddress;
-    private final ProxyAuthGenerator proxyAuthGenerator;
+    private final String proxyUser;
+    private final String proxyPassword;
     private final URI remoteAddress;
     private final ChannelPoolHandler handler;
     private final InitHandlerSupplier initHandlerSupplier;
     private final NettyConfiguration nettyConfiguration;
 
     public Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
-                                     URI proxyAddress, ProxyAuthGenerator proxyAuthGenerator,
+                                     URI proxyAddress, String proxyUsername, String proxyPassword,
                                      URI remoteAddress, ChannelPoolHandler handler, NettyConfiguration nettyConfiguration) {
         this(eventLoop, delegate, sslContext,
-             proxyAddress, proxyAuthGenerator, remoteAddress, handler,
+             proxyAddress, proxyUsername, proxyPassword, remoteAddress, handler,
              ProxyTunnelInitHandler::new, nettyConfiguration);
+    }
+
+    public Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
+                                     URI proxyAddress, URI remoteAddress, ChannelPoolHandler handler,
+                                     NettyConfiguration nettyConfiguration) {
+        this(eventLoop, delegate, sslContext,
+             proxyAddress, null, null, remoteAddress, handler,
+             ProxyTunnelInitHandler::new, nettyConfiguration);
+
     }
 
     @SdkTestInternalApi
     Http1TunnelConnectionPool(EventLoop eventLoop, ChannelPool delegate, SslContext sslContext,
-                              URI proxyAddress, ProxyAuthGenerator proxyAuthGenerator, URI remoteAddress,
+                              URI proxyAddress, String proxyUser, String proxyPassword, URI remoteAddress,
                               ChannelPoolHandler handler, InitHandlerSupplier initHandlerSupplier,
                               NettyConfiguration nettyConfiguration) {
         this.eventLoop = eventLoop;
         this.delegate = delegate;
         this.sslContext = sslContext;
         this.proxyAddress = proxyAddress;
-        this.proxyAuthGenerator = proxyAuthGenerator;
+        this.proxyUser = proxyUser;
+        this.proxyPassword = proxyPassword;
         this.remoteAddress = remoteAddress;
         this.handler = handler;
         this.initHandlerSupplier = initHandlerSupplier;
@@ -127,7 +138,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
         if (sslHandler != null) {
             ch.pipeline().addLast(sslHandler);
         }
-        ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, proxyAddress, proxyAuthGenerator, remoteAddress,
+        ch.pipeline().addLast(initHandlerSupplier.newInitHandler(delegate, proxyUser, proxyPassword, remoteAddress,
                                                                     tunnelEstablishedPromise));
         tunnelEstablishedPromise.addListener((Future<Channel> f) -> {
             if (f.isSuccess()) {
@@ -169,10 +180,7 @@ public class Http1TunnelConnectionPool implements ChannelPool {
     @SdkTestInternalApi
     @FunctionalInterface
     interface InitHandlerSupplier {
-        ChannelHandler newInitHandler(ChannelPool sourcePool,
-                                      URI proxyAddress,
-                                      ProxyAuthGenerator authGenerator,
-                                      URI remoteAddress,
+        ChannelHandler newInitHandler(ChannelPool sourcePool, String proxyUsername, String proxyPassword, URI remoteAddress,
                                       Promise<Channel> tunnelInitFuture);
     }
 }

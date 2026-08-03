@@ -95,8 +95,7 @@ public class ProxyTunnelInitHandlerTest {
         Supplier<HttpClientCodec> codecSupplier = () -> codec;
         when(mockCtx.name()).thenReturn("foo");
 
-        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, null, null, null, REMOTE_HOST, null,
-                                                                    codecSupplier);
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, null, null, REMOTE_HOST, null, codecSupplier);
         handler.handlerAdded(mockCtx);
 
         verify(mockPipeline).addBefore(eq("foo"), eq(null), eq(codec));
@@ -203,7 +202,7 @@ public class ProxyTunnelInitHandlerTest {
     }
 
     @Test
-    public void handlerAdded_writesRequest_withoutAuth() {
+    public void handledAdded_writesRequest_withoutAuth() {
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, REMOTE_HOST, promise);
         handler.handlerAdded(mockCtx);
@@ -220,7 +219,7 @@ public class ProxyTunnelInitHandlerTest {
     }
 
     @Test
-    public void handlerAdded_writesRequest_withAuth() {
+    public void handledAdded_writesRequest_withAuth() {
         Promise<Channel> promise = GROUP.next().newPromise();
         ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, PROXY_USER, PROXY_PASSWORD, REMOTE_HOST, promise);
         handler.handlerAdded(mockCtx);
