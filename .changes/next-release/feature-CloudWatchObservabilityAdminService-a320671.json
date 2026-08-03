@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CloudWatch Observability Admin Service",
-    "contributor": "",
-    "description": "Launch CMK support for Telemetry Enablement Organization and Account Rules."
-}
