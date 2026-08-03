@@ -44,6 +44,7 @@ import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
+import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
@@ -143,7 +144,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         if (shouldUseProxyForHost(key)) {
             tcpChannelPool = new BetterSimpleChannelPool(bootstrap, NOOP_HANDLER);
             baseChannelPool = new Http1TunnelConnectionPool(bootstrap.config().group().next(), tcpChannelPool, sslContext,
-                                            proxyAddress(key), proxyConfiguration.username(), proxyConfiguration.password(),
+                                            proxyAddress(key), resolveProxyAuthGenerator(proxyConfiguration),
                                             key, pipelineInitializer, configuration);
         } else {
             tcpChannelPool = new BetterSimpleChannelPool(bootstrap, pipelineInitializer);
@@ -154,6 +155,16 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         channelPoolRef.set(wrappedPool);
         return new SimpleChannelPoolAwareChannelPool(wrappedPool, tcpChannelPool);
+    }
+
+    private ProxyAuthGenerator resolveProxyAuthGenerator(ProxyConfiguration proxyConfiguration) {
+        String username = proxyConfiguration.username();
+        String password = proxyConfiguration.password();
+        if (!StringUtils.isBlank(username) && !StringUtils.isBlank(password)) {
+            return new BasicProxyAuthGenerator(username, password);
+        }
+
+        return null;
     }
 
     @Override
