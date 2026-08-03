@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
 import software.amazon.awssdk.core.internal.crac.PrimedClientRegistry;
 import software.amazon.awssdk.core.internal.crac.TargetedWarmUpInvoker;
 import software.amazon.awssdk.core.internal.crac.TargetedWarmUpResult;
-import software.amazon.awssdk.core.internal.crac.WarmedHttpClientRegistry;
+import software.amazon.awssdk.core.internal.crac.WarmedHttpClientTypeRegistry;
 import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
 import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
@@ -62,9 +62,11 @@ public final class SdkWarmUp {
 
     private static volatile boolean primed = false;
 
+    // Tracks per-service work already done, keyed by service-client class name.
     private static final PrimedClientRegistry PRIMED_CLIENTS = new PrimedClientRegistry();
 
-    private static final WarmedHttpClientRegistry WARMED_HTTP_CLIENTS = new WarmedHttpClientRegistry();
+    // Tracks the service-independent HTTP-layer warm-up, keyed by client type, so it runs at most once per type.
+    private static final WarmedHttpClientTypeRegistry WARMED_HTTP_CLIENT_TYPES = new WarmedHttpClientTypeRegistry();
 
     private SdkWarmUp() {
     }
@@ -134,13 +136,13 @@ public final class SdkWarmUp {
      * Warms the HTTP clients for the given client types, skipping types already warmed by an earlier call.
      */
     private static void warmHttpClientsOnce(Set<ClientType> matchedClientTypes) {
-        Set<ClientType> toWarm = WARMED_HTTP_CLIENTS.selectUnwarmed(matchedClientTypes);
-        if (toWarm.contains(ClientType.SYNC)) {
+        if (matchedClientTypes.contains(ClientType.SYNC) && !WARMED_HTTP_CLIENT_TYPES.isWarmed(ClientType.SYNC)) {
             SyncHttpClientWarmer.create().warmAll();
+            WARMED_HTTP_CLIENT_TYPES.markWarmed(ClientType.SYNC);
         }
-        if (toWarm.contains(ClientType.ASYNC)) {
+        if (matchedClientTypes.contains(ClientType.ASYNC) && !WARMED_HTTP_CLIENT_TYPES.isWarmed(ClientType.ASYNC)) {
             AsyncHttpClientWarmer.create().warmAll();
+            WARMED_HTTP_CLIENT_TYPES.markWarmed(ClientType.ASYNC);
         }
-        WARMED_HTTP_CLIENTS.markWarmed(toWarm);
     }
 }
