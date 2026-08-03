@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.50.3__ __2026-08-03__
+## __AWS Direct Connect__
+  - ### Features
+    - Added route visibility support for AWS Direct Connect, allowing customers to call ListVirtualInterfaceRoutes to view the BGP routes including AS path and BGP communities advertised over their virtual interfaces.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Updates Kantar server URL validation to accept Fifty5Blue domain. Adds support for output to S3 Glacier Instant Retrieval.
+
+## __AWS Network Firewall__
+  - ### Features
+    - This launch allows customers to use Network Firewall as an explicit Proxy and protect their workloads against threat of data exfiltration.
+
+## __AWS WAFV2__
+  - ### Features
+    - Updated descriptions for number of PreParseTextTransformations allowed per rule statement
+
+## __Amazon EKS Auth__
+  - ### Features
+    - Added eksNodeName, instanceId, and zone optional parameters to the AssumeRoleForPodIdentity API.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Launch CMK support for Telemetry Enablement Organization and Account Rules.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - This release adds support for customer-managed backup restore, and encryption of new DbInstances and DbClusters using customer-managed KMS keys.
+
 # __2.50.2__ __2026-07-31__
 ## __AWS Billing__
   - ### Features
