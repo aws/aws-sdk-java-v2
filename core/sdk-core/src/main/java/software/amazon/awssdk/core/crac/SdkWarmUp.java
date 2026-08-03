@@ -26,6 +26,7 @@ import software.amazon.awssdk.core.internal.crac.ClasspathWarmUpInvoker;
 import software.amazon.awssdk.core.internal.crac.PrimedClientRegistry;
 import software.amazon.awssdk.core.internal.crac.TargetedWarmUpInvoker;
 import software.amazon.awssdk.core.internal.crac.TargetedWarmUpResult;
+import software.amazon.awssdk.core.internal.crac.WarmedHttpClientTypeRegistry;
 import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
 import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
@@ -61,7 +62,11 @@ public final class SdkWarmUp {
 
     private static volatile boolean primed = false;
 
+    // Tracks per-service work already done, keyed by service-client class name.
     private static final PrimedClientRegistry PRIMED_CLIENTS = new PrimedClientRegistry();
+
+    // Tracks the service-independent HTTP-layer warm-up, keyed by client type, so it runs at most once per type.
+    private static final WarmedHttpClientTypeRegistry WARMED_HTTP_CLIENT_TYPES = new WarmedHttpClientTypeRegistry();
 
     private SdkWarmUp() {
     }
@@ -92,7 +97,8 @@ public final class SdkWarmUp {
     /**
      * Primes only the given service clients, warming the sync path for a sync client and the async path for an async
      * client. A client already primed by this method is skipped; a class matched by no provider, or whose warm-up
-     * fails, is logged at warn and retried on the next call.Best-effort and safe to call concurrently.
+     * fails, is logged at warn and retried on the next call. The HTTP clients on the classpath are warmed at most
+     * once across all calls to this method. Best-effort and safe to call concurrently.
      *
      * <p>This method and {@link #prime()} track primed state independently: this method does not skip
      * clients that {@link #prime()} already warmed.
@@ -120,14 +126,23 @@ public final class SdkWarmUp {
 
         // Racing calls may double-warm the same client; warming is idempotent, so that is harmless.
         TargetedWarmUpResult result = TargetedWarmUpInvoker.create().invoke(toPrime);
-        if (result.matchedClientTypes().contains(ClientType.SYNC)) {
-            SyncHttpClientWarmer.create().warmAll();
-        }
-        if (result.matchedClientTypes().contains(ClientType.ASYNC)) {
-            AsyncHttpClientWarmer.create().warmAll();
-        }
+        warmHttpClientsOnce(result.matchedClientTypes());
 
         // Only successfully warmed names are recorded; unmatched or failed ones are retried on a later call.
         PRIMED_CLIENTS.markPrimed(result.warmedClientNames());
+    }
+
+    /**
+     * Warms the HTTP clients for the given client types, skipping types already warmed by an earlier call.
+     */
+    private static void warmHttpClientsOnce(Set<ClientType> matchedClientTypes) {
+        if (matchedClientTypes.contains(ClientType.SYNC) && !WARMED_HTTP_CLIENT_TYPES.isWarmed(ClientType.SYNC)) {
+            SyncHttpClientWarmer.create().warmAll();
+            WARMED_HTTP_CLIENT_TYPES.markWarmed(ClientType.SYNC);
+        }
+        if (matchedClientTypes.contains(ClientType.ASYNC) && !WARMED_HTTP_CLIENT_TYPES.isWarmed(ClientType.ASYNC)) {
+            AsyncHttpClientWarmer.create().warmAll();
+            WARMED_HTTP_CLIENT_TYPES.markWarmed(ClientType.ASYNC);
+        }
     }
 }
