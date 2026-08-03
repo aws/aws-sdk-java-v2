@@ -79,9 +79,7 @@ import software.amazon.smithy.rulesengine.traits.ContextParamTrait;
  *
  * <p>Two methods do the work: {@link #generateShapeModel} builds a shape and
  * all of its members, and {@link #generateMemberModel} builds a single
- * member. Subclasses ({@link AddSmithyInputShapes}, {@link AddSmithyOutputShapes},
- * {@link AddSmithyExceptionShapes}, {@link AddSmithyModelShapes}) select which
- * shapes to translate and implement {@code IntermediateModelShapeProcessor}
+ * member. Concrete subclasses select which shapes to translate and implement {@code IntermediateModelShapeProcessor}
  * so they compose into a processor chain.
  *
  * <p>Where the Smithy model library already computes a fact, this class asks
