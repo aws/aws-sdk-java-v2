@@ -190,13 +190,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(aPostOperationRequest));
             CompletableFuture<APostOperationResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -252,13 +250,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -310,13 +306,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -392,14 +386,14 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                    () -> asyncResponseHandler.exceptionOccurred(e));
                     eventStreamTransformFuture.completeExceptionally(e);
                 }
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                publishMetrics(metricPublishers, apiCallMetricCollector);
             });
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return CompletableFutureUtils.forwardExceptionTo(eventStreamTransformFuture, executeFuture);
         } catch (Throwable t) {
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                            () -> asyncResponseHandler.exceptionOccurred(t));
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -458,13 +452,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                              .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
                              .withInput(getOperationWithChecksumRequest));
             CompletableFuture<GetOperationWithChecksumResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -520,13 +512,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -578,13 +568,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -641,13 +629,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withInput(operationWithRequestCompressionRequest));
             CompletableFuture<OperationWithRequestCompressionResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -750,7 +736,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                    () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
                 endOfStreamFuture.whenComplete((r2, e2) -> {
-                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                    publishMetrics(metricPublishers, apiCallMetricCollector);
                 });
             });
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
@@ -758,7 +744,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                            () -> finalAsyncResponseTransformer.exceptionOccurred(t));
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -819,13 +805,11 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint).withAsyncRequestBody(requestBody)
                              .withInput(streamingInputOperationRequest));
             CompletableFuture<StreamingInputOperationResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
             return whenCompleteFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -896,7 +880,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
                                    () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
                 endOfStreamFuture.whenComplete((r2, e2) -> {
-                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                    publishMetrics(metricPublishers, apiCallMetricCollector);
                 });
             });
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
@@ -904,7 +888,7 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                            () -> finalAsyncResponseTransformer.exceptionOccurred(t));
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -941,6 +925,23 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
