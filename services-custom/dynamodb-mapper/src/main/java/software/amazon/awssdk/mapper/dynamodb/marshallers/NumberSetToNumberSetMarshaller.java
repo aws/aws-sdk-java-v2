@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.NumberSetAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals sets of Java {@code Number}s into DynamoDB
@@ -48,6 +48,6 @@ public class NumberSetToNumberSetMarshaller
             numberAttributes.add(n.toString());
         }
 
-        return new AttributeValue().withNS(numberAttributes);
+        return AttributeValue.builder().ns(numberAttributes).build();
     }
 }

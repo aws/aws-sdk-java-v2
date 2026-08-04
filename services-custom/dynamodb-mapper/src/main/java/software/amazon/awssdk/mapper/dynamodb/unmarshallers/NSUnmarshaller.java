@@ -18,13 +18,13 @@ import java.lang.reflect.Method;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 abstract class NSUnmarshaller implements ArgumentUnmarshaller {
 
     @Override
     public void typeCheck(AttributeValue value, Method setter) {
-        if ( value.getNS() == null ) {
+        if ( !value.hasNs() ) {
             throw new DynamoDBMappingException("Expected NS in value " + value + " when invoking " + setter);
         }
     }

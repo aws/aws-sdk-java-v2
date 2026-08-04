@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals Lists into Java {@code Lists}.
@@ -47,7 +47,7 @@ public class ListUnmarshaller extends LUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) throws ParseException {
-        List<AttributeValue> values = value.getL();
+        List<AttributeValue> values = value.l();
         List<Object> objects = new ArrayList<Object>(values.size());
 
         for (AttributeValue v : values) {

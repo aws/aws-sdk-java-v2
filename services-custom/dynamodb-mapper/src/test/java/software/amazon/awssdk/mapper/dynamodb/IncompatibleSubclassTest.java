@@ -18,7 +18,7 @@ import java.util.Map;
 
 import org.junit.Test;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Verify that we fail fast in case of incompatible subclasses that try to

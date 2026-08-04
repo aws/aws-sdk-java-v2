@@ -20,7 +20,7 @@ import java.util.Set;
 import java.util.UUID;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringSetAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals sets of Java {@code Object} objects into
@@ -51,6 +51,6 @@ public class UUIDSetToStringSetMarshaller
             strings.add(uuid.toString());
         }
 
-        return new AttributeValue().withSS(strings);
+        return AttributeValue.builder().ss(strings).build();
     }
 }

@@ -20,7 +20,7 @@ import java.util.List;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.ListAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class CollectionToListMarshaller implements ListAttributeMarshaller {
 
@@ -56,7 +56,7 @@ public class CollectionToListMarshaller implements ListAttributeMarshaller {
         for (Object o : objects) {
             AttributeValue value;
             if (o == null) {
-                value = new AttributeValue().withNULL(true);
+                value = AttributeValue.builder().nul(true).build();
             } else {
                 value = memberMarshaller.marshall(o);
             }
@@ -64,9 +64,7 @@ public class CollectionToListMarshaller implements ListAttributeMarshaller {
             values.add(value);
         }
 
-        AttributeValue result = new AttributeValue();
-        result.setL(values);
-        return result;
+        return AttributeValue.builder().l(values).build();
     }
 
     public ArgumentMarshaller getMemberMarshaller() {

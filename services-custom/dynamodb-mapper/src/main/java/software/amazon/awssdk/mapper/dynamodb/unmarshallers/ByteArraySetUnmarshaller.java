@@ -14,11 +14,11 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
-import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals BinarySet values as sets of Java
@@ -40,14 +40,8 @@ public class ByteArraySetUnmarshaller extends BSUnmarshaller {
     public Object unmarshall(AttributeValue value) {
         Set<byte[]> result = new HashSet<byte[]>();
 
-        for (ByteBuffer buffer : value.getBS()) {
-            if (buffer.hasArray()) {
-                result.add(buffer.array());
-            } else {
-                byte[] array = new byte[buffer.remaining()];
-                buffer.get(array);
-                result.add(array);
-            }
+        for (SdkBytes sdkBytes : value.bs()) {
+            result.add(sdkBytes.asByteArray());
         }
 
         return result;

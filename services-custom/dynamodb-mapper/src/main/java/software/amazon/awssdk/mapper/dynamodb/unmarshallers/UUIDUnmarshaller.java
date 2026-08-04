@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
 import java.util.UUID;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals UUIDs as Java
@@ -38,6 +38,6 @@ public class UUIDUnmarshaller extends SUnmarshaller {
 
     @Override
     public UUID unmarshall(AttributeValue value) {
-        return UUID.fromString(value.getS());
+        return UUID.fromString(value.s());
     }
 }

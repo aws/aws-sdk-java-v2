@@ -20,7 +20,8 @@ import java.util.List;
 import java.util.Set;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinarySetAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals sets of Java {@code byte[]}s into DynamoDB
@@ -43,12 +44,12 @@ public class ByteArraySetToBinarySetMarshaller
     public AttributeValue marshall(Object obj) {
         @SuppressWarnings("unchecked")
         Set<byte[]> buffers = (Set<byte[]>) obj;
-        List<ByteBuffer> attributes = new ArrayList<ByteBuffer>(buffers.size());
+        List<SdkBytes> attributes = new ArrayList<SdkBytes>(buffers.size());
 
         for (byte[] b : buffers) {
-            attributes.add(ByteBuffer.wrap(b));
+            attributes.add(SdkBytes.fromByteArray(b));
         }
 
-        return new AttributeValue().withBS(attributes);
+        return AttributeValue.builder().bs(attributes).build();
     }
 }

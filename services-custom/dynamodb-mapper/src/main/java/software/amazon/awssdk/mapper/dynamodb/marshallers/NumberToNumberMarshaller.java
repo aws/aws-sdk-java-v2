@@ -15,7 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.NumberAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals any Java {@code Number} to a DynamoDB number.
@@ -35,6 +35,6 @@ public class NumberToNumberMarshaller implements NumberAttributeMarshaller {
     @Override
     public AttributeValue marshall(Object obj) {
         Number number = (Number) obj;
-        return new AttributeValue().withN(number.toString());
+        return AttributeValue.builder().n(number.toString()).build();
     }
 }

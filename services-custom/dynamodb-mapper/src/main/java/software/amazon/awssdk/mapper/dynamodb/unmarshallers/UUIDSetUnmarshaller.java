@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals sets of UUIDs as sets of
@@ -42,7 +42,7 @@ public class UUIDSetUnmarshaller extends SSUnmarshaller {
     public Set<UUID> unmarshall(AttributeValue value) {
         Set<UUID> result = new HashSet<UUID>();
 
-        for (String s : value.getSS()) {
+        for (String s : value.ss()) {
             result.add(UUID.fromString(s));
         }
 

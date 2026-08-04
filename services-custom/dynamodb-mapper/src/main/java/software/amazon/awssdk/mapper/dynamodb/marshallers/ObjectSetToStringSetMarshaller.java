@@ -22,7 +22,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringSetAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A legacy marshaller that marshals sets of arbitrary Java objects into
@@ -63,6 +63,6 @@ public class ObjectSetToStringSetMarshaller
             strings.add(String.valueOf(o));
         }
 
-        return new AttributeValue().withSS(strings);
+        return AttributeValue.builder().ss(strings).build();
     }
 }

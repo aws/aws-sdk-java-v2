@@ -15,6 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -22,9 +23,8 @@ import org.junit.Test;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.internal.StaticCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.s3.model.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class S3LinkTest
 {
@@ -33,7 +33,7 @@ public class S3LinkTest
     @Before
     public void setUp() {
         AWSCredentials credentials = new BasicAWSCredentials("mock", "mock");
-        AmazonDynamoDB db = new AmazonDynamoDBClient(credentials);
+        DynamoDbClient db = mock(DynamoDbClient.class);
         mapper = new DynamoDBMapper(db, new StaticCredentialsProvider(credentials));
     }
 

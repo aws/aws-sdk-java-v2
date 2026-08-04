@@ -14,7 +14,8 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.Reflect;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperModelFactory.TableFactory;
@@ -22,13 +23,14 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter.AbstractConv
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter.DelegateConverter;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Beans;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Date;
@@ -45,9 +47,9 @@ import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scal
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.LIST;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.MAP;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.SET;
-import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.B;
-import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.N;
-import static com.amazonaws.services.dynamodbv2.model.ScalarAttributeType.S;
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.B;
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.N;
+import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType.S;
 
 /**
  * Pre-defined strategies for mapping between Java types and DynamoDB types.
@@ -226,11 +228,8 @@ final class StandardModelFactories {
                 return o;
             }
             @Override
-            public void set(AttributeValue value, AttributeValue o) {
-                value.withS(o.getS()).withN(o.getN()).withB(o.getB())
-                    .withSS(o.getSS()).withNS(o.getNS()).withBS(o.getBS())
-                    .withBOOL(o.getBOOL()).withL(o.getL()).withM(o.getM())
-                    .withNULL(o.getNULL());
+            public AttributeValue build(AttributeValue o) {
+                return o;
             }
         }
 
@@ -251,11 +250,11 @@ final class StandardModelFactories {
             }
             @Override
             public String get(AttributeValue value) {
-                return value.getS();
+                return value.s();
             }
             @Override
-            public void set(AttributeValue value, String o) {
-                value.setS(o);
+            public AttributeValue build(String o) {
+                return AttributeValue.builder().s(o).build();
             }
             @Override
             public AttributeValue convert(String o) {
@@ -280,11 +279,11 @@ final class StandardModelFactories {
             }
             @Override
             public String get(AttributeValue value) {
-                return value.getN();
+                return value.n();
             }
             @Override
-            public void set(AttributeValue value, String o) {
-                value.setN(o);
+            public AttributeValue build(String o) {
+                return AttributeValue.builder().n(o).build();
             }
         }
 
@@ -306,11 +305,11 @@ final class StandardModelFactories {
             }
             @Override
             public Long get(AttributeValue value) {
-                return Long.valueOf(value.getN());
+                return Long.valueOf(value.n());
             }
             @Override
-            public void set(AttributeValue value, Long o) {
-                value.setN(String.valueOf(o));
+            public AttributeValue build(Long o) {
+                return AttributeValue.builder().n(String.valueOf(o)).build();
             }
         }
 
@@ -331,11 +330,11 @@ final class StandardModelFactories {
             }
             @Override
             public ByteBuffer get(AttributeValue value) {
-                return value.getB();
+                return MapperBinaryUtils.toWritableByteBuffer(value.b());
             }
             @Override
-            public void set(AttributeValue value, ByteBuffer o) {
-                value.setB(o);
+            public AttributeValue build(ByteBuffer o) {
+                return AttributeValue.builder().b(SdkBytes.fromByteBuffer(o)).build();
             }
         }
 
@@ -356,11 +355,11 @@ final class StandardModelFactories {
             }
             @Override
             public List<String> get(AttributeValue value) {
-                return value.getSS();
+                return value.hasSs() ? value.ss() : null;
             }
             @Override
-            public void set(AttributeValue value, List<String> o) {
-                value.setSS(o);
+            public AttributeValue build(List<String> o) {
+                return AttributeValue.builder().ss(o).build();
             }
         }
 
@@ -381,11 +380,11 @@ final class StandardModelFactories {
             }
             @Override
             public List<String> get(AttributeValue value) {
-                return value.getNS();
+                return value.hasNs() ? value.ns() : null;
             }
             @Override
-            public void set(AttributeValue value, List<String> o) {
-                value.setNS(o);
+            public AttributeValue build(List<String> o) {
+                return AttributeValue.builder().ns(o).build();
             }
         }
 
@@ -406,11 +405,23 @@ final class StandardModelFactories {
             }
             @Override
             public List<ByteBuffer> get(AttributeValue value) {
-                return value.getBS();
+                if (!value.hasBs()) {
+                    return null;
+                }
+                final List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
+                for (SdkBytes sb : value.bs()) {
+                    result.add(MapperBinaryUtils.toWritableByteBuffer(sb));
+                }
+                return result;
             }
             @Override
-            public void set(AttributeValue value, List<ByteBuffer> o) {
-                value.setBS(o);
+            public AttributeValue build(List<ByteBuffer> o) {
+                final List<SdkBytes> sdkBytes =
+                    new ArrayList<SdkBytes>(o.size());
+                for (ByteBuffer bb : o) {
+                    sdkBytes.add(SdkBytes.fromByteBuffer(bb));
+                }
+                return AttributeValue.builder().bs(sdkBytes).build();
             }
         }
 
@@ -454,16 +465,16 @@ final class StandardModelFactories {
             }
             @Override
             public Boolean get(AttributeValue o) {
-                return o.getBOOL();
+                return o.bool();
             }
             @Override
-            public void set(AttributeValue o, Boolean value) {
-                o.setBOOL(value);
+            public AttributeValue build(Boolean value) {
+                return AttributeValue.builder().bool(value).build();
             }
             @Override
             public Boolean unconvert(AttributeValue o) {
-                if (o.getBOOL() == null && o.getN() != null) {
-                    return BOOLEAN.<Boolean>convert(o.getN());
+                if (o.bool() == null && o.n() != null) {
+                    return BOOLEAN.<Boolean>convert(o.n());
                 }
                 return super.unconvert(o);
             }
@@ -493,11 +504,11 @@ final class StandardModelFactories {
              */
             @Override
             public String get(AttributeValue o) {
-                if(o.getBOOL() != null) {
+                if(o.bool() != null) {
                     // Handle native bools, transform to expected numeric representation.
-                    return o.getBOOL() ? "1" : "0";
+                    return o.bool() ? "1" : "0";
                 }
-                return o.getN();
+                return o.n();
             }
 
             /**
@@ -505,8 +516,8 @@ final class StandardModelFactories {
              * DynamoDBNativeBoolean} or {@link DynamoDBTyped}.
              */
             @Override
-            public void set(AttributeValue o, String value) {
-                o.setN(value);
+            public AttributeValue build(String value) {
+                return AttributeValue.builder().n(value).build();
             }
         }
 
@@ -527,11 +538,11 @@ final class StandardModelFactories {
             }
             @Override
             public List<AttributeValue> get(AttributeValue value) {
-                return value.getL();
+                return value.hasL() ? value.l() : null;
             }
             @Override
-            public void set(AttributeValue value, List<AttributeValue> o) {
-                value.setL(o);
+            public AttributeValue build(List<AttributeValue> o) {
+                return AttributeValue.builder().l(o).build();
             }
         }
 
@@ -548,8 +559,8 @@ final class StandardModelFactories {
             }
             @Override
             public List<AttributeValue> unconvert(AttributeValue o) {
-                if (o.getL() == null && o.getNS() != null) {
-                    return LIST.convert(o.getNS(), new NativeBool(true).join(scalars.getConverter(Boolean.class, String.class)));
+                if (!o.hasL() && o.hasNs()) {
+                    return LIST.convert(o.ns(), new NativeBool(true).join(scalars.getConverter(Boolean.class, String.class)));
                 }
                 return super.unconvert(o);
             }
@@ -572,11 +583,11 @@ final class StandardModelFactories {
             }
             @Override
             public List<AttributeValue> get(AttributeValue value) {
-                return value.getL();
+                return value.hasL() ? value.l() : null;
             }
             @Override
-            public void set(AttributeValue value, List<AttributeValue> o) {
-                value.setL(o);
+            public AttributeValue build(List<AttributeValue> o) {
+                return AttributeValue.builder().l(o).build();
             }
         }
 
@@ -600,11 +611,11 @@ final class StandardModelFactories {
             }
             @Override
             public Map<String,AttributeValue> get(AttributeValue value) {
-                return value.getM();
+                return value.hasM() ? value.m() : null;
             }
             @Override
-            public void set(AttributeValue value, Map<String,AttributeValue> o) {
-                value.setM(o);
+            public AttributeValue build(Map<String,AttributeValue> o) {
+                return AttributeValue.builder().m(o).build();
             }
         }
 
@@ -636,11 +647,11 @@ final class StandardModelFactories {
             }
             @Override
             public Map<String,AttributeValue> get(AttributeValue value) {
-                return value.getM();
+                return value.hasM() ? value.m() : null;
             }
             @Override
-            public void set(AttributeValue value, Map<String,AttributeValue> o) {
-                value.setM(o);
+            public AttributeValue build(Map<String,AttributeValue> o) {
+                return AttributeValue.builder().m(o).build();
             }
         }
 
@@ -660,7 +671,7 @@ final class StandardModelFactories {
                 throw new DynamoDBMappingException("not supported; requires @DynamoDBTyped or @DynamoDBTypeConverted");
             }
             @Override
-            public void set(AttributeValue value, T o) {
+            public AttributeValue build(T o) {
                 throw new DynamoDBMappingException("not supported; requires @DynamoDBTyped or @DynamoDBTypeConverted");
             }
         }
@@ -679,7 +690,7 @@ final class StandardModelFactories {
         private DynamoDBTypeConverter<AttributeValue,T> getConverter(ConvertibleType<T> type) {
             return new DelegateConverter<AttributeValue,T>(getRule(type).newConverter(type)) {
                 public final AttributeValue convert(T o) {
-                    return o == null ? new AttributeValue().withNULL(true) : super.convert(o);
+                    return o == null ? AttributeValue.builder().nul(true).build() : super.convert(o);
                 }
             };
         }
@@ -688,7 +699,7 @@ final class StandardModelFactories {
     /**
      * Basic attribute value conversion functions.
      */
-    private static abstract class AbstractRule<S,T> extends AbstractConverter<AttributeValue,S> implements Reflect<AttributeValue,S>, Rule<T> {
+    private static abstract class AbstractRule<S,T> extends AbstractConverter<AttributeValue,S> implements Rule<T> {
         protected final DynamoDBAttributeType attributeType;
         protected final boolean supported;
         protected AbstractRule(DynamoDBAttributeType attributeType, boolean supported) {
@@ -705,14 +716,20 @@ final class StandardModelFactories {
         }
         @Override
         public AttributeValue convert(final S o) {
-            final AttributeValue value = new AttributeValue();
-            set(value, o);
-            return value;
+            return build(o);
         }
+        /**
+         * Builds an immutable v2 AttributeValue from the given value.
+         */
+        public abstract AttributeValue build(S o);
+        /**
+         * Extracts the value from an AttributeValue.
+         */
+        public abstract S get(AttributeValue o);
         @Override
         public S unconvert(final AttributeValue o) {
             final S value = get(o);
-            if (value == null && o.isNULL() == null) {
+            if (value == null && o.nul() == null) {
                 throw new DynamoDBMappingException("expected " + attributeType  + " in value " + o);
             }
             return value;

@@ -18,7 +18,7 @@ import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.MapAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ItemConverter;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ObjectToMapMarshaller implements MapAttributeMarshaller {
 
@@ -45,6 +45,6 @@ public class ObjectToMapMarshaller implements MapAttributeMarshaller {
     @Override
     public AttributeValue marshall(Object obj) {
         Map<String, AttributeValue> values = converter.convert(obj);
-        return new AttributeValue().withM(values);
+        return AttributeValue.builder().m(values).build();
     }
 }

@@ -17,7 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals DynamoDB NumberSets into sets of Java
@@ -38,7 +38,7 @@ public class LongSetUnmarshaller extends NSUnmarshaller {
     @Override
     public Object unmarshall(AttributeValue value) {
         Set<Long> result = new HashSet<Long>();
-        for (String s : value.getNS()) {
+        for (String s : value.ns()) {
             result.add(Long.valueOf(s));
         }
         return result;

@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import software.amazon.awssdk.mapper.dynamodb.ConversionSchemas.CachingUnmarshallerSet;
 import software.amazon.awssdk.mapper.dynamodb.ConversionSchemas.UnmarshallerSet;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestClass;
 
 public class CachingUnmarshallerSetTest {

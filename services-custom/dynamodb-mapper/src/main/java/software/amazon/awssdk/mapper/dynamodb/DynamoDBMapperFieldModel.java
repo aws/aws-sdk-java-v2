@@ -30,7 +30,7 @@ import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NE;
 import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NOT_CONTAINS;
 import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NOT_NULL;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.Condition;
 import com.amazonaws.services.dynamodbv2.model.KeyType;

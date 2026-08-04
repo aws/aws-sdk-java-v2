@@ -18,7 +18,7 @@ import java.lang.reflect.Method;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals DynamoDB Bools (or Numbers) into Java
@@ -41,7 +41,7 @@ public class BooleanUnmarshaller implements ArgumentUnmarshaller {
 
     @Override
     public void typeCheck(AttributeValue value, Method setter) {
-        if (value.getN() == null && value.getBOOL() == null) {
+        if (value.n() == null && value.bool() == null) {
             throw new DynamoDBMappingException(
                     "Expected either N or BOOL in value " + value
                     + " when invoking " + setter);
@@ -50,13 +50,13 @@ public class BooleanUnmarshaller implements ArgumentUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        if (value.getBOOL() != null) {
-            return value.getBOOL();
+        if (value.bool() != null) {
+            return value.bool();
         }
-        if ("1".equals(value.getN())) {
+        if ("1".equals(value.n())) {
             return Boolean.TRUE;
         }
-        if ("0".equals(value.getN())) {
+        if ("0".equals(value.n())) {
             return Boolean.FALSE;
         }
 

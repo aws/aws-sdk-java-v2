@@ -18,7 +18,7 @@ import java.text.ParseException;
 import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.ItemConverter;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ObjectUnmarshaller extends MUnmarshaller {
 
@@ -50,7 +50,7 @@ public class ObjectUnmarshaller extends MUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) throws ParseException {
-        Map<String, AttributeValue> map = value.getM();
+        Map<String, AttributeValue> map = value.m();
         return converter.unconvert(clazz, map);
     }
 }

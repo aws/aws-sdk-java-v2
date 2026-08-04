@@ -14,11 +14,12 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.mapper.dynamodb.MapperDateUtils;
+
 import java.util.Date;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.util.DateUtils;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals Java {@code Date} objects into DynamoDB Strings
@@ -38,7 +39,7 @@ public class DateToStringMarshaller implements StringAttributeMarshaller {
 
     @Override
     public AttributeValue marshall(Object obj) {
-        return new AttributeValue().withS(
-                DateUtils.formatISO8601Date((Date) obj));
+        return AttributeValue.builder().s(
+                MapperDateUtils.formatISO8601Date((Date) obj)).build();
     }
 }

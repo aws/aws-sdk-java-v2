@@ -26,7 +26,7 @@ import java.util.Set;
 import java.util.zip.Adler32;
 
 import com.amazonaws.annotation.SdkInternalApi;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * This class will contain logic for converting an update object that customer has passed-in into

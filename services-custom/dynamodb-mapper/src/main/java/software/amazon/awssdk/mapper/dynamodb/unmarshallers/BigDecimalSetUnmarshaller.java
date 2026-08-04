@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals DynamoDB NumberSets into sets of Java
@@ -39,7 +39,7 @@ public class BigDecimalSetUnmarshaller extends NSUnmarshaller {
     @Override
     public Object unmarshall(AttributeValue value) {
         Set<BigDecimal> result = new HashSet<BigDecimal>();
-        for (String s : value.getNS()) {
+        for (String s : value.ns()) {
             result.add(new BigDecimal(s));
         }
         return result;

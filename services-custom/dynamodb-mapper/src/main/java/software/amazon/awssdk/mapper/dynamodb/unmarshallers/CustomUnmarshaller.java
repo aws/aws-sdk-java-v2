@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that delegates to an instance of a
@@ -46,7 +46,7 @@ public class CustomUnmarshaller extends SUnmarshaller {
         DynamoDBMarshaller unmarshaller =
                 createUnmarshaller(unmarshallerClass);
 
-        return unmarshaller.unmarshall(targetClass, value.getS());
+        return unmarshaller.unmarshall(targetClass, value.s());
     }
 
     @SuppressWarnings({ "rawtypes" })

@@ -17,7 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 import java.lang.reflect.Method;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class UnmarshallerTest extends StandardModelFactoriesV2UnconvertTest {
 

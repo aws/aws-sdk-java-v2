@@ -15,7 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
 * A marshaller that marshals Java {@code Object} objects into DynamoDB
@@ -37,6 +37,6 @@ public class ObjectToStringMarshaller implements StringAttributeMarshaller {
 
     @Override
     public AttributeValue marshall(Object obj) {
-        return new AttributeValue().withS(obj.toString());
+        return AttributeValue.builder().s(obj.toString()).build();
     }
 }

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringSetAttributeMarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals sets of Java {@code String}s to DynamoDB
@@ -48,6 +48,6 @@ public class StringSetToStringSetMarshaller
             strings.add(s);
         }
 
-        return new AttributeValue().withSS(strings);
+        return AttributeValue.builder().ss(strings).build();
     }
 }

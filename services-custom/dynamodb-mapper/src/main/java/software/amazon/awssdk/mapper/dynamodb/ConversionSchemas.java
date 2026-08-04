@@ -87,7 +87,7 @@ import software.amazon.awssdk.mapper.dynamodb.unmarshallers.StringSetUnmarshalle
 import software.amazon.awssdk.mapper.dynamodb.unmarshallers.StringUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.unmarshallers.UUIDSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.unmarshallers.UUIDUnmarshaller;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;

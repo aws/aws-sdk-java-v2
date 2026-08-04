@@ -21,7 +21,7 @@ import java.lang.annotation.Target;
 
 /**
  * Annotation to convert a date object ({@link java.util.Date}, {@link java.util.Calendar}, {@link org.joda.time.DateTime})
- * to a {@link com.amazonaws.services.dynamodbv2.model.ScalarAttributeType#N} stored as epoch time.
+ * to a {@link software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType#N} stored as epoch time.
  *
  * <p>Alternately, the {@link DynamoDBTyped} annotation may be used,</p>
  * <pre class="brush: java">

@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import java.util.Map;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A hook allowing a custom transform/untransform of the raw attribute

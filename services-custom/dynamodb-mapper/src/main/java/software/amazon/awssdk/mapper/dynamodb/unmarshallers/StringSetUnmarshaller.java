@@ -16,7 +16,7 @@ package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
 import java.util.HashSet;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals DynamoDB StringSets as sets of Java
@@ -36,6 +36,6 @@ public class StringSetUnmarshaller extends SSUnmarshaller {
 
     @Override
     public Object unmarshall(AttributeValue value) {
-        return new HashSet<String>(value.getSS());
+        return new HashSet<String>(value.ss());
     }
 }
