@@ -183,7 +183,7 @@ final class DefaultQueryClient implements QueryClient {
                                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -235,7 +235,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -281,7 +281,7 @@ final class DefaultQueryClient implements QueryClient {
                                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -338,7 +338,7 @@ final class DefaultQueryClient implements QueryClient {
                                              .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -392,7 +392,7 @@ final class DefaultQueryClient implements QueryClient {
                                                     HttpChecksumRequired.create())
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -440,7 +440,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -489,7 +489,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithCustomMemberRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -539,7 +539,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithCustomizedOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -589,7 +589,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithMapOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -637,7 +637,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -686,7 +686,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -740,7 +740,7 @@ final class DefaultQueryClient implements QueryClient {
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -788,7 +788,7 @@ final class DefaultQueryClient implements QueryClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -884,7 +884,7 @@ final class DefaultQueryClient implements QueryClient {
                                                            .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
                                                            .requestBody(requestBody).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -950,7 +950,7 @@ final class DefaultQueryClient implements QueryClient {
                                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                                            .requestBody(requestBody).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -1005,7 +1005,7 @@ final class DefaultQueryClient implements QueryClient {
                     .withEndpointResolver(this::resolveEndpoint).withResponseTransformer(responseTransformer)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -1040,6 +1040,15 @@ final class DefaultQueryClient implements QueryClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {

@@ -140,7 +140,7 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new OneOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -162,6 +162,15 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,

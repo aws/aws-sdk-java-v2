@@ -180,7 +180,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new DeleteRowRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -242,7 +242,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                                                                                    .withMarshaller(new GetRowRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -304,7 +304,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                                                                                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                                                                                    .withMarshaller(new PutRowRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -371,7 +371,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OpWithSigv4AndSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -437,7 +437,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OpWithSigv4SignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -503,7 +503,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OpWithSigv4UnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -591,7 +591,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                                          new OpWithSigv4UnSignedPayloadAndStreamingRequestMarshaller(protocolFactory))
                                      .requestBody(requestBody).transferEncoding(true).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -657,7 +657,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OpWithSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -723,7 +723,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OpWithSigv4AUnSignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -790,7 +790,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -858,7 +858,7 @@ final class DefaultDatabaseClient implements DatabaseClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new SecondOpsWithSigv4AndSigv4ASignedPayloadRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -880,6 +880,15 @@ final class DefaultDatabaseClient implements DatabaseClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {

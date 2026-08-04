@@ -143,7 +143,7 @@ final class DefaultFooBarClient implements FooBarClient {
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new GetDatabaseVersionRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -165,6 +165,15 @@ final class DefaultFooBarClient implements FooBarClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,

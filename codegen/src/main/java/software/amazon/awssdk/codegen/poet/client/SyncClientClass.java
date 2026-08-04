@@ -140,6 +140,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addMethod(nameMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(resolveMetricPublishersMethod())
+            .addMethod(ClientClassUtils.publishMetricsMethod())
             .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
             .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
@@ -340,7 +341,7 @@ public class SyncClientClass extends SyncClientInterface {
         method.addCode(protocolSpec.executionHandler(opModel))
               .endControlFlow()
               .beginControlFlow("finally")
-              .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+              .addStatement("publishMetrics(metricPublishers, apiCallMetricCollector)")
               .endControlFlow();
 
         return method.build();

@@ -325,14 +325,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
         String customerResponseHandler = opModel.hasEventStreamOutput() ?
                                          "asyncResponseHandler" : "finalAsyncResponseTransformer";
-        String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
-        if (!whenComplete.isEmpty()) {
-            String whenCompletedFutureName = "whenCompleted";
-            builder.addStatement("$T<$T> $N = $N$L", CompletableFuture.class, executeFutureValueType,
-                    whenCompletedFutureName, "executeFuture", whenComplete);
-            builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",
-                    CompletableFutureUtils.class, whenCompletedFutureName);
-        }
+        String whenCompletedFutureName = "whenCompleted";
+        builder.addStatement("$T<$T> $N = $L", CompletableFuture.class, executeFutureValueType,
+                whenCompletedFutureName, whenCompleteBody(opModel, customerResponseHandler));
+        builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",
+                CompletableFutureUtils.class, whenCompletedFutureName);
         if (opModel.hasEventStreamOutput()) {
             builder.addStatement("return $T.forwardExceptionTo(future, executeFuture)", CompletableFutureUtils.class);
         } else {
@@ -401,16 +398,15 @@ public class JsonProtocolSpec implements ProtocolSpec {
      *
      * @param operationModel Op model.
      * @param responseHandlerName Variable name of response handler customer passed in.
-     * @return whenComplete to append to future.
+     * @return Expression producing the future that completes once metrics have been published.
      */
     private String whenCompleteBody(OperationModel operationModel, String responseHandlerName) {
         if (operationModel.hasEventStreamOutput()) {
-            return eventStreamOutputWhenComplete(responseHandlerName);
+            return "executeFuture" + eventStreamOutputWhenComplete(responseHandlerName);
         } else if (operationModel.hasStreamingOutput()) {
-            return streamingOutputWhenComplete(responseHandlerName);
+            return "executeFuture" + streamingOutputWhenComplete(responseHandlerName);
         } else {
-            // Non streaming can just return the future as is
-            return publishMetricsWhenComplete();
+            return publishMetricsWhenComplete("executeFuture");
         }
     }
 

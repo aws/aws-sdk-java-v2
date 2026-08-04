@@ -193,13 +193,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(emptyInputOutputRequest));
-            CompletableFuture<EmptyInputOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<EmptyInputOutputResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -267,13 +265,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                                                                                      .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                                                                                      .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                                                                      .withEndpointResolver(this::resolveEndpoint).withInput(float16Request));
-            CompletableFuture<Float16Response> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<Float16Response> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -343,13 +339,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(fractionalSecondsRequest));
-            CompletableFuture<FractionalSecondsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<FractionalSecondsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -421,13 +415,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(greetingWithErrorsRequest));
-            CompletableFuture<GreetingWithErrorsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<GreetingWithErrorsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -496,13 +488,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(noInputOutputRequest));
-            CompletableFuture<NoInputOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<NoInputOutputResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -575,13 +565,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithDefaultsRequest));
-            CompletableFuture<OperationWithDefaultsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OperationWithDefaultsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -652,13 +640,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(optionalInputOutputRequest));
-            CompletableFuture<OptionalInputOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OptionalInputOutputResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -728,13 +714,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(recursiveShapesRequest));
-            CompletableFuture<RecursiveShapesResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<RecursiveShapesResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -805,13 +789,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(rpcV2CborDenseMapsRequest));
-            CompletableFuture<RpcV2CborDenseMapsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<RpcV2CborDenseMapsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -881,13 +863,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(rpcV2CborListsRequest));
-            CompletableFuture<RpcV2CborListsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<RpcV2CborListsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -959,13 +939,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(rpcV2CborSparseMapsRequest));
-            CompletableFuture<RpcV2CborSparseMapsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<RpcV2CborSparseMapsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1037,13 +1015,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(simpleScalarPropertiesRequest));
-            CompletableFuture<SimpleScalarPropertiesResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<SimpleScalarPropertiesResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1115,13 +1091,11 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(sparseNullsOperationRequest));
-            CompletableFuture<SparseNullsOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<SparseNullsOperationResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1155,6 +1129,23 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
