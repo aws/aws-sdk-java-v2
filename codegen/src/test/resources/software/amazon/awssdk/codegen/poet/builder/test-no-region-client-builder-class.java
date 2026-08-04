@@ -69,66 +69,71 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
 
   @Override
   protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-    return config.merge(c ->  {
-      c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider()).option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config)).option(SdkClientOption.AUTH_SCHEMES, authSchemes()).option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
-      .lazyOption(AwsClientOption.TOKEN_PROVIDER, p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER))).option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider())
-      ;
-    } );
+    return config.merge(c -> {
+      c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+       .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+       .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+       .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+       .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                   p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+       .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider());
+    });
   }
 
   @Override
-  protected final SdkClientConfiguration finalizeServiceConfiguration(
-      SdkClientConfiguration config) {
+  protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
     List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
     ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
-    List<ExecutionInterceptor> interceptors = interceptorFactory.getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
+    List<ExecutionInterceptor> interceptors = interceptorFactory
+        .getInterceptors("software/amazon/awssdk/services/query/execution.interceptors");
     List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
     interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
     interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
     interceptors = CollectionUtils.mergeLists(interceptors, config.option(SdkClientOption.EXECUTION_INTERCEPTORS));
     SdkClientConfiguration.Builder builder = config.toBuilder();
-    builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {IdentityProviders.Builder result = IdentityProviders.builder();
-    IdentityProvider<?> tokenIdentityProvider = c.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
-    if (tokenIdentityProvider != null) {
-      result.putIdentityProvider(tokenIdentityProvider);
-    }
-    IdentityProvider<?> credentialsIdentityProvider = c.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
-    if (credentialsIdentityProvider != null) {
-      result.putIdentityProvider(credentialsIdentityProvider);
-    }
-    return result.build();
-    });builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
-    builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
-    builder.lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
-      Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
-        .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
-        .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
-        .serviceProfileProperty("query_service")
-        .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-        .profileName(c.get(SdkClientOption.PROFILE_NAME))
-        .resolveFromOverrides();
-      if (overrideEndpoint.isPresent()) {
-        return ClientEndpointProvider.create(overrideEndpoint.get(), true);
+    builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
+      IdentityProviders.Builder result = IdentityProviders.builder();
+      IdentityProvider<?> tokenIdentityProvider = c.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+      if (tokenIdentityProvider != null) {
+        result.putIdentityProvider(tokenIdentityProvider);
       }
-      URI clientEndpointUri = null;
-      Region region = c.get(AwsClientOption.AWS_REGION);
-      try {
-        QueryEndpointParams endpointParams = QueryEndpointParams.builder()
-          .build();
-        Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(endpointParams));
-        clientEndpointUri = endpoint.url();
-      } catch (Exception e) {
-        // Endpoint resolution failed. This is expected for services with required parameters
-        // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
-        return ClientEndpointProvider.create(URI.create("https://localhost"), false);
+      IdentityProvider<?> credentialsIdentityProvider = c.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
+      if (credentialsIdentityProvider != null) {
+        result.putIdentityProvider(credentialsIdentityProvider);
       }
-      if (clientEndpointUri.getHost() == null) {
-        throw SdkClientException.create("Configured region (" + region
-          + ") resulted in an invalid URI: " + clientEndpointUri
-          + ". This is usually caused by an invalid region configuration.");
-      }
-      return ClientEndpointProvider.create(clientEndpointUri, false);
+      return result.build();
     });
+    builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
+    builder.option(SdkClientOption.CLIENT_CONTEXT_PARAMS, clientContextParams.build());
+    builder.lazyOptionIfAbsent(
+        SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+        c -> {
+          Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                                                                    .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_QUERY_SERVICE")
+                                                                    .serviceEndpointOverrideSystemProperty("aws.endpointUrlQuery")
+                                                                    .serviceProfileProperty("query_service").profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                    .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+          if (overrideEndpoint.isPresent()) {
+            return ClientEndpointProvider.create(overrideEndpoint.get(), true);
+          }
+          URI clientEndpointUri = null;
+          Region region = c.get(AwsClientOption.AWS_REGION);
+          try {
+            QueryEndpointParams endpointParams = QueryEndpointParams.builder().build();
+            Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                endpointParams));
+            clientEndpointUri = endpoint.url();
+          } catch (Exception e) {
+            // Endpoint resolution failed. This is expected for services with required parameters
+            // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
+            return ClientEndpointProvider.create(URI.create("https://localhost"), false);
+          }
+          if (clientEndpointUri.getHost() == null) {
+            throw SdkClientException.create("Configured region (" + region + ") resulted in an invalid URI: "
+                                            + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
+          }
+          return ClientEndpointProvider.create(clientEndpointUri, false);
+        });
     builder.lazyOptionIfAbsent(AwsClientOption.SIGNING_REGION, c -> {
       Region region = c.get(AwsClientOption.AWS_REGION);
       return region;
@@ -154,9 +159,11 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
   }
 
   private QueryAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
-    AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder().profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER)).profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+    AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
+                                                                                            .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                            .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
     List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
-    if(!preferences.isEmpty()) {
+    if (!preferences.isEmpty()) {
       return QueryAuthSchemeProvider.defaultProvider(preferences);
     }
     return QueryAuthSchemeProvider.defaultProvider();
@@ -221,8 +228,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     return configuration.build();
   }
 
-  private void updateRetryStrategyClientConfiguration(
-      SdkClientConfiguration.Builder configuration) {
+  private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
     ClientOverrideConfiguration.Builder builder = configuration.asOverrideConfigurationBuilder();
     RetryMode retryMode = builder.retryMode();
     if (retryMode != null) {
@@ -230,7 +236,7 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     } else {
       Consumer<RetryStrategy.Builder<?, ?>> configurator = builder.retryStrategyConfigurator();
       if (configurator != null) {
-        RetryStrategy.Builder<?, ?>  defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
+        RetryStrategy.Builder<?, ?> defaultBuilder = AwsRetryStrategy.defaultRetryStrategy().toBuilder();
         configurator.accept(defaultBuilder);
         configuration.option(SdkClientOption.RETRY_STRATEGY, defaultBuilder.build());
       } else {
@@ -249,25 +255,30 @@ abstract class DefaultQueryBaseClientBuilder<B extends QueryBaseClientBuilder<B,
     return Collections.emptyList();
   }
 
-  private RequestChecksumCalculation resolveRequestChecksumCalculation(
-      SdkClientConfiguration config) {
+  private RequestChecksumCalculation resolveRequestChecksumCalculation(SdkClientConfiguration config) {
     RequestChecksumCalculation configuredChecksumCalculation = config.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION);
     if (configuredChecksumCalculation == null) {
-      configuredChecksumCalculation = RequestChecksumCalculationResolver.create().profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER)).profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
+      configuredChecksumCalculation = RequestChecksumCalculationResolver.create()
+                                                                        .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                        .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                        .defaultChecksumCalculation(RequestChecksumCalculation.WHEN_SUPPORTED).resolve();
     }
     return configuredChecksumCalculation;
   }
 
-  private ResponseChecksumValidation resolveResponseChecksumValidation(
-      SdkClientConfiguration config) {
+  private ResponseChecksumValidation resolveResponseChecksumValidation(SdkClientConfiguration config) {
     ResponseChecksumValidation configuredChecksumValidation = config.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION);
     if (configuredChecksumValidation == null) {
-      configuredChecksumValidation = ResponseChecksumValidationResolver.create().profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER)).profileName(config.option(SdkClientOption.PROFILE_NAME)).defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
+      configuredChecksumValidation = ResponseChecksumValidationResolver.create()
+                                                                       .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                       .profileName(config.option(SdkClientOption.PROFILE_NAME))
+                                                                       .defaultChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED).resolve();
     }
     return configuredChecksumValidation;
   }
 
   protected static void validateClientOptions(SdkClientConfiguration c) {
-    Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER), "The 'tokenProvider' must be configured in the client builder.");
+    Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
+                     "The 'tokenProvider' must be configured in the client builder.");
   }
 }
