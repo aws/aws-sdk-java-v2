@@ -1,56 +1,43 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.50.1__ __2026-07-30__
-## __AWS Billing and Cost Management Pricing Calculator__
-  - ### Features
-    - Removing Smithy RPC v2 CBOR support that was added in previous SDK release.
-
-## __AWS Billing and Cost Management Recommended Actions__
-  - ### Features
-    - Removing Smithy RPC v2 CBOR support that was added in previous SDK release.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Add the `@SdkAdvancedApi` annotation, which marks APIs that are error-prone to implement, override, call, or configure so that using them incorrectly compiles cleanly but can fail or misbehave at runtime. The annotation records structured guidance (the risky usage kind, an explanation of the contract to uphold, a safer alternative, and a documentation link) and is applied to several streaming and interceptor extension points, including AsyncRequestBody, AsyncResponseTransformer, ContentStreamProvider, the mutating ExecutionInterceptor content hooks, and the FUTURE_COMPLETION_EXECUTOR advanced client option.
-    - Updated endpoint and partition metadata.
-
-# __2.50.0__ __2026-07-30__
+# __2.51.0__ __2026-08-04__
 ## __AWS Identity and Access Management__
   - ### Features
-    - Improved IAM Policy Simulator accuracy. Simulator now evaluates SCP conditions and resource scoping, returns explicitDeny for explicit SCP denials, and reports accurate cross-account decisions.
+    - Updating endpoint generation logic
 
-## __AWS Lambda__
+## __AWS Organizations__
   - ### Features
-    - Add Python3.15 (python3.15) and NodeJs 26 (nodejs26.x) support to AWS Lambda
+    - Improved accuracy of CloudTrail event documentation for AWS Organizations membership operations.
 
-## __AWS Network Firewall__
+## __AWS Single Sign-On Admin__
   - ### Features
-    - Adds UPDATING field to Container Association Status
+    - AWS IAM Identity Center now lets you create organization-level instances without enabling multi-account permissions. You can enable multi-account permissions during instance creation or later via console or API, which then provisions the necessary service-linked roles.
 
-## __AWS SDK for Java v2__
-  - ### Bugfixes
-    - Improve endpoint resolution performance by replacing URI.create with a lightweight EndpointUrl.
-
-## __AWS Security Agent__
+## __Amazon Aurora DSQL__
   - ### Features
-    - Adds support for providing a branch override when configured integrated repositories
+    - UpdateCluster now checks the RemovePeerCluster permission on the specific cluster being removed, not a wildcard and docs now clarify how to set kmsEncryptionKey so the cluster uses the AWS-owned key.
 
-## __Amazon Bedrock AgentCore Control__
+## __Amazon Connect Service__
   - ### Features
-    - Adds support for configuring models through the OpenResponses API for custom evaluators. CreateEvaluator and UpdateEvaluator now accept an OpenResponses model configuration for LLM-as-a-Judge evaluations.
+    - Amazon Connect Customer now supports up to 50 attachments per email, increased from the previous limit of 10. The individual maximum attachment size limit of 20 MB and the total email size limit of 25 MB still hold true.
 
-## __Amazon S3__
-  - ### Bugfixes
-    - Honor an explicit `S3Configuration.expectContinueEnabled(false)` when cross region access is enabled.
-
-## __Amazon SageMaker Service__
+## __Amazon DynamoDB Enhanced Client__
   - ### Features
-    - Adds support for g7 family instance types for SageMaker Studio JupyterLab and CodeEditor apps for IAD (us-east-1), PDX (us-west-2), CMH (us-east-2).
+    - Adds SearchVectors and vector index support to the DynamoDB low-level client (sync and async) and Enhanced Client, including vector index table operations, table.vectorIndex() search handles, and enhanced search request/response types.
+    - Adds annotation-driven vector index support to the DynamoDB Enhanced Client via @DynamoDbVectorAttribute, @DynamoDbSearchVectorsHashKey, and @DynamoDbSearchVectorsInlineFilterKey on bean and immutable schemas, enabling no-arg createTable() and vector search through annotation-derived table.vectorIndex() handles.
 
-## __Managed Streaming for Kafka__
+## __Amazon Elastic Compute Cloud__
   - ### Features
-    - Amazon MSK Express brokers now support streaming tables for Apache Iceberg, continuously materializing Apache Kafka topics as Iceberg tables in Amazon S3 Tables. Express brokers also now support data delivery to Amazon S3 general purpose buckets.
+    - Amazon EC2 now supports Application Status Checks, a new status check that monitors your application's health through configurable HTTP(S) paths and ports, so you can detect and automatically respond to application-level impairments.
 
-## __PricingPlanManager__
+## __Amazon WorkSpaces__
   - ### Features
-    - Adds support for Public PricingPlanManager SDK
+    - Added ClientExperiencePolicy to ClientProperties object for ModifyClientProperties and DescribeClientProperties APIs.
+
+## __Inspector2__
+  - ### Features
+    - Adding Azure SBOM export capability.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Partners can now create leads with only 5 required fields and free-text values for all other fields, reducing import friction. Engagement invitations now include enrichment data (propensity scores, lead readiness) directly in the response.
 
