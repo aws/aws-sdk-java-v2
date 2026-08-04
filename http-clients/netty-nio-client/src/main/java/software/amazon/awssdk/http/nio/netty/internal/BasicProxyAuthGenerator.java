@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.util.CharsetUtil;
 import java.util.Base64;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.utils.Validate;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.utils.Validate;
  * <p>
  * See <a href="https://datatracker.ietf.org/doc/html/rfc7617">https://datatracker.ietf.org/doc/html/rfc7617</a>.
  */
+@SdkInternalApi
 public class BasicProxyAuthGenerator implements ProxyAuthGenerator {
     private final String username;
     private final String password;
