@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Inspector2",
+    "contributor": "",
+    "description": "Adding Azure SBOM export capability."
+}
