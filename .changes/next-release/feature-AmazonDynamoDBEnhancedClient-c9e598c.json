@@ -1,0 +1,6 @@
+{
+  "type": "feature",
+  "category": "Amazon DynamoDB Enhanced Client",
+  "contributor": "",
+  "description": "Adds annotation-driven vector index support to the DynamoDB Enhanced Client via @DynamoDbVectorAttribute, @DynamoDbSearchVectorsHashKey, and @DynamoDbSearchVectorsInlineFilterKey on bean and immutable schemas, enabling no-arg createTable() and vector search through annotation-derived table.vectorIndex() handles."
+}
