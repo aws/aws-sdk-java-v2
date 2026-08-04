@@ -7,7 +7,7 @@ import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
@@ -158,9 +159,8 @@ final class DefaultXmlClient implements XmlClient {
                                              .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
                                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
-                                             .withInput(aPostOperationRequest)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "APostOperation", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperation"))
+                                             .withInput(aPostOperationRequest).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -207,15 +207,11 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withCombinedResponseHandler(responseHandler)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(aPostOperationWithOutputRequest)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "APostOperationWithOutput", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperationWithOutput"))
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -259,9 +255,8 @@ final class DefaultXmlClient implements XmlClient {
                                              .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
                                              .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
                                              .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
-                                             .withInput(bearerAuthOperationRequest)
-                                             .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "BearerAuthOperation", clientConfiguration))
-                                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "BearerAuthOperation"))
+                                             .withInput(bearerAuthOperationRequest).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -310,9 +305,8 @@ final class DefaultXmlClient implements XmlClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(getOperationWithChecksumRequest)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "GetOperationWithChecksum", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetOperationWithChecksum"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
@@ -366,9 +360,8 @@ final class DefaultXmlClient implements XmlClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithChecksumRequiredRequest)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithChecksumRequired", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithChecksumRequired"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create())
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
@@ -413,15 +406,11 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType")
-                             .withProtocolMetadata(protocolMetadata)
-                             .withCombinedResponseHandler(responseHandler)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withInput(operationWithNoneAuthTypeRequest)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithNoneAuthType", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithNoneAuthType"))
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -470,9 +459,8 @@ final class DefaultXmlClient implements XmlClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithRequestCompressionRequest)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithRequestCompression", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithRequestCompression"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
@@ -551,9 +539,8 @@ final class DefaultXmlClient implements XmlClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(putOperationWithChecksumRequest)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "PutOperationWithChecksum", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PutOperationWithChecksum"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum
@@ -630,9 +617,8 @@ final class DefaultXmlClient implements XmlClient {
                              .withMetricCollector(apiCallMetricCollector)
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(streamingInputOperationRequest)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "StreamingInputOperation", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingInputOperation"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withRequestBody(requestBody)
                              .withMarshaller(
                                  StreamingRequestMarshaller.builder()
@@ -687,17 +673,11 @@ final class DefaultXmlClient implements XmlClient {
 
             return clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
-                    .withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration)
-                    .withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "StreamingOutputOperation", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingOutputOperation"))
-                    .withResponseTransformer(responseTransformer)
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint).withResponseTransformer(responseTransformer)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
             metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -724,21 +704,23 @@ final class DefaultXmlClient implements XmlClient {
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         XmlAuthSchemeProvider requestAuthSchemeProvider = request.overrideConfiguration().flatMap(c -> c.authSchemeProvider())
                                                                  .map(p -> Validate.isInstanceOf(XmlAuthSchemeProvider.class, p, "Expected an instance of XmlAuthSchemeProvider"))
                                                                  .orElse(null);
         XmlAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(XmlAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            .isInstanceOf(XmlAuthSchemeProvider.class,
+                          executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of XmlAuthSchemeProvider");
         XmlAuthSchemeParams.Builder paramsBuilder = XmlAuthSchemeParams.builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         XmlEndpointProvider provider = (XmlEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {

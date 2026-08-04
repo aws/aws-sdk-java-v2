@@ -61,7 +61,8 @@ public class S3CrtClientStabilityTest extends S3BaseStabilityTest {
     @BeforeAll
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
-        s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME));
+        s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME)
+                                          .createBucketConfiguration(cfg -> cfg.tags(integTestTag())));
         futureThreadPool = Executors.newFixedThreadPool(CONCURRENCY);
     }
 

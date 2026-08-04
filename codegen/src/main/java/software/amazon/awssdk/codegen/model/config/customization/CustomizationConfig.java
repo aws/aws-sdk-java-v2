@@ -352,6 +352,11 @@ public class CustomizationConfig {
     private boolean batchManagerSupported;
 
     /**
+     * A boolean flag to indicate if Presigned URL Extension is supported.
+     */
+    private boolean presignedUrlExtensionSupported;
+
+    /**
      * A boolean flag to indicate if the fast unmarshaller code path is enabled.
      */
     private boolean enableFastUnmarshaller;
@@ -362,6 +367,11 @@ public class CustomizationConfig {
      * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
      */
     private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * List of union shape names for which to generate per-member direct static factories (createX) that bypass the builder.
+     */
+    private List<String> generateDirectUnionConstructors = Collections.emptyList();
 
     /**
      * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
@@ -946,6 +956,14 @@ public class CustomizationConfig {
         this.batchManagerSupported = batchManagerSupported;
     }
 
+    public boolean getPresignedUrlExtensionSupported() {
+        return presignedUrlExtensionSupported;
+    }
+
+    public void setPresignedUrlExtensionSupported(boolean presignedUrlExtensionSupported) {
+        this.presignedUrlExtensionSupported = presignedUrlExtensionSupported;
+    }
+
     public boolean getEnableFastUnmarshaller() {
         return enableFastUnmarshaller;
     }
@@ -976,5 +994,13 @@ public class CustomizationConfig {
 
     public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
         this.allowedUnderscoreNames = allowedUnderscoreNames;
+    }
+
+    public List<String> getGenerateDirectUnionConstructors() {
+        return generateDirectUnionConstructors;
+    }
+
+    public void setGenerateDirectUnionConstructors(List<String> generateDirectUnionConstructors) {
+        this.generateDirectUnionConstructors = generateDirectUnionConstructors;
     }
 }

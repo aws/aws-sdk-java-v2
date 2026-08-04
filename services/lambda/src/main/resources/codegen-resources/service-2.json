@@ -2196,7 +2196,11 @@
           "shape":"Timestamp",
           "documentation":"<p>The date and time when the capacity provider was last modified.</p>"
         },
-        "PropagateTags":{"shape":"PropagateTags"}
+        "PropagateTags":{"shape":"PropagateTags"},
+        "TelemetryConfig":{
+          "shape":"CapacityProviderTelemetryConfig",
+          "documentation":"<p>The telemetry configuration for the capacity provider, including logging settings.</p>"
+        }
       },
       "documentation":"<p>A capacity provider manages compute resources for Lambda functions.</p>"
     },
@@ -2232,6 +2236,20 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "CapacityProviderLoggingConfig":{
+      "type":"structure",
+      "members":{
+        "SystemLogLevel":{
+          "shape":"SystemLogLevel",
+          "documentation":"<p>Set this property to filter the system logs for your capacity provider that Lambda sends to CloudWatch. Lambda only sends system logs at the selected level of detail and lower, where <code>DEBUG</code> is the highest level and <code>WARN</code> is the lowest.</p>"
+        },
+        "LogGroup":{
+          "shape":"LogGroup",
+          "documentation":"<p>The name of the Amazon CloudWatch log group the capacity provider sends logs to. By default, Lambda capacity providers send logs to a default log group named <code>/aws/lambda/capacity-provider/&lt;capacity provider name&gt;</code>. To use a different log group, enter an existing log group or enter a new log group name.</p>"
+        }
+      },
+      "documentation":"<p>The capacity provider's Amazon CloudWatch Logs configuration settings.</p>"
     },
     "CapacityProviderMaxVCpuCount":{
       "type":"integer",
@@ -2311,6 +2329,16 @@
       "member":{"shape":"SubnetId"},
       "max":16,
       "min":1
+    },
+    "CapacityProviderTelemetryConfig":{
+      "type":"structure",
+      "members":{
+        "LoggingConfig":{
+          "shape":"CapacityProviderLoggingConfig",
+          "documentation":"<p>The capacity provider's Amazon CloudWatch Logs configuration settings.</p>"
+        }
+      },
+      "documentation":"<p>Configuration that specifies the telemetry collection for the capacity provider.</p>"
     },
     "CapacityProviderVpcConfig":{
       "type":"structure",
@@ -2855,6 +2883,10 @@
         "PropagateTags":{
           "shape":"PropagateTags",
           "documentation":"<p>The tag propagation configuration for the capacity provider. Specifies tags to apply to managed resources at launch.</p>"
+        },
+        "TelemetryConfig":{
+          "shape":"CapacityProviderTelemetryConfig",
+          "documentation":"<p>The telemetry configuration for the capacity provider. Specifies logging settings for managed resources.</p>"
         }
       }
     },
@@ -4428,7 +4460,7 @@
         },
         "S3ObjectStorageMode":{
           "shape":"S3ObjectStorageMode",
-          "documentation":"<p>Specifies how the deployment package is stored. Use <code>COPY</code> (default) to upload a copy of your deployment package to Lambda. Use <code>REFERENCE</code> to have Lambda reference the deployment package from the specified Amazon S3 bucket.</p>"
+          "documentation":"<p>Specifies how the deployment package is stored. Valid values:</p> <ul> <li> <p> <code>COPY</code> (default) – Uploads a copy of your deployment package to Lambda.</p> </li> <li> <p> <code>REFERENCE</code> – Lambda references the deployment package from the specified Amazon S3 bucket.</p> </li> </ul>"
         },
         "ImageUri":{
           "shape":"String",
@@ -4480,14 +4512,14 @@
       "members":{
         "ErrorCode":{
           "shape":"String",
-          "documentation":"<p>The error code for the failed retrieval.</p>"
+          "documentation":"<p>The error code that identifies why Lambda failed to retrieve the deployment package.</p>"
         },
         "Message":{
           "shape":"SensitiveString",
-          "documentation":"<p>A description of the error.</p>"
+          "documentation":"<p>The human-readable message that describes why Lambda failed to retrieve the deployment package.</p>"
         }
       },
-      "documentation":"<p>Details about an error related to retrieving a function's deployment package.</p>"
+      "documentation":"<p>Contains details about an error that occurred when Lambda attempted to retrieve a function's deployment package.</p>"
     },
     "FunctionConfiguration":{
       "type":"structure",
@@ -5996,12 +6028,6 @@
           "location":"uri",
           "locationName":"FunctionName"
         },
-        "InvocationType":{
-          "shape":"ResponseStreamingInvocationType",
-          "documentation":"<p>Use one of the following options:</p> <ul> <li> <p> <code>RequestResponse</code> (default) – Invoke the function synchronously. Keep the connection open until the function returns a response or times out. The API operation response includes the function response and additional data.</p> </li> <li> <p> <code>DryRun</code> – Validate parameter values and verify that the IAM user or role has permission to invoke the function.</p> </li> </ul>",
-          "location":"header",
-          "locationName":"X-Amz-Invocation-Type"
-        },
         "LogType":{
           "shape":"LogType",
           "documentation":"<p>Set to <code>Tail</code> to include the execution log in the response. Applies to synchronously invoked functions only.</p>",
@@ -6029,6 +6055,12 @@
           "documentation":"<p>The identifier of the tenant in a multi-tenant Lambda function.</p>",
           "location":"header",
           "locationName":"X-Amz-Tenant-Id"
+        },
+        "InvocationType":{
+          "shape":"ResponseStreamingInvocationType",
+          "documentation":"<p>Use one of the following options:</p> <ul> <li> <p> <code>RequestResponse</code> (default) – Invoke the function synchronously. Keep the connection open until the function returns a response or times out. The API operation response includes the function response and additional data.</p> </li> <li> <p> <code>DryRun</code> – Validate parameter values and verify that the IAM user or role has permission to invoke the function.</p> </li> </ul>",
+          "location":"header",
+          "locationName":"X-Amz-Invocation-Type"
         }
       },
       "payload":"Payload"
@@ -6274,7 +6306,8 @@
         "FunctionError.PermissionDenied",
         "FunctionError.TooManyExtensions",
         "FunctionError.InitResourceExhausted",
-        "DisallowedByVpcEncryptionControl"
+        "DisallowedByVpcEncryptionControl",
+        "DependencyError"
       ]
     },
     "Layer":{
@@ -6348,7 +6381,10 @@
           "shape":"S3ObjectVersion",
           "documentation":"<p>For versioned objects, the version of the layer archive object to use.</p>"
         },
-        "S3ObjectStorageMode":{"shape":"S3ObjectStorageMode"},
+        "S3ObjectStorageMode":{
+          "shape":"S3ObjectStorageMode",
+          "documentation":"<p>Specifies how the layer archive is stored. Valid values:</p> <ul> <li> <p> <code>COPY</code> (default) – Uploads a copy of your layer archive to Lambda.</p> </li> <li> <p> <code>REFERENCE</code> – Lambda references the layer archive from the specified Amazon S3 bucket.</p> </li> </ul>"
+        },
         "ZipFile":{
           "shape":"Blob",
           "documentation":"<p>The base64-encoded contents of the layer archive. Amazon Web Services SDK and Amazon Web Services CLI clients handle the encoding for you.</p>"
@@ -6379,7 +6415,10 @@
           "shape":"Arn",
           "documentation":"<p>The Amazon Resource Name (ARN) of a signing job.</p>"
         },
-        "ResolvedS3Object":{"shape":"ResolvedS3Object"}
+        "ResolvedS3Object":{
+          "shape":"ResolvedS3Object",
+          "documentation":"<p>The resolved Amazon S3 object that contains the layer archive.</p>"
+        }
       },
       "documentation":"<p>Details about a version of an <a href=\"https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html\">Lambda layer</a>.</p>"
     },
@@ -7258,7 +7297,7 @@
       "type":"string",
       "max":256,
       "min":1,
-      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:)?((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?(function:)?([a-zA-Z0-9-_\\.]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?"
+      "pattern":"(arn:(aws[a-zA-Z-]*)?:lambda:(eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:\\d{12}:|(((eusc-)?[a-z]{2}((-gov)|(-iso([a-z]?)))?-[a-z]+-\\d{1}:)?(\\d{12}:)?))(function:)?([a-zA-Z0-9-_\\.]+)(:(\\$LATEST(\\.PUBLISHED)?|[a-zA-Z0-9-_]+))?"
     },
     "NamespacedStatementId":{
       "type":"string",
@@ -8390,7 +8429,12 @@
         "ruby4.0",
         "provided",
         "provided.al2",
-        "provided.al2023"
+        "provided.al2023",
+        "nodejs26.x",
+        "python3.15",
+        "java8.al2023",
+        "java11.al2023",
+        "java17.al2023"
       ]
     },
     "RuntimeVersionArn":{
@@ -8498,7 +8542,7 @@
     },
     "S3ObjectStorageMode":{
       "type":"string",
-      "documentation":"<p>The storage mode for a function's deployment package.</p>",
+      "documentation":"<p>The method Lambda uses to store a function's deployment package — either by copying the package into Lambda-managed storage (<code>COPY</code>) or by referencing it directly from the source Amazon S3 bucket (<code>REFERENCE</code>).</p>",
       "enum":[
         "COPY",
         "REFERENCE"
@@ -8886,7 +8930,8 @@
         "FunctionError.TooManyExtensions",
         "FunctionError.InitResourceExhausted",
         "DisallowedByVpcEncryptionControl",
-        "DrainingDurableExecutions"
+        "DrainingDurableExecutions",
+        "DependencyError"
       ]
     },
     "StatementId":{
@@ -9363,7 +9408,11 @@
           "shape":"CapacityProviderScalingConfig",
           "documentation":"<p>The updated scaling configuration for the capacity provider.</p>"
         },
-        "PropagateTags":{"shape":"PropagateTags"}
+        "PropagateTags":{"shape":"PropagateTags"},
+        "TelemetryConfig":{
+          "shape":"CapacityProviderTelemetryConfig",
+          "documentation":"<p>The updated telemetry configuration for the capacity provider.</p>"
+        }
       }
     },
     "UpdateCapacityProviderResponse":{
@@ -9525,7 +9574,7 @@
         },
         "S3ObjectStorageMode":{
           "shape":"S3ObjectStorageMode",
-          "documentation":"<p>Specifies how the deployment package is stored. Use <code>COPY</code> (default) to upload a copy of your deployment package to Lambda. Use <code>REFERENCE</code> to have Lambda reference the deployment package from the specified Amazon S3 bucket.</p>"
+          "documentation":"<p>Specifies how the deployment package is stored. Valid values:</p> <ul> <li> <p> <code>COPY</code> (default) – Uploads a copy of your deployment package to Lambda.</p> </li> <li> <p> <code>REFERENCE</code> – Lambda references the deployment package from the specified Amazon S3 bucket.</p> </li> </ul>"
         },
         "ImageUri":{
           "shape":"String",

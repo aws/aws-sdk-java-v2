@@ -14,7 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
@@ -186,8 +187,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                          .withMarshaller(new DeleteRowRequestMarshaller(protocolFactory)).withResponseHandler(responseHandler)
                                                                                          .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                                                                                          .withMetricCollector(apiCallMetricCollector)
-                                                                                         .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "DeleteRow", clientConfiguration))
-                                                                                         .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "DeleteRow")).withInput(deleteRowRequest));
+                                                                                         .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                                                                         .withEndpointResolver(this::resolveEndpoint).withInput(deleteRowRequest));
             CompletableFuture<DeleteRowResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -258,8 +259,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                    .withProtocolMetadata(protocolMetadata).withMarshaller(new GetRowRequestMarshaller(protocolFactory))
                                                                                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                                                                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                                                                                   .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "GetRow", clientConfiguration))
-                                                                                   .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetRow")).withInput(getRowRequest));
+                                                                                   .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                                                                   .withEndpointResolver(this::resolveEndpoint).withInput(getRowRequest));
             CompletableFuture<GetRowResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -338,9 +339,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4AndSigv4aUnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4AndSigv4aUnSignedPayload"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4AndSigv4AUnSignedPayloadRequest));
             CompletableFuture<OpWithSigv4AndSigv4AUnSignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -411,16 +411,12 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
 
             CompletableFuture<OpWithSigv4SignedPayloadResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OpWithSigv4SignedPayloadRequest, OpWithSigv4SignedPayloadResponse>()
-                             .withOperationName("opWithSigv4SignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("opWithSigv4SignedPayload").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OpWithSigv4SignedPayloadRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4SignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4SignedPayload"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4SignedPayloadRequest));
             CompletableFuture<OpWithSigv4SignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -491,16 +487,12 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
 
             CompletableFuture<OpWithSigv4UnSignedPayloadResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OpWithSigv4UnSignedPayloadRequest, OpWithSigv4UnSignedPayloadResponse>()
-                             .withOperationName("opWithSigv4UnSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("opWithSigv4UnSignedPayload").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OpWithSigv4UnSignedPayloadRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4UnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4UnSignedPayload"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4UnSignedPayloadRequest));
             CompletableFuture<OpWithSigv4UnSignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -591,10 +583,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4UnSignedPayloadAndStreaming",
-                                                               clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4UnSignedPayloadAndStreaming"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withAsyncRequestBody(requestBody).withInput(opWithSigv4UnSignedPayloadAndStreamingRequest));
             CompletableFuture<OpWithSigv4UnSignedPayloadAndStreamingResponse> whenCompleted = executeFuture
                 .whenComplete((r, e) -> {
@@ -666,16 +656,12 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
 
             CompletableFuture<OpWithSigv4ASignedPayloadResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OpWithSigv4ASignedPayloadRequest, OpWithSigv4ASignedPayloadResponse>()
-                             .withOperationName("opWithSigv4aSignedPayload")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("opWithSigv4aSignedPayload").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OpWithSigv4ASignedPayloadRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4aSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4aSignedPayload"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4ASignedPayloadRequest));
             CompletableFuture<OpWithSigv4ASignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -753,9 +739,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opWithSigv4aUnSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opWithSigv4aUnSignedPayload"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4AUnSignedPayloadRequest));
             CompletableFuture<OpWithSigv4AUnSignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -835,9 +820,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "opsWithSigv4andSigv4aSignedPayload", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "opsWithSigv4andSigv4aSignedPayload"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opsWithSigv4AndSigv4ASignedPayloadRequest));
             CompletableFuture<OpsWithSigv4AndSigv4ASignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -909,8 +893,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                    .withProtocolMetadata(protocolMetadata).withMarshaller(new PutRowRequestMarshaller(protocolFactory))
                                                                                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                                                                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                                                                                   .withAuthSchemeOptionsResolver(r -> resolveAuthSchemeOptions(r, "PutRow", clientConfiguration))
-                                                                                   .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PutRow")).withInput(putRowRequest));
+                                                                                   .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                                                                   .withEndpointResolver(this::resolveEndpoint).withInput(putRowRequest));
             CompletableFuture<PutRowResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -989,10 +973,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "secondOpsWithSigv4andSigv4aSignedPayload",
-                                                               clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "secondOpsWithSigv4andSigv4aSignedPayload"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(secondOpsWithSigv4AndSigv4ASignedPayloadRequest));
             CompletableFuture<SecondOpsWithSigv4AndSigv4ASignedPayloadResponse> whenCompleted = executeFuture
                 .whenComplete((r, e) -> {
@@ -1036,19 +1018,20 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
+            ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         DatabaseAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
             .map(p -> Validate.isInstanceOf(DatabaseAuthSchemeProvider.class, p,
                                             "Expected an instance of DatabaseAuthSchemeProvider")).orElse(null);
         DatabaseAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(DatabaseAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            .isInstanceOf(DatabaseAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of DatabaseAuthSchemeProvider");
         DatabaseAuthSchemeParams.Builder paramsBuilder = DatabaseAuthSchemeParams.builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
-        Set<String> sigv4aRegionSet = clientConfiguration.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET);
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        Set<String> sigv4aRegionSet = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET);
         if (!CollectionUtils.isNullOrEmpty(sigv4aRegionSet)) {
             paramsBuilder.regionSet(RegionSet.create(sigv4aRegionSet));
         }
@@ -1056,7 +1039,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         DatabaseEndpointProvider provider = (DatabaseEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {

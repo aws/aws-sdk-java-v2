@@ -35,7 +35,8 @@ public class S3NettyAsyncStabilityTest extends S3AsyncBaseStabilityTest {
 
     @BeforeAll
     public static void setup() {
-        s3NettyClient.createBucket(b -> b.bucket(bucketName)).join();
+        s3NettyClient.createBucket(b -> b.bucket(bucketName)
+                                         .createBucketConfiguration(cfg -> cfg.tags(integTestTag()))).join();
     }
 
     @AfterAll

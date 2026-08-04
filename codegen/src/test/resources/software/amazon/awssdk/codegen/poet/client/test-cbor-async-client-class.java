@@ -16,7 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.client.handler.AwsClientHandlerUtils;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
@@ -49,6 +49,7 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
@@ -236,16 +237,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<APostOperationResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                             .withOperationName("APostOperation")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "APostOperation", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperation"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
             CompletableFuture<APostOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -320,16 +317,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<APostOperationWithOutputResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                             .withOperationName("APostOperationWithOutput")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "APostOperationWithOutput", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "APostOperationWithOutput"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -432,19 +425,14 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<Void> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<EventStreamOperationRequest, SdkResponse>()
-                    .withOperationName("EventStreamOperation")
-                    .withProtocolMetadata(protocolMetadata)
+                    .withOperationName("EventStreamOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new EventStreamOperationRequestMarshaller(protocolFactory))
-                    .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted))
-                    .withFullDuplex(true)
-                    .withInitialRequestEvent(true)
-                    .withResponseHandler(voidResponseHandler)
-                    .withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration)
+                    .withAsyncRequestBody(AsyncRequestBody.fromPublisher(adapted)).withFullDuplex(true)
+                    .withInitialRequestEvent(true).withResponseHandler(voidResponseHandler)
+                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "EventStreamOperation", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "EventStreamOperation"))
+                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint)
                     .withInput(eventStreamOperationRequest), asyncResponseTransformer);
             CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
@@ -540,9 +528,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "EventStreamOperationWithOnlyInput", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "EventStreamOperationWithOnlyInput"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(eventStreamOperationWithOnlyInputRequest));
             CompletableFuture<EventStreamOperationWithOnlyInputResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -649,9 +636,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "EventStreamOperationWithOnlyOutput", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "EventStreamOperationWithOnlyOutput"))
+                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint)
                     .withInput(eventStreamOperationWithOnlyOutputRequest), asyncResponseTransformer);
             CompletableFuture<Void> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 if (e != null) {
@@ -734,16 +720,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<GetWithoutRequiredMembersResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<GetWithoutRequiredMembersRequest, GetWithoutRequiredMembersResponse>()
-                             .withOperationName("GetWithoutRequiredMembers")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("GetWithoutRequiredMembers").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new GetWithoutRequiredMembersRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "GetWithoutRequiredMembers", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "GetWithoutRequiredMembers"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(getWithoutRequiredMembersRequest));
             CompletableFuture<GetWithoutRequiredMembersResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -821,9 +803,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithChecksumRequired", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithChecksumRequired"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
@@ -894,16 +875,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<OperationWithNoneAuthTypeResponse> executeFuture = clientHandler
                 .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                             .withOperationName("OperationWithNoneAuthType")
-                             .withProtocolMetadata(protocolMetadata)
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory))
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
-                             .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithNoneAuthType", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithNoneAuthType"))
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -981,9 +958,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "OperationWithRequestCompression", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "OperationWithRequestCompression"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withInput(operationWithRequestCompressionRequest));
@@ -1063,9 +1039,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "PaginatedOperationWithResultKey", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PaginatedOperationWithResultKey"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(paginatedOperationWithResultKeyRequest));
             CompletableFuture<PaginatedOperationWithResultKeyResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1143,9 +1118,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "PaginatedOperationWithoutResultKey", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "PaginatedOperationWithoutResultKey"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withInput(paginatedOperationWithoutResultKeyRequest));
             CompletableFuture<PaginatedOperationWithoutResultKeyResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
@@ -1225,15 +1199,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                              .withMarshaller(
                                  AsyncStreamingRequestMarshaller.builder()
                                                                 .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                                                .asyncRequestBody(requestBody).build())
-                             .withResponseHandler(responseHandler)
-                             .withErrorResponseHandler(errorResponseHandler)
-                             .withRequestConfiguration(clientConfiguration)
+                                                                .asyncRequestBody(requestBody).build()).withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                              .withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(
-                                 r -> resolveAuthSchemeOptions(r, "StreamingInputOperation", clientConfiguration))
-                             .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingInputOperation"))
-                             .withAsyncRequestBody(requestBody).withInput(streamingInputOperationRequest));
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint).withAsyncRequestBody(requestBody)
+                             .withInput(streamingInputOperationRequest));
             CompletableFuture<StreamingInputOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
                 metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
             });
@@ -1329,9 +1300,8 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                     .withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration)
                     .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "StreamingInputOutputOperation", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingInputOutputOperation"))
+                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint)
                     .withAsyncRequestBody(requestBody).withAsyncResponseTransformer(asyncResponseTransformer)
                     .withInput(streamingInputOutputOperationRequest), asyncResponseTransformer);
             AsyncResponseTransformer<StreamingInputOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
@@ -1422,16 +1392,12 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
 
             CompletableFuture<ReturnT> executeFuture = clientHandler.execute(
                 new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                    .withOperationName("StreamingOutputOperation")
-                    .withProtocolMetadata(protocolMetadata)
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory))
-                    .withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withAuthSchemeOptionsResolver(
-                        r -> resolveAuthSchemeOptions(r, "StreamingOutputOperation", clientConfiguration))
-                    .withEndpointResolver((r, a) -> resolveEndpoint(r, a, "StreamingOutputOperation"))
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint)
                     .withAsyncResponseTransformer(asyncResponseTransformer).withInput(streamingOutputOperationRequest),
                 asyncResponseTransformer);
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
@@ -1485,8 +1451,9 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
+            ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         JsonAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
@@ -1494,15 +1461,16 @@ final class DefaultJsonAsyncClient implements JsonAsyncClient {
                 .isInstanceOf(JsonAuthSchemeProvider.class, p, "Expected an instance of JsonAuthSchemeProvider"))
             .orElse(null);
         JsonAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
-            .isInstanceOf(JsonAuthSchemeProvider.class, clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+            .isInstanceOf(JsonAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of JsonAuthSchemeProvider");
         JsonAuthSchemeParams.Builder paramsBuilder = JsonAuthSchemeParams.builder().operation(operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         JsonEndpointProvider provider = (JsonEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
