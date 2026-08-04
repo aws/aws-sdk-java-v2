@@ -634,7 +634,8 @@
                             <includeModule>profiles</includeModule>
                             <includeModule>protocols</includeModule>
                             <includeModule>regions</includeModule>
-                            <includeModule>sdk-core</includeModule>
+                            <!-- temp exclusion for https://github.com/aws/aws-sdk-java-v2/pull/7223 -->
+                            <!-- <includeModule>sdk-core</includeModule> -->
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>
