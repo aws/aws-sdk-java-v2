@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,9 +33,16 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.document.DocumentTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithIndices;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableResponse;
@@ -174,5 +182,117 @@ public class DefaultDynamoDbAsyncTableTest {
                                                  .map(GlobalSecondaryIndex::indexName)
                                                  .collect(Collectors.toList());
         assertThat(globalIndicesNames).containsExactlyInAnyOrder("gsi_1", "gsi_2");
+    }
+
+    @Test
+    public void vectorIndex_constructsCorrectMappedVectorIndex() {
+        TableSchema<EnhancedDocument> tableSchema = DocumentTableSchema.builder()
+                                                                       .vectorIndex(b -> b.indexName("embeddings-index")
+                                                                                          .vectorAttributeName("embedding")
+                                                                                          .dimensions(1536)
+                                                                                          .distanceFunction(
+                                                                                              DistanceFunction.COSINE))
+                                                                       .build();
+        DefaultDynamoDbAsyncTable<EnhancedDocument> table =
+            new DefaultDynamoDbAsyncTable<>(mockDynamoDbAsyncClient,
+                                            mockDynamoDbEnhancedClientExtension,
+                                            tableSchema,
+                                            TABLE_NAME);
+
+        DefaultDynamoDbAsyncVectorIndex<EnhancedDocument> vectorIndex = table.vectorIndex("embeddings-index");
+
+        assertThat(vectorIndex.tableSchema()).isSameAs(tableSchema);
+        assertThat(vectorIndex.tableName()).isEqualTo(TABLE_NAME);
+        assertThat(vectorIndex.indexName()).isEqualTo("embeddings-index");
+    }
+
+    @Test
+    public void vectorIndex_invalidIndex_throwsIllegalArgumentException() {
+        TableSchema<EnhancedDocument> tableSchema = DocumentTableSchema.builder()
+                                                                       .vectorIndex(b -> b.indexName("embeddings-index")
+                                                                                          .vectorAttributeName("embedding")
+                                                                                          .dimensions(1536)
+                                                                                          .distanceFunction(
+                                                                                              DistanceFunction.COSINE))
+                                                                       .build();
+        DefaultDynamoDbAsyncTable<EnhancedDocument> table =
+            new DefaultDynamoDbAsyncTable<>(mockDynamoDbAsyncClient,
+                                            mockDynamoDbEnhancedClientExtension,
+                                            tableSchema,
+                                            TABLE_NAME);
+
+        assertThatThrownBy(() -> table.vectorIndex("nonexistent"))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("nonexistent");
+    }
+
+    @Test
+    public void vectorIndex_returnsMapperExtension() {
+        TableSchema<EnhancedDocument> tableSchema = DocumentTableSchema.builder()
+                                                                       .vectorIndex(b -> b.indexName("embeddings-index")
+                                                                                          .vectorAttributeName("embedding")
+                                                                                          .dimensions(1536)
+                                                                                          .distanceFunction(
+                                                                                              DistanceFunction.COSINE))
+                                                                       .build();
+        DefaultDynamoDbAsyncTable<EnhancedDocument> table =
+            new DefaultDynamoDbAsyncTable<>(mockDynamoDbAsyncClient,
+                                            mockDynamoDbEnhancedClientExtension,
+                                            tableSchema,
+                                            TABLE_NAME);
+
+        DefaultDynamoDbAsyncVectorIndex<EnhancedDocument> vectorIndex = table.vectorIndex("embeddings-index");
+
+        assertThat(vectorIndex.mapperExtension()).isSameAs(mockDynamoDbEnhancedClientExtension);
+    }
+
+    @Test
+    public void createTable_noArg_includesVectorIndexesFromMetadata() {
+        TableSchema<EnhancedDocument> tableSchema = DocumentTableSchema.builder()
+                                                                       .addIndexPartitionKey(
+                                                                           TableMetadata.primaryIndexName(),
+                                                                           "pk",
+                                                                           AttributeValueType.S)
+                                                                       .vectorIndex(b -> b.indexName("vec-index")
+                                                                                          .vectorAttributeName("emb")
+                                                                                          .dimensions(128)
+                                                                                          .distanceFunction(
+                                                                                              DistanceFunction.COSINE))
+                                                                       .build();
+        DefaultDynamoDbAsyncTable<EnhancedDocument> table =
+            new DefaultDynamoDbAsyncTable<>(mockDynamoDbAsyncClient,
+                                            mockDynamoDbEnhancedClientExtension,
+                                            tableSchema,
+                                            TABLE_NAME);
+
+        when(mockDynamoDbAsyncClient.createTable(any(CreateTableRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(CreateTableResponse.builder().build()));
+
+        table.createTable().join();
+
+        ArgumentCaptor<CreateTableRequest> captor = ArgumentCaptor.forClass(CreateTableRequest.class);
+        verify(mockDynamoDbAsyncClient).createTable(captor.capture());
+
+        assertThat(captor.getValue().vectorIndexes()).hasSize(1);
+        assertThat(captor.getValue().vectorIndexes().get(0).indexName()).isEqualTo("vec-index");
+    }
+
+    @Test
+    public void createTable_noArg_noVectorMetadata_vectorIndexesEmpty() {
+        DefaultDynamoDbAsyncTable<FakeItem> table =
+            new DefaultDynamoDbAsyncTable<>(mockDynamoDbAsyncClient,
+                                            mockDynamoDbEnhancedClientExtension,
+                                            FakeItem.getTableSchema(),
+                                            "test_table");
+
+        when(mockDynamoDbAsyncClient.createTable(any(CreateTableRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(CreateTableResponse.builder().build()));
+
+        table.createTable().join();
+
+        ArgumentCaptor<CreateTableRequest> captor = ArgumentCaptor.forClass(CreateTableRequest.class);
+        verify(mockDynamoDbAsyncClient).createTable(captor.capture());
+
+        assertThat(captor.getValue().vectorIndexes()).isEmpty();
     }
 }
