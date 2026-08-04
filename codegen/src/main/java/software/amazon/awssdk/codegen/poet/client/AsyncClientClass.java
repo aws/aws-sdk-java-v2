@@ -172,6 +172,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod())
+            .addMethod(ClientClassUtils.publishMetricsMethod())
+            .addMethod(ClientClassUtils.publishMetricsWhenCompleteMethod())
             .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
             .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
@@ -446,7 +448,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        builder.addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+        builder.addStatement("publishMetrics(metricPublishers, apiCallMetricCollector)")
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 
