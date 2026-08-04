@@ -48,7 +48,8 @@ public class S3MultipartJavaBasedStabilityTest extends S3AsyncBaseStabilityTest 
 
     @BeforeAll
     public static void setup() {
-        multipartJavaBasedClient.createBucket(b -> b.bucket(BUCKET_NAME)).join();
+        multipartJavaBasedClient.createBucket(b -> b.bucket(BUCKET_NAME)
+                                                    .createBucketConfiguration(cfg -> cfg.tags(integTestTag()))).join();
         multipartJavaBasedClient.waiter().waitUntilBucketExists(b -> b.bucket(BUCKET_NAME)).join();
     }
 

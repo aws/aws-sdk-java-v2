@@ -1,80 +1,43 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.47.1__ __2026-07-07__
-## __AWS Config__
+# __2.51.0__ __2026-08-04__
+## __AWS Identity and Access Management__
   - ### Features
-    - Added support for connecting AWS Config to third-party cloud service providers. New APIs include PutConnector, GetConnector, DeleteConnector, and ListConnectors for managing connectors, and PutThirdPartyServiceLinkedConfigurationRecorder for creating third-party service-linked recorders.
+    - Updating endpoint generation logic
 
-## __AWS Lambda__
+## __AWS Organizations__
   - ### Features
-    - AWS Lambda Durable Functions now supports customer managed KMS keys. This allows customers to configure a KMS key in Durable Config to have all their durable execution data encrypted.
+    - Improved accuracy of CloudTrail event documentation for AWS Organizations membership operations.
 
-## __AWS Marketplace Catalog Service__
+## __AWS Single Sign-On Admin__
   - ### Features
-    - This release enhances the ListEntities API to support ResellerRole filter for ResaleAuthorization entity.
+    - AWS IAM Identity Center now lets you create organization-level instances without enabling multi-account permissions. You can enable multi-account permissions during instance creation or later via console or API, which then provisions the necessary service-linked roles.
 
-## __AWS SDK for Java v2__
-  - ### Bugfixes
-    - Re-resolve SSO access token on each credential refresh in the SSOCredentialsProvider instead of caching it at construction time ensuring that refreshed tokens (for example from running `aws sso login`) are always used.
-
-## __AWS SecurityHub__
+## __Amazon Aurora DSQL__
   - ### Features
-    - release SecurityHub MultiCloud integration with Azure
-
-## __AWSMarketplace Metering__
-  - ### Features
-    - The usage reporting window for the BatchMeterUsage API has been extended from 6 hours to 24 hours. Sellers can now submit usage records for up to 24 hours after a metered event occurs. The existing 6-hour grace period at the end of a billing cycle still applies.
+    - UpdateCluster now checks the RemovePeerCluster permission on the specific cluster being removed, not a wildcard and docs now clarify how to set kmsEncryptionKey so the cluster uses the AWS-owned key.
 
 ## __Amazon Connect Service__
   - ### Features
-    - Adds support for CreateAuthCode and DeleteSession APIs.
+    - Amazon Connect Customer now supports up to 50 attachments per email, increased from the previous limit of 10. The individual maximum attachment size limit of 20 MB and the total email size limit of 25 MB still hold true.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Adds SearchVectors and vector index support to the DynamoDB low-level client (sync and async) and Enhanced Client, including vector index table operations, table.vectorIndex() search handles, and enhanced search request/response types.
+    - Adds annotation-driven vector index support to the DynamoDB Enhanced Client via @DynamoDbVectorAttribute, @DynamoDbSearchVectorsHashKey, and @DynamoDbSearchVectorsInlineFilterKey on bean and immutable schemas, enabling no-arg createTable() and vector search through annotation-derived table.vectorIndex() handles.
 
 ## __Amazon Elastic Compute Cloud__
   - ### Features
-    - This launch surfaces the public SSM parameter associated with public AMIs in the AMI metadata.
+    - Amazon EC2 now supports Application Status Checks, a new status check that monitors your application's health through configurable HTTP(S) paths and ports, so you can detect and automatically respond to application-level impairments.
 
-## __Amazon Route 53 Global Resolver__
+## __Amazon WorkSpaces__
   - ### Features
-    - Adds ListSharedDNSViews operation to list all DNS Views shared with caller using AWS Resource Access Manager. Also updates ListHostedZoneAssociations operation so that resource ARN param is optional, allowing caller to list all HostedZoneAssociations in account.
-
-## __Amazon Simple Systems Manager (SSM)__
-  - ### Features
-    - Adding SSM Cloud Connector to support Azure Virtual Machines onboarding to AWS Systems Manager
+    - Added ClientExperiencePolicy to ClientProperties object for ModifyClientProperties and DescribeClientProperties APIs.
 
 ## __Inspector2__
   - ### Features
-    - This release extends vulnerability management to Azure VM, container registries and function apps. Adds support for per-member-account scan configuration settings.
+    - Adding Azure SBOM export capability.
 
-## __Partner Central Revenue Measurement API__
+## __Partner Central Selling API__
   - ### Features
-    - Add support for AWS Partner Central Revenue Measurement API for creating, managing, and tracking revenue attributions and marketplace revenue share allocations.
+    - Partners can now create leads with only 5 required fields and free-text values for all other fields, reducing import friction. Engagement invitations now include enrichment data (propensity scores, lead readiness) directly in the response.
 
-# __2.47.0__ __2026-07-06__
-## __AWS Billing__
-  - ### Features
-    - Adds support for managing AWS account credits and billing preferences, including retrieving credit details, viewing per-month credit allocation history, redeeming promotional codes, and configuring credit sharing and billing preferences.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Moved auth scheme and endpoint resolution from per-service generated interceptors to shared pipeline stages, establishing clear separation between customer extension points and SDK internals. This also fixes a bug where credentials injected via `ExecutionInterceptor.modifyRequest()` were not being used for signing ([#6486](https://github.com/aws/aws-sdk-java-v2/issues/6486))
-    - Updated endpoint and partition metadata.
-
-  - ### Bugfixes
-    - Updating Lake Formation Access Grants Plugin version to 1.4.2
-        - Contributed by: [@rajasbh-aws](https://github.com/rajasbh-aws)
-
-## __Amazon CloudWatch Logs__
-  - ### Features
-    - Added PutStorageTierPolicy and GetStorageTierPolicy APIs to Amazon CloudWatch Logs. Customers can now configure account-level Intelligent Tiering to automatically optimize log storage costs by moving infrequently accessed data to lower-cost storage tiers.
-
-## __Amazon OpenSearch Service__
-  - ### Features
-    - This release introduces Saved Object Migration APIs, enabling users to migrate dashboards, visualizations, index patterns, and other saved objects from a data source into an Amazon OpenSearch Service application workspace with configurable export filters and conflict resolution strategies.
-
-## __MailManager__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __Contributors__
-Special thanks to the following contributors to this release: 
-
-[@rajasbh-aws](https://github.com/rajasbh-aws)

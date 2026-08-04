@@ -41,7 +41,8 @@ public class S3AsyncWithCrtAsyncHttpClientStabilityTest extends S3AsyncBaseStabi
 
     @BeforeAll
     public static void setup() {
-        s3CrtClient.createBucket(b -> b.bucket(bucketName)).join();
+        s3CrtClient.createBucket(b -> b.bucket(bucketName)
+                                       .createBucketConfiguration(cfg -> cfg.tags(integTestTag()))).join();
     }
 
     @AfterAll
