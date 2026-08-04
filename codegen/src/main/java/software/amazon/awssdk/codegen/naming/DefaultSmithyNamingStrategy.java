@@ -161,6 +161,11 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     }
 
     @Override
+    public String getPresignedUrlPackageName(String serviceName) {
+        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PRESIGNEDURL_PATTERN);
+    }
+
+    @Override
     public String getAuthSchemePackageName(String serviceName) {
         return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_AUTH_SCHEME_PATTERN);
     }
