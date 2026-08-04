@@ -157,6 +157,7 @@
         "software.amazon.ion:ion-java": { "packageName": "Maven-software-amazon-ion_ion-java", "packageVersion": "1.x" },
         "software.amazon.smithy:smithy-model": { "packageName": "Maven-software-amazon-smithy_smithy-model", "packageVersion": "1.x" },
         "software.amazon.smithy:smithy-aws-traits": { "packageName": "Maven-software-amazon-smithy_smithy-aws-traits", "packageVersion": "1.x" },
+        "software.amazon.smithy:smithy-rules-engine": { "packageName": "Maven-software-amazon-smithy_smithy-rules-engine", "packageVersion": "1.x" },
         "software.amazon:flow": { "packageName": "AwsFlowJava", "packageVersion": "1.0" },
         "org.junit.jupiter:junit-jupiter": { "packageName": "JUnit5", "packageVersion": "5.x" },
         "org.mockito:mockito-core": { "packageName": "Mockito", "packageVersion": "3.x" },
