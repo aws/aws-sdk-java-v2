@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Organizations",
-    "contributor": "",
-    "description": "Improved accuracy of CloudTrail event documentation for AWS Organizations membership operations."
-}
