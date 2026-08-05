@@ -4,9 +4,15 @@
     "entries": [
         {
             "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Vector indexes are a type of index in Amazon DynamoDB that enable similarity search on vector embedding stored in your table items. Vector indexes use approximate nearest neighbor search to find items whose vectors are most similar to a query vector that you provide."
+        },
+        {
+            "type": "feature",
             "category": "Amazon DynamoDB Enhanced Client",
             "contributor": "",
-            "description": "Adds SearchVectors and vector index support to the DynamoDB low-level client (sync and async) and Enhanced Client, including vector index table operations, table.vectorIndex() search handles, and enhanced search request/response types."
+            "description": "Adds SearchVectors and vector index support to the DynamoDB Enhanced Client, including vector index table operations, table.vectorIndex() search handles, and enhanced search request/response types."
         },
         {
             "type": "feature",
