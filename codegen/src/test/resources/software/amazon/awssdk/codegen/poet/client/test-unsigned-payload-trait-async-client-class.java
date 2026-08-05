@@ -189,13 +189,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                          .withMetricCollector(apiCallMetricCollector)
                                                                                          .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                                                                          .withEndpointResolver(this::resolveEndpoint).withInput(deleteRowRequest));
-            CompletableFuture<DeleteRowResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<DeleteRowResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -261,13 +259,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                                                                                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                                                                    .withEndpointResolver(this::resolveEndpoint).withInput(getRowRequest));
-            CompletableFuture<GetRowResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<GetRowResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -342,13 +338,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4AndSigv4AUnSignedPayloadRequest));
-            CompletableFuture<OpWithSigv4AndSigv4AUnSignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OpWithSigv4AndSigv4AUnSignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -418,13 +412,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4SignedPayloadRequest));
-            CompletableFuture<OpWithSigv4SignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OpWithSigv4SignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -494,13 +486,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4UnSignedPayloadRequest));
-            CompletableFuture<OpWithSigv4UnSignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OpWithSigv4UnSignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -586,14 +576,12 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withAsyncRequestBody(requestBody).withInput(opWithSigv4UnSignedPayloadAndStreamingRequest));
-            CompletableFuture<OpWithSigv4UnSignedPayloadAndStreamingResponse> whenCompleted = executeFuture
-                .whenComplete((r, e) -> {
-                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-                });
+            CompletableFuture<OpWithSigv4UnSignedPayloadAndStreamingResponse> whenCompleted = publishMetricsWhenComplete(
+                executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -663,13 +651,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4ASignedPayloadRequest));
-            CompletableFuture<OpWithSigv4ASignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OpWithSigv4ASignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -742,13 +728,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opWithSigv4AUnSignedPayloadRequest));
-            CompletableFuture<OpWithSigv4AUnSignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OpWithSigv4AUnSignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -823,13 +807,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(opsWithSigv4AndSigv4ASignedPayloadRequest));
-            CompletableFuture<OpsWithSigv4AndSigv4ASignedPayloadResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<OpsWithSigv4AndSigv4ASignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -895,13 +877,11 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                                                                                    .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
                                                                                    .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                                                                                    .withEndpointResolver(this::resolveEndpoint).withInput(putRowRequest));
-            CompletableFuture<PutRowResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<PutRowResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -976,14 +956,12 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(secondOpsWithSigv4AndSigv4ASignedPayloadRequest));
-            CompletableFuture<SecondOpsWithSigv4AndSigv4ASignedPayloadResponse> whenCompleted = executeFuture
-                .whenComplete((r, e) -> {
-                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-                });
+            CompletableFuture<SecondOpsWithSigv4AndSigv4ASignedPayloadResponse> whenCompleted = publishMetricsWhenComplete(
+                executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1016,6 +994,23 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
     }
 
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
