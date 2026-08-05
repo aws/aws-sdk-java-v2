@@ -22,14 +22,14 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.SdkClient;
+import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
+import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
+import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.warmup.ClasspathWarmUpInvoker;
 import software.amazon.awssdk.core.internal.warmup.PrimedClientRegistry;
 import software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker;
 import software.amazon.awssdk.core.internal.warmup.TargetedWarmUpResult;
 import software.amazon.awssdk.core.internal.warmup.WarmedHttpClientTypeRegistry;
-import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
-import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
-import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
 import software.amazon.awssdk.utils.Logger;
 
 /**
