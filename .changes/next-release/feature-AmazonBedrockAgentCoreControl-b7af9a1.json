@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore Control",
-    "contributor": "",
-    "description": "Adding support for fine-grained access control for AgentCore Memory through managed AgentCore Gateway HTTP Connectors."
-}
