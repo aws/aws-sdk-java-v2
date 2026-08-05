@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Update AWS CRT version to 0.48.3, which adds support for asynchronously pausing a meta request and for resume tokens that describe a paused download."
+}

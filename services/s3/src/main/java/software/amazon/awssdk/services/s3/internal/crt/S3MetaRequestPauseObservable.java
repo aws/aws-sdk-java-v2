@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.s3.ResumeToken;
@@ -47,6 +48,21 @@ public class S3MetaRequestPauseObservable {
             return pause.apply(this.request);
         }
         return null;
+    }
+
+    /**
+     * Asynchronously pause the request. Unlike {@link #pause()}, this is supported for GetObject as well as PutObject, and the
+     * returned future only completes once CRT has finished any in-flight work.
+     *
+     * @return a future completed with the resume token, or completed with {@code null} if the request has not been subscribed
+     *         yet or CRT captured no resumable state.
+     */
+    public CompletableFuture<ResumeToken> pauseAsync() {
+        S3MetaRequestWrapper metaRequest = this.request;
+        if (metaRequest != null) {
+            return metaRequest.pauseAsync();
+        }
+        return CompletableFuture.completedFuture(null);
     }
 }
 
