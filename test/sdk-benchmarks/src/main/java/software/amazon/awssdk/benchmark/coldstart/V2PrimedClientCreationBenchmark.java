@@ -59,7 +59,7 @@ public class V2PrimedClientCreationBenchmark implements SdkClientCreationBenchma
 
     @Setup(Level.Trial)
     public void setup() {
-        SdkWarmUp.prime(DynamoDbClient.class);
+        SdkWarmUp.warmUp(DynamoDbClient.class);
     }
 
     @Override

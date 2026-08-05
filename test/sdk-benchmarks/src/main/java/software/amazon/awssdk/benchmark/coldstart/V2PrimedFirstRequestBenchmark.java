@@ -72,7 +72,7 @@ public class V2PrimedFirstRequestBenchmark implements FirstRequestBenchmark {
         server = new MockHttpServer(MockHttpServer.loadFixture(FIXTURE), CONTENT_TYPE);
         server.start();
 
-        SdkWarmUp.prime(DynamoDbClient.class);
+        SdkWarmUp.warmUp(DynamoDbClient.class);
 
         client = DynamoDbClient.builder()
                                .endpointOverride(server.getHttpUri())

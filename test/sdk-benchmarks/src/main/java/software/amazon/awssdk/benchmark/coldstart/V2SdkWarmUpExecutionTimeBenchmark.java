@@ -100,7 +100,7 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
 
     @Benchmark
     public void primeSingleService() throws Exception {
-        SdkWarmUp.prime(DynamoDbClient.class);
+        SdkWarmUp.warmUp(DynamoDbClient.class);
     }
 
     /** One {@code prime} call naming every discovered client, so the HTTP client warm-up runs once. */
