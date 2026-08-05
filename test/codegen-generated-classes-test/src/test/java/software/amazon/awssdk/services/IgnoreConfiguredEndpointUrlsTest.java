@@ -102,6 +102,14 @@ class IgnoreConfiguredEndpointUrlsTest {
     }
 
     @Test
+    void ignoreViaProfile_profileEndpointInSameProfileIsAlsoIgnored() {
+        ProfileFile profileFile = profileWithIgnore("true", PROFILE_ENDPOINT);
+        String resolved = resolveEndpoint(null, profileFile);
+
+        assertThat(resolved).startsWith(DEFAULT_ENDPOINT);
+    }
+
+    @Test
     void ignoreTrue_globalEnvVarIsIgnored() {
         helper.set(GLOBAL_ENV_VAR, ENV_ENDPOINT);
         System.setProperty(SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS.property(), "true");
