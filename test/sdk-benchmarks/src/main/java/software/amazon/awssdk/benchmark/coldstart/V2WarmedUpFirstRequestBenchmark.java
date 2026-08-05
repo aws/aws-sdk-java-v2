@@ -59,7 +59,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @Warmup(iterations = 0)
 @Measurement(iterations = 1)
 @Fork(20)
-public class V2PrimedFirstRequestBenchmark implements FirstRequestBenchmark {
+public class V2WarmedUpFirstRequestBenchmark implements FirstRequestBenchmark {
 
     private static final String FIXTURE = "json-protocol/putitem-response.json";
     private static final String CONTENT_TYPE = "application/x-amz-json-1.0";
@@ -103,7 +103,7 @@ public class V2PrimedFirstRequestBenchmark implements FirstRequestBenchmark {
     public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
             .parent(new CommandLineOptions())
-            .include(V2PrimedFirstRequestBenchmark.class.getSimpleName())
+            .include(V2WarmedUpFirstRequestBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();

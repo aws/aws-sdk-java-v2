@@ -55,8 +55,8 @@ import software.amazon.awssdk.benchmark.coldstart.V1ClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultFirstRequestBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
-import software.amazon.awssdk.benchmark.coldstart.V2PrimedClientCreationBenchmark;
-import software.amazon.awssdk.benchmark.coldstart.V2PrimedFirstRequestBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2WarmedUpClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2WarmedUpFirstRequestBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2SdkWarmUpExecutionTimeBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
@@ -94,9 +94,9 @@ public class BenchmarkRunner {
         V1ClientCreationBenchmark.class.getSimpleName(),
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
         V2DefaultClientCreationBenchmark.class.getSimpleName(),
-        V2PrimedClientCreationBenchmark.class.getSimpleName(),
+        V2WarmedUpClientCreationBenchmark.class.getSimpleName(),
         V2DefaultFirstRequestBenchmark.class.getSimpleName(),
-        V2PrimedFirstRequestBenchmark.class.getSimpleName(),
+        V2WarmedUpFirstRequestBenchmark.class.getSimpleName(),
         V2SdkWarmUpExecutionTimeBenchmark.class.getSimpleName());
 
     private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(

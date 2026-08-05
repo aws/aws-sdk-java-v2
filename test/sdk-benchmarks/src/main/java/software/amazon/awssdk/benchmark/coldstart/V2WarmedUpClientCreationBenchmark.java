@@ -53,7 +53,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @Warmup(iterations = 3)
 @Measurement(iterations = 5)
 @Fork(3)
-public class V2PrimedClientCreationBenchmark implements SdkClientCreationBenchmark {
+public class V2WarmedUpClientCreationBenchmark implements SdkClientCreationBenchmark {
 
     private DynamoDbClient client;
 
@@ -81,7 +81,7 @@ public class V2PrimedClientCreationBenchmark implements SdkClientCreationBenchma
     public static void main(String... args) throws RunnerException, CommandLineOptionException {
         Options opt = new OptionsBuilder()
             .parent(new CommandLineOptions())
-            .include(V2PrimedClientCreationBenchmark.class.getSimpleName())
+            .include(V2WarmedUpClientCreationBenchmark.class.getSimpleName())
             .addProfiler(StackProfiler.class)
             .build();
         Collection<RunResult> run = new Runner(opt).run();
