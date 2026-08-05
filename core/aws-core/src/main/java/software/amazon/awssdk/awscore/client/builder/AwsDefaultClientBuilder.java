@@ -428,7 +428,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                    .profileFile(profileFile)
                                                    .profileName(profileName)
                                                    .build()
-                                                   .ignoreConfiguredEndpointUrls() ? true : null;
+                                                   .ignoreConfiguredEndpointUrls()
+                                                   .orElse(null);
     }
 
     /**

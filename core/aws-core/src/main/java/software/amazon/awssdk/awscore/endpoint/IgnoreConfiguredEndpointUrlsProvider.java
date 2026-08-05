@@ -48,18 +48,17 @@ public class IgnoreConfiguredEndpointUrlsProvider {
     /**
      * Returns {@code true} when configured endpoint URLs should be ignored, {@code false} otherwise.
      * Resolution order: system property, then environment variable, then profile file. If none are set, returns
-     * {@code false}.
+     * empty.
      */
-    public boolean ignoreConfiguredEndpointUrls() {
+    public Optional<Boolean> ignoreConfiguredEndpointUrls() {
         Optional<Boolean> setting = SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS.getBooleanValue();
         if (setting.isPresent()) {
-            return setting.get();
+            return setting;
         }
 
         return profileFile.get()
                           .profile(profileName())
-                          .flatMap(p -> p.booleanProperty(ProfileProperty.IGNORE_CONFIGURED_ENDPOINT_URLS))
-                          .orElse(false);
+                          .flatMap(p -> p.booleanProperty(ProfileProperty.IGNORE_CONFIGURED_ENDPOINT_URLS));
     }
 
     private String profileName() {
