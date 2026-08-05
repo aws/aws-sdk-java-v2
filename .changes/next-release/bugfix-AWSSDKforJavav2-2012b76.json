@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Eliminate per-operation metric-publishing lambdas in generated clients by hoisting them into shared helper methods, reducing constant pool usage and class size for large service clients approaching the JVM per-class constant pool limit."
-}

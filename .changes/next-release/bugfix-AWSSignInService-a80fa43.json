@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS Sign-In Service",
-    "contributor": "",
-    "description": "Fixed an issue where credentials loaded from a login_session profile resolved the Signin client's configuration, such as region and endpoint_url, from the default profile instead of the profile that requested the credentials."
-}
