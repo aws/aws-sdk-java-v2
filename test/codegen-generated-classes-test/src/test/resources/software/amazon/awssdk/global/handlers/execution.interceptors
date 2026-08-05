@@ -1,1 +1,1 @@
-software.amazon.awssdk.crac.OperationRecordingInterceptor
+software.amazon.awssdk.warmup.OperationRecordingInterceptor

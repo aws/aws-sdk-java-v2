@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.warmup;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 
 /**
  * Test-only {@link SdkWarmUpProvider} for {@link SdkWarmUpPrimeIdempotenceTest}. Matches {@link IdempotenceSyncClient}

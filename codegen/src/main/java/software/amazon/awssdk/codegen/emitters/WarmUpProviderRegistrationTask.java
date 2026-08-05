@@ -26,7 +26,7 @@ import java.util.List;
 
 /**
  * Appends a generated {@code SdkWarmUpProvider} implementation's fully-qualified class name to the shared
- * {@code META-INF/services/software.amazon.awssdk.core.crac.SdkWarmUpProvider} resource file.
+ * {@code META-INF/services/software.amazon.awssdk.core.warmup.SdkWarmUpProvider} resource file.
  *
  * <p>This task writes a plain resource file rather than a {@code .java} file, so it does not use
  * {@link SimpleGeneratorTask}. It creates the file once and appends to it for each subsequent service, and
@@ -35,7 +35,7 @@ import java.util.List;
 public final class WarmUpProviderRegistrationTask extends GeneratorTask {
 
     private static final String SPI_RESOURCE_PATH =
-        "META-INF/services/software.amazon.awssdk.core.crac.SdkWarmUpProvider";
+        "META-INF/services/software.amazon.awssdk.core.warmup.SdkWarmUpProvider";
 
     private final String resourcesDirectory;
     private final String providerClassName;

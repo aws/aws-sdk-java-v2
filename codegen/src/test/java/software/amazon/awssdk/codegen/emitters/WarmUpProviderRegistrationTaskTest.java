@@ -26,12 +26,12 @@ import java.nio.file.Path;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
-import software.amazon.awssdk.codegen.poet.crac.WarmUpProviderSpec;
+import software.amazon.awssdk.codegen.poet.warmup.WarmUpProviderSpec;
 
 public class WarmUpProviderRegistrationTaskTest {
 
     private static final String SPI_PATH =
-        "META-INF/services/software.amazon.awssdk.core.crac.SdkWarmUpProvider";
+        "META-INF/services/software.amazon.awssdk.core.warmup.SdkWarmUpProvider";
 
     private static final String QUERY_PROVIDER = new WarmUpProviderSpec(queryServiceModels()).className().toString();
     private static final String XML_PROVIDER = new WarmUpProviderSpec(xmlServiceModels()).className().toString();

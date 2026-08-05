@@ -41,14 +41,14 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.benchmark.utils.MockHttpServer;
-import software.amazon.awssdk.core.crac.SdkWarmUp;
+import software.amazon.awssdk.core.warmup.SdkWarmUp;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
  * Same measured work as {@link V2DefaultFirstRequestBenchmark} (the first {@code putItem} on an already-built client),
- * but {@link SdkWarmUp#prime(Class[])} runs in the untimed {@code @Setup}. The score difference between the two is the
+ * but {@link SdkWarmUp#warmUp(Class[])} runs in the untimed {@code @Setup}. The score difference between the two is the
  * first-call work that warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long prime() itself
  * takes. Single-shot, zero warmup, high fork count: only the first invocation per JVM is cold. Do not override these
  * JMH parameters from the CLI, or the two variants converge.

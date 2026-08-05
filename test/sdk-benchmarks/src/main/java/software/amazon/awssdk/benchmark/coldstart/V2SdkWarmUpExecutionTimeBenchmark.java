@@ -40,12 +40,12 @@ import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.crac.SdkWarmUp;
-import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
+import software.amazon.awssdk.core.warmup.SdkWarmUp;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Measures how long {@link SdkWarmUp#prime} takes. The batched, sequential and no-arg methods cover the same scope
+ * Measures how long {@link SdkWarmUp#warmUp} takes. The batched, sequential and no-arg methods cover the same scope
  * (every discovered {@link SdkWarmUpProvider}, sync and async), so their scores are directly comparable.
  *
  * <p>Scores include a real STS network call per HTTP client, so they vary by host: do not add them to
@@ -106,21 +106,21 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
     /** One {@code prime} call naming every discovered client, so the HTTP client warm-up runs once. */
     @Benchmark
     public void primeAllServicesBatched() throws Exception {
-        SdkWarmUp.prime(allClientClasses);
+        SdkWarmUp.warmUp(allClientClasses);
     }
 
     /** One {@code prime} call per discovered service, so the HTTP client warm-up runs once per service. */
     @Benchmark
     public void primeAllServicesSequentially() throws Exception {
         for (Class<? extends SdkClient>[] perService : clientClassesByService) {
-            SdkWarmUp.prime(perService);
+            SdkWarmUp.warmUp(perService);
         }
     }
 
     /** The no-arg overload: same scope as the two methods above, reached through discovery inside {@code prime}. */
     @Benchmark
     public void primeAllRegisteredProviders() throws Exception {
-        SdkWarmUp.prime();
+        SdkWarmUp.warmUp();
     }
 
     public static void main(String... args) throws RunnerException, CommandLineOptionException {

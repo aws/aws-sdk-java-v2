@@ -109,6 +109,6 @@ public class GeneratorPathProvider {
     }
 
     public String getWarmUpProviderDirectory() {
-        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullCracInternalPackageName());
+        return sourceDirectory + "/" + Utils.packageToDirectory(model.getMetadata().getFullWarmUpInternalPackageName());
     }
 }

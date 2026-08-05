@@ -35,14 +35,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.crac.SdkWarmUp;
-import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
+import software.amazon.awssdk.core.warmup.SdkWarmUp;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.ClassLoaderHelper;
 
 /**
- * Warms every service on the classpath through the public API: {@link SdkWarmUp#prime(Class[])} per generated
- * client, and {@link SdkWarmUp#prime()} for all of them at once.
+ * Warms every service on the classpath through the public API: {@link SdkWarmUp#warmUp(Class[])} per generated
+ * client, and {@link SdkWarmUp#warmUp()} for all of them at once.
  */
 class AllServicesWarmUpTest {
 
@@ -93,7 +93,7 @@ class AllServicesWarmUpTest {
         String savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "us-east-1");
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
-            SdkWarmUp.prime();
+            SdkWarmUp.warmUp();
 
             assertThat(serviceWarmUpFailures(logCaptor))
                 .as("SdkWarmUp.prime() must not log a warm-up failure for any generated service provider")
@@ -117,7 +117,7 @@ class AllServicesWarmUpTest {
 
         List<String> sdkWarnings;
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
-            SdkWarmUp.prime(clientClass(clientClassName));
+            SdkWarmUp.warmUp(clientClass(clientClassName));
             sdkWarnings = sdkWarnings(logCaptor);
         }
 

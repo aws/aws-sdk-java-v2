@@ -21,7 +21,7 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.emitters.WarmUpProviderRegistrationTask;
-import software.amazon.awssdk.codegen.poet.crac.WarmUpProviderSpec;
+import software.amazon.awssdk.codegen.poet.warmup.WarmUpProviderSpec;
 
 /**
  * Emits the per-service {@code SdkWarmUpProvider} implementation and its {@code META-INF/services} registration.

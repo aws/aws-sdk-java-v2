@@ -38,12 +38,12 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.core.crac.SdkWarmUp;
+import software.amazon.awssdk.core.warmup.SdkWarmUp;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
- * Client-creation counterpart to {@link V2DefaultClientCreationBenchmark}, with {@link SdkWarmUp#prime(Class[])} run once
+ * Client-creation counterpart to {@link V2DefaultClientCreationBenchmark}, with {@link SdkWarmUp#warmUp(Class[])} run once
  * in {@code @Setup} (untimed). The measured work is the same client build; comparing the two scores shows how much of
  * client construction the warm-up front-loads.
  */
