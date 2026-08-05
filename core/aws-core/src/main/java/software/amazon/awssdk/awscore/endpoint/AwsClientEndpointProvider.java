@@ -115,6 +115,11 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
     }
 
     private Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
+        if (Boolean.TRUE.equals(builder.ignoreConfiguredEndpointUrls)) {
+            log.trace(() -> "Configured endpoint URLs are being ignored because ignore_configured_endpoint_urls is true.");
+            return Optional.empty();
+        }
+
         if (builder.serviceEndpointOverrideEnvironmentVariable == null ||
             builder.serviceEndpointOverrideSystemProperty == null ||
             builder.serviceProfileProperty == null) {
@@ -311,6 +316,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         private String serviceEndpointOverrideEnvironmentVariable;
         private String serviceEndpointOverrideSystemProperty;
         private String serviceProfileProperty;
+        private Boolean ignoreConfiguredEndpointUrls;
 
         private Builder() {
         }
@@ -328,6 +334,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
             this.serviceEndpointOverrideEnvironmentVariable = src.serviceEndpointOverrideEnvironmentVariable;
             this.serviceEndpointOverrideSystemProperty = src.serviceEndpointOverrideSystemProperty;
             this.serviceProfileProperty = src.serviceProfileProperty;
+            this.ignoreConfiguredEndpointUrls = src.ignoreConfiguredEndpointUrls;
         }
 
         /**
@@ -476,6 +483,19 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
          */
         public <T> Builder putAdvancedOption(ServiceMetadataAdvancedOption<T> option, T value) {
             this.advancedOptions.put(option, value);
+            return this;
+        }
+
+        /**
+         * Configure whether configured endpoint URLs from environment variables, system properties, and the shared
+         * configuration file should be ignored.
+         *
+         * <p>When set to {@code true}, this provider will skip all environment and profile based endpoint URL
+         * resolution and fall through to the {@link ServiceMetadata} default. This does not affect endpoint URLs
+         * set via {@link software.amazon.awssdk.core.client.builder.SdkClientBuilder#endpointOverride(URI)}.
+         */
+        public Builder ignoreConfiguredEndpointUrls(Boolean ignoreConfiguredEndpointUrls) {
+            this.ignoreConfiguredEndpointUrls = ignoreConfiguredEndpointUrls;
             return this;
         }
 

@@ -148,4 +148,24 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
      * <p>If the setting is not found in any of the locations above, 'false' will be used.
      */
     BuilderT fipsEnabled(Boolean fipsEndpointEnabled);
+
+    /**
+     * Configure whether the SDK should ignore endpoint URLs loaded from environment variables, system properties,
+     * and the shared configuration file.
+     *
+     * <p>When set to {@code true}, endpoint URLs from all external configuration sources are ignored. Endpoint URLs
+     * set programmatically via {@link #endpointOverride(java.net.URI)} are not affected.
+     *
+     * <p>If this is not specified, the SDK will attempt to determine the setting automatically using the following
+     * logic:
+     * <ol>
+     *     <li>Check the 'aws.ignoreConfiguredEndpointUrls' system property for 'true' or 'false'.</li>
+     *     <li>Check the 'AWS_IGNORE_CONFIGURED_ENDPOINT_URLS' environment variable for 'true' or 'false'.</li>
+     *     <li>Check the {user.home}/.aws/credentials and {user.home}/.aws/config files for the
+     *     'ignore_configured_endpoint_urls' property set to 'true' or 'false'.</li>
+     * </ol>
+     *
+     * <p>If the setting is not found in any of the locations above, 'false' will be used.
+     */
+    BuilderT ignoreConfiguredEndpointUrls(Boolean ignoreConfiguredEndpointUrls);
 }
