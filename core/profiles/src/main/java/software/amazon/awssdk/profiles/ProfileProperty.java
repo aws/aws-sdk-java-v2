@@ -161,10 +161,6 @@ public final class ProfileProperty {
 
     public static final String USE_FIPS_ENDPOINT = "use_fips_endpoint";
 
-    /**
-     * When set to {@code true}, the SDK will not read endpoint URLs from environment variables or the shared
-     * configuration file. Endpoint URLs set programmatically via the client builder are not affected.
-     */
     public static final String IGNORE_CONFIGURED_ENDPOINT_URLS = "ignore_configured_endpoint_urls";
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT_MODE = "ec2_metadata_service_endpoint_mode";

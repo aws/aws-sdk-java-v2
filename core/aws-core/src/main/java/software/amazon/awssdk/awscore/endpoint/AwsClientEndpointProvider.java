@@ -487,12 +487,12 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         }
 
         /**
-         * Configure whether configured endpoint URLs from environment variables, system properties, and the shared
-         * configuration file should be ignored.
-         *
-         * <p>When set to {@code true}, this provider will skip all environment and profile based endpoint URL
-         * resolution and fall through to the {@link ServiceMetadata} default. This does not affect endpoint URLs
-         * set via {@link software.amazon.awssdk.core.client.builder.SdkClientBuilder#endpointOverride(URI)}.
+         * Whether configured endpoint URLs should be ignored.
+         * <p>
+         * When {@code true}, endpoint URL resolution from environment variables, system properties, and the shared
+         * configuration file is skipped.
+         * <p>
+         * If this value is not set, the {@link IgnoreConfiguredEndpointUrlsProvider} will be used.
          */
         public Builder ignoreConfiguredEndpointUrls(Boolean ignoreConfiguredEndpointUrls) {
             this.ignoreConfiguredEndpointUrls = ignoreConfiguredEndpointUrls;

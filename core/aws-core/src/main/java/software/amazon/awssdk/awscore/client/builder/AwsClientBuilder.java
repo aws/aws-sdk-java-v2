@@ -150,11 +150,8 @@ public interface AwsClientBuilder<BuilderT extends AwsClientBuilder<BuilderT, Cl
     BuilderT fipsEnabled(Boolean fipsEndpointEnabled);
 
     /**
-     * Configure whether the SDK should ignore endpoint URLs loaded from environment variables, system properties,
-     * and the shared configuration file.
-     *
-     * <p>When set to {@code true}, endpoint URLs from all external configuration sources are ignored. Endpoint URLs
-     * set programmatically via {@link #endpointOverride(java.net.URI)} are not affected.
+     * Configure whether the SDK should ignore endpoint URLs from environment variables, system properties, and the
+     * shared configuration file. Endpoint URLs set via {@link #endpointOverride(java.net.URI)} are not affected.
      *
      * <p>If this is not specified, the SDK will attempt to determine the setting automatically using the following
      * logic:

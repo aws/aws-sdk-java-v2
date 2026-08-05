@@ -199,7 +199,8 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
                 .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
                                    c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
                 .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).ignoreConfiguredEndpointUrls(c.get(AwsClientOption.IGNORE_CONFIGURED_ENDPOINT_URLS)).build());
+                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
+                .ignoreConfiguredEndpointUrls(c.get(AwsClientOption.IGNORE_CONFIGURED_ENDPOINT_URLS)).build());
         builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         SdkClientConfiguration clientConfig = config;
         builder.lazyOption(SdkClientOption.REQUEST_CHECKSUM_CALCULATION, c -> resolveRequestChecksumCalculation(clientConfig));
