@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sts.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -27,7 +28,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
 import software.amazon.awssdk.services.sts.model.Credentials;
@@ -66,15 +71,14 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
         callClient(verify(stsClient, times(1)), Mockito.any());
     }
 
+    /**
+     * A 90 second session is shorter than the 5 minute advisory refresh window it selects, so it is inside that window as
+     * soon as STS returns it and the next call refreshes. STS enforces a 15 minute minimum session duration, so this only
+     * happens with a mock or a badly skewed host clock.
+     */
     @Test
-    public void distantExpiringCredentialsUpdatedInBackground() throws InterruptedException {
+    public void expiringCredentialsAreRefreshedOnTheFollowingCall() {
         callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2, false);
-
-        Instant endCheckTime = Instant.now().plus(Duration.ofSeconds(5));
-        while (Mockito.mockingDetails(stsClient).getInvocations().size() < 2 && endCheckTime.isAfter(Instant.now())) {
-            Thread.sleep(100);
-        }
-
         callClient(verify(stsClient, times(2)), Mockito.any());
     }
 
@@ -101,6 +105,139 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
 
     protected abstract String providerName();
 
+    @Test
+    public void refreshFailureReturnsCachedCredentials_staticStability() {
+        // First call returns valid credentials that are already expired (to force a refresh on next call)
+        Credentials validCredentials = Credentials.builder()
+                                                  .accessKeyId("a")
+                                                  .secretAccessKey("b")
+                                                  .sessionToken("c")
+                                                  .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                  .build();
+        RequestT request = getRequest();
+        ResponseT response = getResponse(validCredentials);
+
+        // First call succeeds, second call fails
+        when(callClient(stsClient, request))
+            .thenReturn(response)
+            .thenThrow(SdkClientException.create("STS service unavailable"));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // First call should succeed and cache credentials
+            AwsCredentials firstResult = credentialsProvider.resolveCredentials();
+            assertThat(firstResult).isInstanceOf(AwsSessionCredentials.class);
+            assertThat(((AwsSessionCredentials) firstResult).accessKeyId()).isEqualTo("a");
+
+            // Second call should return cached credentials instead of throwing
+            // because StaleValueBehavior.ALLOW is now set
+            AwsCredentials secondResult = credentialsProvider.resolveCredentials();
+            assertThat(secondResult).isInstanceOf(AwsSessionCredentials.class);
+            assertThat(((AwsSessionCredentials) secondResult).accessKeyId()).isEqualTo("a");
+            assertThat(((AwsSessionCredentials) secondResult).secretAccessKey()).isEqualTo("b");
+            assertThat(((AwsSessionCredentials) secondResult).sessionToken()).isEqualTo("c");
+        }
+    }
+
+    @Test
+    public void initialFetchFailureThrowsException_noCachedCredentials() {
+        RequestT request = getRequest();
+
+        // The very first call to STS fails — no credentials have ever been cached
+        when(callClient(stsClient, request))
+            .thenThrow(SdkClientException.create("STS service unavailable"));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // Should throw because there are no cached credentials to fall back on
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(SdkClientException.class)
+                .hasMessageContaining("STS service unavailable");
+        }
+    }
+
+    /**
+     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
+     * configured window covers the credential's entire lifetime, so the advisory window opens the moment the credentials are
+     * issued and the very next call must contact STS. A jittered window would instead open at a random point up to a minute
+     * before the mandatory refresh window, and the second call would be served from the cache.
+     */
+    @Test
+    public void resolveCredentials_advisoryWindowIsNotJittered() {
+        Duration lifetime = Duration.ofMinutes(10);
+        Credentials credentials = Credentials.builder()
+                                             .accessKeyId("a").secretAccessKey("b").sessionToken("c")
+                                             .expiration(Instant.now().plus(lifetime))
+                                             .build();
+        RequestT request = getRequest();
+        when(callClient(stsClient, request)).thenReturn(getResponse(credentials));
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+        credentialsProviderBuilder.prefetchTime(lifetime);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            credentialsProvider.resolveCredentials();
+            callClient(verify(stsClient, times(1)), Mockito.any());
+
+            credentialsProvider.resolveCredentials();
+            callClient(verify(stsClient, times(2)), Mockito.any());
+        }
+    }
+
+    @Test
+    public void invalidate_matchingAccessKeyId_causesRefresh() {
+        Credentials credentials = Credentials.builder()
+                                             .accessKeyId("a").secretAccessKey("b").sessionToken("c")
+                                             .expiration(Instant.now().plus(Duration.ofHours(5)))
+                                             .build();
+        Credentials credentials2 = Credentials.builder()
+                                              .accessKeyId("x").secretAccessKey("y").sessionToken("z")
+                                              .expiration(Instant.now().plus(Duration.ofHours(5)))
+                                              .build();
+        RequestT request = getRequest();
+        when(callClient(stsClient, request))
+            .thenReturn(getResponse(credentials))
+            .thenReturn(getResponse(credentials2));
+
+        try (StsCredentialsProvider credentialsProvider = createCredentialsProviderBuilder(request).stsClient(stsClient).build()) {
+            AwsCredentials first = credentialsProvider.resolveCredentials();
+            assertThat(first.accessKeyId()).isEqualTo("a");
+
+            AwsCredentialsIdentity identity = AwsBasicCredentials.create("a", "b");
+            credentialsProvider.invalidate(identity).join();
+
+            AwsCredentials second = credentialsProvider.resolveCredentials();
+            assertThat(second.accessKeyId()).isEqualTo("x");
+        }
+    }
+
+    @Test
+    public void invalidate_nonMatchingAccessKeyId_doesNotCauseRefresh() {
+        Credentials credentials = Credentials.builder()
+                                             .accessKeyId("a").secretAccessKey("b").sessionToken("c")
+                                             .expiration(Instant.now().plus(Duration.ofHours(5)))
+                                             .build();
+        RequestT request = getRequest();
+        when(callClient(stsClient, request)).thenReturn(getResponse(credentials));
+
+        try (StsCredentialsProvider credentialsProvider = createCredentialsProviderBuilder(request).stsClient(stsClient).build()) {
+            AwsCredentials first = credentialsProvider.resolveCredentials();
+            assertThat(first.accessKeyId()).isEqualTo("a");
+
+            AwsCredentialsIdentity identity = AwsBasicCredentials.create("different", "b");
+            credentialsProvider.invalidate(identity).join();
+
+            AwsCredentials second = credentialsProvider.resolveCredentials();
+            assertThat(second.accessKeyId()).isEqualTo("a");
+            callClient(verify(stsClient, times(1)), Mockito.any());
+        }
+    }
+
     public void callClientWithCredentialsProvider(Instant credentialsExpirationDate, int numTimesInvokeCredentialsProvider, boolean overrideStaleAndPrefetchTimes) {
         Credentials credentials = Credentials.builder().accessKeyId("a").secretAccessKey("b").sessionToken("c").expiration(credentialsExpirationDate).build();
         RequestT request = getRequest();
@@ -123,7 +260,7 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
             } else {
                 //validate that the default values are used
                 assertThat(credentialsProvider.staleTime()).as("stale time").isEqualTo(Duration.ofMinutes(1));
-                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(5));
+                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isNull();
             }
 
             for (int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {

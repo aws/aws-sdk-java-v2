@@ -157,4 +157,22 @@ public interface IdentityProvider<IdentityT extends Identity> {
     default CompletableFuture<? extends IdentityT> resolveIdentity() {
         return resolveIdentity(ResolveIdentityRequest.builder().build());
     }
+
+    /**
+     * Invalidate cached credentials associated with the given rejected identity.
+     *
+     * <p>When a target service rejects credentials with an authentication error,
+     * the SDK calls this method so the provider can mark its cache for refresh.
+     * The next call to {@link #resolveIdentity} will attempt to fetch fresh credentials.
+     *
+     * <p>Implementations MUST only invalidate if the currently-cached identity matches
+     * the rejected identity (e.g., same access key ID).
+     *
+     * <p>The default implementation is a no-op, suitable for providers that do not cache.
+     *
+     * @param identity The identity that was rejected by the service.
+     */
+    default CompletableFuture<Void> invalidate(IdentityT identity) {
+        return CompletableFuture.completedFuture(null);
+    }
 }

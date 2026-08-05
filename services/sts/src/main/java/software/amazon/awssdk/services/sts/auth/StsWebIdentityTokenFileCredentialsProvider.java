@@ -23,6 +23,7 @@ import static software.amazon.awssdk.utils.Validate.notNull;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -32,6 +33,7 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.internal.AssumeRoleWithWebIdentityRequestSupplier;
 import software.amazon.awssdk.services.sts.model.AssumeRoleWithWebIdentityRequest;
@@ -153,6 +155,14 @@ public final class StsWebIdentityTokenFileCredentialsProvider
             return sessionCredentials.copy(s -> s.providerName(PROVIDER_NAME));
         }
         return awsCredentials;
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (credentialsProvider != null) {
+            return credentialsProvider.invalidate(identity);
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sso.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -26,12 +27,16 @@ import java.time.Instant;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsResponse;
 import software.amazon.awssdk.services.sso.model.RoleCredentials;
+import software.amazon.awssdk.services.sso.model.UnauthorizedException;
 
 /**
  * Validates the functionality of {@link SsoCredentialsProvider}.
@@ -64,15 +69,13 @@ public class SsoCredentialsProviderTest {
         callClient(verify(ssoClient, times(1)), Mockito.any());
     }
 
+    /**
+     * A 90 second session is shorter than the 5 minute advisory refresh window it selects, so it is inside that window as
+     * soon as SSO returns it and the next call refreshes.
+     */
     @Test
-    public void distantExpiringCredentialsUpdatedInBackground() throws InterruptedException {
+    public void expiringCredentialsAreRefreshedOnTheFollowingCall() {
         callClientWithCredentialsProvider(Instant.now().plusSeconds(90), 2, false);
-
-        Instant endCheckTime = Instant.now().plus(Duration.ofSeconds(5));
-        while (Mockito.mockingDetails(ssoClient).getInvocations().size() < 2 && endCheckTime.isAfter(Instant.now())) {
-            Thread.sleep(100);
-        }
-
         callClient(verify(ssoClient, times(2)), Mockito.any());
     }
 
@@ -86,6 +89,221 @@ public class SsoCredentialsProviderTest {
         }
 
         callClient(verify(ssoClient, times(2)), Mockito.any());
+    }
+
+    /**
+     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
+     * configured window covers the credential's entire lifetime, so the advisory window opens the moment the credentials are
+     * issued and the very next call must contact SSO. A jittered window would instead open at a random point up to a minute
+     * before the mandatory refresh window, and the second call would be served from the cache.
+     */
+    @Test
+    public void resolveCredentials_advisoryWindowIsNotJittered() {
+        ssoClient = mock(SsoClient.class);
+        Duration lifetime = Duration.ofMinutes(10);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().plus(lifetime).toEpochMilli())
+                                                     .build();
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        when(ssoClient.getRoleCredentials(supplier.get())).thenReturn(getResponse(credentials));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .prefetchTime(lifetime)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            credentialsProvider.resolveCredentials();
+            callClient(verify(ssoClient, times(1)), Mockito.any());
+
+            credentialsProvider.resolveCredentials();
+            callClient(verify(ssoClient, times(2)), Mockito.any());
+        }
+    }
+
+    @Test
+    public void refreshFailureReturnsCachedCredentials_staticStability() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().minus(Duration.ofSeconds(5)).toEpochMilli())
+                                                     .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        GetRoleCredentialsResponse response = getResponse(credentials);
+
+        // First call succeeds, second call fails with transient error
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenReturn(response)
+            .thenThrow(SdkClientException.create("SSO service unavailable"));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // First call succeeds and caches credentials
+            AwsSessionCredentials firstResult = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(firstResult.accessKeyId()).isEqualTo("a");
+
+            // Second call should return cached credentials because ALLOW is set
+            AwsSessionCredentials secondResult = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(secondResult.accessKeyId()).isEqualTo("a");
+            assertThat(secondResult.secretAccessKey()).isEqualTo("b");
+            assertThat(secondResult.sessionToken()).isEqualTo("c");
+        }
+    }
+
+    @Test
+    public void unauthorizedException_bypassesStaticStability() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().minus(Duration.ofSeconds(5)).toEpochMilli())
+                                                     .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        GetRoleCredentialsResponse response = getResponse(credentials);
+
+        UnauthorizedException unauthorizedException = (UnauthorizedException) UnauthorizedException.builder()
+            .message("Token is expired")
+            .build();
+
+        // First call succeeds, second call fails with UnauthorizedException
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenReturn(response)
+            .thenThrow(unauthorizedException);
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // First call succeeds and caches credentials
+            AwsSessionCredentials firstResult = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(firstResult.accessKeyId()).isEqualTo("a");
+
+            // Second call should throw UnauthorizedException directly (bypasses static stability)
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(UnauthorizedException.class)
+                .hasMessageContaining("Token is expired");
+        }
+    }
+
+    @Test
+    public void expiredTokenException_bypassesStaticStability() {
+        ssoClient = mock(SsoClient.class);
+
+        ExpiredTokenException expiredTokenException = (ExpiredTokenException) ExpiredTokenException.builder()
+            .message("The SSO session associated with this profile has expired")
+            .build();
+
+        // Request supplier throws ExpiredTokenException (client-side token expiry)
+        Supplier<GetRoleCredentialsRequest> expiredSupplier = () -> {
+            throw expiredTokenException;
+        };
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(expiredSupplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // Should throw ExpiredTokenException directly (bypasses static stability)
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(ExpiredTokenException.class)
+                .hasMessageContaining("The SSO session associated with this profile has expired");
+        }
+    }
+
+    @Test
+    public void noCachedCredentials_anyFailure_throwsImmediately() {
+        ssoClient = mock(SsoClient.class);
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+
+        // First call fails with a transient error — no cached credentials exist
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenThrow(SdkClientException.create("SSO service unavailable"));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // Should throw immediately since no cached credentials exist
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(SdkClientException.class)
+                .hasMessageContaining("SSO service unavailable");
+        }
+    }
+
+
+
+    @Test
+    public void invalidate_matchingAccessKeyId_causesRefresh() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().plus(Duration.ofHours(5)).toEpochMilli())
+                                                     .build();
+        RoleCredentials credentials2 = RoleCredentials.builder()
+                                                      .accessKeyId("x")
+                                                      .secretAccessKey("y")
+                                                      .sessionToken("z")
+                                                      .expiration(Instant.now().plus(Duration.ofHours(5)).toEpochMilli())
+                                                      .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenReturn(getResponse(credentials))
+            .thenReturn(getResponse(credentials2));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            AwsSessionCredentials first = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(first.accessKeyId()).isEqualTo("a");
+
+            AwsCredentialsIdentity identity = AwsBasicCredentials.create("a", "b");
+            credentialsProvider.invalidate(identity).join();
+
+            AwsSessionCredentials second = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(second.accessKeyId()).isEqualTo("x");
+        }
+    }
+
+    @Test
+    public void invalidate_nonMatchingAccessKeyId_doesNotCauseRefresh() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().plus(Duration.ofHours(5)).toEpochMilli())
+                                                     .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        when(ssoClient.getRoleCredentials(supplier.get())).thenReturn(getResponse(credentials));
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            AwsSessionCredentials first = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(first.accessKeyId()).isEqualTo("a");
+
+            AwsCredentialsIdentity identity = AwsBasicCredentials.create("different-key", "b");
+            credentialsProvider.invalidate(identity).join();
+
+            AwsSessionCredentials second = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+            assertThat(second.accessKeyId()).isEqualTo("a");
+            callClient(verify(ssoClient, times(1)), Mockito.any());
+        }
     }
 
 
@@ -129,7 +347,7 @@ public class SsoCredentialsProviderTest {
                 assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(4));
             } else {
                 assertThat(credentialsProvider.staleTime()).as("stale time").isEqualTo(Duration.ofMinutes(1));
-                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isEqualTo(Duration.ofMinutes(5));
+                assertThat(credentialsProvider.prefetchTime()).as("prefetch time").isNull();
             }
 
             for (int i = 0; i < numTimesInvokeCredentialsProvider; ++i) {
