@@ -44,9 +44,10 @@ class IgnoreConfiguredEndpointUrlsProviderTest {
         System.clearProperty(SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS.property());
     }
 
-    @ParameterizedTest(name = "{index} - EXPECTED:{3} (sys:{0}, env:{1}, profile:{2})")
+    @ParameterizedTest(name = "{index} - {0}")
     @MethodSource("testCases")
-    void resolvesCorrectly(String systemProperty, String envVar, String profileValue, boolean expected) {
+    void resolvesCorrectly(String description, String systemProperty, String envVar, String profileValue,
+                           boolean expected) {
         if (systemProperty != null) {
             System.setProperty(SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS.property(), systemProperty);
         }
@@ -67,37 +68,22 @@ class IgnoreConfiguredEndpointUrlsProviderTest {
 
     private static Stream<Arguments> testCases() {
         return Stream.of(
-            // Nothing set: defaults to false
-            Arguments.of(null, null, null, false),
-
-            // System property alone
-            Arguments.of("true", null, null, true),
-            Arguments.of("false", null, null, false),
-            Arguments.of("True", null, null, true),
-            Arguments.of("TRUE", null, null, true),
-
-            // Environment variable alone
-            Arguments.of(null, "true", null, true),
-            Arguments.of(null, "false", null, false),
-
-            // Profile alone
-            Arguments.of(null, null, "true", true),
-            Arguments.of(null, null, "false", false),
-
-            // System property wins over env var
-            Arguments.of("true", "false", null, true),
-            Arguments.of("false", "true", null, false),
-
-            // System property wins over profile
-            Arguments.of("true", null, "false", true),
-
-            // Env var wins over profile
-            Arguments.of(null, "true", "false", true),
-            Arguments.of(null, "false", "true", false),
-
-            // System property wins over both
-            Arguments.of("true", "false", "false", true),
-            Arguments.of("false", "true", "true", false)
+            Arguments.of("nothing set defaults to false", null, null, null, false),
+            Arguments.of("system property true", "true", null, null, true),
+            Arguments.of("system property false", "false", null, null, false),
+            Arguments.of("system property case insensitive True", "True", null, null, true),
+            Arguments.of("system property case insensitive TRUE", "TRUE", null, null, true),
+            Arguments.of("env var true", null, "true", null, true),
+            Arguments.of("env var false", null, "false", null, false),
+            Arguments.of("profile true", null, null, "true", true),
+            Arguments.of("profile false", null, null, "false", false),
+            Arguments.of("system property wins over env var", "true", "false", null, true),
+            Arguments.of("system property false wins over env var true", "false", "true", null, false),
+            Arguments.of("system property wins over profile", "true", null, "false", true),
+            Arguments.of("env var wins over profile", null, "true", "false", true),
+            Arguments.of("env var false wins over profile true", null, "false", "true", false),
+            Arguments.of("system property wins over both", "true", "false", "false", true),
+            Arguments.of("system property false wins over both", "false", "true", "true", false)
         );
     }
 
