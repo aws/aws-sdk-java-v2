@@ -18,8 +18,8 @@ package software.amazon.awssdk.core.internal.warmup;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 
 /**
  * Thin layer over {@link ServiceLoader} for {@link SdkWarmUpProvider}.
