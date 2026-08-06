@@ -16,6 +16,8 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.awsQueryCompatibleJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.batchManagerModels;
@@ -32,10 +34,14 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.rpcv2ServiceM
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.xmlServiceModels;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
+import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.TypeSpec;
+import java.io.IOException;
 import org.junit.Test;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
+import software.amazon.awssdk.codegen.poet.PoetUtils;
 
 public class AsyncClientClassTest {
     @Test
@@ -122,7 +128,67 @@ public class AsyncClientClassTest {
         assertThat(asyncClientClass, generatesTo("test-custom-context-params-async-client-class.java"));
     }
 
+    @Test
+    public void asyncClientEndpointDiscovery_whenRequiredEndpointDiscoveryAllowsEndpointOverride_generatesFallbackAndWarning()
+        throws IOException {
+        IntermediateModel model = endpointDiscoveryModels();
+        model.getCustomizationConfig().setAllowEndpointOverrideForEndpointDiscoveryRequiredOperations(true);
+
+        String generatedClient = generateClass(createAsyncClientClass(model));
+
+        String requiredOperationOverrideFallback =
+            "if (endpointOverridden) {\n"
+            + "        endpointDiscoveryEnabled = false;\n"
+            + "      } else if (!endpointDiscoveryEnabled) {\n"
+            + "        throw new IllegalStateException(\"This operation requires endpoint discovery to be enabled, or for "
+            + "you to specify an endpoint override when the client is created.\");\n"
+            + "      }";
+        String constructorWarning =
+            "if (clientConfiguration.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).isEndpointOverridden()) {\n"
+            + "        log.warn(\"Endpoint discovery is enabled for this client, and an endpoint override was also specified. "
+            + "This will disable endpoint discovery for methods that require it, instead using the specified endpoint override. "
+            + "This may or may not be what you intended.\");\n"
+            + "      }";
+
+        assertThat(generatedClient, containsString(requiredOperationOverrideFallback));
+        assertThat(generatedClient, containsString(constructorWarning));
+    }
+
+    @Test
+    public void asyncClientClass_withUtilitiesInstanceTypeAndExistingScheduledExecutor_addsExpectedCode() {
+        IntermediateModel utilitiesModel = awsJsonServiceModels();
+        utilitiesModel.getCustomizationConfig()
+                      .getUtilitiesMethod()
+                      .setInstanceType("software.amazon.awssdk.services.json.DefaultJsonUtilities");
+        AsyncClientClass asyncClientClassWithUtilities = createAsyncClientClass(utilitiesModel);
+
+        MethodSpec utilitiesMethod = asyncClientClassWithUtilities.utilitiesMethod();
+
+        String expectedUtilitiesStatement =
+            "return software.amazon.awssdk.services.json.DefaultJsonUtilities.create(param1,param2,param3);";
+        assertThat(utilitiesMethod.toString(), containsString(expectedUtilitiesStatement));
+
+        AsyncClientClass asyncClientClassWithWaiters = createAsyncClientClass(queryServiceModels());
+        TypeSpec.Builder typeBuilder = TypeSpec.classBuilder("Test");
+
+        asyncClientClassWithWaiters.addFields(typeBuilder);
+        asyncClientClassWithWaiters.addFields(typeBuilder);
+
+        long scheduledExecutorFieldCount = typeBuilder.build()
+                                                      .fieldSpecs
+                                                      .stream()
+                                                      .filter(f -> f.name.equals("executorService"))
+                                                      .count();
+        assertThat(scheduledExecutorFieldCount, equalTo(1L));
+    }
+
     private AsyncClientClass createAsyncClientClass(IntermediateModel model) {
         return new AsyncClientClass(GeneratorTaskParams.create(model, "sources/", "tests/", "resources/"));
+    }
+
+    private String generateClass(ClassSpec spec) throws IOException {
+        StringBuilder output = new StringBuilder();
+        PoetUtils.buildJavaFile(spec).writeTo(output);
+        return output.toString();
     }
 }
