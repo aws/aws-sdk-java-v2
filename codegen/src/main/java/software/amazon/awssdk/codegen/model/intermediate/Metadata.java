@@ -777,8 +777,8 @@ public class Metadata {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
 
-    public String getFullCracInternalPackageName() {
-        return joinPackageNames(getFullInternalPackageName(), "crac");
+    public String getFullWarmUpInternalPackageName() {
+        return joinPackageNames(getFullInternalPackageName(), "warmup");
     }
 
     public Metadata setJmesPathPackageName(String jmesPathPackageName) {

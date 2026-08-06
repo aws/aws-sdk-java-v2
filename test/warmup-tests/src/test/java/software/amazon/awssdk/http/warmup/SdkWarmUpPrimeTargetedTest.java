@@ -39,15 +39,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkClient;
-import software.amazon.awssdk.core.crac.SdkWarmUp;
-import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
+import software.amazon.awssdk.core.warmup.SdkWarmUp;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.StsClient;
 
 /**
- * End-to-end integration test of {@link SdkWarmUp#prime(Class...)} with real service clients (STS, DynamoDB) whose
+ * End-to-end integration test of {@link SdkWarmUp#warmUp(Class...)} with real service clients (STS, DynamoDB) whose
  * generated {@link SdkWarmUpProvider} implementations are on the classpath via ServiceLoader.
  */
 class SdkWarmUpPrimeTargetedTest {
@@ -92,8 +92,8 @@ class SdkWarmUpPrimeTargetedTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("singleClientCases")
-    void prime_withSingleClient_completesWithoutError(String description, Class<? extends SdkClient> client) {
-        assertThatCode(() -> SdkWarmUp.prime(client)).doesNotThrowAnyException();
+    void warmUp_withSingleClient_completesWithoutError(String description, Class<? extends SdkClient> client) {
+        assertThatCode(() -> SdkWarmUp.warmUp(client)).doesNotThrowAnyException();
     }
 
     private static Stream<Arguments> singleClientCases() {
@@ -106,29 +106,29 @@ class SdkWarmUpPrimeTargetedTest {
     }
 
     @Test
-    void prime_withMultipleServices_completesWithoutError() {
-        assertThatCode(() -> SdkWarmUp.prime(StsClient.class, DynamoDbClient.class, StsAsyncClient.class))
+    void warmUp_withMultipleServices_completesWithoutError() {
+        assertThatCode(() -> SdkWarmUp.warmUp(StsClient.class, DynamoDbClient.class, StsAsyncClient.class))
             .doesNotThrowAnyException();
     }
 
     @Test
-    void prime_calledTwiceWithSameClient_isIdempotent() {
-        SdkWarmUp.prime(StsClient.class);
+    void warmUp_calledTwiceWithSameClient_isIdempotent() {
+        SdkWarmUp.warmUp(StsClient.class);
 
         // Second call should be a no-op (client already recorded as primed).
-        assertThatCode(() -> SdkWarmUp.prime(StsClient.class)).doesNotThrowAnyException();
+        assertThatCode(() -> SdkWarmUp.warmUp(StsClient.class)).doesNotThrowAnyException();
     }
 
     @Test
-    void prime_calledWithNewClientAfterPrevious_primesOnlyNewClient() {
-        SdkWarmUp.prime(StsClient.class);
+    void warmUp_calledWithNewClientAfterPrevious_primesOnlyNewClient() {
+        SdkWarmUp.warmUp(StsClient.class);
 
         // DynamoDB is new; STS should not be re-primed.
-        assertThatCode(() -> SdkWarmUp.prime(DynamoDbClient.class, StsClient.class)).doesNotThrowAnyException();
+        assertThatCode(() -> SdkWarmUp.warmUp(DynamoDbClient.class, StsClient.class)).doesNotThrowAnyException();
     }
 
     @Test
-    void prime_concurrentCalls_allCompleteSuccessfully() throws InterruptedException {
+    void warmUp_concurrentCalls_allCompleteSuccessfully() throws InterruptedException {
         int threadCount = 8;
         CountDownLatch start = new CountDownLatch(1);
         CountDownLatch done = new CountDownLatch(threadCount);
@@ -143,7 +143,7 @@ class SdkWarmUpPrimeTargetedTest {
             Thread thread = new Thread(() -> {
                 try {
                     start.await();
-                    SdkWarmUp.prime(client);
+                    SdkWarmUp.warmUp(client);
                     completed.incrementAndGet();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
@@ -168,10 +168,10 @@ class SdkWarmUpPrimeTargetedTest {
     }
 
     @Test
-    void prime_withUnmatchedClient_isNoOpAndSendsNoRequest() {
+    void warmUp_withUnmatchedClient_isNoOpAndSendsNoRequest() {
         mockServer.stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
 
-        assertThatCode(() -> SdkWarmUp.prime(UnregisteredClient.class)).doesNotThrowAnyException();
+        assertThatCode(() -> SdkWarmUp.warmUp(UnregisteredClient.class)).doesNotThrowAnyException();
 
         // No provider matches, so no HTTP warmer runs and nothing hits the mock server.
         mockServer.verify(0, anyRequestedFor(anyUrl()));
@@ -179,8 +179,8 @@ class SdkWarmUpPrimeTargetedTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("noOpInputCases")
-    void prime_withNoOpInput_doesNotThrow(String description, Class<? extends SdkClient>[] clients) {
-        assertThatCode(() -> SdkWarmUp.prime(clients)).doesNotThrowAnyException();
+    void warmUp_withNoOpInput_doesNotThrow(String description, Class<? extends SdkClient>[] clients) {
+        assertThatCode(() -> SdkWarmUp.warmUp(clients)).doesNotThrowAnyException();
     }
 
     private static Stream<Arguments> noOpInputCases() {

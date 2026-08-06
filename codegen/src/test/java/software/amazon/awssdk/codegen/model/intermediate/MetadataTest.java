@@ -22,12 +22,12 @@ import org.junit.jupiter.api.Test;
 public class MetadataTest {
 
     @Test
-    public void fullCracInternalPackageName_appendsInternalCracToClientPackage() {
+    public void fullWarmUpInternalPackageName_appendsInternalWarmUpToClientPackage() {
         Metadata metadata = new Metadata();
         metadata.setRootPackageName("software.amazon.awssdk.services");
         metadata.setClientPackageName("query");
 
-        assertThat(metadata.getFullCracInternalPackageName())
-            .isEqualTo("software.amazon.awssdk.services.query.internal.crac");
+        assertThat(metadata.getFullWarmUpInternalPackageName())
+            .isEqualTo("software.amazon.awssdk.services.query.internal.warmup");
     }
 }

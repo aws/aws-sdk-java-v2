@@ -47,7 +47,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
  * Times the first {@code putItem} on an already-built {@link DynamoDbClient}, with no warm-up. Compare against
- * {@link V2PrimedFirstRequestBenchmark}.
+ * {@link V2WarmedUpFirstRequestBenchmark}.
  */
 @State(Scope.Benchmark)
 @BenchmarkMode(Mode.SingleShotTime)

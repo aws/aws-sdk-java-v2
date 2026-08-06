@@ -20,10 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.core.crac.SdkWarmUp;
+import software.amazon.awssdk.core.warmup.SdkWarmUp;
 
 /**
- * Verifies that when {@link SdkWarmUp#prime(Class...)} is called with a batch mixing an already-primed client and a new
+ * Verifies that when {@link SdkWarmUp#warmUp(Class...)} is called with a batch mixing an already-primed client and a new
  * one, only the new client is warmed. Uses dedicated clients that no other test primes.
  */
 class SdkWarmUpPrimeSelectiveTest {
@@ -46,14 +46,14 @@ class SdkWarmUpPrimeSelectiveTest {
     }
 
     @Test
-    void prime_previouslyPrimedClientInNewBatch_warmsOnlyTheNewClient() {
+    void warmUp_previouslyPrimedClientInNewBatch_warmsOnlyTheNewClient() {
         // Prime the sync client first.
-        SdkWarmUp.prime(SelectiveSyncClient.class);
+        SdkWarmUp.warmUp(SelectiveSyncClient.class);
         assertThat(SelectiveWarmUpProvider.syncWarmCount()).isEqualTo(1);
         assertThat(SelectiveWarmUpProvider.asyncWarmCount()).isEqualTo(0);
 
         // Now prime a batch containing the already-primed sync client plus a new async client.
-        SdkWarmUp.prime(SelectiveSyncClient.class, SelectiveAsyncClient.class);
+        SdkWarmUp.warmUp(SelectiveSyncClient.class, SelectiveAsyncClient.class);
 
         assertThat(SelectiveWarmUpProvider.syncWarmCount())
             .as("already-primed sync client is not warmed again")

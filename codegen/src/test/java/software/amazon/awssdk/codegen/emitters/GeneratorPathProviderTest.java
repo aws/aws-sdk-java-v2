@@ -24,7 +24,7 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 public class GeneratorPathProviderTest {
 
     @Test
-    public void warmUpProviderDirectory_isUnderSourceDirInCracInternalPackage() {
+    public void warmUpProviderDirectory_isUnderSourceDirInWarmupInternalPackage() {
         Metadata metadata = new Metadata();
         metadata.setRootPackageName("software.amazon.awssdk.services");
         metadata.setClientPackageName("query");
@@ -36,6 +36,6 @@ public class GeneratorPathProviderTest {
             new GeneratorPathProvider(model, "/src", "/test", "/resources");
 
         assertThat(provider.getWarmUpProviderDirectory())
-            .isEqualTo("/src/software/amazon/awssdk/services/query/internal/crac");
+            .isEqualTo("/src/software/amazon/awssdk/services/query/internal/warmup");
     }
 }

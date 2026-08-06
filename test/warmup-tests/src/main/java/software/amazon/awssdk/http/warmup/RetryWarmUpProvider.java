@@ -17,7 +17,7 @@ package software.amazon.awssdk.http.warmup;
 
 import java.util.concurrent.atomic.AtomicInteger;
 import software.amazon.awssdk.core.ClientType;
-import software.amazon.awssdk.core.crac.SdkWarmUpProvider;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 
 /**
  * Test-only provider whose first {@code warmUpClient(SYNC)} call throws; later calls succeed.
