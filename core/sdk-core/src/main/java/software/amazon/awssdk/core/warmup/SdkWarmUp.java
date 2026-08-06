@@ -35,15 +35,14 @@ import software.amazon.awssdk.utils.Logger;
  * Entry point for warming up SDK service request paths before a Coordinated Restore at Checkpoint (CRaC)
  * checkpoint.
  *
- * <p>Warm-up warms the service clients and the HTTP clients, as below. Neither needs AWS credentials:
+ * <p>Warms up the service clients and the HTTP clients, as below. Neither needs AWS credentials:
  * <ul>
  *     <li><b>Service client warm-up:</b> for each service, builds a client on a stub HTTP client that returns
  *     a fixed in-memory response and invokes one operation. This makes no network call, and JIT-compiles the
  *     marshalling, signing, and unmarshalling paths.</li>
  *     <li><b>HTTP client warm-up:</b> for each HTTP client on the classpath, sends one {@code GET} to the
  *     regional STS endpoint ({@code https://sts.<region>.amazonaws.com/}) to JIT-compile the HTTP client, DNS,
- *     TLS handshake, and certificate-chain paths. The goal is exercising these code paths, so the response
- *     is discarded and any failure is ignored.</li>
+ *     TLS handshake, and certificate-chain paths. The response is discarded and any failure is ignored.</li>
  * </ul>
  *
  * <p>Behavior contract:
