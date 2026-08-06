@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "EC2 Auto Scaling now supports being managed by other AWS services via the operator field."
+}
