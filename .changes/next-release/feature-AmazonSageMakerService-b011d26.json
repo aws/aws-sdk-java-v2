@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Releases new Model Customization SequenceLength parameter for Training and g7 instance types for Training and Processing."
+}
