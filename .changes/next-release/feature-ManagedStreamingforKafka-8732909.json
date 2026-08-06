@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Managed Streaming for Kafka",
-    "contributor": "",
-    "description": "MSK Clusters can now deliver authorizer logs alongside broker logs to the destinations defined by you"
-}
