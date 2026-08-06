@@ -78,12 +78,10 @@ public class ClientLambdaCallSiteCeilingTest {
         return String.format(
             Locale.ROOT,
             "%s contains %d lambda call sites, ceiling is %d.%n%n"
-            + "Per-operation lambdas are the dominant removable constant pool cost in generated clients: one per "
-            + "operation costs ~6 pool entries per operation. This fixture has %d operations, so a lambda added to "
-            + "every operation body raises this count by %d.%n%n"
-            + "Expected per-client lambdas are shared helpers (metric publishing) and the per-operation error-code "
-            + "mapper that the JSON protocol requires. If you added a construct to every operation body, hoist it into "
-            + "a shared helper.%n%n"
+            + "Per-operation lambdas are the dominant removable constant pool cost in generated clients: each one costs "
+            + "roughly 5 pool entries per operation. This fixture has %d operations, so a lambda added to every "
+            + "operation body raises this count by %d.%n%n"
+            + "If you added a construct to every operation body, hoist it into a shared helper.%n%n"
             + "If the growth is intended and justified, raise the ceiling deliberately and record the reason "
             + "alongside it.",
             fixture, callSites, ceiling, operations, operations);
