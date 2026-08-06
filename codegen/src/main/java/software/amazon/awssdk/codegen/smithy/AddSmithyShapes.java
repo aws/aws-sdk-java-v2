@@ -111,7 +111,7 @@ abstract class AddSmithyShapes {
     /**
      * Structures that appear as members of any event stream reachable from
      * the service. An event stream is a {@link UnionShape} carrying
-     * {@link StreamingTrait}. Computed once at construction
+     * {@link StreamingTrait}. Computed once at construction.
      */
     private final Set<ShapeId> eventStructures;
 
