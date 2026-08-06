@@ -577,6 +577,7 @@ abstract class AddSmithyShapes {
                     bindingLocationName = binding.getLocationName();
                     break;
                 case QUERY:
+                case QUERY_PARAMS:
                     location = Location.QUERY_STRING;
                     bindingLocationName = binding.getLocationName();
                     break;
@@ -594,10 +595,13 @@ abstract class AddSmithyShapes {
                 case RESPONSE_CODE:
                     location = Location.STATUS_CODE;
                     break;
-                default:
-                    // No explicit location: serialized in the body (DOCUMENT) or a binding not
-                    // mapped in the first-batch scope (e.g. QUERY_PARAMS).
+                case DOCUMENT:
+                case UNBOUND:
+                    // Body member: no HTTP location. Matches C2J, where an absent `location` is null.
                     break;
+                default:
+                    throw new IllegalArgumentException(
+                        "Unhandled HTTP binding location " + binding.getLocation() + " for member " + memberName);
             }
         }
 
