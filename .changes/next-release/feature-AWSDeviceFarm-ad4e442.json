@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Device Farm",
-    "contributor": "",
-    "description": "Adds support for service generated insights across runs, jobs, and tests."
-}
