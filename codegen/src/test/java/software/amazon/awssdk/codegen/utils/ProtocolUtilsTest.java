@@ -80,8 +80,6 @@ public class ProtocolUtilsTest {
         return serviceMetadata;
     }
 
-    // ---- Smithy overload (added in PR 4) ----------------------------------
-
     @ParameterizedTest
     @MethodSource("smithyProtocolValues")
     public void smithyProtocolSelection(String protocolTraits, String expectedProtocol) {
