@@ -26,6 +26,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
+import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.knowledge.ServiceIndex;
+import software.amazon.smithy.model.shapes.ServiceShape;
 
 public class ProtocolUtilsTest {
 
@@ -75,5 +78,51 @@ public class ProtocolUtilsTest {
         ServiceMetadata serviceMetadata = new ServiceMetadata();
         serviceMetadata.setProtocols(protocols);
         return serviceMetadata;
+    }
+
+    @ParameterizedTest
+    @MethodSource("smithyProtocolValues")
+    public void smithyProtocolSelection(String protocolTraits, String expectedProtocol) {
+        Model model = smithyModel(protocolTraits);
+        ServiceShape service = model.getServiceShapes().iterator().next();
+        String selected = ProtocolUtils.resolveProtocol(ServiceIndex.of(model), service);
+        assertThat(selected).isEqualTo(expectedProtocol);
+    }
+
+    private static Stream<Arguments> smithyProtocolValues() {
+        return Stream.of(
+            Arguments.of("@restJson1", "rest-json"),
+            Arguments.of("@restXml", "rest-xml"),
+            Arguments.of("@awsJson1_0", "json"),
+            Arguments.of("@awsJson1_1", "json"),
+            Arguments.of("@ec2Query", "ec2"),
+            // SQS/DynamoDB carry both awsQuery and awsJson1_0; priority order picks json.
+            Arguments.of("@awsQuery\n@awsJson1_0", "json"),
+            Arguments.of("@awsQuery", "query"));
+    }
+
+    private static Model smithyModel(String protocolTraits) {
+        String src =
+            "$version: \"2.0\"\n"
+            + "namespace demo\n\n"
+            + "use aws.api#service\n"
+            + "use aws.auth#sigv4\n"
+            + "use aws.protocols#restJson1\n"
+            + "use aws.protocols#restXml\n"
+            + "use aws.protocols#awsJson1_0\n"
+            + "use aws.protocols#awsJson1_1\n"
+            + "use aws.protocols#awsQuery\n"
+            + "use aws.protocols#ec2Query\n\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@sigv4(name: \"demo\")\n"
+            // awsQuery / ec2Query selectors require the service to carry @xmlNamespace.
+            + "@xmlNamespace(uri: \"https://demo.example.com\")\n"
+            + protocolTraits + "\n"
+            + "service DemoService { version: \"2024-01-01\" }\n";
+        return Model.assembler()
+                    .discoverModels(Model.class.getClassLoader())
+                    .addUnparsedModel("test.smithy", src)
+                    .assemble()
+                    .unwrap();
     }
 }
