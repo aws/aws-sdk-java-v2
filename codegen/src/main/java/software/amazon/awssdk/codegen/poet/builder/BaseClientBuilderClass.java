@@ -524,6 +524,7 @@ public class BaseClientBuilderClass implements ClassSpec {
                .addCode("        c.get($T.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))", ServiceMetadataAdvancedOption.class)
                .addCode("    .dualstackEnabled(c.get($T.DUALSTACK_ENDPOINT_ENABLED))", AwsClientOption.class)
                .addCode("    .fipsEnabled(c.get($T.FIPS_ENDPOINT_ENABLED))", AwsClientOption.class)
+               .addCode("    .ignoreConfiguredEndpointUrls(c.get($T.IGNORE_CONFIGURED_ENDPOINT_URLS))", AwsClientOption.class)
                .addCode("    .build());");
 
         if (model.getMetadata().isJsonProtocol()) {

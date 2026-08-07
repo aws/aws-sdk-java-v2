@@ -115,6 +115,11 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
     }
 
     private Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
+        if (Boolean.TRUE.equals(builder.ignoreConfiguredEndpointUrls)) {
+            log.trace(() -> "Configured endpoint URLs are being ignored because ignore_configured_endpoint_urls is true.");
+            return Optional.empty();
+        }
+
         if (builder.serviceEndpointOverrideEnvironmentVariable == null ||
             builder.serviceEndpointOverrideSystemProperty == null ||
             builder.serviceProfileProperty == null) {
@@ -311,6 +316,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         private String serviceEndpointOverrideEnvironmentVariable;
         private String serviceEndpointOverrideSystemProperty;
         private String serviceProfileProperty;
+        private Boolean ignoreConfiguredEndpointUrls;
 
         private Builder() {
         }
@@ -328,6 +334,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
             this.serviceEndpointOverrideEnvironmentVariable = src.serviceEndpointOverrideEnvironmentVariable;
             this.serviceEndpointOverrideSystemProperty = src.serviceEndpointOverrideSystemProperty;
             this.serviceProfileProperty = src.serviceProfileProperty;
+            this.ignoreConfiguredEndpointUrls = src.ignoreConfiguredEndpointUrls;
         }
 
         /**
@@ -476,6 +483,19 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
          */
         public <T> Builder putAdvancedOption(ServiceMetadataAdvancedOption<T> option, T value) {
             this.advancedOptions.put(option, value);
+            return this;
+        }
+
+        /**
+         * Whether configured endpoint URLs should be ignored.
+         * <p>
+         * When {@code true}, endpoint URL resolution from environment variables, system properties, and the shared
+         * configuration file is skipped.
+         * <p>
+         * If this value is not set, the {@link IgnoreConfiguredEndpointUrlsProvider} will be used.
+         */
+        public Builder ignoreConfiguredEndpointUrls(Boolean ignoreConfiguredEndpointUrls) {
+            this.ignoreConfiguredEndpointUrls = ignoreConfiguredEndpointUrls;
             return this;
         }
 
