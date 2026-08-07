@@ -16,7 +16,9 @@
 package software.amazon.awssdk.enhanced.dynamodb.query.condition;
 
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
@@ -86,6 +88,154 @@ public final class ConditionEvaluator {
     public static Object lookupCombined(String key, Map<String, Object> primary, Map<String, Object> secondary) {
         Object v = resolveAttribute(primary, key);
         return v != null ? v : resolveAttribute(secondary, key);
+    }
+
+    /**
+     * Collects top-level attribute names referenced by a condition tree (for ProjectionExpression / HAVING).
+     */
+    public static void collectAttributes(Condition condition, Set<String> attrs) {
+        if (condition == null || attrs == null) {
+            return;
+        }
+        if (condition instanceof Condition.Comparator) {
+            attrs.add(((Condition.Comparator) condition).attribute());
+            return;
+        }
+        if (condition instanceof Condition.Between) {
+            attrs.add(((Condition.Between) condition).attribute());
+            return;
+        }
+        if (condition instanceof Condition.Function) {
+            attrs.add(((Condition.Function) condition).attribute());
+            return;
+        }
+        if (condition instanceof Condition.And) {
+            Condition.And and = (Condition.And) condition;
+            collectAttributes(and.left(), attrs);
+            collectAttributes(and.right(), attrs);
+            return;
+        }
+        if (condition instanceof Condition.Or) {
+            Condition.Or or = (Condition.Or) condition;
+            collectAttributes(or.left(), attrs);
+            collectAttributes(or.right(), attrs);
+            return;
+        }
+        if (condition instanceof Condition.Not) {
+            collectAttributes(((Condition.Not) condition).inner(), attrs);
+            return;
+        }
+        if (condition instanceof Condition.Group) {
+            collectAttributes(((Condition.Group) condition).inner(), attrs);
+        }
+    }
+
+    /**
+     * Attempts to push a simple condition tree to a DynamoDB {@code FilterExpression}.
+     * Supports {@code eq/gt/gte/lt/lte}, {@code and}, and {@code group}. Returns empty for
+     * {@code or}/{@code not}/{@code between}/{@code contains}/{@code beginsWith} and nested paths.
+     */
+    public static Optional<FilterPushdown> tryFilterPushdown(Condition condition) {
+        if (condition == null) {
+            return Optional.empty();
+        }
+        Map<String, String> names = new HashMap<>();
+        Map<String, Object> values = new HashMap<>();
+        String expr = buildFilterExpression(condition, names, values);
+        if (expr == null) {
+            return Optional.empty();
+        }
+        return Optional.of(new FilterPushdown(expr, names, values));
+    }
+
+    private static String buildFilterExpression(Condition condition,
+                                                Map<String, String> names,
+                                                Map<String, Object> values) {
+        if (condition instanceof Condition.Comparator) {
+            return buildComparatorFilter((Condition.Comparator) condition, names, values);
+        }
+        if (condition instanceof Condition.And) {
+            Condition.And and = (Condition.And) condition;
+            String left = buildFilterExpression(and.left(), names, values);
+            if (left == null) {
+                return null;
+            }
+            String right = buildFilterExpression(and.right(), names, values);
+            if (right == null) {
+                return null;
+            }
+            return "(" + left + " AND " + right + ")";
+        }
+        if (condition instanceof Condition.Group) {
+            String inner = buildFilterExpression(((Condition.Group) condition).inner(), names, values);
+            return inner == null ? null : "(" + inner + ")";
+        }
+        return null;
+    }
+
+    private static String buildComparatorFilter(Condition.Comparator c,
+                                                Map<String, String> names,
+                                                Map<String, Object> values) {
+        if (c.attribute() == null || c.attribute().indexOf('.') >= 0) {
+            return null;
+        }
+        String nameToken = filterNameToken(c.attribute(), names);
+        String valueToken = ":v" + values.size();
+        values.put(valueToken, c.value());
+        switch (c.operator()) {
+            case "=":
+                return nameToken + " = " + valueToken;
+            case ">":
+                return nameToken + " > " + valueToken;
+            case ">=":
+                return nameToken + " >= " + valueToken;
+            case "<":
+                return nameToken + " < " + valueToken;
+            case "<=":
+                return nameToken + " <= " + valueToken;
+            default:
+                return null;
+        }
+    }
+
+    private static String filterNameToken(String attribute, Map<String, String> names) {
+        for (Map.Entry<String, String> e : names.entrySet()) {
+            if (attribute.equals(e.getValue())) {
+                return e.getKey();
+            }
+        }
+        String token = "#f" + (names.size() + 1);
+        names.put(token, attribute);
+        return token;
+    }
+
+    /**
+     * Result of a successful filter pushdown.
+     */
+    public static final class FilterPushdown {
+        private final String filterExpression;
+        private final Map<String, String> expressionAttributeNames;
+        private final Map<String, Object> expressionAttributeValues;
+
+        FilterPushdown(String filterExpression,
+                       Map<String, String> expressionAttributeNames,
+                       Map<String, Object> expressionAttributeValues) {
+            this.filterExpression = filterExpression;
+            this.expressionAttributeNames = expressionAttributeNames;
+            this.expressionAttributeValues = expressionAttributeValues;
+        }
+
+        public String filterExpression() {
+            return filterExpression;
+        }
+
+        public Map<String, String> expressionAttributeNames() {
+            return expressionAttributeNames;
+        }
+
+        public Map<String, Object> expressionAttributeValues() {
+            return expressionAttributeValues;
+        }
     }
 
     /**

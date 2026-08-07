@@ -1,6 +1,23 @@
 # Enhanced Query Benchmark — EC2 Instructions
 
+## Validated comparison workflow
+
+For the comparison evidence, use the unified
+[`run_ec2_benchmark_suite.sh`](../dynamodb-enhanced-projection/scripts/run_ec2_benchmark_suite.sh)
+workflow after the source tables are seeded. It produces complete, validated output for Enhanced
+Queries and Stream Projections and should replace the manual single-run CSV instructions below.
+
 Run the Enhanced Query (join + aggregation) benchmark on an EC2 instance against real DynamoDB for production-like latency numbers.
+
+**Appendix A9 / side-by-side with stream projections:** use the same
+`CUSTOMER_COUNT`, `ORDERS_PER_CUSTOMER`, `BENCHMARK_WARMUP=3`, `BENCHMARK_ITERATIONS=10`,
+and region as documented in
+[`../dynamodb-enhanced-projection/COMPARISON_BENCHMARK.md`](../dynamodb-enhanced-projection/COMPARISON_BENCHMARK.md).
+
+Both runners export **35 scenarios** from
+[`../dynamodb-enhanced-projection/benchmark-scenarios.json`](../dynamodb-enhanced-projection/benchmark-scenarios.json).
+Join scenario keys use `_inner`, `_left`, `_right`, `_full` suffixes (legacy unsuffixed names map to `_inner` in
+`compare_benchmarks.py`).
 
 ---
 
@@ -111,8 +128,10 @@ cd ~/aws-sdk-java-v2
 export AWS_REGION=us-east-1
 export CUSTOMERS_TABLE=customers_large
 export ORDERS_TABLE=orders_large
-export BENCHMARK_ITERATIONS=5
-export BENCHMARK_WARMUP=2
+export CUSTOMER_COUNT=1000
+export ORDERS_PER_CUSTOMER=1000
+export BENCHMARK_ITERATIONS=10
+export BENCHMARK_WARMUP=3
 export BENCHMARK_OUTPUT_FILE=benchmark_ec2.csv
 
 mvn exec:java -pl services-custom/dynamodb-enhanced \
@@ -158,6 +177,15 @@ Terminate the EC2 instance when done.
 | `BENCHMARK_OUTPUT_FILE` | unset | Path for CSV output |
 | `CUSTOMER_COUNT` | `1000` | Number of customers to seed |
 | `ORDERS_PER_CUSTOMER` | `1000` | Orders per customer to seed |
+| `HAVING_ORDER_COUNT_THRESHOLD` | `min(500, ordersPerCustomer-1)` | HAVING threshold for scenarios #10/#16 |
+
+The runner executes **35 scenarios** (core A9 #1–16, join variants #17–24, extensions #25–35). Compare CSVs with:
+
+```bash
+python3 services-custom/dynamodb-enhanced-projection/scripts/compare_benchmarks.py \
+  /tmp/eq_a9_benchmark.csv /tmp/projection_a9_benchmark.csv \
+  --catalog services-custom/dynamodb-enhanced-projection/benchmark-scenarios.json
+```
 
 ---
 

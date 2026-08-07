@@ -20,18 +20,23 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.function.Supplier;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LargeDatasetInitializer;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.LocalDynamoDbTestBase;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.GetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.enhanced.dynamodb.query.condition.Condition;
 import software.amazon.awssdk.enhanced.dynamodb.query.engine.QueryExpressionBuilder;
 import software.amazon.awssdk.enhanced.dynamodb.query.enums.AggregationFunction;
@@ -45,6 +50,10 @@ import software.amazon.awssdk.enhanced.dynamodb.query.spec.QueryExpressionSpec;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 /**
  * Standalone benchmark runner for Enhanced Query (join and aggregation) scenarios. Connects to real DynamoDB (or DynamoDB Local)
@@ -82,14 +91,22 @@ public final class EnhancedQueryBenchmarkRunner {
     private static final String BENCHMARK_WARMUP_ENV = "BENCHMARK_WARMUP";
     private static final String BENCHMARK_OUTPUT_FILE_ENV = "BENCHMARK_OUTPUT_FILE";
     private static final String USE_LOCAL_DYNAMODB_ENV = "USE_LOCAL_DYNAMODB";
+    private static final String SEED_BENCHMARK_EXTENSIONS_ENV = "SEED_BENCHMARK_EXTENSIONS";
 
     private static final String DEFAULT_CUSTOMERS_TABLE = "customers_large";
     private static final String DEFAULT_ORDERS_TABLE = "orders_large";
-    private static final int DEFAULT_ITERATIONS = 5;
-    private static final int DEFAULT_WARMUP = 2;
+    /** Defaults match HLD Appendix A9 (override via BENCHMARK_ITERATIONS / BENCHMARK_WARMUP). */
+    private static final int DEFAULT_ITERATIONS = 10;
+    private static final int DEFAULT_WARMUP = 3;
+
+    private static final String ORPHAN_CUSTOMER_ID = "c_orphan";
+    private static final String ORPHAN_ORDER_ID = "o_orphan";
+    private static final String ORPHAN_ORDER_CUSTOMER_ID = "c_nonexistent";
+    private static final int JOIN_PAGINATION_PAGE_SIZE = 100;
+    private static final int SUMMARY_PAGINATION_PAGE_SIZE = 10;
 
     // Table column widths for aligned benchmark output
-    private static final int COL_SCENARIO = 38;
+    private static final int COL_SCENARIO = 45;
     private static final int COL_DDB_OP = 26;
     private static final int COL_DESCRIPTION = 62;
     private static final int COL_AVG = 10;
@@ -212,6 +229,8 @@ public final class EnhancedQueryBenchmarkRunner {
         }
         boolean useLocalDynamoDb = "true".equalsIgnoreCase(System.getenv(USE_LOCAL_DYNAMODB_ENV));
         boolean createAndSeed = useLocalDynamoDb || "true".equalsIgnoreCase(System.getenv(CREATE_AND_SEED_ENV));
+        boolean seedExtensions = createAndSeed
+                                 || "true".equalsIgnoreCase(System.getenv(SEED_BENCHMARK_EXTENSIONS_ENV));
         int iterations = parseIntEnv(BENCHMARK_ITERATIONS_ENV, DEFAULT_ITERATIONS);
         int warmup = parseIntEnv(BENCHMARK_WARMUP_ENV, DEFAULT_WARMUP);
         String outputFile = System.getenv(BENCHMARK_OUTPUT_FILE_ENV);
@@ -227,9 +246,9 @@ public final class EnhancedQueryBenchmarkRunner {
         }
 
         try {
+            int customerCount = parseIntEnv("CUSTOMER_COUNT", LargeDatasetInitializer.DEFAULT_CUSTOMER_COUNT);
+            int ordersPerCustomer = parseIntEnv("ORDERS_PER_CUSTOMER", LargeDatasetInitializer.DEFAULT_ORDERS_PER_CUSTOMER);
             if (createAndSeed) {
-                int customerCount = parseIntEnv("CUSTOMER_COUNT", LargeDatasetInitializer.DEFAULT_CUSTOMER_COUNT);
-                int ordersPerCustomer = parseIntEnv("ORDERS_PER_CUSTOMER", LargeDatasetInitializer.DEFAULT_ORDERS_PER_CUSTOMER);
                 System.out.printf("Creating tables and seeding data (%,d customers x %,d orders)...%n",
                                   customerCount, ordersPerCustomer);
                 LargeDatasetInitializer.initializeCustomersAndOrdersDataset(
@@ -246,230 +265,18 @@ public final class EnhancedQueryBenchmarkRunner {
             DynamoDbTable<CustomerRecord> customersTableRef = enhancedClient.table(customersTable, CUSTOMER_SCHEMA);
             DynamoDbTable<OrderRecord> ordersTableRef = enhancedClient.table(ordersTable, ORDER_SCHEMA);
 
-            List<Scenario> scenarios = Arrays.asList(
+            if (seedExtensions) {
+                seedBenchmarkExtensions(customersTableRef, ordersTableRef);
+                System.out.println("Benchmark extension seed complete (orphan rows, c1 region modify).");
+            }
 
-                // --- Group 1: Baselines ---
-
-                new Scenario("single_customer_by_key",
-                             "Retrieve one customer by partition key. Establishes minimum DynamoDB round-trip latency.",
-                             "query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("scan_100_customers",
-                             "Read first 100 customers without key condition. Establishes scan baseline.",
-                             "scan()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .project("customerId", "name", "region")
-                                                         .limit(100)
-                                                         .build()),
-
-                // --- Group 2: Individual aggregation functions (key-scoped) ---
-
-                new Scenario("count_orders_one_customer",
-                             "COUNT all orders for customer c1. Returns 1 row with order count.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("sum_amount_one_customer",
-                             "SUM of order amounts for customer c1. Returns 1 row with total revenue.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("avg_amount_one_customer",
-                             "AVG of order amounts for customer c1. Returns 1 row with average order value.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.AVG, "amount", "avgAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("min_amount_one_customer",
-                             "MIN order amount for customer c1. Returns 1 row with smallest order.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.MIN, "amount", "minAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("max_amount_one_customer",
-                             "MAX order amount for customer c1. Returns 1 row with largest order.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.MAX, "amount", "maxAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                // --- Group 3: Combined and complex aggregations ---
-
-                new Scenario("all_five_functions_one_customer",
-                             "COUNT, SUM, AVG, MIN, MAX combined in one query for c1. Proves zero overhead for multiple functions.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .aggregate(AggregationFunction.AVG, "amount", "avgAmount")
-                                                         .aggregate(AggregationFunction.MIN, "amount", "minAmount")
-                                                         .aggregate(AggregationFunction.MAX, "amount", "maxAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("count_and_sum_with_amount_filter",
-                             "COUNT + SUM only for orders where amount >= 50. Pre-aggregation filter reduces input rows.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .filterJoined(Condition.gte("amount", 50))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("count_per_customer_having_gt500",
-                             "COUNT per customer across all customers, keep only groups with count > 500. Post-aggregation HAVING.",
-                             "base=scan(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .having(Condition.gt("orderCount", 500))
-                                                         .limit(20)
-                                                         .build()),
-
-                new Scenario("count_and_sum_grouped_by_two_fields",
-                             "COUNT + SUM grouped by (customerId, region). Multi-field composite GROUP BY key.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId", "region")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("top10_customers_by_order_count",
-                             "COUNT per customer, sorted by count descending, return only top 10. ORDER BY aggregate + limit.",
-                             "base=scan(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .orderByAggregate("orderCount", SortDirection.DESC)
-                                                         .limit(10)
-                                                         .build()),
-
-                new Scenario("global_sum_and_count_no_groupby",
-                             "Global SUM + COUNT over all orders for c1 without GROUP BY. Single-bucket global aggregation.",
-                             "query()",
-                             () -> QueryExpressionBuilder.from(ordersTableRef)
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "totalOrders")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalRevenue")
-                                                         .limit(10)
-                                                         .build()),
-
-                // --- Group 4: Scan-backed aggregations (ALLOW_SCAN) ---
-
-                new Scenario("scan_count_all_customers",
-                             "COUNT orders per customer, scanning the entire customers table. Shows full-table aggregation cost.",
-                             "base=scan(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .limit(20)
-                                                         .build()),
-
-                new Scenario("scan_sum_only_eu_customers",
-                             "SUM(amount) per customer, scan with region=EU filter. Shows filtered scan + aggregation cost.",
-                             "base=scan(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .filterBase(Condition.eq("region", "EU"))
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .limit(500)
-                                                         .build()),
-
-                new Scenario("scan_having_orderby_full_combo",
-                             "COUNT + SUM per customer, HAVING count > 500, ORDER BY total DESC, limit 10. All features on scan.",
-                             "base=scan(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .having(Condition.gt("orderCount", 500))
-                                                         .orderByAggregate("totalAmount", SortDirection.DESC)
-                                                         .limit(10)
-                                                         .build()),
-
-                // --- Group 5: Join preview (Phase 2) ---
-
-                new Scenario("join_all_orders_one_customer",
-                             "INNER join customer c1 with all orders. Raw join without aggregation (Phase 2 preview).",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .project("customerId", "name", "region", "orderId", "amount")
-                                                         .limit(1100)
-                                                         .build()),
-
-                new Scenario("join_then_count_and_sum",
-                             "INNER join c1 + COUNT + SUM. Shows aggregation collapsing 1,000 joined rows into 1 result.",
-                             "base=query(), join=query()",
-                             () -> QueryExpressionBuilder.from(customersTableRef)
-                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
-                                                         .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue("c1")))
-                                                         .groupBy("customerId")
-                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
-                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
-                                                         .limit(10)
-                                                         .build())
-            );
+            int havingThreshold = parseIntEnv("HAVING_ORDER_COUNT_THRESHOLD",
+                                             Math.min(500, Math.max(0, ordersPerCustomer - 1)));
+            List<Scenario> scenarios = buildScenarios(
+                customersTableRef, ordersTableRef, havingThreshold, ordersPerCustomer);
 
             PrintStream out = System.out;
-            StringBuilder csv = new StringBuilder();
-            if (outputFile != null && !outputFile.isEmpty()) {
-                csv.append("scenario,description,ddbOperation,avgMs,p50Ms,p95Ms,rows,region,iterations\n");
-            }
+            List<Result> results = new ArrayList<>();
 
             out.println("Environment: " + (useLocalDynamoDb ? "DynamoDB Local (in-process)" :
                                            "AWS_REGION=" + (regionStr != null ? regionStr : "default"))
@@ -499,13 +306,14 @@ public final class EnhancedQueryBenchmarkRunner {
 
             for (int idx = 0; idx < scenarios.size(); idx++) {
                 Scenario scenario = scenarios.get(idx);
-                Result result = runScenario(enhancedClient, scenario, warmup, iterations);
+                Result result = runScenario(enhancedClient, dynamoDbClient, scenario, warmup, iterations);
+                results.add(result);
                 List<String> descLines = wrap(scenario.description, COL_DESCRIPTION);
                 String namePadded = padRight(truncate(scenario.name, COL_SCENARIO), COL_SCENARIO);
                 String ddbPadded = padRight(truncate(scenario.ddbOperation, COL_DDB_OP), COL_DDB_OP);
-                String avgStr = padLeft(String.format(Locale.US, "%.1f", result.avgMs), COL_AVG);
-                String p50Str = padLeft(String.valueOf(result.p50Ms), COL_P50);
-                String p95Str = padLeft(String.valueOf(result.p95Ms), COL_P95);
+                String avgStr = padLeft(String.format(Locale.US, "%.2f", result.avgMs), COL_AVG);
+                String p50Str = padLeft(String.format(Locale.US, "%.2f", (double) result.p50Ms), COL_P50);
+                String p95Str = padLeft(String.format(Locale.US, "%.2f", (double) result.p95Ms), COL_P95);
                 String rowsStr = padLeft(String.valueOf(result.rows), COL_ROWS);
                 String avgCol = ANSI_CYAN + avgStr + ANSI_RESET;
                 String p50Col = ANSI_CYAN + p50Str + ANSI_RESET;
@@ -520,25 +328,18 @@ public final class EnhancedQueryBenchmarkRunner {
                             repeat(' ', COL_AVG), repeat(' ', COL_P50), repeat(' ', COL_P95), repeat(' ', COL_ROWS)));
                     }
                 }
-                if (csv.length() > 0) {
-                    csv.append(String.format(Locale.US, "%s,\"%s\",\"%s\",%.2f,%d,%d,%d,%s,%d%n",
-                                             scenario.name, scenario.description, scenario.ddbOperation,
-                                             result.avgMs, result.p50Ms, result.p95Ms, result.rows,
-                                             useLocalDynamoDb ? "local" : (regionStr != null ? regionStr : "default"),
-                                             iterations));
-                }
                 if (idx < scenarios.size() - 1) {
                     out.println();
                 }
             }
             out.println(bottomBorder);
 
-            if (outputFile != null && !outputFile.isEmpty() && csv.length() > 0) {
+            if (outputFile != null && !outputFile.isEmpty()) {
                 try {
-                    java.nio.file.Files.write(java.nio.file.Paths.get(outputFile),
-                                              csv.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8),
-                                              java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
-                    out.println("Results appended to " + outputFile);
+                    writeCsv(outputFile, scenarios, results,
+                             useLocalDynamoDb ? "local" : (regionStr != null ? regionStr : "default"),
+                             customerCount, ordersPerCustomer, warmup, iterations);
+                    out.println("Results written to " + outputFile);
                 } catch (Exception e) {
                     System.err.println("Failed to write " + outputFile + ": " + e.getMessage());
                 }
@@ -551,6 +352,536 @@ public final class EnhancedQueryBenchmarkRunner {
         }
     }
 
+    private static void seedBenchmarkExtensions(DynamoDbTable<CustomerRecord> customersTable,
+                                                DynamoDbTable<OrderRecord> ordersTable) {
+        CustomerRecord orphanCustomer = new CustomerRecord();
+        orphanCustomer.setCustomerId(ORPHAN_CUSTOMER_ID);
+        orphanCustomer.setName("OrphanCustomer");
+        orphanCustomer.setRegion("EU");
+        customersTable.putItem(orphanCustomer);
+
+        OrderRecord orphanOrder = new OrderRecord();
+        orphanOrder.setCustomerId(ORPHAN_ORDER_CUSTOMER_ID);
+        orphanOrder.setOrderId(ORPHAN_ORDER_ID);
+        orphanOrder.setAmount(999);
+        ordersTable.putItem(orphanOrder);
+
+        CustomerRecord c1 = customersTable.getItem(
+            GetItemEnhancedRequest.builder().key(Key.builder().partitionValue("c1").build()).build());
+        if (c1 != null) {
+            c1.setRegion("APAC");
+            c1.setName("Customer1Modified");
+            customersTable.putItem(c1);
+        }
+    }
+
+    private static List<Scenario> buildScenarios(DynamoDbTable<CustomerRecord> customersTableRef,
+                                                 DynamoDbTable<OrderRecord> ordersTableRef,
+                                                 int havingThreshold,
+                                                 int ordersPerCustomer) {
+        int joinRowLimit = ordersPerCustomer + 100;
+        List<Scenario> scenarios = new ArrayList<>();
+
+        scenarios.add(Scenario.fromSpec("single_customer_by_key",
+                                        "Retrieve one customer by partition key. Establishes minimum DynamoDB round-trip latency.",
+                                        "query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .project("customerId", "name", "region")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("scan_100_customers",
+                                        "Read first 100 customers without key condition. Establishes scan baseline.",
+                                        "scan()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .project("customerId", "name", "region")
+                                                                    .limit(100)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("count_orders_one_customer",
+                                        "COUNT all orders for customer c1. Returns 1 row with order count.",
+                                        "base=query(), join=query()",
+                                        () -> joinAggSpec(customersTableRef, ordersTableRef, JoinType.INNER, "c1",
+                                                          AggregationFunction.COUNT, "orderId", "orderCount")));
+
+        scenarios.add(Scenario.fromSpec("sum_amount_one_customer",
+                                        "SUM of order amounts for customer c1. Returns 1 row with total revenue.",
+                                        "base=query(), join=query()",
+                                        () -> joinAggSpec(customersTableRef, ordersTableRef, JoinType.INNER, "c1",
+                                                          AggregationFunction.SUM, "amount", "totalAmount")));
+
+        scenarios.add(Scenario.fromSpec("avg_amount_one_customer",
+                                        "AVG of order amounts for customer c1. Returns 1 row with average order value.",
+                                        "base=query(), join=query()",
+                                        () -> joinAggSpec(customersTableRef, ordersTableRef, JoinType.INNER, "c1",
+                                                          AggregationFunction.AVG, "amount", "avgAmount")));
+
+        scenarios.add(Scenario.fromSpec("min_amount_one_customer",
+                                        "MIN order amount for customer c1. Returns 1 row with smallest order.",
+                                        "base=query(), join=query()",
+                                        () -> joinAggSpec(customersTableRef, ordersTableRef, JoinType.INNER, "c1",
+                                                          AggregationFunction.MIN, "amount", "minAmount")));
+
+        scenarios.add(Scenario.fromSpec("max_amount_one_customer",
+                                        "MAX order amount for customer c1. Returns 1 row with largest order.",
+                                        "base=query(), join=query()",
+                                        () -> joinAggSpec(customersTableRef, ordersTableRef, JoinType.INNER, "c1",
+                                                          AggregationFunction.MAX, "amount", "maxAmount")));
+
+        scenarios.add(Scenario.fromSpec("all_five_functions_one_customer",
+                                        "COUNT, SUM, AVG, MIN, MAX combined in one query for c1.",
+                                        "base=query(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalAmount")
+                                                                    .aggregate(AggregationFunction.AVG, "amount",
+                                                                               "avgAmount")
+                                                                    .aggregate(AggregationFunction.MIN, "amount",
+                                                                               "minAmount")
+                                                                    .aggregate(AggregationFunction.MAX, "amount",
+                                                                               "maxAmount")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("count_and_sum_with_amount_filter",
+                                        "COUNT + SUM only for orders where amount >= 50.",
+                                        "base=query(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .filterJoined(Condition.gte("amount", 50))
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalAmount")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("count_per_customer_having_gt500",
+                                        "COUNT per customer, HAVING orderCount > " + havingThreshold + ".",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .having(Condition.gt("orderCount", havingThreshold))
+                                                                    .limit(20)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("count_and_sum_grouped_by_two_fields",
+                                        "COUNT + SUM grouped by (customerId, region) for c1.",
+                                        "base=query(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .groupBy("customerId", "region")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalAmount")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("top10_customers_by_order_count",
+                                        "COUNT per customer, ORDER BY orderCount DESC, top 10.",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .orderByAggregate("orderCount", SortDirection.DESC)
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("global_sum_and_count_no_groupby",
+                                        "SUM + COUNT for c1 without GROUP BY (single-bucket aggregation).",
+                                        "query()",
+                                        () -> QueryExpressionBuilder.from(ordersTableRef)
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "totalOrders")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalRevenue")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("scan_count_all_customers",
+                                        "COUNT orders per customer over full customer scan (limit 20).",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .limit(20)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("scan_sum_only_eu_customers",
+                                        "SUM(amount) per customer where region=EU (limit 500).",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .filterBase(Condition.eq("region", "EU"))
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalAmount")
+                                                                    .limit(500)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("scan_having_orderby_full_combo",
+                                        "COUNT+SUM, HAVING count > " + havingThreshold + ", ORDER BY totalAmount DESC.",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalAmount")
+                                                                    .having(Condition.gt("orderCount", havingThreshold))
+                                                                    .orderByAggregate("totalAmount", SortDirection.DESC)
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(joinAllOrdersScenario(customersTableRef, ordersTableRef, JoinType.INNER, "inner", joinRowLimit));
+        scenarios.add(joinCountAndSumScenario(customersTableRef, ordersTableRef, JoinType.INNER, "inner"));
+        scenarios.add(joinAllOrdersScenario(customersTableRef, ordersTableRef, JoinType.LEFT, "left", joinRowLimit));
+        scenarios.add(joinCountAndSumScenario(customersTableRef, ordersTableRef, JoinType.LEFT, "left"));
+        scenarios.add(joinAllOrdersScenario(customersTableRef, ordersTableRef, JoinType.RIGHT, "right", joinRowLimit));
+        scenarios.add(joinCountAndSumScenario(customersTableRef, ordersTableRef, JoinType.RIGHT, "right"));
+        scenarios.add(joinAllOrdersScenario(customersTableRef, ordersTableRef, JoinType.FULL, "full", joinRowLimit));
+        scenarios.add(joinCountAndSumScenario(customersTableRef, ordersTableRef, JoinType.FULL, "full"));
+
+        scenarios.add(Scenario.fromSpec("filtered_aggregate_large_orders_one_customer",
+                                        "Dedicated filtered COUNT+SUM for orders with amount >= 50 on c1.",
+                                        "base=query(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .filterJoined(Condition.gte("amount", 50))
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "largeOrders")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "largeRevenue")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(customScenario(
+            "summary_pagination_having_page2",
+            "Page 2 (offset " + SUMMARY_PAGINATION_PAGE_SIZE + ") after scan+HAVING+ORDER BY aggregate sort.",
+            "base=scan(), join=query() page 2",
+            (client, ignored) -> runSummaryPaginationPage2(client, customersTableRef, ordersTableRef, havingThreshold)));
+
+        scenarios.add(customScenario(
+            "join_pagination_page2",
+            "Page 2 of joined orders for c1 (limit " + JOIN_PAGINATION_PAGE_SIZE + " + LEK).",
+            "base=query(), join=query() page 2",
+            (ignored, dynamoDbClient) -> runJoinPaginationPage2(dynamoDbClient, ordersTableRef.tableName())));
+
+        scenarios.add(Scenario.fromSpec("having_with_between",
+                                        "HAVING orderCount BETWEEN " + (havingThreshold - 1) + " AND "
+                                        + (havingThreshold + 1) + ".",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .having(Condition.between("orderCount",
+                                                                                                havingThreshold - 1,
+                                                                                                havingThreshold + 1))
+                                                                    .limit(20)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("having_with_or",
+                                        "HAVING orderCount > " + havingThreshold + " OR orderCount < 5.",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .having(Condition.gt("orderCount", havingThreshold)
+                                                                                  .or(Condition.lt("orderCount", 5)))
+                                                                    .limit(20)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("outer_join_orphan_customer_left",
+                                        "LEFT join on orphan customer " + ORPHAN_CUSTOMER_ID + " (parent-only row).",
+                                        "base=query(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.LEFT, "customerId",
+                                                                          "customerId")
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue(ORPHAN_CUSTOMER_ID)))
+                                                                    .project("customerId", "name", "region", "orderId",
+                                                                             "amount")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("outer_join_orphan_order_right",
+                                        "RIGHT join surfacing orphan order " + ORPHAN_ORDER_ID + " (no matching customer).",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.RIGHT, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .filterJoined(Condition.eq("orderId", ORPHAN_ORDER_ID))
+                                                                    .project("customerId", "name", "region", "orderId",
+                                                                             "amount")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(customScenario(
+            "batch_get_five_customer_summaries",
+            "Five key-scoped join+COUNT queries for c1..c5 (logical batch read).",
+            "5x base=query(), join=query()",
+            (client, ignored) -> runBatchFiveCustomerSummaries(client, customersTableRef, ordersTableRef)));
+
+        scenarios.add(customScenario(
+            "consistent_read_summary_one_customer",
+            "Strongly consistent GetItem for customer c1.",
+            "getItem(consistentRead=true)",
+            (ignored, dynamoDbClient) -> runConsistentReadCustomer(dynamoDbClient, customersTableRef.tableName())));
+
+        scenarios.add(Scenario.fromSpec("top10_by_total_amount_gsi",
+                                        "COUNT+SUM per customer, ORDER BY totalAmount DESC, top 10.",
+                                        "base=scan(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                                    .groupBy("customerId")
+                                                                    .aggregate(AggregationFunction.COUNT, "orderId",
+                                                                               "orderCount")
+                                                                    .aggregate(AggregationFunction.SUM, "amount",
+                                                                               "totalAmount")
+                                                                    .orderByAggregate("totalAmount", SortDirection.DESC)
+                                                                    .limit(10)
+                                                                    .build()));
+
+        scenarios.add(Scenario.fromSpec("customer_modify_fanout_region",
+                                        "INNER join c1 after parent MODIFY (region=APAC from seed extension).",
+                                        "base=query(), join=query()",
+                                        () -> QueryExpressionBuilder.from(customersTableRef)
+                                                                    .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                          "customerId")
+                                                                    .keyCondition(QueryConditional.keyEqualTo(
+                                                                        k -> k.partitionValue("c1")))
+                                                                    .project("customerId", "name", "region", "orderId",
+                                                                             "amount")
+                                                                    .limit(10)
+                                                                    .build()));
+
+        return scenarios;
+    }
+
+    private static Scenario customScenario(String name,
+                                           String description,
+                                           String ddbOperation,
+                                           ScenarioAction action) {
+        return new Scenario(name, description, ddbOperation, action);
+    }
+
+    private static QueryExpressionSpec joinAggSpec(DynamoDbTable<CustomerRecord> customersTableRef,
+                                                   DynamoDbTable<OrderRecord> ordersTableRef,
+                                                   JoinType joinType,
+                                                   String customerId,
+                                                   AggregationFunction function,
+                                                   String attribute,
+                                                   String outputName) {
+        return QueryExpressionBuilder.from(customersTableRef)
+                                     .join(ordersTableRef, joinType, "customerId", "customerId")
+                                     .keyCondition(QueryConditional.keyEqualTo(k -> k.partitionValue(customerId)))
+                                     .groupBy("customerId")
+                                     .aggregate(function, attribute, outputName)
+                                     .limit(10)
+                                     .build();
+    }
+
+    private static Scenario joinAllOrdersScenario(DynamoDbTable<CustomerRecord> customersTableRef,
+                                                  DynamoDbTable<OrderRecord> ordersTableRef,
+                                                  JoinType joinType,
+                                                  String suffix,
+                                                  int joinRowLimit) {
+        return Scenario.fromSpec("join_all_orders_one_customer_" + suffix,
+                                 joinType + " join customer c1 with all orders (raw join, no aggregation).",
+                                 "base=query(), join=query()",
+                                 () -> QueryExpressionBuilder.from(customersTableRef)
+                                                             .join(ordersTableRef, joinType, "customerId", "customerId")
+                                                             .keyCondition(QueryConditional.keyEqualTo(
+                                                                 k -> k.partitionValue("c1")))
+                                                             .project("customerId", "name", "region", "orderId", "amount")
+                                                             .limit(joinRowLimit)
+                                                             .build());
+    }
+
+    private static Scenario joinCountAndSumScenario(DynamoDbTable<CustomerRecord> customersTableRef,
+                                                    DynamoDbTable<OrderRecord> ordersTableRef,
+                                                    JoinType joinType,
+                                                    String suffix) {
+        return Scenario.fromSpec("join_then_count_and_sum_" + suffix,
+                                 joinType + " join c1 + COUNT + SUM collapsed to one aggregate row.",
+                                 "base=query(), join=query()",
+                                 () -> QueryExpressionBuilder.from(customersTableRef)
+                                                             .join(ordersTableRef, joinType, "customerId", "customerId")
+                                                             .keyCondition(QueryConditional.keyEqualTo(
+                                                                 k -> k.partitionValue("c1")))
+                                                             .groupBy("customerId")
+                                                             .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                             .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                             .limit(10)
+                                                             .build());
+    }
+
+    private static RunOutcome runSummaryPaginationPage2(DynamoDbEnhancedClient client,
+                                                        DynamoDbTable<CustomerRecord> customersTableRef,
+                                                        DynamoDbTable<OrderRecord> ordersTableRef,
+                                                        int havingThreshold) {
+        QueryExpressionSpec spec = QueryExpressionBuilder.from(customersTableRef)
+                                                         .join(ordersTableRef, JoinType.INNER, "customerId", "customerId")
+                                                         .executionMode(ExecutionMode.ALLOW_SCAN)
+                                                         .groupBy("customerId")
+                                                         .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                         .aggregate(AggregationFunction.SUM, "amount", "totalAmount")
+                                                         .having(Condition.gt("orderCount", havingThreshold))
+                                                         .orderByAggregate("totalAmount", SortDirection.DESC)
+                                                         .limit(SUMMARY_PAGINATION_PAGE_SIZE * 2)
+                                                         .build();
+        EnhancedQueryLatencyReport[] reportHolder = new EnhancedQueryLatencyReport[1];
+        long start = System.nanoTime();
+        List<EnhancedQueryRow> rows = new ArrayList<>();
+        for (EnhancedQueryRow row : client.enhancedQuery(spec, report -> reportHolder[0] = report)) {
+            rows.add(row);
+        }
+        int pageTwoRows = rows.size() <= SUMMARY_PAGINATION_PAGE_SIZE
+                          ? 0 : Math.min(SUMMARY_PAGINATION_PAGE_SIZE, rows.size() - SUMMARY_PAGINATION_PAGE_SIZE);
+        return outcomeFromReport(System.nanoTime() - start, pageTwoRows, reportHolder[0]);
+    }
+
+    private static RunOutcome runJoinPaginationPage2(DynamoDbClient client, String ordersTableName) {
+        long start = System.nanoTime();
+        QueryResponse page1 = client.query(QueryRequest.builder()
+                                                        .tableName(ordersTableName)
+                                                        .keyConditionExpression("customerId = :customerId")
+                                                        .expressionAttributeValues(Collections.singletonMap(
+                                                            ":customerId", AttributeValue.builder().s("c1").build()))
+                                                        .limit(JOIN_PAGINATION_PAGE_SIZE)
+                                                        .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                        .build());
+        Map<String, AttributeValue> lek = page1.lastEvaluatedKey();
+        if (lek == null || lek.isEmpty()) {
+            return new RunOutcome((System.nanoTime() - start) / 1_000_000L, 0,
+                                  capacityUnits(page1), 1L);
+        }
+        QueryResponse page2 = client.query(QueryRequest.builder()
+                                                        .tableName(ordersTableName)
+                                                        .keyConditionExpression("customerId = :customerId")
+                                                        .expressionAttributeValues(Collections.singletonMap(
+                                                            ":customerId", AttributeValue.builder().s("c1").build()))
+                                                        .limit(JOIN_PAGINATION_PAGE_SIZE)
+                                                        .exclusiveStartKey(lek)
+                                                        .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                                                        .build());
+        return new RunOutcome((System.nanoTime() - start) / 1_000_000L, page2.items().size(),
+                              capacityUnits(page1) + capacityUnits(page2), 2L);
+    }
+
+    private static RunOutcome runBatchFiveCustomerSummaries(DynamoDbEnhancedClient client,
+                                                            DynamoDbTable<CustomerRecord> customersTableRef,
+                                                            DynamoDbTable<OrderRecord> ordersTableRef) {
+        long start = System.nanoTime();
+        int count = 0;
+        double rcu = 0.0d;
+        long requests = 0L;
+        for (int i = 1; i <= 5; i++) {
+            String customerId = "c" + i;
+            QueryExpressionSpec spec = QueryExpressionBuilder.from(customersTableRef)
+                                                             .join(ordersTableRef, JoinType.INNER, "customerId",
+                                                                   "customerId")
+                                                             .keyCondition(QueryConditional.keyEqualTo(
+                                                                 k -> k.partitionValue(customerId)))
+                                                             .groupBy("customerId")
+                                                             .aggregate(AggregationFunction.COUNT, "orderId", "orderCount")
+                                                             .limit(10)
+                                                             .build();
+            EnhancedQueryLatencyReport[] reportHolder = new EnhancedQueryLatencyReport[1];
+            for (EnhancedQueryRow ignored : client.enhancedQuery(spec, report -> reportHolder[0] = report)) {
+                count++;
+            }
+            if (reportHolder[0] != null) {
+                rcu += reportHolder[0].totalRcuConsumed();
+                requests += reportHolder[0].totalDynamoDbRequestCount();
+            }
+        }
+        return new RunOutcome((System.nanoTime() - start) / 1_000_000L, count, rcu, requests);
+    }
+
+    private static RunOutcome runConsistentReadCustomer(DynamoDbClient client, String customersTableName) {
+        long start = System.nanoTime();
+        software.amazon.awssdk.services.dynamodb.model.GetItemResponse response = client.getItem(
+            GetItemRequest.builder()
+                          .tableName(customersTableName)
+                          .key(Collections.singletonMap("customerId", AttributeValue.builder().s("c1").build()))
+                          .consistentRead(true)
+                          .returnConsumedCapacity(ReturnConsumedCapacity.TOTAL)
+                          .build());
+        return new RunOutcome((System.nanoTime() - start) / 1_000_000L,
+                              response.item() == null || response.item().isEmpty() ? 0 : 1,
+                              capacityUnits(response), 1L);
+    }
+
+    private static RunOutcome outcomeFromReport(long elapsedNs, int rows, EnhancedQueryLatencyReport report) {
+        return new RunOutcome(elapsedNs / 1_000_000L, rows,
+                              report == null ? 0.0d : report.totalRcuConsumed(),
+                              report == null ? 0L : report.totalDynamoDbRequestCount());
+    }
+
+    private static double capacityUnits(QueryResponse response) {
+        return response.consumedCapacity() == null || response.consumedCapacity().capacityUnits() == null
+               ? 0.0d : response.consumedCapacity().capacityUnits();
+    }
+
+    private static double capacityUnits(software.amazon.awssdk.services.dynamodb.model.GetItemResponse response) {
+        return response.consumedCapacity() == null || response.consumedCapacity().capacityUnits() == null
+               ? 0.0d : response.consumedCapacity().capacityUnits();
+    }
+
     private static int parseIntEnv(String key, int defaultValue) {
         String v = System.getenv(key);
         if (v == null || v.isEmpty()) {
@@ -561,6 +892,107 @@ public final class EnhancedQueryBenchmarkRunner {
         } catch (NumberFormatException e) {
             return defaultValue;
         }
+    }
+
+    private static final String READ_CSV_HEADER =
+        "Run ID,Solution,Scenario ID,Scenario,Category,Description,Execution Path,Result Status,Expected Rows,Observed Rows,"
+        + "Average Latency (ms),P50 Latency (ms),P95 Latency (ms),Average Read Capacity Units,"
+        + "Average Write Capacity Units,Average DynamoDB Requests,Total Read Capacity Units,"
+        + "Total Write Capacity Units,Total DynamoDB Requests,AWS Region,EC2 Instance Type,DynamoDB Billing Mode,"
+        + "Read Consistency,Customer Count,Orders Per Customer,Warmup Iterations,Measured Iterations";
+
+    private static void writeCsv(String outputFile,
+                                 List<Scenario> scenarios,
+                                 List<Result> results,
+                                 String region,
+                                 int customerCount,
+                                 int ordersPerCustomer,
+                                 int warmup,
+                                 int iterations) throws java.io.IOException {
+        java.nio.file.Path file = java.nio.file.Paths.get(outputFile);
+        if (file.getParent() != null) {
+            java.nio.file.Files.createDirectories(file.getParent());
+        }
+        try (java.io.PrintWriter out = new java.io.PrintWriter(java.nio.file.Files.newBufferedWriter(
+            file, java.nio.charset.StandardCharsets.UTF_8,
+            java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING))) {
+            out.println(READ_CSV_HEADER);
+            for (int i = 0; i < results.size(); i++) {
+                Scenario scenario = scenarios.get(i);
+                Result result = results.get(i);
+                String consistency = "consistent_read_summary_one_customer".equals(scenario.name) ? "Strong" : "Eventual";
+                out.printf(Locale.US,
+                           "%s,Enhanced Queries,%s,%s,%s,%s,%s,PASS,%d,%d,%.2f,%.2f,%.2f,%.2f,0.00,%d,%.2f,0.00,%d,%s,%s,%s,%s,%d,%d,%d,%d%n",
+                           csv(envOrDefault("BENCHMARK_RUN_ID", "not-configured")),
+                           csv(scenario.name),
+                           csv(readableScenarioName(scenario.name)),
+                           csv(scenarioCategory(scenario.name)),
+                           csv(scenario.description),
+                           csv(scenario.ddbOperation),
+                           result.expectedRows,
+                           result.rows,
+                           result.avgMs,
+                           (double) result.p50Ms,
+                           (double) result.p95Ms,
+                           result.readCapacityUnits,
+                           result.requestCount,
+                           result.totalReadCapacityUnits,
+                           result.totalRequestCount,
+                           csv(region),
+                           csv(envOrDefault("INSTANCE_TYPE", "not-configured")),
+                           csv(envOrDefault("DYNAMODB_BILLING_MODE", "not-configured")),
+                           consistency,
+                           customerCount,
+                           ordersPerCustomer,
+                           warmup,
+                           iterations);
+            }
+        }
+    }
+
+    private static String scenarioCategory(String scenarioId) {
+        if (scenarioId.contains("join")) {
+            return "Join";
+        }
+        if (scenarioId.contains("pagination")) {
+            return "Pagination";
+        }
+        if (scenarioId.contains("consistent")) {
+            return "Consistency";
+        }
+        if (scenarioId.contains("scan")) {
+            return "Scan and aggregation";
+        }
+        if (scenarioId.contains("top10") || scenarioId.contains("having") || scenarioId.contains("grouped")) {
+            return "Grouped aggregation";
+        }
+        if (scenarioId.contains("batch")) {
+            return "Batch read";
+        }
+        return "Point read and aggregation";
+    }
+
+    private static String csv(String value) {
+        return "\"" + value.replace("\"", "\"\"") + "\"";
+    }
+
+    private static String envOrDefault(String name, String defaultValue) {
+        String value = System.getenv(name);
+        return value == null || value.isEmpty() ? defaultValue : value;
+    }
+
+    private static String readableScenarioName(String scenarioId) {
+        StringBuilder result = new StringBuilder();
+        for (String word : scenarioId.split("_")) {
+            if (word.isEmpty()) {
+                continue;
+            }
+            if (result.length() > 0) {
+                result.append(' ');
+            }
+            result.append(Character.toUpperCase(word.charAt(0))).append(word.substring(1));
+        }
+        return result.toString();
     }
 
     private static String truncate(String s, int maxLen) {
@@ -642,17 +1074,69 @@ public final class EnhancedQueryBenchmarkRunner {
         return "" + BOX_V + v1 + BOX_V + v2 + BOX_V + v3 + BOX_V + v4 + BOX_V + v5 + BOX_V + v6 + BOX_V + v7 + BOX_V;
     }
 
+    @FunctionalInterface
+    private interface ScenarioAction {
+        RunOutcome run(DynamoDbEnhancedClient enhancedClient, DynamoDbClient dynamoDbClient);
+    }
+
+    private static final class RunOutcome {
+        final long ms;
+        final int rows;
+        final Double readCapacityUnits;
+        final Long requestCount;
+
+        RunOutcome(long ms, int rows) {
+            this(ms, rows, null, null);
+        }
+
+        RunOutcome(long ms, int rows, Double readCapacityUnits, Long requestCount) {
+            this.ms = ms;
+            this.rows = rows;
+            this.readCapacityUnits = readCapacityUnits;
+            this.requestCount = requestCount;
+        }
+    }
+
     private static class Scenario {
         final String name;
         final String description;
         final String ddbOperation;
-        final Supplier<QueryExpressionSpec> specSupplier;
+        final ScenarioAction action;
+        final boolean allowsEmptyResult;
 
-        Scenario(String name, String description, String ddbOperation, Supplier<QueryExpressionSpec> specSupplier) {
+        Scenario(String name, String description, String ddbOperation, ScenarioAction action) {
+            this(name, description, ddbOperation, action, "having_with_between".equals(name));
+        }
+
+        Scenario(String name,
+                 String description,
+                 String ddbOperation,
+                 ScenarioAction action,
+                 boolean allowsEmptyResult) {
             this.name = name;
             this.description = description;
             this.ddbOperation = ddbOperation;
-            this.specSupplier = specSupplier;
+            this.action = action;
+            this.allowsEmptyResult = allowsEmptyResult;
+        }
+
+        static Scenario fromSpec(String name,
+                                 String description,
+                                 String ddbOperation,
+                                 Supplier<QueryExpressionSpec> specSupplier) {
+            return new Scenario(name, description, ddbOperation, (client, dynamoDbClient) -> {
+                EnhancedQueryLatencyReport[] reportHolder = new EnhancedQueryLatencyReport[1];
+                EnhancedQueryResult result = client.enhancedQuery(specSupplier.get(), r -> reportHolder[0] = r);
+                int count = 0;
+                for (EnhancedQueryRow ignored : result) {
+                    count++;
+                }
+                long ms = reportHolder[0] != null ? reportHolder[0].totalMs() : 0L;
+                EnhancedQueryLatencyReport report = reportHolder[0];
+                return new RunOutcome(ms, count,
+                                      report == null ? null : report.totalRcuConsumed(),
+                                      report == null ? null : report.totalDynamoDbRequestCount());
+            });
         }
     }
 
@@ -660,49 +1144,63 @@ public final class EnhancedQueryBenchmarkRunner {
         final double avgMs;
         final long p50Ms;
         final long p95Ms;
+        final int expectedRows;
         final int rows;
+        final Double readCapacityUnits;
+        final Long requestCount;
+        final double totalReadCapacityUnits;
+        final long totalRequestCount;
 
-        Result(double avgMs, long p50Ms, long p95Ms, int rows) {
+        Result(double avgMs, long p50Ms, long p95Ms, int expectedRows, int rows,
+               Double readCapacityUnits, Long requestCount,
+               double totalReadCapacityUnits, long totalRequestCount) {
             this.avgMs = avgMs;
             this.p50Ms = p50Ms;
             this.p95Ms = p95Ms;
+            this.expectedRows = expectedRows;
             this.rows = rows;
+            this.readCapacityUnits = readCapacityUnits;
+            this.requestCount = requestCount;
+            this.totalReadCapacityUnits = totalReadCapacityUnits;
+            this.totalRequestCount = totalRequestCount;
         }
     }
 
-    private static Result runScenario(DynamoDbEnhancedClient enhancedClient, Scenario scenario, int warmup, int iterations) {
-        QueryExpressionSpec spec = scenario.specSupplier.get();
+    private static Result runScenario(DynamoDbEnhancedClient enhancedClient,
+                                      DynamoDbClient dynamoDbClient,
+                                      Scenario scenario,
+                                      int warmup,
+                                      int iterations) {
+        int expectedRows = scenario.action.run(enhancedClient, dynamoDbClient).rows;
+        if (expectedRows == 0 && !scenario.allowsEmptyResult) {
+            throw new IllegalStateException("Scenario " + scenario.name
+                                            + " returned no rows during preflight validation");
+        }
         for (int i = 0; i < warmup; i++) {
-            runOnce(enhancedClient, spec);
+            scenario.action.run(enhancedClient, dynamoDbClient);
         }
         List<Long> times = new ArrayList<>(iterations);
         int rows = 0;
+        double totalReadCapacityUnits = 0.0d;
+        long totalRequestCount = 0L;
         for (int i = 0; i < iterations; i++) {
-            long[] msHolder = new long[1];
-            int[] rowsHolder = new int[1];
-            runOnce(enhancedClient, spec, msHolder, rowsHolder);
-            times.add(msHolder[0]);
-            rows = rowsHolder[0];
+            RunOutcome outcome = scenario.action.run(enhancedClient, dynamoDbClient);
+            times.add(outcome.ms);
+            if (outcome.rows != expectedRows) {
+                throw new IllegalStateException("Scenario " + scenario.name + " returned " + outcome.rows
+                                                + " rows, expected " + expectedRows);
+            }
+            rows = outcome.rows;
+            totalReadCapacityUnits += outcome.readCapacityUnits == null ? 0.0d : outcome.readCapacityUnits;
+            totalRequestCount += outcome.requestCount == null ? 0L : outcome.requestCount;
         }
         Collections.sort(times);
         long p50 = times.get((int) (iterations * 0.5));
         long p95 = times.get((int) Math.min(Math.ceil(iterations * 0.95) - 1, iterations - 1));
         double avg = times.stream().mapToLong(Long::longValue).average().orElse(0);
-        return new Result(avg, p50, p95, rows);
-    }
-
-    private static void runOnce(DynamoDbEnhancedClient enhancedClient, QueryExpressionSpec spec, long[] outMs, int[] outRows) {
-        EnhancedQueryLatencyReport[] reportHolder = new EnhancedQueryLatencyReport[1];
-        EnhancedQueryResult result = enhancedClient.enhancedQuery(spec, r -> reportHolder[0] = r);
-        int count = 0;
-        for (EnhancedQueryRow row : result) {
-            count++;
-        }
-        outMs[0] = reportHolder[0] != null ? reportHolder[0].totalMs() : 0L;
-        outRows[0] = count;
-    }
-
-    private static void runOnce(DynamoDbEnhancedClient enhancedClient, QueryExpressionSpec spec) {
-        runOnce(enhancedClient, spec, new long[1], new int[1]);
+        return new Result(avg, p50, p95, expectedRows, rows,
+                          totalReadCapacityUnits / iterations,
+                          totalRequestCount / iterations,
+                          totalReadCapacityUnits, totalRequestCount);
     }
 }

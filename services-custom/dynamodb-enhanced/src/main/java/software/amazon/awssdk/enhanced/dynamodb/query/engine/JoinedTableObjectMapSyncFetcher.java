@@ -31,6 +31,9 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
@@ -71,6 +74,9 @@ public final class JoinedTableObjectMapSyncFetcher {
         String primaryPk = joinedSchema.tableMetadata().primaryPartitionKey();
 
         if (primaryPk.equals(joinedJoinAttr)) {
+            if (!joinedSchema.tableMetadata().primarySortKey().isPresent() && joinKeys.size() > 1) {
+                return batchGetByPk(joinedTable.tableName(), primaryPk, joinKeys, stats);
+            }
             return lowLevelQueryByPk(joinedTable.tableName(), primaryPk, joinKeys, stats);
         }
 
@@ -80,6 +86,50 @@ public final class JoinedTableObjectMapSyncFetcher {
         }
 
         return parallelScanFallback(joinedTable.tableName(), joinKeys, joinedJoinAttr, stats);
+    }
+
+    /**
+     * BatchGetItem when join attribute is the sole partition key (no sort key).
+     */
+    private Map<Object, List<Map<String, Object>>> batchGetByPk(
+        String tableName, String pkAttr, Set<Object> joinKeys, EnhancedQueryExecutionStats stats) {
+        Map<Object, List<Map<String, Object>>> result = new HashMap<>();
+        List<Map<String, AttributeValue>> keys = new ArrayList<>();
+        for (Object key : joinKeys) {
+            keys.add(Collections.singletonMap(pkAttr, AttributeValueConversion.toKeyAttributeValue(key)));
+        }
+        int batchSize = 100;
+        for (int start = 0; start < keys.size(); start += batchSize) {
+            int end = Math.min(keys.size(), start + batchSize);
+            List<Map<String, AttributeValue>> chunk = keys.subList(start, end);
+            Map<String, KeysAndAttributes> requestItems = new HashMap<>();
+            requestItems.put(tableName, KeysAndAttributes.builder().keys(chunk).build());
+            stats.addJoinedQuery();
+            BatchGetItemResponse response = lowLevel.batchGetItem(BatchGetItemRequest.builder()
+                                                                                     .requestItems(requestItems)
+                                                                                     .returnConsumedCapacity(
+                                                                                         ReturnConsumedCapacity.TOTAL)
+                                                                                     .build());
+            if (response.consumedCapacity() != null) {
+                for (software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity cc
+                     : response.consumedCapacity()) {
+                    stats.addConsumedCapacity(cc, false, true);
+                }
+            }
+            for (Map<String, AttributeValue> item : response.responses().getOrDefault(tableName,
+                                                                                      Collections.emptyList())) {
+                AttributeValue keyAv = item.get(pkAttr);
+                if (keyAv == null) {
+                    continue;
+                }
+                Object key = AttributeValueConversion.toObject(keyAv);
+                if (key != null) {
+                    result.computeIfAbsent(key, k -> new ArrayList<>())
+                          .add(AttributeValueConversion.toObjectMap(item));
+                }
+            }
+        }
+        return result;
     }
 
     /**
