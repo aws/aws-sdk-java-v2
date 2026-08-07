@@ -23,14 +23,19 @@ import static org.mockito.Mockito.when;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
@@ -157,6 +162,151 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
             assertThatThrownBy(credentialsProvider::resolveCredentials)
                 .isInstanceOf(SdkClientException.class)
                 .hasMessageContaining("STS service unavailable");
+        }
+    }
+
+    static Stream<String> nonRecoverableErrorCodes() {
+        return StsCredentialsProvider.NON_RECOVERABLE_ERROR_CODES.stream();
+    }
+
+    /**
+     * Non-recoverable STS errors must bypass static stability and propagate to the caller immediately,
+     * even when cached credentials exist. This is because retrying the same request will never succeed
+     * for these error codes — the underlying problem (e.g., revoked access, invalid policy) requires
+     * operator intervention.
+     */
+    @ParameterizedTest
+    @MethodSource("nonRecoverableErrorCodes")
+    public void nonRecoverableError_bypassesStaticStability_throwsImmediately(String errorCode) {
+        // First call returns valid but already-expired credentials (forces refresh on next call)
+        Credentials validCredentials = Credentials.builder()
+                                                  .accessKeyId("a")
+                                                  .secretAccessKey("b")
+                                                  .sessionToken("c")
+                                                  .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                  .build();
+        RequestT request = getRequest();
+        ResponseT response = getResponse(validCredentials);
+
+        AwsServiceException nonRecoverableException = AwsServiceException.builder()
+            .message("Access denied")
+            .awsErrorDetails(AwsErrorDetails.builder()
+                                            .errorCode(errorCode)
+                                            .errorMessage("Non-recoverable STS error")
+                                            .serviceName("STS")
+                                            .build())
+            .statusCode(403)
+            .build();
+
+        // First call succeeds, second call fails with a non-recoverable error
+        when(callClient(stsClient, request))
+            .thenReturn(response)
+            .thenThrow(nonRecoverableException);
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // First call succeeds and caches credentials
+            AwsCredentials firstResult = credentialsProvider.resolveCredentials();
+            assertThat(((AwsSessionCredentials) firstResult).accessKeyId()).isEqualTo("a");
+
+            // Second call must throw because the error is non-recoverable — static stability must NOT absorb it
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(AwsServiceException.class)
+                .satisfies(e -> assertThat(((AwsServiceException) e).awsErrorDetails().errorCode())
+                    .isEqualTo(errorCode));
+        }
+    }
+
+    /**
+     * Non-recoverable errors wrapped inside an SdkClientException (as a cause) must also bypass
+     * static stability. The predicate extracts the AwsServiceException from the exception chain.
+     */
+    @Test
+    public void nonRecoverableError_wrappedInSdkClientException_throwsImmediately() {
+        Credentials validCredentials = Credentials.builder()
+                                                  .accessKeyId("a")
+                                                  .secretAccessKey("b")
+                                                  .sessionToken("c")
+                                                  .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                  .build();
+        RequestT request = getRequest();
+        ResponseT response = getResponse(validCredentials);
+
+        AwsServiceException accessDenied = AwsServiceException.builder()
+            .message("Access denied")
+            .awsErrorDetails(AwsErrorDetails.builder()
+                                            .errorCode("AccessDenied")
+                                            .errorMessage("User is not authorized")
+                                            .serviceName("STS")
+                                            .build())
+            .statusCode(403)
+            .build();
+        // Wrap in SdkClientException as might happen in the real call path
+        SdkClientException wrappedException = SdkClientException.create("Failed to assume role", accessDenied);
+
+        when(callClient(stsClient, request))
+            .thenReturn(response)
+            .thenThrow(wrappedException);
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            AwsCredentials firstResult = credentialsProvider.resolveCredentials();
+            assertThat(((AwsSessionCredentials) firstResult).accessKeyId()).isEqualTo("a");
+
+            // Must throw — the wrapped AccessDenied is non-recoverable
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(SdkClientException.class)
+                .hasCauseInstanceOf(AwsServiceException.class);
+        }
+    }
+
+    /**
+     * Verifies that recoverable errors (those with error codes NOT in the non-recoverable set) still
+     * benefit from static stability — the provider returns cached credentials instead of throwing.
+     * This is the complement to the non-recoverable error tests: a service unavailable or throttling
+     * error should not propagate immediately.
+     */
+    @Test
+    public void recoverableError_staticStabilityReturnsCachedCredentials() {
+        Credentials validCredentials = Credentials.builder()
+                                                  .accessKeyId("a")
+                                                  .secretAccessKey("b")
+                                                  .sessionToken("c")
+                                                  .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                  .build();
+        RequestT request = getRequest();
+        ResponseT response = getResponse(validCredentials);
+
+        // A throttling error — recoverable, should be absorbed by static stability
+        AwsServiceException throttlingException = AwsServiceException.builder()
+            .message("Rate exceeded")
+            .awsErrorDetails(AwsErrorDetails.builder()
+                                            .errorCode("Throttling")
+                                            .errorMessage("Rate exceeded")
+                                            .serviceName("STS")
+                                            .build())
+            .statusCode(400)
+            .build();
+
+        when(callClient(stsClient, request))
+            .thenReturn(response)
+            .thenThrow(throttlingException);
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            AwsCredentials firstResult = credentialsProvider.resolveCredentials();
+            assertThat(((AwsSessionCredentials) firstResult).accessKeyId()).isEqualTo("a");
+
+            // Second call should return cached credentials — Throttling is recoverable
+            AwsCredentials secondResult = credentialsProvider.resolveCredentials();
+            assertThat(secondResult).isInstanceOf(AwsSessionCredentials.class);
+            assertThat(((AwsSessionCredentials) secondResult).accessKeyId()).isEqualTo("a");
         }
     }
 
