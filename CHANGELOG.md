@@ -1,4 +1,44 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.51.3__ __2026-08-07__
+## __AWS Amplify__
+  - ### Features
+    - Increased the maximum allowed length of the oauthToken parameter in the CreateApp and UpdateApp APIs to support longer OAuth tokens issued by third-party Git providers.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - StreamNameOutputMode - a new optional field on MediaPackageV2 OriginEndpoints that lets customers choose whether egress manifests use numeric stream indices (default) or encoder-assigned stream names from the input
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added support for inserting ads via the VAST Ad Buffet standard. You can now configure MediaTailor to insert ads in sequence order using the AdSequencingMode setting in your playback configuration. Standalone ads are used as fallbacks when a sequenced ad is unavailable.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Correctly support endpoint expressions with multiple chained assigns.
+
+## __AWS Security Agent__
+  - ### Features
+    - Added enableEmailMfa input field on Actor to enable email-based MFA during penetration tests. When enabled, a server-generated mfaForwardingAddress is returned. Set up a forwarding rule in your email provider to forward MFA emails to this address so the agent can complete email-based MFA login flows
+
+## __Amazon Connect Service__
+  - ### Features
+    - Supports updating the task template associated with in-progress task contacts using the new UpdateContactTaskTemplate API. This enables supervisors and developers to dynamically reassign task templates without creating a new task.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for BGP route protection in Amazon VPC IP Address Manager (IPAM), including route discovery, RPKI route protection findings, and delegated RPKI (Internet Registry Associations, routing policy registrations, and ROA management) for BYOIP prefixes.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Adds provenanceEnabled to StartFHIRImportJob
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker adds maintenance lifecycle statuses for Notebook Instances
+
 # __2.51.2__ __2026-08-06__
 ## __AWS Backup__
   - ### Features
