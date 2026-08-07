@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.warmup;
 
 import java.util.LinkedHashSet;
-import java.util.ServiceLoader;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -36,18 +35,23 @@ import software.amazon.awssdk.utils.Logger;
  * Entry point for warming up SDK service request paths before a Coordinated Restore at Checkpoint (CRaC)
  * checkpoint.
  *
- * <p>{@link #warmUp()} discovers every {@link SdkWarmUpProvider} registered on the classpath through {@link
- * ServiceLoader} (via the {@code META-INF/services/software.amazon.awssdk.core.warmup.SdkWarmUpProvider}
- * resource) and invokes {@link SdkWarmUpProvider#warmUp()} on each.
+ * <p>Warms up the service clients and the HTTP clients, as below. Neither needs AWS credentials:
+ * <ul>
+ *     <li><b>Service client warm-up:</b> for each service, builds a client on a stub HTTP client that returns
+ *     a fixed in-memory response and invokes one operation. This makes no network call, and JIT-compiles the
+ *     marshalling, signing, and unmarshalling paths.</li>
+ *     <li><b>HTTP client warm-up:</b> for each HTTP client on the classpath, sends one {@code GET} to the
+ *     regional STS endpoint ({@code https://sts.<region>.amazonaws.com/}) to JIT-compile the HTTP client, DNS,
+ *     TLS handshake, and certificate-chain paths. The response is discarded and any failure is ignored.</li>
+ * </ul>
  *
  * <p>Behavior contract:
  * <ul>
- *     <li><b>Idempotent:</b> {@code prime()} runs the warm-up at most once per JVM. Once a call completes
+ *     <li><b>Idempotent:</b> {@code warmUp()} runs the warm-up at most once per JVM. Once a call completes
  *     successfully, later calls return immediately. If a call throws before completing, a later call retries.
  *     Concurrent callers block until the in-flight call finishes, then observe its result.</li>
  *     <li><b>Per-provider resilience:</b> a single provider that throws from {@code warmUp()}, or that fails
  *     to load, does not prevent the remaining providers from running.</li>
- *     <li><b>Safe when empty:</b> if no providers are registered, {@code prime()} is a no-op.</li>
  * </ul>
  *
  * <p>Call this once during application initialization, before a CRaC checkpoint is taken.
@@ -72,9 +76,11 @@ public final class SdkWarmUp {
     }
 
     /**
-     * Discovers every {@link SdkWarmUpProvider} on the classpath and invokes {@link SdkWarmUpProvider#warmUp()}
-     * on each, honoring the idempotency, per-provider resilience, and empty-classpath behavior described on
-     * this class. Safe to call concurrently.
+     * Warms every SDK service client and every HTTP client discovered on the classpath. Honors the
+     * idempotency and per-provider resilience described on this class.
+     *
+     * <p>Refer to the {@link SdkWarmUp class documentation} for the service warm-up and the HTTP-client
+     * warm-up it performs.
      *
      * <p>This method and {@link #warmUp(Class[])} track primed state independently: this method warms
      * every provider and does not skip clients that were warmed by a targeted {@link #warmUp(Class[])} call.
@@ -95,21 +101,28 @@ public final class SdkWarmUp {
     }
 
     /**
-     * Primes only the given service clients, warming the sync path for a sync client and the async path for an async
-     * client. A client already primed by this method is skipped; a class matched by no provider, or whose warm-up
-     * fails, is logged at warn and retried on the next call. The HTTP clients on the classpath are warmed at most
-     * once across all calls to this method. Best-effort and safe to call concurrently.
+     * Warms only the given service clients: a sync client class warms the sync path, an async client class the
+     * async path. A client already warmed by this method is skipped; a class that matches no service client, or
+     * whose warm-up fails, is logged at warn and retried on the next call. Best-effort and safe to call
+     * concurrently.
      *
-     * <p>This method and {@link #warmUp()} track primed state independently: this method does not skip
+     * <p>The HTTP clients on the classpath are warmed at most once per client type across all calls to this
+     * method: the sync HTTP clients on the first call that warms a sync client, and the async HTTP clients on
+     * the first call that warms an async client.
+     *
+     * <p>Needs no AWS credentials. Refer to the {@link SdkWarmUp class documentation} for what the service
+     * warm-up and the HTTP-client warm-up each do.
+     *
+     * <p>This method and {@link #warmUp()} track warmed state independently: this method does not skip
      * clients that {@link #warmUp()} already warmed.
      *
-     * @param clients the service client classes to prime, for example {@code ServiceClient.class} or
+     * @param clients the service client classes to warm, for example {@code ServiceClient.class} or
      *                {@code ServiceAsyncClient.class}.
      */
     @SafeVarargs
     public static void warmUp(Class<? extends SdkClient>... clients) {
         if (clients == null || clients.length == 0) {
-            log.debug(() -> "SdkWarmUp.prime(Class...) called with no clients; nothing to do.");
+            log.debug(() -> "SdkWarmUp.warmUp(Class...) called with no clients; nothing to do.");
             return;
         }
 
