@@ -117,7 +117,8 @@
         "crt-unavailable-tests": { "skipImport": true },
         "bundle-shading-tests": { "skipImport": true },
         "architecture-tests": {"skipImport":  true},
-        "s3-tests": {"skipImport":  true}
+        "s3-tests": {"skipImport":  true},
+        "warmup-tests": { "skipImport": true }
     },
 
     "dependencies": {
