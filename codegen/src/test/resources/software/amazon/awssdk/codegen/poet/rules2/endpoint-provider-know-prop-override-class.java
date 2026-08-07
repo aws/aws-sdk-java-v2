@@ -64,15 +64,18 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                 if (firstArn != null) {
                     RuleArn parsedArn = RulesFunctions.awsParseArn(firstArn);
                     if (parsedArn != null) {
-                        return RuleResult.endpoint(Endpoint
-                                .builder()
-                                .endpointUrl(
-                                        EndpointUrl.fromComponents("https",
-                                                params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""))
-                                .putAttribute(
-                                        AwsEndpointAttribute.AUTH_SCHEMES,
-                                        Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
-                                                .signingRegionSet(Arrays.asList("*")).build())).build());
+                        String arnResourceId = RulesFunctions.listAccess(parsedArn.resourceId(), 0);
+                        if (arnResourceId != null) {
+                            return RuleResult.endpoint(Endpoint
+                                    .builder()
+                                    .endpointUrl(
+                                            EndpointUrl.fromComponents("https", arnResourceId + "." + params.endpointId()
+                                                    + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""))
+                                    .putAttribute(
+                                            AwsEndpointAttribute.AUTH_SCHEMES,
+                                            Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
+                                                    .signingRegionSet(Arrays.asList("*")).build())).build());
+                        }
                     }
                 }
             }

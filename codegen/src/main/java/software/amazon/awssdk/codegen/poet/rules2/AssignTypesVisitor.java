@@ -117,16 +117,21 @@ public final class AssignTypesVisitor extends RewriteRuleExpressionVisitor {
 
     @Override
     public RuleExpression visitLetExpression(LetExpression e) {
-        LetExpression expr = (LetExpression) super.visitLetExpression(e);
-        expr.bindings().forEach((k, v) -> {
-            RuleType type = v.type();
+        // Process bindings sequentially so that each binding's type is registered before subsequent bindings are
+        // visited. This allows later bindings to reference variables assigned by earlier bindings within the same
+        // let expression (e.g., `isoArn = aws.parseArn(...)` followed by `isoArnType = getAttr(isoArn, ...)`).
+        LetExpression.Builder builder = LetExpression.builder();
+        e.bindings().forEach((k, v) -> {
+            RuleExpression visited = v.accept(this);
+            RuleType type = visited.type();
             if (type == null) {
-                addError("Cannot find type for variable `%s`, expression: `%s`", k, v);
+                addError("Cannot find type for variable `%s`, expression: `%s`", k, visited);
             } else {
                 putLocal(k, type);
             }
+            builder.putBinding(k, visited);
         });
-        return expr;
+        return builder.build();
     }
 
     @Override
