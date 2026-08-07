@@ -129,6 +129,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+        protocolSpec.errorResponseMapperField().ifPresent(type::addField);
     }
 
     @Override

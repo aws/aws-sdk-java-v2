@@ -41,25 +41,22 @@ public class ClientLambdaCallSiteCeilingTest {
      * fixture's count by its operation count, which is at least 4 for every fixture listed here, so the headroom absorbs
      * a couple of new shared per-client lambdas without absorbing a per-operation one. Single-operation fixtures are
      * excluded for that reason: no headroom smaller than one operation exists.
-     *
-     * <p>The JSON, CBOR and Smithy RPC v2 fixtures are legitimately higher than the rest because those protocols emit a
-     * per-operation {@code exceptionMetadataMapper} lambda whose body switches over that operation's error codes.
      */
     private static Stream<Arguments> ceilings() {
         return Stream.of(
-            Arguments.of("test-json-async-client-class.java", 44),
-            Arguments.of("test-json-client-class.java", 18),
-            Arguments.of("test-aws-json-async-client-class.java", 38),
-            Arguments.of("test-cbor-async-client-class.java", 38),
-            Arguments.of("test-cbor-client-class.java", 16),
-            Arguments.of("test-rpcv2-async-client-class.java", 19),
-            Arguments.of("test-rpcv2-sync.java", 18),
+            Arguments.of("test-json-async-client-class.java", 29),
+            Arguments.of("test-json-client-class.java", 6),
+            Arguments.of("test-aws-json-async-client-class.java", 25),
+            Arguments.of("test-cbor-async-client-class.java", 25),
+            Arguments.of("test-cbor-client-class.java", 6),
+            Arguments.of("test-rpcv2-async-client-class.java", 7),
+            Arguments.of("test-rpcv2-sync.java", 6),
             Arguments.of("test-query-async-client-class.java", 14),
             Arguments.of("test-query-client-class.java", 5),
             Arguments.of("test-xml-async-client-class.java", 18),
             Arguments.of("test-xml-client-class.java", 5),
-            Arguments.of("test-unsigned-payload-trait-async-client-class.java", 17),
-            Arguments.of("test-unsigned-payload-trait-sync-client-class.java", 16)
+            Arguments.of("test-unsigned-payload-trait-async-client-class.java", 7),
+            Arguments.of("test-unsigned-payload-trait-sync-client-class.java", 6)
         );
     }
 
