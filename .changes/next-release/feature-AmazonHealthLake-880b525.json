@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon HealthLake",
-    "contributor": "",
-    "description": "Adds provenanceEnabled to StartFHIRImportJob"
-}
