@@ -374,10 +374,16 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                                 .builder()
                                 .fn(FnNode.builder().fn("aws.parseArn").argv(Arrays.asList(Expr.ref(Identifier.of("FirstArn"))))
                                         .build().validate()).result("ParsedArn").build())
+                .addCondition(
+                        Condition
+                                .builder()
+                                .fn(FnNode.builder().fn("getAttr")
+                                        .argv(Arrays.asList(Expr.ref(Identifier.of("ParsedArn")), Expr.of("resourceId[0]")))
+                                        .build().validate()).result("ArnResourceId").build())
                 .endpoint(
                         EndpointResult
                                 .builder()
-                                .url(Expr.of("https://{endpointId}.query.{partitionResult#dualStackDnsSuffix}"))
+                                .url(Expr.of("https://{ArnResourceId}.{endpointId}.query.{partitionResult#dualStackDnsSuffix}"))
                                 .addProperty(
                                         Identifier.of("authSchemes"),
                                         Literal.fromTuple(Arrays.asList(Literal.fromRecord(MapUtils.of(Identifier.of("name"),
