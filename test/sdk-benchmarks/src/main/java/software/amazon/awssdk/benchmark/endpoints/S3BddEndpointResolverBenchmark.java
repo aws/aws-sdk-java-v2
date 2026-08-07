@@ -37,13 +37,17 @@ import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineRulesEndpointResolver;
 import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
 
 /**
- * Compares S3 endpoint resolution using the code generated BDD resolver
- * ({@link DefaultS3EndpointProvider}) against the equivalent rules based resolver
- * ({@link BaselineRulesEndpointResolver}).
+ * Compares S3 endpoint resolution across three resolver implementations:
+ * <ol>
+ *   <li>{@link BaselineRulesEndpointResolver} - the classic rules-based resolver (generated without BDD)</li>
+ *   <li>{@link BaselineBddEndpointProvider} - the original table-driven BDD resolver (while-loop traversal)</li>
+ *   <li>{@link DefaultS3EndpointProvider} - the optimized BDD resolver (direct control-flow, inlined if-branches)</li>
+ * </ol>
  *
  * <p>Covers every non-error S3 endpoint test case carried over from the original BDD proof of concept.
  *
@@ -63,7 +67,8 @@ public class S3BddEndpointResolverBenchmark {
     private static final long SHUFFLE_SEED = 20260730L;
 
     private final S3EndpointProvider rulesBasedProvider = new BaselineRulesEndpointResolver();
-    private final S3EndpointProvider bddBasedProvider = new DefaultS3EndpointProvider();
+    private final S3EndpointProvider baselineBddProvider = new BaselineBddEndpointProvider();
+    private final S3EndpointProvider optimizedBddProvider = new DefaultS3EndpointProvider();
 
     private Map<String, S3EndpointParams> nonErrorCases;
     private List<S3EndpointParams> shuffledCases;
@@ -89,8 +94,13 @@ public class S3BddEndpointResolverBenchmark {
     }
 
     @Benchmark
-    public void bddBasedResolver(Blackhole blackhole) {
-        runTest(blackhole, bddBasedProvider);
+    public void baselineBddResolver(Blackhole blackhole) {
+        runTest(blackhole, baselineBddProvider);
+    }
+
+    @Benchmark
+    public void optimizedBddResolver(Blackhole blackhole) {
+        runTest(blackhole, optimizedBddProvider);
     }
 
     private void runTest(Blackhole blackhole, S3EndpointProvider endpointProvider) {

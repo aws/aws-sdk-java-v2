@@ -38,13 +38,17 @@ import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointParams;
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointProvider;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineRulesEndpointResolver;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.DefaultDynamoDbEndpointProvider;
 
 /**
- * Compares DynamoDB endpoint resolution using the code generated BDD resolver
- * ({@link DefaultDynamoDbEndpointProvider}) against the equivalent rules based resolver
- * ({@link BaselineRulesEndpointResolver}).
+ * Compares DynamoDB endpoint resolution across three resolver implementations:
+ * <ol>
+ *   <li>{@link BaselineRulesEndpointResolver} - the classic rules-based resolver (generated without BDD)</li>
+ *   <li>{@link BaselineBddEndpointProvider} - the original table-driven BDD resolver (while-loop traversal)</li>
+ *   <li>{@link DefaultDynamoDbEndpointProvider} - the optimized BDD resolver (direct control-flow, inlined if-branches)</li>
+ * </ol>
  *
  * <p>Covers every non-error case from the generated {@code DynamoDbEndpointProviderTests}, which exercises account ID based
  * endpoints in addition to the standard regional, FIPS, dual-stack and custom endpoint cases.
@@ -65,7 +69,8 @@ public class DynamoDbBddEndpointResolverBenchmark {
     private static final long SHUFFLE_SEED = 20260730L;
 
     private final DynamoDbEndpointProvider rulesBasedProvider = new BaselineRulesEndpointResolver();
-    private final DynamoDbEndpointProvider bddBasedProvider = new DefaultDynamoDbEndpointProvider();
+    private final DynamoDbEndpointProvider baselineBddProvider = new BaselineBddEndpointProvider();
+    private final DynamoDbEndpointProvider optimizedBddProvider = new DefaultDynamoDbEndpointProvider();
 
     private Map<String, DynamoDbEndpointParams> nonErrorCases;
     private List<DynamoDbEndpointParams> shuffledCases;
@@ -91,8 +96,13 @@ public class DynamoDbBddEndpointResolverBenchmark {
     }
 
     @Benchmark
-    public void bddBasedResolver(Blackhole blackhole) {
-        runTest(blackhole, bddBasedProvider);
+    public void baselineBddResolver(Blackhole blackhole) {
+        runTest(blackhole, baselineBddProvider);
+    }
+
+    @Benchmark
+    public void optimizedBddResolver(Blackhole blackhole) {
+        runTest(blackhole, optimizedBddProvider);
     }
 
     private void runTest(Blackhole blackhole, DynamoDbEndpointProvider endpointProvider) {

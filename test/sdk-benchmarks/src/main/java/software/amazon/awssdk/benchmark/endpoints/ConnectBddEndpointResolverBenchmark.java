@@ -37,16 +37,20 @@ import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointParams;
 import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointProvider;
+import software.amazon.awssdk.services.connect.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.connect.endpoints.internal.BaselineRulesEndpointResolver;
 import software.amazon.awssdk.services.connect.endpoints.internal.DefaultConnectEndpointProvider;
 
 /**
- * Compares Amazon Connect endpoint resolution using the code generated BDD resolver
- * ({@link DefaultConnectEndpointProvider}) against the equivalent rules based resolver
- * ({@link BaselineRulesEndpointResolver}).
+ * Compares Amazon Connect endpoint resolution across three resolver implementations:
+ * <ol>
+ *   <li>{@link BaselineRulesEndpointResolver} - the classic rules-based resolver (generated without BDD)</li>
+ *   <li>{@link BaselineBddEndpointProvider} - the original table-driven BDD resolver (while-loop traversal)</li>
+ *   <li>{@link DefaultConnectEndpointProvider} - the optimized BDD resolver (direct control-flow, inlined if-branches)</li>
+ * </ol>
  *
- * <p>Connect uses the standard regional rule set, so this covers the common case shared by the majority of services. The cases
- * are carried over from the original BDD proof of concept.
+ * <p>Connect uses the standard regional rule set, so this covers the common case shared by the majority of services. The
+ * cases are carried over from the original BDD proof of concept.
  *
  * <p>This benchmark exists only to measure and optimize BDD endpoint resolution. It is not registered with
  * {@code BenchmarkRunner} and is not intended to ship.
@@ -64,7 +68,8 @@ public class ConnectBddEndpointResolverBenchmark {
     private static final long SHUFFLE_SEED = 20260730L;
 
     private final ConnectEndpointProvider rulesBasedProvider = new BaselineRulesEndpointResolver();
-    private final ConnectEndpointProvider bddBasedProvider = new DefaultConnectEndpointProvider();
+    private final ConnectEndpointProvider baselineBddProvider = new BaselineBddEndpointProvider();
+    private final ConnectEndpointProvider optimizedBddProvider = new DefaultConnectEndpointProvider();
 
     private Map<String, ConnectEndpointParams> nonErrorCases;
     private List<ConnectEndpointParams> shuffledCases;
@@ -90,8 +95,13 @@ public class ConnectBddEndpointResolverBenchmark {
     }
 
     @Benchmark
-    public void bddBasedResolver(Blackhole blackhole) {
-        runTest(blackhole, bddBasedProvider);
+    public void baselineBddResolver(Blackhole blackhole) {
+        runTest(blackhole, baselineBddProvider);
+    }
+
+    @Benchmark
+    public void optimizedBddResolver(Blackhole blackhole) {
+        runTest(blackhole, optimizedBddProvider);
     }
 
     private void runTest(Blackhole blackhole, ConnectEndpointProvider endpointProvider) {
