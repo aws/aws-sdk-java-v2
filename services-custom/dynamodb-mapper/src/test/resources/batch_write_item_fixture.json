@@ -1,0 +1,4 @@
+{
+  "mixed-put-delete" : "DynamoDB_20120810.BatchWriteItem\n{\"RequestItems\":{\"M_String\":[{\"PutRequest\":{\"Item\":{\"id\":{\"S\":\"k\"},\"value\":{\"S\":\"p\"}}}},{\"DeleteRequest\":{\"Key\":{\"id\":{\"S\":\"d\"}}}}]}}",
+  "two-puts" : "DynamoDB_20120810.BatchWriteItem\n{\"RequestItems\":{\"M_String\":[{\"PutRequest\":{\"Item\":{\"id\":{\"S\":\"k\"},\"value\":{\"S\":\"a\"}}}},{\"PutRequest\":{\"Item\":{\"id\":{\"S\":\"k\"},\"value\":{\"S\":\"b\"}}}}]}}"
+}

@@ -1,0 +1,4 @@
+{
+  "by-key" : "DynamoDB_20120810.GetItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"ConsistentRead\":false}",
+  "composite-key" : "DynamoDB_20120810.GetItem\n{\"TableName\":\"M_Range\",\"Key\":{\"id\":{\"S\":\"k\"},\"range\":{\"S\":\"r\"}},\"ConsistentRead\":false}"
+}

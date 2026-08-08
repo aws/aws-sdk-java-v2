@@ -1,0 +1,17 @@
+{
+  "bool-native-false" : "{\n  \"id\" : \"k\",\n  \"nativeBool\" : false\n}",
+  "bool-native-true" : "{\n  \"id\" : \"k\",\n  \"nativeBool\" : true\n}",
+  "bool-numeric-false" : "{\n  \"id\" : \"k\",\n  \"numericBool\" : false\n}",
+  "bool-numeric-true" : "{\n  \"id\" : \"k\",\n  \"numericBool\" : true\n}",
+  "document" : "{\n  \"document\" : {\n    \"city\" : \"Seattle\",\n    \"zip\" : 98101\n  },\n  \"id\" : \"k\"\n}",
+  "double" : "{\n  \"doubleValue\" : 1.5,\n  \"id\" : \"k\"\n}",
+  "enum" : "{\n  \"enumValue\" : \"GREEN\",\n  \"id\" : \"k\"\n}",
+  "list" : "{\n  \"id\" : \"k\",\n  \"list\" : [ \"first\", \"second\" ]\n}",
+  "map" : "{\n  \"id\" : \"k\",\n  \"map\" : {\n    \"a\" : \"1\",\n    \"b\" : \"2\"\n  }\n}",
+  "number" : "{\n  \"id\" : \"k\",\n  \"number\" : 42\n}",
+  "number-negative" : "{\n  \"id\" : \"k\",\n  \"number\" : -7\n}",
+  "number-set" : "{\n  \"id\" : \"k\",\n  \"numberSet\" : [ 1, 2, 3 ]\n}",
+  "string" : "{\n  \"id\" : \"k\",\n  \"value\" : \"hello\"\n}",
+  "string-set" : "{\n  \"id\" : \"k\",\n  \"stringSet\" : [ \"a\", \"b\", \"c\" ]\n}",
+  "string-unicode" : "{\n  \"id\" : \"k\",\n  \"value\" : \"héllo-世界-\uD83D\uDE00\"\n}"
+}

@@ -1,0 +1,3 @@
+{
+  "two-loads" : "DynamoDB_20120810.TransactGetItems\n{\"TransactItems\":[{\"Get\":{\"Key\":{\"id\":{\"S\":\"a\"}},\"TableName\":\"M_String\"}},{\"Get\":{\"Key\":{\"id\":{\"S\":\"b\"}},\"TableName\":\"M_String\"}}]}"
+}

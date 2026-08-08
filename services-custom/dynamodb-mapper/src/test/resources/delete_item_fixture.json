@@ -1,0 +1,6 @@
+{
+  "delete-with-condition-expression" : "DynamoDB_20120810.DeleteItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"ConditionExpression\":\"attribute_exists(#v)\",\"ExpressionAttributeNames\":{\"#v\":\"value\"}}",
+  "delete-with-expected-expression" : "DynamoDB_20120810.DeleteItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"Expected\":{\"value\":{\"Value\":{\"S\":\"hello\"}}}}",
+  "simple" : "DynamoDB_20120810.DeleteItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"Expected\":{}}",
+  "versioned" : "DynamoDB_20120810.DeleteItem\n{\"TableName\":\"M_Versioned\",\"Key\":{\"id\":{\"S\":\"k\"}},\"Expected\":{\"version\":{\"Value\":{\"N\":\"3\"},\"Exists\":true}}}"
+}
