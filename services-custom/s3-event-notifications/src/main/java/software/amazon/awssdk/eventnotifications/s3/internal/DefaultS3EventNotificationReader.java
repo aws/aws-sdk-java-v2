@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -242,7 +243,29 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         String name = expectStringOrNull(bucketNode, "name");
         UserIdentity ownerIdentity = readOwnerIdentity(bucketNode.get("ownerIdentity"));
         String arn = expectStringOrNull(bucketNode, "arn");
-        return new S3Bucket(name, ownerIdentity, arn);
+        Map<String, String> awsGeneratedTags = readStringMapOrNull(bucketNode.get("awsGeneratedTags"), "awsGeneratedTags");
+        return new S3Bucket(name, ownerIdentity, arn, awsGeneratedTags);
+    }
+
+    private Map<String, String> readStringMapOrNull(JsonNode jsonNode, String name) {
+        Map<String, JsonNode> mapNode = expectObjectOrNull(jsonNode, name);
+        if (mapNode == null) {
+            return null;
+        }
+        Map<String, String> result = new LinkedHashMap<>();
+        mapNode.forEach((tagKey, tagValueNode) ->
+                            result.put(tagKey, readTagStringValueOrNull(name, tagKey, tagValueNode)));
+        return result;
+    }
+
+    private String readTagStringValueOrNull(String mapName, String tagKey, JsonNode tagValue) {
+        if (isNull(tagValue)) {
+            return null;
+        }
+        Validate.isTrue(tagValue.isString(),
+                        "The value of tag '%s' in '%s' was not a string, but was: %s",
+                        tagKey, mapName, tagValue);
+        return tagValue.asString();
     }
 
     private UserIdentity readOwnerIdentity(JsonNode jsonNode) {

@@ -1,0 +1,48 @@
+{
+    "version": "2.47.6",
+    "date": "2026-07-13",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elasticsearch Service",
+            "contributor": "",
+            "description": "Adds support for the EngineMode and UseCase parameters on Amazon Elasticsearch Service domains, enabling GENERAL or OPTIMIZED engine modes and SEARCH, VECTOR, OBSERVABILITY, or MIXED usecases when creating and updating domain configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Common Runtime HTTP Client",
+            "contributor": "",
+            "description": "Added tlsNegotiationTimeout(Duration) configuration to AwsCrtAsyncHttpClient and AwsCrtHttpClient builders, mirroring the option on the Netty client. Configures the maximum amount of time a TLS handshake may take, from CLIENT HELLO through key exchange. Defaults to 10 seconds, matching the underlying CRT runtime's native default."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Add support for preserving datasharing, zero-ETL and S3 event integrations on snapshot restore to serverless namespace."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Add Java 8, 11 and 17 on AL2023 (java8.al2023, java11.al2023, java17.al2023) support to AWS Lambda."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Amazon GameLift Servers now includes fleet expiration for managed fleets. A managed fleet expires one year after creation, transitioning to EXPIRED status, emitting a FLEET EXPIRED event, and scaling to zero instances. Expired fleets cannot host new game sessions or increase capacity."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "GuardDuty AI Protection is now publicly available. Findings include Bedrock guardrail details, model details, observation numbers, and continuous scan details. GuardrailArn and GuardrailVersion are deprecated in favor of the guardrails list."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

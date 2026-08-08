@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
@@ -31,14 +31,13 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
-import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -156,16 +155,14 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("APostOperation", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("APostOperation"))
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
-            CompletableFuture<APostOperationResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            CompletableFuture<APostOperationResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -201,8 +198,26 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
+            ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         QueryToJsonCompatibleAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
@@ -210,16 +225,17 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
                                             "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider")).orElse(null);
         QueryToJsonCompatibleAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
                                                                                                        : Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class,
-                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                               executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
         QueryToJsonCompatibleAuthSchemeParams.Builder paramsBuilder = QueryToJsonCompatibleAuthSchemeParams.builder().operation(
             operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         QueryToJsonCompatibleEndpointProvider provider = (QueryToJsonCompatibleEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
@@ -249,14 +265,6 @@ final class DefaultQueryToJsonCompatibleAsyncClient implements QueryToJsonCompat
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
-    }
-
-    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
-        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
-    }
-
-    private EndpointResolver endpointResolver(String operationName) {
-        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {

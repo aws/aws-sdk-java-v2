@@ -13,35 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.s3benchmarks.s3express;
+package software.amazon.awssdk.http.urlconnection;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.SystemSetting;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientSslHandshakeBehaviorTestSuite;
 
-/**
- * System settings set by the benchmark runner.
- */
-@SdkPublicApi
-public enum BenchmarkSystemSetting implements SystemSetting {
-    BENCHMARK_TEST_ROLE,
-
-    RUN_ID,
-
-    ;
-
-
+public class UrlConnectionSslHandshakeBehaviorTest extends SdkHttpClientSslHandshakeBehaviorTestSuite {
     @Override
-    public String property() {
-        return null;
-    }
-
-    @Override
-    public String environmentVariable() {
-        return name();
-    }
-
-    @Override
-    public String defaultValue() {
-        return null;
+    protected SdkHttpClient createSdkHttpClient() {
+        return UrlConnectionHttpClient.builder().build();
     }
 }

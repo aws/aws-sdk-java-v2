@@ -1,0 +1,62 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "apiVersion": "2010-05-08",
+    "endpointPrefix": "json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "protocol": "json",
+    "serviceAbbreviation": "Json Service",
+    "serviceFullName": "Some Service That Uses AWS Json Protocol",
+    "serviceId": "Json Service",
+    "signingName": "json-service",
+    "signatureVersion": "v4",
+    "uid": "json-service-2010-05-08",
+    "xmlNamespace": "https://json-service.amazonaws.com/doc/2010-05-08/"
+  },
+  "operations": {
+    "APostOperation": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {
+        "shape": "APostOperationRequest"
+      },
+      "errors": [
+        {
+          "shape": "InvalidInputException"
+        }
+      ],
+      "documentation": "<p>Performs a post operation to the query service and has no output</p>"
+    }
+  },
+  "shapes": {
+    "APostOperationRequest": {
+      "type": "structure",
+      "required": [
+        "StringMember"
+      ],
+      "members": {
+        "StringMember": {
+          "shape": "String",
+          "documentation": "<p>String member</p>"
+        }
+      }
+    },
+    "InvalidInputException": {
+      "type": "structure",
+      "members": {
+        "message": {
+          "shape": "String"
+        }
+      },
+      "documentation": "<p>The request was rejected because an invalid or out-of-range value was supplied for an input parameter.</p>",
+      "exception": true
+    },
+    "String": {
+      "type": "string"
+    }
+  },
+  "documentation": "A service that is implemented using the json protocol"
+}

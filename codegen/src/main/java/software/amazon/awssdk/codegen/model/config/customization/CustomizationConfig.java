@@ -352,6 +352,11 @@ public class CustomizationConfig {
     private boolean batchManagerSupported;
 
     /**
+     * A boolean flag to indicate if Presigned URL Extension is supported.
+     */
+    private boolean presignedUrlExtensionSupported;
+
+    /**
      * A boolean flag to indicate if the fast unmarshaller code path is enabled.
      */
     private boolean enableFastUnmarshaller;
@@ -949,6 +954,14 @@ public class CustomizationConfig {
 
     public void setBatchManagerSupported(boolean batchManagerSupported) {
         this.batchManagerSupported = batchManagerSupported;
+    }
+
+    public boolean getPresignedUrlExtensionSupported() {
+        return presignedUrlExtensionSupported;
+    }
+
+    public void setPresignedUrlExtensionSupported(boolean presignedUrlExtensionSupported) {
+        this.presignedUrlExtensionSupported = presignedUrlExtensionSupported;
     }
 
     public boolean getEnableFastUnmarshaller() {

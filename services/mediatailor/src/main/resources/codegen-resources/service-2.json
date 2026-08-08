@@ -687,6 +687,10 @@
         "HttpRequest":{
           "shape":"HttpRequest",
           "documentation":"<p>The HTTP request configuration parameters for the ad decision server.</p>"
+        },
+        "VastResponse":{
+          "shape":"VastResponse",
+          "documentation":"<p>The settings that control how MediaTailor processes VAST responses from the ad decision server.</p>"
         }
       },
       "documentation":"<p>Configuration parameters for customizing HTTP requests sent to the ad decision server (ADS). This allows you to specify the HTTP method, headers, request body, and compression settings for ADS requests.</p>"
@@ -706,6 +710,15 @@
       "enum":[
         "DATERANGE",
         "SCTE35_ENHANCED"
+      ]
+    },
+    "AdSequencingMode":{
+      "type":"string",
+      "enum":[
+        "FOLLOW_AD_SEQUENCE",
+        "IGNORE_AD_SEQUENCE",
+        "FOLLOW_AD_SEQUENCE_ONLY_LIVE",
+        "FOLLOW_AD_SEQUENCE_ONLY_VOD"
       ]
     },
     "AdsInteractionExcludeEventType":{
@@ -778,6 +791,46 @@
         "PRE_ADS_REQUEST_HOOK_SUMMARY",
         "PRE_ADS_REQUEST_FUNCTION_COMPLETED"
       ]
+    },
+    "AdsPersonalizationConcurrency":{
+      "type":"structure",
+      "members":{
+        "MaxConcurrentAdsRequests":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum number of simultaneous requests that MediaTailor makes to the ad decision server per manifest request. The default is 1.</p>"
+        },
+        "EnableVodVastParallelization":{
+          "shape":"__boolean",
+          "documentation":"<p>Enables parallel processing of ad decision server requests in VOD workflows when the ADS returns VAST responses. The default is false.</p>"
+        }
+      },
+      "documentation":"<p>The concurrency settings for ad decision server interactions during ad personalization.</p>"
+    },
+    "AdsPersonalizationTimeouts":{
+      "type":"structure",
+      "members":{
+        "AdsRequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a single ad decision server response during live or VOD playback. The default is 3000.</p>"
+        },
+        "LiveMaximumAdsPersonalizationTimeMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum total time, in milliseconds, that MediaTailor spends on ad decision server activity for live manifests, including making requests, waiting for responses, and following VAST wrapper redirects. The default is 10000.</p>"
+        },
+        "VodMaximumAdsPersonalizationTimeMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum total time, in milliseconds, that MediaTailor spends on ad decision server activity for VOD manifests, including making requests, waiting for responses, and following VAST wrapper redirects. The default is 10000.</p>"
+        },
+        "PrefetchAdsRequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a single ad decision server response during prefetch retrieval. If not set, the value of AdsRequestTimeoutMilliseconds is used.</p>"
+        },
+        "PrefetchMaximumAdsPersonalizationTimeMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum total time, in milliseconds, that MediaTailor spends on ad decision server activity during prefetch retrieval, including making requests, waiting for responses, and following VAST wrapper redirects.</p>"
+        }
+      },
+      "documentation":"<p>The timeout settings for ad decision server interactions during ad personalization.</p>"
     },
     "Alert":{
       "type":"structure",
@@ -1041,6 +1094,39 @@
         "NONE",
         "GZIP"
       ]
+    },
+    "ConcurrentExecutorConfiguration":{
+      "type":"structure",
+      "required":[
+        "Runtime",
+        "Output",
+        "FunctionList",
+        "TimeoutMilliseconds",
+        "MaxConcurrency"
+      ],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. Set this to <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of output bindings that controls which bindings the executor commits to the session state after all child functions complete. Each key is a namespaced output path, and each value is an expression that MediaTailor evaluates against the combined results of the child functions.</p>"
+        },
+        "FunctionList":{
+          "shape":"__listOfFunctionsRef",
+          "documentation":"<p>The list of child functions that MediaTailor runs in parallel. Each entry specifies a child function to execute and an optional run condition expression that controls whether the function runs.</p>"
+        },
+        "TimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, for all child functions to complete. This timeout covers every function in the list, including any HTTP calls the child functions make. If the executor exceeds this timeout, MediaTailor discards all output from the executor and proceeds with default behavior.</p>"
+        },
+        "MaxConcurrency":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum number of child functions that MediaTailor runs simultaneously. When the list contains more functions than <code>MaxConcurrency</code>, MediaTailor starts additional functions as running ones complete, so that no more than <code>MaxConcurrency</code> functions run at the same time.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function. A <code>CONCURRENT_EXECUTOR</code> runs a set of child functions in parallel, up to a maximum concurrency, and combines their output when all functions complete. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>"
     },
     "ConfigurationAliasesRequest":{
       "type":"map",
@@ -2279,6 +2365,10 @@
           "shape":"CustomOutputConfiguration",
           "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function.</p>"
         },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function.</p>"
+        },
         "SequentialExecutorConfiguration":{
           "shape":"SequentialExecutorConfiguration",
           "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function.</p>"
@@ -2293,7 +2383,7 @@
           "documentation":"<p>The Amazon Resource Name (ARN) of the function.</p>"
         }
       },
-      "documentation":"<p>-- Define Mixin --</p>"
+      "documentation":"<p>Defines reusable logic that MediaTailor executes at lifecycle hooks during ad insertion. The <code>FunctionType</code> determines the function's runtime behavior. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>"
     },
     "FunctionMapping":{
       "type":"map",
@@ -2310,6 +2400,10 @@
         "FunctionId":{
           "shape":"__string",
           "documentation":"<p>The identifier of the child function to execute in this step.</p>"
+        },
+        "Alias":{
+          "shape":"__string",
+          "documentation":"<p>An optional alternate name for the function within the executor. If omitted, MediaTailor uses the function identifier.</p>"
         }
       },
       "documentation":"<p>A reference to a child function within a <code>SEQUENTIAL_EXECUTOR</code> function.</p>"
@@ -2320,6 +2414,7 @@
       "enum":[
         "HTTP_REQUEST",
         "CUSTOM_OUTPUT",
+        "CONCURRENT_EXECUTOR",
         "SEQUENTIAL_EXECUTOR"
       ]
     },
@@ -2432,6 +2527,10 @@
         "CustomOutputConfiguration":{
           "shape":"CustomOutputConfiguration",
           "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function.</p>"
+        },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function.</p>"
         },
         "SequentialExecutorConfiguration":{
           "shape":"SequentialExecutorConfiguration",
@@ -2564,6 +2663,14 @@
         "FunctionMapping":{
           "shape":"FunctionMapping",
           "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code> and <code>PRE_ADS_REQUEST</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
         }
       }
     },
@@ -2757,7 +2864,7 @@
           "documentation":"<p>A map of HTTP header names to expression values. MediaTailor evaluates each header value expression at runtime and includes the result in the outbound HTTP request. Maximum 50 headers.</p>"
         }
       },
-      "documentation":"<p>-- Function Configuration DataStructure</p>"
+      "documentation":"<p>The configuration for an <code>HTTP_REQUEST</code> function. Specifies the HTTP method, URL, headers, body, timeout, and output expressions for the request. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types-http-request.html\">HTTP_REQUEST</a> in the <i>MediaTailor User Guide</i>.</p>"
     },
     "InsertionMode":{
       "type":"string",
@@ -3101,6 +3208,10 @@
         "MaxDurationSeconds":{
           "shape":"__integer",
           "documentation":"<p>The maximum allowed duration for the pre-roll ad avail. AWS Elemental MediaTailor won't play pre-roll ads to exceed this duration, regardless of the total duration of ads that the ADS returns.</p>"
+        },
+        "AdDecisionServerConfiguration":{
+          "shape":"PreRollAdDecisionServerConfiguration",
+          "documentation":"<p>The configuration for the ad decision server (ADS) for live pre-roll ads. The configuration contains settings that control how MediaTailor processes VAST responses for pre-roll ad breaks.</p>"
         }
       },
       "documentation":"<p>The configuration for pre-roll ad insertion.</p>"
@@ -3417,6 +3528,14 @@
         "FunctionMapping":{
           "shape":"FunctionMapping",
           "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code> and <code>PRE_ADS_REQUEST</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
         }
       },
       "documentation":"<p>A playback configuration. For information about MediaTailor configurations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/configurations.html\">Working with configurations in AWS Elemental MediaTailor</a>.</p>"
@@ -3427,6 +3546,33 @@
         "LOOP",
         "LINEAR"
       ]
+    },
+    "PreRollAdDecisionServerConfiguration":{
+      "type":"structure",
+      "members":{
+        "VastResponse":{
+          "shape":"PreRollVastResponse",
+          "documentation":"<p>The settings that control how MediaTailor processes VAST responses for live pre-roll ad breaks.</p>"
+        }
+      },
+      "documentation":"<p>The ad decision server configuration for live pre-roll ads. It contains settings that control how MediaTailor processes VAST responses for pre-roll ad breaks.</p>"
+    },
+    "PreRollAdSequencingMode":{
+      "type":"string",
+      "enum":[
+        "FOLLOW_AD_SEQUENCE",
+        "IGNORE_AD_SEQUENCE"
+      ]
+    },
+    "PreRollVastResponse":{
+      "type":"structure",
+      "members":{
+        "AdSequencingMode":{
+          "shape":"PreRollAdSequencingMode",
+          "documentation":"<p>The ad sequencing mode for live pre-roll ads. <code>FOLLOW_AD_SEQUENCE</code> inserts sequenced ads in increasing order and uses standalone ads only as replacements when a sequenced ad fails. <code>IGNORE_AD_SEQUENCE</code> inserts ads in the order they appear in the VAST response, regardless of sequence attributes. The default behavior is <code>IGNORE_AD_SEQUENCE</code>.</p>"
+        }
+      },
+      "documentation":"<p>The settings that control how MediaTailor processes VAST responses from the ad decision server for live pre-roll ad breaks.</p>"
     },
     "PrefetchConsumption":{
       "type":"structure",
@@ -3585,6 +3731,10 @@
           "shape":"CustomOutputConfiguration",
           "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function. Specifies the runtime and output expressions. Required when <code>FunctionType</code> is <code>CUSTOM_OUTPUT</code>.</p>"
         },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function. Specifies the list of child functions to run in parallel, the maximum concurrency, an optional output block, and a timeout. Required when <code>FunctionType</code> is <code>CONCURRENT_EXECUTOR</code>.</p>"
+        },
         "SequentialExecutorConfiguration":{
           "shape":"SequentialExecutorConfiguration",
           "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function. Specifies the ordered list of child functions to execute, an optional output block, and a timeout. Required when <code>FunctionType</code> is <code>SEQUENTIAL_EXECUTOR</code>.</p>"
@@ -3623,6 +3773,10 @@
         "CustomOutputConfiguration":{
           "shape":"CustomOutputConfiguration",
           "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function.</p>"
+        },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function.</p>"
         },
         "SequentialExecutorConfiguration":{
           "shape":"SequentialExecutorConfiguration",
@@ -3716,6 +3870,14 @@
         "FunctionMapping":{
           "shape":"FunctionMapping",
           "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code> and <code>PRE_ADS_REQUEST</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
         }
       }
     },
@@ -3822,6 +3984,14 @@
         "FunctionMapping":{
           "shape":"FunctionMapping",
           "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code> and <code>PRE_ADS_REQUEST</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
         }
       }
     },
@@ -4838,6 +5008,16 @@
           "documentation":"<p>The name of the VOD source.</p>"
         }
       }
+    },
+    "VastResponse":{
+      "type":"structure",
+      "members":{
+        "AdSequencingMode":{
+          "shape":"AdSequencingMode",
+          "documentation":"<p>The ad sequencing mode that controls how MediaTailor handles sequenced and standalone ads in VAST responses. <code>FOLLOW_AD_SEQUENCE</code> inserts sequenced ads in increasing order for both live and VOD workflows, using standalone ads only as replacements when a sequenced ad fails. <code>FOLLOW_AD_SEQUENCE_ONLY_LIVE</code> enables ad sequencing for live workflows only. <code>FOLLOW_AD_SEQUENCE_ONLY_VOD</code> enables ad sequencing for VOD workflows only. <code>IGNORE_AD_SEQUENCE</code> inserts ads in the order they appear in the VAST response, regardless of sequence attributes. The default behavior is <code>IGNORE_AD_SEQUENCE</code>.</p>"
+        }
+      },
+      "documentation":"<p>The settings that control how MediaTailor processes VAST responses from the ad decision server.</p>"
     },
     "VodSource":{
       "type":"structure",

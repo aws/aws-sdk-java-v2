@@ -248,8 +248,8 @@ public final class S3Configuration implements ServiceConfiguration, ToCopyableBu
      * By default, the SDK sends the {@code Expect: 100-continue} header for these operations, allowing the server to
      * reject the request before the client sends the full payload. Setting this to {@code false} disables this behavior.
      * <p>
-     * If enabling cross region access on the client, this setting has no effect as the client needs to set this header
-     * for correct redirect behavior.
+     * When cross region access is enabled, the header is sent by default so S3 can issue its cross region redirect before
+     * the body is streamed. Setting this to {@code false} is still honored, but opts out of that protection.
      * <p>
      * <b>Note:</b> When using the {@code ApacheHttpClient} (Apache 4), the Apache 4 client also independently adds the
      * {@code Expect: 100-continue} header by default via its own {@code expectContinueEnabled} setting. To fully

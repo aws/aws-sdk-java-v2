@@ -214,6 +214,25 @@
       "documentation":"<p>Deletes a batch evaluation and its associated results.</p>",
       "idempotent":true
     },
+    "DeleteCapacityProviderSession":{
+      "name":"DeleteCapacityProviderSession",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/capacity-providers/{capacityProviderId}/sessions/{sessionId}",
+        "responseCode":202
+      },
+      "input":{"shape":"DeleteCapacityProviderSessionRequest"},
+      "output":{"shape":"DeleteCapacityProviderSessionResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a session associated with a capacity provider in Amazon Bedrock AgentCore and makes the session unavailable for further use. To delete a capacity provider session, specify both the capacity provider identifier and the session ID. After you delete a session, you cannot restart it.</p>",
+      "idempotent":true
+    },
     "DeleteEvent":{
       "name":"DeleteEvent",
       "http":{
@@ -2185,6 +2204,28 @@
       "max":512,
       "min":10
     },
+    "CapacityProviderArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:capacity-provider/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+    },
+    "CapacityProviderId":{
+      "type":"string",
+      "documentation":"<p>Capacity provider identifier. Pattern matches MiskiModel definition.</p>",
+      "max":59,
+      "min":12,
+      "pattern":"[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+    },
+    "CapacityProviderSessionStatus":{
+      "type":"string",
+      "enum":[
+        "Provisioning",
+        "Deprovisioning",
+        "Active",
+        "Deleting",
+        "Deleted",
+        "Stopped"
+      ]
+    },
     "Certificate":{
       "type":"structure",
       "required":["location"],
@@ -3230,6 +3271,49 @@
         }
       }
     },
+    "DeleteCapacityProviderSessionRequest":{
+      "type":"structure",
+      "required":[
+        "capacityProviderId",
+        "sessionId"
+      ],
+      "members":{
+        "capacityProviderId":{
+          "shape":"CapacityProviderId",
+          "documentation":"<p>The unique identifier of the capacity provider associated with the session.</p>",
+          "location":"uri",
+          "locationName":"capacityProviderId"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the capacity provider session to delete.</p>",
+          "location":"uri",
+          "locationName":"sessionId"
+        }
+      }
+    },
+    "DeleteCapacityProviderSessionResponse":{
+      "type":"structure",
+      "required":[
+        "capacityProviderArn",
+        "sessionId",
+        "status"
+      ],
+      "members":{
+        "capacityProviderArn":{
+          "shape":"CapacityProviderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the capacity provider associated with the deleted session.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the deleted capacity provider session.</p>"
+        },
+        "status":{
+          "shape":"CapacityProviderSessionStatus",
+          "documentation":"<p>The current status of the capacity provider session. When the status is <code>Deleting</code>, the session is being deleted and is not available. When the status is <code>Deleted</code>, the session is no longer available.</p>"
+        }
+      }
+    },
     "DeleteEventInput":{
       "type":"structure",
       "required":[
@@ -3480,6 +3564,42 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "EfsAccessPointArn":{
+      "type":"string",
+      "max":128,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:elasticfilesystem:[0-9a-z-:]+:access-point/fsap-[0-9a-f]{8,40}"
+    },
+    "EfsConfiguration":{
+      "type":"structure",
+      "required":[
+        "accessPointArn",
+        "mountPath",
+        "fileSystemArn"
+      ],
+      "members":{
+        "accessPointArn":{
+          "shape":"EfsAccessPointArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Elastic File System (Amazon EFS) access point to mount.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The absolute path within the session at which the access point is mounted, for example <code>/mnt/efs</code>. Each mount path must be unique across all file system configurations in the session.</p>"
+        },
+        "fileSystemArn":{
+          "shape":"EfsFileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Elastic File System (Amazon EFS) file system that owns the access point.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for mounting an Amazon Elastic File System (Amazon EFS) access point that you own into a session.</p>"
+    },
+    "EfsFileSystemArn":{
+      "type":"string",
+      "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Elastic File System (Amazon EFS) file system. The access points you specify must belong to this file system.</p>",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:elasticfilesystem:[a-z0-9-]+:[0-9]{12}:file-system/fs-[0-9a-f]{8,40}"
     },
     "Email":{
       "type":"string",
@@ -4655,6 +4775,10 @@
           "shape":"Certificates",
           "documentation":"<p>The list of certificates installed in the browser session.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations for the browser session. Each entry describes an access point and its mount path.</p>"
+        },
         "sessionReplayArtifact":{
           "shape":"String",
           "documentation":"<p>The artifact containing the session replay information.</p>"
@@ -4721,6 +4845,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>The list of certificates installed in the code interpreter session.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations for the code interpreter session. Each entry describes an access point and its mount path.</p>"
         }
       }
     },
@@ -5419,6 +5547,10 @@
         "reasoningContent":{
           "shape":"HarnessReasoningContentBlockDelta",
           "documentation":"<p>A reasoning content delta.</p>"
+        },
+        "toolResultMetadata":{
+          "shape":"HarnessToolResultMetadataBlockDelta",
+          "documentation":"<p>A tool result metadata delta.</p>"
         }
       },
       "documentation":"<p>A delta update to a content block.</p>",
@@ -5553,6 +5685,10 @@
         "topK":{
           "shape":"TopK",
           "documentation":"<p>The topK set when calling the model.</p>"
+        },
+        "additionalParams":{
+          "shape":"Document",
+          "documentation":"<p>Provider-specific parameters passed through to the Gemini model provider unchanged.</p>"
         }
       },
       "documentation":"<p>Configuration for a Google Gemini model provider. Requires an API key stored in AgentCore Identity.</p>"
@@ -5897,11 +6033,13 @@
     },
     "HarnessSkillGitUrl":{
       "type":"string",
+      "max":16383,
       "min":8,
       "pattern":"https://[^#@]+"
     },
     "HarnessSkillPath":{
       "type":"string",
+      "max":4096,
       "min":1
     },
     "HarnessSkillS3Source":{
@@ -5917,6 +6055,7 @@
     },
     "HarnessSkillS3Uri":{
       "type":"string",
+      "max":16383,
       "min":5,
       "pattern":"s3://.*"
     },
@@ -6155,6 +6294,17 @@
     "HarnessToolResultContentBlocks":{
       "type":"list",
       "member":{"shape":"HarnessToolResultContentBlock"}
+    },
+    "HarnessToolResultMetadataBlockDelta":{
+      "type":"structure",
+      "required":["metadata"],
+      "members":{
+        "metadata":{
+          "shape":"SensitiveText",
+          "documentation":"<p>The partial JSON-string fragment of the tool result metadata.</p>"
+        }
+      },
+      "documentation":"<p>Delta payload for a tool result metadata.</p>"
     },
     "HarnessToolType":{
       "type":"string",
@@ -6706,6 +6856,18 @@
           "location":"header",
           "locationName":"Mcp-Protocol-Version"
         },
+        "mcpMethod":{
+          "shape":"StringType",
+          "documentation":"<p>The MCP method being invoked. For example, <code>tools/call</code>, <code>resources/read</code>, or <code>prompts/get</code>.</p>",
+          "location":"header",
+          "locationName":"Mcp-Method"
+        },
+        "mcpName":{
+          "shape":"StringType",
+          "documentation":"<p>The name of the MCP resource, tool, or prompt being accessed. The value depends on the method:</p> <ul> <li> <p> <code>tools/call</code> – The tool name.</p> </li> <li> <p> <code>resources/read</code> – The resource URI.</p> </li> <li> <p> <code>prompts/get</code> – The prompt name.</p> </li> </ul>",
+          "location":"header",
+          "locationName":"Mcp-Name"
+        },
         "runtimeUserId":{
           "shape":"StringType",
           "documentation":"<p>The identifier of the runtime user.</p>",
@@ -6996,6 +7158,30 @@
           "location":"header",
           "locationName":"X-Amzn-Bedrock-AgentCore-Runtime-User-Id"
         },
+        "traceParent":{
+          "shape":"InvokeHarnessRequestTraceParentString",
+          "documentation":"<p>W3C trace context parent header containing version, trace ID, parent span ID, and trace flags.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
+        "traceState":{
+          "shape":"InvokeHarnessRequestTraceStateString",
+          "documentation":"<p>W3C trace context state header for vendor-specific trace information.</p>",
+          "location":"header",
+          "locationName":"tracestate"
+        },
+        "traceId":{
+          "shape":"InvokeHarnessRequestTraceIdString",
+          "documentation":"<p>Trace ID for maintaining observability through the operation.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "baggage":{
+          "shape":"InvokeHarnessRequestBaggageString",
+          "documentation":"<p>W3C Baggage header for user-defined context propagation. Format: key1=value1,key2=value2</p>",
+          "location":"header",
+          "locationName":"baggage"
+        },
         "messages":{
           "shape":"HarnessMessages",
           "documentation":"<p>The messages to send to the agent.</p>"
@@ -7038,11 +7224,31 @@
         }
       }
     },
+    "InvokeHarnessRequestBaggageString":{
+      "type":"string",
+      "max":8192,
+      "min":0
+    },
     "InvokeHarnessRequestRuntimeSessionIdString":{
       "type":"string",
       "max":100,
       "min":33,
       "pattern":"[a-zA-Z0-9][a-zA-Z0-9-_]*"
+    },
+    "InvokeHarnessRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "InvokeHarnessRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "InvokeHarnessRequestTraceStateString":{
+      "type":"string",
+      "max":512,
+      "min":0
     },
     "InvokeHarnessResponse":{
       "type":"structure",
@@ -8320,6 +8526,12 @@
       "min":1
     },
     "ModelId":{"type":"string"},
+    "MountPath":{
+      "type":"string",
+      "max":200,
+      "min":6,
+      "pattern":"/mnt/[a-zA-Z0-9._-]+/?"
+    },
     "MouseButton":{
       "type":"string",
       "documentation":"<p>The mouse button to use for a browser mouse action.</p>",
@@ -9827,6 +10039,42 @@
       },
       "exception":true
     },
+    "S3FilesAccessPointArn":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:s3files:[0-9a-z-:]+:file-system/fs-[0-9a-f]{17,40}/access-point/fsap-[0-9a-f]{17,40}"
+    },
+    "S3FilesConfiguration":{
+      "type":"structure",
+      "required":[
+        "accessPointArn",
+        "mountPath",
+        "fileSystemArn"
+      ],
+      "members":{
+        "accessPointArn":{
+          "shape":"S3FilesAccessPointArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Simple Storage Service (Amazon S3) Files access point to mount.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The absolute path within the session at which the access point is mounted, for example <code>/mnt/s3data</code>. Each mount path must be unique across all file system configurations in the session.</p>"
+        },
+        "fileSystemArn":{
+          "shape":"S3FilesFileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Simple Storage Service (Amazon S3) Files file system that owns the access point.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for mounting an Amazon Simple Storage Service (Amazon S3) Files access point that you own into a session.</p>"
+    },
+    "S3FilesFileSystemArn":{
+      "type":"string",
+      "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Simple Storage Service (Amazon S3) Files file system. The access points you specify must belong to this file system.</p>",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:s3files:[a-z0-9-]+:[0-9]{12}:file-system/fs-[0-9a-f]{17,40}"
+    },
     "S3Location":{
       "type":"structure",
       "required":[
@@ -10496,6 +10744,10 @@
           "shape":"Certificates",
           "documentation":"<p>A list of certificates to install in the browser session.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations to mount into the browser session. Use these configurations to mount your own Amazon Simple Storage Service (Amazon S3) Files or Amazon Elastic File System (Amazon EFS) access points. Your session can then read and write your data. If you don't specify this field, no additional file systems are mounted.</p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, Amazon Bedrock AgentCore ignores the request, but does not return an error. This parameter helps prevent the creation of duplicate sessions if there are temporary network issues.</p>",
@@ -10572,6 +10824,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>A list of certificates to install in the code interpreter session.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations to mount into the code interpreter session. Use these configurations to mount your own Amazon Simple Storage Service (Amazon S3) Files or Amazon Elastic File System (Amazon EFS) access points. Your session can then read and write your data. If you don't specify this field, no additional file systems are mounted.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -11585,6 +11841,28 @@
         }
       },
       "documentation":"<p> The MCP tools definition with a protocol version and inline content. The <code>protocolVersion</code> identifies the MCP protocol version that the tools conform to. This differs from <code>schemaVersion</code> in the server definition, which identifies the server configuration schema format.</p>"
+    },
+    "ToolsFileSystemConfiguration":{
+      "type":"structure",
+      "members":{
+        "s3FilesConfiguration":{
+          "shape":"S3FilesConfiguration",
+          "documentation":"<p>The configuration for mounting your own Amazon Simple Storage Service (Amazon S3) Files access point into the session.</p>"
+        },
+        "efsConfiguration":{
+          "shape":"EfsConfiguration",
+          "documentation":"<p>The configuration for mounting your own Amazon Elastic File System (Amazon EFS) access point into the session.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a file system to mount into the session by providing exactly one of the following:</p> <ul> <li> <p> <code>s3FilesConfiguration</code> - Mounts an Amazon Simple Storage Service (Amazon S3) Files access point.</p> </li> <li> <p> <code>efsConfiguration</code> - Mounts an Amazon Elastic File System (Amazon EFS) access point.</p> </li> </ul>",
+      "union":true
+    },
+    "ToolsFileSystemConfigurations":{
+      "type":"list",
+      "member":{"shape":"ToolsFileSystemConfiguration"},
+      "documentation":"<p>The file system configurations to mount into the session. Each configuration maps an access point to a path inside the session. You can specify up to 4 configurations. The maximum is 2 Amazon Simple Storage Service (Amazon S3) Files access points and 2 Amazon Elastic File System (Amazon EFS) access points.</p>",
+      "max":10,
+      "min":0
     },
     "TopK":{
       "type":"integer",

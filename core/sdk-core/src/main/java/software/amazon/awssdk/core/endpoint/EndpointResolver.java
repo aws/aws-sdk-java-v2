@@ -23,7 +23,6 @@ import software.amazon.awssdk.endpoints.Endpoint;
 /**
  * Callback interface for resolving endpoints from the request and execution context.
  */
-@FunctionalInterface
 @SdkProtectedApi
 public interface EndpointResolver {
     /**
