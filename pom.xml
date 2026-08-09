@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.51.1-SNAPSHOT</version>
+    <version>2.51.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -105,8 +105,8 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.51.0</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.50.3</awsjavasdk.previous-previous.version>
+        <awsjavasdk.previous.version>2.51.3</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.51.2</awsjavasdk.previous-previous.version>
         <jackson.version>2.21.4</jackson.version>
         <jackson.databind.version>2.21.5</jackson.databind.version>
         <jacksonjr.version>2.21.4</jacksonjr.version>
@@ -635,8 +635,7 @@
                             <includeModule>profiles</includeModule>
                             <includeModule>protocols</includeModule>
                             <includeModule>regions</includeModule>
-                            <!-- temp exclusion for https://github.com/aws/aws-sdk-java-v2/pull/7223 -->
-                            <!-- <includeModule>sdk-core</includeModule> -->
+                            <includeModule>sdk-core</includeModule>
                             <includeModule>http-client-spi</includeModule>
                             <includeModule>apache-client</includeModule>
                             <includeModule>netty-nio-client</includeModule>
