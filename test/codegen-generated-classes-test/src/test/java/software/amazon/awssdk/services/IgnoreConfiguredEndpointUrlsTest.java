@@ -194,51 +194,6 @@ class IgnoreConfiguredEndpointUrlsTest {
     }
 
     @Test
-    void ignoreViaBuilder_endpointFromEnvVarIsIgnored() {
-        helper.set(SERVICE_ENV_VAR, ENV_ENDPOINT);
-
-        EndpointCapturingInterceptor interceptor = new EndpointCapturingInterceptor();
-        ProtocolRestJsonClient client =
-            ProtocolRestJsonClient.builder()
-                                  .region(Region.US_WEST_2)
-                                  .credentialsProvider(AnonymousCredentialsProvider.create())
-                                  .ignoreConfiguredEndpointUrls(true)
-                                  .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
-                                  .build();
-
-        try {
-            client.allTypes();
-        } catch (EndpointCapturingInterceptor.CaptureCompletedException e) {
-            // expected
-        }
-
-        assertThat(interceptor.endpoints()).singleElement().asString().startsWith(DEFAULT_ENDPOINT);
-    }
-
-    @Test
-    void ignoreViaBuilder_builderWinsOverEnvVarSetToFalse() {
-        helper.set(SERVICE_ENV_VAR, ENV_ENDPOINT);
-        helper.set(SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS, "false");
-
-        EndpointCapturingInterceptor interceptor = new EndpointCapturingInterceptor();
-        ProtocolRestJsonClient client =
-            ProtocolRestJsonClient.builder()
-                                  .region(Region.US_WEST_2)
-                                  .credentialsProvider(AnonymousCredentialsProvider.create())
-                                  .ignoreConfiguredEndpointUrls(true)
-                                  .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor))
-                                  .build();
-
-        try {
-            client.allTypes();
-        } catch (EndpointCapturingInterceptor.CaptureCompletedException e) {
-            // expected
-        }
-
-        assertThat(interceptor.endpoints()).singleElement().asString().startsWith(DEFAULT_ENDPOINT);
-    }
-
-    @Test
     void ignoreTrue_isEndpointOverriddenReturnsFalseWhenFallingToDefault() {
         System.setProperty(SERVICE_SYS_PROP, ENV_ENDPOINT);
         System.setProperty(SdkSystemSetting.AWS_IGNORE_CONFIGURED_ENDPOINT_URLS.property(), "true");

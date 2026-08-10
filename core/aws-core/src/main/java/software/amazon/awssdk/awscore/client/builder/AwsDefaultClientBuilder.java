@@ -37,7 +37,6 @@ import software.amazon.awssdk.awscore.defaultsmode.DefaultsMode;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
-import software.amazon.awssdk.awscore.endpoint.IgnoreConfiguredEndpointUrlsProvider;
 import software.amazon.awssdk.awscore.eventstream.EventStreamInitialRequestInterceptor;
 import software.amazon.awssdk.awscore.interceptor.HelpfulUnknownHostExceptionInterceptor;
 import software.amazon.awssdk.awscore.interceptor.TraceIdExecutionInterceptor;
@@ -189,8 +188,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                 this::resolveCredentialsIdentityProvider)
                             // Set CREDENTIALS_PROVIDER, because older clients may be relying on it
                             .lazyOptionIfAbsent(AwsClientOption.CREDENTIALS_PROVIDER, this::resolveCredentialsProvider)
-                            .lazyOptionIfAbsent(AwsClientOption.IGNORE_CONFIGURED_ENDPOINT_URLS,
-                                                this::resolveIgnoreConfiguredEndpointUrls)
                             .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, this::resolveClientEndpointProvider)
                             // Set ENDPOINT and ENDPOINT_OVERRIDDEN, because older clients may be relying on it
                             .lazyOptionIfAbsent(SdkClientOption.ENDPOINT, this::resolveEndpoint)
@@ -341,8 +338,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                                            config.get(useGlobalS3EndpointProperty))
                                         .dualstackEnabled(config.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
                                         .fipsEnabled(config.get(AwsClientOption.FIPS_ENDPOINT_ENABLED))
-                                        .ignoreConfiguredEndpointUrls(
-                                            config.get(AwsClientOption.IGNORE_CONFIGURED_ENDPOINT_URLS))
                                         .build();
     }
 
@@ -416,20 +411,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
                                   .build()
                                   .isFipsEnabled()
                                   .orElse(null);
-    }
-
-    /**
-     * Resolve whether configured endpoint URLs should be ignored for this client.
-     */
-    private Boolean resolveIgnoreConfiguredEndpointUrls(LazyValueSource config) {
-        Supplier<ProfileFile> profileFile = config.get(SdkClientOption.PROFILE_FILE_SUPPLIER);
-        String profileName = config.get(SdkClientOption.PROFILE_NAME);
-        return IgnoreConfiguredEndpointUrlsProvider.builder()
-                                                   .profileFile(profileFile)
-                                                   .profileName(profileName)
-                                                   .build()
-                                                   .ignoreConfiguredEndpointUrls()
-                                                   .orElse(null);
     }
 
     /**
@@ -535,16 +516,6 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
 
     public final void setFipsEnabled(Boolean fipsEndpointEnabled) {
         fipsEnabled(fipsEndpointEnabled);
-    }
-
-    @Override
-    public BuilderT ignoreConfiguredEndpointUrls(Boolean ignoreConfiguredEndpointUrls) {
-        clientConfiguration.option(AwsClientOption.IGNORE_CONFIGURED_ENDPOINT_URLS, ignoreConfiguredEndpointUrls);
-        return thisBuilder();
-    }
-
-    public final void setIgnoreConfiguredEndpointUrls(Boolean ignoreConfiguredEndpointUrls) {
-        ignoreConfiguredEndpointUrls(ignoreConfiguredEndpointUrls);
     }
 
     public final void setCredentialsProvider(AwsCredentialsProvider credentialsProvider) {

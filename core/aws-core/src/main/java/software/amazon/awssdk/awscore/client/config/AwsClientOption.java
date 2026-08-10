@@ -112,12 +112,6 @@ public final class AwsClientOption<T> extends ClientOption<T> {
     public static final AwsClientOption<Boolean> USE_GLOBAL_ENDPOINT = new AwsClientOption<>(Boolean.class);
 
     /**
-     * Whether the SDK should ignore endpoint URLs configured via environment variables, system properties, and the
-     * shared configuration file. See {@link AwsClientBuilder#ignoreConfiguredEndpointUrls(Boolean)}.
-     */
-    public static final AwsClientOption<Boolean> IGNORE_CONFIGURED_ENDPOINT_URLS = new AwsClientOption<>(Boolean.class);
-
-    /**
      * Option to specific the {@link SdkTokenProvider} to use for bearer token authorization.
      * This option is deprecated in favor or {@link #TOKEN_IDENTITY_PROVIDER}
      */
