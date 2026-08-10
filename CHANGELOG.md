@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.51.4__ __2026-08-10__
+## __AWS Elemental Inference__
+  - ### Features
+    - Added support for the SearchFixtures API and DataSourceConfiguration, enabling customers to map fixture event data onto clipping outputs for improved feature accuracy.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - Added VirtualSourceAddress to multicast output destinations for MediaLive Anywhere channels. Specifies the source IP address for outbound multicast packets when downstream networks enforce source-IP filtering.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reduce generated client source and bytecode size for JSON, CBOR, and Smithy RPC v2 protocol services by generating the error-metadata mapper once per client instead of once per operation.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added Malay language option to use AI to automatically fill evaluation forms in Malay
+
+## __Amazon SageMaker Runtime__
+  - ### Features
+    - Added the PrefixAwareId header to InvokeEndpoint and InvokeEndpointWithResponseStream. This optional parameter serves as a routing hint for endpoints configured with prefix-aware routing, differentiating routing decisions for requests that share the same prompt prefix.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Added PREFIX AWARE routing strategy and PrefixAwareRoutingConfig to CreateEndpointConfig. Configure PrefixLength and ConcurrencyThreshold to route requests that share the same prompt prefix to the same instance.
+
 # __2.51.3__ __2026-08-07__
 ## __AWS Amplify__
   - ### Features
