@@ -33,8 +33,8 @@ public class BasicProxyAuthGenerator implements ProxyAuthGenerator {
     private final String password;
 
     public BasicProxyAuthGenerator(String username, String password) {
-        this.username = Validate.notBlank(username, "username must not be blank");
-        this.password = Validate.notBlank(password, "password must not be blank");
+        this.username = Validate.notEmpty(username, "username must not be empty");
+        this.password = Validate.notEmpty(password, "password must not be empty");
     }
 
     @Override

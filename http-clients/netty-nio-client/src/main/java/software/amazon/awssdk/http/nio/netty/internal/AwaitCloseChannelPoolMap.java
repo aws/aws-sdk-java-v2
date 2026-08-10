@@ -160,7 +160,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private ProxyAuthGenerator resolveProxyAuthGenerator(ProxyConfiguration proxyConfiguration) {
         String username = proxyConfiguration.username();
         String password = proxyConfiguration.password();
-        if (!StringUtils.isBlank(username) && !StringUtils.isBlank(password)) {
+        if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
             return new BasicProxyAuthGenerator(username, password);
         }
 

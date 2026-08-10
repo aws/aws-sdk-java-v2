@@ -59,8 +59,6 @@ public class BasicProxyAuthGeneratorTest {
         return Stream.of(
             Arguments.of(null, null, "username"),
             Arguments.of("", "", "username"),
-            Arguments.of("  ", "", "username"),
-            Arguments.of("  ", "  ", "username"),
             Arguments.of(null, PASSWORD, "username"),
             Arguments.of("", PASSWORD, "username"),
             Arguments.of(USERNAME, null, "password"),
