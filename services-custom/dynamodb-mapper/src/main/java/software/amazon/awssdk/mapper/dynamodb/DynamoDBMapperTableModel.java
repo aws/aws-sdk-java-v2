@@ -14,13 +14,13 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import static com.amazonaws.services.dynamodbv2.model.KeyType.HASH;
-import static com.amazonaws.services.dynamodbv2.model.KeyType.RANGE;
+import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
+import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 import static com.amazonaws.services.dynamodbv2.model.ProjectionType.KEYS_ONLY;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
 import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndex;
 import com.amazonaws.services.dynamodbv2.model.Projection;
@@ -381,7 +381,7 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
                         );
                     }
                     gsi.withProjection(new Projection().withProjectionType(KEYS_ONLY));
-                    gsi.withKeySchema(new KeySchemaElement(field.name(), HASH));
+                    gsi.withKeySchema(new KeySchemaElement(field.name(), com.amazonaws.services.dynamodbv2.model.KeyType.HASH));
                 }
             }
             for (final DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
@@ -392,7 +392,7 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
                             targetType.getSimpleName() + "[" + field.name() + "]; no HASH key for GSI " + indexName
                         );
                     }
-                    gsi.withKeySchema(new KeySchemaElement(field.name(), RANGE));
+                    gsi.withKeySchema(new KeySchemaElement(field.name(), com.amazonaws.services.dynamodbv2.model.KeyType.RANGE));
                 }
             }
             if (map.isEmpty()) {
@@ -412,8 +412,8 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
                         );
                     }
                     lsi.withProjection(new Projection().withProjectionType(KEYS_ONLY));
-                    lsi.withKeySchema(new KeySchemaElement(keys.get(HASH).name(), HASH));
-                    lsi.withKeySchema(new KeySchemaElement(field.name(), RANGE));
+                    lsi.withKeySchema(new KeySchemaElement(keys.get(HASH).name(), com.amazonaws.services.dynamodbv2.model.KeyType.HASH));
+                    lsi.withKeySchema(new KeySchemaElement(field.name(), com.amazonaws.services.dynamodbv2.model.KeyType.RANGE));
                 }
             }
             if (map.isEmpty()) {

@@ -16,8 +16,8 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBUnitTestBase;
-import com.amazonaws.services.dynamodbv2.model.CancellationReason;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.CancellationReason;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 
 import java.util.HashSet;
 import java.util.List;
@@ -56,12 +56,12 @@ public class TransactionsUnitTestBase extends DynamoDBUnitTestBase {
                 actualResponseObjects = dynamoMapper.transactionLoad(transactionLoadRequest, config);
                 break;
             } catch (TransactionCanceledException tce) {
-                List<CancellationReason> cancellationReasons = tce.getCancellationReasons();
+                List<CancellationReason> cancellationReasons = tce.cancellationReasons();
                 Set<String> uniqueCancellationReasonCodes = new HashSet<String>();
                 for (CancellationReason cancellationReason: cancellationReasons) {
-                    uniqueCancellationReasonCodes.add(cancellationReason.getCode());
+                    uniqueCancellationReasonCodes.add(cancellationReason.code());
                 }
-                if (uniqueCancellationReasonCodes.size() != 1 || !"TransactionConflict".equals(cancellationReasons.get(0).getCode())) {
+                if (uniqueCancellationReasonCodes.size() != 1 || !"TransactionConflict".equals(cancellationReasons.get(0).code())) {
                     fail("transactionLoad failed with TransactionCanceledException having non-TransactionConflict cancellation reason(s): " + tce);
                 }
                 // Sleep for some time before re-trying transactionLoad

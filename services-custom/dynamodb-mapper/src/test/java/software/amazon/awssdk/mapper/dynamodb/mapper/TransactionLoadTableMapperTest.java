@@ -36,7 +36,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
 import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.SchemaViolatingTestItem;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;

@@ -18,12 +18,12 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
 import software.amazon.awssdk.mapper.dynamodb.mapper.NumberSetAttributeClass;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -48,7 +48,7 @@ public class BatchLoadTest extends LocalDynamoDBTestBase {
     private static int byteStart = 1;
     private static int startKeyDebug = 1;
     private static long startKey = System.currentTimeMillis();
-    private static AmazonDynamoDB dynamo;
+    private static DynamoDbClient dynamo;
     private static DynamoDBMapper mapper;
     private static String tableName;
     private static String tableName2;
@@ -59,11 +59,11 @@ public class BatchLoadTest extends LocalDynamoDBTestBase {
         mapper = new DynamoDBMapper(dynamo, new DynamoDBMapperConfig(SaveBehavior.UPDATE,
                                                                      ConsistentReads.CONSISTENT, null));
         CreateTableRequest createTableRequest = mapper.generateCreateTableRequest(NumberSetAttributeClass.class)
-                                                      .withProvisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT);
+                                                      .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build();
         CreateTableRequest createTableRequest2 = mapper.generateCreateTableRequest(RangeKeyClass.class)
-                                                      .withProvisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT);
-        tableName = createTableRequest.getTableName();
-        tableName2 = createTableRequest2.getTableName();
+                                                      .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build();
+        tableName = createTableRequest.tableName();
+        tableName2 = createTableRequest2.tableName();
         dynamo.createTable(createTableRequest);
         dynamo.createTable(createTableRequest2);
     }

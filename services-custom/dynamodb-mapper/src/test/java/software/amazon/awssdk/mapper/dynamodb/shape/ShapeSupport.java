@@ -16,7 +16,6 @@ package software.amazon.awssdk.mapper.dynamodb.shape;
 
 import static org.junit.Assert.assertEquals;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
@@ -25,6 +24,7 @@ import java.io.UncheckedIOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.IoUtils;
 
 // Fixture assertion and AttributeValue builders shared by ShapeRequestTest and ShapeResponseTest.
@@ -71,27 +71,27 @@ final class ShapeSupport {
     }
 
     static AttributeValue s(String v) {
-        return new AttributeValue().withS(v);
+        return AttributeValue.builder().s(v).build();
     }
 
     static AttributeValue n(String v) {
-        return new AttributeValue().withN(v);
+        return AttributeValue.builder().n(v).build();
     }
 
     static AttributeValue bool(boolean v) {
-        return new AttributeValue().withBOOL(v);
+        return AttributeValue.builder().bool(v).build();
     }
 
     static AttributeValue ss(String... v) {
-        return new AttributeValue().withSS(v);
+        return AttributeValue.builder().ss(v).build();
     }
 
     static AttributeValue ns(String... v) {
-        return new AttributeValue().withNS(v);
+        return AttributeValue.builder().ns(v).build();
     }
 
     static AttributeValue l(AttributeValue... v) {
-        return new AttributeValue().withL(v);
+        return AttributeValue.builder().l(v).build();
     }
 
     @SafeVarargs
@@ -100,7 +100,7 @@ final class ShapeSupport {
         for (Map.Entry<String, AttributeValue> e : entries) {
             map.put(e.getKey(), e.getValue());
         }
-        return new AttributeValue().withM(map);
+        return AttributeValue.builder().m(map).build();
     }
 
     static Map.Entry<String, AttributeValue> entry(String k, AttributeValue v) {

@@ -16,10 +16,10 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import java.util.List;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryResult;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 /**
  * Implementation of the List interface that represents the results from a query
@@ -39,19 +39,19 @@ import com.amazonaws.services.dynamodbv2.model.QueryResult;
 public class PaginatedQueryList<T> extends PaginatedList<T> {
 
     /** The current query request */
-    private final QueryRequest queryRequest;
+    private QueryRequest queryRequest;
 
     private final DynamoDBMapperConfig config;
 
     /** The current results for the last executed query operation */
-    private QueryResult queryResult;
+    private QueryResponse queryResult;
 
     public PaginatedQueryList(
             DynamoDBMapper mapper,
             Class<T> clazz,
-            AmazonDynamoDB dynamo,
+            DynamoDbClient dynamo,
             QueryRequest queryRequest,
-            QueryResult queryResult,
+            QueryResponse queryResult,
             PaginationLoadingStrategy paginationLoadingStrategy,
             DynamoDBMapperConfig config
     ) {
@@ -64,9 +64,9 @@ public class PaginatedQueryList<T> extends PaginatedList<T> {
 
         allResults.addAll(mapper.marshallIntoObjects(
             mapper.toParameters(
-                    queryResult.getItems(),
+                    queryResult.items(),
                     clazz,
-                    queryRequest.getTableName(),
+                    queryRequest.tableName(),
                     config)));
 
         // If the results should be eagerly loaded at once
@@ -77,17 +77,17 @@ public class PaginatedQueryList<T> extends PaginatedList<T> {
 
     @Override
     protected boolean atEndOfResults() {
-        return queryResult.getLastEvaluatedKey() == null;
+        return !queryResult.hasLastEvaluatedKey() || queryResult.lastEvaluatedKey().isEmpty();
     }
 
     @Override
     protected synchronized List<T> fetchNextPage() {
-        queryRequest.setExclusiveStartKey(queryResult.getLastEvaluatedKey());
-        queryResult = dynamo.query(DynamoDBMapper.applyUserAgent(queryRequest));
+        queryRequest = queryRequest.toBuilder().exclusiveStartKey(queryResult.lastEvaluatedKey()).build();
+        queryResult = dynamo.query(queryRequest);
         return mapper.marshallIntoObjects(mapper.toParameters(
-                queryResult.getItems(),
+                queryResult.items(),
                 clazz,
-                queryRequest.getTableName(),
+                queryRequest.tableName(),
                 config));
     }
 }

@@ -28,7 +28,7 @@ import java.lang.annotation.Target;
  * This annotation is required.
  */
 @DynamoDB
-@DynamoDBKeyed(com.amazonaws.services.dynamodbv2.model.KeyType.HASH)
+@DynamoDBKeyed(software.amazon.awssdk.services.dynamodb.model.KeyType.HASH)
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.FIELD, ElementType.METHOD})
 public @interface DynamoDBHashKey {

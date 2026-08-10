@@ -18,11 +18,11 @@ import java.util.HashMap;
 import java.util.Map;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity;
-import com.amazonaws.services.dynamodbv2.model.Select;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 /**
  * A query expression.
@@ -955,9 +955,6 @@ public class DynamoDBQueryExpression <T> {
      * @param value
      *            The corresponding value of the entry to be added into
      *            ExpressionAttributeValues.
-     *
-     * @see QueryRequest#addExpressionAttributeValuesEntry(String,
-     *      AttributeValue)
      */
     public DynamoDBQueryExpression<T> addExpressionAttributeValuesEntry(
             String key, AttributeValue value) {

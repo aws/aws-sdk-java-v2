@@ -26,7 +26,6 @@ import static software.amazon.awssdk.mapper.dynamodb.shape.ShapeSupport.s;
 import static software.amazon.awssdk.mapper.dynamodb.shape.ShapeSupport.ss;
 import static software.amazon.awssdk.mapper.dynamodb.shape.ShapeSupport.verify;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -42,6 +41,8 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.AllTypesItem;
 import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.StringItem;
 
@@ -50,7 +51,7 @@ import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.StringItem;
 public class ShapeResponseTest {
 
     private static final String FIXTURE = "unmarshall_item_fixture.json";
-    private static final DynamoDBMapper MAPPER = new DynamoDBMapper((com.amazonaws.services.dynamodbv2.AmazonDynamoDB) null);
+    private static final DynamoDBMapper MAPPER = new DynamoDBMapper((DynamoDbClient) null);
 
     // NON_NULL keeps the fixture to the reconstructed attributes; alphabetical sort pins the reflection-ordered fields.
     private static final ObjectMapper READ_JSON = new ObjectMapper()

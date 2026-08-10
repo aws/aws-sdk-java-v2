@@ -15,22 +15,18 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsyncClientBuilder;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.AnonymousAWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
 import com.amazonaws.services.dynamodbv2.local.main.ServerRunner;
 import com.amazonaws.services.dynamodbv2.local.server.DynamoDBProxyServer;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.URI;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClientBuilder;
 
 /**
  * Wrapper for a local DynamoDb server used in testing. Each instance of this class will find a new port to run on,
@@ -70,36 +66,35 @@ class LocalDynamoDB {
      * Create a standard AWS v2 SDK client pointing to the local DynamoDb instance
      * @return A DynamoDbClient pointing to the local DynamoDb instance
      */
-    AmazonDynamoDB createClient() {
-        return createClient(new ClientConfiguration());
+    DynamoDbClient createClient() {
+        return clientBuilder().build();
     }
 
     /**
-     * Create a standard AWS v2 SDK client pointing to the local DynamoDb instance
-     * @return A DynamoDbClient pointing to the local DynamoDb instance
+     * Create a client with a caller-supplied override configuration (e.g. a custom retry policy).
      */
-    AmazonDynamoDB createClient(ClientConfiguration config) {
-        return AmazonDynamoDBClient.builder()
-                                   .withEndpointConfiguration(endpointConfig())
-                                   .withCredentials(credentials())
-                                   .withClientConfiguration(config)
-                                   .build();
+    DynamoDbClient createClient(ClientOverrideConfiguration overrideConfiguration) {
+        return clientBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
-    AmazonDynamoDBAsync createAsyncClient() {
-        return AmazonDynamoDBAsyncClientBuilder.standard()
-                                               .withEndpointConfiguration(endpointConfig())
-                                               .withCredentials(credentials())
-                                               .build();
-    }
-
-    private EndpointConfiguration endpointConfig() {
+    private DynamoDbClientBuilder clientBuilder() {
         String endpoint = String.format("http://localhost:%d", port);
-        return new EndpointConfiguration(endpoint, "us-east-1");
+        return DynamoDbClient.builder()
+                             .endpointOverride(URI.create(endpoint))
+                             // The region is meaningless for local DynamoDb but required for client builder validation
+                             .region(Region.US_EAST_1)
+                             .credentialsProvider(StaticCredentialsProvider.create(
+                                 AwsBasicCredentials.create("akid", "skid")));
     }
 
-    private AWSCredentialsProvider credentials() {
-        return new AWSStaticCredentialsProvider(new BasicAWSCredentials("akid", "skid"));
+    DynamoDbAsyncClient createAsyncClient() {
+        String endpoint = String.format("http://localhost:%d", port);
+        return DynamoDbAsyncClient.builder()
+                                  .endpointOverride(URI.create(endpoint))
+                                  .region(Region.US_EAST_1)
+                                  .credentialsProvider(StaticCredentialsProvider.create(
+                                      AwsBasicCredentials.create("akid", "skid")))
+                                  .build();
     }
 
     /**

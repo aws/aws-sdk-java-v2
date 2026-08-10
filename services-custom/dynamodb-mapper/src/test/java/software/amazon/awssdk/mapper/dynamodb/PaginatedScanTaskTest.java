@@ -14,11 +14,11 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughputExceededException;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughputExceededException;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -53,7 +53,7 @@ public class PaginatedScanTaskTest {
     private ExecutorService executorService;
 
     @Mock
-    private AmazonDynamoDB dynamoDB;
+    private DynamoDbClient dynamoDB;
 
     @Before
     public void setup() {
@@ -74,7 +74,7 @@ public class PaginatedScanTaskTest {
         stubSuccessfulScan(0);
         stubSuccessfulScan(1);
         when(dynamoDB.scan(isSegmentNumber(2)))
-                .thenThrow(new ProvisionedThroughputExceededException("Slow Down!"));
+                .thenThrow(ProvisionedThroughputExceededException.builder().message("Slow Down!").build());
         stubSuccessfulScan(3);
         stubSuccessfulScan(4);
 
@@ -95,14 +95,14 @@ public class PaginatedScanTaskTest {
      */
     private void stubSuccessfulScan(int segmentNumber) {
         when(dynamoDB.scan(isSegmentNumber(segmentNumber)))
-                .thenReturn(new ScanResult().withItems(generateItems()));
+                .thenReturn(ScanResponse.builder().items(generateItems()).build());
     }
 
     private Map<String, AttributeValue> generateItems() {
         final int numItems = 10;
         Map<String, AttributeValue> items = new HashMap<String, AttributeValue>(numItems);
         for (int i = 0; i < numItems; i++) {
-            items.put(UUID.randomUUID().toString(), new AttributeValue().withS("foo"));
+            items.put(UUID.randomUUID().toString(), AttributeValue.builder().s("foo").build());
         }
         return items;
     }
@@ -116,10 +116,11 @@ public class PaginatedScanTaskTest {
     }
 
     private ScanRequest createScanRequest(int segmentNumber) {
-        return new ScanRequest()
-                .withTableName(TABLE_NAME)
-                .withSegment(segmentNumber)
-                .withTotalSegments(TOTAL_SEGMENTS);
+        return ScanRequest.builder()
+                .tableName(TABLE_NAME)
+                .segment(segmentNumber)
+                .totalSegments(TOTAL_SEGMENTS)
+                .build();
     }
 
     /**
@@ -149,7 +150,7 @@ public class PaginatedScanTaskTest {
             if (!(argument instanceof ScanRequest)) {
                 return false;
             }
-            return matchingSegmentNumber == ((ScanRequest) argument).getSegment();
+            return matchingSegmentNumber == ((ScanRequest) argument).segment();
         }
     }
 }

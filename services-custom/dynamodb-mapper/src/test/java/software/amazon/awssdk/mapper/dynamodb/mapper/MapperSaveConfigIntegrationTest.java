@@ -6,11 +6,10 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
-import com.amazonaws.util.ImmutableMapParameter;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -20,9 +19,9 @@ import java.util.UUID;
 import org.junit.AfterClass;
 import org.junit.Test;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 /**
  * Tests the behavior of save method of DynamoDBMapper under different
@@ -373,8 +372,8 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
         try {
             dynamoMapper.save(testAppendToScalarItem, appendSetConfig);
             fail("Should have thrown a 'Type mismatch' service exception.");
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
+        } catch (AwsServiceException ase) {
+            assertEquals("ValidationException", ase.awsErrorDetails().errorCode());
         }
     }
 
@@ -497,14 +496,14 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
 
         dynamoMapper.save(testItem, clobberConfig);
 
-        GetItemResult item = rawGetItem(testItem);
-        Map<String, AttributeValue> expected = ImmutableMapParameter.of(
-            hashKeyName, new AttributeValue(testItem.getHashKey()),
-            rangeKeyName, new AttributeValue().withN(testItem.getRangeKey().toString()),
-            nonKeyAttributeName, new AttributeValue(testItem.getNonKeyAttribute()),
-            versionAttributeName, new AttributeValue().withN(Long.toString(2L)));
+        GetItemResponse item = rawGetItem(testItem);
+        Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
+        expected.put(hashKeyName, AttributeValue.builder().s(testItem.getHashKey()).build());
+        expected.put(rangeKeyName, AttributeValue.builder().n(testItem.getRangeKey().toString()).build());
+        expected.put(nonKeyAttributeName, AttributeValue.builder().s(testItem.getNonKeyAttribute()).build());
+        expected.put(versionAttributeName, AttributeValue.builder().n(Long.toString(2L)).build());
 
-        assertEquals(expected, item.getItem());
+        assertEquals(expected, item.item());
     }
 
     /**
@@ -520,12 +519,12 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
         testItem.setNonKeyAttribute(null);
         dynamoMapper.save(testItem, putConfig);
 
-        GetItemResult item = rawGetItem(testItem);
-        Map<String, AttributeValue> expected = ImmutableMapParameter.of(
-            hashKeyName, new AttributeValue(testItem.getHashKey()),
-            rangeKeyName, new AttributeValue().withN(testItem.getRangeKey().toString()));
+        GetItemResponse item = rawGetItem(testItem);
+        Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
+        expected.put(hashKeyName, AttributeValue.builder().s(testItem.getHashKey()).build());
+        expected.put(rangeKeyName, AttributeValue.builder().n(testItem.getRangeKey().toString()).build());
 
-        assertEquals(expected, item.getItem());
+        assertEquals(expected, item.item());
     }
 
     @Test
@@ -537,13 +536,13 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
         testItem.setNonKeyAttribute("not foo");
         dynamoMapper.save(testItem, putConfig);
 
-        GetItemResult item = rawGetItem(testItem);
-        Map<String, AttributeValue> expected = ImmutableMapParameter.of(
-            hashKeyName, new AttributeValue(testItem.getHashKey()),
-            rangeKeyName, new AttributeValue().withN(testItem.getRangeKey().toString()),
-            nonKeyAttributeName, new AttributeValue(testItem.getNonKeyAttribute()));
+        GetItemResponse item = rawGetItem(testItem);
+        Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
+        expected.put(hashKeyName, AttributeValue.builder().s(testItem.getHashKey()).build());
+        expected.put(rangeKeyName, AttributeValue.builder().n(testItem.getRangeKey().toString()).build());
+        expected.put(nonKeyAttributeName, AttributeValue.builder().s(testItem.getNonKeyAttribute()).build());
 
-        assertEquals(expected, item.getItem());
+        assertEquals(expected, item.item());
     }
 
     @Test
@@ -556,13 +555,13 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
 
         dynamoMapper.save(testItem, putConfig);
 
-        GetItemResult item = rawGetItem(testItem);
-        Map<String, AttributeValue> expected = ImmutableMapParameter.of(
-            hashKeyName, new AttributeValue(testItem.getHashKey()),
-            rangeKeyName, new AttributeValue().withN(testItem.getRangeKey().toString()),
-            nonKeyAttributeName, new AttributeValue(testItem.getNonKeyAttribute()));
+        GetItemResponse item = rawGetItem(testItem);
+        Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
+        expected.put(hashKeyName, AttributeValue.builder().s(testItem.getHashKey()).build());
+        expected.put(rangeKeyName, AttributeValue.builder().n(testItem.getRangeKey().toString()).build());
+        expected.put(nonKeyAttributeName, AttributeValue.builder().s(testItem.getNonKeyAttribute()).build());
 
-        assertEquals(expected, item.getItem());
+        assertEquals(expected, item.item());
     }
 
     @Test(expected = ConditionalCheckFailedException.class)
@@ -582,37 +581,39 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
 
         dynamoMapper.save(testItem, putConfig);
 
-        GetItemResult item = rawGetItem(testItem);
-        Map<String, AttributeValue> expected = ImmutableMapParameter.of(
-            hashKeyName, new AttributeValue(testItem.getHashKey()),
-            rangeKeyName, new AttributeValue().withN(testItem.getRangeKey().toString()),
-            nonKeyAttributeName, new AttributeValue(testItem.getNonKeyAttribute()),
-            versionAttributeName, new AttributeValue().withN(Long.toString(version + 1)));
+        GetItemResponse item = rawGetItem(testItem);
+        Map<String, AttributeValue> expected = new HashMap<String, AttributeValue>();
+        expected.put(hashKeyName, AttributeValue.builder().s(testItem.getHashKey()).build());
+        expected.put(rangeKeyName, AttributeValue.builder().n(testItem.getRangeKey().toString()).build());
+        expected.put(nonKeyAttributeName, AttributeValue.builder().s(testItem.getNonKeyAttribute()).build());
+        expected.put(versionAttributeName, AttributeValue.builder().n(Long.toString(version + 1)).build());
 
-        assertEquals(expected, item.getItem());
+        assertEquals(expected, item.item());
     }
 
-    private GetItemResult rawGetItem(TestItem testItem) {
+    private GetItemResponse rawGetItem(TestItem testItem) {
+        Map<String, AttributeValue> key = new HashMap<String, AttributeValue>();
+        key.put(hashKeyName, AttributeValue.builder().s(testItem.getHashKey()).build());
+        key.put(rangeKeyName, AttributeValue.builder().n(testItem.getRangeKey().toString()).build());
         return dynamo.getItem(
-            new GetItemRequest()
-                .withTableName(tableName)
-                .withKey(ImmutableMapParameter.of(hashKeyName, new AttributeValue(testItem.getHashKey()),
-                                                  rangeKeyName, new AttributeValue().withN(testItem.getRangeKey().toString()))));
+            GetItemRequest.builder()
+                .tableName(tableName)
+                .key(key).build());
     }
 
     private static TestItem putRandomUniqueItem(String nonKeyAttributeValue, Set<String> stringSetAttributeValue) {
         String hashKeyValue = UUID.randomUUID().toString();
         Long rangeKeyValue = System.currentTimeMillis();
         Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-        item.put(hashKeyName, new AttributeValue().withS(hashKeyValue));
-        item.put(rangeKeyName, new AttributeValue().withN(rangeKeyValue.toString()));
+        item.put(hashKeyName, AttributeValue.builder().s(hashKeyValue).build());
+        item.put(rangeKeyName, AttributeValue.builder().n(rangeKeyValue.toString()).build());
         if (null != nonKeyAttributeValue) {
-            item.put(nonKeyAttributeName, new AttributeValue().withS(nonKeyAttributeValue));
+            item.put(nonKeyAttributeName, AttributeValue.builder().s(nonKeyAttributeValue).build());
         }
         if (null != stringSetAttributeValue) {
-            item.put(stringSetAttributeName, new AttributeValue().withSS(stringSetAttributeValue));
+            item.put(stringSetAttributeName, AttributeValue.builder().ss(stringSetAttributeValue).build());
         }
-        dynamo.putItem(new PutItemRequest().withTableName(tableName).withItem(item));
+        dynamo.putItem(PutItemRequest.builder().tableName(tableName).item(item).build());
         
         /* Returns the item as a modeled object. */
         TestItem testItem = new TestItem();
@@ -627,10 +628,10 @@ public class MapperSaveConfigIntegrationTest extends MapperSaveConfigTestBase {
         String hashKeyValue = UUID.randomUUID().toString();
         Long rangeKeyValue = System.currentTimeMillis();
         Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-        item.put(hashKeyName, new AttributeValue().withS(hashKeyValue));
-        item.put(rangeKeyName, new AttributeValue().withN(rangeKeyValue.toString()));
-        item.put(versionAttributeName, new AttributeValue().withN(version.toString()));
-        dynamo.putItem(new PutItemRequest().withTableName(tableName).withItem(item));
+        item.put(hashKeyName, AttributeValue.builder().s(hashKeyValue).build());
+        item.put(rangeKeyName, AttributeValue.builder().n(rangeKeyValue.toString()).build());
+        item.put(versionAttributeName, AttributeValue.builder().n(version.toString()).build());
+        dynamo.putItem(PutItemRequest.builder().tableName(tableName).item(item).build());
         TestItemWithVersion testItem = new TestItemWithVersion();
         testItem.setHashKey(hashKeyValue);
         testItem.setRangeKey(rangeKeyValue);

@@ -22,7 +22,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBA
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
 
 import java.util.HashMap;
@@ -139,10 +139,10 @@ public class TypedIntegrationTest extends AbstractKeyAndValIntegrationTestCase {
     @Test
     public void testNativeMap() {
         final Map<String,AttributeValue> map = new HashMap<String,AttributeValue>();
-        map.put("A", new AttributeValue().withN("123"));
+        map.put("A", AttributeValue.builder().n("123").build());
 
         final KeyAndNativeValue object = new KeyAndNativeValue();
-        object.setVal(new AttributeValue().withM(map));
+        object.setVal(AttributeValue.builder().m(map).build());
         assertBeforeAndAfterChange(false, object);
     }
 

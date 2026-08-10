@@ -10,7 +10,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBIntegrationTestBase;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBAttribute;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
@@ -18,15 +17,15 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBRangeKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBVersionAttribute;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.model.TableDescription;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
-import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import java.util.Set;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -80,23 +79,22 @@ public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {
     protected static final Long WRITE_CAPACITY = 5L;
 
     /** Provisioned Throughput for the test table created in Amazon DynamoDB */
-    protected static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT = new ProvisionedThroughput()
-            .withReadCapacityUnits(READ_CAPACITY).withWriteCapacityUnits(
-                    WRITE_CAPACITY);
+    protected static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT = ProvisionedThroughput.builder()
+            .readCapacityUnits(READ_CAPACITY).writeCapacityUnits(
+                    WRITE_CAPACITY).build();
 
     @BeforeClass
     public static void setUp() throws Exception {
-        setUpCredentials();
-        dynamo = new AmazonDynamoDBClient(credentials);
+        setUpTestBase();
         dynamoMapper = new DynamoDBMapper(dynamo);
 
         createTestTable(DEFAULT_PROVISIONED_THROUGHPUT);
-        TableUtils.waitUntilActive(dynamo, tableName);
+        dynamo.waiter().waitUntilTableExists(b -> b.tableName(tableName));
     }
 
     @AfterClass
     public static void tearDown() {
-        dynamo.deleteTable(tableName);
+        dynamo.deleteTable(DeleteTableRequest.builder().tableName(tableName).build());
     }
 
     @DynamoDBTable(tableName = tableName)
@@ -154,38 +152,37 @@ public class MapperSaveConfigTestBase extends DynamoDBIntegrationTestBase {
      */
     protected static void createTestTable(
             ProvisionedThroughput provisionedThroughput) {
-        CreateTableRequest createTableRequest = new CreateTableRequest()
-                .withTableName(tableName)
-                .withKeySchema(
-                        new KeySchemaElement().withAttributeName(
-                                hashKeyName).withKeyType(
-                                KeyType.HASH))
-                .withKeySchema(
-                        new KeySchemaElement().withAttributeName(
-                                rangeKeyName).withKeyType(
-                                KeyType.RANGE))
-                .withAttributeDefinitions(
-                        new AttributeDefinition().withAttributeName(
-                                hashKeyName).withAttributeType(
-                                ScalarAttributeType.S))
-                .withAttributeDefinitions(
-                        new AttributeDefinition().withAttributeName(
-                                rangeKeyName).withAttributeType(
-                                ScalarAttributeType.N));
-        createTableRequest.setProvisionedThroughput(provisionedThroughput);
+        CreateTableRequest createTableRequest = CreateTableRequest.builder()
+                .tableName(tableName)
+                .keySchema(
+                        KeySchemaElement.builder().attributeName(
+                                hashKeyName).keyType(
+                                KeyType.HASH).build(),
+                        KeySchemaElement.builder().attributeName(
+                                rangeKeyName).keyType(
+                                KeyType.RANGE).build())
+                .attributeDefinitions(
+                        AttributeDefinition.builder().attributeName(
+                                hashKeyName).attributeType(
+                                ScalarAttributeType.S).build(),
+                        AttributeDefinition.builder().attributeName(
+                                rangeKeyName).attributeType(
+                                ScalarAttributeType.N).build())
+                .provisionedThroughput(provisionedThroughput)
+                .build();
 
         TableDescription createdTableDescription = dynamo.createTable(
-                createTableRequest).getTableDescription();
+                createTableRequest).tableDescription();
         System.out.println("Created Table: " + createdTableDescription);
-        assertEquals(tableName, createdTableDescription.getTableName());
-        assertNotNull(createdTableDescription.getTableStatus());
+        assertEquals(tableName, createdTableDescription.tableName());
+        assertNotNull(createdTableDescription.tableStatus());
         assertEquals(hashKeyName, createdTableDescription
-                .getKeySchema().get(0).getAttributeName());
+                .keySchema().get(0).attributeName());
         assertEquals(KeyType.HASH.toString(), createdTableDescription
-                .getKeySchema().get(0).getKeyType());
+                .keySchema().get(0).keyTypeAsString());
         assertEquals(rangeKeyName, createdTableDescription
-                .getKeySchema().get(1).getAttributeName());
+                .keySchema().get(1).attributeName());
         assertEquals(KeyType.RANGE.toString(), createdTableDescription
-                .getKeySchema().get(1).getKeyType());
+                .keySchema().get(1).keyTypeAsString());
     }
 }

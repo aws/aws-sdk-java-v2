@@ -19,7 +19,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.amazonaws.annotation.NotThreadSafe;
-import com.amazonaws.services.dynamodbv2.model.ReturnValuesOnConditionCheckFailure;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
  * Represents objects to write using {@link DynamoDBMapper#transactionWrite(TransactionWriteRequest)} operation.

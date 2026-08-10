@@ -14,18 +14,19 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedEpochDate;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
-import software.amazon.awssdk.mapper.dynamodb.test.AWSIntegrationTestBase;
-import com.amazonaws.util.ImmutableMapParameter;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.joda.time.DateTime;
 import org.junit.Before;
@@ -52,21 +53,21 @@ import static org.mockito.Mockito.when;
  * via the {@link DynamoDBTypeConvertedEpochDate} annontation.
  */
 @RunWith(MockitoJUnitRunner.class)
-public class DynamoDBTypeConvertedEpochDateTest extends AWSIntegrationTestBase {
+public class DynamoDBTypeConvertedEpochDateTest {
 
     private static final String HASH_KEY = "1234";
 
     private DynamoDBMapper mapper;
 
     @Mock
-    private AmazonDynamoDB ddb;
+    private DynamoDbClient ddb;
 
     @Before
     public void setup() {
         MockitoAnnotations.initMocks(this);
         mapper = new DynamoDBMapper(ddb);
         // Just stub dummy response for all save related tests
-        when(ddb.updateItem(any(UpdateItemRequest.class))).thenReturn(new UpdateItemResult());
+        when(ddb.updateItem(any(UpdateItemRequest.class))).thenReturn(UpdateItemResponse.builder().build());
     }
 
     @Test
@@ -75,7 +76,7 @@ public class DynamoDBTypeConvertedEpochDateTest extends AWSIntegrationTestBase {
         mapper.save(new PojoWithDate()
                             .setHashKey(UUID.randomUUID().toString())
                             .setDate(date));
-        verifyAttributeUpdatedWithValue("date", new AttributeValue().withN(String.valueOf(date.getTime())));
+        verifyAttributeUpdatedWithValue("date", AttributeValue.builder().n(String.valueOf(date.getTime())).build());
     }
 
     @Test
@@ -84,7 +85,7 @@ public class DynamoDBTypeConvertedEpochDateTest extends AWSIntegrationTestBase {
         mapper.save(new PojoWithDate()
                             .setHashKey(UUID.randomUUID().toString())
                             .setCalendar(calendar));
-        verifyAttributeUpdatedWithValue("calendar", new AttributeValue().withN(String.valueOf(calendar.getTime().getTime())));
+        verifyAttributeUpdatedWithValue("calendar", AttributeValue.builder().n(String.valueOf(calendar.getTime().getTime())).build());
     }
 
     @Test
@@ -93,26 +94,26 @@ public class DynamoDBTypeConvertedEpochDateTest extends AWSIntegrationTestBase {
         mapper.save(new PojoWithDate()
                             .setHashKey(UUID.randomUUID().toString())
                             .setDateTime(dateTime));
-        verifyAttributeUpdatedWithValue("dateTime", new AttributeValue().withN(String.valueOf(dateTime.toDate().getTime())));
+        verifyAttributeUpdatedWithValue("dateTime", AttributeValue.builder().n(String.valueOf(dateTime.toDate().getTime())).build());
     }
 
     @Test
     public void getItem_WithNumericDateInResponse_UnmarshalledCorrectly() {
-        stubGetItemRequest("date", new AttributeValue().withN("1234"));
+        stubGetItemRequest("date", AttributeValue.builder().n("1234").build());
         final PojoWithDate pojo = loadPojo();
         assertThat(pojo.getDate().getTime(), equalTo(1234L));
     }
 
     @Test
     public void getItem_WithNumericCalendarInResponse_UnmarshalledCorrectly() {
-        stubGetItemRequest("calendar", new AttributeValue().withN("1234"));
+        stubGetItemRequest("calendar", AttributeValue.builder().n("1234").build());
         final PojoWithDate pojo = loadPojo();
         assertThat(pojo.getCalendar().getTime().getTime(), equalTo(1234L));
     }
 
     @Test
     public void getItem_WithNumericDateTimeInResponse_UnmarshalledCorrectly() {
-        stubGetItemRequest("dateTime", new AttributeValue().withN("1234"));
+        stubGetItemRequest("dateTime", AttributeValue.builder().n("1234").build());
         final PojoWithDate pojo = loadPojo();
         assertThat(pojo.getDateTime().toDate().getTime(), equalTo(1234L));
     }
@@ -132,15 +133,16 @@ public class DynamoDBTypeConvertedEpochDateTest extends AWSIntegrationTestBase {
     }
 
     /**
-     * Create a {@link GetItemResult} with the hash key value ({@value #HASH_KEY} and the additional attribute.
+     * Create a {@link GetItemResponse} with the hash key value ({@value #HASH_KEY} and the additional attribute.
      *
-     * @param attributeName  Additional attribute to include in created {@link GetItemResult}.
+     * @param attributeName  Additional attribute to include in created {@link GetItemResponse}.
      * @param attributeValue Value of additional attribute.
      */
-    private GetItemResult createGetItemResult(String attributeName, AttributeValue attributeValue) {
-        return new GetItemResult().withItem(
-                ImmutableMapParameter.of("hashKey", new AttributeValue(HASH_KEY),
-                                         attributeName, attributeValue));
+    private GetItemResponse createGetItemResult(String attributeName, AttributeValue attributeValue) {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("hashKey", AttributeValue.builder().s(HASH_KEY).build());
+        item.put(attributeName, attributeValue);
+        return GetItemResponse.builder().item(item).build();
     }
 
     /**
@@ -152,7 +154,7 @@ public class DynamoDBTypeConvertedEpochDateTest extends AWSIntegrationTestBase {
     private void verifyAttributeUpdatedWithValue(String attributeName, AttributeValue expected) {
         ArgumentCaptor<UpdateItemRequest> updateItemRequestCaptor = ArgumentCaptor.forClass(UpdateItemRequest.class);
         verify(ddb).updateItem(updateItemRequestCaptor.capture());
-        assertEquals(expected, updateItemRequestCaptor.getValue().getAttributeUpdates().get(attributeName).getValue());
+        assertEquals(expected, updateItemRequestCaptor.getValue().attributeUpdates().get(attributeName).value());
     }
 
     @DynamoDBTable(tableName = "PojoWithDate")

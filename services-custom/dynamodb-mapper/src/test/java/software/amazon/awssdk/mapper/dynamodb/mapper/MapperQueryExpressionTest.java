@@ -1,21 +1,25 @@
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBRangeKey;
-import com.amazonaws.services.dynamodbv2.AbstractAmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBIndexHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBIndexRangeKey;
@@ -23,13 +27,11 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryResult;
-import com.amazonaws.util.ImmutableMapParameter;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 
 
 /**
@@ -38,31 +40,20 @@ import com.amazonaws.util.ImmutableMapParameter;
 public class MapperQueryExpressionTest {
 
     private static final String TABLE_NAME = "table_name";
-    private static final Condition RANGE_KEY_CONDITION = new Condition()
-            .withAttributeValueList(new AttributeValue("some value"))
-            .withComparisonOperator(ComparisonOperator.EQ);
+    private static final Condition RANGE_KEY_CONDITION = Condition.builder()
+            .attributeValueList(AttributeValue.builder().s("some value").build())
+            .comparisonOperator(ComparisonOperator.EQ)
+            .build();
 
-    private static CaptureDynamoDB capture;
+    private static DynamoDbClient mockDynamoDb;
     private static DynamoDBMapper mapper;
 
-    private static final class CaptureDynamoDB extends AbstractAmazonDynamoDB {
-        private QueryRequest request;
-        private QueryResult result;
-        private CaptureDynamoDB(final List<Map<String,AttributeValue>> items) {
-            this.result = new QueryResult();
-            this.result.setItems(items);
-        }
-        @Override
-        public QueryResult query(QueryRequest request) {
-            this.request = request;
-            return this.result;
-        }
-    }
-
     @BeforeClass
-    public static void setUp() throws SecurityException, NoSuchMethodException {
-        capture = new CaptureDynamoDB(Collections.<Map<String,AttributeValue>>emptyList());
-        mapper = new DynamoDBMapper(capture);
+    public static void setUp() {
+        mockDynamoDb = mock(DynamoDbClient.class);
+        when(mockDynamoDb.query(any(QueryRequest.class)))
+                .thenReturn(QueryResponse.builder().items(Collections.emptyList()).build());
+        mapper = new DynamoDBMapper(mockDynamoDb);
     }
 
     @DynamoDBTable(tableName = TABLE_NAME)
@@ -123,13 +114,12 @@ public class MapperQueryExpressionTest {
                 HashOnlyClass.class,
                 new DynamoDBQueryExpression<HashOnlyClass>()
                         .withHashKeyValues(new HashOnlyClass("foo", null, null)));
-        assertTrue(queryRequest.getKeyConditions().size() == 1);
-        assertEquals("primaryHashKey", queryRequest.getKeyConditions().keySet().iterator().next());
+        assertTrue(queryRequest.keyConditions().size() == 1);
+        assertEquals("primaryHashKey", queryRequest.keyConditions().keySet().iterator().next());
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertNull(queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertNull(queryRequest.indexName());
 
         // Primary hash used for a GSI
         queryRequest = testCreateQueryRequestFromExpression(
@@ -137,26 +127,24 @@ public class MapperQueryExpressionTest {
                 new DynamoDBQueryExpression<HashOnlyClass>()
                         .withHashKeyValues(new HashOnlyClass("foo", null, null))
                         .withIndexName("GSI-primary-hash"));
-        assertTrue(queryRequest.getKeyConditions().size() == 1);
-        assertEquals("primaryHashKey", queryRequest.getKeyConditions().keySet().iterator().next());
+        assertTrue(queryRequest.keyConditions().size() == 1);
+        assertEquals("primaryHashKey", queryRequest.keyConditions().keySet().iterator().next());
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertEquals("GSI-primary-hash", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertEquals("GSI-primary-hash", queryRequest.indexName());
 
         // Primary hash query takes higher priority then index hash query
         queryRequest = testCreateQueryRequestFromExpression(
                     HashOnlyClass.class,
                     new DynamoDBQueryExpression<HashOnlyClass>()
                             .withHashKeyValues(new HashOnlyClass("foo", "bar", null)));
-        assertTrue(queryRequest.getKeyConditions().size() == 1);
-        assertEquals("primaryHashKey", queryRequest.getKeyConditions().keySet().iterator().next());
+        assertTrue(queryRequest.keyConditions().size() == 1);
+        assertEquals("primaryHashKey", queryRequest.keyConditions().keySet().iterator().next());
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertNull(queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertNull(queryRequest.indexName());
 
         // Ambiguous query on multiple index hash keys
         queryRequest = testCreateQueryRequestFromExpression(
@@ -178,13 +166,12 @@ public class MapperQueryExpressionTest {
                 new DynamoDBQueryExpression<HashOnlyClass>()
                         .withHashKeyValues(new HashOnlyClass("foo", "bar", null))
                         .withIndexName("GSI-index-hash-1"));
-        assertTrue(queryRequest.getKeyConditions().size() == 1);
-        assertEquals("indexHashKey", queryRequest.getKeyConditions().keySet().iterator().next());
+        assertTrue(queryRequest.keyConditions().size() == 1);
+        assertEquals("indexHashKey", queryRequest.keyConditions().keySet().iterator().next());
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("bar"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("indexHashKey"));
-        assertEquals("GSI-index-hash-1", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("bar").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("indexHashKey"));
+        assertEquals("GSI-index-hash-1", queryRequest.indexName());
 
         // Non-existent GSI
         queryRequest = testCreateQueryRequestFromExpression(
@@ -293,15 +280,14 @@ public class MapperQueryExpressionTest {
                 new DynamoDBQueryExpression<HashRangeClass>()
                         .withHashKeyValues(new HashRangeClass("foo", null))
                         .withRangeKeyCondition("primaryRangeKey", RANGE_KEY_CONDITION));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryRangeKey"));
-        assertEquals(RANGE_KEY_CONDITION, queryRequest.getKeyConditions().get("primaryRangeKey"));
-        assertNull(queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("primaryRangeKey"));
+        assertEquals(RANGE_KEY_CONDITION, queryRequest.keyConditions().get("primaryRangeKey"));
+        assertNull(queryRequest.indexName());
 
         // Primary hash + primary range on a LSI
         queryRequest = testCreateQueryRequestFromExpression(
@@ -310,15 +296,14 @@ public class MapperQueryExpressionTest {
                         .withHashKeyValues(new HashRangeClass("foo", null))
                         .withRangeKeyCondition("primaryRangeKey", RANGE_KEY_CONDITION)
                         .withIndexName("LSI-primary-range"));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryRangeKey"));
-        assertEquals(RANGE_KEY_CONDITION, queryRequest.getKeyConditions().get("primaryRangeKey"));
-        assertEquals("LSI-primary-range", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("primaryRangeKey"));
+        assertEquals(RANGE_KEY_CONDITION, queryRequest.keyConditions().get("primaryRangeKey"));
+        assertEquals("LSI-primary-range", queryRequest.indexName());
 
         // Primary hash + index range used by multiple LSI. But also a GSI hash + range
         queryRequest = testCreateQueryRequestFromExpression(
@@ -326,15 +311,14 @@ public class MapperQueryExpressionTest {
                 new DynamoDBQueryExpression<HashRangeClass>()
                         .withHashKeyValues(new HashRangeClass("foo", null))
                         .withRangeKeyCondition("indexRangeKey", RANGE_KEY_CONDITION));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("indexRangeKey"));
-        assertEquals(RANGE_KEY_CONDITION, queryRequest.getKeyConditions().get("indexRangeKey"));
-        assertEquals("GSI-primary-hash-index-range-1", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("indexRangeKey"));
+        assertEquals(RANGE_KEY_CONDITION, queryRequest.keyConditions().get("indexRangeKey"));
+        assertEquals("GSI-primary-hash-index-range-1", queryRequest.indexName());
 
 
         // Primary hash + index range on a LSI
@@ -344,15 +328,14 @@ public class MapperQueryExpressionTest {
                         .withHashKeyValues(new HashRangeClass("foo", null))
                         .withRangeKeyCondition("indexRangeKey", RANGE_KEY_CONDITION)
                         .withIndexName("LSI-index-range-1"));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("primaryHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("indexRangeKey"));
-        assertEquals(RANGE_KEY_CONDITION, queryRequest.getKeyConditions().get("indexRangeKey"));
-        assertEquals("LSI-index-range-1", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("indexRangeKey"));
+        assertEquals(RANGE_KEY_CONDITION, queryRequest.keyConditions().get("indexRangeKey"));
+        assertEquals("LSI-index-range-1", queryRequest.indexName());
 
         // Non-existent LSI
         queryRequest = testCreateQueryRequestFromExpression(
@@ -378,15 +361,14 @@ public class MapperQueryExpressionTest {
                 new DynamoDBQueryExpression<HashRangeClass>()
                         .withHashKeyValues(new HashRangeClass(null, "foo"))
                         .withRangeKeyCondition("primaryRangeKey", RANGE_KEY_CONDITION));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("indexHashKey"));
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("indexHashKey"));
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("indexHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryRangeKey"));
-        assertEquals(RANGE_KEY_CONDITION, queryRequest.getKeyConditions().get("primaryRangeKey"));
-        assertEquals("GSI-index-hash-primary-range", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("indexHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("primaryRangeKey"));
+        assertEquals(RANGE_KEY_CONDITION, queryRequest.keyConditions().get("primaryRangeKey"));
+        assertEquals("GSI-index-hash-primary-range", queryRequest.indexName());
 
         // Ambiguous query: GSI hash + index range used by multiple GSIs
         queryRequest = testCreateQueryRequestFromExpression(
@@ -403,15 +385,14 @@ public class MapperQueryExpressionTest {
                         .withHashKeyValues(new HashRangeClass(null, "foo"))
                         .withRangeKeyCondition("indexRangeKey", RANGE_KEY_CONDITION)
                         .withIndexName("GSI-index-hash-index-range-2"));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("indexHashKey"));
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("indexHashKey"));
         assertEquals(
-                new Condition().withAttributeValueList(new AttributeValue("foo"))
-                    .withComparisonOperator(ComparisonOperator.EQ),
-                queryRequest.getKeyConditions().get("indexHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("indexRangeKey"));
-        assertEquals(RANGE_KEY_CONDITION, queryRequest.getKeyConditions().get("indexRangeKey"));
-        assertEquals("GSI-index-hash-index-range-2", queryRequest.getIndexName());
+                Condition.builder().attributeValueList(AttributeValue.builder().s("foo").build()).comparisonOperator(ComparisonOperator.EQ).build(),
+                queryRequest.keyConditions().get("indexHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("indexRangeKey"));
+        assertEquals(RANGE_KEY_CONDITION, queryRequest.keyConditions().get("indexRangeKey"));
+        assertEquals("GSI-index-hash-index-range-2", queryRequest.indexName());
 
         // Ambiguous query: (1) primary hash + LSI range OR (2) GSI hash + range
         queryRequest = testCreateQueryRequestFromExpression(
@@ -422,14 +403,14 @@ public class MapperQueryExpressionTest {
                 "Ambiguous query expression: Found multiple valid queries:");
 
         // Multiple range key conditions specified
+        Map<String, Condition> multipleRangeKeyConditions = new HashMap<>();
+        multipleRangeKeyConditions.put("primaryRangeKey", RANGE_KEY_CONDITION);
+        multipleRangeKeyConditions.put("indexRangeKey", RANGE_KEY_CONDITION);
         queryRequest = testCreateQueryRequestFromExpression(
                 HashRangeClass.class,
                 new DynamoDBQueryExpression<HashRangeClass>()
                         .withHashKeyValues(new HashRangeClass("foo", null))
-                        .withRangeKeyConditions(
-                                ImmutableMapParameter.of(
-                                        "primaryRangeKey", RANGE_KEY_CONDITION,
-                                        "indexRangeKey", RANGE_KEY_CONDITION)),
+                        .withRangeKeyConditions(multipleRangeKeyConditions),
                 "Illegal query expression: Conditions on multiple range keys");
 
         // Using an un-annotated range key
@@ -485,9 +466,9 @@ public class MapperQueryExpressionTest {
                 LSIRangeKeyClass.class,
                 new DynamoDBQueryExpression<LSIRangeKeyClass>()
                         .withHashKeyValues(new LSIRangeKeyClass("foo", null)));
-        assertTrue(queryRequest.getKeyConditions().size() == 1);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
-        assertNull(queryRequest.getIndexName());
+        assertTrue(queryRequest.keyConditions().size() == 1);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
+        assertNull(queryRequest.indexName());
         
         // Hash+Range query on a LSI
         queryRequest = testCreateQueryRequestFromExpression(
@@ -496,10 +477,10 @@ public class MapperQueryExpressionTest {
                         .withHashKeyValues(new LSIRangeKeyClass("foo", null))
                         .withRangeKeyCondition("lsiRangeKey", RANGE_KEY_CONDITION)
                         .withIndexName("LSI"));
-        assertTrue(queryRequest.getKeyConditions().size() == 2);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
-        assertTrue(queryRequest.getKeyConditions().containsKey("lsiRangeKey"));
-        assertEquals("LSI", queryRequest.getIndexName());
+        assertTrue(queryRequest.keyConditions().size() == 2);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
+        assertTrue(queryRequest.keyConditions().containsKey("lsiRangeKey"));
+        assertEquals("LSI", queryRequest.indexName());
         
         // Hash-only query on a LSI
         queryRequest = testCreateQueryRequestFromExpression(
@@ -507,9 +488,9 @@ public class MapperQueryExpressionTest {
                 new DynamoDBQueryExpression<LSIRangeKeyClass>()
                         .withHashKeyValues(new LSIRangeKeyClass("foo", null))
                         .withIndexName("LSI"));
-        assertTrue(queryRequest.getKeyConditions().size() == 1);
-        assertTrue(queryRequest.getKeyConditions().containsKey("primaryHashKey"));
-        assertEquals("LSI", queryRequest.getIndexName());
+        assertTrue(queryRequest.keyConditions().size() == 1);
+        assertTrue(queryRequest.keyConditions().containsKey("primaryHashKey"));
+        assertEquals("LSI", queryRequest.indexName());
     }
 
     private static <T> QueryRequest testCreateQueryRequestFromExpression(
@@ -526,7 +507,9 @@ public class MapperQueryExpressionTest {
                 fail("Exception containing messsage ("
                         + expectedErrorMessage + ") is expected.");
             }
-            return capture.request;
+            ArgumentCaptor<QueryRequest> captor = ArgumentCaptor.forClass(QueryRequest.class);
+            verify(mockDynamoDb, atLeastOnce()).query(captor.capture());
+            return captor.getValue();
         } catch (RuntimeException e) {
             if (expectedErrorMessage != null && e.getMessage() != null) {
                 assertTrue("Exception message [" + e.getMessage() + "] does not contain " +

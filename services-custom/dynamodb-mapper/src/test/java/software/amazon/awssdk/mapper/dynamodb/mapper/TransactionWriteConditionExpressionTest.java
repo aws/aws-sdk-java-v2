@@ -26,10 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.CancellationReason;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CancellationReason;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.mapper.dynamodb.pojos.HashKeyRangeKeyClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
@@ -271,9 +271,9 @@ public class TransactionWriteConditionExpressionTest extends TransactionsTestBas
             executeAndValidateTransactionWrite(transactionWriteTestData.getTransactionWriteRequest(),
                                                transactionWriteTestData.getExpectedObjectKeys(),
                                                transactionWriteTestData.getExpectedObjects());
-            fail("Expected AmazonServiceException but no exception thrown");
-        } catch (AmazonServiceException ase) {
-            assertEquals("ValidationException", ase.getErrorCode());
+            fail("Expected AwsServiceException but no exception thrown");
+        } catch (AwsServiceException ase) {
+            assertEquals("ValidationException", ase.awsErrorDetails().errorCode());
         }
     }
 
@@ -281,21 +281,21 @@ public class TransactionWriteConditionExpressionTest extends TransactionsTestBas
         Map<String, AttributeValue> expectedResponseValueMap = new HashMap<String, AttributeValue>();
         if (obj.getClass().equals(StringAttributeClass.class)) {
             StringAttributeClass stringAttributeClassObject = (StringAttributeClass) obj;
-            expectedResponseValueMap.put("originalName", new AttributeValue(stringAttributeClassObject.getRenamedAttribute()));
-            expectedResponseValueMap.put("stringAttribute", new AttributeValue(stringAttributeClassObject.getStringAttribute()));
-            expectedResponseValueMap.put("key", new AttributeValue(stringAttributeClassObject.getKey()));
+            expectedResponseValueMap.put("originalName", AttributeValue.builder().s(stringAttributeClassObject.getRenamedAttribute()).build());
+            expectedResponseValueMap.put("stringAttribute", AttributeValue.builder().s(stringAttributeClassObject.getStringAttribute()).build());
+            expectedResponseValueMap.put("key", AttributeValue.builder().s(stringAttributeClassObject.getKey()).build());
         } else if (obj.getClass().equals(TestItem.class)) {
             TestItem testItemObject = (TestItem) obj;
-            expectedResponseValueMap.put("hashKey", new AttributeValue(testItemObject.getHashKey()));
-            expectedResponseValueMap.put("rangeKey", new AttributeValue().withN(testItemObject.getRangeKey().toString()));
-            expectedResponseValueMap.put("stringAttribute", new AttributeValue(testItemObject.getStringAttribute()));
-            expectedResponseValueMap.put("nonKeyAttribute", new AttributeValue(testItemObject.getNonKeyAttribute()));
-            expectedResponseValueMap.put("stringSetAttribute", new AttributeValue().withSS(testItemObject.getStringSetAttribute()));
+            expectedResponseValueMap.put("hashKey", AttributeValue.builder().s(testItemObject.getHashKey()).build());
+            expectedResponseValueMap.put("rangeKey", AttributeValue.builder().n(testItemObject.getRangeKey().toString()).build());
+            expectedResponseValueMap.put("stringAttribute", AttributeValue.builder().s(testItemObject.getStringAttribute()).build());
+            expectedResponseValueMap.put("nonKeyAttribute", AttributeValue.builder().s(testItemObject.getNonKeyAttribute()).build());
+            expectedResponseValueMap.put("stringSetAttribute", AttributeValue.builder().ss(testItemObject.getStringSetAttribute()).build());
         } else if (obj.getClass().equals(HashKeyRangeKeyClass.class)) {
             HashKeyRangeKeyClass hashKeyRangeKeyClassObject = (HashKeyRangeKeyClass) obj;
-            expectedResponseValueMap.put("hashKey", new AttributeValue().withN(Long.toString(hashKeyRangeKeyClassObject.getHashKey())));
-            expectedResponseValueMap.put("rangeKey", new AttributeValue().withN(Double.toString(hashKeyRangeKeyClassObject.getRangeKey())));
-            expectedResponseValueMap.put("stringAttribute", new AttributeValue(hashKeyRangeKeyClassObject.getStringAttribute()));
+            expectedResponseValueMap.put("hashKey", AttributeValue.builder().n(Long.toString(hashKeyRangeKeyClassObject.getHashKey())).build());
+            expectedResponseValueMap.put("rangeKey", AttributeValue.builder().n(Double.toString(hashKeyRangeKeyClassObject.getRangeKey())).build());
+            expectedResponseValueMap.put("stringAttribute", AttributeValue.builder().s(hashKeyRangeKeyClassObject.getStringAttribute()).build());
         } else {
             throw new IllegalArgumentException("Unsupported class passed in: " + obj.getClass());
         }

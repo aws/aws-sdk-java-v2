@@ -19,22 +19,10 @@ import static software.amazon.awssdk.mapper.dynamodb.shape.ShapeSupport.n;
 import static software.amazon.awssdk.mapper.dynamodb.shape.ShapeSupport.s;
 import static software.amazon.awssdk.mapper.dynamodb.shape.ShapeSupport.verify;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.Request;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder.EndpointConfiguration;
-import com.amazonaws.handlers.RequestHandler2;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClientBuilder;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodbv2.model.Select;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +37,15 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
@@ -69,6 +66,12 @@ import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.Name;
 import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.RangeItem;
 import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.StringItem;
 import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.VersionedItem;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 import software.amazon.awssdk.utils.IoUtils;
 
 /** Captures each mapper call's marshalled request (X-Amz-Target + JSON body) and asserts it against a committed fixture. */
@@ -199,11 +202,11 @@ public class ShapeRequestTest {
 
         c.add(new Case(Operation.UPDATE_ITEM, "save-with-expected-expression",
             m -> m.save(stringItem("hello"), new DynamoDBSaveExpression()
-                .withExpectedEntry("value", new ExpectedAttributeValue().withExists(false)))));
+                .withExpectedEntry("value", ExpectedAttributeValue.builder().exists(false).build()))));
 
         c.add(new Case(Operation.DELETE_ITEM, "delete-with-expected-expression",
             m -> m.delete(stringItem("hello"), new DynamoDBDeleteExpression()
-                .withExpectedEntry("value", new ExpectedAttributeValue().withValue(s("hello"))))));
+                .withExpectedEntry("value", ExpectedAttributeValue.builder().value(s("hello")).build()))));
         c.add(new Case(Operation.DELETE_ITEM, "delete-with-condition-expression",
             m -> m.delete(stringItem("hello"), new DynamoDBDeleteExpression()
                 .withConditionExpression("attribute_exists(#v)")
@@ -212,9 +215,10 @@ public class ShapeRequestTest {
         c.add(new Case(Operation.QUERY, "range-condition-limit-desc", m -> {
             RangeItem key = new RangeItem();
             key.setId(HASH_KEY);
-            Condition rangeCond = new Condition()
-                .withComparisonOperator(ComparisonOperator.GT)
-                .withAttributeValueList(n("5"));
+            Condition rangeCond = Condition.builder()
+                .comparisonOperator(ComparisonOperator.GT)
+                .attributeValueList(n("5"))
+                .build();
             m.query(RangeItem.class, new DynamoDBQueryExpression<RangeItem>()
                 .withHashKeyValues(key)
                 .withRangeKeyCondition("range", rangeCond)
@@ -234,9 +238,10 @@ public class ShapeRequestTest {
             key.setId(HASH_KEY);
             m.query(StringItem.class, new DynamoDBQueryExpression<StringItem>()
                 .withHashKeyValues(key)
-                .withQueryFilterEntry("value", new Condition()
-                    .withComparisonOperator(ComparisonOperator.EQ)
-                    .withAttributeValueList(s("hello"))));
+                .withQueryFilterEntry("value", Condition.builder()
+                    .comparisonOperator(ComparisonOperator.EQ)
+                    .attributeValueList(s("hello"))
+                    .build()));
         }));
         c.add(new Case(Operation.QUERY, "exclusive-start-key", m -> {
             StringItem key = new StringItem();
@@ -264,9 +269,10 @@ public class ShapeRequestTest {
 
         c.add(new Case(Operation.SCAN, "filtered-limited", m -> m.scan(StringItem.class,
             new DynamoDBScanExpression()
-                .withFilterConditionEntry("value", new Condition()
-                    .withComparisonOperator(ComparisonOperator.EQ)
-                    .withAttributeValueList(s("hello")))
+                .withFilterConditionEntry("value", Condition.builder()
+                    .comparisonOperator(ComparisonOperator.EQ)
+                    .attributeValueList(s("hello"))
+                    .build())
                 .withLimit(25))));
         c.add(new Case(Operation.SCAN, "consistent-read", m -> m.scan(StringItem.class,
             new DynamoDBScanExpression().withConsistentRead(true))));
@@ -328,34 +334,50 @@ public class ShapeRequestTest {
         verify(testCase.operation.fixture, testCase.name, captureRequest(testCase.action));
     }
 
-    // Captures the marshalled request as "target\nbody"; the v2 port swaps this for an ExecutionInterceptor.
+    // Captures the marshalled request as "target\nbody" via an afterMarshalling interceptor that aborts before transmission.
     private static String captureRequest(MapperAction action) {
         String[] captured = new String[1];
-        RequestHandler2 handler = new RequestHandler2() {
+        ExecutionInterceptor handler = new ExecutionInterceptor() {
             @Override
-            public void beforeRequest(Request<?> request) {
-                String target = request.getHeaders().get(TARGET_HEADER);
-                captured[0] = target + "\n" + readContent(request.getContent());
+            public void afterMarshalling(Context.AfterMarshalling context, ExecutionAttributes executionAttributes) {
+                String target = context.httpRequest().firstMatchingHeader(TARGET_HEADER)
+                    .orElseThrow(() -> new IllegalStateException("Marshalled request had no " + TARGET_HEADER + " header"));
+                captured[0] = target + "\n" + readContent(context.requestBody().orElse(null));
                 throw new StopSignal();
             }
         };
-        AmazonDynamoDB client = AmazonDynamoDBClientBuilder.standard()
-            .withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials("akid", "skid")))
-            .withEndpointConfiguration(new EndpointConfiguration("http://localhost:8000", "us-east-1"))
-            .withRequestHandlers(handler)
+        DynamoDbClient client = DynamoDbClient.builder()
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .region(Region.US_EAST_1)
+            .endpointOverride(URI.create("http://localhost:8000"))
+            .overrideConfiguration(c -> c.addExecutionInterceptor(handler))
             .build();
         DynamoDBMapper mapper = new DynamoDBMapper(client);
         try {
             action.run(mapper);
         } catch (StopSignal expected) {
             // request captured; network intentionally aborted
-        } catch (AmazonServiceException e) {
-            throw new IllegalStateException("Request reached the network instead of being captured", e);
+        } catch (AbortedException expected) {
+            // the core wraps the interceptor throw before transmission; request already captured
+        } catch (SdkException e) {
+            if (findStopSignal(e) == null) {
+                throw new IllegalStateException("Request reached the network instead of being captured", e);
+            }
         }
         if (captured[0] == null) {
             throw new IllegalStateException("No DynamoDB request was marshalled by the action");
         }
         return captured[0];
+    }
+
+    // The core may wrap an interceptor-thrown exception; walk the cause chain for our StopSignal.
+    private static StopSignal findStopSignal(Throwable t) {
+        for (Throwable c = t; c != null; c = c.getCause()) {
+            if (c instanceof StopSignal) {
+                return (StopSignal) c;
+            }
+        }
+        return null;
     }
 
     private static final class StopSignal extends RuntimeException {
@@ -364,11 +386,11 @@ public class ShapeRequestTest {
         }
     }
 
-    private static String readContent(InputStream content) {
-        if (content == null) {
+    private static String readContent(RequestBody body) {
+        if (body == null) {
             throw new IllegalStateException("Marshalled request had no body");
         }
-        try {
+        try (InputStream content = body.contentStreamProvider().newStream()) {
             return new String(IoUtils.toByteArray(content), StandardCharsets.UTF_8);
         } catch (IOException e) {
             throw new UncheckedIOException(e);

@@ -18,12 +18,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
-import com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.Select;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 
 /**
  * Options for filtering results from a scan operation. For example, callers can
@@ -622,9 +622,6 @@ public class DynamoDBScanExpression {
      * @param value
      *            The corresponding value of the entry to be added into
      *            ExpressionAttributeValues.
-     *
-     * @see ScanRequest#addExpressionAttributeValuesEntry(String,
-     *      AttributeValue)
      */
     public DynamoDBScanExpression addExpressionAttributeValuesEntry(String key,
             AttributeValue value) {

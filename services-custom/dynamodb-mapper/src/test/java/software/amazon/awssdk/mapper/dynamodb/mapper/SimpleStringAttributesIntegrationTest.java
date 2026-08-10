@@ -32,8 +32,8 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 
 /**
@@ -49,9 +49,9 @@ public class SimpleStringAttributesIntegrationTest extends DynamoDBMapperIntegra
     static {
         for ( int i = 0; i < 5; i++ ) {
             Map<String, AttributeValue> attr = new HashMap<String, AttributeValue>();
-            attr.put(KEY_NAME, new AttributeValue().withS("" + startKey++));
-            attr.put(STRING_ATTRIBUTE, new AttributeValue().withS("" + startKey++));
-            attr.put(ORIGINAL_NAME_ATTRIBUTE, new AttributeValue().withS("" + startKey++));
+            attr.put(KEY_NAME, AttributeValue.builder().s("" + startKey++).build());
+            attr.put(STRING_ATTRIBUTE, AttributeValue.builder().s("" + startKey++).build());
+            attr.put(ORIGINAL_NAME_ATTRIBUTE, AttributeValue.builder().s("" + startKey++).build());
             attrs.add(attr);
         }
     };
@@ -62,7 +62,7 @@ public class SimpleStringAttributesIntegrationTest extends DynamoDBMapperIntegra
 
         // Insert the data
         for ( Map<String, AttributeValue> attr : attrs ) {
-            dynamo.putItem(new PutItemRequest(TABLE_NAME, attr));
+            dynamo.putItem(PutItemRequest.builder().tableName(TABLE_NAME).item(attr).build());
         }
     }
 
@@ -71,10 +71,10 @@ public class SimpleStringAttributesIntegrationTest extends DynamoDBMapperIntegra
         DynamoDBMapper util = new DynamoDBMapper(dynamo);
 
         for ( Map<String, AttributeValue> attr : attrs ) {
-            StringAttributeClass x = util.load(StringAttributeClass.class, attr.get(KEY_NAME).getS());
-            assertEquals(x.getKey(), attr.get(KEY_NAME).getS());
-            assertEquals(x.getStringAttribute(), attr.get(STRING_ATTRIBUTE).getS());
-            assertEquals(x.getRenamedAttribute(), attr.get(ORIGINAL_NAME_ATTRIBUTE).getS());
+            StringAttributeClass x = util.load(StringAttributeClass.class, attr.get(KEY_NAME).s());
+            assertEquals(x.getKey(), attr.get(KEY_NAME).s());
+            assertEquals(x.getStringAttribute(), attr.get(STRING_ATTRIBUTE).s());
+            assertEquals(x.getRenamedAttribute(), attr.get(ORIGINAL_NAME_ATTRIBUTE).s());
         }
 
     }

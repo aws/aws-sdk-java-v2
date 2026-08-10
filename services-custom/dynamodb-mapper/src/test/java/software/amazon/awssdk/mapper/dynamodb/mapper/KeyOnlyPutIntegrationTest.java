@@ -17,9 +17,9 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 
 public class KeyOnlyPutIntegrationTest extends DynamoDBIntegrationTestBase {
     @DynamoDBTable(tableName = "aws-java-sdk-util")
@@ -108,10 +108,10 @@ public class KeyOnlyPutIntegrationTest extends DynamoDBIntegrationTestBase {
             try {
                 DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
                 Map<String,ExpectedAttributeValue> expected = new HashMap<String,ExpectedAttributeValue>();
-                ExpectedAttributeValue expectedVersion = new ExpectedAttributeValue()
-                    .withValue(new AttributeValue()
-                    .withS("SomeNonExistantValue"))   
-                    .withExists(true);
+                ExpectedAttributeValue expectedVersion = ExpectedAttributeValue.builder()
+                    .value(AttributeValue.builder()
+                    .s("SomeNonExistantValue").build())
+                    .exists(true).build();
                 expected.put("normalStringAttribute", expectedVersion);
                 saveExpression.setExpected(expected);
                 

@@ -11,10 +11,10 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
 import software.amazon.awssdk.mapper.dynamodb.QueryResultPage;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.Select;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.Select;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -64,9 +64,9 @@ public class QueryIntegrationTest extends DynamoDBMapperIntegrationTestBase {
                     .withHashKeyValues(hashKeyObject)
                     .withRangeKeyCondition(
                             "rangeKey",
-                            new Condition()
-                                .withComparisonOperator(ComparisonOperator.GT)
-                                .withAttributeValueList(new AttributeValue().withN("1.0")))
+                            Condition.builder()
+                                .comparisonOperator(ComparisonOperator.GT)
+                                .attributeValueList(AttributeValue.builder().n("1.0").build()).build())
                     .withLimit(11);
         List<RangeKeyClass> list = mapper.query(RangeKeyClass.class, queryExpression);
 
@@ -106,10 +106,10 @@ public class QueryIntegrationTest extends DynamoDBMapperIntegrationTestBase {
         // A random filter condition to be applied to the query.
         Random random = new Random();
         int randomFilterValue = random.nextInt(TEST_ITEM_NUMBER);
-        Condition filterCondition = new Condition()
-            .withComparisonOperator(ComparisonOperator.LT)
-            .withAttributeValueList(
-                new AttributeValue().withN(Integer.toString(randomFilterValue)));
+        Condition filterCondition = Condition.builder()
+            .comparisonOperator(ComparisonOperator.LT)
+            .attributeValueList(
+                AttributeValue.builder().n(Integer.toString(randomFilterValue)).build()).build();
 
         /*
          * (1) Apply the filter on the range key, in form of key condition
@@ -148,8 +148,8 @@ public class QueryIntegrationTest extends DynamoDBMapperIntegrationTestBase {
             keyObject.setKey(hashKey);
         	DynamoDBQueryExpression<RangeKeyClass> queryExpression = new DynamoDBQueryExpression<RangeKeyClass>().withHashKeyValues(keyObject);
             queryExpression.withRangeKeyCondition("rangeKey",
-    				                new Condition().withComparisonOperator(ComparisonOperator.GT.toString()).withAttributeValueList(
-    				                        new AttributeValue().withN("1.0"))).withLimit(11)
+    				                Condition.builder().comparisonOperator(ComparisonOperator.GT.toString()).attributeValueList(
+    				                        AttributeValue.builder().n("1.0").build()).build()).withLimit(11)
                             .withIndexName("some_index");
         	mapper.query(RangeKeyClass.class, queryExpression);
         	fail("User should not provide index name when making query with the primary range key");

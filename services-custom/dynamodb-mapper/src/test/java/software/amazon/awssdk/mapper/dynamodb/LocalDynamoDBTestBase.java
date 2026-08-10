@@ -1,11 +1,10 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBAsync;
-
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.mapper.dynamodb.pojos.BinaryAttributeByteBufferClass;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -18,7 +17,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 public class LocalDynamoDBTestBase {
-    protected static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT = new ProvisionedThroughput(50L, 50L);
+    protected static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT =
+        ProvisionedThroughput.builder().readCapacityUnits(50L).writeCapacityUnits(50L).build();
     private static final LocalDynamoDB LOCAL = new LocalDynamoDB();
 
     @BeforeClass
@@ -31,15 +31,15 @@ public class LocalDynamoDBTestBase {
         LOCAL.stop();
     }
 
-    protected static AmazonDynamoDB client() {
+    protected static DynamoDbClient client() {
         return LOCAL.createClient();
     }
 
-    protected static AmazonDynamoDB client(ClientConfiguration configuration) {
+    protected static DynamoDbClient client(ClientOverrideConfiguration configuration) {
         return LOCAL.createClient(configuration);
     }
 
-    protected static AmazonDynamoDBAsync asyncClient() {
+    protected static DynamoDbAsyncClient asyncClient() {
         return LOCAL.createAsyncClient();
     }
 

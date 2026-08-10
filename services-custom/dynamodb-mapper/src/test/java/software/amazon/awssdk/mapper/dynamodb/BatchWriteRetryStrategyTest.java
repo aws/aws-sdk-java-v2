@@ -14,32 +14,32 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.mockito.Matchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-import junit.framework.Assert;
-
-import org.easymock.IExpectationSetters;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.BatchWriteRetryStrategy;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.BatchWriteItemRequest;
-import com.amazonaws.services.dynamodbv2.model.BatchWriteItemResult;
-import com.amazonaws.services.dynamodbv2.model.PutRequest;
-import com.amazonaws.services.dynamodbv2.model.WriteRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutRequest;
+import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 public class BatchWriteRetryStrategyTest {
 
@@ -49,15 +49,17 @@ public class BatchWriteRetryStrategyTest {
 
     private static Map<String, List<WriteRequest>> unprocessedItems;
 
-    private AmazonDynamoDB ddbMock;
+    private DynamoDbClient ddbMock;
     private DynamoDBMapper mapper;
 
     static {
-        WriteRequest writeReq = new WriteRequest()
-                .withPutRequest(new PutRequest()
-                        .withItem(Collections.singletonMap(
+        WriteRequest writeReq = WriteRequest.builder()
+                .putRequest(PutRequest.builder()
+                        .item(Collections.singletonMap(
                                 HASH_ATTR,
-                                new AttributeValue("foo"))));
+                                AttributeValue.builder().s("foo").build()))
+                        .build())
+                .build();
 
         unprocessedItems = Collections.singletonMap(TABLE_NAME,
                 Arrays.asList(writeReq));
@@ -65,7 +67,7 @@ public class BatchWriteRetryStrategyTest {
 
     @Before
     public void setup() {
-        ddbMock = createMock(AmazonDynamoDB.class);
+        ddbMock = mock(DynamoDbClient.class);
         mapper = new DynamoDBMapper(
                 ddbMock,
                 getConfigWithCustomBatchWriteRetryStrategy(
@@ -75,34 +77,34 @@ public class BatchWriteRetryStrategyTest {
     @Test
     public void testBatchWriteItemCallSuccess_NoRetry() {
 
-        // BatchWriteItem is expected to be called only once
-        expectBatchWriteItemSuccess().once();
+        stubBatchWriteItemSuccess();
 
-        replay(ddbMock);
         List<FailedBatch> failedBatches = mapper.batchSave(new Item("foo"));
-        verify(ddbMock);
 
-        Assert.assertEquals(0, failedBatches.size());
+        // BatchWriteItem is expected to be called only once
+        verify(ddbMock, times(1)).batchWriteItem(isA(BatchWriteItemRequest.class));
+
+        assertEquals(0, failedBatches.size());
     }
 
     @Test
     public void testUnprocessedItemReturned_BatchWriteItemCallNotExceedMaxRetry() {
 
-        // BatchWriteItem is expected to be called exactly (MAX_RETRY + 1) times
-        expectBatchWriteItemReturnUnprocessedItems().times(MAX_RETRY + 1);
+        stubBatchWriteItemReturnUnprocessedItems();
 
-        replay(ddbMock);
         List<FailedBatch> failedBatches = mapper.batchSave(new Item("foo"));
-        verify(ddbMock);
 
-        Assert.assertEquals(1, failedBatches.size());
+        // BatchWriteItem is expected to be called exactly (MAX_RETRY + 1) times
+        verify(ddbMock, times(MAX_RETRY + 1)).batchWriteItem(isA(BatchWriteItemRequest.class));
+
+        assertEquals(1, failedBatches.size());
         FailedBatch failedBatch = failedBatches.get(0);
 
-        Assert.assertEquals(
+        assertEquals(
                 "Failed batch should contain the same UnprocessedItems returned in the BatchWriteItem response.",
                 unprocessedItems,
                 failedBatch.getUnprocessedItems());
-        Assert.assertNull(
+        assertNull(
                 "No exception should be set if the batch failed after max retry",
                 failedBatch.getException());
     }
@@ -111,43 +113,44 @@ public class BatchWriteRetryStrategyTest {
     public void testExceptionThrown_NoRetry() {
 
         RuntimeException exception = new RuntimeException("BOOM");
-        expectedBatchWriteItemThrowException(exception);
+        stubBatchWriteItemThrowException(exception);
 
-        replay(ddbMock);
         // put a random item
         Item item = new Item(UUID.randomUUID().toString());
         List<FailedBatch> failedBatches = mapper.batchSave(item);
-        verify(ddbMock);
 
-        Assert.assertEquals(1, failedBatches.size());
+        verify(ddbMock, times(1)).batchWriteItem(isA(BatchWriteItemRequest.class));
+
+        assertEquals(1, failedBatches.size());
         FailedBatch failedBatch = failedBatches.get(0);
 
-        Assert.assertEquals(
+        assertEquals(
                 "Failed batch should contain all the input items for batchWrite",
                 Collections.singletonMap(TABLE_NAME, Arrays.asList(item.toPutSaveRequest())),
                 failedBatch.getUnprocessedItems());
-        Assert.assertSame(
+        assertSame(
                 "The exception should be the same as one thrown by BatchWriteItem",
                 exception,
                 failedBatch.getException());
     }
 
-    private IExpectationSetters<BatchWriteItemResult> expectBatchWriteItemSuccess() {
-        return expect(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
-                .andReturn(new BatchWriteItemResult()
-                        .withUnprocessedItems(Collections.<String, List<WriteRequest>>emptyMap()));
+    private void stubBatchWriteItemSuccess() {
+        when(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
+                .thenReturn(BatchWriteItemResponse.builder()
+                        .unprocessedItems(Collections.<String, List<WriteRequest>>emptyMap())
+                        .build());
     }
 
-    private IExpectationSetters<BatchWriteItemResult> expectBatchWriteItemReturnUnprocessedItems() {
-        return expect(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
-                .andReturn(
-                        new BatchWriteItemResult()
-                                .withUnprocessedItems(unprocessedItems));
+    private void stubBatchWriteItemReturnUnprocessedItems() {
+        when(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
+                .thenReturn(BatchWriteItemResponse.builder()
+                        .unprocessedItems(unprocessedItems)
+                        .build());
     }
 
-    private void expectedBatchWriteItemThrowException(Exception e) {
-        expect(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
-                .andThrow(e);
+    private void stubBatchWriteItemThrowException(RuntimeException e) {
+        when(ddbMock.batchWriteItem(isA(BatchWriteItemRequest.class)))
+                .thenThrow(e);
     }
 
     private DynamoDBMapperConfig getConfigWithCustomBatchWriteRetryStrategy(
@@ -200,9 +203,11 @@ public class BatchWriteRetryStrategyTest {
         }
 
         public WriteRequest toPutSaveRequest() {
-            return new WriteRequest()
-                    .withPutRequest(new PutRequest(
-                            Collections.singletonMap(HASH_ATTR, new AttributeValue(hash))));
+            return WriteRequest.builder()
+                    .putRequest(PutRequest.builder()
+                            .item(Collections.singletonMap(HASH_ATTR, AttributeValue.builder().s(hash).build()))
+                            .build())
+                    .build();
         }
     }
 

@@ -36,10 +36,10 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 /**
  * Tests that index range keys are properly handled as common attribute
@@ -75,17 +75,17 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
             hashKeyValues.add(hashKeyValue);
             for (int j = 0; j< rangePerHash; j++) {
                 Map<String, AttributeValue> attr = new HashMap<String, AttributeValue>();
-                attr.put(KEY_NAME, new AttributeValue().withN("" + hashKeyValue));
-                attr.put(RANGE_KEY, new AttributeValue().withN("" + j));
+                attr.put(KEY_NAME, AttributeValue.builder().n("" + hashKeyValue).build());
+                attr.put(RANGE_KEY, AttributeValue.builder().n("" + j).build());
                 if ( j % indexFooRangeStep == 0)
-                    attr.put(INDEX_FOO_RANGE_KEY, new AttributeValue().withN("" + j));
+                    attr.put(INDEX_FOO_RANGE_KEY, AttributeValue.builder().n("" + j).build());
                 if ( j % indexBarRangeStep == 0)
-                    attr.put(INDEX_BAR_RANGE_KEY, new AttributeValue().withN("" + j));
+                    attr.put(INDEX_BAR_RANGE_KEY, AttributeValue.builder().n("" + j).build());
                 if ( j % multipleIndexRangeStep == 0)
-                    attr.put(MULTIPLE_INDEX_RANGE_KEY, new AttributeValue().withN("" + j));
-                attr.put(FOO_ATTRIBUTE, new AttributeValue().withS(UUID.randomUUID().toString()));
-                attr.put(BAR_ATTRIBUTE, new AttributeValue().withS(UUID.randomUUID().toString()));
-                attr.put(VERSION_ATTRIBUTE, new AttributeValue().withN("1"));
+                    attr.put(MULTIPLE_INDEX_RANGE_KEY, AttributeValue.builder().n("" + j).build());
+                attr.put(FOO_ATTRIBUTE, AttributeValue.builder().s(UUID.randomUUID().toString()).build());
+                attr.put(BAR_ATTRIBUTE, AttributeValue.builder().s(UUID.randomUUID().toString()).build());
+                attr.put(VERSION_ATTRIBUTE, AttributeValue.builder().n("1").build());
 
                 attrs.add(attr);
             }
@@ -99,7 +99,7 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
 
         // Insert the data
         for ( Map<String, AttributeValue> attr : attrs ) {
-            dynamo.putItem(new PutItemRequest(TABLE_WITH_INDEX_RANGE_ATTRIBUTE, attr));
+            dynamo.putItem(PutItemRequest.builder().tableName(TABLE_WITH_INDEX_RANGE_ATTRIBUTE).item(attr).build());
         }
 
         mapper = new DynamoDBMapper(dynamo,
@@ -112,24 +112,24 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
     @Test
     public void testLoad() throws Exception {
         for ( Map<String, AttributeValue> attr : attrs ) {
-            IndexRangeKeyClass x = mapper.load(newIndexRangeKey(Long.parseLong(attr.get(KEY_NAME).getN()),
-                    Double.parseDouble(attr.get(RANGE_KEY).getN())));
+            IndexRangeKeyClass x = mapper.load(newIndexRangeKey(Long.parseLong(attr.get(KEY_NAME).n()),
+                    Double.parseDouble(attr.get(RANGE_KEY).n())));
 
             // Convert all numbers to the most inclusive type for easy
             // comparison
-            assertEquals(new BigDecimal(x.getKey()), new BigDecimal(attr.get(KEY_NAME).getN()));
-            assertEquals(new BigDecimal(x.getRangeKey()), new BigDecimal(attr.get(RANGE_KEY).getN()));
+            assertEquals(new BigDecimal(x.getKey()), new BigDecimal(attr.get(KEY_NAME).n()));
+            assertEquals(new BigDecimal(x.getRangeKey()), new BigDecimal(attr.get(RANGE_KEY).n()));
             if (null == attr.get(INDEX_FOO_RANGE_KEY))
                 assertNull(x.getIndexFooRangeKeyWithFakeName());
             else
-                assertEquals(new BigDecimal(x.getIndexFooRangeKeyWithFakeName()), new BigDecimal(attr.get(INDEX_FOO_RANGE_KEY).getN()));
+                assertEquals(new BigDecimal(x.getIndexFooRangeKeyWithFakeName()), new BigDecimal(attr.get(INDEX_FOO_RANGE_KEY).n()));
             if (null == attr.get(INDEX_BAR_RANGE_KEY))
                 assertNull(x.getIndexBarRangeKey());
             else
-                assertEquals(new BigDecimal(x.getIndexBarRangeKey()), new BigDecimal(attr.get(INDEX_BAR_RANGE_KEY).getN()));
-            assertEquals(new BigDecimal(x.getVersion()), new BigDecimal(attr.get(VERSION_ATTRIBUTE).getN()));
-            assertEquals(x.getFooAttribute(), attr.get(FOO_ATTRIBUTE).getS());
-            assertEquals(x.getBarAttribute(), attr.get(BAR_ATTRIBUTE).getS());
+                assertEquals(new BigDecimal(x.getIndexBarRangeKey()), new BigDecimal(attr.get(INDEX_BAR_RANGE_KEY).n()));
+            assertEquals(new BigDecimal(x.getVersion()), new BigDecimal(attr.get(VERSION_ATTRIBUTE).n()));
+            assertEquals(x.getFooAttribute(), attr.get(FOO_ATTRIBUTE).s());
+            assertEquals(x.getBarAttribute(), attr.get(BAR_ATTRIBUTE).s());
 
         }
     }
@@ -215,9 +215,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition(RANGE_KEY,
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString())));
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build()));
             assertTrue(rangePerHash == result.size());
             // check that all attributes are retrieved
             for (IndexRangeKeyClass itemInFooIndex : result) {
@@ -232,9 +232,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition(INDEX_FOO_RANGE_KEY,
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString())));
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build()));
             assertTrue(indexFooRangePerHash == result.size());
             // check that only the projected attributes are retrieved
             for (IndexRangeKeyClass itemInFooIndex : result) {
@@ -249,9 +249,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition(INDEX_BAR_RANGE_KEY,
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString())));
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build()));
             assertTrue(indexBarRangePerHash == result.size());
             // check that only the projected attributes are retrieved
             for (IndexRangeKeyClass itemInBarIndex : result) {
@@ -273,9 +273,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition("some_range_key",
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString())));
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build()));
             fail("some_range_key is not a valid range key name.");
         } catch (DynamoDBMappingException e) {
             System.out.println(e.getMessage());
@@ -296,9 +296,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition(INDEX_BAR_RANGE_KEY,
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString()))
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build())
                         .withIndexName("some_index"));
             fail("some_index is not a valid index name.");
         } catch (IllegalArgumentException iae) {
@@ -325,9 +325,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition(MULTIPLE_INDEX_RANGE_KEY,
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString()))
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build())
                         .withIndexName("index_foo_copy"));
             assertTrue(multipleIndexRangePerHash == result.size());
             // check that only the projected attributes are retrieved
@@ -339,9 +339,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                     new DynamoDBQueryExpression<IndexRangeKeyClass>()
                         .withHashKeyValues(hashKeyItem)
                         .withRangeKeyCondition(MULTIPLE_INDEX_RANGE_KEY,
-                                new Condition()
-                                    .withAttributeValueList(new AttributeValue().withN("0"))
-                                    .withComparisonOperator(ComparisonOperator.GE.toString()))
+                                Condition.builder()
+                                    .attributeValueList(AttributeValue.builder().n("0").build())
+                                    .comparisonOperator(ComparisonOperator.GE.toString()).build())
                         .withIndexName("index_bar_copy"));
             assertTrue(multipleIndexRangePerHash == result.size());
             // check that only the projected attributes are retrieved
@@ -358,9 +358,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                         new DynamoDBQueryExpression<IndexRangeKeyClass>()
                             .withHashKeyValues(hashKeyItem)
                             .withRangeKeyCondition(MULTIPLE_INDEX_RANGE_KEY,
-                                    new Condition()
-                                        .withAttributeValueList(new AttributeValue().withN("0"))
-                                        .withComparisonOperator(ComparisonOperator.GE.toString())));
+                                    Condition.builder()
+                                        .attributeValueList(AttributeValue.builder().n("0").build())
+                                        .comparisonOperator(ComparisonOperator.GE.toString()).build()));
                 fail("No index name is specified when query with a range key shared by multiple indexes");
             } catch (IllegalArgumentException iae) {
                 System.out.println(iae.getMessage());
@@ -376,9 +376,9 @@ public class IndexRangeKeyAttributesIntegrationTest extends DynamoDBMapperIntegr
                         new DynamoDBQueryExpression<IndexRangeKeyClass>()
                             .withHashKeyValues(hashKeyItem)
                             .withRangeKeyCondition(MULTIPLE_INDEX_RANGE_KEY,
-                                    new Condition()
-                                        .withAttributeValueList(new AttributeValue().withN("0"))
-                                        .withComparisonOperator(ComparisonOperator.GE.toString()))
+                                    Condition.builder()
+                                        .attributeValueList(AttributeValue.builder().n("0").build())
+                                        .comparisonOperator(ComparisonOperator.GE.toString()).build())
                             .withIndexName("index_foo"));
                 fail("index_foo is not annotated as part of the localSecondaryIndexNames in " +
                         "the @DynamoDBIndexRangeKey annotation of multipleIndexRangeKey");

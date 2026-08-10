@@ -15,21 +15,24 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.test.util;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.local.embedded.DynamoDBEmbedded;
+import com.amazonaws.services.dynamodbv2.local.shared.access.AmazonDynamoDBLocal;
 import org.junit.AfterClass;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 public class DynamoDBUnitTestBase extends DynamoDBTestBase {
 
-    protected static AmazonDynamoDB dynamoDB;
+    protected static AmazonDynamoDBLocal embedded;
+    protected static DynamoDbClient dynamoDB;
 
     public static void setUp() {
-        dynamoDB = DynamoDBEmbedded.create().amazonDynamoDB();
+        embedded = DynamoDBEmbedded.create();
+        dynamoDB = embedded.dynamoDbClient();
     }
 
     @AfterClass
     public static void shutDown() {
-        dynamoDB.shutdown();
+        embedded.shutdown();
     }
 }
 

@@ -24,7 +24,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 
 import java.util.Arrays;
 import java.util.Collections;

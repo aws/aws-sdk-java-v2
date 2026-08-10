@@ -17,7 +17,7 @@
 package software.amazon.awssdk.mapper.dynamodb.utils;
 
 import software.amazon.awssdk.mapper.dynamodb.AttributeTransformer;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.HashMap;
 import java.util.Map;

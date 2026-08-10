@@ -14,7 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
 
 import java.util.ArrayList;
@@ -56,7 +56,7 @@ public abstract class PaginatedList<T> implements List<T> {
     protected final Class<T> clazz;
 
     /** The client for working with DynamoDB */
-    protected final AmazonDynamoDB dynamo;
+    protected final DynamoDbClient dynamo;
 
     /** Tracks if all results have been loaded yet or not */
     protected boolean allResultsLoaded = false;    
@@ -84,7 +84,7 @@ public abstract class PaginatedList<T> implements List<T> {
     /**
      * Constructs a PaginatedList instance using the default PaginationLoadingStrategy
      */
-    public PaginatedList(DynamoDBMapper mapper, Class<T> clazz, AmazonDynamoDB dynamo) {
+    public PaginatedList(DynamoDBMapper mapper, Class<T> clazz, DynamoDbClient dynamo) {
         this(mapper, clazz, dynamo, null);
     }
     
@@ -103,7 +103,7 @@ public abstract class PaginatedList<T> implements List<T> {
      *            set in the mapper is not accessible here. If null value is
      *            provided, LAZY_LOADING will be set by default.
      */
-    public PaginatedList(DynamoDBMapper mapper, Class<T> clazz, AmazonDynamoDB dynamo, PaginationLoadingStrategy paginationLoadingStrategy) {
+    public PaginatedList(DynamoDBMapper mapper, Class<T> clazz, DynamoDbClient dynamo, PaginationLoadingStrategy paginationLoadingStrategy) {
         this.mapper = mapper;
         this.clazz = clazz;
         this.dynamo = dynamo;

@@ -16,24 +16,24 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import static software.amazon.awssdk.mapper.dynamodb.DynamoDBAutoGenerateStrategy.ALWAYS;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.LIST;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.BEGINS_WITH;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.BETWEEN;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.CONTAINS;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.EQ;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.GE;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.GT;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.IN;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NULL;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.LE;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.LT;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NE;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NOT_CONTAINS;
-import static com.amazonaws.services.dynamodbv2.model.ComparisonOperator.NOT_NULL;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.BEGINS_WITH;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.BETWEEN;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.CONTAINS;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.EQ;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.GE;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.GT;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.IN;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.NULL;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.LE;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.LT;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.NE;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.NOT_CONTAINS;
+import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.NOT_NULL;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -224,7 +224,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition beginsWith(final V value) {
-        return new Condition().withComparisonOperator(BEGINS_WITH).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(BEGINS_WITH).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -236,7 +236,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition between(final V lo, final V hi) {
-        return new Condition().withComparisonOperator(BETWEEN).withAttributeValueList(convert(lo), convert(hi));
+        return Condition.builder().comparisonOperator(BETWEEN).attributeValueList(convert(lo), convert(hi)).build();
     }
 
     /**
@@ -247,7 +247,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition contains(final V value) {
-        return new Condition().withComparisonOperator(CONTAINS).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(CONTAINS).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -258,7 +258,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition eq(final V value) {
-        return new Condition().withComparisonOperator(EQ).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(EQ).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -269,7 +269,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition ge(final V value) {
-        return new Condition().withComparisonOperator(GE).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(GE).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -280,7 +280,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition gt(final V value) {
-        return new Condition().withComparisonOperator(GT).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(GT).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -291,7 +291,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition in(final Collection<V> values) {
-        return new Condition().withComparisonOperator(IN).withAttributeValueList(LIST.convert(values, this));
+        return Condition.builder().comparisonOperator(IN).attributeValueList(LIST.convert(values, this)).build();
     }
 
     /**
@@ -312,7 +312,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition isNull() {
-        return new Condition().withComparisonOperator(NULL);
+        return Condition.builder().comparisonOperator(NULL).build();
     }
 
     /**
@@ -323,7 +323,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition le(final V value) {
-        return new Condition().withComparisonOperator(LE).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(LE).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -334,7 +334,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition lt(final V value) {
-        return new Condition().withComparisonOperator(LT).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(LT).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -345,7 +345,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition ne(final V value) {
-        return new Condition().withComparisonOperator(NE).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(NE).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -356,7 +356,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition notContains(final V value) {
-        return new Condition().withComparisonOperator(NOT_CONTAINS).withAttributeValueList(convert(value));
+        return Condition.builder().comparisonOperator(NOT_CONTAINS).attributeValueList(convert(value)).build();
     }
 
     /**
@@ -366,7 +366,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
      * @see com.amazonaws.services.dynamodbv2.model.Condition
      */
     public final Condition notNull() {
-        return new Condition().withComparisonOperator(NOT_NULL);
+        return Condition.builder().comparisonOperator(NOT_NULL).build();
     }
 
     /**

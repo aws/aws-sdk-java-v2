@@ -18,29 +18,30 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
-import com.amazonaws.services.dynamodbv2.model.ResourceInUseException;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.test.AWSTestBase;
-import com.amazonaws.util.ImmutableMapParameter;
-import com.amazonaws.util.ImmutableMapParameter.Builder;
+import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBTestBase;
 
 public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
 
@@ -73,25 +74,25 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
     protected static DynamoDBMapper mapper;
 
     /** Reference to the client being used by the mapper. */
-    protected static AmazonDynamoDBClient client;
+    protected static DynamoDbClient client;
 
     @BeforeClass
     public static void setUp() throws FileNotFoundException, IOException,
             InterruptedException {
-        setUpCredentials();
-        client = new AmazonDynamoDBClient(credentials);
+        client = DynamoDBTestBase.getClient();
         mapper = new DynamoDBMapper(client);
         try {
-            client.createTable(new CreateTableRequest()
-                .withTableName(TABLENAME)
-                .withKeySchema(new KeySchemaElement(HASH_KEY, KeyType.HASH),
-                        new KeySchemaElement(RANGE_KEY, KeyType.RANGE))
-                .withAttributeDefinitions(
-                        new AttributeDefinition(HASH_KEY, ScalarAttributeType.N),
-                        new AttributeDefinition(RANGE_KEY,
-                                ScalarAttributeType.S))
-                .withProvisionedThroughput(
-                        new ProvisionedThroughput(READ_CAPACITY, WRITE_CAPACITY)));
+            client.createTable(CreateTableRequest.builder()
+                .tableName(TABLENAME)
+                .keySchema(KeySchemaElement.builder().attributeName(HASH_KEY).keyType(KeyType.HASH).build(),
+                        KeySchemaElement.builder().attributeName(RANGE_KEY).keyType(KeyType.RANGE).build())
+                .attributeDefinitions(
+                        AttributeDefinition.builder().attributeName(HASH_KEY).attributeType(ScalarAttributeType.N).build(),
+                        AttributeDefinition.builder().attributeName(RANGE_KEY)
+                                .attributeType(ScalarAttributeType.S).build())
+                .provisionedThroughput(
+                        ProvisionedThroughput.builder().readCapacityUnits(READ_CAPACITY).writeCapacityUnits(WRITE_CAPACITY).build())
+                .build());
         } catch(ResourceInUseException ex) {
             ex.printStackTrace();
         }
@@ -100,35 +101,33 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
     }
 
     public static void fillInData() {
-        final Builder<String, AttributeValue> record1 = ImmutableMapParameter
-                .builder();
-        record1.put(HASH_KEY, new AttributeValue().withN(FIRST_CUSTOMER_ID))
-                .put(RANGE_KEY, new AttributeValue().withS(ADDRESS_TYPE_WORK))
-                .put("AddressLine1",
-                        new AttributeValue().withS("1918 8th Aven"))
-                .put("city", new AttributeValue().withS("seattle"))
-                .put("state", new AttributeValue().withS("WA"))
-                .put("zipcode", new AttributeValue().withN("98104"));
-        final Builder<String, AttributeValue> record2 = ImmutableMapParameter
-                .builder();
-        record2.put(HASH_KEY, new AttributeValue().withN(FIRST_CUSTOMER_ID))
-                .put(RANGE_KEY, new AttributeValue().withS(ADDRESS_TYPE_HOME))
-                .put("AddressLine1",
-                        new AttributeValue().withS("15606 NE 40th ST"))
-                .put("city", new AttributeValue().withS("redmond"))
-                .put("state", new AttributeValue().withS("WA"))
-                .put("zipcode", new AttributeValue().withN("98052"));
+        final Map<String, AttributeValue> record1 = new HashMap<String, AttributeValue>();
+        record1.put(HASH_KEY, AttributeValue.builder().n(FIRST_CUSTOMER_ID).build());
+        record1.put(RANGE_KEY, AttributeValue.builder().s(ADDRESS_TYPE_WORK).build());
+        record1.put("AddressLine1",
+                        AttributeValue.builder().s("1918 8th Aven").build());
+        record1.put("city", AttributeValue.builder().s("seattle").build());
+        record1.put("state", AttributeValue.builder().s("WA").build());
+        record1.put("zipcode", AttributeValue.builder().n("98104").build());
+        final Map<String, AttributeValue> record2 = new HashMap<String, AttributeValue>();
+        record2.put(HASH_KEY, AttributeValue.builder().n(FIRST_CUSTOMER_ID).build());
+        record2.put(RANGE_KEY, AttributeValue.builder().s(ADDRESS_TYPE_HOME).build());
+        record2.put("AddressLine1",
+                        AttributeValue.builder().s("15606 NE 40th ST").build());
+        record2.put("city", AttributeValue.builder().s("redmond").build());
+        record2.put("state", AttributeValue.builder().s("WA").build());
+        record2.put("zipcode", AttributeValue.builder().n("98052").build());
 
-        client.putItem(new PutItemRequest(TABLENAME, record1.build()));
-        client.putItem(new PutItemRequest(TABLENAME, record2.build()));
+        client.putItem(PutItemRequest.builder().tableName(TABLENAME).item(record1).build());
+        client.putItem(PutItemRequest.builder().tableName(TABLENAME).item(record2).build());
     }
 
     public static void waitForTableCreation() throws InterruptedException {
         while (true) {
-            DescribeTableResult describeResult = client
-                    .describeTable(TABLENAME);
-            if (TABLE_STATUS_ACTIVE.equals(describeResult.getTable()
-                    .getTableStatus())) {
+            DescribeTableResponse describeResult = client
+                    .describeTable(b -> b.tableName(TABLENAME));
+            if (TABLE_STATUS_ACTIVE.equals(describeResult.table()
+                    .tableStatusAsString())) {
                 break;
             }
             Thread.sleep(SLEEP_TIME_IN_MILLIS);
@@ -147,21 +146,20 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
         DynamoDBQueryExpression<Customer> queryExpression =
             new DynamoDBQueryExpression<Customer>()
             .withHashKeyValues(customer)
-            .withRangeKeyCondition(RANGE_KEY, new Condition()
-                .withComparisonOperator(ComparisonOperator.EQ)
-                .withAttributeValueList(new AttributeValue(ADDRESS_TYPE_HOME)))
+            .withRangeKeyCondition(RANGE_KEY, Condition.builder()
+                .comparisonOperator(ComparisonOperator.EQ)
+                .attributeValueList(AttributeValue.builder().s(ADDRESS_TYPE_HOME).build()).build())
             ;
         PaginatedQueryList<Customer> results = mapper.query(Customer.class,
                 queryExpression);
         assertTrue(results.size() == 1);
 
-        final Builder<String, AttributeValue> builder = ImmutableMapParameter
-                .builder();
-        builder.put(":zipcode", new AttributeValue().withN("98109"));
+        final Map<String, AttributeValue> builder = new HashMap<String, AttributeValue>();
+        builder.put(":zipcode", AttributeValue.builder().n("98109").build());
 
         queryExpression = queryExpression
             .withFilterExpression("zipcode = :zipcode")
-            .withExpressionAttributeValues(builder.build());
+            .withExpressionAttributeValues(builder);
         results = mapper.query(Customer.class, queryExpression);
         assertTrue(results.size() == 0);
     }
@@ -178,19 +176,18 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
             new DynamoDBQueryExpression<Customer>()
                 .withKeyConditionExpression(
                     "customerId = :customerId AND addressType = :addressType");
-        final Builder<String, AttributeValue> builder =
-                ImmutableMapParameter.builder();
-        builder.put(":customerId", new AttributeValue().withN(FIRST_CUSTOMER_ID))
-               .put(":addressType", new AttributeValue(ADDRESS_TYPE_HOME))
-               ;
-        qxp.withExpressionAttributeValues(builder.build());
+        final Map<String, AttributeValue> builder =
+                new HashMap<String, AttributeValue>();
+        builder.put(":customerId", AttributeValue.builder().n(FIRST_CUSTOMER_ID).build());
+        builder.put(":addressType", AttributeValue.builder().s(ADDRESS_TYPE_HOME).build());
+        qxp.withExpressionAttributeValues(builder);
 
         PaginatedQueryList<Customer> results = mapper.query(Customer.class, qxp);
         assertTrue(results.size() == 1);
 
-        builder.put(":zipcode", new AttributeValue().withN("98109"));
+        builder.put(":zipcode", AttributeValue.builder().n("98109").build());
         qxp.withFilterExpression("zipcode = :zipcode")
-           .withExpressionAttributeValues(builder.build())
+           .withExpressionAttributeValues(builder)
            ;
 
         results = mapper.query(Customer.class, qxp);
@@ -212,19 +209,17 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
                 scanExpression);
         assertTrue(results.size() == 2);
 
-        final Builder<String, AttributeValue> attributeValueMapBuilder = ImmutableMapParameter
-                .builder();
+        final Map<String, AttributeValue> attributeValueMapBuilder = new HashMap<String, AttributeValue>();
         attributeValueMapBuilder
-                .put(":state", new AttributeValue().withS("WA"));
+                .put(":state", AttributeValue.builder().s("WA").build());
 
-        final Builder<String, String> attributeNameMapBuilder = ImmutableMapParameter
-                .builder();
+        final Map<String, String> attributeNameMapBuilder = new HashMap<String, String>();
         attributeNameMapBuilder.put("#statename", "state");
 
         scanExpression = scanExpression
                 .withFilterExpression("#statename = :state")
-                .withExpressionAttributeValues(attributeValueMapBuilder.build())
-                .withExpressionAttributeNames(attributeNameMapBuilder.build());
+                .withExpressionAttributeValues(attributeValueMapBuilder)
+                .withExpressionAttributeNames(attributeNameMapBuilder);
         results = mapper.scan(Customer.class, scanExpression);
         assertTrue(results.size() == 2);
     }
@@ -240,21 +235,18 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
         customer.setCustomerId(Long.valueOf(FIRST_CUSTOMER_ID));
         customer.setAddressType(ADDRESS_TYPE_WORK);
 
-        Builder<String, ExpectedAttributeValue> expectedMapBuilder = ImmutableMapParameter
-                .builder();
-        expectedMapBuilder.put("zipcode", new ExpectedAttributeValue()
-                .withAttributeValueList(new AttributeValue().withN("98052"))
-                .withComparisonOperator(ComparisonOperator.EQ));
+        Map<String, ExpectedAttributeValue> expectedMapBuilder = new HashMap<String, ExpectedAttributeValue>();
+        expectedMapBuilder.put("zipcode", ExpectedAttributeValue.builder()
+                .attributeValueList(AttributeValue.builder().n("98052").build())
+                .comparisonOperator(ComparisonOperator.EQ).build());
 
         DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
         deleteExpression.setConditionExpression("zipcode = :zipcode");
 
-        final Builder<String, AttributeValue> attributeValueMapBuilder = ImmutableMapParameter
-                .builder();
+        final Map<String, AttributeValue> attributeValueMapBuilder = new HashMap<String, AttributeValue>();
         attributeValueMapBuilder.put(":zipcode",
-                new AttributeValue().withN("98052"));
-        deleteExpression.setExpressionAttributeValues(attributeValueMapBuilder
-                .build());
+                AttributeValue.builder().n("98052").build());
+        deleteExpression.setExpressionAttributeValues(attributeValueMapBuilder);
         try {
             mapper.delete(customer, deleteExpression);
         } catch (Exception e) {
@@ -266,12 +258,12 @@ public class DynamoDBMapperExpressionsIntegrationTest extends AWSTestBase {
     public static void tearDown() {
         try {
             if (client != null) {
-                client.deleteTable(TABLENAME);
+                client.deleteTable(b -> b.tableName(TABLENAME));
             }
         } catch (Exception e) {
         } finally {
             if (client != null)
-                client.shutdown();
+                client.close();
         }
     }
 
