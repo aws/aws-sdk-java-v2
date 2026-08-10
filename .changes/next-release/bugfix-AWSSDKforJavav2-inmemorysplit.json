@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Make individual parts retryable when an in-memory `AsyncRequestBody` (for example one created with `AsyncRequestBody.fromBytes`, `fromByteBuffer`, or `fromString`) is split, such as during an S3 multipart upload The body in these cases is entirely in memory already so no data is copied and callers no longer need to wrap the body in `BufferedSplittableAsyncRequestBody` to get retries."
+    "description": "Make individual parts retryable when an in-memory `AsyncRequestBody` (for example one created with `AsyncRequestBody.fromBytes`, `fromByteBuffer`, or `fromString`) is split, such as during an S3 multipart upload. The body in these cases is entirely in memory already so no data is copied and callers no longer need to wrap the body in `BufferedSplittableAsyncRequestBody` to get retries."
 }
