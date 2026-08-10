@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.crtcore;
 
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
@@ -39,7 +41,11 @@ public final class CrtConfigurationUtils {
         clientProxyOptions.setHost(proxyConfiguration.host());
         clientProxyOptions.setPort(proxyConfiguration.port());
         if (!proxyConfiguration.nonProxyHosts().isEmpty()) {
-            clientProxyOptions.setNoProxyHosts(String.join(",", proxyConfiguration.nonProxyHosts()));
+            String noProxyHosts = proxyConfiguration.nonProxyHosts().stream()
+                                                    .filter(Objects::nonNull)
+                                                    .map(CrtConfigurationUtils::toCurlNoProxyHost)
+                                                    .collect(Collectors.joining(","));
+            clientProxyOptions.setNoProxyHosts(noProxyHosts);
         }
 
         if ("https".equalsIgnoreCase(proxyConfiguration.scheme())) {
@@ -55,6 +61,18 @@ public final class CrtConfigurationUtils {
         }
 
         return Optional.of(clientProxyOptions);
+    }
+
+    /**
+     * Translates a {@code nonProxyHosts} token to the form expected by the curl-style native matcher: a host name with a
+     * leading {@code *} wildcard ({@code *.example.com}) becomes a dot-anchored suffix ({@code .example.com}), while a bare
+     * {@code *}, exact host names, and CIDR ranges are passed through unchanged.
+     */
+    private static String toCurlNoProxyHost(String nonProxyHost) {
+        if (nonProxyHost.length() > 1 && nonProxyHost.charAt(0) == '*') {
+            return nonProxyHost.substring(1);
+        }
+        return nonProxyHost;
     }
 
     public static Optional<HttpMonitoringOptions> resolveHttpMonitoringOptions(CrtConnectionHealthConfiguration config) {
