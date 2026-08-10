@@ -84,6 +84,16 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            default:
+                return Optional.empty();
+        }
+    };
+
     private final ScheduledExecutorService executorService;
 
     protected DefaultBatchManagerTestAsyncClient(SdkClientConfiguration clientConfiguration) {
@@ -129,15 +139,6 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
 
             HttpResponseHandler<SendRequestResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                              SendRequestResponse::builder);
-            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-                if (errorCode == null) {
-                    return Optional.empty();
-                }
-                switch (errorCode) {
-                    default:
-                        return Optional.empty();
-                }
-            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
