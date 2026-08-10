@@ -23,6 +23,7 @@ import io.netty.channel.DefaultEventLoopGroup;
 import io.netty.channel.local.LocalChannel;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
@@ -57,7 +58,7 @@ public class HandlerPublisherVerificationTest extends PublisherVerification<Long
 
     @Factory(dataProvider = "data")
     public HandlerPublisherVerificationTest(int batchSize, int publishInitial, boolean scheduled) {
-        super(new TestEnvironment(200));
+        super(new TestEnvironment(1000, 200));
         this.batchSize = batchSize;
         this.publishInitial = publishInitial;
         this.scheduled = scheduled;
@@ -82,12 +83,12 @@ public class HandlerPublisherVerificationTest extends PublisherVerification<Long
     // doesn't happen if you create 32 publishers in a single test.
     @BeforeMethod
     public void startEventLoop() {
-        eventLoop = new DefaultEventLoopGroup();
+        eventLoop = new DefaultEventLoopGroup(1);
     }
 
     @AfterMethod
     public void stopEventLoop() {
-        eventLoop.shutdownGracefully();
+        eventLoop.shutdownGracefully(0, 0, TimeUnit.MILLISECONDS).syncUninterruptibly();
         eventLoop = null;
     }
 
