@@ -17,7 +17,11 @@ package software.amazon.awssdk.services.sts.auth;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -26,6 +30,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.Logger;
@@ -53,6 +58,21 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @ThreadSafe
 @SdkPublicApi
 public abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+
+    /**
+     * STS error codes that indicate a non-recoverable failure. When a credential refresh fails with one of these codes,
+     * the error bypasses static stability and is surfaced to the caller immediately, because retrying cannot fix the
+     * underlying problem.
+     */
+    static final Set<String> NON_RECOVERABLE_ERROR_CODES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        "AccessDenied",
+        "IDPRejectedClaim",
+        "InvalidIdentityToken",
+        "MalformedPolicyDocument",
+        "PackedPolicyTooLarge",
+        "RegionDisabledException"
+    )));
+
     private static final Logger log = Logger.loggerFor(StsCredentialsProvider.class);
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
@@ -86,7 +106,8 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
             CachedSupplier.builder(this::updateSessionCredentials)
                           .cachedValueName(toString())
                           .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW)
-                          .prefetchJitterEnabled(false);
+                          .prefetchJitterEnabled(false)
+                          .nonRecoverableErrorPredicate(StsCredentialsProvider::isNonRecoverableError);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }
@@ -152,6 +173,25 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     @Override
     public String toString() {
         return ToString.create(providerName());
+    }
+    
+    static boolean isNonRecoverableError(RuntimeException e) {
+        AwsServiceException serviceException = extractServiceException(e);
+        if (serviceException == null || serviceException.awsErrorDetails() == null) {
+            return false;
+        }
+        String errorCode = serviceException.awsErrorDetails().errorCode();
+        return errorCode != null && NON_RECOVERABLE_ERROR_CODES.contains(errorCode);
+    }
+
+    private static AwsServiceException extractServiceException(RuntimeException e) {
+        if (e instanceof AwsServiceException) {
+            return (AwsServiceException) e;
+        }
+        if (e.getCause() instanceof AwsServiceException) {
+            return (AwsServiceException) e.getCause();
+        }
+        return null;
     }
 
     /**
