@@ -219,6 +219,12 @@ public enum SdkSystemSetting implements SystemSetting {
     AWS_USE_FIPS_ENDPOINT("aws.useFipsEndpoint", null),
 
     /**
+     * Defines whether endpoint URLs from environment variables, system properties, and the shared configuration file
+     * should be ignored. Endpoint URLs set programmatically via the client builder are not affected.
+     */
+    AWS_IGNORE_CONFIGURED_ENDPOINT_URLS("aws.ignoreConfiguredEndpointUrls", null),
+
+    /**
      * Whether request compression is disabled for operations marked with the RequestCompression trait. The default value is
      * false, i.e., request compression is enabled.
      */
