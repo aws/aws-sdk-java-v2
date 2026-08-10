@@ -50,4 +50,11 @@ public interface CloudFrontSignerRequest {
      * private content
      */
     Instant expirationDate();
+
+    /**
+     * Returns the hash algorithm used to sign the policy. Defaults to {@link HashAlgorithm#SHA1}.
+     */
+    default HashAlgorithm hashAlgorithm() {
+        return HashAlgorithm.SHA1;
+    }
 }

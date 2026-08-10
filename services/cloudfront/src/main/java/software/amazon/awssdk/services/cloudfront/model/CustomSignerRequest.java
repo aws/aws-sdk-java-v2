@@ -43,6 +43,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     private final Instant activeDate;
     private final String ipRange;
     private final String resourceUrlPattern;
+    private final HashAlgorithm hashAlgorithm;
 
     private CustomSignerRequest(DefaultBuilder builder) {
         this.resourceUrl = Validate.notNull(builder.resourceUrl, "resourceUrl must not be null");
@@ -52,6 +53,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         this.activeDate = builder.activeDate;
         this.ipRange = builder.ipRange;
         this.resourceUrlPattern = builder.resourceUrlPattern;
+        this.hashAlgorithm = builder.hashAlgorithm != null ? builder.hashAlgorithm : HashAlgorithm.SHA1;
     }
 
     /**
@@ -106,6 +108,11 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     }
 
     @Override
+    public HashAlgorithm hashAlgorithm() {
+        return hashAlgorithm;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -121,7 +128,8 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
                && Objects.equals(expirationDate, cookie.expirationDate)
                && Objects.equals(activeDate, cookie.activeDate)
                && Objects.equals(ipRange, cookie.ipRange)
-               && Objects.equals(resourceUrlPattern, cookie.resourceUrlPattern);
+               && Objects.equals(resourceUrlPattern, cookie.resourceUrlPattern)
+               && hashAlgorithm == cookie.hashAlgorithm;
     }
 
     @Override
@@ -133,6 +141,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         result = 31 * result + (activeDate != null ? activeDate.hashCode() : 0);
         result = 31 * result + (ipRange != null ? ipRange.hashCode() : 0);
         result = 31 * result + (resourceUrlPattern != null ? resourceUrlPattern.hashCode() : 0);
+        result = 31 * result + (hashAlgorithm != null ? hashAlgorithm.hashCode() : 0);
         return result;
     }
 
@@ -197,6 +206,11 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
          * will be used in the policy.
          */
         Builder resourceUrlPattern(String resourceUrlPattern);
+
+        /**
+         * Configure the hash algorithm used to sign the policy. Defaults to {@link HashAlgorithm#SHA1}.
+         */
+        Builder hashAlgorithm(HashAlgorithm hashAlgorithm);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -207,6 +221,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         private Instant activeDate;
         private String ipRange;
         private String resourceUrlPattern;
+        private HashAlgorithm hashAlgorithm;
 
         private DefaultBuilder() {
         }
@@ -219,6 +234,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
             this.activeDate = request.activeDate;
             this.ipRange = request.ipRange;
             this.resourceUrlPattern = request.resourceUrlPattern;
+            this.hashAlgorithm = request.hashAlgorithm;
         }
 
         @Override
@@ -266,6 +282,12 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         @Override
         public Builder resourceUrlPattern(String resourceUrlPattern) {
             this.resourceUrlPattern = resourceUrlPattern;
+            return this;
+        }
+
+        @Override
+        public Builder hashAlgorithm(HashAlgorithm hashAlgorithm) {
+            this.hashAlgorithm = hashAlgorithm;
             return this;
         }
 
