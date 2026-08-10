@@ -77,6 +77,16 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            default:
+                return Optional.empty();
+        }
+    };
+
     protected DefaultProtocolRestJsonWithCustomPackageClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration
@@ -111,15 +121,6 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
 
         HttpResponseHandler<OneOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                           OneOperationResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(oneOperationRequest, this.clientConfiguration);
