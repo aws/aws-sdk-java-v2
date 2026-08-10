@@ -211,6 +211,26 @@ class AddSmithyProcessorsTest {
     }
 
     @Test
+    void serviceLevelError_memberShapesAreReachable() {
+        Model model = loadModel(
+            "service DemoService {\n"
+            + "    version: \"2024-01-01\",\n"
+            + "    operations: [Op],\n"
+            + "    errors: [ServiceLevelError]\n"
+            + "}\n"
+            + "@http(method: \"GET\", uri: \"/op\")\n"
+            + "operation Op { input: Unit, output: Unit }\n"
+            + "@error(\"server\")\n"
+            + "structure ServiceLevelError { message: String, detail: ErrorDetail }\n"
+            + "structure ErrorDetail { code: String }\n");
+
+        Map<String, ShapeModel> shapes = runProcessorChain(model, "rest-json");
+
+        assertThat(shapes).containsKeys("ServiceLevelErrorException", "ErrorDetail");
+        assertThat(shapes.get("ErrorDetail").getType()).isEqualTo(ShapeType.Model.getValue());
+    }
+
+    @Test
     void serviceLevelError_producesExceptionShape() {
         // AddSmithyOperations lists service-level errors in OperationModel.exceptions, so the
         // matching shape must exist or codegen references a class nothing generates.

@@ -71,8 +71,9 @@ final class AddSmithyModelShapes extends AddSmithyShapes implements Intermediate
         for (OperationShape op : topDown.getContainedOperations(getService())) {
             queue.add(op.getInputShape());
             queue.add(op.getOutputShape());
-            queue.addAll(op.getErrors());
+            queue.addAll(op.getErrorsSet());
         }
+        queue.addAll(getService().getErrorsSet());
 
         while (!queue.isEmpty()) {
             ShapeId shapeId = queue.poll();
@@ -92,13 +93,7 @@ final class AddSmithyModelShapes extends AddSmithyShapes implements Intermediate
             for (MemberShape m : shape.members()) {
                 queue.add(m.getTarget());
             }
-            if (shape.isListShape()) {
-                queue.add(shape.asListShape().get().getMember().getTarget());
-                continue;
-            }
-            if (shape.isMapShape()) {
-                queue.add(shape.asMapShape().get().getKey().getTarget());
-                queue.add(shape.asMapShape().get().getValue().getTarget());
+            if (shape.isListShape() || shape.isMapShape()) {
                 continue;
             }
 
