@@ -66,7 +66,7 @@ public class Expect100ContinueTest {
 
     @ParameterizedTest(name = "expect 100-continue enabled = {0}")
     @CsvSource({"true", "false"})
-    void sync_alwaysAdds(boolean enabled) {
+    void sync_crossRegion_honorsExpectContinueEnabled(boolean enabled) {
 
         try (S3Client s3 = S3Client.builder()
                                    .httpClient(mockSyncHttp)
@@ -83,13 +83,13 @@ public class Expect100ContinueTest {
             ArgumentCaptor<HttpExecuteRequest> requestCaptor = ArgumentCaptor.forClass(HttpExecuteRequest.class);
 
             verify(mockSyncHttp).prepareRequest(requestCaptor.capture());
-            assertHasExpect100Continue(requestCaptor.getValue().httpRequest());
+            assertExpect100Continue(requestCaptor.getValue().httpRequest(), enabled);
         }
     }
 
     @ParameterizedTest(name = "expect 100-continue enabled = {0}")
     @CsvSource({"true", "false"})
-    void async_alwaysAdds(boolean enabled) {
+    void async_crossRegion_honorsExpectContinueEnabled(boolean enabled) {
         try (S3AsyncClient s3 = S3AsyncClient.builder()
                                         .httpClient(mockAsyncHttp)
                                         .region(Region.US_WEST_2)
@@ -105,12 +105,16 @@ public class Expect100ContinueTest {
             ArgumentCaptor<AsyncExecuteRequest> requestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
 
             verify(mockAsyncHttp).execute(requestCaptor.capture());
-            assertHasExpect100Continue(requestCaptor.getValue().request());
+            assertExpect100Continue(requestCaptor.getValue().request(), enabled);
         }
     }
 
-    private static void assertHasExpect100Continue(SdkHttpRequest httpRequest) {
-        assertThat(httpRequest.firstMatchingHeader("Expect"))
-            .hasValueSatisfying(v -> assertThat(v).isEqualToIgnoringCase("100-continue"));
+    private static void assertExpect100Continue(SdkHttpRequest httpRequest, boolean expectHeaderPresent) {
+        if (expectHeaderPresent) {
+            assertThat(httpRequest.firstMatchingHeader("Expect"))
+                .hasValueSatisfying(v -> assertThat(v).isEqualToIgnoringCase("100-continue"));
+        } else {
+            assertThat(httpRequest.firstMatchingHeader("Expect")).isEmpty();
+        }
     }
 }

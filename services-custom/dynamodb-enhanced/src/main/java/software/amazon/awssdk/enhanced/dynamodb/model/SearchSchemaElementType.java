@@ -13,35 +13,17 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.s3benchmarks.s3express;
+package software.amazon.awssdk.enhanced.dynamodb.model;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.utils.SystemSetting;
 
 /**
- * System settings set by the benchmark runner.
+ * Type of search schema element on a vector index.
+ *
+ * @see SearchSchemaElement#searchSchemaElementType()
  */
 @SdkPublicApi
-public enum BenchmarkSystemSetting implements SystemSetting {
-    BENCHMARK_TEST_ROLE,
-
-    RUN_ID,
-
-    ;
-
-
-    @Override
-    public String property() {
-        return null;
-    }
-
-    @Override
-    public String environmentVariable() {
-        return name();
-    }
-
-    @Override
-    public String defaultValue() {
-        return null;
-    }
+public enum SearchSchemaElementType {
+    HASH,
+    INLINE_FILTER
 }

@@ -1,258 +1,193 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.49.5__ __2026-07-28__
-## __AWS DataSync__
+# __2.51.3__ __2026-08-07__
+## __AWS Amplify__
   - ### Features
-    - Adds Enhanced mode support for EFS and FSx Lustre locations without an agent, and for HDFS (TDE), Azure Blob, and object storage locations with an agent. HDFS Enhanced mode supports multiple NameNodes for High Availability. Enhanced mode agents can now be deployed on Microsoft Hyper-V.
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - AgentCore Identity now supports Private Key JWT client authentication for OAuth 2.0 credential providers. Agents can authenticate to identity provider token endpoints with a JWT client assertion signed by a customer-managed AWS KMS asymmetric key, eliminating the need for client secrets.
-
-## __Amazon Connect Service__
-  - ### Features
-    - Documentation updates for SearchRules, AssociateRoutingProfileQueues, CreateRoutingProfile, AssociateContactWithUser CreateTaskTemplate, and UpdateTaskTemplate
-
-## __IAM Roles Anywhere__
-  - ### Features
-    - Increases certificate string length for trust anchor source data to support new adjustable trust anchor limits.
-
-## __TrustedAdvisor Public API__
-  - ### Features
-    - Adds ListRecommendationsForResource API and four CheckSummary fields (resourceArnQueryable, awsResourceTypes, checkGranularity, recommendationId) to retrieve recommendations for a given resource ARN.
-
-# __2.49.4__ __2026-07-27__
-## __AWS Account__
-  - ### Features
-    - This release adds support for the GetPrimaryEmailUpdateStatus API operation, which allows customers to retrieve the current status of a primary email address update request for an AWS account. The operation returns status information including whether the update is pending, completed, or failed.
-
-## __AWS Billing and Cost Management Data Exports__
-  - ### Features
-    - With this release, customers can configure their data exports to deliver CSV reports in ZIP compressed format.
-
-## __AWS Clean Rooms ML__
-  - ### Features
-    - This release adds support for the CR.8X worker type for SQL (32 vCPU)
-
-## __AWS Clean Rooms Service__
-  - ### Features
-    - This release adds support for the CR.8X worker type for SQL (32 vCPU)
-
-## __AWS Glue__
-  - ### Features
-    - Adds BatchGetDataQualityRulesetEvaluationRun API to retrieve multiple runs in one call, ObservationScope and ObservationMode parameters for anomaly detection, writing evaluation results to Data Catalog tables, and custom log group paths for recommendation runs.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-## __AWS Security Agent__
-  - ### Features
-    - AWS Security Agent adds a new task hours field that reflects the active work done for a task.
-
-## __Amazon EMR Containers__
-  - ### Features
-    - With this launch, you can now set concurrent job limits on a virtual cluster, giving you fine-grained control over how many job runs execute at once and how many can wait in queue.
-
-## __Amazon QuickSight__
-  - ### Features
-    - Added new Governance fields to Custom Permissions API to support Deny By Default functionality.
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - This release adds LoRA adapters, training plans, and new instance types to SageMaker inference optimization. CreateAIRecommendationJob accepts optional AdapterSource and CreateOptimizationJob accepts optional TrainingPlanArns and the ml.g7e and ml.p6-b200 families.
-
-## __Partner Central Account API__
-  - ### Features
-    - Adds optional headquarters location to StartProfileUpdateTask, letting partners record their headquarters as an ISO 3166 country and subdivision code on their profile. When headquarters is provided, both the country and subdivision codes are required.
-
-## __S3 Transfer Manager__
-  - ### Bugfixes
-    - Fix race condition when invoking pausing upload that can cause a `NullPointerException`.
-
-# __2.49.3__ __2026-07-24__
-## __AWS Artifact__
-  - ### Features
-    - Added the PutComplianceInquiryFeedback API, enabling customers to submit feedback on compliance inquiry responses. Customers can rate responses as helpful or not helpful and provide optional reason codes and comments.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Updated endpoint and partition metadata.
-
-  - ### Bugfixes
-    - Fixed several delegating AsyncRequestBody implementations (including those used by S3 Transfer Manager uploads) that reported the request-body type as unknown in the user-agent business metric instead of the actual type (file, bytes, or stream).
-    - Update `ResponseInputStream`, to only return `0` from `available()` if the stream is closed; in other cases, if the wrapped stream returns 0 from `available()`, `1` is returned instead. This is to avoid cases where other classes such as [`java.util.zip.GZIPInputStream`](https://docs.oracle.com/javase/8/docs/api/java/util/zip/GZIPInputStream.html) misinterpret this as meaning the stream is closed.
-
-## __Amazon CloudWatch Application Insights__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
-
-## __Amazon Cognito Identity Provider__
-  - ### Features
-    - Amazon Cognito user pools now support the AdminGetUserAuthFactors operation, which lets administrators retrieve the configured authentication factors (such as password, SMS, email, and TOTP) available for a specific user in a user pool.
-
-## __Amazon DynamoDB__
-  - ### Features
-    - Endpoint test standardizations
-
-## __Amazon Neptune Graph__
-  - ### Features
-    - Update validations for Tag Keys and KMS Key ARNs.
-
-## __RTBFabric__
-  - ### Features
-    - The deprecated inboundLinksCount field has been removed from the GetResponderGateway API response. Customers who previously relied on this field should use linksRequestedCount instead.
-
-## __odb__
-  - ### Features
-    - Documentation-only update to clarify the operation-specific valid values for the externalIdType field.
-
-# __2.49.2__ __2026-07-23__
-## __AWS Backup Gateway__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __AWS Billing and Cost Management Pricing Calculator__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __AWS Billing and Cost Management Recommended Actions__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __AWS CRT HTTP Client__
-  - ### Features
-    - Add `numEventLoopThreads(Integer)` to `AwsCrtAsyncHttpClient.Builder` and `AwsCrtHttpClient.Builder` to configure the number of CRT event-loop (IO) threads. When set, the client owns a private `EventLoopGroup` of that size (must be greater than 1); when unset, it shares the process-wide default group.
+    - Increased the maximum allowed length of the oauthToken parameter in the CreateApp and UpdateApp APIs to support longer OAuth tokens issued by third-party Git providers.
 
 ## __AWS Elemental MediaPackage v2__
   - ### Features
-    - This release adds support for non-epoch-locked CMAF ingest in MediaPackageV2 channels.
+    - StreamNameOutputMode - a new optional field on MediaPackageV2 OriginEndpoints that lets customers choose whether egress manifests use numeric stream indices (default) or encoder-assigned stream names from the input
 
-## __Amazon AppStream__
+## __AWS MediaTailor__
   - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
-
-## __Amazon Bedrock AgentCore__
-  - ### Features
-    - Adds support for the Bring Your Own Storage(BYOS) feature in AgentCore Browser and Code Interpreter. Enables mounting S3Files and EFS File Systems via Access points.
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - Adds support for the Bring Your Own Storage(BYOS) feature in AgentCore Browser and Code Interpreter. Enables mounting S3Files and EFS File Systems via Access points.
-
-## __Amazon DataZone__
-  - ### Features
-    - Adds support for notebook sync with S3 ipynb files
-
-## __Amazon GameLift Streams__
-  - ### Features
-    - GameLift Streams now supports configuring a custom aspect ratio per stream session to accommodate different player devices. Supported aspect ratios include landscape, portrait, and square - delivering a full-screen experience without letterboxing or cropping.
-
-## __Amazon Kendra Intelligent Ranking__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __Amazon QuickSight__
-  - ### Features
-    - Added new capabilities to custom permissions profiles to control access to Amazon Quick through the browser extension and Microsoft Word, Outlook, Excel, and PowerPoint add-ins.
-
-## __Amazon SageMaker Service__
-  - ### Features
-    - Release support for c6a, m6a, m6g, m7g, m8g instance types for SageMaker HyperPod
-
-## __Amazon Workspaces Instances__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __Redshift Data API Service__
-  - ### Features
-    - This release include long polling provids a new parameter wait-time-seconds to 5 API operations, new API ListSessions, and a new parameter execution-mode to BatchExecuteStatement
-
-# __2.49.1__ __2026-07-22__
-## __ARC - Region switch__
-  - ### Features
-    - Adds support for a client token in StartPlanExecution to make plan execution requests idempotent for safe retries.
-
-## __AWS CRT HTTP Client__
-  - ### Bugfixes
-    - Do not set the Content-Length header on a request that already carries Transfer-Encoding. Emitting both violates RFC 7230 and was rejected by the underlying CRT layer; this aligns the CRT client with the Netty client's existing behavior for chunked requests.
-
-## __AWS Parallel Computing Service__
-  - ### Features
-    - AWS PCS Node Lifecycle Actions provides a structured way to run custom scripts at defined points in a compute node's lifecycle directly through the AWS PCS compute node group API.
+    - Added support for inserting ads via the VAST Ad Buffet standard. You can now configure MediaTailor to insert ads in sequence order using the AdSequencingMode setting in your playback configuration. Standalone ads are used as fallbacks when a sequenced ad is unavailable.
 
 ## __AWS SDK for Java v2__
   - ### Features
     - Updated endpoint and partition metadata.
 
-## __Amazon CloudWatch__
-  - ### Features
-    - Adds documented value constraints for CloudWatch Log Alarm scheduled query configuration fields, and makes LogGroupIdentifiers optional for log alarms.
-
-## __Amazon GuardDuty__
-  - ### Features
-    - Amazon GuardDuty now returns filter lifecycle metadata in GetFilter responses. The response includes createdAt and updatedAt timestamps and a version number that increments on each update, giving you visibility into when a filter was created and last modified.
-
-## __Amazon Prometheus Service__
-  - ### Features
-    - Add CloudWatch dataset destinations for Amazon Managed Service for Prometheus collectors.
-
-## __Amazon S3__
   - ### Bugfixes
-    - Fix a race condition in multipart upload with low maxInFlightParts where CompleteMultipartUpload could be initiated while the final part was still uploading.
+    - Correctly support endpoint expressions with multiple chained assigns.
 
-## __Amazon Simple Email Service__
+## __AWS Security Agent__
   - ### Features
-    - Launching DEED and MREP in US GOV
+    - Added enableEmailMfa input field on Actor to enable email-based MFA during penetration tests. When enabled, a server-generated mfaForwardingAddress is returned. Set up a forwarding rule in your email provider to forward MFA emails to this address so the agent can complete email-based MFA login flows
 
-## __CloudWatch Observability Admin Service__
+## __Amazon Connect Service__
   - ### Features
-    - Enablement for ALB and Bedrock Knowledge Base logs via Observability Admin Telemetry Rule for account and organization level
+    - Supports updating the task template associated with in-progress task contacts using the new UpdateContactTaskTemplate API. This enables supervisors and developers to dynamically reassign task templates without creating a new task.
 
-## __Elastic Load Balancing__
+## __Amazon Elastic Compute Cloud__
   - ### Features
-    - This adds CLI examples for the IpAddressType field on SourceIpConfig, enabling Network Load Balancer listener rules to match traffic based on whether the source IP is IPv4 or IPv6.
+    - This release adds support for BGP route protection in Amazon VPC IP Address Manager (IPAM), including route discovery, RPKI route protection findings, and delegated RPKI (Internet Registry Associations, routing policy registrations, and ROA management) for BYOIP prefixes.
 
-## __Partner Central Account API__
+## __Amazon HealthLake__
   - ### Features
-    - Adds Qualifications Association APIs that enable partners to associate a subsidiary account's qualifications with a primary account. Once associated, qualifications are shared across all connected accounts and scorecards are consolidated. Partners can start and track association and disassociation.
+    - Adds provenanceEnabled to StartFHIRImportJob
 
-# __2.49.0__ __2026-07-21__
-## __AWS EntityResolution__
+## __Amazon SageMaker Service__
   - ### Features
-    - Add support for real time matching with AWS Entity Resolution matching workflows with advanced rule sets.
+    - Amazon SageMaker adds maintenance lifecycle statuses for Notebook Instances
 
-## __AWS Invoicing__
+# __2.51.2__ __2026-08-06__
+## __AWS Backup__
   - ### Features
-    - Added the SendProcurementPortalValidation and VerifyProcurementPortalValidation APIs. You can use the AWS SDKs to self-service activate your Procurement Portal Preferences created on the Billing Preferences page with a one-time-passcode (OTP) delivered to your portal.
+    - AWS Backup now lets you create read-only access points for Amazon S3 recovery points, enabling you to access backup data using S3 APIs without initiating a restore.
+
+## __AWS Device Farm__
+  - ### Features
+    - Adds support for service generated insights across runs, jobs, and tests.
+
+## __AWS End User Messaging Social__
+  - ### Features
+    - Add support for WhatsApp Conversions APIs.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - GetAgreementTerms now returns a new term variant in AcceptedTerm, netPaymentTerm, with a paymentDuePeriod field (example "P30D").
+
+## __AWS Marketplace Discovery__
+  - ### Features
+    - GetOfferTerms now returns netPaymentTerm in offerTerms, specifying payment due period after invoice date. The paymentDuePeriod field uses ISO 8601 duration format (e.g., "P30D" for net 30 days). This is a backward-compatible addition. See API documentation for full structure and examples.
+
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor now supports concurrent function execution. The new Concurrent Executor function type runs multiple independent child functions in parallel within a single lifecycle hook, reducing pipeline latency to the duration of the slowest call instead of the sum of all calls.
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Update Netty to 4.1.136
+    - Updated endpoint and partition metadata.
 
+## __AWS SecurityHub__
+  - ### Features
+    - Security Hub is adding a new public API, ListFreeTrialStatusesV2 to describe the free trial statuses of the Security Hub service and its opt-in features.
+
+## __Agent Registry__
+  - ### Features
+    - Agent Registry's Public Preview release
+
+## __Agent Registry Control__
+  - ### Features
+    - Agent Registry's Public Preview release
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Add support for capacity provider sessions in Amazon Bedrock AgentCore. Customers can now delete an active session running on a runtime instance launched through their capacity provider.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Add support for Gateway rate limits and Runtime instances in Amazon Bedrock AgentCore. Customers can now configure rate limits scoped to control request rates, token consumption rates, and active connection rates. Customers can now create capacity providers to launch runtimes on their EC2 instances.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - This release adds index category support to the CloudWatch Logs DescribeFieldIndexes API. Customers can filter and identify DEFAULT, CUSTOM, AUTO, and INACTIVE field indexes.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds a new optional IncludeLocalZones parameter to the Spot Placement Score API that defaults to false. When set to true, the Spot Placement Score API will consider the relevant Local Zones with Spot capacity when computing the Spot Placement Score.
+
+## __Amazon GameLift__
+  - ### Features
+    - Adds support for C8a, C8i, C9g, M8a, M8i, and M9g EC2 instance type families for managed EC2 and container fleets. Also adds explicit anchors on most string regexes.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Releases new Model Customization SequenceLength parameter for Training and g7 instance types for Training and Processing.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - AWS Backup now lets you create read-only access points for Amazon S3 recovery points, enabling you to access backup data using S3 APIs without initiating a restore.
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling now supports being managed by other AWS services via the operator field.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - MSK Clusters can now deliver authorizer logs alongside broker logs to the destinations defined by you
+
+# __2.51.1__ __2026-08-05__
+## __AWS Certificate Manager Private Certificate Authority__
+  - ### Features
+    - Private Certificate Authority service now supports RSASSA-PSS signing algorithm.
+
+## __AWS Glue__
+  - ### Features
+    - Added the PutDataCatalogExportConfiguration to export Glue Data Catalog metadata to systems tables stored in S3 Tables.
+
+## __AWS SDK for Java v2__
   - ### Bugfixes
-    - Eliminate per-operation lambdas for endpoint and auth scheme resolution in generated clients, permanently fixing constant pool overflow for large services like EC2 Internal.
+    - Eliminate per-operation metric-publishing lambdas in generated clients by hoisting them into shared helper methods, reducing constant pool usage and class size for large service clients approaching the JVM per-class constant pool limit.
 
-## __Amazon EMR Containers__
-  - ### Features
-    - Added support for the DeleteSecurityConfiguration API, which allows customers to delete security configurations in Amazon EMR on EKS. Also added authenticationConfiguration in securityConfigurationdata structure.
+## __AWS Sign-In Service__
+  - ### Bugfixes
+    - Fixed an issue where credentials loaded from a login_session profile resolved the Signin client's configuration, such as region and endpoint_url, from the default profile instead of the profile that requested the credentials.
 
-## __Amazon Redshift__
+## __AWSDeadlineCloud__
   - ### Features
-    - Amazon Redshift - Added support for managing Query Editor V2 IAM Identity Center applications via new CreateQev2IdcApplication, DescribeQev2IdcApplications, ModifyQev2IdcApplication, and DeleteQev2IdcApplication API operations.
+    - AWS Deadline Cloud now reports persistent volume costs alongside compute and license costs. Customers can view per-fleet storage costs in Usage Explorer by selecting the Usage Type grouping, helping them better understand the costs of their infrastructure.
 
-## __Amazon Simple Systems Manager (SSM)__
+## __Amazon Bedrock AgentCore Control__
   - ### Features
-    - Added a WarningMessage field to Automation along with corresponding public documentation.
+    - Adding support for fine-grained access control for AgentCore Memory through managed AgentCore Gateway HTTP Connectors.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - New enum values added for Agent Connectivity issues
+
+# __2.51.0__ __2026-08-04__
+## __AWS Identity and Access Management__
+  - ### Features
+    - Updating endpoint generation logic
+
+## __AWS Organizations__
+  - ### Features
+    - Improved accuracy of CloudTrail event documentation for AWS Organizations membership operations.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS IAM Identity Center now lets you create organization-level instances without enabling multi-account permissions. You can enable multi-account permissions during instance creation or later via console or API, which then provisions the necessary service-linked roles.
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - UpdateCluster now checks the RemovePeerCluster permission on the specific cluster being removed, not a wildcard and docs now clarify how to set kmsEncryptionKey so the cluster uses the AWS-owned key.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Customer now supports up to 50 attachments per email, increased from the previous limit of 10. The individual maximum attachment size limit of 20 MB and the total email size limit of 25 MB still hold true.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Vector indexes are a type of index in Amazon DynamoDB that enable similarity search on vector embedding stored in your table items. Vector indexes use approximate nearest neighbor search to find items whose vectors are most similar to a query vector that you provide.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Features
+    - Adds SearchVectors and vector index support to the DynamoDB Enhanced Client, including vector index table operations, table.vectorIndex() search handles, and enhanced search request/response types.
+    - Adds annotation-driven vector index support to the DynamoDB Enhanced Client via @DynamoDbVectorAttribute, @DynamoDbSearchVectorsHashKey, and @DynamoDbSearchVectorsInlineFilterKey on bean and immutable schemas, enabling no-arg createTable() and vector search through annotation-derived table.vectorIndex() handles.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now supports Application Status Checks, a new status check that monitors your application's health through configurable HTTP(S) paths and ports, so you can detect and automatically respond to application-level impairments.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added ClientExperiencePolicy to ClientProperties object for ModifyClientProperties and DescribeClientProperties APIs.
 
 ## __Inspector2__
   - ### Features
-    - GA date - July 21st 2026, remove Tags field from ListCodeSecurityIntegration and ListCodeSecurityScanConfiguration.
+    - Adding Azure SBOM export capability.
 
-## __Redshift Data API Service__
+## __Partner Central Selling API__
   - ### Features
-    - update the workgroupArn to include EUSC partition, tests in THF Gamma and Prod no issue
-
-## __Timestream InfluxDB__
-  - ### Features
-    - This release adds support for custom plugins in Amazon Timestream for InfluxDB. InfluxDB 3 Core and Enterprise DB parameter groups now accept a plugin repository URL and optional AWS Secrets Manager secret ARN, so the Processing Engine loads your Python plugins from a public or private repository.
+    - Partners can now create leads with only 5 required fields and free-text values for all other fields, reducing import friction. Engagement invitations now include enrichment data (propensity scores, lead readiness) directly in the response.
 

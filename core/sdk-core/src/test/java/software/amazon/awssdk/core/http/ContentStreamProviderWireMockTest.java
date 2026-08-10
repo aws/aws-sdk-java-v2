@@ -122,7 +122,7 @@ public class ContentStreamProviderWireMockTest extends WireMockTestBase {
             isClosed = true;
         }
 
-        public boolean isClosed() {
+        boolean isClosed() {
             return isClosed;
         }
     }

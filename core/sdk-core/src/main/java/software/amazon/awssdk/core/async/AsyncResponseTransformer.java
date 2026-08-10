@@ -23,6 +23,8 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
@@ -86,6 +88,15 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  * @param <ResultT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
 @SdkPublicApi
+@SdkAdvancedApi(
+    cautionWhen = Usage.IMPLEMENTED,
+    guidance = "prepare() is called on each request attempt; if the CompletableFuture it returned on a previous "
+          + "attempt has already completed, it must return a new instance so the result of a retry is not lost, and "
+          + "exceptionOccurred() should release any resources the attempt opened (for example an open file channel) "
+          + "so retries do not leak them. onStream() receives the response body as a reactive-streams Publisher that "
+          + "the implementation subscribes to, and that subscriber must comply with the reactive-streams "
+          + "specification; a subscriber that never requests data stalls the response.",
+    saferAlternative = "Prefer the AsyncResponseTransformer.toFile/toBytes/toBlockingInputStream factories.")
 public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Initial call to enable any setup required before the response is handled.
@@ -304,6 +315,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @param <ResponseT> Pojo response type.
      * @return AsyncResponseTransformer instance.
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned ResponsePublisher is a reactive-streams Publisher you must subscribe to and drive: "
+              + "your subscriber must obey the reactive-streams specification and honor back-pressure. A subscriber "
+              + "that never requests data stalls the response, and requesting unbounded data can exhaust memory.",
+        saferAlternative = "Prefer the fully-managed AsyncResponseTransformer.toFile/toBytes factories, which do not "
+              + "hand you a publisher to drive. If you do consume the publisher, use an established reactive-streams "
+              + "library such as RxJava or Reactor rather than a hand-written Subscriber.")
     static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT, ResponsePublisher<ResponseT>> toPublisher() {
         return new PublisherAsyncResponseTransformer<>();
     }
@@ -331,6 +350,14 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @return AsyncResponseTransformer instance.
      * @see #toPublisher()
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned ResponsePublisher is a reactive-streams Publisher you must subscribe to and drive: "
+              + "your subscriber must obey the reactive-streams specification and honor back-pressure. A subscriber "
+              + "that never requests data stalls the response, and requesting unbounded data can exhaust memory.",
+        saferAlternative = "Prefer the fully-managed AsyncResponseTransformer.toFile/toBytes factories, which do not "
+              + "hand you a publisher to drive. If you do consume the publisher, use an established reactive-streams "
+              + "library such as RxJava or Reactor rather than a hand-written Subscriber.")
     static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT,
         ResponsePublisher<ResponseT>> toPublisher(Duration timeout) {
         return new PublisherAsyncResponseTransformer<>(timeout);

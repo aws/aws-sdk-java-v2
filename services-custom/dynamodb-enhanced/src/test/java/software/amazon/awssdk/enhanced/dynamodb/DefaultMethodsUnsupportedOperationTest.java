@@ -55,7 +55,7 @@ public class DefaultMethodsUnsupportedOperationTest {
             .stream()
             .flatMap(this::createTestsForInterface)
             .collect(toList());
-        assertEquals(102, dynamicTestList.size());
+        assertEquals(108, dynamicTestList.size());
         return dynamicTestList.stream();
     }
 
