@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Reduce generated client source and bytecode size for JSON, CBOR, and Smithy RPC v2 protocol services by generating the error-metadata mapper once per client instead of once per operation."
-}
