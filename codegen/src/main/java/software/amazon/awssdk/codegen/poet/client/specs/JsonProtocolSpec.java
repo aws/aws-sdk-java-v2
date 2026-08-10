@@ -168,39 +168,48 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
         CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, "
+                    + "exceptionMetadataMapper);",
+                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
+
+        return Optional.of(builder.build());
+    }
+
+    @Override
+    public Optional<FieldSpec> errorResponseMapperField() {
         ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
             ClassName.get(Function.class),
             ClassName.get(String.class),
             ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
 
-        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
-        builder.add("if (errorCode == null) {\n");
-        builder.add("return $T.empty();\n", Optional.class);
-        builder.add("}\n");
-        builder.add("switch (errorCode) {\n");
+        CodeBlock.Builder initializer = CodeBlock.builder();
+        initializer.add("errorCode -> {\n");
+        initializer.add("if (errorCode == null) {\n");
+        initializer.add("return $T.empty();\n", Optional.class);
+        initializer.add("}\n");
+        initializer.add("switch (errorCode) {\n");
         model.getShapes().values().stream()
              .filter(shape -> shape.getShapeType() == ShapeType.Exception)
              .forEach(exceptionShape -> {
-                 String exceptionName = exceptionShape.getShapeName();
                  String errorCode = exceptionShape.getErrorCode();
 
-                 builder.add("case $S:\n", errorCode);
-                 builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
-                        .add(".errorCode($S)\n", errorCode);
-                 builder.add(populateHttpStatusCode(exceptionShape, model));
-                 builder.add(".exceptionBuilderSupplier($T::builder)\n",
-                             poetExtensions.getModelClassFromShape(exceptionShape))
-                        .add(".build());\n");
+                 initializer.add("case $S:\n", errorCode);
+                 initializer.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
+                            .add(".errorCode($S)\n", errorCode);
+                 initializer.add(populateHttpStatusCode(exceptionShape, model));
+                 initializer.add(".exceptionBuilderSupplier($T::builder)\n",
+                                 poetExtensions.getModelClassFromShape(exceptionShape))
+                            .add(".build());\n");
              });
 
-        builder.add("default: return $T.empty();\n", Optional.class);
-        builder.add("}\n");
-        builder.add("};\n");
+        initializer.add("default: return $T.empty();\n", Optional.class);
+        initializer.add("}\n");
+        initializer.add("}");
 
-        builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, exceptionMetadataMapper);",
-                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
-
-        return Optional.of(builder.build());
+        return Optional.of(FieldSpec.builder(metadataMapperType, "exceptionMetadataMapper",
+                                             Modifier.PRIVATE, Modifier.FINAL)
+                                    .initializer(initializer.build())
+                                    .build());
     }
 
     @Override

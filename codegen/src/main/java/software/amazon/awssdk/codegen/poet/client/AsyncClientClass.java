@@ -152,6 +152,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
 
+        protocolSpec.errorResponseMapperField().ifPresent(type::addField);
+
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
             type.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", PRIVATE, FINAL);
