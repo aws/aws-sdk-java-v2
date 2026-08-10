@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.containing;
 import static com.github.tomakehurst.wiremock.client.WireMock.delete;
 import static com.github.tomakehurst.wiremock.client.WireMock.lessThanOrExactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
@@ -39,6 +40,7 @@ import io.reactivex.rxjava3.core.Flowable;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -46,6 +48,7 @@ import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -212,6 +215,44 @@ public class S3MultipartClientPutObjectWiremockTest {
         verify(lessThanOrExactly(2), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
     }
 
+    public static Stream<Arguments> inMemoryBodyRetryableErrorTestCase() {
+        return Stream.of(
+            Arguments.of("failOfConnectionReset", aResponse().withFault(Fault.CONNECTION_RESET_BY_PEER)),
+            Arguments.of("failOf500", aResponse().withStatus(500))
+        );
+    }
+
+    /**
+     * An in-memory body holds all of its data, so its parts are retryable without the caller opting into
+     * {@link BufferedSplittableAsyncRequestBody}.
+     */
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("inMemoryBodyRetryableErrorTestCase")
+    void mpuWithInMemoryBody_partsFailOfRetryableError_shouldRetry(String description,
+                                                                  ResponseDefinitionBuilder responseDefinitionBuilder) {
+        stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(responseDefinitionBuilder);
+        String firstPartContent = StringUtils.repeat('a', 10);
+        String secondPartContent = StringUtils.repeat('b', 10);
+        byte[] payload = (firstPartContent + secondPartContent).getBytes(StandardCharsets.UTF_8);
+
+        s3AsyncClient.putObject(b -> b.bucket(BUCKET).key(KEY), AsyncRequestBody.fromBytes(payload)).join();
+
+        verify(moreThan(1), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(lessThanOrExactly(3), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1))));
+        verify(moreThan(1), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
+        verify(lessThanOrExactly(3), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2))));
+
+        // Each part must only ever carry its own slice of the payload, on the initial attempt and on the retry. The
+        // bodies are aws-chunked encoded, so match on the content rather than comparing the payload exactly.
+        verify(moreThan(0), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1)))
+                                                    .withRequestBody(containing(firstPartContent)));
+        verify(0, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(1)))
+                                          .withRequestBody(containing(secondPartContent)));
+        verify(moreThan(0), putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2)))
+                                                    .withRequestBody(containing(secondPartContent)));
+        verify(0, putRequestedFor(anyUrl()).withQueryParam("partNumber", matching(String.valueOf(2)))
+                                          .withRequestBody(containing(firstPartContent)));
+    }
 
     private void stubUploadPartFailsInitialAttemptSucceedsUponRetryCalls(ResponseDefinitionBuilder responseDefinitionBuilder) {
         stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(CREATE_MULTIPART_PAYLOAD)));
