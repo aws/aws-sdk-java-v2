@@ -23,12 +23,12 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointAuthSchemeStrategyFactory;
 
 /**
  * This test class diffs from {@link NamingConventionTest}; it doesn't use archunit annotations such as {@link ArchTest}
@@ -45,8 +45,7 @@ public class NamingConventionWithSuppressionTest {
      * DO NOT ADD NEW EXCEPTIONS
      */
     private static final Set<Pattern> ALLOWED_SUPPLIER_SUPPRESSION = new HashSet<>(
-        Arrays.asList(Pattern.compile(".*/DefaultEndpointAuthSchemeStrategyFactory.class"),
-                      ArchUtils.classNameToPattern(S3EndpointAuthSchemeStrategyFactory.class)));
+        Collections.singletonList(Pattern.compile(".*/DefaultEndpointAuthSchemeStrategyFactory.class")));
 
     @Test
     void supplierImpl_shouldHaveSupplierSuffix() {
