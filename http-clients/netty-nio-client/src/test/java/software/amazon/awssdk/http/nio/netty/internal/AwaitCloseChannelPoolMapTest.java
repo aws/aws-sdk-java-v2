@@ -23,45 +23,76 @@ import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TLS_KEY_MANAGERS_PROVIDER;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import com.github.tomakehurst.wiremock.WireMockServer;
 import io.netty.channel.Channel;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.ssl.SslProvider;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Future;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.Configuration;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.After;
-import org.junit.Rule;
-import org.junit.Test;
+import org.apache.kerby.kerberos.kerb.client.KrbClient;
+import org.apache.kerby.kerberos.kerb.server.SimpleKdcServer;
+import org.apache.kerby.kerberos.kerb.type.ticket.TgtTicket;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
+import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.RecordingNetworkTrafficListener;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class AwaitCloseChannelPoolMapTest {
+    private static final RecordingNetworkTrafficListener recorder = new RecordingNetworkTrafficListener();
 
-    private final RecordingNetworkTrafficListener recorder = new RecordingNetworkTrafficListener();
+    private static WireMockServer mockProxy;
+
+    private static Path tempDir;
+    private static Path keytabFile;
+    private static Path ccacheFile;
+    private static int port;
+
+    private static SimpleKdcServer kdc;
+
+    private static Configuration negotiateAuthConfig;
 
     private AwaitCloseChannelPoolMap channelPoolMap;
 
-    @Rule
-    public WireMockRule mockProxy = new WireMockRule(wireMockConfig()
-                                                         .dynamicPort()
-                                                         .networkTrafficListener(recorder));
+    @BeforeAll
+    public static void setup() throws Exception {
+        mockProxy = new WireMockServer(wireMockConfig().dynamicPort().networkTrafficListener(recorder));
+        mockProxy.start();
 
-    @After
+        setupMockKerberos();
+    }
+
+    @AfterAll
+    public static void teardown() throws Exception {
+        mockProxy.stop();
+        kdc.stop();
+    }
+
+    @AfterEach
     public void methodTeardown() {
         if (channelPoolMap != null) {
             channelPoolMap.close();
@@ -69,6 +100,50 @@ public class AwaitCloseChannelPoolMapTest {
         channelPoolMap = null;
 
         recorder.reset();
+    }
+
+    private static void setupMockKerberos() throws Exception {
+        tempDir = Files.createTempDirectory(null);
+        keytabFile = tempDir.resolve("keytab");
+        ccacheFile = tempDir.resolve("ccache");
+
+        try (Socket freePort = new Socket()) {
+            freePort.setReuseAddress(true);
+            freePort.bind(new InetSocketAddress(0));
+            port = freePort.getLocalPort();
+        }
+
+        kdc = new SimpleKdcServer();
+        kdc.setKdcRealm("EXAMPLE.COM");
+        kdc.setKdcHost("localhost");
+        kdc.setWorkDir(tempDir.toFile());
+        kdc.setKdcTcpPort(port);
+        kdc.init();
+        kdc.start();
+
+        kdc.createPrincipal("alice@EXAMPLE.COM", "alicePassword");
+        kdc.createAndExportPrincipals(keytabFile.toFile(), "HTTP/localhost@EXAMPLE.COM");
+
+        // initialize the ticket cache
+        KrbClient krbClient = kdc.getKrbClient();
+        TgtTicket tgt = krbClient.requestTgt("alice@EXAMPLE.COM", "alicePassword");
+        krbClient.storeTicket(tgt, ccacheFile.toFile());
+
+        // Override config so we look at the testing cache instead of the real system cache
+        negotiateAuthConfig = new Configuration() {
+            @Override
+            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+                Map<String, String> opts = new HashMap<>();
+                opts.put("useTicketCache", "true");
+                opts.put("ticketCache", ccacheFile.toAbsolutePath().toString());
+                opts.put("doNotPrompt", "true");
+                return new AppConfigurationEntry[] {
+                    new AppConfigurationEntry(
+                        "com.sun.security.auth.module.Krb5LoginModule",
+                        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, opts)
+                };
+            }
+        };
     }
 
     @Test
@@ -216,13 +291,16 @@ public class AwaitCloseChannelPoolMapTest {
         assertThat(requests).contains("CONNECT some-awesome-service:443");
     }
 
-    @Test
-    public void usingProxy_withAuth() {
+    @ParameterizedTest
+    @MethodSource("proxyAuthTestParams")
+    public void usingProxy_authHeaderCorrect(ProxyAuthScheme authScheme, String username, String password,
+                                             String proxyAuthHeader) {
         ProxyConfiguration proxyConfiguration = ProxyConfiguration.builder()
                                                                   .host("localhost")
                                                                   .port(mockProxy.port())
-                                                                  .username("myuser")
-                                                                  .password("mypassword")
+                                                                  .proxyAuthScheme(authScheme)
+                                                                  .username(username)
+                                                                  .password(password)
                                                                   .build();
 
         channelPoolMap = AwaitCloseChannelPoolMap.builder()
@@ -233,6 +311,7 @@ public class AwaitCloseChannelPoolMapTest {
                                                  .protocol(Protocol.HTTP1_1)
                                                  .maxStreams(100)
                                                  .sslProvider(SslProvider.OPENSSL)
+                                                 .negotiateAuthConfig(negotiateAuthConfig)
                                                  .build();
 
         SimpleChannelPoolAwareChannelPool simpleChannelPoolAwareChannelPool = channelPoolMap.newPool(
@@ -244,9 +323,11 @@ public class AwaitCloseChannelPoolMapTest {
 
         assertThat(requests).contains("CONNECT some-awesome-service:443");
 
-        String authB64 = Base64.getEncoder().encodeToString("myuser:mypassword".getBytes(CharsetUtil.UTF_8));
-        String authHeaderValue = String.format("Basic %s", authB64);
-        assertThat(requests).contains(String.format("proxy-authorization: %s", authHeaderValue));
+        if (proxyAuthHeader == null) {
+            assertThat(requests).doesNotContain("proxy-authorization:");
+        } else {
+            assertThat(requests).contains(String.format("proxy-authorization: %s", proxyAuthHeader));
+        }
     }
 
     @Test
@@ -309,4 +390,14 @@ public class AwaitCloseChannelPoolMapTest {
         assertThat(channel.config().isAutoRead()).isTrue();
     }
 
+    private static Stream<Arguments> proxyAuthTestParams() {
+        return Stream.of(
+            Arguments.of(null, null, null, null),
+            Arguments.of(null, "user", "pass", "Basic dXNlcjpwYXNz"),
+            Arguments.of(ProxyAuthScheme.BASIC, "user", "pass", "Basic dXNlcjpwYXNz"),
+            Arguments.of(ProxyAuthScheme.NEGOTIATE, null, null, "Negotiate YII"),
+            Arguments.of(ProxyAuthScheme.NEGOTIATE, "user", "pass", "Negotiate YII")
+
+        );
+    }
 }

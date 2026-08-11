@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -45,6 +46,7 @@ import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
+import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -53,6 +55,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 
 /**
  * Unit tests for {@link ProxyTunnelInitHandler}.
@@ -237,6 +240,23 @@ public class ProxyTunnelInitHandlerTest {
         expectedRequest.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, String.format("Basic %s", authB64));
 
         assertThat(requestCaptor.getValue()).isEqualTo(expectedRequest);
+    }
+
+    @Test
+    public void handlerAdded_authParamsGeneratorThrows_failsFuture() {
+        ProxyAuthGenerator authGenerator = mock(ProxyAuthGenerator.class);
+        when(authGenerator.scheme()).thenReturn(ProxyAuthScheme.BASIC);
+        when(authGenerator.generateAuthParams(any(URI.class))).thenThrow(new RuntimeException("auth generator error"));
+
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, URI.create("https://amazon.com"),
+                                                                    authGenerator,
+                                                                    REMOTE_HOST,
+                                                                    promise);
+        handler.handlerAdded(mockCtx);
+
+        assertThatThrownBy(promise::get).hasMessageContaining("Unable to send CONNECT request to proxy")
+                                        .hasRootCauseMessage("auth generator error");
     }
 
     private void successResponse(ProxyTunnelInitHandler handler) {

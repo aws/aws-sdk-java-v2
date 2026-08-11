@@ -32,7 +32,6 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -52,9 +51,12 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
         this(createDefaultConfig());
     }
 
-    @SdkTestInternalApi
-    NegotiateProxyAuthGenerator(Configuration config) {
-        this.config = config;
+    public NegotiateProxyAuthGenerator(Configuration config) {
+        if (config != null) {
+            this.config = config;
+        } else {
+            this.config = createDefaultConfig();
+        }
     }
 
     @Override
@@ -69,8 +71,12 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
 
             byte[] token = Subject.doAs(subject, (PrivilegedExceptionAction<byte[]>) () -> {
                 GSSContext ctx = createGssContext(getManager(), proxyEndpoint);
-                ctx.requestMutualAuth(true);
-                return ctx.initSecContext(new byte[0], 0, 0);
+                try {
+                    ctx.requestMutualAuth(true);
+                    return ctx.initSecContext(new byte[0], 0, 0);
+                } finally {
+                    ctx.dispose();
+                }
             });
 
             return BinaryUtils.toBase64(token);

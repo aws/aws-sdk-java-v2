@@ -67,7 +67,7 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         this.proxyAddress = proxyAddress;
         this.remoteHost = remoteHost;
         this.initPromise = initPromise;
-        if (!StringUtils.isBlank(proxyPassword) && !StringUtils.isBlank(proxyPassword)) {
+        if (!StringUtils.isBlank(proxyUsername) && !StringUtils.isBlank(proxyPassword)) {
             this.authGenerator = new BasicProxyAuthGenerator(proxyUsername, proxyPassword);
         } else {
             this.authGenerator = null;
@@ -94,7 +94,15 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
     public void handlerAdded(ChannelHandlerContext ctx) {
         ChannelPipeline pipeline = ctx.pipeline();
         pipeline.addBefore(ctx.name(), null, httpCodecSupplier.get());
-        HttpRequest connectRequest = connectRequest();
+
+        HttpRequest connectRequest;
+        try {
+            connectRequest = connectRequest();
+        } catch (Throwable t) {
+            handleConnectRequestFailure(ctx, t);
+            return;
+        }
+
         ctx.channel().writeAndFlush(connectRequest).addListener(f -> {
             if (!f.isSuccess()) {
                 handleConnectRequestFailure(ctx, f.cause());

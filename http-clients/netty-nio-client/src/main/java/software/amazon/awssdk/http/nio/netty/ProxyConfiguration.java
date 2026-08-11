@@ -41,6 +41,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final int port;
     private final String username;
     private final String password;
+    private final ProxyAuthScheme proxyAuthScheme;
     private final Set<String> nonProxyHosts;
 
     private ProxyConfiguration(BuilderImpl builder) {
@@ -56,6 +57,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.port = resolvePort(builder, proxyConfigProvider);
         this.username = resolveUserName(builder, proxyConfigProvider);
         this.password = resolvePassword(builder, proxyConfigProvider);
+        this.proxyAuthScheme = builder.proxyAuthScheme;
         this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfigProvider);
     }
 
@@ -151,6 +153,13 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return Collections.unmodifiableSet(nonProxyHosts != null ? nonProxyHosts : Collections.emptySet());
     }
 
+    /**
+     * @return The auth scheme to use to authenticate with the proxy.
+     */
+    public ProxyAuthScheme proxyAuthScheme() {
+        return proxyAuthScheme;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -183,6 +192,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return false;
         }
 
+        if (proxyAuthScheme != null ? !proxyAuthScheme.equals(that.proxyAuthScheme) : that.proxyAuthScheme != null) {
+            return false;
+        }
+
         return nonProxyHosts.equals(that.nonProxyHosts);
 
     }
@@ -195,6 +208,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         result = 31 * result + nonProxyHosts.hashCode();
         result = 31 * result + (username != null ? username.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
+        result = 31 * result + (proxyAuthScheme != null ? proxyAuthScheme.hashCode() : 0);
         return result;
     }
 
@@ -242,6 +256,17 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * @return This object for method chaining.
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
+
+        /**
+         * Configure the auth scheme to use to authenticate with the proxy.
+         * <p>
+         * If unset and {@link #username(String)} and {@link #password(String)} are set, the client will
+         * assume {@link ProxyAuthScheme#BASIC} auth.
+         *
+         * @param proxyAuthScheme The auth scheme.
+         * @return This object for method chaining.
+         */
+        Builder proxyAuthScheme(ProxyAuthScheme proxyAuthScheme);
 
         /**
          * Set the username used to authenticate with the proxy username.
@@ -293,6 +318,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private String scheme = "http";
         private String host;
         private int port = 0;
+        private ProxyAuthScheme proxyAuthScheme;
         private String username;
         private String password;
         private Set<String> nonProxyHosts;
@@ -310,6 +336,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.port = proxyConfiguration.port;
             this.nonProxyHosts = proxyConfiguration.nonProxyHosts != null ?
                                  new HashSet<>(proxyConfiguration.nonProxyHosts) : null;
+            this.proxyAuthScheme = proxyConfiguration.proxyAuthScheme;
             this.username = proxyConfiguration.username;
             this.password = proxyConfiguration.password;
         }
@@ -339,6 +366,12 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             } else {
                 this.nonProxyHosts = Collections.emptySet();
             }
+            return this;
+        }
+
+        @Override
+        public Builder proxyAuthScheme(ProxyAuthScheme proxyAuthScheme) {
+            this.proxyAuthScheme = proxyAuthScheme;
             return this;
         }
 
