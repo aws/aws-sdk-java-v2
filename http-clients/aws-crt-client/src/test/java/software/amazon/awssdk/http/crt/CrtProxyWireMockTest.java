@@ -34,6 +34,8 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.crt.io.EventLoopGroup;
 import software.amazon.awssdk.crt.io.HostResolver;
@@ -158,6 +160,32 @@ class CrtProxyWireMockTest {
         }
     }
 
+    // Both the comma and comma-space no_proxy spellings must route the same: the wildcard entry (*.foo.com) bypasses
+    // sub.foo.com, and the second entry (a.com) - which carries a leading space in the comma-space form - bypasses a.com
+    // after the CRT-side whitespace trim.
+    @ParameterizedTest(name = "no_proxy=\"{0}\"")
+    @ValueSource(strings = {"*.foo.com,a.com", "*.foo.com, a.com"})
+    void commaSeparatedNonProxyHosts_environmentVariable_bypassesProxy(String noProxy) throws Exception {
+        EnvironmentVariableHelper environmentVariableHelper = new EnvironmentVariableHelper();
+        try {
+            environmentVariableHelper.set("http_proxy", "http://localhost:" + mockProxy.port());
+            environmentVariableHelper.set("no_proxy", noProxy);
+
+            client = AwsCrtAsyncHttpClient.builder()
+                                          .proxyConfiguration(ProxyConfiguration.builder()
+                                                                                .useSystemPropertyValues(false)
+                                                                                .build())
+                                          .build();
+
+            sendRequest(URI.create("http://sub.foo.com"));
+            sendRequest(URI.create("http://a.com"));
+
+            mockProxy.verify(0, anyRequestedFor(anyUrl()));
+        } finally {
+            environmentVariableHelper.reset();
+        }
+    }
+
     @Test
     void bareWildcardNonProxyHost_systemProperty_reachesServerDirectly() throws Exception {
         System.setProperty("http.proxyHost", "localhost");
@@ -200,6 +228,21 @@ class CrtProxyWireMockTest {
                                       .build();
 
         sendRequest(URI.create("http://192.168.1.1"));
+
+        mockProxy.verify(1, anyRequestedFor(anyUrl()));
+    }
+
+    @Test
+    void nonLeadingWildcardNonProxyHost_notReinterpretedAsSuffixWildcard_apexProxied() throws Exception {
+        client = AwsCrtAsyncHttpClient.builder()
+                                      .proxyConfiguration(ProxyConfiguration.builder()
+                                                                            .host("localhost")
+                                                                            .port(mockProxy.port())
+                                                                            .nonProxyHosts(Stream.of("*foo.com").collect(toSet()))
+                                                                            .build())
+                                      .build();
+
+        sendRequest(URI.create("http://foo.com"));
 
         mockProxy.verify(1, anyRequestedFor(anyUrl()));
     }

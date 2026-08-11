@@ -23,11 +23,12 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.StringUtils;
 
 /**
- * Splits a pipe-separated {@code nonProxyHosts} string into its lowercased tokens WITHOUT the {@code * -> .*?} Java-regex
- * rewrite that {@code SdkHttpUtils#parseNonProxyHostsProperty()} applies. The returned tokens keep their documented forms
- * (exact host, {@code *.suffix}, bare {@code *}, CIDR), which is what a curl-style matcher such as the CRT client's native
- * matcher expects. The regex-rewritten form remains available via {@code SdkHttpUtils} for the Netty/Apache/url-connection
- * clients.
+ * Splits a pipe-separated {@code nonProxyHosts} string into its trimmed, lowercased tokens WITHOUT the {@code * -> .*?}
+ * Java-regex rewrite that {@code SdkHttpUtils#parseNonProxyHostsProperty()} applies. Surrounding whitespace is trimmed so the
+ * common comma-space {@code no_proxy=a.com, *.foo.com} form (which arrives as {@code " *.foo.com"} after the {@code , -> |}
+ * normalization) is matched correctly. The returned tokens keep their documented forms (exact host, {@code *.suffix}, bare
+ * {@code *}, CIDR), which is what a curl-style matcher such as the CRT client's native matcher expects. The regex-rewritten
+ * form remains available via {@code SdkHttpUtils} for the Netty/Apache/url-connection clients.
  */
 @SdkInternalApi
 final class ProxyUtils {
@@ -38,6 +39,7 @@ final class ProxyUtils {
     static Set<String> splitToGlobTokens(String nonProxyHosts) {
         if (nonProxyHosts != null && !StringUtils.isEmpty(nonProxyHosts)) {
             return Arrays.stream(nonProxyHosts.split("\\|"))
+                         .map(String::trim)
                          .map(String::toLowerCase)
                          .collect(Collectors.toSet());
         }

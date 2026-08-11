@@ -22,10 +22,13 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.http.HttpProxyOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.NumericUtils;
 
 @SdkProtectedApi
 public final class CrtConfigurationUtils {
+
+    private static final Logger log = Logger.loggerFor(CrtConfigurationUtils.class);
 
     private CrtConfigurationUtils() {
     }
@@ -41,6 +44,10 @@ public final class CrtConfigurationUtils {
         clientProxyOptions.setHost(proxyConfiguration.host());
         clientProxyOptions.setPort(proxyConfiguration.port());
         if (!proxyConfiguration.nonProxyHosts().isEmpty()) {
+            proxyConfiguration.nonProxyHosts().stream()
+                              .filter(Objects::nonNull)
+                              .filter(CrtConfigurationUtils::isUnsupportedWildcard)
+                              .forEach(CrtConfigurationUtils::warnUnsupportedWildcard);
             String noProxyHosts = proxyConfiguration.nonProxyHosts().stream()
                                                     .filter(Objects::nonNull)
                                                     .map(CrtConfigurationUtils::toCurlNoProxyHost)
@@ -65,14 +72,25 @@ public final class CrtConfigurationUtils {
 
     /**
      * Translates a {@code nonProxyHosts} token to the form expected by the curl-style native matcher: a host name with a
-     * leading {@code *} wildcard ({@code *.example.com}) becomes a dot-anchored suffix ({@code .example.com}), while a bare
-     * {@code *}, exact host names, and CIDR ranges are passed through unchanged.
+     * leading {@code *.} wildcard ({@code *.example.com}) becomes a dot-anchored suffix ({@code .example.com}), while a bare
+     * {@code *}, exact host names, and CIDR ranges are passed through unchanged. A wildcard in any other position is
+     * unsupported (see {@link #isUnsupportedWildcard}) and passed through unchanged, so the native matcher will not match it.
      */
     private static String toCurlNoProxyHost(String nonProxyHost) {
-        if (nonProxyHost.length() > 1 && nonProxyHost.charAt(0) == '*') {
+        if (nonProxyHost.startsWith("*.")) {
             return nonProxyHost.substring(1);
         }
         return nonProxyHost;
+    }
+
+    private static boolean isUnsupportedWildcard(String nonProxyHost) {
+        return nonProxyHost.contains("*") && !nonProxyHost.equals("*") && !nonProxyHost.startsWith("*.");
+    }
+
+    private static void warnUnsupportedWildcard(String nonProxyHost) {
+        log.warn(() -> "Unsupported wildcard in nonProxyHosts entry '" + nonProxyHost + "' for the CRT-based HTTP client: only "
+                       + "an exact host, a leading '*.' suffix wildcard (e.g. *.example.com), a single '*', or a CIDR range "
+                       + "are supported. This entry is ignored, so requests to matching hosts will go through the proxy.");
     }
 
     public static Optional<HttpMonitoringOptions> resolveHttpMonitoringOptions(CrtConnectionHealthConfiguration config) {

@@ -88,7 +88,13 @@ class CrtConnectionUtilsTest {
         "*.internal.example.com, .internal.example.com",
         "'*',                    '*'",
         "example.com,            example.com",
-        "10.0.0.0/8,             10.0.0.0/8"
+        "10.0.0.0/8,             10.0.0.0/8",
+        "192.168.*,              192.168.*",
+        "internal*,              internal*",
+        "*foo.com,               *foo.com",
+        "::1,                    ::1",
+        "2001:db8::/32,          2001:db8::/32",
+        "::1/128,                ::1/128"
     })
     void resolveProxy_builderNonProxyHost_translatedToCurlForm(String nonProxyHost, String expectedCurl) {
         TlsContext tlsContext = Mockito.mock(TlsContext.class);
