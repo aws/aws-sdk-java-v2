@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.utils.cache.lru;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,6 +76,20 @@ public final class LruCache<K, V>  {
                 moveToBackOfQueue(cachedEntry);
                 return cachedEntry.value();
             }
+        }
+    }
+
+    public List<V> evictAll() {
+        List<V> evicted = new ArrayList<>(cache.size());
+        synchronized (listLock) {
+            while (true) {
+                CacheEntry<K, V> evictedEntry = evict();
+                if (evictedEntry == null) {
+                    break;
+                }
+                evicted.add(evictedEntry.value);
+            }
+            return evicted;
         }
     }
 
@@ -147,11 +163,18 @@ public final class LruCache<K, V>  {
     /**
      * Removes the least recently used entry from the cache, marks it as evicted and removes it from the queue.
      */
-    private void evict() {
-        leastRecentlyUsed.isEvicted(true);
-        closeEvictedResourcesIfPossible(leastRecentlyUsed.value);
-        cache.remove(leastRecentlyUsed.key());
-        removeFromQueue(leastRecentlyUsed);
+    private CacheEntry<K, V> evict() {
+        if (leastRecentlyUsed == null) {
+            return null;
+        }
+
+        CacheEntry<K, V> entryToEvict = leastRecentlyUsed;
+
+        entryToEvict.isEvicted(true);
+        closeEvictedResourcesIfPossible(entryToEvict.value);
+        cache.remove(entryToEvict.key());
+        removeFromQueue(entryToEvict);
+        return entryToEvict;
     }
 
     private void closeEvictedResourcesIfPossible(V value) {
