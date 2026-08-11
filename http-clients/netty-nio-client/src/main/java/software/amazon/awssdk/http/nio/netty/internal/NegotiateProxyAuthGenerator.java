@@ -33,7 +33,6 @@ import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -64,12 +63,12 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
     }
 
     @Override
-    public String generateAuthParams(SdkHttpRequest request) {
+    public String generateAuthParams(URI proxyEndpoint) {
         try {
             Subject subject = getSubject();
 
             byte[] token = Subject.doAs(subject, (PrivilegedExceptionAction<byte[]>) () -> {
-                GSSContext ctx = createGSSContext(getManager(), request.getUri());
+                GSSContext ctx = createGssContext(getManager(), proxyEndpoint);
                 ctx.requestMutualAuth(true);
                 return ctx.initSecContext(new byte[0], 0, 0);
             });
@@ -90,7 +89,7 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
         }
     }
 
-    private GSSContext createGSSContext(GSSManager manager, URI endpoint) {
+    private GSSContext createGssContext(GSSManager manager, URI endpoint) {
         try {
             String name = String.format("%s@%s", SERVICE_NAME, endpoint.getHost());
             GSSName serverName = manager.createName(name, GSSName.NT_HOSTBASED_SERVICE);

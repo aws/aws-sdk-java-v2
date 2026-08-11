@@ -28,11 +28,9 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpVersion;
-import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
-import java.util.Base64;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -47,30 +45,49 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
     
     public static final NettyClientLogger log = NettyClientLogger.getLogger(ProxyTunnelInitHandler.class);
     private final ChannelPool sourcePool;
-    private final String username;
-    private final String password;
+    private final URI proxyAddress;
+    private final ProxyAuthGenerator authGenerator;
     private final URI remoteHost;
     private final Promise<Channel> initPromise;
     private final Supplier<HttpClientCodec> httpCodecSupplier;
 
     public ProxyTunnelInitHandler(ChannelPool sourcePool, String proxyUsername, String proxyPassword, URI remoteHost,
                                   Promise<Channel> initPromise) {
-        this(sourcePool, proxyUsername, proxyPassword, remoteHost, initPromise, HttpClientCodec::new);
+        this(sourcePool, null, proxyUsername, proxyPassword, remoteHost, initPromise, HttpClientCodec::new);
     }
 
     public ProxyTunnelInitHandler(ChannelPool sourcePool, URI remoteHost, Promise<Channel> initPromise) {
-        this(sourcePool, null, null, remoteHost, initPromise, HttpClientCodec::new);
+        this(sourcePool, null, null, null, remoteHost, initPromise, HttpClientCodec::new);
     }
 
     @SdkTestInternalApi
-    public ProxyTunnelInitHandler(ChannelPool sourcePool, String prosyUsername, String proxyPassword,
+    public ProxyTunnelInitHandler(ChannelPool sourcePool, URI proxyAddress, String proxyUsername, String proxyPassword,
                                   URI remoteHost, Promise<Channel> initPromise, Supplier<HttpClientCodec> httpCodecSupplier) {
         this.sourcePool = sourcePool;
+        this.proxyAddress = proxyAddress;
         this.remoteHost = remoteHost;
         this.initPromise = initPromise;
-        this.username = prosyUsername;
-        this.password = proxyPassword;
+        if (!StringUtils.isBlank(proxyPassword) && !StringUtils.isBlank(proxyPassword)) {
+            this.authGenerator = new BasicProxyAuthGenerator(proxyUsername, proxyPassword);
+        } else {
+            this.authGenerator = null;
+        }
         this.httpCodecSupplier = httpCodecSupplier;
+    }
+
+    public ProxyTunnelInitHandler(ChannelPool sourcePool, URI proxyAddress, ProxyAuthGenerator authGenerator,
+                                  URI remoteHost, Promise<Channel> initPromise, Supplier<HttpClientCodec> httpCodecSupplier) {
+        this.sourcePool = sourcePool;
+        this.proxyAddress = proxyAddress;
+        this.remoteHost = remoteHost;
+        this.initPromise = initPromise;
+        this.authGenerator = authGenerator;
+        this.httpCodecSupplier = httpCodecSupplier;
+    }
+
+    public ProxyTunnelInitHandler(ChannelPool sourcePool, URI proxyAddress, ProxyAuthGenerator authGenerator,
+                                  URI remoteHost, Promise<Channel> initPromise) {
+        this(sourcePool, proxyAddress, authGenerator, remoteHost, initPromise, HttpClientCodec::new);
     }
 
     @Override
@@ -151,10 +168,9 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
                                                          Unpooled.EMPTY_BUFFER);
         request.headers().add(HttpHeaderNames.HOST, uri);
 
-        if (!StringUtils.isEmpty(this.username) && !StringUtils.isEmpty(this.password)) {
-            String authToken = String.format("%s:%s", this.username, this.password);
-            String authB64 = Base64.getEncoder().encodeToString(authToken.getBytes(CharsetUtil.UTF_8));
-            request.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, String.format("Basic %s", authB64));
+        if (authGenerator != null) {
+            String auth = String.format("%s %s", authGenerator.scheme().value(), authGenerator.generateAuthParams(proxyAddress));
+            request.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, auth);
         }
         
         return request;

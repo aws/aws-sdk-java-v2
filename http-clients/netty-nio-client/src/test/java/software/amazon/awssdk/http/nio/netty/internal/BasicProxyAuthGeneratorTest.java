@@ -17,8 +17,8 @@ package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.stream.Stream;
@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 
 public class BasicProxyAuthGeneratorTest {
@@ -53,15 +52,13 @@ public class BasicProxyAuthGeneratorTest {
                                 .encodeToString(String.format("%s:%s", USERNAME, PASSWORD)
                                                       .getBytes(StandardCharsets.UTF_8));
 
-        assertThat(authGenerator.generateAuthParams(mock(SdkHttpRequest.class))).isEqualTo(expected);
+        assertThat(authGenerator.generateAuthParams(URI.create("http://amazon.com"))).isEqualTo(expected);
     }
 
     private static Stream<Arguments> invalidCtorParams() {
         return Stream.of(
             Arguments.of(null, null, "username"),
             Arguments.of("", "", "username"),
-            Arguments.of("  ", "", "username"),
-            Arguments.of("  ", "  ", "username"),
             Arguments.of(null, PASSWORD, "username"),
             Arguments.of("", PASSWORD, "username"),
             Arguments.of(USERNAME, null, "password"),

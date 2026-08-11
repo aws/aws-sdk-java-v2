@@ -16,9 +16,9 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import io.netty.util.CharsetUtil;
+import java.net.URI;
 import java.util.Base64;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.utils.Validate;
 
@@ -33,8 +33,8 @@ public class BasicProxyAuthGenerator implements ProxyAuthGenerator {
     private final String password;
 
     public BasicProxyAuthGenerator(String username, String password) {
-        this.username = Validate.notBlank(username, "username must not be blank");
-        this.password = Validate.notBlank(password, "password must not be blank");
+        this.username = Validate.notEmpty(username, "username must not be empty");
+        this.password = Validate.notEmpty(password, "password must not be empty");
     }
 
     @Override
@@ -43,7 +43,7 @@ public class BasicProxyAuthGenerator implements ProxyAuthGenerator {
     }
 
     @Override
-    public String generateAuthParams(SdkHttpRequest request) {
+    public String generateAuthParams(URI proxyEndpoint) {
         String authToken = String.format("%s:%s", this.username, this.password);
         return Base64.getEncoder().encodeToString(authToken.getBytes(CharsetUtil.UTF_8));
     }
