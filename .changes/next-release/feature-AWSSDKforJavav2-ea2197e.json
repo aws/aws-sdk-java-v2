@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Added support for the AWS_IGNORE_CONFIGURED_ENDPOINT_URLS setting to skip endpoint URLs from environment variables and config files."
+}

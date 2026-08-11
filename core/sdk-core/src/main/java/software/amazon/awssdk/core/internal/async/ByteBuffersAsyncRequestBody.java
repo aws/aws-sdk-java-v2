@@ -31,12 +31,15 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
+import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
  * An implementation of {@link AsyncRequestBody} for providing data from the supplied {@link ByteBuffer} array. This is created
@@ -57,6 +60,12 @@ import software.amazon.awssdk.utils.Validate;
  *   <li>Send error notifications to all active subscribers</li>
  *   <li>Prevent new subscriptions</li>
  * </ul>
+ *
+ * <h3>Splitting:</h3>
+ * Because all data is already in memory, this implementation splits into independent
+ * {@code ByteBuffersAsyncRequestBody} parts backed by read-only slices of the same data rather than using
+ * {@link SplittingPublisher} making each part replayable.
+ *
  * @see AsyncRequestBody#fromBytes(byte[])
  * @see AsyncRequestBody#fromBytesUnsafe(byte[])
  * @see AsyncRequestBody#fromByteBuffer(ByteBuffer)
@@ -66,7 +75,7 @@ import software.amazon.awssdk.utils.Validate;
  * @see AsyncRequestBody#fromString(String)
  */
 @SdkInternalApi
-public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody, SdkAutoCloseable {
+public final class ByteBuffersAsyncRequestBody implements CloseableAsyncRequestBody {
     private static final Logger log = Logger.loggerFor(ByteBuffersAsyncRequestBody.class);
 
     private final String mimetype;
@@ -121,6 +130,105 @@ public final class ByteBuffersAsyncRequestBody implements AsyncRequestBody, SdkA
     @Override
     public String body() {
         return BodyType.BYTES.getName();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Behaves the same as {@link #splitCloseable(AsyncRequestBodySplitConfiguration)}; the emitted parts are
+     * closeable, even though they are exposed here as plain {@link AsyncRequestBody}s.
+     */
+    @Override
+    public SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        // The identity mapping only widens the element type. SdkPublisher is invariant, so the publisher returned by
+        // splitCloseable cannot be returned directly.
+        return splitCloseable(splitConfiguration).map(body -> body);
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Each part is an independent, replayable {@code ByteBuffersAsyncRequestBody} backed by read-only slices of this
+     * body's data, so no data is copied and each part may be subscribed to more than once (i.e. it supports retries).
+     * Closing a part releases only that part's slices; it does not affect this body or any sibling part.
+     *
+     * <p>{@link AsyncRequestBodySplitConfiguration#bufferSizeInBytes()} is not applicable here and is ignored, since all
+     * of the data is already buffered in memory.
+     */
+    @Override
+    public SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        long chunkSizeInBytes = splitConfiguration.chunkSizeInBytes() == null
+                                ? AsyncRequestBodySplitConfiguration.defaultConfiguration().chunkSizeInBytes()
+                                : splitConfiguration.chunkSizeInBytes();
+
+        SimplePublisher<CloseableAsyncRequestBody> publisher = new SimplePublisher<>();
+
+        // Reading closed and snapshotting buffers must be atomic, otherwise a concurrent close() could
+        // split an already-emptied buffer list. Nothing is published while the lock is held.
+        List<ByteBuffer> dataToSplit = null;
+        boolean alreadyClosed;
+        synchronized (lock) {
+            alreadyClosed = closed;
+            if (!alreadyClosed) {
+                dataToSplit = new ArrayList<>(buffers);
+            }
+        }
+
+        if (alreadyClosed) {
+            publisher.error(NonRetryableException.create("AsyncRequestBody has been closed"));
+            return SdkPublisher.adapt(publisher);
+        }
+
+        try {
+            sendParts(publisher, dataToSplit, chunkSizeInBytes);
+            publisher.complete();
+        } catch (Throwable t) {
+            log.debug(() -> "Failed to split the in-memory request body", t);
+            publisher.error(t);
+        }
+        return SdkPublisher.adapt(publisher);
+    }
+
+    /**
+     * Slices {@code dataToSplit} at {@code chunkSizeInBytes} boundaries and sends one part per chunk. The slices are
+     * read-only views over the existing data, so this does not copy the payload. A single empty part is sent if there is
+     * no data, mirroring the behavior of {@link SplittingPublisher} for an empty body.
+     */
+    private void sendParts(SimplePublisher<CloseableAsyncRequestBody> publisher,
+                           List<ByteBuffer> dataToSplit,
+                           long chunkSizeInBytes) {
+        List<ByteBuffer> currentPart = new ArrayList<>();
+        long currentPartLength = 0;
+        boolean anyPartSent = false;
+
+        for (ByteBuffer data : dataToSplit) {
+            // A read-only view (no underlying copy)
+            ByteBuffer remainingData = data.asReadOnlyBuffer();
+
+            while (remainingData.hasRemaining()) {
+                int lengthToRead = Math.toIntExact(Math.min(chunkSizeInBytes - currentPartLength,
+                                                            remainingData.remaining()));
+                // No underlying copy, just a view on top of the already read-only buffer.
+                ByteBuffer slice = remainingData.duplicate();
+                slice.limit(slice.position() + lengthToRead);
+                remainingData.position(remainingData.position() + lengthToRead);
+
+                currentPart.add(slice);
+                currentPartLength += lengthToRead;
+
+                if (currentPartLength == chunkSizeInBytes) {
+                    publisher.send(new ByteBuffersAsyncRequestBody(mimetype, currentPartLength, currentPart));
+                    anyPartSent = true;
+                    currentPart = new ArrayList<>();
+                    currentPartLength = 0;
+                }
+            }
+        }
+
+        if (currentPartLength > 0 || !anyPartSent) {
+            publisher.send(new ByteBuffersAsyncRequestBody(mimetype, currentPartLength, currentPart));
+        }
     }
 
     public static ByteBuffersAsyncRequestBody of(List<ByteBuffer> buffers, long length) {

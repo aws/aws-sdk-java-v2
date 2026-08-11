@@ -240,7 +240,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                     whenCompleteBlock(opModel, "asyncResponseHandler",
                                       eventStreamTransformFutureName));
         } else {
-            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
+            builder.addStatement("$N = $L", whenCompleteFutureName, publishMetricsWhenComplete("executeFuture"));
         }
 
         builder.addStatement("$T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,
