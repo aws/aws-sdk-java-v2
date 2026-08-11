@@ -450,6 +450,7 @@
         <module>pricingplanmanager</module>
         <module>agentregistry</module>
         <module>agentregistrycontrol</module>
+        <module>accountaccess</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
