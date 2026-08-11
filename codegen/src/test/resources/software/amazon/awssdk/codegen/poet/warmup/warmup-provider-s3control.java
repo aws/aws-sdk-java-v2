@@ -4,8 +4,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.core.warmup.http.CannedResponseAsyncHttpClient;
@@ -38,7 +37,7 @@ public final class S3ControlWarmUpProvider implements SdkWarmUpProvider {
       SdkHttpClient httpClient = CannedResponseHttpClient.builder().responseBody(CANNED_RESPONSE).statusCode(200).build();
       try (S3ControlClient client = S3ControlClient.builder()
       .httpClient(httpClient)
-      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+      .credentialsProvider(AnonymousCredentialsProvider.create())
       .region(Region.US_EAST_1)
       .endpointOverride(URI.create("http://localhost"))
       .build()) {
@@ -49,7 +48,7 @@ public final class S3ControlWarmUpProvider implements SdkWarmUpProvider {
       SdkAsyncHttpClient asyncHttpClient = CannedResponseAsyncHttpClient.builder().responseBody(CANNED_RESPONSE).statusCode(200).build();
       try (S3ControlAsyncClient asyncClient = S3ControlAsyncClient.builder()
       .httpClient(asyncHttpClient)
-      .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+      .credentialsProvider(AnonymousCredentialsProvider.create())
       .region(Region.US_EAST_1)
       .endpointOverride(URI.create("http://localhost"))
       .build()) {

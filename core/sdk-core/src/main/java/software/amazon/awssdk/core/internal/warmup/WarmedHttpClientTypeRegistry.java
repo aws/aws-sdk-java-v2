@@ -20,7 +20,7 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.ClientType;
 
 /**
- * Tracks whether each HTTP client type has been warmed, so {@code SdkWarmUp.prime(Class...)} warms each at most once
+ * Tracks whether each HTTP client type has been warmed, so {@code SdkWarmUp.warmUp(Class...)} warms each at most once
  * per JVM. Only {@link ClientType#SYNC} and {@link ClientType#ASYNC} are tracked.
  */
 @ThreadSafe

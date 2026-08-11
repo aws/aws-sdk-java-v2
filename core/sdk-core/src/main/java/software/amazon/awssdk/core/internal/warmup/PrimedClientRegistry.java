@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 
 /**
- * Tracks which service clients {@code SdkWarmUp.prime(Class...)} has already warmed, so each is warmed at most once per
+ * Tracks which service clients {@code SdkWarmUp.warmUp(Class...)} has already warmed, so each is warmed at most once per
  * JVM. State is per-instance, so it is unit-testable with fresh instances; production uses a single long-lived instance.
  */
 @ThreadSafe

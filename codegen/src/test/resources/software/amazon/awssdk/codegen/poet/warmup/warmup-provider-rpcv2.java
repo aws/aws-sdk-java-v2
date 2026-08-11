@@ -3,8 +3,7 @@ package software.amazon.awssdk.services.smithyrpcv2protocol.internal.warmup;
 import java.net.URI;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.core.warmup.http.CannedResponseAsyncHttpClient;
@@ -36,7 +35,7 @@ public final class SmithyRpcV2ProtocolWarmUpProvider implements SdkWarmUpProvide
         if (clientType == ClientType.SYNC) {
             SdkHttpClient httpClient = CannedResponseHttpClient.builder().responseBody(CANNED_RESPONSE).statusCode(200).build();
             try (SmithyRpcV2ProtocolClient client = SmithyRpcV2ProtocolClient.builder().httpClient(httpClient)
-                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                    .credentialsProvider(AnonymousCredentialsProvider.create())
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
                 client.emptyInputOutput(EmptyInputOutputRequest.builder().build());
             }
@@ -46,7 +45,7 @@ public final class SmithyRpcV2ProtocolWarmUpProvider implements SdkWarmUpProvide
                     .statusCode(200).build();
             try (SmithyRpcV2ProtocolAsyncClient asyncClient = SmithyRpcV2ProtocolAsyncClient.builder()
                     .httpClient(asyncHttpClient)
-                    .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+                    .credentialsProvider(AnonymousCredentialsProvider.create())
                     .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
                 asyncClient.emptyInputOutput(EmptyInputOutputRequest.builder().build()).join();
             }

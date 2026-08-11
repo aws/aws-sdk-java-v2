@@ -41,21 +41,19 @@ import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
  *
  * <p>The {@code warmUpClient(ClientType)} body instantiates and closes a synthetic sync client (when the service
  * generates one) and a synthetic async client, each guarded by the requested {@link ClientType} and wired to an
- * in-memory canned HTTP client, dummy credentials, a fixed region and a local {@code endpointOverride}. Building the
- * clients JIT-compiles the client construction and configuration-resolution path before a CRaC checkpoint. Each client
- * also invokes the operation chosen by {@link WarmUpOperationSelector}, if any, to prime the marshalling, signing and
- * unmarshalling paths. The {@code syncClientClassName()}/{@code asyncClientClassName()} strings let
- * {@code SdkWarmUp.prime(Class...)} match a requested client class to this provider.
+ * in-memory canned HTTP client, anonymous credentials, a fixed region and a local {@code endpointOverride}. Building
+ * the clients JIT-compiles the client construction and configuration-resolution path before a CRaC checkpoint. Each
+ * client also invokes the operation chosen by {@link WarmUpOperationSelector}, if any, to prime the marshalling,
+ * auth-scheme resolution and unmarshalling paths. The {@code syncClientClassName()}/{@code asyncClientClassName()}
+ * strings let {@code SdkWarmUp.warmUp(Class...)} match a requested client class to this provider.
  */
 public class WarmUpProviderSpec implements ClassSpec {
 
     private static final String CANNED_RESPONSE_FIELD = "CANNED_RESPONSE";
 
-    // Values emitted into the warm-up call. Dummy credentials and a local endpoint keep the call offline; a 200 status
-    // exercises the success path.
+    // Values emitted into the warm-up call. Anonymous credentials and a local endpoint keep the call offline; a 200
+    // status exercises the success path.
     private static final int SUCCESS_STATUS_CODE = 200;
-    private static final String DUMMY_ACCESS_KEY_ID = "akid";
-    private static final String DUMMY_SECRET_ACCESS_KEY = "skid";
     private static final String DUMMY_TOKEN = "warmup-dummy-token";
     private static final String LOCAL_ENDPOINT = "http://localhost";
 
@@ -69,10 +67,8 @@ public class WarmUpProviderSpec implements ClassSpec {
         ClassName.get("software.amazon.awssdk.http", "SdkHttpClient");
     private static final ClassName SDK_ASYNC_HTTP_CLIENT =
         ClassName.get("software.amazon.awssdk.http.async", "SdkAsyncHttpClient");
-    private static final ClassName STATIC_CREDENTIALS_PROVIDER =
-        ClassName.get("software.amazon.awssdk.auth.credentials", "StaticCredentialsProvider");
-    private static final ClassName AWS_BASIC_CREDENTIALS =
-        ClassName.get("software.amazon.awssdk.auth.credentials", "AwsBasicCredentials");
+    private static final ClassName ANONYMOUS_CREDENTIALS_PROVIDER =
+        ClassName.get("software.amazon.awssdk.auth.credentials", "AnonymousCredentialsProvider");
     private static final ClassName STATIC_TOKEN_PROVIDER =
         ClassName.get("software.amazon.awssdk.auth.token.credentials", "StaticTokenProvider");
     private static final ClassName REGION =
@@ -178,15 +174,14 @@ public class WarmUpProviderSpec implements ClassSpec {
     }
 
     /**
-     * Builds the warm-up client: canned HTTP client, dummy credentials, local endpoint, plus any service-specific
+     * Builds the warm-up client: canned HTTP client, anonymous credentials, local endpoint, plus any service-specific
      * options from {@link #addServiceSpecificOptions}.
      */
     private CodeBlock clientBuilder(ClassName clientType, String clientVar, String httpClientVar) {
         CodeBlock.Builder builder = CodeBlock.builder()
             .add("$1T $2N = $1T.builder()\n", clientType, clientVar)
             .add(".httpClient($N)\n", httpClientVar)
-            .add(".credentialsProvider($T.create($T.create($S, $S)))\n",
-                 STATIC_CREDENTIALS_PROVIDER, AWS_BASIC_CREDENTIALS, DUMMY_ACCESS_KEY_ID, DUMMY_SECRET_ACCESS_KEY);
+            .add(".credentialsProvider($T.create())\n", ANONYMOUS_CREDENTIALS_PROVIDER);
         addServiceSpecificOptions(builder);
         return builder.add(".region($T.US_EAST_1)\n", REGION)
                       .add(".endpointOverride($T.create($S))\n", URI.class, LOCAL_ENDPOINT)

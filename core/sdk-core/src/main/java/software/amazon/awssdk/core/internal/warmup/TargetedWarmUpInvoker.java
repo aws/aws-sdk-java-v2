@@ -28,7 +28,7 @@ import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Warms only the service clients named by {@code SdkWarmUp.prime(Class...)}. Matches each requested client class name
+ * Warms only the service clients named by {@code SdkWarmUp.warmUp(Class...)}. Matches each requested client class name
  * against the discovered {@link SdkWarmUpProvider}s' sync and async class names, then warms the matched client type only.
  */
 @SdkInternalApi
