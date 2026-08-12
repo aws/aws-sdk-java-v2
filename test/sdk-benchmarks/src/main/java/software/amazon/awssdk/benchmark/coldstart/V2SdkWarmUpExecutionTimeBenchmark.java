@@ -99,19 +99,19 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
     }
 
     @Benchmark
-    public void primeSingleService() throws Exception {
+    public void warmUpSingleService() throws Exception {
         SdkWarmUp.warmUp(DynamoDbClient.class);
     }
 
     /** One {@code warmUp} call naming every discovered client, so the HTTP client warm-up runs once. */
     @Benchmark
-    public void primeAllServicesBatched() throws Exception {
+    public void warmUpAllServicesBatched() throws Exception {
         SdkWarmUp.warmUp(allClientClasses);
     }
 
     /** One {@code warmUp} call per discovered service, so the HTTP client warm-up runs once per service. */
     @Benchmark
-    public void primeAllServicesSequentially() throws Exception {
+    public void warmUpAllServicesSequentially() throws Exception {
         for (Class<? extends SdkClient>[] perService : clientClassesByService) {
             SdkWarmUp.warmUp(perService);
         }
@@ -119,7 +119,7 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
 
     /** The no-arg overload: same scope as the two methods above, reached through discovery inside {@code warmUp}. */
     @Benchmark
-    public void primeAllRegisteredProviders() throws Exception {
+    public void warmUpAllRegisteredProviders() throws Exception {
         SdkWarmUp.warmUp();
     }
 
