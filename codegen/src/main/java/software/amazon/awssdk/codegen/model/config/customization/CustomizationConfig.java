@@ -317,7 +317,7 @@ public class CustomizationConfig {
     /**
      * Set to true to enable compiled endpoint rules. Currently defaults to false.
      */
-    private boolean enableGenerateCompiledEndpointRules = false;
+    private boolean enableGenerateCompiledEndpointRules = true;
 
     /**
      * Customization related to auth scheme derived from endpoints.

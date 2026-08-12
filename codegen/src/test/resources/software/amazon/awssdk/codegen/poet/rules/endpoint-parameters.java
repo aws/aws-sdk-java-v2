@@ -73,6 +73,10 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         return region;
     }
 
+    public String regionId() {
+        return region == null ? null : region.id();
+    }
+
     public Boolean useDualStackEndpoint() {
         return useDualStackEndpoint;
     }
