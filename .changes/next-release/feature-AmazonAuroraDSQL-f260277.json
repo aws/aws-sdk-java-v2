@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Aurora DSQL",
+    "contributor": "",
+    "description": "Improved validation of Kinesis stream ARN format to ensure only valid ARN characters are accepted"
+}
