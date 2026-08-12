@@ -315,7 +315,7 @@ public class CustomizationConfig {
     private boolean s3ExpressAuthSupport;
 
     /**
-     * Set to true to enable compiled endpoint rules. Currently defaults to false.
+     * Set to true to enable compiled endpoint rules. Defaults to true.
      */
     private boolean enableGenerateCompiledEndpointRules = true;
 

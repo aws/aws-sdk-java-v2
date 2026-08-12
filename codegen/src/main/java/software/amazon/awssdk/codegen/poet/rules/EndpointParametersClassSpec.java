@@ -29,6 +29,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -168,6 +169,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
         String methodName = endpointRulesSpecUtils.paramMethodName(name) + "Id";
         return MethodSpec.methodBuilder(methodName)
                          .addModifiers(Modifier.PUBLIC)
+                         .addJavadoc("Returns the region ID (the {@link $T#id()} value) as a String, or null if region is not set.",
+                                     Region.class)
                          .returns(String.class)
                          .addStatement("return $N == null ? null : $N.id()", varName, varName)
                          .build();

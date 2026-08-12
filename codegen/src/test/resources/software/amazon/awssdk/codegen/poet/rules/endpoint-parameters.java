@@ -73,6 +73,9 @@ public final class QueryEndpointParams implements ToCopyableBuilder<QueryEndpoin
         return region;
     }
 
+    /**
+     * Returns the region ID (the {@link Region#id()} value) as a String, or null if region is not set.
+     */
     public String regionId() {
         return region == null ? null : region.id();
     }
