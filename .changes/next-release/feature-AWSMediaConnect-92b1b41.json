@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS MediaConnect",
+    "contributor": "",
+    "description": "AWS MediaConnect now supports tuning the internal recovery latency between Router Inputs and Outputs to prioritize stream quality versus end-to-end latency."
+}
