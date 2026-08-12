@@ -135,14 +135,25 @@ public final class ProxyConfiguration extends CrtProxyConfiguration
         Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
 
         /**
-         * Configure the hosts that the client is allowed to access without going through the proxy.
+         * Configure the hosts that the client is allowed to access without going through the proxy. Each entry accepts the
+         * same forms as the {@code http.nonProxyHosts} system property: an exact host name such as {@code example.com}, a host
+         * name with a leading {@code *} wildcard such as {@code *.example.com}, a single {@code *} matching all hosts, or an
+         * IP range in CIDR notation such as {@code 10.0.0.0/8}. Both {@code example.com} and {@code *.example.com} match
+         * {@code example.com} and its subdomains. Entries must not carry surrounding whitespace; a leading or trailing space
+         * is treated as part of the host and prevents matching (for example the space in a comma-space
+         * {@code no_proxy=a.com, *.foo.com} value).
          */
         @Override
         Builder nonProxyHosts(Set<String> nonProxyHosts);
 
 
         /**
-         * Add a host that the client is allowed to access without going through the proxy.
+         * Add a host that the client is allowed to access without going through the proxy. The entry accepts the same forms
+         * as the {@code http.nonProxyHosts} system property: an exact host name such as {@code example.com}, a host name with
+         * a leading {@code *} wildcard such as {@code *.example.com}, a single {@code *} matching all hosts, or an IP range in
+         * CIDR notation such as {@code 10.0.0.0/8}. Both {@code example.com} and {@code *.example.com} match
+         * {@code example.com} and its subdomains. The entry must not carry surrounding whitespace; a leading or trailing space
+         * is treated as part of the host and prevents matching.
          */
         @Override
         Builder addNonProxyHost(String nonProxyHost);

@@ -318,5 +318,19 @@ public class SdkHttpUtilsTest {
                                             .collect(Collectors.toSet()));
     }
 
-
+    @Test
+    void parseNonProxyHostsProperty_regexPathStillRewritesWildcard() {
+        String previous = System.getProperty("http.nonProxyHosts");
+        System.setProperty("http.nonProxyHosts", "example.com|*greedy.org");
+        try {
+            assertThat(SdkHttpUtils.parseNonProxyHostsProperty())
+                .isEqualTo(Stream.of("example.com", ".*?greedy.org").collect(Collectors.toSet()));
+        } finally {
+            if (previous == null) {
+                System.clearProperty("http.nonProxyHosts");
+            } else {
+                System.setProperty("http.nonProxyHosts", previous);
+            }
+        }
+    }
 }
