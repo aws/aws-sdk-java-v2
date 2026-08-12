@@ -53,6 +53,7 @@ import software.amazon.awssdk.services.cloudfront.cookie.CookiesForCustomPolicy;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 
 
@@ -524,5 +525,135 @@ class CloudFrontUtilitiesTest {
     void customSignerRequest_nullResourceUrlShouldThrow(){
         assertThatNullPointerException().isThrownBy(() -> CustomSignerRequest.builder().build())
                                         .withMessageContaining("resourceUrl must not be null");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getSignedURLWithCannedPolicy_sha256_includesSigningHashAlgorithmParam(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(RESOURCE_URL)
+                .privateKey(testCase.keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate)
+                .hashAlgorithm(SigningHashAlgorithm.SHA256));
+        String url = signedUrl.url();
+        assertThat(url).contains("&Hash-Algorithm=SHA256");
+        assertThat(url).endsWith("&Hash-Algorithm=SHA256");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getSignedURLWithCannedPolicy_sha1Default_doesNotIncludeSigningHashAlgorithmParam(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(RESOURCE_URL)
+                .privateKey(testCase.keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate));
+        String url = signedUrl.url();
+        assertThat(url).doesNotContain("Hash-Algorithm");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getSignedURLWithCustomPolicy_sha256_includesSigningHashAlgorithmParam(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl signedUrl =
+            cloudFrontUtilities.getSignedUrlWithCustomPolicy(r -> r
+                .resourceUrl(RESOURCE_URL)
+                .privateKey(testCase.keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate)
+                .hashAlgorithm(SigningHashAlgorithm.SHA256));
+        String url = signedUrl.url();
+        assertThat(url).contains("&Hash-Algorithm=SHA256");
+        assertThat(url).endsWith("&Hash-Algorithm=SHA256");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCannedPolicy_sha256_includesSigningHashAlgorithmHeader(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CannedSignerRequest request = CannedSignerRequest.builder()
+                                                         .resourceUrl(RESOURCE_URL)
+                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .hashAlgorithm(SigningHashAlgorithm.SHA256)
+                                                         .build();
+        CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
+        assertThat(cookies.hashAlgorithmHeaderValue()).isEqualTo("CloudFront-Hash-Algorithm=SHA256");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCannedPolicy_sha1Default_hashAlgorithmHeaderIsNull(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CannedSignerRequest request = CannedSignerRequest.builder()
+                                                         .resourceUrl(RESOURCE_URL)
+                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+        CookiesForCannedPolicy cookies = cloudFrontUtilities.getCookiesForCannedPolicy(request);
+        assertThat(cookies.hashAlgorithmHeaderValue()).isNull();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCustomPolicy_sha256_includesSigningHashAlgorithmHeader(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(RESOURCE_URL)
+                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .hashAlgorithm(SigningHashAlgorithm.SHA256)
+                                                         .build();
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+        assertThat(cookies.hashAlgorithmHeaderValue()).isEqualTo("CloudFront-Hash-Algorithm=SHA256");
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getCookiesForCustomPolicy_sha1Default_hashAlgorithmHeaderIsNull(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        CustomSignerRequest request = CustomSignerRequest.builder()
+                                                         .resourceUrl(RESOURCE_URL)
+                                                         .privateKey(testCase.keyPair.getPrivate())
+                                                         .keyPairId("keyPairId")
+                                                         .expirationDate(expirationDate)
+                                                         .build();
+        CookiesForCustomPolicy cookies = cloudFrontUtilities.getCookiesForCustomPolicy(request);
+        assertThat(cookies.hashAlgorithmHeaderValue()).isNull();
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("keyCases")
+    void getSignedURLWithCannedPolicy_sha256_producesDifferentSignatureThanSha1(KeyTestCase testCase) {
+        Instant expirationDate = LocalDate.of(2024, 1, 1).atStartOfDay().toInstant(ZoneOffset.of("Z"));
+        SignedUrl sha1Url =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(RESOURCE_URL)
+                .privateKey(testCase.keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate)
+                .hashAlgorithm(SigningHashAlgorithm.SHA1));
+        SignedUrl sha256Url =
+            cloudFrontUtilities.getSignedUrlWithCannedPolicy(r -> r
+                .resourceUrl(RESOURCE_URL)
+                .privateKey(testCase.keyPair.getPrivate())
+                .keyPairId("keyPairId")
+                .expirationDate(expirationDate)
+                .hashAlgorithm(SigningHashAlgorithm.SHA256));
+
+        String sha1Sig = sha1Url.url().substring(
+            sha1Url.url().indexOf("&Signature=") + 11, sha1Url.url().indexOf("&Key-Pair-Id"));
+        String sha256Sig = sha256Url.url().substring(
+            sha256Url.url().indexOf("&Signature=") + 11, sha256Url.url().indexOf("&Key-Pair-Id"));
+        assertThat(sha1Sig).isNotEqualTo(sha256Sig);
     }
 }
