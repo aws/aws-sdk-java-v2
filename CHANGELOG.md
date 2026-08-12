@@ -1,43 +1,80 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.51.0__ __2026-08-04__
+# __2.52.1__ __2026-08-12__
+## __AWS Glue__
+  - ### Features
+    - Documentation updates for materialized views APIs.
+
 ## __AWS Identity and Access Management__
   - ### Features
-    - Updating endpoint generation logic
+    - Introduced role manager, an IAM capability that automatically sets up the IAM roles your AWS services need. When you set up a supported service in the console, role manager creates a role for you or reuses an existing one from an AWS-managed template.
 
-## __AWS Organizations__
+## __AWS MediaConnect__
   - ### Features
-    - Improved accuracy of CloudTrail event documentation for AWS Organizations membership operations.
+    - AWS MediaConnect now supports tuning the internal recovery latency between Router Inputs and Outputs to prioritize stream quality versus end-to-end latency.
 
-## __AWS Single Sign-On Admin__
+## __AWS Well-Architected Tool__
   - ### Features
-    - AWS IAM Identity Center now lets you create organization-level instances without enabling multi-account permissions. You can enable multi-account permissions during instance creation or later via console or API, which then provisions the necessary service-linked roles.
+    - This change releases the Well-Architected Agent, a generative AI service that analyzes a customer's AWS environment and delivers personalized, prioritized recommendations across cost, security, performance, and resilience.
 
 ## __Amazon Aurora DSQL__
   - ### Features
-    - UpdateCluster now checks the RemovePeerCluster permission on the specific cluster being removed, not a wildcard and docs now clarify how to set kmsEncryptionKey so the cluster uses the AWS-owned key.
+    - Improved validation of Kinesis stream ARN format to ensure only valid ARN characters are accepted
+
+## __Amazon QuickSight__
+  - ### Features
+    - Added APIs for DLP with Microsoft Purview (manage configs with label enforcement across Spaces, Chat, Knowledge Bases), Approval Workflows (CRUD for policies on asset sharing for Agents, Knowledge Bases, Spaces), and Limits Management (limit profiles for index storage and agent hours per user).
+
+## __odb__
+  - ### Features
+    - Adds support for Oracle Exadata on Exascale Infrastructure (ExaDB-XS) resources including storage vaults and VM clusters.
+
+# __2.52.0__ __2026-08-11__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - Adds support for exporting redacted query execution logs in AWS Clean Rooms
+
+## __AWS Organizations__
+  - ### Features
+    - Documentation update for AWS Organizations that clarifies valid input values for the HandshakePartyType parameter in the InviteAccountToOrganization. API ORGANIZATION is valid in responses only. valid input values are ACCOUNT and EMAIL
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added support for the AWS_IGNORE_CONFIGURED_ENDPOINT_URLS setting to skip endpoint URLs from environment variables and config files.
+    - Update Netty to 4.1.137
+
+  - ### Bugfixes
+    - Fixed the client-side rate limiting behavior of `AdaptiveRetryStrategy` under throttling conditions. Previously, the computed rate limit was overly aggressive, potentially allowing a request rate much lower than what the service allows, and was unstable, varying over time even when the service's allowed throughput was constant.
+    - Make individual parts retryable when an in-memory `AsyncRequestBody` (for example one created with `AsyncRequestBody.fromBytes`, `fromByteBuffer`, or `fromString`) is split, such as during an S3 multipart upload. The body in these cases is entirely in memory already so no data is copied and callers no longer need to wrap the body in `BufferedSplittableAsyncRequestBody` to get retries.
+
+## __Account Access__
+  - ### Features
+    - Adds SDK support for AWS IAM account access manager, a feature that enables mapping of IAM roles to the users and groups in AWS IAM Identity Center.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adding online eval arn as input for recommendation API
+
+## __Amazon CloudDirectory__
+  - ### Features
+    - Added an end-of-support notice to Amazon Cloud Directory public CLI reference documentation.
 
 ## __Amazon Connect Service__
   - ### Features
-    - Amazon Connect Customer now supports up to 50 attachments per email, increased from the previous limit of 10. The individual maximum attachment size limit of 20 MB and the total email size limit of 25 MB still hold true.
+    - Seven new APIs for managing custom metrics, including create, describe, update, and delete. Using Custom Metrics, customers of Amazon Connect Customer can tailor analytics dashboards to their needs by applying custom thresholds, filters, and calculations to one or more out of the box measurements.
 
-## __Amazon DynamoDB Enhanced Client__
+## __Amazon DataZone__
   - ### Features
-    - Adds SearchVectors and vector index support to the DynamoDB low-level client (sync and async) and Enhanced Client, including vector index table operations, table.vectorIndex() search handles, and enhanced search request/response types.
-    - Adds annotation-driven vector index support to the DynamoDB Enhanced Client via @DynamoDbVectorAttribute, @DynamoDbSearchVectorsHashKey, and @DynamoDbSearchVectorsInlineFilterKey on bean and immutable schemas, enabling no-arg createTable() and vector search through annotation-derived table.vectorIndex() handles.
+    - GetSubscriptionGrant now returns materialized asset scope name for mapping Lake Formation data cell filters or Redshift views to subscription grants.
 
-## __Amazon Elastic Compute Cloud__
+## __Amazon Elastic Kubernetes Service__
   - ### Features
-    - Amazon EC2 now supports Application Status Checks, a new status check that monitors your application's health through configurable HTTP(S) paths and ports, so you can detect and automatically respond to application-level impairments.
+    - This feature would give customers the ability to selectively tune certain configurations of Kubernetes control plane components in an Amazon EKS cluster.
 
-## __Amazon WorkSpaces__
+## __Amazon Textract__
   - ### Features
-    - Added ClientExperiencePolicy to ClientProperties object for ModifyClientProperties and DescribeClientProperties APIs.
+    - Amazon A2I entered maintenance mode in July 2026 and now rejects StartHumanLoop requests from accounts that it does not recognize as existing customers. This update adds a corresponding note to the HumanLoopConfig parameter documentation so that the API Reference and SDK docs explain this behavior.
 
-## __Inspector2__
+## __Apache HTTP Client 5__
   - ### Features
-    - Adding Azure SBOM export capability.
-
-## __Partner Central Selling API__
-  - ### Features
-    - Partners can now create leads with only 5 required fields and free-text values for all other fields, reducing import friction. Engagement invitations now include enrichment data (propensity scores, lead readiness) directly in the response.
+    - Upgrade httpcomponents.client5 to 5.6.3 to address CVE-2026-64607
 

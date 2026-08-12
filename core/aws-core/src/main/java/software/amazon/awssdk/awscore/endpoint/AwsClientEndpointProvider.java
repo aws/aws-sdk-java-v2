@@ -116,6 +116,12 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
     }
 
     private static Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
+        initializeProfileFileDefaults(builder);
+        if (shouldIgnoreConfiguredEndpointUrls(builder)) {
+            log.debug(() -> "Configured endpoint URLs are being ignored because ignore_configured_endpoint_urls is true.");
+            return Optional.empty();
+        }
+
         if (builder.serviceEndpointOverrideEnvironmentVariable == null ||
             builder.serviceEndpointOverrideSystemProperty == null ||
             builder.serviceProfileProperty == null) {
@@ -180,6 +186,15 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                                                  + "." + ProfileProperty.ENDPOINT_URL));
 
         return createUri("services section property", serviceEndpoint);
+    }
+
+    private static boolean shouldIgnoreConfiguredEndpointUrls(Builder builder) {
+        return IgnoreConfiguredEndpointUrlsProvider.builder()
+                                                   .profileFile(builder.profileFile)
+                                                   .profileName(builder.profileName)
+                                                   .build()
+                                                   .ignoreConfiguredEndpointUrls()
+                                                   .orElse(false);
     }
 
     private static Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {

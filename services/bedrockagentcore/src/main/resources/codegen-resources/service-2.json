@@ -214,6 +214,25 @@
       "documentation":"<p>Deletes a batch evaluation and its associated results.</p>",
       "idempotent":true
     },
+    "DeleteCapacityProviderSession":{
+      "name":"DeleteCapacityProviderSession",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/capacity-providers/{capacityProviderId}/sessions/{sessionId}",
+        "responseCode":202
+      },
+      "input":{"shape":"DeleteCapacityProviderSessionRequest"},
+      "output":{"shape":"DeleteCapacityProviderSessionResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a session associated with a capacity provider in Amazon Bedrock AgentCore and makes the session unavailable for further use. To delete a capacity provider session, specify both the capacity provider identifier and the session ID. After you delete a session, you cannot restart it.</p>",
+      "idempotent":true
+    },
     "DeleteEvent":{
       "name":"DeleteEvent",
       "http":{
@@ -1574,6 +1593,10 @@
         "batchEvaluation":{
           "shape":"BatchEvaluationTraceConfig",
           "documentation":"<p>Use a completed batch evaluation as the source of agent traces.</p>"
+        },
+        "onlineEvaluation":{
+          "shape":"OnlineEvaluationTraceConfig",
+          "documentation":"<p>Agent traces from an online evaluation configuration over a specified time range.</p>"
         }
       },
       "documentation":"<p>The configuration specifying where to read agent traces from for recommendation analysis.</p>",
@@ -2184,6 +2207,28 @@
       "type":"string",
       "max":512,
       "min":10
+    },
+    "CapacityProviderArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:capacity-provider/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+    },
+    "CapacityProviderId":{
+      "type":"string",
+      "documentation":"<p>Capacity provider identifier. Pattern matches MiskiModel definition.</p>",
+      "max":59,
+      "min":12,
+      "pattern":"[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+    },
+    "CapacityProviderSessionStatus":{
+      "type":"string",
+      "enum":[
+        "Provisioning",
+        "Deprovisioning",
+        "Active",
+        "Deleting",
+        "Deleted",
+        "Stopped"
+      ]
     },
     "Certificate":{
       "type":"structure",
@@ -3227,6 +3272,49 @@
         "status":{
           "shape":"BatchEvaluationStatus",
           "documentation":"<p>The status of the batch evaluation deletion operation.</p>"
+        }
+      }
+    },
+    "DeleteCapacityProviderSessionRequest":{
+      "type":"structure",
+      "required":[
+        "capacityProviderId",
+        "sessionId"
+      ],
+      "members":{
+        "capacityProviderId":{
+          "shape":"CapacityProviderId",
+          "documentation":"<p>The unique identifier of the capacity provider associated with the session.</p>",
+          "location":"uri",
+          "locationName":"capacityProviderId"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the capacity provider session to delete.</p>",
+          "location":"uri",
+          "locationName":"sessionId"
+        }
+      }
+    },
+    "DeleteCapacityProviderSessionResponse":{
+      "type":"structure",
+      "required":[
+        "capacityProviderArn",
+        "sessionId",
+        "status"
+      ],
+      "members":{
+        "capacityProviderArn":{
+          "shape":"CapacityProviderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the capacity provider associated with the deleted session.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the deleted capacity provider session.</p>"
+        },
+        "status":{
+          "shape":"CapacityProviderSessionStatus",
+          "documentation":"<p>The current status of the capacity provider session. When the status is <code>Deleting</code>, the session is being deleted and is not available. When the status is <code>Deleted</code>, the session is no longer available.</p>"
         }
       }
     },
@@ -8806,6 +8894,29 @@
         }
       },
       "documentation":"<p>A reference to an existing online evaluation configuration to use as the data source for batch evaluation.</p>"
+    },
+    "OnlineEvaluationTraceConfig":{
+      "type":"structure",
+      "required":[
+        "onlineEvaluationConfigArn",
+        "startTime",
+        "endTime"
+      ],
+      "members":{
+        "onlineEvaluationConfigArn":{
+          "shape":"OnlineEvaluationConfigArn",
+          "documentation":"<p>The ARN of the online evaluation configuration to reuse sessions from.</p>"
+        },
+        "startTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The start time of the time range. Only sessions evaluated at or after this timestamp are included.</p>"
+        },
+        "endTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The end time of the time range. Only sessions evaluated before this timestamp are included.</p>"
+        }
+      },
+      "documentation":"<p>Contains the configuration for reusing agent traces from an online evaluation configuration for recommendation analysis. Because online evaluation is a continuous stream, a time range specifies which evaluated sessions the recommendation includes.</p>"
     },
     "OperatorType":{
       "type":"string",

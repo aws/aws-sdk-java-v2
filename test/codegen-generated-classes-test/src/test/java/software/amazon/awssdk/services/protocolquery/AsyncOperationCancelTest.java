@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.protocolquery;
 
+import java.util.concurrent.ScheduledExecutorService;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -35,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 /**
@@ -49,13 +51,18 @@ public class AsyncOperationCancelTest {
 
     private CompletableFuture executeFuture;
 
+    private ScheduledExecutorService scheduledExec;
+
     @Before
     public void setUp() {
+        scheduledExec = mock(ScheduledExecutorService.class);
+
         client = ProtocolQueryAsyncClient.builder()
                 .region(Region.US_EAST_1)
                 .credentialsProvider(StaticCredentialsProvider.create(
                         AwsBasicCredentials.create("foo", "bar")))
                 .httpClient(mockHttpClient)
+                .overrideConfiguration(o -> o.scheduledExecutorService(scheduledExec))
                 .build();
 
         executeFuture = new CompletableFuture();
