@@ -23,17 +23,18 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.warmup.SdkWarmUp;
 
 /**
- * Verifies that when {@link SdkWarmUp#warmUp(Class...)} is called with a batch mixing an already-primed client and a new
- * one, only the new client is warmed. Uses dedicated clients that no other test primes.
+ * Verifies {@link SdkWarmUp#warmUp(Class...)} warms a client at most once per JVM. Uses a dedicated
+ * {@link IdempotenceSyncClient} that no other test warms, so the "first warms, repeat no-ops" transition is observable
+ * regardless of execution order or JVM sharing.
  */
-class SdkWarmUpPrimeSelectiveTest {
+class SdkWarmUpIdempotenceTest {
 
     private String savedRegionProperty;
 
     @BeforeEach
     void setUp() {
         savedRegionProperty = System.getProperty("aws.region");
-        System.setProperty("aws.region", "warmup-selective-test");
+        System.setProperty("aws.region", "warmup-idempotence-test");
     }
 
     @AfterEach
@@ -46,20 +47,16 @@ class SdkWarmUpPrimeSelectiveTest {
     }
 
     @Test
-    void warmUp_previouslyPrimedClientInNewBatch_warmsOnlyTheNewClient() {
-        // Prime the sync client first.
-        SdkWarmUp.warmUp(SelectiveSyncClient.class);
-        assertThat(SelectiveWarmUpProvider.syncWarmCount()).isEqualTo(1);
-        assertThat(SelectiveWarmUpProvider.asyncWarmCount()).isEqualTo(0);
-
-        // Now prime a batch containing the already-primed sync client plus a new async client.
-        SdkWarmUp.warmUp(SelectiveSyncClient.class, SelectiveAsyncClient.class);
-
-        assertThat(SelectiveWarmUpProvider.syncWarmCount())
-            .as("already-primed sync client is not warmed again")
+    void warmUp_sameClientTwice_warmsProviderExactlyOnce() {
+        SdkWarmUp.warmUp(IdempotenceSyncClient.class);
+        assertThat(IdempotenceWarmUpProvider.syncWarmCount())
+            .as("first warm-up warms the sync client type once")
             .isEqualTo(1);
-        assertThat(SelectiveWarmUpProvider.asyncWarmCount())
-            .as("the new async client is warmed once")
+
+        // Second call for the same client must be a no-op: it is already recorded as warmed.
+        SdkWarmUp.warmUp(IdempotenceSyncClient.class);
+        assertThat(IdempotenceWarmUpProvider.syncWarmCount())
+            .as("second warm-up of the same client does not warm again")
             .isEqualTo(1);
     }
 }

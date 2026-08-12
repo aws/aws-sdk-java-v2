@@ -19,7 +19,7 @@ import software.amazon.awssdk.core.SdkClient;
 
 /**
  * Test-only client whose fully qualified name matches {@link RegisteredWarmUpProvider#syncClientClassName()}, so
- * {@code SdkWarmUp.prime(RegisteredSyncClient.class)} matches that provider's sync client type.
+ * {@code SdkWarmUp.warmUp(RegisteredSyncClient.class)} matches that provider's sync client type.
  */
 public interface RegisteredSyncClient extends SdkClient {
 }

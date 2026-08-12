@@ -28,28 +28,28 @@ import software.amazon.awssdk.annotations.ThreadSafe;
  */
 @ThreadSafe
 @SdkInternalApi
-public final class PrimedClientRegistry {
+public final class WarmedClientRegistry {
 
-    private final Set<String> primed = ConcurrentHashMap.newKeySet();
+    private final Set<String> warmed = ConcurrentHashMap.newKeySet();
 
     /**
-     * Returns the not-yet-primed subset of {@code clientClassNames}, in encounter order, ignoring nulls. Warm the
-     * returned names, then pass them to {@link #markPrimed(Collection)}.
+     * Returns the not-yet-warmed subset of {@code clientClassNames}, in encounter order, ignoring nulls. Warm the
+     * returned names, then pass them to {@link #markWarmed(Collection)}.
      */
-    public Set<String> selectUnprimed(Collection<String> clientClassNames) {
-        Set<String> unprimed = new LinkedHashSet<>();
+    public Set<String> selectUnwarmed(Collection<String> clientClassNames) {
+        Set<String> unwarmed = new LinkedHashSet<>();
         for (String name : clientClassNames) {
-            if (name != null && !primed.contains(name)) {
-                unprimed.add(name);
+            if (name != null && !warmed.contains(name)) {
+                unwarmed.add(name);
             }
         }
-        return unprimed;
+        return unwarmed;
     }
 
     /**
-     * Records the given names as primed. Call only after warming completes, so a failed run is retried by a later call.
+     * Records the given names as warmed. Call only after warming completes, so a failed run is retried by a later call.
      */
-    public void markPrimed(Collection<String> clientClassNames) {
-        primed.addAll(clientClassNames);
+    public void markWarmed(Collection<String> clientClassNames) {
+        warmed.addAll(clientClassNames);
     }
 }

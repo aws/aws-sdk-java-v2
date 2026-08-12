@@ -75,7 +75,7 @@ public class WarmUpOperationSelectorTest {
             scenario("serviceWithNoOperations_selectsNothing")
                 .expectNothing(),
 
-            // Preference 1: returns output, so the unmarshaller is primed too. An operation with no output shape
+            // Preference 1: returns output, so the unmarshaller is warmed too. An operation with no output shape
             // (e.g. S3's DeleteBucket) can win every other tier and still lose here.
             scenario("hasOutput_beatsVoidOutput_whenOtherwiseEqual")
                 .operation(op("ListThings").withOutput())
@@ -104,7 +104,8 @@ public class WarmUpOperationSelectorTest {
                 .operation(op("ListOthers").withOutput().withRequiredMembers(1))
                 .expect("ListOthers"),
 
-            // Preference 2: is authenticated, so signing is primed too. Both operations have output so tier 1 ties.
+            // Preference 2: is authenticated, so auth-scheme resolution is warmed too. Both operations have output so
+            // tier 1 ties.
             scenario("authenticated_beatsNoAuth_whenOtherwiseEqual")
                 .operation(op("ListThings").withOutput())
                 .operation(op("ListOthers").withOutput().withNoAuth())

@@ -20,7 +20,7 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 
 /**
- * Test-only {@link SdkWarmUpProvider} for {@link SdkWarmUpPrimeIdempotenceTest}. Matches {@link IdempotenceSyncClient}
+ * Test-only {@link SdkWarmUpProvider} for {@link SdkWarmUpIdempotenceTest}. Matches {@link IdempotenceSyncClient}
  * only and counts sync warms; performs no I/O.
  */
 public final class IdempotenceWarmUpProvider implements SdkWarmUpProvider {

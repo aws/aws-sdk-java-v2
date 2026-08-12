@@ -49,7 +49,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 /**
  * Same measured work as {@link V2DefaultFirstRequestBenchmark} (the first {@code putItem} on an already-built client),
  * but {@link SdkWarmUp#warmUp(Class[])} runs in the untimed {@code @Setup}. The score difference between the two is the
- * first-call work that warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long prime() itself
+ * first-call work that warm-up front-loads. See {@link V2SdkWarmUpExecutionTimeBenchmark} for how long warmUp() itself
  * takes. Single-shot, zero warmup, high fork count: only the first invocation per JVM is cold. Do not override these
  * JMH parameters from the CLI, or the two variants converge.
  */

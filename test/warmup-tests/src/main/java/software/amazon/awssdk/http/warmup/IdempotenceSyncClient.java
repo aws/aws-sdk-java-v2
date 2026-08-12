@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.warmup;
 import software.amazon.awssdk.core.SdkClient;
 
 /**
- * Test-only client matching {@link IdempotenceWarmUpProvider#syncClientClassName()}, primed only by
- * {@link SdkWarmUpPrimeIdempotenceTest}.
+ * Test-only client matching {@link IdempotenceWarmUpProvider#syncClientClassName()}, warmed only by
+ * {@link SdkWarmUpIdempotenceTest}.
  */
 public interface IdempotenceSyncClient extends SdkClient {
 }

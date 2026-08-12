@@ -18,8 +18,8 @@ package software.amazon.awssdk.http.warmup;
 import software.amazon.awssdk.core.SdkClient;
 
 /**
- * Test-only client matching {@link SelectiveWarmUpProvider#asyncClientClassName()}, primed only by
- * {@link SdkWarmUpPrimeSelectiveTest}.
+ * Test-only client matching {@link SelectiveWarmUpProvider#asyncClientClassName()}, warmed only by
+ * {@link SdkWarmUpSelectiveTest}.
  */
 public interface SelectiveAsyncClient extends SdkClient {
 }

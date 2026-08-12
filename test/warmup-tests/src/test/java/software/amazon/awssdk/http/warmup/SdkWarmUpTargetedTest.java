@@ -50,7 +50,7 @@ import software.amazon.awssdk.services.sts.StsClient;
  * End-to-end integration test of {@link SdkWarmUp#warmUp(Class...)} with real service clients (STS, DynamoDB) whose
  * generated {@link SdkWarmUpProvider} implementations are on the classpath via ServiceLoader.
  */
-class SdkWarmUpPrimeTargetedTest {
+class SdkWarmUpTargetedTest {
 
     private WireMockServer mockServer;
     private String savedRegionProperty;
@@ -115,15 +115,15 @@ class SdkWarmUpPrimeTargetedTest {
     void warmUp_calledTwiceWithSameClient_isIdempotent() {
         SdkWarmUp.warmUp(StsClient.class);
 
-        // Second call should be a no-op (client already recorded as primed).
+        // Second call should be a no-op (client already recorded as warmed).
         assertThatCode(() -> SdkWarmUp.warmUp(StsClient.class)).doesNotThrowAnyException();
     }
 
     @Test
-    void warmUp_calledWithNewClientAfterPrevious_primesOnlyNewClient() {
+    void warmUp_calledWithNewClientAfterPrevious_warmsOnlyNewClient() {
         SdkWarmUp.warmUp(StsClient.class);
 
-        // DynamoDB is new; STS should not be re-primed.
+        // DynamoDB is new; STS should not be re-warmed.
         assertThatCode(() -> SdkWarmUp.warmUp(DynamoDbClient.class, StsClient.class)).doesNotThrowAnyException();
     }
 
@@ -163,8 +163,8 @@ class SdkWarmUpPrimeTargetedTest {
             thread.join();
         }
 
-        assertThat(failures).as("no prime(Class...) call threw").isEmpty();
-        assertThat(completed.get()).as("every prime(Class...) call completed").isEqualTo(threadCount);
+        assertThat(failures).as("no warmUp(Class...) call threw").isEmpty();
+        assertThat(completed.get()).as("every warmUp(Class...) call completed").isEqualTo(threadCount);
     }
 
     @Test

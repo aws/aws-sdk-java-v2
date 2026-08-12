@@ -39,7 +39,7 @@ import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
- * Warms every async {@link SdkAsyncHttpService} on the classpath for CRaC priming: builds each client and sends a best-effort
+ * Warms every async {@link SdkAsyncHttpService} on the classpath for CRaC warm-up: builds each client and sends a best-effort
  * {@code GET} to the resolved STS endpoint, draining the reactive response body, so the HTTP/DNS/TLS/cert-chain code is
  * JIT-compiled into the snapshot.
  */

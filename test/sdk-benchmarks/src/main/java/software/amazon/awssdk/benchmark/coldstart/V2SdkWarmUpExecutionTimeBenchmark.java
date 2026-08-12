@@ -62,11 +62,11 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
     /** Sync and async client class per discovered provider, for the sequential (one call per service) method. */
     private List<Class<? extends SdkClient>[]> clientClassesByService;
 
-    /** The same classes in one array, for the single batched {@code prime} call. */
+    /** The same classes in one array, for the single batched {@code warmUp} call. */
     private Class<? extends SdkClient>[] allClientClasses;
 
     /**
-     * Resolves the discovered providers' client classes so the timed methods pay only for {@code prime}. Fails rather
+     * Resolves the discovered providers' client classes so the timed methods pay only for {@code warmUp}. Fails rather
      * than skipping an unresolvable provider, which would silently narrow the batched/sequential scope.
      */
     @Setup(Level.Trial)
@@ -84,7 +84,7 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
         }
 
         if (clientClassesByService.isEmpty()) {
-            throw new IllegalStateException("No SdkWarmUpProvider found on the classpath; nothing to prime.");
+            throw new IllegalStateException("No SdkWarmUpProvider found on the classpath; nothing to warm up.");
         }
         allClientClasses = flattened.toArray(new Class[0]);
     }
@@ -99,27 +99,27 @@ public class V2SdkWarmUpExecutionTimeBenchmark {
     }
 
     @Benchmark
-    public void primeSingleService() throws Exception {
+    public void warmUpSingleService() throws Exception {
         SdkWarmUp.warmUp(DynamoDbClient.class);
     }
 
-    /** One {@code prime} call naming every discovered client, so the HTTP client warm-up runs once. */
+    /** One {@code warmUp} call naming every discovered client, so the HTTP client warm-up runs once. */
     @Benchmark
-    public void primeAllServicesBatched() throws Exception {
+    public void warmUpAllServicesBatched() throws Exception {
         SdkWarmUp.warmUp(allClientClasses);
     }
 
-    /** One {@code prime} call per discovered service, so the HTTP client warm-up runs once per service. */
+    /** One {@code warmUp} call per discovered service, so the HTTP client warm-up runs once per service. */
     @Benchmark
-    public void primeAllServicesSequentially() throws Exception {
+    public void warmUpAllServicesSequentially() throws Exception {
         for (Class<? extends SdkClient>[] perService : clientClassesByService) {
             SdkWarmUp.warmUp(perService);
         }
     }
 
-    /** The no-arg overload: same scope as the two methods above, reached through discovery inside {@code prime}. */
+    /** The no-arg overload: same scope as the two methods above, reached through discovery inside {@code warmUp}. */
     @Benchmark
-    public void primeAllRegisteredProviders() throws Exception {
+    public void warmUpAllRegisteredProviders() throws Exception {
         SdkWarmUp.warmUp();
     }
 
