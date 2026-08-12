@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "odb",
+    "contributor": "",
+    "description": "Adds support for Oracle Exadata on Exascale Infrastructure (ExaDB-XS) resources including storage vaults and VM clusters."
+}
