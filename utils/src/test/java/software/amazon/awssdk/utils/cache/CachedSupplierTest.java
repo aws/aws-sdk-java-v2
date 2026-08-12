@@ -53,6 +53,26 @@ import software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior;
  * Validate the functionality of {@link CachedSupplier}.
  */
 public class CachedSupplierTest {
+
+    // --- Constants mirroring CachedSupplier's internal values, for test readability ---
+
+    /** Minimum static stability backoff duration in seconds (5 minutes). */
+    private static final long BACKOFF_MIN_SECONDS = 300;
+
+    /** Maximum static stability backoff duration in seconds (10 minutes). */
+    private static final long BACKOFF_MAX_SECONDS = 600;
+
+    /** Maximum duration (seconds) that a non-recoverable error stays cached. */
+    private static final long NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS = 5;
+
+    /** A duration safely past the non-recoverable error cache max, guaranteeing the cache has expired. */
+    private static final long PAST_NON_RECOVERABLE_ERROR_CACHE = NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS + 1;
+
+    /** A duration safely past the maximum backoff, guaranteeing the backoff has elapsed. */
+    private static final long PAST_MAX_BACKOFF = BACKOFF_MAX_SECONDS + 1;
+
+    /** Long prefetch time (seconds) used in tests where credentials have a 1-hour stale time and 5-minute advisory window. */
+    private static final long LONG_PREFETCH_SECONDS = 300;
     /**
      * An executor for performing "get" on the cached supplier asynchronously. This, along with the {@link WaitingSupplier} allows
      * near-manual scheduling of threads so that we can test that the cache is only calling the underlying supplier when we want
@@ -454,8 +474,8 @@ public class CachedSupplierTest {
 
                 // Now nextAllowedRefreshTime is set to now(61) + [300,600]s
                 // The cached value should be returned while rate limited
-                Instant minBackoffEnd = now.plusSeconds(61 + 300);
-                Instant maxBackoffEnd = now.plusSeconds(61 + 600);
+                Instant minBackoffEnd = now.plusSeconds(61 + BACKOFF_MIN_SECONDS);
+                Instant maxBackoffEnd = now.plusSeconds(61 + BACKOFF_MAX_SECONDS);
 
                 // Advance just before the minimum backoff end - should still be rate limited
                 clock.time = minBackoffEnd.minusSeconds(1);
@@ -540,7 +560,7 @@ public class CachedSupplierTest {
 
             // Advance past the maximum possible backoff (61 + 600 = 661s from now) but still before stale time (3600s).
             // The nextAllowedRefreshTime backoff will have elapsed, so a prefetch refresh will be attempted.
-            clock.time = now.plusSeconds(700);
+            clock.time = now.plusSeconds(61 + PAST_MAX_BACKOFF);
             supplier.set(RefreshResult.builder("refreshed-creds")
                                       .staleTime(Instant.MAX)
                                       .prefetchTime(Instant.MAX)
@@ -966,7 +986,7 @@ public class CachedSupplierTest {
             assertThat(cache.get()).isEqualTo("old");
 
             // Past backoff — returns fresh
-            clock.time = now.plusSeconds(700);
+            clock.time = now.plusSeconds(62 + PAST_MAX_BACKOFF);
             assertThat(cache.get()).isEqualTo("new");
         }
     }
@@ -1037,7 +1057,7 @@ public class CachedSupplierTest {
             assertThat(cachedSupplier.get()).isEqualTo("original-creds");
 
             // Advance into advisory window (past prefetch but before stale)
-            clock.time = now.plusSeconds(301);
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 1);
 
             // Source returns credentials with staleTime in the past (already expired)
             supplier.set(RefreshResult.builder("stale-creds")
@@ -1049,7 +1069,7 @@ public class CachedSupplierTest {
             assertThat(cachedSupplier.get()).isEqualTo("original-creds");
 
             // Verify backoff was applied: a subsequent call should still return cached without contacting source
-            clock.time = now.plusSeconds(302);
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 2);
             supplier.set(RefreshResult.builder("should-not-reach")
                                       .staleTime(Instant.MAX)
                                       .prefetchTime(Instant.MAX)
@@ -1057,7 +1077,7 @@ public class CachedSupplierTest {
             assertThat(cachedSupplier.get()).isEqualTo("original-creds");
 
             // Advance past max backoff (600s from the stale response time)
-            clock.time = now.plusSeconds(301 + 601);
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 1 + PAST_MAX_BACKOFF);
             assertThat(cachedSupplier.get()).isEqualTo("should-not-reach");
         }
     }
@@ -1102,7 +1122,7 @@ public class CachedSupplierTest {
             assertThat(cachedSupplier.get()).isEqualTo("original-creds");
 
             // Advance past max backoff (600s from the stale response time)
-            clock.time = now.plusSeconds(61 + 601);
+            clock.time = now.plusSeconds(61 + PAST_MAX_BACKOFF);
             assertThat(cachedSupplier.get()).isEqualTo("fresh-creds");
         }
     }
@@ -1131,19 +1151,19 @@ public class CachedSupplierTest {
             assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
 
             // Advance past prefetch time (advisory window)
-            clock.time = now.plusSeconds(301);
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 1);
             supplier.set(new CacheInvalidatingRuntimeException("non-recoverable"));
 
             // Non-recoverable error is thrown
             assertThatThrownBy(cachedSupplier::get).isInstanceOf(CacheInvalidatingRuntimeException.class);
 
-            // Immediately call again — no backoff should be applied, source should be contacted
-            clock.time = now.plusSeconds(302);
+            // Advance past the non-recoverable error cache window (max 5 seconds) — source should be contacted
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 1 + PAST_NON_RECOVERABLE_ERROR_CACHE);
             supplier.set(RefreshResult.builder("refreshed-creds")
                                       .staleTime(now.plusSeconds(7200))
                                       .prefetchTime(now.plusSeconds(5400))
                                       .build());
-            // If backoff were applied, this would return "cached-creds"; instead it contacts the source
+            // No 5-10 minute backoff was applied; after the short error cache expires, source is contacted
             assertThat(cachedSupplier.get()).isEqualTo("refreshed-creds");
         }
     }
@@ -1176,13 +1196,279 @@ public class CachedSupplierTest {
             // Non-recoverable error is thrown
             assertThatThrownBy(cachedSupplier::get).isInstanceOf(CacheInvalidatingRuntimeException.class);
 
-            // Immediately call again — no backoff should be applied, source should be contacted
-            clock.time = now.plusSeconds(62);
+            // Advance past the non-recoverable error cache window (max 5 seconds) — source should be contacted
+            clock.time = now.plusSeconds(61 + PAST_NON_RECOVERABLE_ERROR_CACHE);
             supplier.set(RefreshResult.builder("refreshed-creds")
                                       .staleTime(now.plusSeconds(7200))
                                       .prefetchTime(now.plusSeconds(5400))
                                       .build());
             assertThat(cachedSupplier.get()).isEqualTo("refreshed-creds");
+        }
+    }
+
+    // --- non-recoverable error caching tests ---
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_withinCacheWindow_reRaisesWithoutCallingSource() {
+        AdjustableClock clock = new AdjustableClock();
+        AtomicInteger supplierCallCount = new AtomicInteger(0);
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        CacheInvalidatingRuntimeException nonRecoverableError = new CacheInvalidatingRuntimeException("token expired");
+
+        Supplier<RefreshResult<String>> countingSupplier = () -> {
+            supplierCallCount.incrementAndGet();
+            throw nonRecoverableError;
+        };
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(countingSupplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // First call fails — initial fetch, no cached value
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
+            assertThat(supplierCallCount.get()).isEqualTo(1);
+
+            // Second call within the cache window (< 5 seconds) — should re-raise without calling source
+            clock.time = now.plusSeconds(1);
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
+            assertThat(supplierCallCount.get()).isEqualTo(1); // Still 1 — source was NOT contacted
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_afterCacheExpires_contactsSourceAgain() {
+        AdjustableClock clock = new AdjustableClock();
+        AtomicInteger supplierCallCount = new AtomicInteger(0);
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        CacheInvalidatingRuntimeException nonRecoverableError = new CacheInvalidatingRuntimeException("token expired");
+
+        Supplier<RefreshResult<String>> countingSupplier = () -> {
+            supplierCallCount.incrementAndGet();
+            throw nonRecoverableError;
+        };
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(countingSupplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // First call fails
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
+            assertThat(supplierCallCount.get()).isEqualTo(1);
+
+            // Advance past the maximum cache window (5 seconds) — source should be contacted again
+            clock.time = now.plusSeconds(PAST_NON_RECOVERABLE_ERROR_CACHE);
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
+            assertThat(supplierCallCount.get()).isEqualTo(2); // Source WAS contacted
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_successfulRefreshClearsCache() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // Initial fetch fails with non-recoverable error
+            supplier.set(new CacheInvalidatingRuntimeException("token expired"));
+            assertThatThrownBy(cachedSupplier::get).isInstanceOf(CacheInvalidatingRuntimeException.class);
+
+            // Advance past the cache window and fix the underlying issue (source now returns credentials)
+            clock.time = now.plusSeconds(PAST_NON_RECOVERABLE_ERROR_CACHE);
+            supplier.set(RefreshResult.builder("fresh-creds")
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(300))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("fresh-creds");
+
+            // Advance into the prefetch window — trigger another non-recoverable, then verify it clears on success
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 1);
+            supplier.set(new CacheInvalidatingRuntimeException("token expired again"));
+            assertThatThrownBy(cachedSupplier::get).isInstanceOf(CacheInvalidatingRuntimeException.class);
+
+            // Advance past cache window, fix again
+            clock.time = now.plusSeconds(LONG_PREFETCH_SECONDS + 1 + PAST_NON_RECOVERABLE_ERROR_CACHE);
+            supplier.set(RefreshResult.builder("newer-creds")
+                                      .staleTime(now.plusSeconds(7200))
+                                      .prefetchTime(now.plusSeconds(5400))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("newer-creds");
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_staleWindow_reRaisesWithoutCallingSource() {
+        AdjustableClock clock = new AdjustableClock();
+        AtomicInteger supplierCallCount = new AtomicInteger(0);
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        MutableSupplier supplier = new MutableSupplier();
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(60))
+                                      .prefetchTime(now.plusSeconds(30))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past stale time (mandatory window)
+            clock.time = now.plusSeconds(61);
+            CacheInvalidatingRuntimeException error = new CacheInvalidatingRuntimeException("token expired");
+            supplier.set(error);
+
+            // First failure — thrown and cached
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+
+            // Immediately retry (within cache window) — should re-raise the same error without calling source
+            clock.time = now.plusSeconds(62);
+            // Swap supplier to something that would succeed — if called, we'd get "new-creds" not an exception
+            supplier.set(RefreshResult.builder("new-creds")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_prefetchWindow_reRaisesWithoutCallingSource() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(3600))
+                                      .prefetchTime(now.plusSeconds(60))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance into prefetch window
+            clock.time = now.plusSeconds(61);
+            CacheInvalidatingRuntimeException error = new CacheInvalidatingRuntimeException("token expired");
+            supplier.set(error);
+
+            // First call — non-recoverable error thrown and cached
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+
+            // Immediately retry (within cache window) — should re-raise without calling source
+            clock.time = now.plusSeconds(62);
+            supplier.set(RefreshResult.builder("new-creds")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_cacheWindowIsJitteredBetween1And5Seconds() {
+        // Run many iterations to verify the cache window is within [1, 5] seconds
+        for (int i = 0; i < 100; i++) {
+            AdjustableClock clock = new AdjustableClock();
+            Instant now = Instant.parse("2024-01-01T00:00:00Z");
+            clock.time = now;
+
+            CacheInvalidatingRuntimeException error = new CacheInvalidatingRuntimeException("expired");
+            AtomicInteger callCount = new AtomicInteger(0);
+
+            try (CachedSupplier<String> cachedSupplier = CachedSupplier.<String>builder(() -> {
+                                                                           callCount.incrementAndGet();
+                                                                           throw error;
+                                                                       })
+                                                                       .staleValueBehavior(ALLOW)
+                                                                       .nonRecoverableErrorPredicate(
+                                                                           e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                       .clock(clock)
+                                                                       .prefetchJitterEnabled(false)
+                                                                       .build()) {
+                // First call caches the error
+                assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+                assertThat(callCount.get()).isEqualTo(1);
+
+                // At 0.9s — should still be cached (cache min is 1s)
+                clock.time = now.plusMillis(900);
+                assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+                assertThat(callCount.get()).isEqualTo(1);
+
+                // At PAST_NON_RECOVERABLE_ERROR_CACHE — cache must have expired (cache max is 5s)
+                clock.time = now.plusSeconds(PAST_NON_RECOVERABLE_ERROR_CACHE);
+                assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
+                assertThat(callCount.get()).isEqualTo(2); // Source was contacted again
+            }
+        }
+    }
+
+    @Test
+    public void allowMode_nonRecoverableErrorCached_recoverableErrorDoesNotUseErrorCache() {
+        AdjustableClock clock = new AdjustableClock();
+        AtomicInteger supplierCallCount = new AtomicInteger(0);
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        MutableSupplier supplier = new MutableSupplier();
+
+        try (CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // Initial successful fetch
+            supplier.set(RefreshResult.builder("cached-creds")
+                                      .staleTime(now.plusSeconds(60))
+                                      .prefetchTime(now.plusSeconds(30))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds");
+
+            // Advance past stale time and fail with a RECOVERABLE error
+            clock.time = now.plusSeconds(61);
+            supplier.set(new RuntimeException("service unavailable"));
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds"); // Static stability applies
+
+            // Verify the error is NOT cached as non-recoverable (no cachedNonRecoverableError set)
+            // The rate-limiting backoff (nextAllowedRefreshTime) is applied instead.
+            // Advance 1 second — still within the 5-10min backoff, returns cached
+            clock.time = now.plusSeconds(62);
+            supplier.set(RefreshResult.builder("should-not-get")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("cached-creds"); // Rate limited, not error-cached
         }
     }
 

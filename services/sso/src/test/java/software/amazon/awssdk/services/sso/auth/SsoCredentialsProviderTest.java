@@ -219,6 +219,80 @@ public class SsoCredentialsProviderTest {
     }
 
     @Test
+    public void unauthorizedException_cachedBriefly_immediateRetryDoesNotCallSso() {
+        ssoClient = mock(SsoClient.class);
+        RoleCredentials credentials = RoleCredentials.builder()
+                                                     .accessKeyId("a")
+                                                     .secretAccessKey("b")
+                                                     .sessionToken("c")
+                                                     .expiration(Instant.now().minus(Duration.ofSeconds(5)).toEpochMilli())
+                                                     .build();
+
+        Supplier<GetRoleCredentialsRequest> supplier = getRequestSupplier();
+        GetRoleCredentialsResponse response = getResponse(credentials);
+
+        UnauthorizedException unauthorizedException = (UnauthorizedException) UnauthorizedException.builder()
+            .message("Token is expired")
+            .build();
+
+        // First call succeeds, second call fails with UnauthorizedException
+        when(ssoClient.getRoleCredentials(supplier.get()))
+            .thenReturn(response)
+            .thenThrow(unauthorizedException);
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(supplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // First call succeeds and caches credentials
+            credentialsProvider.resolveCredentials();
+
+            // Second call triggers refresh, hits non-recoverable UnauthorizedException — thrown and cached
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(UnauthorizedException.class);
+
+            // Third call: immediate retry — should re-raise cached error without calling SSO
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(UnauthorizedException.class);
+
+            // Verify SSO was called only twice: initial fetch + one failed refresh.
+            // The third resolveCredentials() re-raised the cached error without contacting SSO.
+            callClient(verify(ssoClient, times(2)), Mockito.any());
+        }
+    }
+
+    @Test
+    public void expiredTokenException_cachedBriefly_immediateRetryDoesNotCallSso() {
+        ssoClient = mock(SsoClient.class);
+
+        ExpiredTokenException expiredTokenException = (ExpiredTokenException) ExpiredTokenException.builder()
+            .message("The SSO session associated with this profile has expired")
+            .build();
+
+        // Request supplier throws ExpiredTokenException (client-side token expiry)
+        Supplier<GetRoleCredentialsRequest> expiredSupplier = () -> {
+            throw expiredTokenException;
+        };
+
+        try (SsoCredentialsProvider credentialsProvider = SsoCredentialsProvider.builder()
+                                                                               .refreshRequest(expiredSupplier)
+                                                                               .ssoClient(ssoClient)
+                                                                               .build()) {
+            // First call: initial fetch fails with non-recoverable error
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(ExpiredTokenException.class);
+
+            // Second call: immediate retry — should re-raise cached error without calling SSO
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(ExpiredTokenException.class);
+
+            // Since the ExpiredTokenException is thrown by the supplier (before reaching SSO),
+            // the SSO client should never have been called
+            callClient(verify(ssoClient, times(0)), Mockito.any());
+        }
+    }
+
+    @Test
     public void noCachedCredentials_anyFailure_throwsImmediately() {
         ssoClient = mock(SsoClient.class);
 

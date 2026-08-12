@@ -265,7 +265,102 @@ public abstract class StsCredentialsProviderTestBase<RequestT, ResponseT> {
     }
 
     /**
-     * Verifies that recoverable errors (those with error codes NOT in the non-recoverable set) still
+     * Non-recoverable errors are cached for a short period (1-5 seconds) to protect the credential source
+     * from callers that catch the error and retry in a tight loop. An immediate retry after receiving a
+     * non-recoverable error should re-raise the cached error without contacting STS again.
+     */
+    @Test
+    public void nonRecoverableError_cachedBriefly_immediateRetryDoesNotCallSts() {
+        Credentials validCredentials = Credentials.builder()
+                                                  .accessKeyId("a")
+                                                  .secretAccessKey("b")
+                                                  .sessionToken("c")
+                                                  .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                                  .build();
+        RequestT request = getRequest();
+        ResponseT response = getResponse(validCredentials);
+
+        AwsServiceException accessDenied = AwsServiceException.builder()
+            .message("Access denied")
+            .awsErrorDetails(AwsErrorDetails.builder()
+                                            .errorCode("AccessDenied")
+                                            .errorMessage("User is not authorized")
+                                            .serviceName("STS")
+                                            .build())
+            .statusCode(403)
+            .build();
+
+        // First call succeeds (caches expired credentials), second call fails with non-recoverable error
+        when(callClient(stsClient, request))
+            .thenReturn(response)
+            .thenThrow(accessDenied);
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // First call succeeds and caches credentials
+            credentialsProvider.resolveCredentials();
+
+            // Second call triggers refresh, hits non-recoverable error — thrown and cached
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(AwsServiceException.class)
+                .satisfies(e -> assertThat(((AwsServiceException) e).awsErrorDetails().errorCode())
+                    .isEqualTo("AccessDenied"));
+
+            // Third call: immediate retry — should re-raise cached error without calling STS
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(AwsServiceException.class)
+                .satisfies(e -> assertThat(((AwsServiceException) e).awsErrorDetails().errorCode())
+                    .isEqualTo("AccessDenied"));
+
+            // Verify STS was called only twice: initial fetch + one failed refresh.
+            // The third resolveCredentials() re-raised the cached error without contacting STS.
+            callClient(verify(stsClient, times(2)), Mockito.any());
+        }
+    }
+
+    /**
+     * Non-recoverable errors are cached for a short period on the initial fetch path as well.
+     * When the very first STS call fails with a non-recoverable error and the caller retries immediately,
+     * the cached error is re-raised without contacting STS again.
+     */
+    @Test
+    public void nonRecoverableError_initialFetch_cachedBriefly_immediateRetryDoesNotCallSts() {
+        RequestT request = getRequest();
+
+        AwsServiceException accessDenied = AwsServiceException.builder()
+            .message("Access denied")
+            .awsErrorDetails(AwsErrorDetails.builder()
+                                            .errorCode("AccessDenied")
+                                            .errorMessage("User is not authorized")
+                                            .serviceName("STS")
+                                            .build())
+            .statusCode(403)
+            .build();
+
+        when(callClient(stsClient, request))
+            .thenThrow(accessDenied);
+
+        StsCredentialsProvider.BaseBuilder<?, ? extends StsCredentialsProvider> credentialsProviderBuilder =
+            createCredentialsProviderBuilder(request);
+
+        try (StsCredentialsProvider credentialsProvider = credentialsProviderBuilder.stsClient(stsClient).build()) {
+            // First call: initial fetch fails with non-recoverable error
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(AwsServiceException.class);
+
+            // Second call: immediate retry — should re-raise cached error without calling STS
+            assertThatThrownBy(credentialsProvider::resolveCredentials)
+                .isInstanceOf(AwsServiceException.class);
+
+            // Verify STS was called only once — the second call used the cached error
+            callClient(verify(stsClient, times(1)), Mockito.any());
+        }
+    }
+
+    /**
+     * Recoverable errors (those with error codes NOT in the non-recoverable set) still
      * benefit from static stability — the provider returns cached credentials instead of throwing.
      * This is the complement to the non-recoverable error tests: a service unavailable or throttling
      * error should not propagate immediately.
