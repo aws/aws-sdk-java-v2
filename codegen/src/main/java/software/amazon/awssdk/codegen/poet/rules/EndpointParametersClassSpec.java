@@ -169,7 +169,8 @@ public class EndpointParametersClassSpec implements ClassSpec {
         String methodName = endpointRulesSpecUtils.paramMethodName(name) + "Id";
         return MethodSpec.methodBuilder(methodName)
                          .addModifiers(Modifier.PUBLIC)
-                         .addJavadoc("Returns the region ID (the {@link $T#id()} value) as a String, or null if region is not set.",
+                         .addJavadoc("Returns the region ID (the {@link $T#id()} value) as a String,"
+                                     + " or null if region is not set.",
                                      Region.class)
                          .returns(String.class)
                          .addStatement("return $N == null ? null : $N.id()", varName, varName)
