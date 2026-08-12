@@ -63,6 +63,7 @@ import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.utils.AttributeMap;
 
 public class AwaitCloseChannelPoolMapTest {
+    private static final String KRB5_PROP = "java.security.krb5.conf";
     private static final RecordingNetworkTrafficListener recorder = new RecordingNetworkTrafficListener();
 
     private static WireMockServer mockProxy;
@@ -73,6 +74,7 @@ public class AwaitCloseChannelPoolMapTest {
     private static int port;
 
     private static SimpleKdcServer kdc;
+    private static String krb5PropSave;
 
     private static Configuration negotiateAuthConfig;
 
@@ -88,6 +90,11 @@ public class AwaitCloseChannelPoolMapTest {
 
     @AfterAll
     public static void teardown() throws Exception {
+        if (krb5PropSave != null) {
+            System.setProperty(KRB5_PROP, krb5PropSave);
+        } else {
+            System.clearProperty(KRB5_PROP);
+        }
         mockProxy.stop();
         kdc.stop();
     }
@@ -111,39 +118,45 @@ public class AwaitCloseChannelPoolMapTest {
             freePort.setReuseAddress(true);
             freePort.bind(new InetSocketAddress(0));
             port = freePort.getLocalPort();
+
+            kdc = new SimpleKdcServer();
+            kdc.setKdcRealm("EXAMPLE.COM");
+            kdc.setKdcHost("localhost");
+            kdc.setWorkDir(tempDir.toFile());
+            kdc.setKdcTcpPort(port);
+            kdc.setAllowUdp(false);
+            kdc.init();
+
+            krb5PropSave = System.getProperty(KRB5_PROP);
+
+            System.setProperty(KRB5_PROP, tempDir.resolve("krb5.conf").toAbsolutePath().toString());
+            kdc.start();
+
+            kdc.createPrincipal("alice@EXAMPLE.COM", "alicePassword");
+            kdc.createAndExportPrincipals(keytabFile.toFile(), "HTTP/localhost@EXAMPLE.COM");
+
+            // initialize the ticket cache
+            KrbClient krbClient = kdc.getKrbClient();
+            TgtTicket tgt = krbClient.requestTgt("alice@EXAMPLE.COM", "alicePassword");
+            krbClient.storeTicket(tgt, ccacheFile.toFile());
+
+            // Override config so we look at the testing cache instead of the real system cache
+            negotiateAuthConfig = new Configuration() {
+                @Override
+                public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+                    Map<String, String> opts = new HashMap<>();
+                    opts.put("useTicketCache", "true");
+                    opts.put("ticketCache", ccacheFile.toAbsolutePath().toString());
+                    opts.put("refreshKrb5Config", "true");
+                    opts.put("doNotPrompt", "true");
+                    return new AppConfigurationEntry[] {
+                        new AppConfigurationEntry(
+                            "com.sun.security.auth.module.Krb5LoginModule",
+                            AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, opts)
+                    };
+                }
+            };
         }
-
-        kdc = new SimpleKdcServer();
-        kdc.setKdcRealm("EXAMPLE.COM");
-        kdc.setKdcHost("localhost");
-        kdc.setWorkDir(tempDir.toFile());
-        kdc.setKdcTcpPort(port);
-        kdc.init();
-        kdc.start();
-
-        kdc.createPrincipal("alice@EXAMPLE.COM", "alicePassword");
-        kdc.createAndExportPrincipals(keytabFile.toFile(), "HTTP/localhost@EXAMPLE.COM");
-
-        // initialize the ticket cache
-        KrbClient krbClient = kdc.getKrbClient();
-        TgtTicket tgt = krbClient.requestTgt("alice@EXAMPLE.COM", "alicePassword");
-        krbClient.storeTicket(tgt, ccacheFile.toFile());
-
-        // Override config so we look at the testing cache instead of the real system cache
-        negotiateAuthConfig = new Configuration() {
-            @Override
-            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
-                Map<String, String> opts = new HashMap<>();
-                opts.put("useTicketCache", "true");
-                opts.put("ticketCache", ccacheFile.toAbsolutePath().toString());
-                opts.put("doNotPrompt", "true");
-                return new AppConfigurationEntry[] {
-                    new AppConfigurationEntry(
-                        "com.sun.security.auth.module.Krb5LoginModule",
-                        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, opts)
-                };
-            }
-        };
     }
 
     @Test
