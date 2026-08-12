@@ -42,12 +42,12 @@ import software.amazon.awssdk.utils.Logger;
  *
  * <p>Behavior contract:
  * <ul>
- *     <li><b>Idempotent:</b> {@code prime()} runs the warm-up at most once per JVM. Once a call completes
+ *     <li><b>Idempotent:</b> {@code warmUp()} runs the warm-up at most once per JVM. Once a call completes
  *     successfully, later calls return immediately. If a call throws before completing, a later call retries.
  *     Concurrent callers block until the in-flight call finishes, then observe its result.</li>
  *     <li><b>Per-provider resilience:</b> a single provider that throws from {@code warmUp()}, or that fails
  *     to load, does not prevent the remaining providers from running.</li>
- *     <li><b>Safe when empty:</b> if no providers are registered, {@code prime()} is a no-op.</li>
+ *     <li><b>Safe when empty:</b> if no providers are registered, {@code warmUp()} is a no-op.</li>
  * </ul>
  *
  * <p>Call this once during application initialization, before a CRaC checkpoint is taken.
@@ -109,7 +109,7 @@ public final class SdkWarmUp {
     @SafeVarargs
     public static void warmUp(Class<? extends SdkClient>... clients) {
         if (clients == null || clients.length == 0) {
-            log.debug(() -> "SdkWarmUp.prime(Class...) called with no clients; nothing to do.");
+            log.debug(() -> "SdkWarmUp.warmUp(Class...) called with no clients; nothing to do.");
             return;
         }
 

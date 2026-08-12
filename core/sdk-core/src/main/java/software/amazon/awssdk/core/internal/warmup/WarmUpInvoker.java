@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 
 /**
- * Discovers {@link SdkWarmUpProvider}s and invokes their warm-up behind the public {@code SdkWarmUp.prime()}.
+ * Discovers {@link SdkWarmUpProvider}s and invokes their warm-up behind the public {@code SdkWarmUp.warmUp()}.
  * Mirrors the {@code SdkHttpServiceProvider} loader abstraction, except warm-up invokes every discovered
  * provider rather than selecting one.
  */

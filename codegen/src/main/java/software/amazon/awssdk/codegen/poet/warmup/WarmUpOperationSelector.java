@@ -84,9 +84,10 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * Preference order: returns output (so the unmarshaller is primed too), is authenticated (so signing is primed
-     * too; {@code noAuth} operations skip signing entirely), verified simple method, accepts an empty request,
-     * fewest required input members, read-only verb, then operation name as the deterministic tie-break.
+     * Preference order: returns output (so the unmarshaller is primed too), is authenticated (so auth-scheme
+     * resolution and the signer are primed too; {@code noAuth} operations resolve to a no-op signer instead), verified
+     * simple method, accepts an empty request, fewest required input members, read-only verb, then operation name as
+     * the deterministic tie-break.
      */
     private static Comparator<OperationModel> warmUpPreference(List<String> verifiedSimpleMethods) {
         return BY_HAS_OUTPUT_FIRST
