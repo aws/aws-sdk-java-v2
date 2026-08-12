@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.services.cloudfront.model;
 
-import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
-
 import java.nio.file.Path;
 import java.security.PrivateKey;
 import java.time.Instant;
@@ -26,6 +24,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;

@@ -15,13 +15,12 @@
 
 package software.amazon.awssdk.services.cloudfront.model;
 
-import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
-
 import java.security.PrivateKey;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 
 /**
  * Base interface class for requests to generate a CloudFront signed URL or signed cookie
