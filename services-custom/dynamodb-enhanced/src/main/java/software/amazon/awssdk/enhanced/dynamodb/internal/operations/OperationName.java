@@ -30,6 +30,7 @@ public enum OperationName {
     QUERY("Query"),
     PUT_ITEM("PutItem"),
     SCAN("Scan"),
+    SEARCH_VECTORS("SearchVectors"),
     TRANSACT_GET_ITEMS("TransactGetItems"),
     TRANSACT_WRITE_ITEMS("TransactWriteItems"),
     UPDATE_ITEM("UpdateItem");

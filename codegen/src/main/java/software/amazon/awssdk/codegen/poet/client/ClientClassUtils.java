@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 
 import com.squareup.javapoet.ClassName;
@@ -31,6 +32,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -67,6 +69,8 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -577,6 +581,46 @@ public final class ClientClassUtils {
         b.endControlFlow();
 
         return b.build();
+    }
+
+    /**
+     * Generates the shared {@code publishMetrics} helper that every operation body calls to publish its API call metrics.
+     * Inline, the equivalent {@code metricPublishers.forEach(...)} costs one synthetic lambda, and its constant pool
+     * machinery, per generated operation.
+     */
+    static MethodSpec publishMetricsMethod() {
+        return MethodSpec.methodBuilder("publishMetrics")
+                         .addJavadoc("Publishes the collected API call metrics to each configured publisher.\n")
+                         .addModifiers(PRIVATE, STATIC)
+                         .addParameter(ParameterizedTypeName.get(List.class, MetricPublisher.class), "metricPublishers")
+                         .addParameter(MetricCollector.class, "apiCallMetricCollector")
+                         .beginControlFlow("for ($T metricPublisher : metricPublishers)", MetricPublisher.class)
+                         .addStatement("metricPublisher.publish(apiCallMetricCollector.collect())")
+                         .endControlFlow()
+                         .build();
+    }
+
+    /**
+     * Generates the shared {@code publishMetricsWhenComplete} helper used by non-streaming async operation bodies. Holds
+     * the single {@code whenComplete} callback for the whole client, which inline would cost one synthetic lambda per
+     * generated operation.
+     */
+    static MethodSpec publishMetricsWhenCompleteMethod() {
+        TypeVariableName typeVariable = TypeVariableName.get("T");
+        ParameterizedTypeName futureType = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class), typeVariable);
+
+        return MethodSpec.methodBuilder("publishMetricsWhenComplete")
+                         .addJavadoc("Publishes the collected API call metrics once {@code future} completes, normally or "
+                                     + "exceptionally.\n")
+                         .addModifiers(PRIVATE, STATIC)
+                         .addTypeVariable(typeVariable)
+                         .returns(futureType)
+                         .addParameter(futureType, "future")
+                         .addParameter(ParameterizedTypeName.get(List.class, MetricPublisher.class), "metricPublishers")
+                         .addParameter(MetricCollector.class, "apiCallMetricCollector")
+                         .addStatement("return future.whenComplete((r, e) -> publishMetrics(metricPublishers, "
+                                       + "apiCallMetricCollector))")
+                         .build();
     }
 
 }

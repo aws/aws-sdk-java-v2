@@ -1,56 +1,51 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.50.1__ __2026-07-30__
-## __AWS Billing and Cost Management Pricing Calculator__
+# __2.52.0__ __2026-08-11__
+## __AWS Clean Rooms Service__
   - ### Features
-    - Removing Smithy RPC v2 CBOR support that was added in previous SDK release.
+    - Adds support for exporting redacted query execution logs in AWS Clean Rooms
 
-## __AWS Billing and Cost Management Recommended Actions__
+## __AWS Organizations__
   - ### Features
-    - Removing Smithy RPC v2 CBOR support that was added in previous SDK release.
+    - Documentation update for AWS Organizations that clarifies valid input values for the HandshakePartyType parameter in the InviteAccountToOrganization. API ORGANIZATION is valid in responses only. valid input values are ACCOUNT and EMAIL
 
 ## __AWS SDK for Java v2__
   - ### Features
-    - Add the `@SdkAdvancedApi` annotation, which marks APIs that are error-prone to implement, override, call, or configure so that using them incorrectly compiles cleanly but can fail or misbehave at runtime. The annotation records structured guidance (the risky usage kind, an explanation of the contract to uphold, a safer alternative, and a documentation link) and is applied to several streaming and interceptor extension points, including AsyncRequestBody, AsyncResponseTransformer, ContentStreamProvider, the mutating ExecutionInterceptor content hooks, and the FUTURE_COMPLETION_EXECUTOR advanced client option.
-    - Updated endpoint and partition metadata.
+    - Added support for the AWS_IGNORE_CONFIGURED_ENDPOINT_URLS setting to skip endpoint URLs from environment variables and config files.
+    - Update Netty to 4.1.137
 
-# __2.50.0__ __2026-07-30__
-## __AWS Identity and Access Management__
-  - ### Features
-    - Improved IAM Policy Simulator accuracy. Simulator now evaluates SCP conditions and resource scoping, returns explicitDeny for explicit SCP denials, and reports accurate cross-account decisions.
-
-## __AWS Lambda__
-  - ### Features
-    - Add Python3.15 (python3.15) and NodeJs 26 (nodejs26.x) support to AWS Lambda
-
-## __AWS Network Firewall__
-  - ### Features
-    - Adds UPDATING field to Container Association Status
-
-## __AWS SDK for Java v2__
   - ### Bugfixes
-    - Improve endpoint resolution performance by replacing URI.create with a lightweight EndpointUrl.
+    - Fixed the client-side rate limiting behavior of `AdaptiveRetryStrategy` under throttling conditions. Previously, the computed rate limit was overly aggressive, potentially allowing a request rate much lower than what the service allows, and was unstable, varying over time even when the service's allowed throughput was constant.
+    - Make individual parts retryable when an in-memory `AsyncRequestBody` (for example one created with `AsyncRequestBody.fromBytes`, `fromByteBuffer`, or `fromString`) is split, such as during an S3 multipart upload. The body in these cases is entirely in memory already so no data is copied and callers no longer need to wrap the body in `BufferedSplittableAsyncRequestBody` to get retries.
 
-## __AWS Security Agent__
+## __Account Access__
   - ### Features
-    - Adds support for providing a branch override when configured integrated repositories
+    - Adds SDK support for AWS IAM account access manager, a feature that enables mapping of IAM roles to the users and groups in AWS IAM Identity Center.
 
-## __Amazon Bedrock AgentCore Control__
+## __Amazon Bedrock AgentCore__
   - ### Features
-    - Adds support for configuring models through the OpenResponses API for custom evaluators. CreateEvaluator and UpdateEvaluator now accept an OpenResponses model configuration for LLM-as-a-Judge evaluations.
+    - Adding online eval arn as input for recommendation API
 
-## __Amazon S3__
-  - ### Bugfixes
-    - Honor an explicit `S3Configuration.expectContinueEnabled(false)` when cross region access is enabled.
-
-## __Amazon SageMaker Service__
+## __Amazon CloudDirectory__
   - ### Features
-    - Adds support for g7 family instance types for SageMaker Studio JupyterLab and CodeEditor apps for IAD (us-east-1), PDX (us-west-2), CMH (us-east-2).
+    - Added an end-of-support notice to Amazon Cloud Directory public CLI reference documentation.
 
-## __Managed Streaming for Kafka__
+## __Amazon Connect Service__
   - ### Features
-    - Amazon MSK Express brokers now support streaming tables for Apache Iceberg, continuously materializing Apache Kafka topics as Iceberg tables in Amazon S3 Tables. Express brokers also now support data delivery to Amazon S3 general purpose buckets.
+    - Seven new APIs for managing custom metrics, including create, describe, update, and delete. Using Custom Metrics, customers of Amazon Connect Customer can tailor analytics dashboards to their needs by applying custom thresholds, filters, and calculations to one or more out of the box measurements.
 
-## __PricingPlanManager__
+## __Amazon DataZone__
   - ### Features
-    - Adds support for Public PricingPlanManager SDK
+    - GetSubscriptionGrant now returns materialized asset scope name for mapping Lake Formation data cell filters or Redshift views to subscription grants.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This feature would give customers the ability to selectively tune certain configurations of Kubernetes control plane components in an Amazon EKS cluster.
+
+## __Amazon Textract__
+  - ### Features
+    - Amazon A2I entered maintenance mode in July 2026 and now rejects StartHumanLoop requests from accounts that it does not recognize as existing customers. This update adds a corresponding note to the HumanLoopConfig parameter documentation so that the API Reference and SDK docs explain this behavior.
+
+## __Apache HTTP Client 5__
+  - ### Features
+    - Upgrade httpcomponents.client5 to 5.6.3 to address CVE-2026-64607
 

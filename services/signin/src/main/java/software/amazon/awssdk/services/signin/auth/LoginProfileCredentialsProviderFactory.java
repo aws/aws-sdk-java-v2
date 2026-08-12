@@ -17,14 +17,18 @@ package software.amazon.awssdk.services.signin.auth;
 
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProviderFactory;
 import software.amazon.awssdk.auth.credentials.ProfileProviderCredentialsContext;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.Profile;
+import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
 import software.amazon.awssdk.services.signin.SigninClient;
+import software.amazon.awssdk.services.signin.SigninClientBuilder;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
@@ -44,6 +48,23 @@ public class LoginProfileCredentialsProviderFactory implements ProfileCredential
         return new LoginProfileCredentialsProvider(profileProviderCredentialsContext);
     }
 
+    /**
+     * Create the {@link SigninClient} used to refresh the login session, configured from the profile that requested these
+     * credentials.
+     */
+    @SdkTestInternalApi
+    static SigninClient signinClient(ProfileProviderCredentialsContext credentialsContext) {
+        SigninClientBuilder builder = SigninClient.builder()
+                                                  .credentialsProvider(AnonymousCredentialsProvider.create());
+        ProfileFile profileFile = credentialsContext.profileFile();
+        if (profileFile != null) {
+            builder.overrideConfiguration(c -> c.defaultProfileFile(profileFile)
+                                                .defaultProfileName(credentialsContext.profile().name()));
+        }
+
+        return builder.build();
+    }
+
     private static class LoginProfileCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
         private final LoginCredentialsProvider credentialsProvider;
         private final SigninClient signinClient;
@@ -53,7 +74,7 @@ public class LoginProfileCredentialsProviderFactory implements ProfileCredential
             String loginSession = profile.property(ProfileProperty.LOGIN_SESSION)
                                          .orElseThrow(() -> new IllegalArgumentException("login_session property is required"));
 
-            this.signinClient = SigninClient.create();
+            this.signinClient = signinClient(credentialsContext);
             this.credentialsProvider = LoginCredentialsProvider
                 .builder()
                 .loginSession(loginSession)

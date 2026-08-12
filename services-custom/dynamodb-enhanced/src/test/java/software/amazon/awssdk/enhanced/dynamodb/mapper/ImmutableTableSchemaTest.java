@@ -25,6 +25,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -52,7 +53,12 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedImmutable
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NonSequentialOrderImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.OrderPreservationImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ToBuilderImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorIndexImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
 import software.amazon.awssdk.enhanced.dynamodb.model.ImmutableCompositeKeyRecord;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElement;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class ImmutableTableSchemaTest {
@@ -421,5 +427,61 @@ public class ImmutableTableSchemaTest {
         ImmutableTableSchema<ImmutableCompositeKeyRecord> flattened =
             ImmutableTableSchema.create(ImmutableCompositeKeyRecord.class, ExecutionContext.FLATTENED);
         assertThat(root1, not(flattened));
+    }
+
+    @Test
+    public void fromImmutable_vectorAnnotations_producesCorrectMetadata() {
+        ImmutableTableSchema<VectorIndexImmutable> schema =
+            ImmutableTableSchema.create(VectorIndexImmutable.class);
+        Collection<VectorIndexMetadata> vectorIndices = schema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices.size(), is(1));
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName(), is("embedding-index"));
+        assertThat(metadata.vectorAttributeName(), is("embedding"));
+        assertThat(metadata.dimensions(), is(1536));
+        assertThat(metadata.distanceFunction(), is(DistanceFunction.COSINE));
+        assertThat(metadata.searchSchemaElements(), org.hamcrest.Matchers.containsInAnyOrder(
+            SearchSchemaElement.builder().attributeName("category").searchSchemaElementType(SearchSchemaElementType.HASH).build(),
+            SearchSchemaElement.builder().attributeName("brand").searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER).build()
+        ));
+    }
+
+    @Test
+    public void fromImmutable_vectorIndexNotInIndices() {
+        ImmutableTableSchema<VectorIndexImmutable> schema =
+            ImmutableTableSchema.create(VectorIndexImmutable.class);
+
+        boolean found = schema.tableMetadata().indices().stream()
+                              .anyMatch(i -> "embedding-index".equals(i.name()));
+        assertThat(found, is(false));
+    }
+
+    @Test
+    public void fromImmutable_withNestedBean_vectorMetadataCorrect() {
+        ImmutableTableSchema<VectorIndexImmutable> schema =
+            ImmutableTableSchema.create(VectorIndexImmutable.class);
+        Collection<VectorIndexMetadata> vectorIndices = schema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices.size(), is(1));
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName(), is("embedding-index"));
+        assertThat(metadata.vectorAttributeName(), is("embedding"));
+        assertThat(metadata.dimensions(), is(1536));
+        assertThat(metadata.distanceFunction(), is(DistanceFunction.COSINE));
+    }
+
+    @Test
+    public void fromImmutable_withNestedBeanNull_vectorMetadataCorrect() {
+        ImmutableTableSchema<VectorIndexImmutable> schema =
+            ImmutableTableSchema.create(VectorIndexImmutable.class);
+        Collection<VectorIndexMetadata> vectorIndices = schema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices.size(), is(1));
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName(), is("embedding-index"));
+        assertThat(metadata.vectorAttributeName(), is("embedding"));
+        assertThat(metadata.dimensions(), is(1536));
+        assertThat(metadata.distanceFunction(), is(DistanceFunction.COSINE));
     }
 }
