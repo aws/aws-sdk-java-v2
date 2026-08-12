@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.cloudfront.model;
+package software.amazon.awssdk.services.cloudfront.utils;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
@@ -25,13 +25,13 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  * and signed cookies will include a {@code CloudFront-Hash-Algorithm=SHA256} cookie.
  */
 @SdkPublicApi
-public enum HashAlgorithm {
+public enum SigningHashAlgorithm {
     SHA1("SHA1"),
     SHA256("SHA256");
 
     private final String id;
 
-    HashAlgorithm(String id) {
+    SigningHashAlgorithm(String id) {
         this.id = id;
     }
 

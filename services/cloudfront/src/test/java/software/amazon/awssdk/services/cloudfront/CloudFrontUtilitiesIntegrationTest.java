@@ -61,7 +61,7 @@ import software.amazon.awssdk.services.cloudfront.model.CreateCloudFrontOriginAc
 import software.amazon.awssdk.services.cloudfront.model.CreatePublicKeyResponse;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.DefaultCacheBehavior;
-import software.amazon.awssdk.services.cloudfront.model.HashAlgorithm;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 import software.amazon.awssdk.services.cloudfront.model.Distribution;
 import software.amazon.awssdk.services.cloudfront.model.DistributionConfig;
 import software.amazon.awssdk.services.cloudfront.model.DistributionSummary;
@@ -138,9 +138,9 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     private static class SigningTestCase {
         final KeyTestCase keyTestCase;
-        final HashAlgorithm hashAlgorithm;
+        final SigningHashAlgorithm hashAlgorithm;
 
-        SigningTestCase(KeyTestCase keyTestCase, HashAlgorithm hashAlgorithm) {
+        SigningTestCase(KeyTestCase keyTestCase, SigningHashAlgorithm hashAlgorithm) {
             this.keyTestCase = keyTestCase;
             this.hashAlgorithm = hashAlgorithm;
         }
@@ -153,8 +153,8 @@ public class CloudFrontUtilitiesIntegrationTest extends IntegrationTestBase {
 
     static Stream<SigningTestCase> signingCases() {
         return keyCases().flatMap(k -> Stream.of(
-            new SigningTestCase(k, HashAlgorithm.SHA1),
-            new SigningTestCase(k, HashAlgorithm.SHA256)
+            new SigningTestCase(k, SigningHashAlgorithm.SHA1),
+            new SigningTestCase(k, SigningHashAlgorithm.SHA256)
         ));
     }
 

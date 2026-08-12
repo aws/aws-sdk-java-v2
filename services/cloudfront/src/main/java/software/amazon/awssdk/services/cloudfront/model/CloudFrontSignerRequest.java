@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.cloudfront.model;
 
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
+
 import java.security.PrivateKey;
 import java.time.Instant;
 import software.amazon.awssdk.annotations.Immutable;
@@ -52,9 +54,9 @@ public interface CloudFrontSignerRequest {
     Instant expirationDate();
 
     /**
-     * Returns the hash algorithm used to sign the policy. Defaults to {@link HashAlgorithm#SHA1}.
+     * Returns the hash algorithm used to sign the policy. Defaults to {@link SigningHashAlgorithm#SHA1}.
      */
-    default HashAlgorithm hashAlgorithm() {
-        return HashAlgorithm.SHA1;
+    default SigningHashAlgorithm hashAlgorithm() {
+        return SigningHashAlgorithm.SHA1;
     }
 }

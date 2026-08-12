@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.cloudfront.model;
 
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
+
 import java.nio.file.Path;
 import java.security.PrivateKey;
 import java.time.Instant;
@@ -43,7 +45,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     private final Instant activeDate;
     private final String ipRange;
     private final String resourceUrlPattern;
-    private final HashAlgorithm hashAlgorithm;
+    private final SigningHashAlgorithm hashAlgorithm;
 
     private CustomSignerRequest(DefaultBuilder builder) {
         this.resourceUrl = Validate.notNull(builder.resourceUrl, "resourceUrl must not be null");
@@ -53,7 +55,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         this.activeDate = builder.activeDate;
         this.ipRange = builder.ipRange;
         this.resourceUrlPattern = builder.resourceUrlPattern;
-        this.hashAlgorithm = builder.hashAlgorithm != null ? builder.hashAlgorithm : HashAlgorithm.SHA1;
+        this.hashAlgorithm = builder.hashAlgorithm != null ? builder.hashAlgorithm : SigningHashAlgorithm.SHA1;
     }
 
     /**
@@ -108,7 +110,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
     }
 
     @Override
-    public HashAlgorithm hashAlgorithm() {
+    public SigningHashAlgorithm hashAlgorithm() {
         return hashAlgorithm;
     }
 
@@ -208,9 +210,9 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         Builder resourceUrlPattern(String resourceUrlPattern);
 
         /**
-         * Configure the hash algorithm used to sign the policy. Defaults to {@link HashAlgorithm#SHA1}.
+         * Configure the hash algorithm used to sign the policy. Defaults to {@link SigningHashAlgorithm#SHA1}.
          */
-        Builder hashAlgorithm(HashAlgorithm hashAlgorithm);
+        Builder hashAlgorithm(SigningHashAlgorithm hashAlgorithm);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -221,7 +223,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         private Instant activeDate;
         private String ipRange;
         private String resourceUrlPattern;
-        private HashAlgorithm hashAlgorithm;
+        private SigningHashAlgorithm hashAlgorithm;
 
         private DefaultBuilder() {
         }
@@ -286,7 +288,7 @@ public final class CustomSignerRequest implements CloudFrontSignerRequest,
         }
 
         @Override
-        public Builder hashAlgorithm(HashAlgorithm hashAlgorithm) {
+        public Builder hashAlgorithm(SigningHashAlgorithm hashAlgorithm) {
             this.hashAlgorithm = hashAlgorithm;
             return this;
         }

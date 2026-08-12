@@ -33,7 +33,7 @@ import software.amazon.awssdk.services.cloudfront.internal.url.DefaultSignedUrl;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
 import software.amazon.awssdk.services.cloudfront.model.CannedSignerRequest;
 import software.amazon.awssdk.services.cloudfront.model.CustomSignerRequest;
-import software.amazon.awssdk.services.cloudfront.model.HashAlgorithm;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 import software.amazon.awssdk.services.cloudfront.url.SignedUrl;
 
 /**
@@ -381,7 +381,7 @@ public final class CloudFrontUtilities {
                 .keyPairIdHeaderValue(KEY_PAIR_ID_KEY + "=" + request.keyPairId())
                 .signatureHeaderValue(SIGNATURE_KEY + "=" + urlSafeSignature)
                 .expiresHeaderValue(EXPIRES_KEY + "=" + expiry);
-            if (request.hashAlgorithm() != HashAlgorithm.SHA1) {
+            if (request.hashAlgorithm() != SigningHashAlgorithm.SHA1) {
                 builder.hashAlgorithmHeaderValue(HASH_ALGORITHM_KEY + "=" + request.hashAlgorithm().id());
             }
             return builder.build();
@@ -500,7 +500,7 @@ public final class CloudFrontUtilities {
                 .keyPairIdHeaderValue(KEY_PAIR_ID_KEY + "=" + request.keyPairId())
                 .signatureHeaderValue(SIGNATURE_KEY + "=" + urlSafeSignature)
                 .policyHeaderValue(POLICY_KEY + "=" + urlSafePolicy);
-            if (request.hashAlgorithm() != HashAlgorithm.SHA1) {
+            if (request.hashAlgorithm() != SigningHashAlgorithm.SHA1) {
                 builder.hashAlgorithmHeaderValue(HASH_ALGORITHM_KEY + "=" + request.hashAlgorithm().id());
             }
             return builder.build();
@@ -510,11 +510,11 @@ public final class CloudFrontUtilities {
     }
 
     private static byte[] signPolicy(byte[] policyToSign, PrivateKey privateKey,
-                                      HashAlgorithm hashAlgorithm) throws InvalidKeyException {
+                                      SigningHashAlgorithm hashAlgorithm) throws InvalidKeyException {
         return SigningUtils.sign(policyToSign, privateKey, javaSecuritySigningAlgorithm(privateKey, hashAlgorithm));
     }
 
-    private static String javaSecuritySigningAlgorithm(PrivateKey privateKey, HashAlgorithm hashAlgorithm) {
+    private static String javaSecuritySigningAlgorithm(PrivateKey privateKey, SigningHashAlgorithm hashAlgorithm) {
         switch (privateKey.getAlgorithm()) {
             case "RSA":
                 return hashAlgorithm.id() + "withRSA";
@@ -529,8 +529,8 @@ public final class CloudFrontUtilities {
     }
 
     // Returns empty string for SHA-1 to preserve backwards-compatible URL shape (CloudFront defaults to SHA-1 when omitted).
-    private static String hashAlgorithmUrlParam(HashAlgorithm hashAlgorithm) {
-        return hashAlgorithm == HashAlgorithm.SHA1 ? "" : "&Hash-Algorithm=" + hashAlgorithm.id();
+    private static String hashAlgorithmUrlParam(SigningHashAlgorithm hashAlgorithm) {
+        return hashAlgorithm == SigningHashAlgorithm.SHA1 ? "" : "&Hash-Algorithm=" + hashAlgorithm.id();
     }
 
 }

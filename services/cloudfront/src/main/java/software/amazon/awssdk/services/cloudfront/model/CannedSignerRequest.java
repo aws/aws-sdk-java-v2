@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.cloudfront.model;
 
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
+
 import java.nio.file.Path;
 import java.security.PrivateKey;
 import java.time.Instant;
@@ -40,14 +42,14 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
     private final PrivateKey privateKey;
     private final String keyPairId;
     private final Instant expirationDate;
-    private final HashAlgorithm hashAlgorithm;
+    private final SigningHashAlgorithm hashAlgorithm;
 
     private CannedSignerRequest(DefaultBuilder builder) {
         this.resourceUrl = builder.resourceUrl;
         this.privateKey = builder.privateKey;
         this.keyPairId = builder.keyPairId;
         this.expirationDate = builder.expirationDate;
-        this.hashAlgorithm = builder.hashAlgorithm != null ? builder.hashAlgorithm : HashAlgorithm.SHA1;
+        this.hashAlgorithm = builder.hashAlgorithm != null ? builder.hashAlgorithm : SigningHashAlgorithm.SHA1;
     }
 
     /**
@@ -83,7 +85,7 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
     }
 
     @Override
-    public HashAlgorithm hashAlgorithm() {
+    public SigningHashAlgorithm hashAlgorithm() {
         return hashAlgorithm;
     }
 
@@ -153,9 +155,9 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         Builder expirationDate(Instant expirationDate);
 
         /**
-         * Configure the hash algorithm used to sign the policy. Defaults to {@link HashAlgorithm#SHA1}.
+         * Configure the hash algorithm used to sign the policy. Defaults to {@link SigningHashAlgorithm#SHA1}.
          */
-        Builder hashAlgorithm(HashAlgorithm hashAlgorithm);
+        Builder hashAlgorithm(SigningHashAlgorithm hashAlgorithm);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -163,7 +165,7 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         private PrivateKey privateKey;
         private String keyPairId;
         private Instant expirationDate;
-        private HashAlgorithm hashAlgorithm;
+        private SigningHashAlgorithm hashAlgorithm;
 
         private DefaultBuilder() {
         }
@@ -207,7 +209,7 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         }
 
         @Override
-        public Builder hashAlgorithm(HashAlgorithm hashAlgorithm) {
+        public Builder hashAlgorithm(SigningHashAlgorithm hashAlgorithm) {
             this.hashAlgorithm = hashAlgorithm;
             return this;
         }
