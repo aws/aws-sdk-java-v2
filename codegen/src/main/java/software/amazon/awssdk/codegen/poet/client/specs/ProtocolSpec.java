@@ -70,6 +70,15 @@ public interface ProtocolSpec {
         return Optional.empty();
     }
 
+    /**
+     * The per-client field holding the non-streaming {@code exceptionMetadataMapper}, when the protocol emits one. The
+     * mapper switches over the whole model's exceptions and is identical for every operation, so it is generated once as
+     * a client field instead of once per operation body.
+     */
+    default Optional<FieldSpec> errorResponseMapperField() {
+        return Optional.empty();
+    }
+
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }
