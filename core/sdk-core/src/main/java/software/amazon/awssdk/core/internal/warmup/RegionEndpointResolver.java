@@ -31,7 +31,7 @@ import software.amazon.awssdk.utils.StringUtils;
  * matches how the SDK resolves a region from system settings.
  *
  * <p>Only system properties and environment variables are read. The full SDK region-resolution chain (IMDS, profile file) is
- * avoided during priming because those add network or filesystem calls that may fail or time out. The endpoint host always
+ * avoided during warm-up because those add network or filesystem calls that may fail or time out. The endpoint host always
  * uses the {@code amazonaws.com} suffix, which is incorrect for the China, GovCloud, and ISO partitions; in those partitions
  * the warm-up request simply fails and is ignored, since it is best-effort.
  */

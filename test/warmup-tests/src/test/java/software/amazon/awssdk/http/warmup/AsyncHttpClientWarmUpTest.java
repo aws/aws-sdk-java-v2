@@ -83,7 +83,7 @@ class AsyncHttpClientWarmUpTest {
     }
 
     /**
-     * Exercises the real classpath-discovery path used by {@code prime()}: {@code warmAll()} discovers every async
+     * Exercises the real classpath-discovery path used by {@code warmUp()}: {@code warmAll()} discovers every async
      * {@link SdkAsyncHttpService} on the classpath via {@link ServiceLoader} and warms each. Confirms discovery finds all
      * {@value #MIN_ASYNC_CLIENT_COUNT} clients and that each receives exactly one warm-up GET.
      */

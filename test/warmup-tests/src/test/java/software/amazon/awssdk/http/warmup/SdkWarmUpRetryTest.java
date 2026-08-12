@@ -26,7 +26,7 @@ import software.amazon.awssdk.core.warmup.SdkWarmUp;
 /**
  * Verifies a failed {@link SdkWarmUp#warmUp(Class...)} warm-up is retried on the next call.
  */
-class SdkWarmUpPrimeRetryTest {
+class SdkWarmUpRetryTest {
 
     private String savedRegionProperty;
 
@@ -47,7 +47,7 @@ class SdkWarmUpPrimeRetryTest {
 
     @Test
     void warmUp_afterWarmUpFailure_retriesOnNextCallThenStops() {
-        // First call: the provider throws, so the client is not recorded as primed.
+        // First call: the provider throws, so the client is not recorded as warmed.
         assertThatCode(() -> SdkWarmUp.warmUp(RetrySyncClient.class)).doesNotThrowAnyException();
         assertThat(RetryWarmUpProvider.syncAttemptCount()).as("first call attempts the warm").isEqualTo(1);
         assertThat(RetryWarmUpProvider.syncSuccessCount()).as("first call fails").isEqualTo(0);
@@ -57,7 +57,7 @@ class SdkWarmUpPrimeRetryTest {
         assertThat(RetryWarmUpProvider.syncAttemptCount()).as("failure is retried").isEqualTo(2);
         assertThat(RetryWarmUpProvider.syncSuccessCount()).as("retry succeeds").isEqualTo(1);
 
-        // Third call: already primed, no further attempt.
+        // Third call: already warmed, no further attempt.
         SdkWarmUp.warmUp(RetrySyncClient.class);
         assertThat(RetryWarmUpProvider.syncAttemptCount()).as("successful warm is not repeated").isEqualTo(2);
     }

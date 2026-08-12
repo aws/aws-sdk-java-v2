@@ -166,7 +166,7 @@
                     <skip>true</skip>
                 </configuration>
             </plugin>
-            <!-- Fork a fresh JVM per test class so SdkWarmUp's per-JVM primed state does not leak between
+            <!-- Fork a fresh JVM per test class so SdkWarmUp's per-JVM warmed state does not leak between
                  warm-up test classes. -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

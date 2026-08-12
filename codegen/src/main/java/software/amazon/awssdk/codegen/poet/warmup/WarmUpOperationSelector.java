@@ -84,8 +84,8 @@ public final class WarmUpOperationSelector {
     }
 
     /**
-     * Preference order: returns output (so the unmarshaller is primed too), is authenticated (so auth-scheme
-     * resolution and the signer are primed too; {@code noAuth} operations resolve to a no-op signer instead), verified
+     * Preference order: returns output (so the unmarshaller is warmed too), is authenticated (so auth-scheme
+     * resolution and the signer are warmed too; {@code noAuth} operations resolve to a no-op signer instead), verified
      * simple method, accepts an empty request, fewest required input members, read-only verb, then operation name as
      * the deterministic tie-break.
      */

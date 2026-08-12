@@ -43,7 +43,7 @@ import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
  * generates one) and a synthetic async client, each guarded by the requested {@link ClientType} and wired to an
  * in-memory canned HTTP client, anonymous credentials, a fixed region and a local {@code endpointOverride}. Building
  * the clients JIT-compiles the client construction and configuration-resolution path before a CRaC checkpoint. Each
- * client also invokes the operation chosen by {@link WarmUpOperationSelector}, if any, to prime the marshalling,
+ * client also invokes the operation chosen by {@link WarmUpOperationSelector}, if any, to warm up the marshalling,
  * auth-scheme resolution and unmarshalling paths. The {@code syncClientClassName()}/{@code asyncClientClassName()}
  * strings let {@code SdkWarmUp.warmUp(Class...)} match a requested client class to this provider.
  */

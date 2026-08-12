@@ -31,7 +31,7 @@ import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests the static {@link SdkWarmUp#warmUp()} entry point end to end through {@link java.util.ServiceLoader},
- * using a test-scoped {@code META-INF/services} registration of {@link RegisteredWarmUpProvider}. {@code prime()}
+ * using a test-scoped {@code META-INF/services} registration of {@link RegisteredWarmUpProvider}. {@code warmUp()}
  * runs at most once per JVM, so many concurrent calls must invoke the provider exactly once in total.
  */
 class SdkWarmUpTest {
@@ -40,7 +40,7 @@ class SdkWarmUpTest {
 
     @BeforeEach
     void setup() {
-        // Dummy region so prime()'s HTTP warm-up resolves a non-existent STS host and fails DNS immediately, keeping the test offline.
+        // Dummy region so warmUp()'s HTTP warm-up resolves a non-existent STS host and fails DNS immediately, keeping the test offline.
         savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "warmup-unit-test");
         RegisteredWarmUpProvider.INVOCATIONS.set(0);
@@ -91,7 +91,7 @@ class SdkWarmUpTest {
     void warmUp_withMatchingSyncClient_warmsSyncClientTypeThroughWarmUpClient() {
         SdkWarmUp.warmUp(RegisteredSyncClient.class);
 
-        // Targeted prime warms via warmUpClient() only; the full warmUp() path (counted by INVOCATIONS) must not run.
+        // Targeted warm-up runs via warmUpClient() only; the full warmUp() path (counted by INVOCATIONS) must not run.
         assertThat(RegisteredWarmUpProvider.INVOCATIONS.get()).isEqualTo(0);
         assertThat(RegisteredWarmUpProvider.WARMED_CLIENTS).containsExactly(ClientType.SYNC);
     }
@@ -111,7 +111,7 @@ class SdkWarmUpTest {
 
     @Test
     void warmUp_withUnmatchedClient_warnsOnEveryCallAndIsRetried() {
-        // An unmatched client is not recorded as primed, so every call warns and retries.
+        // An unmatched client is not recorded as warmed, so every call warns and retries.
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
             SdkWarmUp.warmUp(RetriedUnmatchedClient.class);
             SdkWarmUp.warmUp(RetriedUnmatchedClient.class);

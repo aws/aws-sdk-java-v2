@@ -20,7 +20,7 @@ import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
 
 /**
- * Test-only {@link SdkWarmUpProvider} for {@link SdkWarmUpPrimeSelectiveTest}. Matches {@link SelectiveSyncClient} and
+ * Test-only {@link SdkWarmUpProvider} for {@link SdkWarmUpSelectiveTest}. Matches {@link SelectiveSyncClient} and
  * {@link SelectiveAsyncClient} and counts warms per client type; performs no I/O.
  */
 public final class SelectiveWarmUpProvider implements SdkWarmUpProvider {

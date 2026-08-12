@@ -78,33 +78,33 @@ class AllServicesWarmUpTest {
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("generatedProviders")
-    void prime_syncClient_invokesOperationWithoutErrors(SdkWarmUpProvider provider) {
+    void warmUp_syncClient_invokesOperationWithoutErrors(SdkWarmUpProvider provider) {
         verifyWarmUp(provider, provider.syncClientClassName());
     }
 
     @ParameterizedTest(name = "{0}")
     @MethodSource("generatedProviders")
-    void prime_asyncClient_invokesOperationWithoutErrors(SdkWarmUpProvider provider) {
+    void warmUp_asyncClient_invokesOperationWithoutErrors(SdkWarmUpProvider provider) {
         verifyWarmUp(provider, provider.asyncClientClassName());
     }
 
     @Test
-    void prime_withAllServicesOnClasspath_noServiceProviderFails() {
+    void warmUp_withAllServicesOnClasspath_noServiceProviderFails() {
         String savedRegionProperty = System.getProperty("aws.region");
         System.setProperty("aws.region", "us-east-1");
         try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
             SdkWarmUp.warmUp();
 
             assertThat(serviceWarmUpFailures(logCaptor))
-                .as("SdkWarmUp.prime() must not log a warm-up failure for any generated service provider")
+                .as("SdkWarmUp.warmUp() must not log a warm-up failure for any generated service provider")
                 .isEmpty();
         } finally {
             restoreRegionProperty(savedRegionProperty);
         }
 
-        // prime() runs once per JVM; an empty recording means it already ran and this test verified nothing.
+        // warmUp() runs once per JVM; an empty recording means it already ran and this test verified nothing.
         assertThat(OperationRecordingInterceptor.operationNames())
-            .as("prime() must have invoked warm-up operations")
+            .as("warmUp() must have invoked warm-up operations")
             .isNotEmpty();
     }
 
@@ -121,7 +121,7 @@ class AllServicesWarmUpTest {
             sdkWarnings = sdkWarnings(logCaptor);
         }
 
-        // prime(Class) logs warm-up failures at WARN instead of throwing.
+        // warmUp(Class) logs warm-up failures at WARN instead of throwing.
         assertThat(sdkWarnings)
             .as("Warm-up of %s must not emit SDK warn/error logs", clientClassName)
             .isEmpty();
@@ -177,7 +177,7 @@ class AllServicesWarmUpTest {
     }
 
     /**
-     * Warm-up failures logged by {@code prime()}, excluding {@link #KNOWN_WARMUP_FAILURE_SERVICES}. prime() reports
+     * Warm-up failures logged by {@code warmUp()}, excluding {@link #KNOWN_WARMUP_FAILURE_SERVICES}. warmUp() reports
      * failures by client class name, so known failures are matched by their client names.
      */
     private static List<String> serviceWarmUpFailures(LogCaptor logCaptor) {

@@ -348,7 +348,7 @@
 
             <Class name="~software\.amazon\.awssdk\.messagemanager\.sns\.internal\.SnsHostProvider" />
 
-            <!-- CRaC warm-up must block until the priming request finishes, so it is ready before the checkpoint is taken. -->
+            <!-- CRaC warm-up must block until the warm-up request finishes, so it is ready before the checkpoint is taken. -->
             <Class name="~software\.amazon\.awssdk\.core\.internal\.http\.loader\.AsyncHttpClientWarmer" />
 
             <!-- test modules are allowed to make blocking call as parts of their testing -->

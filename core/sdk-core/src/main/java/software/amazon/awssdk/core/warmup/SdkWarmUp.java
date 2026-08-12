@@ -26,9 +26,9 @@ import software.amazon.awssdk.core.internal.http.loader.AsyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.http.loader.ClasspathHttpWarmupInvoker;
 import software.amazon.awssdk.core.internal.http.loader.SyncHttpClientWarmer;
 import software.amazon.awssdk.core.internal.warmup.ClasspathWarmUpInvoker;
-import software.amazon.awssdk.core.internal.warmup.PrimedClientRegistry;
 import software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker;
 import software.amazon.awssdk.core.internal.warmup.TargetedWarmUpResult;
+import software.amazon.awssdk.core.internal.warmup.WarmedClientRegistry;
 import software.amazon.awssdk.core.internal.warmup.WarmedHttpClientTypeRegistry;
 import software.amazon.awssdk.utils.Logger;
 
@@ -58,12 +58,12 @@ public final class SdkWarmUp {
 
     private static final Logger log = Logger.loggerFor(SdkWarmUp.class);
 
-    private static final Object PRIME_LOCK = new Object();
+    private static final Object WARM_UP_LOCK = new Object();
 
-    private static volatile boolean primed = false;
+    private static volatile boolean warmedUp = false;
 
     // Tracks per-service work already done, keyed by service-client class name.
-    private static final PrimedClientRegistry PRIMED_CLIENTS = new PrimedClientRegistry();
+    private static final WarmedClientRegistry WARMED_CLIENTS = new WarmedClientRegistry();
 
     // Tracks the service-independent HTTP-layer warm-up, keyed by client type, so it runs at most once per type.
     private static final WarmedHttpClientTypeRegistry WARMED_HTTP_CLIENT_TYPES = new WarmedHttpClientTypeRegistry();
@@ -76,34 +76,34 @@ public final class SdkWarmUp {
      * on each, honoring the idempotency, per-provider resilience, and empty-classpath behavior described on
      * this class. Safe to call concurrently.
      *
-     * <p>This method and {@link #warmUp(Class[])} track primed state independently: this method warms
+     * <p>This method and {@link #warmUp(Class[])} track warmed state independently: this method warms
      * every provider and does not skip clients that were warmed by a targeted {@link #warmUp(Class[])} call.
      */
     public static void warmUp() {
-        if (primed) {
+        if (warmedUp) {
             return;
         }
-        synchronized (PRIME_LOCK) {
-            if (primed) {
+        synchronized (WARM_UP_LOCK) {
+            if (warmedUp) {
                 return;
             }
-            // Set primed only after invokeAll() succeeds, so a failed run leaves primed false and a later call retries.
+            // Set warmedUp only after invokeAll() succeeds, so a failed run leaves it false and a later call retries.
             ClasspathWarmUpInvoker.create().invokeAll();
             ClasspathHttpWarmupInvoker.create().invokeAll();
-            primed = true;
+            warmedUp = true;
         }
     }
 
     /**
-     * Primes only the given service clients, warming the sync path for a sync client and the async path for an async
-     * client. A client already primed by this method is skipped; a class matched by no provider, or whose warm-up
+     * Warms up only the given service clients, warming the sync path for a sync client and the async path for an async
+     * client. A client already warmed by this method is skipped; a class matched by no provider, or whose warm-up
      * fails, is logged at warn and retried on the next call. The HTTP clients on the classpath are warmed at most
      * once across all calls to this method. Best-effort and safe to call concurrently.
      *
-     * <p>This method and {@link #warmUp()} track primed state independently: this method does not skip
+     * <p>This method and {@link #warmUp()} track warmed state independently: this method does not skip
      * clients that {@link #warmUp()} already warmed.
      *
-     * @param clients the service client classes to prime, for example {@code ServiceClient.class} or
+     * @param clients the service client classes to warm up, for example {@code ServiceClient.class} or
      *                {@code ServiceAsyncClient.class}.
      */
     @SafeVarargs
@@ -119,17 +119,17 @@ public final class SdkWarmUp {
                 requested.add(client.getName());
             }
         }
-        Set<String> toPrime = PRIMED_CLIENTS.selectUnprimed(requested);
-        if (toPrime.isEmpty()) {
+        Set<String> toWarmUp = WARMED_CLIENTS.selectUnwarmed(requested);
+        if (toWarmUp.isEmpty()) {
             return;
         }
 
         // Racing calls may double-warm the same client; warming is idempotent, so that is harmless.
-        TargetedWarmUpResult result = TargetedWarmUpInvoker.create().invoke(toPrime);
+        TargetedWarmUpResult result = TargetedWarmUpInvoker.create().invoke(toWarmUp);
         warmHttpClientsOnce(result.matchedClientTypes());
 
         // Only successfully warmed names are recorded; unmatched or failed ones are retried on a later call.
-        PRIMED_CLIENTS.markPrimed(result.warmedClientNames());
+        WARMED_CLIENTS.markWarmed(result.warmedClientNames());
     }
 
     /**

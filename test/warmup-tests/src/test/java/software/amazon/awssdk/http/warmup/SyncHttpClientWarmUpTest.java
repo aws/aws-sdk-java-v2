@@ -87,7 +87,7 @@ class SyncHttpClientWarmUpTest {
     }
 
     /**
-     * Exercises the real classpath-discovery path used by {@code prime()}: {@code warmAll()} discovers every sync
+     * Exercises the real classpath-discovery path used by {@code warmUp()}: {@code warmAll()} discovers every sync
      * {@link SdkHttpService} on the classpath via {@link ServiceLoader} and warms each. Confirms discovery finds all
      * {@value #SYNC_CLIENT_COUNT} clients and that each receives exactly one warm-up GET.
      */
