@@ -64,7 +64,6 @@
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequestTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/HashKeyOnlyTableWithGSITest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/MapperLoadingStrategyConfigTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/ScanTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/test/AWSIntegrationTestBase.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/DynamoDBTableResource.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/ResourceCentricBlockJUnit4ClassRunner.java</testExclude>
