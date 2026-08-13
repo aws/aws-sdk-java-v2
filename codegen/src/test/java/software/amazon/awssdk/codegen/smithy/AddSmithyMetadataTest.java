@@ -20,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.smithy.model.Model;
@@ -167,6 +168,61 @@ class AddSmithyMetadataTest {
             "use smithy.protocols#rpcv2Cbor\n",
             "@rpcv2Cbor(http: [\"http/1.1\", \"h2\"], eventStreamHttp: [\"h2\"])\n", ""));
         assertThat(metadata.supportsH2()).isTrue();
+    }
+
+    // ---- auth / authType --------------------------------------------------
+
+    // The EC2 case: no @auth, so the value comes from the applied auth trait.
+    @Test
+    void noAuthTrait_fallsBackToAppliedSigV4() {
+        Metadata metadata = metadataOf(modelOf(
+            "use aws.protocols#restJson1\n", "@restJson1\n", ""));
+        assertThat(metadata.getAuth()).containsExactly(AuthType.V4);
+        assertThat(metadata.getAuthType()).isEqualTo(AuthType.V4);
+    }
+
+    // Order is load-bearing, so assert it against the reverse of the declaration order.
+    @Test
+    void explicitAuthTrait_mappedInDeclaredOrder() {
+        Metadata metadata = metadataOf(modelOf(
+            "use aws.protocols#restJson1\n",
+            "@restJson1\n@httpBearerAuth\n@auth([httpBearerAuth, sigv4])\n", ""));
+        assertThat(metadata.getAuth()).containsExactly(AuthType.BEARER, AuthType.V4);
+    }
+
+    // An empty @auth is a different input from no @auth, and takes the other branch.
+    @Test
+    void emptyAuthTrait_isEmpty() {
+        Metadata metadata = metadataOf(modelOf(
+            "use aws.protocols#restJson1\n", "@restJson1\n@auth([])\n", ""));
+        assertThat(metadata.getAuth()).isEmpty();
+    }
+
+    // authType only looks for sigv4, so a bearer-only service has none.
+    @Test
+    void noSigV4_bearerOnly_fallsBackToBearer() {
+        Metadata metadata = metadataOf(modelWithoutSigV4("@httpBearerAuth\n"));
+        assertThat(metadata.getAuth()).containsExactly(AuthType.BEARER);
+        assertThat(metadata.getAuthType()).isNull();
+    }
+
+    private static Model modelWithoutSigV4(String serviceTraits) {
+        String src =
+            "$version: \"2.0\"\nnamespace demo\n\n"
+            + "use aws.api#service\n"
+            + "use aws.protocols#restJson1\n\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@restJson1\n"
+            + serviceTraits
+            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest {}\n"
+            + "structure OpResponse {}\n";
+        return Model.assembler()
+                    .discoverModels(Model.class.getClassLoader())
+                    .addUnparsedModel("test.smithy", src)
+                    .assemble()
+                    .unwrap();
     }
 
     private static Model modelWithServiceTrait(String serviceTrait) {
