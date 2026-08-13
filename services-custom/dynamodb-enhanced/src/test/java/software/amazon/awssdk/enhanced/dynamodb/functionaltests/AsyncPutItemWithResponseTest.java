@@ -16,15 +16,18 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
-import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
@@ -161,5 +164,31 @@ public class AsyncPutItemWithResponseTest extends LocalDynamoDbAsyncTestBase {
                                                                .join();
 
         assertThat(response.consumedCapacity()).isNull();
+    }
+
+    @Test
+    public void putItemWithResponse_returnAllOld_shouldInvokeExtensionOnReturnedValues() {
+        DynamoDbEnhancedClientExtension extension = Mockito.spy(new NoOpExtension());
+        DynamoDbEnhancedAsyncClient extensionClient = DynamoDbEnhancedAsyncClient.builder()
+                                                                                 .dynamoDbClient(getDynamoDbAsyncClient())
+                                                                                 .extensions(extension)
+                                                                                 .build();
+        DynamoDbAsyncTable<Record> extensionTable =
+            extensionClient.table(getConcreteTableName("table-name-extension"), TABLE_SCHEMA);
+        extensionTable.createTable(r -> r.provisionedThroughput(getDefaultProvisionedThroughput())).join();
+
+        Record original = new Record().setId(77).setStringAttr1("a");
+        extensionTable.putItem(original).join();
+        Record update = new Record().setId(77).setStringAttr1("b");
+        extensionTable.putItemWithResponse(r -> r.returnValues(ReturnValue.ALL_OLD).item(update)).join();
+
+        Mockito.verify(extension, Mockito.times(1)).afterRead(any(DynamoDbExtensionContext.AfterRead.class));
+        Mockito.verify(extension, Mockito.times(2)).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
+        getDynamoDbAsyncClient().deleteTable(DeleteTableRequest.builder()
+                                                               .tableName(getConcreteTableName("table-name-extension"))
+                                                               .build()).join();
+    }
+
+    private static class NoOpExtension implements DynamoDbEnhancedClientExtension {
     }
 }
