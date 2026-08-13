@@ -32,6 +32,8 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBScanExpression;
+import software.amazon.awssdk.mapper.dynamodb.QueryResultPage;
+import software.amazon.awssdk.mapper.dynamodb.ScanResultPage;
 import software.amazon.awssdk.mapper.dynamodb.shape.ShapeItems.StringItem;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -117,6 +119,27 @@ public class ShapeResponseBehaviorTest {
         ArgumentCaptor<QueryRequest> queryCaptor = ArgumentCaptor.forClass(QueryRequest.class);
         verify(ddb, times(2)).query(queryCaptor.capture());
         assertEquals(lastKey, queryCaptor.getAllValues().get(1).exclusiveStartKey());
+    }
+
+    @Test
+    public void queryPage_lastEvaluatedKeyIsNull_whenServiceReturnsEmptyKey() {
+        when(ddb.query(any(QueryRequest.class)))
+                .thenReturn(QueryResponse.builder().items(item("a")).build());
+
+        QueryResultPage<StringItem> page = mapper.queryPage(StringItem.class,
+                new DynamoDBQueryExpression<StringItem>().withHashKeyValues(key()));
+
+        assertNull(page.getLastEvaluatedKey());
+    }
+
+    @Test
+    public void scanPage_lastEvaluatedKeyIsNull_whenServiceReturnsEmptyKey() {
+        when(ddb.scan(any(ScanRequest.class)))
+                .thenReturn(ScanResponse.builder().items(item("a")).build());
+
+        ScanResultPage<StringItem> page = mapper.scanPage(StringItem.class, new DynamoDBScanExpression());
+
+        assertNull(page.getLastEvaluatedKey());
     }
 
     private static StringItem key() {

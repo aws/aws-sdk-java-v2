@@ -1497,6 +1497,12 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         return list == null || list.isEmpty();
     }
 
+    /** Normalizes v2's empty (non-null) final-page LastEvaluatedKey back to null per the ResultPage contract. */
+    private static Map<String, AttributeValue> lastEvaluatedKeyOrNull(boolean hasLastEvaluatedKey,
+                                                                      Map<String, AttributeValue> lastEvaluatedKey) {
+        return hasLastEvaluatedKey && !lastEvaluatedKey.isEmpty() ? lastEvaluatedKey : null;
+    }
+
     /**
      * Determnes if any of the primary keys require auto-generation.
      */
@@ -1600,7 +1606,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             toParameters(scanResult.items(), clazz, scanRequest.tableName(), config);
 
         result.setResults(marshallIntoObjects(parameters));
-        result.setLastEvaluatedKey(scanResult.lastEvaluatedKey());
+        result.setLastEvaluatedKey(lastEvaluatedKeyOrNull(scanResult.hasLastEvaluatedKey(), scanResult.lastEvaluatedKey()));
         result.setCount(scanResult.count());
         result.setScannedCount(scanResult.scannedCount());
         result.setConsumedCapacity(scanResult.consumedCapacity());
@@ -1635,7 +1641,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             toParameters(queryResult.items(), clazz, queryRequest.tableName(), config);
 
         result.setResults(marshallIntoObjects(parameters));
-        result.setLastEvaluatedKey(queryResult.lastEvaluatedKey());
+        result.setLastEvaluatedKey(lastEvaluatedKeyOrNull(queryResult.hasLastEvaluatedKey(), queryResult.lastEvaluatedKey()));
         result.setCount(queryResult.count());
         result.setScannedCount(queryResult.scannedCount());
         result.setConsumedCapacity(queryResult.consumedCapacity());
