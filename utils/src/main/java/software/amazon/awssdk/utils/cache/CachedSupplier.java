@@ -64,6 +64,16 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      */
     private static final Duration STATIC_STABILITY_BACKOFF_MAX = Duration.ofMinutes(10);
 
+    /**
+     * Minimum cache duration for a non-recoverable error (inclusive).
+     */
+    private static final int NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS = 1;
+
+    /**
+     * Maximum cache duration for a non-recoverable error (inclusive).
+     */
+    private static final int NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS = 5;
+
 
     /**
      * Used as a primitive form of rate limiting for the speed of our refreshes. This will make sure that the backing supplier has
@@ -127,6 +137,23 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * <p>This field is NEVER modified by {@code invalidate()} — backoff remains independently tracked.
      */
     private volatile Instant nextAllowedRefreshTime;
+
+    /**
+     * The most recent non-recoverable error returned by the credential source. While {@link #cachedNonRecoverableErrorExpiresAt}
+     * is in the future, subsequent refresh attempts re-raise this error without contacting the source. This protects the
+     * credential source from callers that catch and retry in a tight loop.
+     *
+     * <p>Set under {@link #refreshLock}. Cleared on successful refresh.
+     */
+    private volatile RuntimeException cachedNonRecoverableError;
+
+    /**
+     * The expiration time for {@link #cachedNonRecoverableError}. After this instant, the next refresh attempt will contact
+     * the credential source again instead of re-raising the cached error.
+     *
+     * <p>Set under {@link #refreshLock}. Cleared on successful refresh.
+     */
+    private volatile Instant cachedNonRecoverableErrorExpiresAt;
 
     private CachedSupplier(Builder<T> builder) {
         Validate.notNull(builder.supplier, "builder.supplier");
@@ -262,6 +289,31 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     /**
+     * Returns {@code true} if a non-recoverable error is cached and has not yet expired. While this returns
+     * {@code true}, refresh attempts re-raise the cached error without contacting the credential source.
+     *
+     * <p>Must be called under {@link #refreshLock}.
+     */
+    private boolean nonRecoverableErrorCached() {
+        RuntimeException error = this.cachedNonRecoverableError;
+        Instant expiresAt = this.cachedNonRecoverableErrorExpiresAt;
+        return error != null && expiresAt != null && clock.instant().isBefore(expiresAt);
+    }
+
+    /**
+     * Caches a non-recoverable error for a short jittered duration (1-5 seconds). This prevents a caller that catches
+     * and retries in a loop from hammering the credential source with requests that are known to fail.
+     *
+     * <p>Must be called under {@link #refreshLock}.
+     */
+    private void cacheNonRecoverableError(RuntimeException error, Instant now) {
+        this.cachedNonRecoverableError = error;
+        int cacheSeconds = NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS
+            + jitterRandom.nextInt(NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS - NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS + 1);
+        this.cachedNonRecoverableErrorExpiresAt = now.plusSeconds(cacheSeconds);
+    }
+
+    /**
      * Initiate a pre-fetch of the data using the configured {@link #prefetchStrategy}.
      */
     private void prefetchCache() {
@@ -280,6 +332,12 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
             try {
                 // Make sure the value was not refreshed while we waited for the lock.
                 if (cacheIsStale() || shouldInitiateCachePrefetch()) {
+                    // Check if a non-recoverable error is still cached. If so, re-raise it without
+                    // contacting the credential source.
+                    if (nonRecoverableErrorCached()) {
+                        throw cachedNonRecoverableError;
+                    }
+
                     log.debug(() -> "(" + cachedValueName + ") Refreshing cached value.");
 
                     // It wasn't, call the supplier to update it.
@@ -320,6 +378,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
         if (now.isBefore(fetch.staleTime())) {
             this.nextAllowedRefreshTime = null; // Clear backoff gate on success
+            this.cachedNonRecoverableError = null; // Clear any cached non-recoverable error
+            this.cachedNonRecoverableErrorExpiresAt = null;
             return fetch;
         }
 
@@ -366,6 +426,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
 
         RefreshResult<T> currentCachedValue = cachedValue;
         if (currentCachedValue == null) {
+            // No cached value. Cache the error if it's non-recoverable (protects the source on initial fetch loops).
+            if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
+                cacheNonRecoverableError(e, clock.instant());
+            }
             throw e;
         }
 
@@ -375,8 +439,10 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                 case STRICT:
                     throw e;
                 case ALLOW:
-                    // Non-recoverable errors bypass static stability
+                    // Non-recoverable errors bypass static stability but are cached briefly
+                    // to protect the credential source from tight retry loops.
                     if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
+                        cacheNonRecoverableError(e, now);
                         throw e;
                     }
 
@@ -399,6 +465,7 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
         // Not yet stale — we're in the prefetch window. Handle failure based on mode.
         if (staleValueBehavior == StaleValueBehavior.ALLOW) {
             if (nonRecoverableErrorPredicate != null && nonRecoverableErrorPredicate.test(e)) {
+                cacheNonRecoverableError(e, now);
                 throw e;
             }
 

@@ -315,6 +315,58 @@ public class LoginCredentialsProviderTest {
     }
 
     @Test
+    public void resolveCredentials_tokenExpired_cachedBriefly_immediateRetryDoesNotCallService() {
+        // Expired credentials force a refresh on every call
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        // Service returns TOKEN_EXPIRED — non-recoverable
+        stubAccessDeniedException(OAuth2ErrorCode.TOKEN_EXPIRED);
+
+        // First call: hits service, gets non-recoverable error — thrown and cached
+        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        // Second call: immediate retry — should re-raise cached error without calling service
+        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertEquals(1, mockHttpClient.getRequests().size()); // Still 1 — service NOT called again
+    }
+
+    @Test
+    public void resolveCredentials_tokenMissing_cachedBriefly_immediateRetryDoesNotReadDiskAgain() {
+        // No token on disk — will throw InvalidTokenException (non-recoverable)
+        // This is a client-side error that doesn't call the service at all
+
+        // First call: fails with missing token
+        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertEquals(0, mockHttpClient.getRequests().size()); // Service never called
+
+        // Second call: immediate retry — should re-raise cached error
+        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertEquals(0, mockHttpClient.getRequests().size()); // Service still never called
+    }
+
+    @Test
+    public void resolveCredentials_userCredentialsChanged_cachedBriefly_immediateRetryDoesNotCallService() {
+        // Expired credentials force a refresh
+        AwsSessionCredentials creds = buildCredentials(Instant.now().minusSeconds(60));
+        LoginAccessToken token = buildAccessToken(creds);
+        tokenManager.storeToken(token);
+
+        // Service returns USER_CREDENTIALS_CHANGED — non-recoverable
+        stubAccessDeniedException(OAuth2ErrorCode.USER_CREDENTIALS_CHANGED);
+
+        // First call: hits service, gets non-recoverable error — thrown and cached
+        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertEquals(1, mockHttpClient.getRequests().size());
+
+        // Second call: immediate retry — should re-raise cached error without calling service
+        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertEquals(1, mockHttpClient.getRequests().size()); // Still 1 — service NOT called again
+    }
+
+    @Test
     public void resolveCredentials_tokenCacheMissingAfterSuccessfulCache_throwsAndBypassesStaticStability() throws Exception {
         // Build a provider without async updates so refresh is synchronous
         LoginCredentialsProvider syncProvider = LoginCredentialsProvider
