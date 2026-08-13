@@ -23,11 +23,13 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,9 +38,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.mockito.Matchers.argThat;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -86,6 +91,46 @@ public class PaginatedScanTaskTest {
 
         executorService.awaitTermination(5, TimeUnit.SECONDS);
         assertTrue(executorService.isShutdown());
+    }
+
+    /**
+     * A segment that returns a last-evaluated key must be scanned again with that key as the exclusive
+     * start key of its next page, otherwise the segment re-scans from the beginning. Drives one segment
+     * across two pages and asserts its second request resumes from the first page's last-evaluated key.
+     */
+    @Test
+    public void segmentWithLastEvaluatedKey_scansNextPageFromThatKey() throws InterruptedException {
+        Map<String, AttributeValue> lastKey =
+                Collections.singletonMap("id", AttributeValue.builder().s("page1-last").build());
+
+        // Segment 0 spans two pages; the rest complete in one.
+        when(dynamoDB.scan(isSegmentNumber(0)))
+                .thenReturn(ScanResponse.builder().items(generateItems()).lastEvaluatedKey(lastKey).build())
+                .thenReturn(ScanResponse.builder().items(generateItems()).build());
+        stubSuccessfulScan(1);
+        stubSuccessfulScan(2);
+        stubSuccessfulScan(3);
+        stubSuccessfulScan(4);
+
+        while (!parallelScanTask.isAllSegmentScanFinished()) {
+            parallelScanTask.getNextBatchOfScanResults();
+        }
+
+        ArgumentCaptor<ScanRequest> captor = ArgumentCaptor.forClass(ScanRequest.class);
+        verify(dynamoDB, atLeastOnce()).scan(captor.capture());
+
+        List<ScanRequest> segmentZeroRequests = new ArrayList<ScanRequest>();
+        for (ScanRequest request : captor.getAllValues()) {
+            if (request.segment() == 0) {
+                segmentZeroRequests.add(request);
+            }
+        }
+
+        assertEquals("segment 0 should have been scanned twice", 2, segmentZeroRequests.size());
+        assertTrue("page 1 must not carry an exclusive start key",
+                segmentZeroRequests.get(0).exclusiveStartKey().isEmpty());
+        assertEquals("page 2 must resume from page 1's last-evaluated key",
+                lastKey, segmentZeroRequests.get(1).exclusiveStartKey());
     }
 
     /**

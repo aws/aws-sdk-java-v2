@@ -1004,8 +1004,6 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
                 AttributeValueUpdate update = updateValues.get(entry.getKey());
                 if (update != null) {
-                    // v2 model types are immutable; replace the update's value
-                    // with the transformed AttributeValue rather than mutating.
                     updateValues.put(entry.getKey(),
                                      update.toBuilder().value(entry.getValue()).build());
                 } else {

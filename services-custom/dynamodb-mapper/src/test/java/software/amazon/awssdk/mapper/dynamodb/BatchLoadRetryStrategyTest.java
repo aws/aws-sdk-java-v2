@@ -32,6 +32,7 @@ import java.util.Map;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -158,6 +159,29 @@ public class BatchLoadRetryStrategyTest {
         context.setBatchGetItemResult(itemResult);
         context.setRetriesAttempted(2);
         assertTrue(defaultRetryStrategy.getDelayBeforeNextRetry(context) > 0);
+    }
+
+    @Test
+    public void testBatchLoad_splitsAtHundredKeyBoundary() {
+        when(ddbMock.batchGetItem(any(BatchGetItemRequest.class))).thenReturn(buildDefaultGetItemResult());
+        mapper = new DynamoDBMapper(ddbMock);
+
+        List<Item> manyItems = new ArrayList<Item>();
+        for (int i = 0; i < 101; i++) {
+            manyItems.add(new Item("hash" + i));
+        }
+
+        mapper.batchLoad(manyItems);
+
+        ArgumentCaptor<BatchGetItemRequest> captor = ArgumentCaptor.forClass(BatchGetItemRequest.class);
+        verify(ddbMock, times(2)).batchGetItem(captor.capture());
+
+        List<BatchGetItemRequest> requests = captor.getAllValues();
+        KeysAndAttributes firstChunk = requests.get(0).requestItems().get(TABLE_NAME);
+        KeysAndAttributes secondChunk = requests.get(1).requestItems().get(TABLE_NAME);
+
+        assertEquals("first chunk fills the 100-key boundary", 100, firstChunk.keys().size());
+        assertEquals("second chunk carries the remaining key", 1, secondChunk.keys().size());
     }
 
     private DynamoDBMapperConfig getConfigWithCustomBatchLoadRetryStrategy(final BatchLoadRetryStrategy batchReadRetryStrategy) {
