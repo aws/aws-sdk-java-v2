@@ -15,11 +15,16 @@
 
 package software.amazon.awssdk.codegen.lite.maven.plugin;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
@@ -50,6 +55,8 @@ public class RegionGenerationMojo extends AbstractMojo {
     private static final String SERVICE_METADATA_BASE = "software.amazon.awssdk.regions.servicemetadata";
     private static final String REGION_METADATA_BASE = "software.amazon.awssdk.regions.regionmetadata";
     private static final String REGION_BASE = "software.amazon.awssdk.regions";
+    private static final String SERVICE_METADATA_ALLOWLIST_PATH =
+        "/software/amazon/awssdk/codegen/lite/service-metadata-allowlist.txt";
 
     @Parameter(property = "outputDirectory", defaultValue = "${project.build.directory}")
     private String outputDirectory;
@@ -68,21 +75,28 @@ public class RegionGenerationMojo extends AbstractMojo {
     @Override
     public void execute() throws MojoExecutionException {
         Path baseSourcesDirectory = Paths.get(outputDirectory).resolve("generated-sources").resolve("sdk");
-        Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
         Partitions partitions = RegionMetadataLoader.build(endpoints);
         PartitionsRegionsMetadata regionPartitions = PartitionsRegionsMetadataLoader.build(partitionsJson);
 
+        Set<String> allEndpointServices = new HashSet<>();
+        partitions.getPartitions().forEach(p -> allEndpointServices.addAll(p.getServices().keySet()));
+        Set<String> allowedServices = loadServiceMetadataAllowlist();
+        Set<String> effectiveServices = allowedServices.stream()
+                                                       .filter(allEndpointServices::contains)
+                                                       .collect(Collectors.toSet());
+
         generatePartitionMetadataClass(baseSourcesDirectory, regionPartitions);
         generateRegionClass(baseSourcesDirectory, regionPartitions);
-        generateServiceMetadata(baseSourcesDirectory, partitions);
+        generateServiceMetadata(baseSourcesDirectory, partitions, effectiveServices);
         generateRegions(baseSourcesDirectory, regionPartitions);
         generatePartitionProvider(baseSourcesDirectory, regionPartitions);
         generateRegionProvider(baseSourcesDirectory, regionPartitions);
-        generateServiceProvider(baseSourcesDirectory, partitions);
+        generateServiceProvider(baseSourcesDirectory, effectiveServices);
         generateEndpointTags(baseSourcesDirectory, partitions);
 
         project.addCompileSourceRoot(baseSourcesDirectory.toFile().getAbsolutePath());
+        Path testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
         project.addTestCompileSourceRoot(testsDirectory.toFile().getAbsolutePath());
     }
 
@@ -100,15 +114,13 @@ public class RegionGenerationMojo extends AbstractMojo {
         new CodeGenerator(sourcesDirectory.toString(), new RegionGenerator(partitions, REGION_BASE)).generate();
     }
 
-    public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateServiceMetadata(Path baseSourcesDirectory, Partitions partitions, Set<String> effectiveServices) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(SERVICE_METADATA_BASE, ".", "/"));
-        Set<String> services = new HashSet<>();
-        partitions.getPartitions().forEach(p -> services.addAll(p.getServices().keySet()));
-
-        services.forEach(s -> new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataGenerator(partitions,
-                                                                                                          s,
-                                                                                                          SERVICE_METADATA_BASE,
-                                                                                                          REGION_BASE))
+        effectiveServices.forEach(s -> new CodeGenerator(sourcesDirectory.toString(),
+                                                         new ServiceMetadataGenerator(partitions,
+                                                                                      s,
+                                                                                      SERVICE_METADATA_BASE,
+                                                                                      REGION_BASE))
             .generate());
     }
 
@@ -141,16 +153,30 @@ public class RegionGenerationMojo extends AbstractMojo {
             .generate();
     }
 
-    public void generateServiceProvider(Path baseSourcesDirectory, Partitions partitions) {
+    public void generateServiceProvider(Path baseSourcesDirectory, Set<String> effectiveServices) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
-        new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataProviderGenerator(partitions,
-                                                                                            SERVICE_METADATA_BASE,
-                                                                                            REGION_BASE))
+        new CodeGenerator(sourcesDirectory.toString(), new ServiceMetadataProviderGenerator(SERVICE_METADATA_BASE,
+                                                                                            REGION_BASE,
+                                                                                            effectiveServices))
             .generate();
     }
 
     public void generateEndpointTags(Path baseSourcesDirectory, Partitions partitions) {
         Path sourcesDirectory = baseSourcesDirectory.resolve(StringUtils.replace(REGION_BASE, ".", "/"));
         new CodeGenerator(sourcesDirectory.toString(), new EndpointTagGenerator(partitions, REGION_BASE)).generate();
+    }
+
+    private Set<String> loadServiceMetadataAllowlist() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+                Objects.requireNonNull(RegionGenerationMojo.class.getResourceAsStream(SERVICE_METADATA_ALLOWLIST_PATH),
+                    "Failed to load service-metadata-allowlist.txt"),
+                StandardCharsets.UTF_8))) {
+            return reader.lines()
+                         .map(String::trim)
+                         .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                         .collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load service-metadata-allowlist.txt", e);
+        }
     }
 }
