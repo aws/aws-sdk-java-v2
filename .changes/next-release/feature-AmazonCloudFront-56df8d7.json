@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Adds SHA256 support to CloudFrontUtilities"
-}

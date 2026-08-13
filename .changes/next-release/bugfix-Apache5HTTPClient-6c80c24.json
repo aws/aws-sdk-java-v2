@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Apache 5 HTTP Client",
-    "contributor": "",
-    "description": "Trimmed surrounding whitespace from `nonProxyHosts` / `no_proxy` entries so comma- or pipe-separated values with spaces (e.g. `no_proxy=a.com, *.foo.com`) are honored. Previously an entry with a leading or trailing space was treated as part of the host name and never matched, so the host was routed through the proxy instead of bypassing it."
-}

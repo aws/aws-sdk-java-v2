@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT HTTP Client",
-    "contributor": "",
-    "description": "Honor wildcard `nonProxyHosts` entries in CRT-based HTTP clients (`AwsCrtHttpClient`, `AwsCrtAsyncHttpClient`, and the S3/CRT client). Previously a `*.suffix` wildcard or a bare `*` from `http.nonProxyHosts`/`no_proxy` was silently ignored, so matching hosts were routed through the proxy instead of bypassing it. Supported forms are an exact host, a `*.suffix` wildcard (matches the domain and its subdomains), a single `*` for all hosts, and CIDR ranges. Entries must not contain surrounding whitespace."
-}
