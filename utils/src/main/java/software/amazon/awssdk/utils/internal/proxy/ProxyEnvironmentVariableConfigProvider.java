@@ -96,4 +96,12 @@ public class ProxyEnvironmentVariableConfigProvider implements ProxyConfigProvid
     public Set<String> nonProxyHosts() {
         return parseNonProxyHostsEnvironmentVariable();
     }
+
+    @Override
+    public Set<String> rawNonProxyHosts() {
+        String hosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue()
+                                                       .map(noProxyHost -> noProxyHost.replace(",", "|"))
+                                                       .orElse(null);
+        return ProxyUtils.splitToGlobTokens(hosts);
+    }
 }
