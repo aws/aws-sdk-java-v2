@@ -275,18 +275,6 @@ public class EndpointRulesSpecUtils {
         }
     }
 
-    public List<String> rulesEngineResourceFiles2() {
-        URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
-        try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
-            return jarFile.stream()
-                          .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules2/"))
-                          .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-    }
-
     public Map<String, ParameterModel> parameters() {
         return intermediateModel.getEndpointRuleSetModel().getParameters();
     }
