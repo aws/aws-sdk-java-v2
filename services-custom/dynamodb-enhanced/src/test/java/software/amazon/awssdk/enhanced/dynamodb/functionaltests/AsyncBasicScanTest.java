@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.hasSize;
@@ -26,13 +25,13 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -370,7 +369,7 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void scanRecords_withEmptyNestedAttributeName_shouldThrowAssertionError() {
+    public void scanRecords_withEmptyNestedAttributeName_shouldThrowCompletionException() {
         insertNestedRecords();
         Map<String, AttributeValue> expressionValues = new HashMap<>();
         expressionValues.put(":min_value", numberValue(3));
@@ -381,18 +380,18 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
                                           .putExpressionName("#sort", "sort")
                                           .build();
 
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(
-            () -> drainPublisher(mappedNestedTable.scan(ScanEnhancedRequest.builder()
-                                                                            .filterExpression(expression)
-                                                                            .addNestedAttributesToProject(NestedAttributeName.builder()
-                                                                                                                    .elements("")
-                                                                                                                    .build())
-                                                                            .build()),
-                                1));
+        drainPublisherToError(mappedNestedTable.scan(ScanEnhancedRequest.builder()
+                                                                        .filterExpression(expression)
+                                                                        .addNestedAttributesToProject(NestedAttributeName.builder()
+                                                                                                                .elements("")
+                                                                                                                .build())
+                                                                        .build()),
+                              0,
+                              CompletionException.class);
     }
 
     @Test
-    public void scanRecords_withEmptyTopLevelAttributeName_shouldThrowAssertionError() {
+    public void scanRecords_withEmptyTopLevelAttributeName_shouldThrowCompletionException() {
         insertNestedRecords();
         Map<String, AttributeValue> expressionValues = new HashMap<>();
         expressionValues.put(":min_value", numberValue(3));
@@ -402,12 +401,12 @@ public class AsyncBasicScanTest extends LocalDynamoDbAsyncTestBase {
                                           .expressionValues(expressionValues)
                                           .putExpressionName("#sort", "sort")
                                           .build();
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(
-            () -> drainPublisher(mappedNestedTable.scan(ScanEnhancedRequest.builder()
-                                                                            .filterExpression(expression)
-                                                                            .addAttributeToProject("")
-                                                                            .build()),
-                                1));
+        drainPublisherToError(mappedNestedTable.scan(ScanEnhancedRequest.builder()
+                                                                        .filterExpression(expression)
+                                                                        .addAttributeToProject("")
+                                                                        .build()),
+                              0,
+                              CompletionException.class);
     }
 
     private Map<String, AttributeValue> getKeyMap(int sort) {

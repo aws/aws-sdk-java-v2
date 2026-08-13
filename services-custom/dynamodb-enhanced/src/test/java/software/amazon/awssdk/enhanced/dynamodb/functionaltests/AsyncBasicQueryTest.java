@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.is;
@@ -33,6 +32,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.After;
@@ -414,22 +414,22 @@ public class AsyncBasicQueryTest extends LocalDynamoDbAsyncTestBase {
     }
 
     @Test
-    public void queryRecords_withEmptyProjectionString_shouldThrowAssertionError() {
+    public void queryRecords_withEmptyProjectionString_shouldThrowCompletionException() {
         insertNestedRecords();
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(
-            () -> drainPublisher(
-                mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-3")))
-                                            .attributesToProject("")),
-                1));
+        drainPublisherToError(
+            mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-3")))
+                                          .attributesToProject("")),
+            0,
+            CompletionException.class);
     }
 
     @Test
-    public void queryRecords_withEmptyNestedProjectionName_shouldThrowAssertionError() {
+    public void queryRecords_withEmptyNestedProjectionName_shouldThrowCompletionException() {
         insertNestedRecords();
-        assertThatExceptionOfType(AssertionError.class).isThrownBy(
-            () -> drainPublisher(
-                mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-3")))
-                                            .addNestedAttributeToProject(NestedAttributeName.create(""))),
-                1));
+        drainPublisherToError(
+            mappedNestedTable.query(b -> b.queryConditional(keyEqualTo(k -> k.partitionValue("id-value-3")))
+                                          .addNestedAttributeToProject(NestedAttributeName.create(""))),
+            0,
+            CompletionException.class);
     }
 }

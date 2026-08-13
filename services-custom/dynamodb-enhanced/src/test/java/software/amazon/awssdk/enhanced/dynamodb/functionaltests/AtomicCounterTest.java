@@ -244,6 +244,9 @@ public class AtomicCounterTest extends LocalDynamoDbSyncTestBase {
 
         AtomicCounterRecord persisted = mappedTable.getItem(update);
         assertThat(persisted.getAttribute1()).isEqualTo("updated");
+        // AtomicCounterRecord annotations: defaultCounter (delta=1, start=0), customCounter (delta=5, start=10),
+        // decreasingCounter (delta=-1, start=-20). putItem initializes counters to start values; the following
+        // updateItem adds one delta: 0+1=1, 10+5=15, -20-1=-21.
         assertThat(persisted.getDefaultCounter()).isEqualTo(1L);
         assertThat(persisted.getCustomCounter()).isEqualTo(15L);
         assertThat(persisted.getDecreasingCounter()).isEqualTo(-21L);
