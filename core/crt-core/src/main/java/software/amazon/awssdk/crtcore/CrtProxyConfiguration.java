@@ -259,6 +259,9 @@ public abstract class CrtProxyConfiguration {
          * are not provided during building the {@link CrtProxyConfiguration} object. To disable this behaviour, set this value to
          * false.It is important to note that when this property is set to "true," all proxy settings will exclusively originate
          * from system properties, and no partial settings will be obtained from EnvironmentVariableValues.
+         * <p>Pipe-separated host names in the {@code http.nonProxyHosts} system property indicate multiple hosts to exclude
+         * from proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com|b.com"} and
+         * {@code "a.com | b.com"} are accepted.
          *
          * @param useSystemPropertyValues The option whether to use system property values
          * @return This object for method chaining.
@@ -272,7 +275,8 @@ public abstract class CrtProxyConfiguration {
          * value to false.It is important to note that when this property is set to "true," all proxy settings will exclusively
          * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
          * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
-         * proxy settings.
+         * proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com,b.com"} and
+         * {@code "a.com, b.com"} are accepted.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values
          * @return This object for method chaining.
