@@ -333,4 +333,20 @@ public class SdkHttpUtilsTest {
             }
         }
     }
+
+    @Test
+    void parseListOfNonProxyHostWithCommaSpace_trimsSurroundingWhitespace(){
+        String multipleHostNames = "example.com, *greedy.org, 192.168.1.1";
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", multipleHostNames);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEqualTo(Stream.of("example.com", ".*?greedy.org", "192.168.1.1")
+                                            .collect(Collectors.toSet()));
+    }
+
+    @Test
+    void parseNonProxyHostWithSurroundingWhitespace_isTrimmed(){
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", "   example.com   ");
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).containsExactly("example.com");
+    }
 }
