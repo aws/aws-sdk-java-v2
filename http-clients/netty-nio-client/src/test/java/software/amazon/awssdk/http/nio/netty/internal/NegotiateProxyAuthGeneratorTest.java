@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -119,6 +120,32 @@ public class NegotiateProxyAuthGeneratorTest {
         URI proxyEndpoint = URI.create("https://localhost:8192");
 
         assertThat(authGenerator.generateAuthParams(proxyEndpoint)).startsWith("YII");
+    }
+
+    @Test
+    void generateAuthParams_ticketCacheMissing_failsWithActionableMessage() {
+        Configuration missingCacheConfig = new Configuration() {
+            @Override
+            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+                Map<String, String> opts = new HashMap<>();
+                opts.put("useTicketCache", "true");
+                opts.put("ticketCache", tempDir.resolve("nonexistent-cache").toAbsolutePath().toString());
+                opts.put("doNotPrompt", "true");
+                opts.put("refreshKrb5Config", "true");
+                return new AppConfigurationEntry[] {
+                    new AppConfigurationEntry(
+                        "com.sun.security.auth.module.Krb5LoginModule",
+                        AppConfigurationEntry.LoginModuleControlFlag.REQUIRED, opts)
+                };
+            }
+        };
+
+        NegotiateProxyAuthGenerator authGenerator = new NegotiateProxyAuthGenerator(missingCacheConfig);
+
+        assertThatThrownBy(() -> authGenerator.generateAuthParams(URI.create("https://localhost:8192")))
+            .isInstanceOf(RuntimeException.class)
+            .hasMessageContaining("kinit")
+            .hasMessageContaining("ticket cache");
     }
 
 }

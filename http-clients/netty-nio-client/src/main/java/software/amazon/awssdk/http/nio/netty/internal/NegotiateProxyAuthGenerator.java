@@ -81,7 +81,12 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
 
             return BinaryUtils.toBase64(token);
         } catch (PrivilegedActionException e) {
-            throw new RuntimeException("Unable to generate token", e);
+            throw new RuntimeException(String.format("Unable to generate SPNEGO token for Negotiate proxy authentication "
+                                                     + "with '%s@%s'. This can happen when a service ticket for the proxy "
+                                                     + "cannot be obtained from the KDC, e.g. because the ticket-granting "
+                                                     + "ticket has expired (renew with 'kinit') or the proxy host does not "
+                                                     + "match its Kerberos service principal name.",
+                                                     SERVICE_NAME, proxyEndpoint.getHost()), e);
         }
     }
 
@@ -91,7 +96,11 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
             loginContext.login();
             return loginContext.getSubject();
         } catch (LoginException e) {
-            throw new RuntimeException("Unable to perform login", e);
+            throw new RuntimeException("Unable to perform Kerberos login for Negotiate proxy authentication. This "
+                                       + "typically means the Kerberos ticket cache is missing, expired, or not readable. "
+                                       + "Ensure a valid ticket-granting ticket exists (e.g., by running 'kinit'), and that "
+                                       + "the cache is at the expected location (see the KRB5CCNAME environment variable). "
+                                       + "Verify with 'klist'.", e);
         }
     }
 
