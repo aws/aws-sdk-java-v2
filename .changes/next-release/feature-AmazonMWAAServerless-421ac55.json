@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AmazonMWAAServerless",
-    "contributor": "",
-    "description": "Adds support for Consuming code for MWAA Serverless"
-}
