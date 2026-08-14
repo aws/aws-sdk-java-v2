@@ -36,11 +36,13 @@ public class S3TestRunner implements TestRunner {
     private static final String MIMETYPE_KEY = "mimetype-key.txt";
     private static final String EXPECTED_TXT_CONTENT_TYPE = "text/plain";
     private final S3Client s3ApacheHttpClient;
+    private final S3Client s3Apache5HttpClient;
     private final S3Client s3UrlConnectionHttpClient;
     private final S3AsyncClient s3NettyClient;
 
     public S3TestRunner() {
         s3ApacheHttpClient = DependencyFactory.s3ApacheHttpClient();
+        s3Apache5HttpClient = DependencyFactory.s3Apache5HttpClient();
         s3UrlConnectionHttpClient = DependencyFactory.s3UrlConnectionHttpClient();
         s3NettyClient = DependencyFactory.s3NettyClient();
     }
@@ -59,6 +61,9 @@ public class S3TestRunner implements TestRunner {
 
             s3ApacheHttpClient.putObject(b -> b.bucket(BUCKET_NAME).key(KEY),
                                          requestBody);
+
+            s3Apache5HttpClient.putObject(b -> b.bucket(BUCKET_NAME).key(KEY),
+                                          requestBody);
 
             s3NettyClient.getObject(b -> b.bucket(BUCKET_NAME).key(KEY),
                                AsyncResponseTransformer.toBytes()).join();

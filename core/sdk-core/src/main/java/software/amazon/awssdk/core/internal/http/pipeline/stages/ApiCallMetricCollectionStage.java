@@ -40,17 +40,23 @@ public class ApiCallMetricCollectionStage<OutputT> implements RequestToResponseP
     @Override
     public Response<OutputT> execute(SdkHttpFullRequest input, RequestExecutionContext context) throws Exception {
         MetricCollector metricCollector = context.executionContext().metricCollector();
-        MetricUtils.collectServiceEndpointMetrics(metricCollector, input);
 
         // Note: at this point, any exception, even a service exception, will
         // be thrown from the wrapped pipeline so we can't use
         // MetricUtil.measureDuration()
         long callStart = System.nanoTime();
         try {
-            return wrapped.execute(input, context);
+            Response<OutputT> response = wrapped.execute(input, context);
+            return response;
         } finally {
             long d = System.nanoTime() - callStart;
             metricCollector.reportMetric(CoreMetric.API_CALL_DURATION, Duration.ofNanos(d));
+            // Collect SERVICE_ENDPOINT after pipeline execution so that EndpointResolutionStage
+            // has applied the resolved URL to the request.
+            SdkHttpFullRequest finalRequest = context.executionContext().interceptorContext().httpRequest() != null
+                ? (SdkHttpFullRequest) context.executionContext().interceptorContext().httpRequest()
+                : input;
+            MetricUtils.collectServiceEndpointMetrics(metricCollector, finalRequest);
         }
     }
 }

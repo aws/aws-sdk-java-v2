@@ -2,10 +2,16 @@ package software.amazon.awssdk.services.query;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletionException;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
@@ -16,6 +22,7 @@ import software.amazon.awssdk.core.CredentialType;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -23,6 +30,8 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
@@ -32,12 +41,19 @@ import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
+import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
+import software.amazon.awssdk.services.query.endpoints.internal.QueryEndpointResolverUtils;
 import software.amazon.awssdk.services.query.internal.QueryServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.query.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.query.model.APostOperationRequest;
@@ -92,6 +108,7 @@ import software.amazon.awssdk.services.query.transform.StreamingInputOperationRe
 import software.amazon.awssdk.services.query.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.services.query.waiters.QueryWaiter;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal implementation of {@link QueryClient}.
@@ -163,9 +180,10 @@ final class DefaultQueryClient implements QueryClient {
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
                                              .withInput(aPostOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -213,10 +231,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -259,9 +278,10 @@ final class DefaultQueryClient implements QueryClient {
                                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                                              .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
                                              .withInput(bearerAuthOperationRequest).withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions).withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -309,6 +329,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(getOperationWithChecksumRequest)
                              .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
@@ -316,7 +338,7 @@ final class DefaultQueryClient implements QueryClient {
                                              .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
                              .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -364,11 +386,13 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithChecksumRequiredRequest)
                              .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create())
                              .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -412,10 +436,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithContextParam").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -460,10 +485,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithCustomMember").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithCustomMemberRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithCustomMemberRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -509,10 +535,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
                              .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithCustomizedOperationContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithCustomizedOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -558,9 +585,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithMapOperationContextParamRequest).withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithMapOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -604,10 +633,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -652,10 +682,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithOperationContextParam").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithOperationContextParamRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithOperationContextParamRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -703,11 +734,13 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(operationWithRequestCompressionRequest)
                              .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -751,10 +784,11 @@ final class DefaultQueryClient implements QueryClient {
                              .withOperationName("OperationWithStaticContextParams").withProtocolMetadata(protocolMetadata)
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withInput(operationWithStaticContextParamsRequest)
-                             .withMetricCollector(apiCallMetricCollector)
+                             .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withMarshaller(new OperationWithStaticContextParamsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -828,6 +862,8 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(putOperationWithChecksumRequest)
                              .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .putExecutionAttribute(
                                  SdkInternalExecutionAttribute.HTTP_CHECKSUM,
                                  HttpChecksum
@@ -848,7 +884,7 @@ final class DefaultQueryClient implements QueryClient {
                                                            .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
                                                            .requestBody(requestBody).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -906,13 +942,15 @@ final class DefaultQueryClient implements QueryClient {
                              .withRequestConfiguration(clientConfiguration)
                              .withInput(streamingInputOperationRequest)
                              .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
                              .withRequestBody(requestBody)
                              .withMarshaller(
                                  StreamingRequestMarshaller.builder()
                                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
                                                            .requestBody(requestBody).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -963,10 +1001,11 @@ final class DefaultQueryClient implements QueryClient {
                     .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
                     .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                     .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector).withResponseTransformer(responseTransformer)
+                    .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint).withResponseTransformer(responseTransformer)
                     .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -1001,6 +1040,64 @@ final class DefaultQueryClient implements QueryClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
+        QueryAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(QueryAuthSchemeProvider.class, p,
+                                            "Expected an instance of QueryAuthSchemeProvider")).orElse(null);
+        QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(QueryAuthSchemeProvider.class,
+                          executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
+                          "Expected an instance of QueryAuthSchemeProvider");
+        QueryAuthSchemeParams.Builder paramsBuilder = QueryAuthSchemeParams.builder().operation(operationName);
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        return options;
+    }
+
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
+        QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+        try {
+            QueryEndpointParams endpointParams = QueryEndpointResolverUtils.ruleParams(request, executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
+            if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                Optional<String> hostPrefix = QueryEndpointResolverUtils.hostPrefix(operationName, request);
+                if (hostPrefix.isPresent()) {
+                    endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
+                }
+            }
+            List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+            SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+                selectedAuthScheme = QueryEndpointResolverUtils.authSchemeWithEndpointSignerProperties(endpointAuthSchemes,
+                                                                                                       selectedAuthScheme);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            QueryEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
+            return endpoint;
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {

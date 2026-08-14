@@ -1,0 +1,144 @@
+{
+    "version": "2.46.18",
+    "date": "2026-06-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint SMS Voice V2",
+            "contributor": "",
+            "description": "This launch is an expansion of our Q1 RCS for business launch where we will release an API that supports rich media and interactive messaging elements."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon VPC Lattice",
+            "contributor": "",
+            "description": "Amazon VPC Lattice now supports mutable idle timeout configuration on VPC Lattice Services"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "sjh9714",
+            "description": "Include the sdk-core mime.types resource in the native-image resource configuration so default MIME type detection works in GraalVM native images. Fixes [#7063](https://github.com/aws/aws-sdk-java-v2/issues/7063)"
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Adds support for AMI watermarks in Image Builder."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppConfig",
+            "contributor": "",
+            "description": "AWS AppConfig introduces Experimentation tools - enhanced capabilities within AWS AppConfig that enable you to run AB tests, multivariate tests, and gradual feature rollouts across your application stack."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Feature Store Runtime",
+            "contributor": "",
+            "description": "Add support for ListRecords and BatchWriteRecord APIs to Feature Store."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Lambda now supports self-managed S3 buckets for Lambda code storage giving you the option for Lambda to reference a copy of your source code from your own S3 buckets. This allows you to maintain a single copy of your source code and manage your own code storage limits."
+        },
+        {
+            "type": "feature",
+            "category": "AWS RDS DataService",
+            "contributor": "",
+            "description": "Updated documentation to remove Aurora Serverless V1 references."
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache 5 HTTP Client",
+            "contributor": "",
+            "description": "Update `httpcore5` to `5.4.3` to fix an issue where early 3xx responses to requests with `Expect: 100-continue` does not cause the client to terminate the request. Fixes [#7047](https://github.com/aws/aws-sdk-java-v2/issues/7047)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "AWS WAF added support for associating AWS WAF web ACLs with Amazon Bedrock AgentCore Gateway resources. You can now use AssociateWebACL, DisassociateWebACL, GetWebACLForResource, and ListResourcesForWebACL to protect your AgentCore Gateways with AWS WAF."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Amazon ECS now supports customizable deployment circuit breaker configurations. Customers can now define the failure threshold or control the failure counting mechanism."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic VMware Service",
+            "contributor": "",
+            "description": "Amazon EVS introduces a VMware Cloud Foundation (VCF) self-deployed mode, along with new connectors to VCF components such as the Operations and SDDC managers to monitor coverage and usage."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Explorer",
+            "contributor": "",
+            "description": "Added CFN resource type fields for Search and ListSupportedResourceTypes responses. Added SLRec field for ServiceView"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for the precision time strategy and a parentGroupId parameter on CreatePlacementGroup and DescribePlacementGroups. Precision time placement groups and cluster placement groups with a parent precision time placement group ensure instances launch on precision time capable hardware."
+        },
+        {
+            "type": "feature",
+            "category": "Connect Health",
+            "contributor": "",
+            "description": "Expand input validation to support Unicode characters and markdown table syntax."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Codegen",
+            "contributor": "",
+            "description": "Validate paginators before generating"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Codegen",
+            "contributor": "",
+            "description": "Add support for generating endpoint tests with integer parameter values."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Codegen now fails with a clear model validation error identifying the offending shape, member, and unresolved target when a shape member references a shape that does not exist in the model, instead of a NullPointerException during code generation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon ElastiCache",
+            "contributor": "",
+            "description": "Updated documentation for the ApplyImmediately parameter in ModifyCacheCluster and ModifyReplicationGroup to clarify modification behavior."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignServiceV2",
+            "contributor": "",
+            "description": "Adding new attributes to PutProfileOutboundRequest API that will create an outbound request call for the customer's Web Notification outbound campaign."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "This release adds the API (PutLogAlarm) to manage a new CloudWatch resource, Log Based Alarms. Log Based Alarms allows customers to alarm directly on CloudWatch Logs query results."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added the UpdateAsset operation to set the business name and description for an existing AWS Glue Data Catalog asset."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Add support for in-place Slurm version upgrades on existing clusters by accepting scheduler.version in UpdateCluster."
+        }
+    ]
+}

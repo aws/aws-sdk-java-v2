@@ -38,7 +38,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.lambda.endpoints.LambdaEndpointParams;
 import software.amazon.awssdk.services.lambda.endpoints.LambdaEndpointProvider;
-import software.amazon.awssdk.services.lambda.endpoints.internal.LambdaResolveEndpointInterceptor;
+import software.amazon.awssdk.services.lambda.endpoints.internal.LambdaEndpointResolverUtils;
 import software.amazon.awssdk.services.lambda.model.ListFunctionsRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -88,7 +88,7 @@ public class LambdaEndpointResolverBenchmark {
 
     @Benchmark
     public void resolveEndpoint(Blackhole blackhole) {
-        LambdaEndpointParams params = LambdaResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        LambdaEndpointParams params = LambdaEndpointResolverUtils.ruleParams(request, executionAttributes);
         blackhole.consume(provider.resolveEndpoint(params).join());
     }
 

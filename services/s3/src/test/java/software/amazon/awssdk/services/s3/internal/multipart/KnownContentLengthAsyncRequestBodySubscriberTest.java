@@ -17,8 +17,10 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,6 +44,8 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.internal.multipart.utils.ControlledSubscription;
+import software.amazon.awssdk.services.s3.internal.multipart.utils.ManagedUploadPart;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -259,6 +263,63 @@ public class KnownContentLengthAsyncRequestBodySubscriberTest {
         // Complete the first part — callback decrements to 1, sees 1 < 2, calls request(1)
         pendingFuture1.complete(CompletedPart.builder().partNumber(1).build());
         verify(mockSubscription, times(1)).request(1);
+    }
+
+    /**
+     * Regression test for early CompleteMultipartUpload with a missing part under low maxInFlightParts.
+     */
+    @Test
+    void lastBodyAndOnCompleteDeliveredInsideCompletionCallback_shouldCompleteWithAllParts() {
+        int maxInFlight = 2;
+        int totalParts = 5;
+        long contentSize = totalParts * PART_SIZE;
+
+        MpuRequestContext context = MpuRequestContext.builder()
+                .request(Pair.of(putObjectRequest, asyncRequestBody))
+                .contentLength(contentSize)
+                .partSize(PART_SIZE)
+                .uploadId(UPLOAD_ID)
+                .numPartsCompleted(0L)
+                .expectedNumParts(totalParts)
+                .build();
+
+        ManagedUploadPart recorder = new ManagedUploadPart();
+        when(multipartUploadHelper.sendIndividualUploadPartRequest(eq(UPLOAD_ID), any(), any(), any(), any()))
+                .thenAnswer(recorder);
+
+        KnownContentLengthAsyncRequestBodySubscriber sub = createSubscriber(context, maxInFlight);
+        ControlledSubscription controlledSubscription = new ControlledSubscription(sub);
+        sub.onSubscribe(controlledSubscription);          // requests maxInFlight upfront
+
+        controlledSubscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // part 1 starts
+        controlledSubscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // part 2 starts
+        recorder.completePart(1);                                                          // frees a slot
+        controlledSubscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // part 3 starts
+        recorder.completePart(2);
+        controlledSubscription.enqueueBodyAndDeliver(createMockAsyncRequestBody(PART_SIZE)); // part 4 starts
+
+        // Part 3 completes while the final chunk is not buffered yet: its request(1) delivers nothing.
+        recorder.completePart(3);
+
+        // The producer now queues the final body and the stream-complete signal. They will be delivered
+        // synchronously inside the next request(1), which happens in part 4's completion callback,
+        // between its decrementAndGet() (returning the stale 0) and completeMultipartUploadIfFinished.
+        controlledSubscription.enqueueBodyQuietly(createMockAsyncRequestBody(PART_SIZE));
+        controlledSubscription.enqueueStreamCompleteQuietly();
+        recorder.completePart(4);
+
+        // verify we haven't called CompleteMultipartUpload yet.
+        verify(multipartUploadHelper, never()).completeMultipartUpload(any(), any(), any(), any(), anyLong());
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
+
+        // Part 5's upload finishes; only now should CompleteMultipartUpload be sent, with all 5 parts.
+        recorder.completePart(5);
+
+        ArgumentCaptor<CompletedPart[]> partsCaptor = ArgumentCaptor.forClass(CompletedPart[].class);
+        verify(multipartUploadHelper).completeMultipartUpload(eq(returnFuture), eq(UPLOAD_ID), partsCaptor.capture(),
+                                                              eq(putObjectRequest), eq(contentSize));
+        assertThat(partsCaptor.getValue()).hasSize(totalParts).doesNotContainNull();
+        verify(multipartUploadHelper, never()).failRequestsElegantly(any(), any(), any(), any(), any());
     }
 
     private MpuRequestContext createDefaultMpuRequestContext() {

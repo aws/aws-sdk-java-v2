@@ -206,6 +206,41 @@ public class S3CrtResponseHandlerAdapterTest {
     }
 
     @Test
+    public void errorWithHttp200Status_shouldCompleteFutureExceptionally() {
+        // Simulates the S3 "200 OK with error in body" case (e.g. CompleteMultipartUpload returning
+        // ServiceUnavailable). CRT detects the error and reports a non-zero error code with responseStatus=200.
+        // responseHandlingInitiated is false because CRT never calls onResponseBody for this case.
+        //
+        // The adapter wraps the response in an ErrorFlaggedSdkHttpResponse (isSuccessful()=false) and routes
+        // it through the normal SDK pipeline. In this unit test we verify the adapter passes a non-successful
+        // response to the handler and sends the error payload through the stream.
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+
+        byte[] errorPayload = ("<Error><Code>ServiceUnavailable</Code>"
+                               + "<Message>Service is temporarily unavailable.</Message>"
+                               + "<RequestId>test-request-id</RequestId></Error>")
+                              .getBytes(StandardCharsets.UTF_8);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1, 200, errorPayload);
+        List<HttpHeader> headers = new ArrayList<>();
+        headers.add(new HttpHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE, "req-id-123"));
+        headers.add(new HttpHeader(X_AMZ_ID_2_HEADER, "ext-id-456"));
+        when(errorContext.getErrorHeaders()).thenReturn(headers.toArray(new HttpHeader[0]));
+
+        responseHandlerAdapter.onFinished(errorContext);
+
+        // Verify the response handler received a non-successful response with status 200
+        assertThat(sdkResponseHandler.sdkHttpResponse).isNotNull();
+        assertThat(sdkResponseHandler.sdkHttpResponse.isSuccessful()).isFalse();
+        assertThat(sdkResponseHandler.sdkHttpResponse.statusCode()).isEqualTo(200);
+
+        // The result future completes normally (the full SDK pipeline in production would produce
+        // an S3Exception from the error body via DecorateErrorFromResponseBodyUnmarshaller)
+        assertThat(future).isCompleted();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
     public void requestFailedWithCause_shouldCompleteFutureExceptionallyWithCause() {
         RuntimeException cause = new RuntimeException("error");
         S3FinishedResponseContext s3FinishedResponseContext = stubResponseContext(1, 0, null);

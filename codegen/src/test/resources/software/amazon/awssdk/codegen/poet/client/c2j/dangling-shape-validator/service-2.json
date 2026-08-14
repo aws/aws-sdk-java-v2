@@ -13,30 +13,30 @@
     "uid": "dangling-2024-01-01"
   },
   "operations": {
-    "GetRequestAuthorizationDetails": {
-      "name": "GetRequestAuthorizationDetails",
+    "GetRequestSignature": {
+      "name": "GetRequestSignature",
       "http": {
         "method": "POST",
         "requestUri": "/"
       },
-      "input": {"shape": "GetRequestAuthorizationDetailsRequest"},
-      "output": {"shape": "GetRequestAuthorizationDetailsResponse"}
+      "input": {"shape": "GetRequestSignatureRequest"},
+      "output": {"shape": "GetRequestSignatureResponse"}
     }
   },
   "shapes": {
-    "GetRequestAuthorizationDetailsRequest": {
+    "GetRequestSignatureRequest": {
       "type": "structure",
       "members": {
         "Name": {"shape": "String"}
       }
     },
-    "GetRequestAuthorizationDetailsResponse": {
+    "GetRequestSignatureResponse": {
       "type": "structure",
       "members": {
-        "AuthorizationDetails": {"shape": "AuthDetailType"}
+        "Signature": {"shape": "SignatureType"}
       }
     },
-    "AuthDetailType": {
+    "SignatureType": {
       "type": "string",
       "enum": ["FULL", "PARTIAL"]
     },

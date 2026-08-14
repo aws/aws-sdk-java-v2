@@ -55,6 +55,7 @@ import software.amazon.awssdk.transfer.s3.internal.model.DefaultDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultPresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
@@ -75,6 +76,9 @@ import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.PresignedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.Upload;
@@ -330,7 +334,7 @@ class GenericS3TransferManager implements S3TransferManager {
     }
 
     private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
-                                                 Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+                                                Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
                    .map(o -> o.toBuilder().applyMutation(builderMutation).build())
@@ -595,6 +599,78 @@ class GenericS3TransferManager implements S3TransferManager {
         }
 
         return new DefaultCopy(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public final PresignedFileDownload downloadFileWithPresignedUrl(PresignedDownloadFileRequest presignedDownloadFileRequest) {
+        Validate.paramNotNull(presignedDownloadFileRequest, "presignedDownloadFileRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            AsyncResponseTransformer.toFile(presignedDownloadFileRequest.destination(),
+                                            FileTransformerConfiguration.defaultCreateOrReplaceExisting());
+
+        CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadFileRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadFileRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<GetObjectResponse> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadFileRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              res -> CompletedFileDownload.builder()
+                                                                                          .response(res)
+                                                                                          .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultPresignedFileDownload(returnFuture, progressUpdater.progress());
+    }
+
+    @Override
+    public final <ResultT> Download<ResultT> downloadWithPresignedUrl(
+        PresignedDownloadRequest<ResultT> presignedDownloadRequest) {
+        Validate.paramNotNull(presignedDownloadRequest, "presignedDownloadRequest");
+
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer =
+            presignedDownloadRequest.responseTransformer();
+
+        CompletableFuture<CompletedDownload<ResultT>> returnFuture = new CompletableFuture<>();
+
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(presignedDownloadRequest, null);
+        progressUpdater.transferInitiated();
+
+        responseTransformer = isS3ClientMultipartEnabled()
+                              && presignedDownloadRequest.presignedUrlDownloadRequest().range() == null
+                              ? progressUpdater.wrapForNonSerialFileDownload(
+                                  responseTransformer, GetObjectRequest.builder().build())
+                              : progressUpdater.wrapResponseTransformer(responseTransformer);
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            CompletableFuture<ResultT> future = s3AsyncClient.presignedUrlExtension().getObject(
+                presignedDownloadRequest.presignedUrlDownloadRequest(), responseTransformer);
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture,
+                                                              r -> CompletedDownload.builder()
+                                                                                    .result(r)
+                                                                                    .build());
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 
     @Override

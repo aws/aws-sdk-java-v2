@@ -4268,6 +4268,11 @@
           "locationName": "contentLightLevel",
           "documentation": "Content light level information (CTA-861.3). Describes the light level characteristics of the content."
         },
+        "FieldOrder": {
+          "shape": "__string",
+          "locationName": "fieldOrder",
+          "documentation": "The field order of interlaced video, which indicates whether the top or bottom field is displayed first. Use this to select the correct deinterlacing behavior. One of \"TopFieldFirst\" or \"BottomFieldFirst\". This field is present only for interlaced video; it is omitted for progressive video and when the field order is not indicated by the source."
+        },
         "Height": {
           "shape": "__integer",
           "locationName": "height",
@@ -4493,6 +4498,11 @@
     "Container": {
       "type": "structure",
       "members": {
+        "BitRate": {
+          "shape": "__long",
+          "locationName": "bitRate",
+          "documentation": "The overall bit rate of your media file, in bits per second. This is derived from the file size and duration as (file size in bytes * 8) / duration in seconds."
+        },
         "Duration": {
           "shape": "__double",
           "locationName": "duration",
@@ -4501,7 +4511,7 @@
         "Format": {
           "shape": "Format",
           "locationName": "format",
-          "documentation": "The format of your media file. For example: MP4, QuickTime (MOV), Matroska (MKV), WebM, MXF, Wave, AVI, MPEG-TS, or MPEG-PS. Note that this will be blank if your media file has a format that the MediaConvert Probe operation does not recognize."
+          "documentation": "The format of your media file. For example: MP4, QuickTime (MOV), Matroska (MKV), WebM, MXF, Wave, AVI, MPEG-TS, MPEG-PS, or MP3. Note that this will be blank if your media file has a format that the MediaConvert Probe operation does not recognize."
         },
         "StartTimecode": {
           "shape": "__string",
@@ -5527,6 +5537,27 @@
         "DISABLED",
         "ENABLED"
       ]
+    },
+    "DurationControl": {
+      "type": "structure",
+      "members": {
+        "IntegerDurationMaximumCompressionDenominator": {
+          "shape": "__integerMin1Max2147483647",
+          "locationName": "integerDurationMaximumCompressionDenominator",
+          "documentation": "Required. Denominator of the maximum allowed compression ratio."
+        },
+        "IntegerDurationMaximumCompressionNumerator": {
+          "shape": "__integerMin0Max2147483647",
+          "locationName": "integerDurationMaximumCompressionNumerator",
+          "documentation": "Required. Numerator of the maximum allowed compression ratio, defined as overrun divided by target duration. For example, numerator 5 with denominator 100 means max 5% compression. Set to 0 to disable compression entirely (only trim or pad will be used)."
+        },
+        "IntegerDurationTrimThresholdMilliseconds": {
+          "shape": "__integerMin0Max500",
+          "locationName": "integerDurationTrimThresholdMilliseconds",
+          "documentation": "Maximum number of fractional milliseconds past an integer second that qualify for the trim path (frame dropping). Default is 0 (trimming disabled)."
+        }
+      },
+      "documentation": "Settings for integer-second duration normalization. When this preprocessor is present, the output duration will be adjusted to an exact integer-second boundary. If the input is within the trim threshold of an integer second, trailing frames are dropped. If within the compression threshold and less than 500ms over the previous integer second, the output is sped up slightly. Otherwise, black frames are padded to the next integer second."
     },
     "DvbNitSettings": {
       "type": "structure",
@@ -6711,7 +6742,8 @@
         "wave",
         "avi",
         "mpegts",
-        "mpegps"
+        "mpegps",
+        "mp3"
       ]
     },
     "FrameCaptureSettings": {
@@ -7035,6 +7067,14 @@
         "CAVLC"
       ]
     },
+    "H264ExplicitWeightedPrediction": {
+      "type": "string",
+      "documentation": "Enable or disable explicit weighted prediction for the H.264 encoder. Weighted prediction improves compression efficiency for content with fading or brightness changes between frames.",
+      "enum": [
+        "DISABLED",
+        "ENABLED"
+      ]
+    },
     "H264FieldEncoding": {
       "type": "string",
       "documentation": "The video encoding method for your MPEG-4 AVC output. Keep the default value, PAFF, to have MediaConvert use PAFF encoding for interlaced outputs. Choose Force field to disable PAFF encoding and create separate interlaced fields. Choose MBAFF to disable PAFF and have MediaConvert use MBAFF encoding for interlaced outputs.",
@@ -7220,6 +7260,11 @@
           "shape": "H264EntropyEncoding",
           "locationName": "entropyEncoding",
           "documentation": "Entropy encoding mode. Use CABAC (must be in Main or High profile) or CAVLC."
+        },
+        "ExplicitWeightedPrediction": {
+          "shape": "H264ExplicitWeightedPrediction",
+          "locationName": "explicitWeightedPrediction",
+          "documentation": "Enable or disable explicit weighted prediction for the H.264 encoder. Weighted prediction improves compression efficiency for content with fading or brightness changes between frames."
         },
         "FieldEncoding": {
           "shape": "H264FieldEncoding",
@@ -9616,7 +9661,7 @@
         "FollowSource": {
           "shape": "__integerMin1Max150",
           "locationName": "followSource",
-          "documentation": "Specify the input that MediaConvert references for your default output settings.  MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all  outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
+          "documentation": "Specify the input that MediaConvert references for your default output settings. MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
         },
         "Inputs": {
           "shape": "__listOfInput",
@@ -9787,7 +9832,7 @@
         "FollowSource": {
           "shape": "__integerMin1Max150",
           "locationName": "followSource",
-          "documentation": "Specify the input that MediaConvert references for your default output settings.  MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all  outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
+          "documentation": "Specify the input that MediaConvert references for your default output settings. MediaConvert uses this input's Resolution, Frame rate, and Pixel aspect ratio for all outputs that you don't manually specify different output settings for. Enabling this setting will disable \"Follow source\" for all other inputs.  If MediaConvert cannot follow your source, for example if you specify an audio-only input,  MediaConvert uses the first followable input instead. In your JSON job specification, enter an integer from 1 to 150 corresponding  to the order of your inputs."
         },
         "Inputs": {
           "shape": "__listOfInputTemplate",
@@ -9900,7 +9945,7 @@
           "documentation": "Provide your Kantar license ID number. You should get this number from Kantar."
         },
         "KantarServerUrl": {
-          "shape": "__stringPatternHttpsKantarmedia",
+          "shape": "__stringPatternHttpsKantarmedia55Prod",
           "locationName": "kantarServerUrl",
           "documentation": "Provide the HTTPS endpoint to the Kantar server. You should get this endpoint from Kantar."
         },
@@ -11185,6 +11230,11 @@
     "MovSettings": {
       "type": "structure",
       "members": {
+        "AudioDuration": {
+          "shape": "CmfcAudioDuration",
+          "locationName": "audioDuration",
+          "documentation": "Specify this setting only when your output will be consumed by a downstream repackaging workflow that is sensitive to very small duration differences between video and audio. For this situation, choose Match video duration. In all other cases, keep the default value, Default codec duration. When you choose Match video duration, MediaConvert pads the output audio streams with silence or trims them to ensure that the total duration of each audio stream is at least as long as the total duration of the video stream. After padding or trimming, the audio stream duration is no more than one frame longer than the video stream. MediaConvert applies audio padding or trimming only to the end of the last segment of the output. For unsegmented outputs, MediaConvert adds padding only to the end of the file. When you keep the default value, any minor discrepancies between audio and video duration will depend on your output audio codec."
+        },
         "ClapAtom": {
           "shape": "MovClapAtom",
           "locationName": "clapAtom",
@@ -13339,7 +13389,8 @@
         "ONEZONE_IA",
         "INTELLIGENT_TIERING",
         "GLACIER",
-        "DEEP_ARCHIVE"
+        "DEEP_ARCHIVE",
+        "GLACIER_IR"
       ]
     },
     "SampleRangeConversion": {
@@ -14842,6 +14893,11 @@
           "shape": "DolbyVision",
           "locationName": "dolbyVision",
           "documentation": "Enable Dolby Vision feature to produce Dolby Vision compatible video output."
+        },
+        "DurationControl": {
+          "shape": "DurationControl",
+          "locationName": "durationControl",
+          "documentation": "Enable integer-second duration normalization. When enabled, the output duration is adjusted to land on an exact integer-second boundary. The adjustment method (trim, compress, or pad) is chosen automatically based on how far the input duration is from the nearest integer second."
         },
         "Hdr10Plus": {
           "shape": "Hdr10Plus",
@@ -17028,9 +17084,9 @@
       "type": "string",
       "pattern": "^https:\\/\\/[^:@\\/]*(:\\d*)?(\\/.*)?$"
     },
-    "__stringPatternHttpsKantarmedia": {
+    "__stringPatternHttpsKantarmedia55Prod": {
       "type": "string",
-      "pattern": "^https:\\/\\/.*.kantarmedia.*$"
+      "pattern": "^https:\\/\\/.*.(kantarmedia|55-prod).*$"
     },
     "__stringPatternIdentityAZaZ26AZaZ09163": {
       "type": "string",

@@ -28,6 +28,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
+import java.net.URI;
+import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -158,6 +161,17 @@ public class InternalDefaultsTest {
             }
 
             return new TestClient(config);
+        }
+
+        @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
         }
     }
 }

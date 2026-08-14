@@ -547,4 +547,14 @@
         <Method name="marshallFieldViaRegistry"/>
         <Bug pattern="AT_OPERATION_SEQUENCE_ON_CONCURRENT_ABSTRACTION"/>
     </Match>
+
+    <!-- By design. These methods should block. -->
+    <Match>
+        <Class name="software.amazon.awssdk.retries.internal.DefaultAdaptiveRetryStrategy"/>
+        <Or>
+            <Method name="acquireInitialToken"/>
+            <Method name="refreshRetryToken"/>
+        </Or>
+        <Bug pattern="ASYNC_BLOCKING_CALL"/>
+    </Match>
 </FindBugsFilter>

@@ -469,7 +469,7 @@ class CopyObjectHelperTest {
     }
 
     @Test
-    void multiPartCopy_shouldPinSourceVersionIdAndETag() {
+    void multiPartCopy_shouldPinSourceETagButNotVersionId() {
         String sourceVersionId = "version-abc-123";
         String sourceETag = "\"etag-xyz-456\"";
 
@@ -485,7 +485,7 @@ class CopyObjectHelperTest {
 
         List<UploadPartCopyRequest> partRequests = captor.getAllValues();
         assertThat(partRequests).allSatisfy(r -> {
-            assertThat(r.sourceVersionId()).isEqualTo(sourceVersionId);
+            assertThat(r.sourceVersionId()).isNull();
             assertThat(r.copySourceIfMatch()).isEqualTo(sourceETag);
         });
     }
@@ -1035,10 +1035,10 @@ class CopyObjectHelperTest {
                 public CompletableFuture<UploadPartCopyResponse> answer(InvocationOnMock invocationOnMock) {
                     numberOfCalls++;
                     return CompletableFuture.completedFuture(UploadPartCopyResponse.builder()
-                                                                .copyPartResult(CopyPartResult.builder()
-                                                                                              .checksumCRC32("crc" + numberOfCalls)
-                                                                                              .build())
-                                                                .build());
+                                                                                   .copyPartResult(CopyPartResult.builder()
+                                                                                                                 .checksumCRC32("crc" + numberOfCalls)
+                                                                                                                 .build())
+                                                                                   .build());
                 }
             });
     }

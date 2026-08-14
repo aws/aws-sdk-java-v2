@@ -716,6 +716,7 @@
       "enum":[
         "AWS",
         "EC2",
+        "EKS",
         "ELASTICACHE",
         "ELB",
         "RDS",
@@ -764,7 +765,7 @@
         },
         "ContactPhoneNumber":{
           "shape":"ContactPhoneNumber",
-          "documentation":"<p>The phone number of the contact.</p>"
+          "documentation":"<p>The phone number of the contact, including the country code (for example, <code>+12065550100</code>).</p>"
         },
         "AddressLine1":{
           "shape":"AddressLine1",
@@ -803,7 +804,8 @@
           "documentation":"<p>The municipality for the address.</p>"
         }
       },
-      "documentation":"<p> Information about an address. </p>"
+      "documentation":"<p> Information about an address. </p>",
+      "sensitive":true
     },
     "AddressLine1":{
       "type":"string",
@@ -1372,7 +1374,7 @@
       "type":"string",
       "max":20,
       "min":1,
-      "pattern":"^[\\S ]+$"
+      "pattern":"\\+[1-9][0-9]{1,18}"
     },
     "CountryCode":{
       "type":"string",
