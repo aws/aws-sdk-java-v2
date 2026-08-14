@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import com.sun.security.auth.module.Krb5LoginModule;
 import java.net.URI;
 import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
@@ -72,7 +71,6 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
             byte[] token = Subject.doAs(subject, (PrivilegedExceptionAction<byte[]>) () -> {
                 GSSContext ctx = createGssContext(getManager(), proxyEndpoint);
                 try {
-                    ctx.requestMutualAuth(true);
                     return ctx.initSecContext(new byte[0], 0, 0);
                 } finally {
                     ctx.dispose();
@@ -124,7 +122,7 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
      * Create a generic {@link Configuration} that instructs the Kerberos login module to simply look in the ticket cache, and
      * not to prompt for passwords.
      * <p>
-     * See javadoc for {@link Krb5LoginModule} for additional info on the configuration options.
+     * See javadoc for {@code com.sun.security.auth.module.Krb5LoginModule} for additional info on the configuration options.
      */
     private static Configuration createDefaultConfig() {
         return new Configuration() {
