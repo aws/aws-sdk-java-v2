@@ -20,15 +20,19 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.OperationContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocument;
+import software.amazon.awssdk.enhanced.dynamodb.internal.VectorIndexUtils;
 import software.amazon.awssdk.enhanced.dynamodb.model.CreateTableEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -40,6 +44,8 @@ import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.VectorIndex;
 
 @SdkInternalApi
 public class CreateTableOperation<T> implements TableOperation<T, CreateTableRequest, CreateTableResponse, Void> {
@@ -79,6 +85,7 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
         List<GlobalSecondaryIndex> sdkGlobalSecondaryIndices = buildGlobalSecondaryIndices(tableSchema, dedupedIndexKeys);
         List<LocalSecondaryIndex> sdkLocalSecondaryIndices = buildLocalSecondaryIndices(tableSchema, dedupedIndexKeys,
                                                                                         primaryPartitionKeys);
+        List<VectorIndex> sdkVectorIndices = buildVectorIndexes(dedupedIndexKeys);
 
         List<AttributeDefinition> attributeDefinitions = buildAttributeDefinitions(dedupedIndexKeys, tableSchema);
         
@@ -91,6 +98,7 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
                                  .keySchema(generateKeySchema(primaryPartitionKeys, primarySortKeys))
                                  .globalSecondaryIndexes(sdkGlobalSecondaryIndices)
                                  .localSecondaryIndexes(sdkLocalSecondaryIndices)
+                                 .vectorIndexes(sdkVectorIndices)
                                  .attributeDefinitions(attributeDefinitions)
                                  .billingMode(billingMode)
                                  .provisionedThroughput(this.request.provisionedThroughput())
@@ -174,6 +182,18 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
         }).collect(Collectors.toList());
     }
 
+    private List<VectorIndex> buildVectorIndexes(Set<String> dedupedIndexKeys) {
+        if (!hasIndices(this.request.vectorIndexes())) {
+            return null;
+        }
+
+        return this.request.vectorIndexes().stream().map(vectorIndex -> {
+            vectorIndex.searchSchemaElements()
+                       .forEach(element -> dedupedIndexKeys.add(element.attributeName()));
+            return VectorIndexUtils.toVectorIndex(vectorIndex);
+        }).collect(Collectors.toList());
+    }
+
     private void validateLsiConstraints(List<String> primaryPartitionKeys, List<String> lsiPartitionKeys,
                                        List<String> lsiSortKeys, String indexName) {
         if (lsiPartitionKeys.size() != 1) {
@@ -194,15 +214,48 @@ public class CreateTableOperation<T> implements TableOperation<T, CreateTableReq
         return dedupedIndexKeys.stream()
                               .map(attribute -> AttributeDefinition.builder()
                                            .attributeName(attribute)
-                                           .attributeType(tableSchema.tableMetadata()
-                                                         .scalarAttributeType(attribute)
-                                                         .orElseThrow(() ->
-                                                             new IllegalArgumentException(
-                                                                 String.format(
-                                                                     "Could not map key attribute '%s' to a valid scalar type",
-                                                                     attribute))))
+                                           .attributeType(resolveScalarAttributeType(attribute, tableSchema))
                                            .build())
                               .collect(Collectors.toList());
+    }
+
+    private ScalarAttributeType resolveScalarAttributeType(String attribute, TableSchema<T> tableSchema) {
+        try {
+            Optional<ScalarAttributeType> scalarType = tableSchema.tableMetadata().scalarAttributeType(attribute);
+            if (scalarType.isPresent()) {
+                return scalarType.get();
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Not a key attribute; resolve from the attribute converter instead.
+        }
+
+        AttributeConverter<?> converter = attributeConverter(tableSchema, attribute);
+        if (converter != null) {
+            ScalarAttributeType scalarType = converter.attributeValueType().scalarAttributeType();
+            if (scalarType != null) {
+                return scalarType;
+            }
+            throw new IllegalArgumentException(
+                String.format("Attribute '%s' must be defined in the table schema as a scalar type "
+                              + "(S, N, or B); found: %s.", attribute, converter.attributeValueType()));
+        }
+
+        if (EnhancedDocument.class.equals(tableSchema.itemType().rawClass())) {
+            return ScalarAttributeType.S;
+        }
+
+        throw new IllegalArgumentException(
+            String.format("Attribute '%s' must be defined in the table schema as a scalar type "
+                          + "(S, N, or B); found: UNDEFINED.", attribute));
+    }
+
+    private static AttributeConverter<?> attributeConverter(TableSchema<?> tableSchema, String attribute) {
+        try {
+            return tableSchema.converterForAttribute(attribute);
+        } catch (UnsupportedOperationException ignored) {
+            // TableSchema implementations that do not support converterForAttribute (e.g. DocumentTableSchema)
+            return null;
+        }
     }
 
     private boolean hasIndices(Collection<?> indices) {

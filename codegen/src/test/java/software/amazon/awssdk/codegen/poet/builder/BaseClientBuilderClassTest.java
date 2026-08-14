@@ -23,6 +23,7 @@ import static software.amazon.awssdk.codegen.poet.ClientTestModels.operationWith
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.opsWithSigv4a;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsEndpointAuthParamsWithAllowList;
+import static software.amazon.awssdk.codegen.poet.ClientTestModels.queryServiceModelsNoRegionEndpointRules;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.restJsonServiceModels;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2;
 import static software.amazon.awssdk.codegen.poet.ClientTestModels.serviceWithH2UsePriorKnowledgeForH2;
@@ -98,6 +99,12 @@ public class BaseClientBuilderClassTest {
     @Test
     void baseClientBuilderClassWithH2_usePriorKnowledgeForH2() {
         validateBaseClientBuilderClassGeneration(serviceWithH2UsePriorKnowledgeForH2(), "test-h2-usePriorKnowledgeForH2-service-client-builder-class.java");
+    }
+
+    @Test
+    void baseClientBuilderClass_noRegionEndpointRules() {
+        validateBaseClientBuilderClassGeneration(queryServiceModelsNoRegionEndpointRules(),
+                                                 "test-no-region-client-builder-class.java");
     }
 
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {

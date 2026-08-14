@@ -175,6 +175,10 @@ public interface ExecutionInterceptor {
     /**
      * Modify the {@link SdkHttpFullRequest} before it is sent to the service.
      *
+     * <p><b>Note:</b> The HTTP request URL at this point may not reflect the final resolved endpoint. Endpoint
+     * resolution happens after all interceptors complete. To read the fully resolved endpoint URL, use
+     * {@link #beforeTransmission} instead.
+     *
      * @param context The current state of the execution, including the SDK and current HTTP request.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      * give data to future lifecycle methods.
