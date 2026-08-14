@@ -42,6 +42,8 @@ import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import javax.net.ssl.SSLEngine;
@@ -271,8 +273,9 @@ public class Http1TunnelConnectionPoolTest {
 
         tunnelPool.acquire().awaitUninterruptibly();
 
-        // assertThat(data.proxyUser()).isEqualTo(PROXY_USER);
-        // assertThat(data.proxyPassword()).isEqualTo(PROXY_PASSWORD);
+        String expectedAuthHeader = Base64.getEncoder().encodeToString((PROXY_USER + ":" + PROXY_PASSWORD)
+                                                                           .getBytes(StandardCharsets.UTF_8));
+        assertThat(data.authHeader()).isEqualTo(expectedAuthHeader);
     }
 
     private static class TestInitHandlerData {

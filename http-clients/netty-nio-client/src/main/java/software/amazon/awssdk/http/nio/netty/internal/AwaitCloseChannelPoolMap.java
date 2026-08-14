@@ -36,10 +36,12 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import javax.security.auth.login.Configuration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
+import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
@@ -88,6 +90,8 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private final SslContextProvider sslContextProvider;
     private final Boolean useNonBlockingDnsResolver;
 
+    private final Configuration negotiateAuthConfig;
+
     private AwaitCloseChannelPoolMap(Builder builder, Function<Builder, BootstrapProvider> createBootStrapProvider) {
         this.configuration = builder.configuration;
         this.protocol = builder.protocol;
@@ -100,6 +104,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         this.bootstrapProvider = createBootStrapProvider.apply(builder);
         this.sslContextProvider = new SslContextProvider(configuration, protocol, protocolNegotiation, sslProvider);
         this.useNonBlockingDnsResolver = builder.useNonBlockingDnsResolver;
+        this.negotiateAuthConfig = builder.negotiateAuthConfig;
     }
 
     private AwaitCloseChannelPoolMap(Builder builder) {
@@ -158,6 +163,26 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     }
 
     private ProxyAuthGenerator resolveProxyAuthGenerator(ProxyConfiguration proxyConfiguration) {
+        ProxyAuthScheme proxyAuthScheme = proxyConfiguration.proxyAuthScheme();
+
+        if (proxyAuthScheme != null) {
+            switch (proxyAuthScheme) {
+                case NEGOTIATE:
+                    return new NegotiateProxyAuthGenerator(negotiateAuthConfig);
+                case BASIC: {
+                    String username = proxyConfiguration.username();
+                    String password = proxyConfiguration.password();
+                    if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
+                        return new BasicProxyAuthGenerator(username, password);
+                    }
+                    throw new IllegalArgumentException("username and password must be configured when using BASIC proxy auth");
+                }
+                default:
+                    throw new RuntimeException("Unknown proxy auth scheme: " + proxyAuthScheme);
+            }
+        }
+
+        // for back-compat, BASIC if scheme not configured but username password are set
         String username = proxyConfiguration.username();
         String password = proxyConfiguration.password();
         if (!StringUtils.isEmpty(username) && !StringUtils.isEmpty(password)) {
@@ -304,6 +329,9 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         private ProxyConfiguration proxyConfiguration;
         private Boolean useNonBlockingDnsResolver;
 
+        // testing only
+        private Configuration negotiateAuthConfig;
+
         private Builder() {
         }
 
@@ -359,6 +387,12 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
 
         public Builder useNonBlockingDnsResolver(Boolean useNonBlockingDnsResolver) {
             this.useNonBlockingDnsResolver = useNonBlockingDnsResolver;
+            return this;
+        }
+
+        @SdkTestInternalApi
+        public Builder negotiateAuthConfig(Configuration negotiateAuthConfig) {
+            this.negotiateAuthConfig = negotiateAuthConfig;
             return this;
         }
 

@@ -185,7 +185,11 @@ public class ProxyConfigurationTest {
             setter.invoke(o, randomSet());
         } else if (Boolean.class.equals(paramClass)) {
             setter.invoke(o, RNG.nextBoolean());
-        } else {
+        } else if (ProxyAuthScheme.class.equals(paramClass)) {
+            ProxyAuthScheme authScheme = ProxyAuthScheme.values()[RNG.nextInt(ProxyAuthScheme.values().length)];
+            setter.invoke(o, authScheme);
+        }
+        else {
             throw new RuntimeException("Don't know how create random value for type " + paramClass);
         }
     }
