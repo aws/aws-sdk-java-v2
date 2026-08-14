@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -145,6 +146,67 @@ public class ProxyConfigurationTest {
                                                    .build();
 
         assertThat(cfg.nonProxyHosts()).isEmpty();
+    }
+
+    @Test
+    void build_basicAuthSchemeWithoutCredentials_throws() {
+        ProxyConfiguration.Builder builder = ProxyConfiguration.builder()
+                                                               .host("localhost")
+                                                               .port(8888)
+                                                               .proxyAuthScheme(ProxyAuthScheme.BASIC);
+
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("username and password must be configured");
+    }
+
+    @Test
+    void build_basicAuthSchemeWithoutPassword_throws() {
+        ProxyConfiguration.Builder builder = ProxyConfiguration.builder()
+                                                               .host("localhost")
+                                                               .port(8888)
+                                                               .proxyAuthScheme(ProxyAuthScheme.BASIC)
+                                                               .username("user");
+
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("username and password must be configured");
+    }
+
+    @Test
+    void build_basicAuthSchemeWithCredentials_doesNotThrow() {
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .host("localhost")
+                                                   .port(8888)
+                                                   .proxyAuthScheme(ProxyAuthScheme.BASIC)
+                                                   .username("user")
+                                                   .password("pass")
+                                                   .build();
+
+        assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.BASIC);
+    }
+
+    @Test
+    void build_basicAuthSchemeWithSystemPropertyCredentials_doesNotThrow() {
+        setHttpProxyProperties();
+
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .proxyAuthScheme(ProxyAuthScheme.BASIC)
+                                                   .build();
+
+        assertThat(cfg.username()).isEqualTo(TEST_USER);
+        assertThat(cfg.password()).isEqualTo(TEST_PASSWORD);
+    }
+
+    @Test
+    void build_negotiateAuthSchemeWithoutCredentials_doesNotThrow() {
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .host("localhost")
+                                                   .port(8888)
+                                                   .proxyAuthScheme(ProxyAuthScheme.NEGOTIATE)
+                                                   .build();
+
+        assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.NEGOTIATE);
     }
 
     @Test
