@@ -46,10 +46,13 @@ import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
+import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
+import software.amazon.awssdk.codegen.smithy.SmithyModels;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.smithy.model.Model;
 
 /**
  * The Maven mojo to generate Java client code using software.amazon.awssdk:codegen module.
@@ -57,6 +60,7 @@ import software.amazon.awssdk.utils.StringUtils;
 @Mojo(name = "generate")
 public class GenerationMojo extends AbstractMojo {
     private static final String MODEL_FILE = "service-2.json";
+    private static final String SMITHY_MODEL_FILE = "model.json";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String WAITERS_FILE = "waiters-2.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
@@ -138,22 +142,51 @@ public class GenerationMojo extends AbstractMojo {
         return modelRoots.stream().map(r -> {
             Path modelRootPath = r.modelRoot;
             getLog().info("Loading from: " + modelRootPath.toString());
-            C2jModels c2jModels = C2jModels.builder()
-                                           .customizationConfig(r.customizationConfig)
-                                           .serviceModel(loadServiceModel(modelRootPath))
-                                           .waitersModel(loadWaiterModel(modelRootPath))
-                                           .paginatorsModel(loadPaginatorModel(modelRootPath))
-                                           .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
-                                           .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
-                                           .build();
-            String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(c2jModels);
-            IntermediateModel intermediateModel = new IntermediateModelBuilder(c2jModels).build();
-            return new GenerationParams().withIntermediateModel(intermediateModel)
-                                         .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
+            // Generate from Smithy when a model.json sits alongside service-2.json, otherwise C2J.
+            if (Files.isRegularFile(modelRootPath.resolve(SMITHY_MODEL_FILE))) {
+                return smithyGenerationParams(r);
+            }
+            return c2jGenerationParams(r);
         }).collect(Collectors.toList());
     }
 
+    private GenerationParams c2jGenerationParams(ModelRoot r) {
+        Path modelRootPath = r.modelRoot;
+        C2jModels c2jModels = C2jModels.builder()
+                                       .customizationConfig(r.customizationConfig)
+                                       .serviceModel(loadServiceModel(modelRootPath))
+                                       .waitersModel(loadWaiterModel(modelRootPath))
+                                       .paginatorsModel(loadPaginatorModel(modelRootPath))
+                                       .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
+                                       .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
+                                       .build();
+        String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(c2jModels);
+        IntermediateModel intermediateModel = new IntermediateModelBuilder(c2jModels).build();
+        return new GenerationParams().withIntermediateModel(intermediateModel)
+                                     .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
+    }
 
+    private GenerationParams smithyGenerationParams(ModelRoot r) {
+        Path modelRootPath = r.modelRoot;
+        getLog().info("Detected " + SMITHY_MODEL_FILE + "; generating from the Smithy model.");
+        // The plugin's own classloader carries the Smithy trait jars; Maven's thread context
+        // classloader does not reliably point at the plugin realm.
+        ClassLoader classLoader = GenerationMojo.class.getClassLoader();
+        Model model = Model.assembler(classLoader)
+                           .discoverModels(classLoader)
+                           .addImport(modelRootPath.resolve(SMITHY_MODEL_FILE))
+                           .assemble()
+                           .unwrap();
+        SmithyModels smithyModels = SmithyModels.builder()
+                                                .model(model)
+                                                .customizationConfig(r.customizationConfig)
+                                                .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
+                                                .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
+                                                .build();
+        IntermediateModel intermediateModel = new SmithyIntermediateModelBuilder(smithyModels).build();
+        return new GenerationParams().withIntermediateModel(intermediateModel)
+                                     .withIntermediateModelFileNamePrefix(null);
+    }
 
     private Stream<ModelRoot> findModelRoots() throws MojoExecutionException {
         try {
