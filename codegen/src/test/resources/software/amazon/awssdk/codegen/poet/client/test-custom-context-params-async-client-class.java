@@ -8,6 +8,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.foobar.auth.scheme.FooBarAuthSchemeParams;
 import software.amazon.awssdk.services.foobar.auth.scheme.FooBarAuthSchemeProvider;
+import software.amazon.awssdk.services.foobar.auth.scheme.internal.DefaultFooBarAuthSchemeProvider;
 import software.amazon.awssdk.services.foobar.endpoints.FooBarClientContextParams;
 import software.amazon.awssdk.services.foobar.endpoints.FooBarEndpointParams;
 import software.amazon.awssdk.services.foobar.endpoints.FooBarEndpointProvider;
@@ -94,6 +96,8 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
             return Optional.empty();
         }
     };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultFooBarAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -218,9 +222,20 @@ final class DefaultFooBarAsyncClient implements FooBarAsyncClient {
                 .isInstanceOf(FooBarAuthSchemeProvider.class,
                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                         "Expected an instance of FooBarAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultFooBarAuthSchemeProvider;
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            if (cached != null) {
+                return cached;
+            }
+        }
         FooBarAuthSchemeParams.Builder paramsBuilder = FooBarAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            authSchemeCache.put(operationName, options);
+        }
         return options;
     }
 

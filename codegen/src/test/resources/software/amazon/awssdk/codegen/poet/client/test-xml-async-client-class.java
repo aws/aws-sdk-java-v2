@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -64,6 +65,7 @@ import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.xml.auth.scheme.XmlAuthSchemeParams;
 import software.amazon.awssdk.services.xml.auth.scheme.XmlAuthSchemeProvider;
+import software.amazon.awssdk.services.xml.auth.scheme.internal.DefaultXmlAuthSchemeProvider;
 import software.amazon.awssdk.services.xml.endpoints.XmlEndpointParams;
 import software.amazon.awssdk.services.xml.endpoints.XmlEndpointProvider;
 import software.amazon.awssdk.services.xml.endpoints.internal.XmlEndpointResolverUtils;
@@ -129,7 +131,10 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
+
     private final Executor executor;
+
 
     protected DefaultXmlAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -953,9 +958,20 @@ final class DefaultXmlAsyncClient implements XmlAsyncClient {
         XmlAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
             .isInstanceOf(XmlAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of XmlAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultXmlAuthSchemeProvider;
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            if (cached != null) {
+                return cached;
+            }
+        }
         XmlAuthSchemeParams.Builder paramsBuilder = XmlAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            authSchemeCache.put(operationName, options);
+        }
         return options;
     }
 

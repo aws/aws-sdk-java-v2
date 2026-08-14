@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.SmithyRpcV2ProtocolAuthSchemeParams;
 import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.SmithyRpcV2ProtocolAuthSchemeProvider;
+import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.internal.DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
 import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.SmithyRpcV2ProtocolEndpointParams;
 import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.SmithyRpcV2ProtocolEndpointProvider;
 import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.internal.SmithyRpcV2ProtocolEndpointResolverUtils;
@@ -134,6 +136,8 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                 return Optional.empty();
         }
     };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultSmithyRpcV2ProtocolClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
@@ -824,10 +828,21 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
                                                                                                      : Validate.isInstanceOf(SmithyRpcV2ProtocolAuthSchemeProvider.class,
                                                                                                                              executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                              "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            if (cached != null) {
+                return cached;
+            }
+        }
         SmithyRpcV2ProtocolAuthSchemeParams.Builder paramsBuilder = SmithyRpcV2ProtocolAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            authSchemeCache.put(operationName, options);
+        }
         return options;
     }
 

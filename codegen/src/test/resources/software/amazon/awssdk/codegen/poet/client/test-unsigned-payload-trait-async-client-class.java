@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -57,6 +58,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeParams;
 import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
+import software.amazon.awssdk.services.database.auth.scheme.internal.DefaultDatabaseAuthSchemeProvider;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointParams;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
 import software.amazon.awssdk.services.database.endpoints.internal.DatabaseEndpointResolverUtils;
@@ -132,6 +134,8 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
                 return Optional.empty();
         }
     };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultDatabaseAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -905,6 +909,14 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
         DatabaseAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
             .isInstanceOf(DatabaseAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of DatabaseAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultDatabaseAuthSchemeProvider;
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            if (cached != null) {
+                return cached;
+            }
+        }
         DatabaseAuthSchemeParams.Builder paramsBuilder = DatabaseAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         Set<String> sigv4aRegionSet = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET);
@@ -912,6 +924,9 @@ final class DefaultDatabaseAsyncClient implements DatabaseAsyncClient {
             paramsBuilder.regionSet(RegionSet.create(sigv4aRegionSet));
         }
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            authSchemeCache.put(operationName, options);
+        }
         return options;
     }
 

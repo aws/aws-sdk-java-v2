@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryEndpointResolverUtils;
@@ -138,6 +140,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
     private final SdkClientConfiguration clientConfiguration;
 
     private final ScheduledExecutorService executorService;
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -1244,9 +1248,20 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
             .isInstanceOf(QueryAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of QueryAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultQueryAuthSchemeProvider;
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            if (cached != null) {
+                return cached;
+            }
+        }
         QueryAuthSchemeParams.Builder paramsBuilder = QueryAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            authSchemeCache.put(operationName, options);
+        }
         return options;
     }
 

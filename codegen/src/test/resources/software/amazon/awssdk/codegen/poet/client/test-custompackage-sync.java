@@ -2,6 +2,7 @@ package foo.bar.helloworld;
 
 import foo.bar.helloworld.auth.scheme.ProtocolRestJsonWithCustomPackageAuthSchemeParams;
 import foo.bar.helloworld.auth.scheme.ProtocolRestJsonWithCustomPackageAuthSchemeProvider;
+import foo.bar.helloworld.auth.scheme.internal.DefaultProtocolRestJsonWithCustomPackageAuthSchemeProvider;
 import foo.bar.helloworld.endpoints.ProtocolRestJsonWithCustomPackageEndpointParams;
 import foo.bar.helloworld.endpoints.ProtocolRestJsonWithCustomPackageEndpointProvider;
 import foo.bar.helloworld.endpoints.internal.ProtocolRestJsonWithCustomPackageEndpointResolverUtils;
@@ -15,6 +16,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
@@ -86,6 +88,8 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
                 return Optional.empty();
         }
     };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultProtocolRestJsonWithCustomPackageClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
@@ -186,10 +190,21 @@ final class DefaultProtocolRestJsonWithCustomPackageClient implements ProtocolRe
                                                                                                                    : Validate.isInstanceOf(ProtocolRestJsonWithCustomPackageAuthSchemeProvider.class,
                                                                                                                                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                            "Expected an instance of ProtocolRestJsonWithCustomPackageAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultProtocolRestJsonWithCustomPackageAuthSchemeProvider;
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            if (cached != null) {
+                return cached;
+            }
+        }
         ProtocolRestJsonWithCustomPackageAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomPackageAuthSchemeParams
             .builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            authSchemeCache.put(operationName, options);
+        }
         return options;
     }
 
