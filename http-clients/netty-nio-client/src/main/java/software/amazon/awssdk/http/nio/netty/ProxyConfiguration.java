@@ -278,6 +278,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * If set to {@link ProxyAuthScheme#BASIC}, {@link #username(String)} and {@link #password(String)} must also be
          * configured (directly, or resolved from system properties or environment variables), otherwise
          * {@link Builder#build()} throws {@link IllegalArgumentException}.
+         * <p>
+         * If set to {@link ProxyAuthScheme#NEGOTIATE}, credentials come from the Kerberos ticket cache rather than from this
+         * configuration, and any configured username and password are ignored. See {@link ProxyAuthScheme#NEGOTIATE} for the
+         * environment it requires and for how a missing or expired ticket surfaces.
          *
          * @param proxyAuthScheme The auth scheme.
          * @return This object for method chaining.
