@@ -264,7 +264,7 @@ public class Http1TunnelConnectionPoolTest {
         Http1TunnelConnectionPool.InitHandlerSupplier supplier =
             (srcPool, proxyEndpoint, proxyAuthGenerator, remoteAddr, initFuture) -> {
             initFuture.setSuccess(mockChannel);
-            data.authHeader = proxyAuthGenerator.generateAuthParams(proxyEndpoint);
+            data.authHeader = proxyAuthGenerator.generateAuthParams(proxyEndpoint).join();
             return mock(ChannelHandler.class);
         };
 

@@ -52,7 +52,7 @@ public class BasicProxyAuthGeneratorTest {
                                 .encodeToString(String.format("%s:%s", USERNAME, PASSWORD)
                                                       .getBytes(StandardCharsets.UTF_8));
 
-        assertThat(authGenerator.generateAuthParams(URI.create("http://amazon.com"))).isEqualTo(expected);
+        assertThat(authGenerator.generateAuthParams(URI.create("http://amazon.com")).join()).isEqualTo(expected);
     }
 
     private static Stream<Arguments> invalidCtorParams() {

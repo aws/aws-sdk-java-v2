@@ -26,6 +26,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicReference;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
 import org.apache.kerby.kerberos.kerb.KrbException;
@@ -39,6 +43,9 @@ import software.amazon.awssdk.testutils.FileUtils;
 
 public class NegotiateProxyAuthGeneratorTest {
     private static final String KRB5_PROP = "java.security.krb5.conf";
+    private static final String EXECUTOR_THREAD_NAME = "test-proxy-auth";
+    private static final ExecutorService executor =
+        Executors.newSingleThreadExecutor(r -> new Thread(r, EXECUTOR_THREAD_NAME));
     private static Path tempDir;
     private static Path keytabFile;
     private static Path ccacheFile;
@@ -104,6 +111,7 @@ public class NegotiateProxyAuthGeneratorTest {
 
     @AfterAll
     static void teardown() throws KrbException {
+        executor.shutdownNow();
         if (krb5PropSave != null) {
             System.setProperty(KRB5_PROP, krb5PropSave);
         } else {
@@ -115,11 +123,11 @@ public class NegotiateProxyAuthGeneratorTest {
 
     @Test
     void generateAuthParams_configValid_successfullyGeneratesToken() {
-        NegotiateProxyAuthGenerator authGenerator = new NegotiateProxyAuthGenerator(config);
+        NegotiateProxyAuthGenerator authGenerator = new NegotiateProxyAuthGenerator(config, executor);
 
         URI proxyEndpoint = URI.create("https://localhost:8192");
 
-        assertThat(authGenerator.generateAuthParams(proxyEndpoint)).startsWith("YII");
+        assertThat(authGenerator.generateAuthParams(proxyEndpoint).join()).startsWith("YII");
     }
 
     @Test
@@ -140,12 +148,39 @@ public class NegotiateProxyAuthGeneratorTest {
             }
         };
 
-        NegotiateProxyAuthGenerator authGenerator = new NegotiateProxyAuthGenerator(missingCacheConfig);
+        NegotiateProxyAuthGenerator authGenerator = new NegotiateProxyAuthGenerator(missingCacheConfig, executor);
 
-        assertThatThrownBy(() -> authGenerator.generateAuthParams(URI.create("https://localhost:8192")))
-            .isInstanceOf(RuntimeException.class)
+        assertThatThrownBy(() -> authGenerator.generateAuthParams(URI.create("https://localhost:8192")).join())
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(RuntimeException.class)
             .hasMessageContaining("kinit")
             .hasMessageContaining("ticket cache");
+    }
+
+    @Test
+    void generateAuthParams_runsOnSuppliedExecutor() {
+        AtomicReference<Thread> loginThread = new AtomicReference<>();
+        Configuration recordingConfig = new Configuration() {
+            @Override
+            public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+                loginThread.set(Thread.currentThread());
+                return config.getAppConfigurationEntry(name);
+            }
+        };
+
+        new NegotiateProxyAuthGenerator(recordingConfig, executor).generateAuthParams(URI.create("https://localhost:8192"))
+                                                                 .join();
+
+        // The blocking Kerberos work must never run on the caller's thread, which in production is a Netty event loop.
+        assertThat(loginThread.get()).isNotSameAs(Thread.currentThread());
+        assertThat(loginThread.get().getName()).isEqualTo(EXECUTOR_THREAD_NAME);
+    }
+
+    @Test
+    void constructor_nullExecutor_throws() {
+        assertThatThrownBy(() -> new NegotiateProxyAuthGenerator(config, null))
+            .isInstanceOf(NullPointerException.class)
+            .hasMessageContaining("executor");
     }
 
 }

@@ -32,6 +32,9 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
@@ -47,6 +50,7 @@ import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
 /**
  * Implementation of {@link SdkChannelPoolMap} that awaits channel pools to be closed upon closing.
@@ -91,6 +95,8 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
     private final Boolean useNonBlockingDnsResolver;
 
     private final Configuration negotiateAuthConfig;
+    private final ProxyAuthGenerator proxyAuthGenerator;
+    private final ExecutorService proxyAuthExecutor;
 
     private AwaitCloseChannelPoolMap(Builder builder, Function<Builder, BootstrapProvider> createBootStrapProvider) {
         this.configuration = builder.configuration;
@@ -105,6 +111,10 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         this.sslContextProvider = new SslContextProvider(configuration, protocol, protocolNegotiation, sslProvider);
         this.useNonBlockingDnsResolver = builder.useNonBlockingDnsResolver;
         this.negotiateAuthConfig = builder.negotiateAuthConfig;
+        // Both are resolved once per client rather than per pool: the proxy configuration is fixed for the life of the client,
+        // so there is no reason to duplicate the generator, or its executor, for every remote host.
+        this.proxyAuthExecutor = needsProxyAuthExecutor(proxyConfiguration) ? createProxyAuthExecutor() : null;
+        this.proxyAuthGenerator = resolveProxyAuthGenerator(proxyConfiguration, negotiateAuthConfig, proxyAuthExecutor);
     }
 
     private AwaitCloseChannelPoolMap(Builder builder) {
@@ -149,7 +159,7 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         if (shouldUseProxyForHost(key)) {
             tcpChannelPool = new BetterSimpleChannelPool(bootstrap, NOOP_HANDLER);
             baseChannelPool = new Http1TunnelConnectionPool(bootstrap.config().group().next(), tcpChannelPool, sslContext,
-                                            proxyAddress(key), resolveProxyAuthGenerator(proxyConfiguration),
+                                            proxyAddress(key), proxyAuthGenerator,
                                             key, pipelineInitializer, configuration);
         } else {
             tcpChannelPool = new BetterSimpleChannelPool(bootstrap, pipelineInitializer);
@@ -162,13 +172,34 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         return new SimpleChannelPoolAwareChannelPool(wrappedPool, tcpChannelPool);
     }
 
-    private ProxyAuthGenerator resolveProxyAuthGenerator(ProxyConfiguration proxyConfiguration) {
+    private static boolean needsProxyAuthExecutor(ProxyConfiguration proxyConfiguration) {
+        return proxyConfiguration != null && proxyConfiguration.proxyAuthScheme() == ProxyAuthScheme.NEGOTIATE;
+    }
+
+    /**
+     * Executor for auth schemes whose params are expensive to generate. A single thread, so generation is serialized: the
+     * point is only to keep the blocking work off the event loops, not to parallelize it. Daemon threaded so it never keeps
+     * the JVM alive, and shut down when this pool map is closed.
+     */
+    private static ExecutorService createProxyAuthExecutor() {
+        return Executors.newSingleThreadExecutor(new ThreadFactoryBuilder().threadNamePrefix("sdk-netty-proxy-auth")
+                                                                          .daemonThreads(true)
+                                                                          .build());
+    }
+
+    private static ProxyAuthGenerator resolveProxyAuthGenerator(ProxyConfiguration proxyConfiguration,
+                                                                Configuration negotiateAuthConfig,
+                                                                Executor proxyAuthExecutor) {
+        if (proxyConfiguration == null) {
+            return null;
+        }
+
         ProxyAuthScheme proxyAuthScheme = proxyConfiguration.proxyAuthScheme();
 
         if (proxyAuthScheme != null) {
             switch (proxyAuthScheme) {
                 case NEGOTIATE:
-                    return new NegotiateProxyAuthGenerator(negotiateAuthConfig);
+                    return new NegotiateProxyAuthGenerator(negotiateAuthConfig, proxyAuthExecutor);
                 case BASIC: {
                     String username = proxyConfiguration.username();
                     String password = proxyConfiguration.password();
@@ -203,6 +234,10 @@ public final class AwaitCloseChannelPoolMap extends SdkChannelPoolMap<URI, Simpl
         // operations. See https://github.com/aws/aws-sdk-java-v2/pull/1200#discussion_r277906715
         Collection<SimpleChannelPoolAwareChannelPool> channelPools = pools().values();
         super.close();
+
+        if (proxyAuthExecutor != null) {
+            proxyAuthExecutor.shutdownNow();
+        }
 
         try {
             CompletableFuture.allOf(channelPools.stream()

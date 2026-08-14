@@ -42,10 +42,12 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.handler.ssl.SslCloseCompletionEvent;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.util.CharsetUtil;
+import io.netty.util.concurrent.EventExecutor;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.junit.AfterClass;
@@ -245,7 +247,6 @@ public class ProxyTunnelInitHandlerTest {
     @Test
     public void handlerAdded_authParamsGeneratorThrows_failsFuture() {
         ProxyAuthGenerator authGenerator = mock(ProxyAuthGenerator.class);
-        when(authGenerator.scheme()).thenReturn(ProxyAuthScheme.BASIC);
         when(authGenerator.generateAuthParams(any(URI.class))).thenThrow(new RuntimeException("auth generator error"));
 
         Promise<Channel> promise = GROUP.next().newPromise();
@@ -255,6 +256,55 @@ public class ProxyTunnelInitHandlerTest {
                                                                     promise);
         handler.handlerAdded(mockCtx);
 
+        assertThatThrownBy(promise::get).hasMessageContaining("Unable to send CONNECT request to proxy")
+                                        .hasRootCauseMessage("auth generator error");
+    }
+
+    @Test
+    public void handlerAdded_authParamsCompleteAsynchronously_writesRequestOnceParamsAvailable() throws Exception {
+        CompletableFuture<String> authParams = new CompletableFuture<>();
+        ProxyAuthGenerator authGenerator = mock(ProxyAuthGenerator.class);
+        when(authGenerator.scheme()).thenReturn(ProxyAuthScheme.NEGOTIATE);
+        when(authGenerator.generateAuthParams(any(URI.class))).thenReturn(authParams);
+
+        EventExecutor executor = GROUP.next();
+        when(mockCtx.executor()).thenReturn(executor);
+
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, URI.create("https://proxy.com"),
+                                                                    authGenerator, REMOTE_HOST, promise);
+        handler.handlerAdded(mockCtx);
+
+        // The calling thread must not have waited for the auth params, so nothing is written yet.
+        verify(mockChannel, never()).writeAndFlush(any());
+
+        authParams.complete("token");
+        // Drain the executor so the queued continuation has run.
+        executor.submit(() -> { }).get();
+
+        ArgumentCaptor<HttpRequest> requestCaptor = ArgumentCaptor.forClass(HttpRequest.class);
+        verify(mockChannel).writeAndFlush(requestCaptor.capture());
+        assertThat(requestCaptor.getValue().headers().get(HttpHeaderNames.PROXY_AUTHORIZATION)).isEqualTo("Negotiate token");
+    }
+
+    @Test
+    public void handlerAdded_authParamsFailAsynchronously_failsFuture() throws Exception {
+        CompletableFuture<String> authParams = new CompletableFuture<>();
+        ProxyAuthGenerator authGenerator = mock(ProxyAuthGenerator.class);
+        when(authGenerator.generateAuthParams(any(URI.class))).thenReturn(authParams);
+
+        EventExecutor executor = GROUP.next();
+        when(mockCtx.executor()).thenReturn(executor);
+
+        Promise<Channel> promise = GROUP.next().newPromise();
+        ProxyTunnelInitHandler handler = new ProxyTunnelInitHandler(mockChannelPool, URI.create("https://proxy.com"),
+                                                                    authGenerator, REMOTE_HOST, promise);
+        handler.handlerAdded(mockCtx);
+
+        authParams.completeExceptionally(new RuntimeException("auth generator error"));
+        executor.submit(() -> { }).get();
+
+        verify(mockChannel, never()).writeAndFlush(any());
         assertThatThrownBy(promise::get).hasMessageContaining("Unable to send CONNECT request to proxy")
                                         .hasRootCauseMessage("auth generator error");
     }
