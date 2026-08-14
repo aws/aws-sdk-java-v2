@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Glue",
-    "contributor": "",
-    "description": "Added support for associating glossary terms with iterable form items, such as table columns."
-}
