@@ -59,6 +59,14 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.password = resolvePassword(builder, proxyConfigProvider);
         this.proxyAuthScheme = builder.proxyAuthScheme;
         this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfigProvider);
+        validateProxyAuthConfig(proxyAuthScheme, username, password);
+    }
+
+    private static void validateProxyAuthConfig(ProxyAuthScheme proxyAuthScheme, String username, String password) {
+        if (proxyAuthScheme == ProxyAuthScheme.BASIC
+            && (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))) {
+            throw new IllegalArgumentException("username and password must be configured when using BASIC proxy auth");
+        }
     }
 
     private static Set<String> resolveNonProxyHosts(BuilderImpl builder, ProxyConfigProvider proxyConfigProvider) {
@@ -266,6 +274,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * <p>
          * If unset and {@link #username(String)} and {@link #password(String)} are set, the client will
          * assume {@link ProxyAuthScheme#BASIC} auth.
+         * <p>
+         * If set to {@link ProxyAuthScheme#BASIC}, {@link #username(String)} and {@link #password(String)} must also be
+         * configured (directly, or resolved from system properties or environment variables), otherwise
+         * {@link Builder#build()} throws {@link IllegalArgumentException}.
          *
          * @param proxyAuthScheme The auth scheme.
          * @return This object for method chaining.
