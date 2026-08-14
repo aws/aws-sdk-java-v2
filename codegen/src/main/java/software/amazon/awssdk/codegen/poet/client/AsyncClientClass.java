@@ -119,24 +119,24 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected TypeSpec.Builder createTypeSpec() {
+    protected Builder createTypeSpec() {
         return PoetUtils.createClassBuilder(className);
     }
 
     @Override
-    protected void addInterfaceClass(TypeSpec.Builder type) {
+    protected void addInterfaceClass(Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
         type.addSuperinterface(interfaceClass)
             .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()", interfaceClass);
     }
 
     @Override
-    protected void addAnnotations(TypeSpec.Builder type) {
+    protected void addAnnotations(Builder type) {
         type.addAnnotation(SdkInternalApi.class);
     }
 
     @Override
-    protected void addModifiers(TypeSpec.Builder type) {
+    protected void addModifiers(Builder type) {
         type.addModifiers(FINAL);
     }
 
@@ -165,6 +165,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+
+        ClientClassUtils.authSchemeCacheField(authSchemeSpecUtils, endpointRulesSpecUtils).ifPresent(type::addField);
     }
 
     @Override

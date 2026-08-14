@@ -21,6 +21,7 @@ import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
@@ -385,6 +386,7 @@ public final class ClientClassUtils {
                              + ".orElse(null)",
                              providerInterface, Validate.class, providerInterface,
                              "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
+
         builder.addStatement("$T authSchemeProvider = requestAuthSchemeProvider != null "
                              + "? requestAuthSchemeProvider "
                              + ": $T.isInstanceOf($T.class, "
@@ -393,13 +395,33 @@ public final class ClientClassUtils {
                              SdkInternalExecutionAttribute.class,
                              "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
 
+        // Use cache for simple (non-endpoint-based, non-S3) auth scheme resolution when using the default provider
+        boolean canCache = !authSchemeSpecUtils.useEndpointBasedAuthProvider() && !endpointRulesSpecUtils.isS3();
+        if (canCache) {
+            ClassName defaultProviderClass = authSchemeSpecUtils.defaultAuthSchemeProviderName();
+            builder.addStatement("boolean useCache = requestAuthSchemeProvider == null "
+                                 + "&& authSchemeProvider instanceof $T", defaultProviderClass);
+            builder.beginControlFlow("if (useCache)");
+            builder.addStatement("$T<$T> cached = authSchemeCache.get(operationName)",
+                                 List.class, AuthSchemeOption.class);
+            builder.beginControlFlow("if (cached != null)");
+            builder.addStatement("return cached");
+            builder.endControlFlow();
+            builder.endControlFlow();
+        }
+
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             addEndpointBasedAuthSchemeResolution(builder, authSchemeSpecUtils, endpointRulesSpecUtils);
         } else {
             addSimpleAuthSchemeResolution(builder, authSchemeSpecUtils);
         }
 
-        if (endpointRulesSpecUtils.isS3()) {
+        if (canCache) {
+            builder.beginControlFlow("if (useCache)");
+            builder.addStatement("authSchemeCache.put(operationName, options)");
+            builder.endControlFlow();
+            builder.addStatement("return options");
+        } else if (endpointRulesSpecUtils.isS3()) {
             ClassName sdkIdentityProperty = ClassName.get("software.amazon.awssdk.core.identity", "SdkIdentityProperty");
             builder.addStatement("$T sdkClient = executionAttributes.getAttribute($T.SDK_CLIENT)",
                                  SdkClient.class, SdkInternalExecutionAttribute.class);
@@ -412,6 +434,24 @@ public final class ClientClassUtils {
         }
 
         return builder.build();
+    }
+
+    /**
+     * Returns a field spec for the auth scheme options cache, used when simple (non-endpoint-based) auth is in effect.
+     */
+    static Optional<FieldSpec> authSchemeCacheField(AuthSchemeSpecUtils authSchemeSpecUtils,
+                                                    EndpointRulesSpecUtils endpointRulesSpecUtils) {
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider() || endpointRulesSpecUtils.isS3()) {
+            return Optional.empty();
+        }
+        ClassName concurrentHashMap = ClassName.get("java.util.concurrent", "ConcurrentHashMap");
+        ParameterizedTypeName mapType = ParameterizedTypeName.get(
+            concurrentHashMap,
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(AuthSchemeOption.class)));
+        return Optional.of(FieldSpec.builder(mapType, "authSchemeCache", PRIVATE, Modifier.FINAL)
+                                    .initializer("new $T<>()", concurrentHashMap)
+                                    .build());
     }
 
     private static void addSimpleAuthSchemeResolution(MethodSpec.Builder builder,
