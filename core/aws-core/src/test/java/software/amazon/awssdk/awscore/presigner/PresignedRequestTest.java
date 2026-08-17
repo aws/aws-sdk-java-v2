@@ -27,7 +27,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 
 class PresignedRequestTest {
     @Test
-    void standardPortIsOmitted() throws Exception {
+    void url_withStandardHttpsPort_omitsPort() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
             .host("example.com")
@@ -41,7 +41,7 @@ class PresignedRequestTest {
     }
 
     @Test
-    void standardHttpPortIsOmitted() throws Exception {
+    void url_withStandardHttpPort_omitsPort() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("http")
             .host("example.com")
@@ -55,7 +55,7 @@ class PresignedRequestTest {
     }
 
     @Test
-    void implicitDefaultPortIsOmitted() throws Exception {
+    void url_withImplicitDefaultPort_omitsPort() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
             .host("example.com")
@@ -68,7 +68,7 @@ class PresignedRequestTest {
     }
 
     @Test
-    void customPortIsPreserved() throws Exception {
+    void url_withCustomPort_preservesPort() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
             .host("example.com")
@@ -82,7 +82,7 @@ class PresignedRequestTest {
     }
 
     @Test
-    void encodedPathAndQueryValuesArePreserved() throws Exception {
+    void url_withEncodedPathAndQuery_preservesEncodedValues() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
             .host("example.com")
@@ -97,7 +97,7 @@ class PresignedRequestTest {
     }
 
     @Test
-    void emptyPathIsPreserved() throws Exception {
+    void url_withEmptyPath_preservesEmptyPath() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
             .host("example.com")
@@ -108,7 +108,19 @@ class PresignedRequestTest {
     }
 
     @Test
-    void ipv6HostIsPreserved() throws Exception {
+    void url_withEmptyPathAndQuery_preservesQuery() throws Exception {
+        SdkHttpRequest httpRequest = requestBuilder()
+            .protocol("https")
+            .host("example.com")
+            .putRawQueryParameter("foo", "bar")
+            .build();
+
+        assertEquivalentToUriConversion(httpRequest);
+        assertThat(presignedRequest(httpRequest).url()).hasToString("https://example.com?foo=bar");
+    }
+
+    @Test
+    void url_withIpv6Host_preservesHost() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .uri(URI.create("https://[2001:db8::1]:8443/resource"))
             .build();
