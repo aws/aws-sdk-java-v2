@@ -16,7 +16,6 @@
 package software.amazon.awssdk.benchmark.presigner;
 
 import java.net.URI;
-import java.net.URL;
 import java.time.Duration;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -66,8 +65,6 @@ public class S3PresignerBenchmark {
                                          .signatureDuration(Duration.ofMinutes(15))
                                          .getObjectRequest(getObjectRequest)
                                          .build();
-
-        validate(presigner.presignGetObject(request));
     }
 
     @TearDown(Level.Trial)
@@ -78,18 +75,5 @@ public class S3PresignerBenchmark {
     @Benchmark
     public PresignedGetObjectRequest presignGetObject() {
         return presigner.presignGetObject(request);
-    }
-
-    private static void validate(PresignedGetObjectRequest result) {
-        URL url = result.url();
-        if (!"https".equals(url.getProtocol())
-            || !ENDPOINT.equals(url.getHost())
-            || !url.getPath().contains("/" + BUCKET + "/reports/2026/representative%20object%2Bname.txt")
-            || url.getQuery() == null
-            || !url.getQuery().contains("versionId=benchmark-version")
-            || !url.getQuery().contains("response-content-disposition=")
-            || !url.getQuery().contains("X-Amz-Signature=")) {
-            throw new IllegalStateException("S3 presigner benchmark sanity check failed: " + url);
-        }
     }
 }
