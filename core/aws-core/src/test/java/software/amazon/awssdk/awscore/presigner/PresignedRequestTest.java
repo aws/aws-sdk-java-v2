@@ -41,6 +41,33 @@ class PresignedRequestTest {
     }
 
     @Test
+    void standardHttpPortIsOmitted() throws Exception {
+        SdkHttpRequest httpRequest = requestBuilder()
+            .protocol("http")
+            .host("example.com")
+            .port(80)
+            .encodedPath("/resource")
+            .build();
+
+        assertEquivalentToUriConversion(httpRequest);
+        assertThat(presignedRequest(httpRequest).url().getPort()).isEqualTo(-1);
+        assertThat(presignedRequest(httpRequest).url()).hasToString("http://example.com/resource");
+    }
+
+    @Test
+    void implicitDefaultPortIsOmitted() throws Exception {
+        SdkHttpRequest httpRequest = requestBuilder()
+            .protocol("https")
+            .host("example.com")
+            .encodedPath("/resource")
+            .build();
+
+        assertThat(httpRequest.port()).isEqualTo(443);
+        assertEquivalentToUriConversion(httpRequest);
+        assertThat(presignedRequest(httpRequest).url().getPort()).isEqualTo(-1);
+    }
+
+    @Test
     void customPortIsPreserved() throws Exception {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
@@ -59,13 +86,25 @@ class PresignedRequestTest {
         SdkHttpRequest httpRequest = requestBuilder()
             .protocol("https")
             .host("example.com")
-            .encodedPath("/a%20path/%2Fvalue")
-            .putRawQueryParameter("key with space", "value/with?characters")
+            .encodedPath("/a%20path/%2Fvalue%3Fquery%23fragment%25percent")
+            .putRawQueryParameter("key with space", "value/with?#%characters")
             .build();
 
         assertEquivalentToUriConversion(httpRequest);
         assertThat(presignedRequest(httpRequest).url())
-            .hasToString("https://example.com/a%20path/%2Fvalue?key%20with%20space=value%2Fwith%3Fcharacters");
+            .hasToString("https://example.com/a%20path/%2Fvalue%3Fquery%23fragment%25percent"
+                         + "?key%20with%20space=value%2Fwith%3F%23%25characters");
+    }
+
+    @Test
+    void emptyPathIsPreserved() throws Exception {
+        SdkHttpRequest httpRequest = requestBuilder()
+            .protocol("https")
+            .host("example.com")
+            .build();
+
+        assertEquivalentToUriConversion(httpRequest);
+        assertThat(presignedRequest(httpRequest).url()).hasToString("https://example.com");
     }
 
     @Test
@@ -80,7 +119,8 @@ class PresignedRequestTest {
     }
 
     private static void assertEquivalentToUriConversion(SdkHttpRequest httpRequest) throws Exception {
-        assertThat(presignedRequest(httpRequest).url()).isEqualTo(httpRequest.getUri().toURL());
+        assertThat(presignedRequest(httpRequest).url().toExternalForm())
+            .isEqualTo(httpRequest.getUri().toURL().toExternalForm());
     }
 
     private static SdkHttpFullRequest.Builder requestBuilder() {

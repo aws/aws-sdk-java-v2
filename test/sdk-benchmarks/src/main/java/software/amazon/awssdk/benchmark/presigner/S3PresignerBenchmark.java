@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.benchmark.presigner;
 
-import java.net.URI;
 import java.time.Duration;
 import org.openjdk.jmh.annotations.Benchmark;
 import org.openjdk.jmh.annotations.Level;
@@ -26,7 +25,6 @@ import org.openjdk.jmh.annotations.TearDown;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
-import software.amazon.awssdk.services.s3.S3Configuration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import software.amazon.awssdk.services.s3.presigner.model.GetObjectPresignRequest;
@@ -34,9 +32,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequ
 
 @State(Scope.Thread)
 public class S3PresignerBenchmark {
-    private static final String ENDPOINT = "s3.us-east-1.amazonaws.com";
-    private static final String BUCKET = "java-sdk-presigner-benchmark";
-    private static final String KEY = "reports/2026/representative object+name.txt";
+    private static final String BUCKET = "bucket";
+    private static final String KEY = "key";
 
     private S3Presigner presigner;
     private GetObjectPresignRequest request;
@@ -46,19 +43,13 @@ public class S3PresignerBenchmark {
         presigner = S3Presigner.builder()
                                .region(Region.US_EAST_1)
                                .credentialsProvider(StaticCredentialsProvider.create(
-                                     AwsBasicCredentials.create("access-key", "secret-key")))
-                               .endpointOverride(URI.create("https://" + ENDPOINT))
-                               .serviceConfiguration(S3Configuration.builder()
-                                                                    .pathStyleAccessEnabled(true)
-                                                                    .build())
+                                     AwsBasicCredentials.create("dummykey", "dummysecret")))
                                .build();
 
         GetObjectRequest getObjectRequest =
             GetObjectRequest.builder()
                             .bucket(BUCKET)
                             .key(KEY)
-                            .responseContentDisposition("attachment; filename=report.txt")
-                            .versionId("benchmark-version")
                             .build();
 
         request = GetObjectPresignRequest.builder()
