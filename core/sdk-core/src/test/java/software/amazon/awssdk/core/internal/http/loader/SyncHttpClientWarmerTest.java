@@ -73,6 +73,18 @@ class SyncHttpClientWarmerTest {
     }
 
     @Test
+    void warmAll_whenInvoked_addsWarmUpUserAgentHeader() {
+        SdkHttpClient client = stubClient(respondingWith(403, emptyBody()));
+        ArgumentCaptor<HttpExecuteRequest> request = ArgumentCaptor.forClass(HttpExecuteRequest.class);
+
+        warmer(serviceFor(client)).warmAll();
+
+        verify(client).prepareRequest(request.capture());
+        assertThat(request.getValue().httpRequest().firstMatchingHeader("User-Agent"))
+            .hasValueSatisfying(userAgent -> assertThat(userAgent).contains("aws-sdk-java/2.").contains("ft/warmup"));
+    }
+
+    @Test
     void warmAll_whenRequestFails_swallowsAndStillClosesClient() throws IOException {
         SdkHttpClient client = mock(SdkHttpClient.class);
         ExecutableHttpRequest request = mock(ExecutableHttpRequest.class);

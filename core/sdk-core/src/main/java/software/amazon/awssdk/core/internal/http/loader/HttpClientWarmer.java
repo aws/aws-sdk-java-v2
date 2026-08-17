@@ -15,7 +15,12 @@
 
 package software.amazon.awssdk.core.internal.http.loader;
 
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.FEATURE_METADATA;
+import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.appendSpaceAndField;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.internal.useragent.SdkUserAgentBuilder;
+import software.amazon.awssdk.core.util.SystemUserAgent;
 
 /**
  * Warms the sync or async HTTP clients on the classpath for CRaC priming.
@@ -23,8 +28,23 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 @SdkInternalApi
 public interface HttpClientWarmer {
 
+    String HEADER_USER_AGENT = "User-Agent";
+
+    String WARM_UP_FEATURE_ID = "warmup";
+
     /**
      * Warms every HTTP client found on the classpath. Best-effort; never throws.
      */
     void warmAll();
+
+    /**
+     * Builds the {@code User-Agent} header value for warm-up requests: the system user agent (SDK version, Java version, OS,
+     * etc.) plus the {@link #WARM_UP_FEATURE_ID} feature marker.
+     */
+    static String warmUpUserAgent() {
+        StringBuilder uaString =
+            new StringBuilder(SdkUserAgentBuilder.buildSystemUserAgentString(SystemUserAgent.getOrCreate()));
+        appendSpaceAndField(uaString, FEATURE_METADATA, WARM_UP_FEATURE_ID);
+        return uaString.toString();
+    }
 }

@@ -86,9 +86,10 @@ public final class AsyncHttpClientWarmer implements HttpClientWarmer {
     @Override
     public void warmAll() {
         URI endpoint = endpointProvider.get();
+        String userAgent = HttpClientWarmer.warmUpUserAgent();
         WarmUpDiscovery.forEachDiscovered(services.iterator(), service -> {
             SdkAsyncHttpClient client = service.createAsyncHttpClientFactory().buildWithDefaults(AttributeMap.empty());
-            warmClient(client, endpoint);
+            warmClient(client, endpoint, userAgent);
         });
     }
 
@@ -97,11 +98,12 @@ public final class AsyncHttpClientWarmer implements HttpClientWarmer {
      * failure or timeout is logged and swallowed. We block on the execute future (bounded) because the bundled async
      * clients complete it only after the body is drained, so its completion implies the full path was exercised.
      */
-    private void warmClient(SdkAsyncHttpClient client, URI endpoint) {
+    private void warmClient(SdkAsyncHttpClient client, URI endpoint, String userAgent) {
         try {
             SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
                                                                .method(SdkHttpMethod.GET)
                                                                .uri(endpoint)
+                                                               .putHeader(HEADER_USER_AGENT, userAgent)
                                                                .build();
             AsyncExecuteRequest request = AsyncExecuteRequest.builder()
                                                              .request(httpRequest)
