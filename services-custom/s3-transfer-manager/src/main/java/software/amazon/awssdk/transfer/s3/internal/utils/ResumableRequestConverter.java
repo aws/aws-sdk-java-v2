@@ -59,22 +59,9 @@ public final class ResumableRequestConverter {
 
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;
-        Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
-        String resumableFileDownloadEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
 
-        String s3ObjectEtag = headObjectResponse.eTag();
-        boolean etagModified = resumableFileDownloadEtag != null &&
-                               !resumableFileDownloadEtag.equals(s3ObjectEtag);
-
-
-        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
-        boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
-                                                resumableFileDownload.fileLastModified(),
-                                                resumableFileDownload.downloadFileRequest().destination());
-
-        if (fileModified || s3ObjectModified || etagModified) {
+        if (!canResumeDownload(resumableFileDownload, headObjectResponse)) {
             // modification detected: new download request for the whole object from the beginning
-            logIfNeeded(originalDownloadRequest, getObjectRequest, fileModified, s3ObjectModified, etagModified);
             newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
 
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -102,6 +89,58 @@ public final class ResumableRequestConverter {
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             fileAsyncResponseTransformer(newDownloadFileRequest, true);
         return Pair.of(newDownloadFileRequest, responseTransformer);
+    }
+
+    /**
+     * Determines whether a paused download can continue from where it left off, or whether it has to be restarted from the
+     * beginning because either the S3 object or the local file was modified while the download was paused. Logs the reason at
+     * debug level when a restart is required.
+     *
+     * @return true if the remaining bytes can be fetched, false if the whole object must be downloaded again
+     */
+    public static boolean canResumeDownload(ResumableFileDownload resumableFileDownload,
+                                            HeadObjectResponse headObjectResponse) {
+        DownloadFileRequest downloadRequest = resumableFileDownload.downloadFileRequest();
+        Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
+        String resumableFileDownloadEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
+
+        String s3ObjectEtag = headObjectResponse.eTag();
+        boolean etagModified = resumableFileDownloadEtag != null &&
+                               !resumableFileDownloadEtag.equals(s3ObjectEtag);
+
+        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
+        boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
+                                                resumableFileDownload.fileLastModified(),
+                                                downloadRequest.destination());
+
+        if (fileModified || s3ObjectModified || etagModified) {
+            logIfNeeded(downloadRequest, downloadRequest.getObjectRequest(), fileModified, s3ObjectModified, etagModified);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Builds the {@link DownloadFileRequest} for resuming a paused download that is being written to the destination file by
+     * CRT rather than by an {@link AsyncResponseTransformer}. Unlike
+     * {@link #toDownloadFileRequestAndTransformer(ResumableFileDownload, HeadObjectResponse, DownloadFileRequest)} there is no
+     * transformer to pair the request with, and no part-GET variant to consider, since the CRT-based client always downloads
+     * an object with a single meta request.
+     *
+     * @param restartFromBeginning whether the whole object should be downloaded again rather than only the remaining bytes
+     */
+    public static DownloadFileRequest toCrtDownloadFileRequest(ResumableFileDownload resumableFileDownload,
+                                                              HeadObjectResponse headObjectResponse,
+                                                              DownloadFileRequest originalDownloadRequest,
+                                                              boolean restartFromBeginning) {
+        GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
+        if (restartFromBeginning) {
+            return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+        }
+
+        log.debug(() -> "Resuming the paused download with a range GET for the remaining bytes.");
+        return resumedDownloadFileRequest(resumableFileDownload, originalDownloadRequest, getObjectRequest,
+                                          headObjectResponse);
     }
 
     private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {

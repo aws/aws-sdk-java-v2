@@ -333,8 +333,8 @@ class GenericS3TransferManager implements S3TransferManager {
                                 .build();
     }
 
-    private GetObjectRequest attachSdkAttribute(GetObjectRequest request,
-                                                Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
+    GetObjectRequest attachSdkAttribute(GetObjectRequest request,
+                                        Consumer<AwsRequestOverrideConfiguration.Builder> builderMutation) {
         AwsRequestOverrideConfiguration modifiedRequestOverrideConfig =
             request.overrideConfiguration()
                    .map(o -> o.toBuilder().applyMutation(builderMutation).build())
@@ -408,7 +408,13 @@ class GenericS3TransferManager implements S3TransferManager {
     @Override
     public final FileDownload downloadFile(DownloadFileRequest downloadRequest) {
         Validate.paramNotNull(downloadRequest, "downloadFileRequest");
+        return doDownloadFile(downloadRequest);
+    }
 
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
+    FileDownload doDownloadFile(DownloadFileRequest downloadRequest) {
         GetObjectRequest getObjectRequestWithAttributes = attachSdkAttribute(
             downloadRequest.getObjectRequest(),
             b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, new MultipartDownloadResumeContext()));
@@ -420,13 +426,13 @@ class GenericS3TransferManager implements S3TransferManager {
                                             FileTransformerConfiguration.defaultCreateOrReplaceExisting());
 
         CompletableFuture<CompletedFileDownload> returnFuture = new CompletableFuture<>();
-        TransferProgressUpdater progressUpdater = doDownloadFile(
+        TransferProgressUpdater progressUpdater = initiateDownload(
             downloadFileRequestWithAttributes, responseTransformer, returnFuture);
 
         return new DefaultFileDownload(returnFuture, progressUpdater.progress(), () -> downloadFileRequestWithAttributes, null);
     }
 
-    private TransferProgressUpdater doDownloadFile(
+    private TransferProgressUpdater initiateDownload(
         DownloadFileRequest downloadRequest,
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer,
         CompletableFuture<CompletedFileDownload> returnFuture) {
@@ -460,7 +466,13 @@ class GenericS3TransferManager implements S3TransferManager {
     @Override
     public final FileDownload resumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         Validate.paramNotNull(resumableFileDownload, "resumableFileDownload");
+        return doResumeDownloadFile(resumableFileDownload);
+    }
 
+    /**
+     * May be overridden by subclasses to provide customized behavior
+     */
+    FileDownload doResumeDownloadFile(ResumableFileDownload resumableFileDownload) {
         // check if the multipart-download was already completed and handle it gracefully.
         Optional<MultipartDownloadResumeContext> optCtx =
             multipartDownloadResumeContext(resumableFileDownload.downloadFileRequest().getObjectRequest());
@@ -491,9 +503,9 @@ class GenericS3TransferManager implements S3TransferManager {
             newDownloadFileRequestFuture.complete(newDownloadFileRequest);
             log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
 
-            TransferProgressUpdater progressUpdater = doDownloadFile(newDownloadFileRequest,
-                                                                     requestPair.right(),
-                                                                     returnFuture);
+            TransferProgressUpdater progressUpdater = initiateDownload(newDownloadFileRequest,
+                                                                      requestPair.right(),
+                                                                      returnFuture);
             progressFuture.complete(progressUpdater.progress());
         }).exceptionally(throwable -> {
             handleException(returnFuture, progressFuture, newDownloadFileRequestFuture, throwable);
@@ -520,8 +532,8 @@ class GenericS3TransferManager implements S3TransferManager {
                                        resumableFileDownload);
     }
 
-    private DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
-                                                             DownloadFileRequest originalDownloadRequest) {
+    DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
+                                                     DownloadFileRequest originalDownloadRequest) {
         try {
             return newDownloadFuture.getNow(originalDownloadRequest);
         } catch (CompletionException e) {
@@ -529,10 +541,10 @@ class GenericS3TransferManager implements S3TransferManager {
         }
     }
 
-    private static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
-                                        CompletableFuture<TransferProgress> progressFuture,
-                                        CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
-                                        Throwable throwable) {
+    static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
+                                CompletableFuture<TransferProgress> progressFuture,
+                                CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
+                                Throwable throwable) {
         Throwable exceptionCause = throwable instanceof CompletionException ? throwable.getCause() : throwable;
 
         Throwable propagatedException = exceptionCause instanceof SdkException || exceptionCause instanceof Error

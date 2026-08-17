@@ -26,7 +26,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
-import java.util.Optional;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.Level;
 import org.assertj.core.api.Assertions;
@@ -35,12 +34,11 @@ import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
-import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.testutils.LogCaptor;
@@ -94,7 +92,10 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         ResumableFileDownload resumableFileDownload = download.pause();
         log.debug(() -> "Paused: " + resumableFileDownload);
 
-        String originalEtag = testDownloadListener.getObjectResponse.eTag();
+        // The ETag has to be read off the resume token rather than the progress snapshot: when CRT writes the body directly
+        // to the file, the SDK never sees the GetObjectResponse until the transfer finishes.
+        String originalEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
+        assertThat(originalEtag).isNotNull();
 
         File newSourceFile = new RandomTempFile(OBJ_SIZE);
         PutObjectResponse putResponse = s3.putObject(PutObjectRequest.builder()
@@ -149,12 +150,13 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         long bytesTransferred = resumableFileDownload.bytesTransferred();
         log.debug(() -> "Paused: " + resumableFileDownload);
         assertEqualsBySdkFields(resumableFileDownload.downloadFileRequest(), request);
-        assertThat(testDownloadListener.getObjectResponse).isNotNull();
 
         // Skip the test if everything has been downloaded.
         Assumptions.assumeTrue(resumableFileDownload.bytesTransferred() < sourceFile.length());
 
-        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(testDownloadListener.getObjectResponse.lastModified());
+        HeadObjectResponse headObjectResponse = s3.headObject(b -> b.bucket(BUCKET).key(KEY));
+        assertThat(resumableFileDownload.s3ObjectLastModified()).hasValue(headObjectResponse.lastModified());
+        assertThat(resumableFileDownload.s3ObjectEtag()).hasValue(headObjectResponse.eTag());
         // Request may not be cancelled right away when pause is invoked, so there may be more bytes written to the file
         assertThat(bytesTransferred).isLessThanOrEqualTo(path.toFile().length());
         assertThat(resumableFileDownload.totalSizeInBytes()).hasValue(sourceFile.length());
@@ -254,19 +256,10 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
 
     private static final class TestDownloadListener implements TransferListener {
         private int transferInitiatedCount = 0;
-        private GetObjectResponse getObjectResponse;
 
         @Override
         public void transferInitiated(Context.TransferInitiated context) {
             transferInitiatedCount++;
-        }
-
-        @Override
-        public void bytesTransferred(Context.BytesTransferred context) {
-            Optional<SdkResponse> sdkResponse = context.progressSnapshot().sdkResponse();
-            if (sdkResponse.isPresent() && sdkResponse.get() instanceof GetObjectResponse) {
-                getObjectResponse = (GetObjectResponse) sdkResponse.get();
-            }
         }
     }
 
