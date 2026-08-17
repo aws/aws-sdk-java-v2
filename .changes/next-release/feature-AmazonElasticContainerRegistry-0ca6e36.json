@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Container Registry",
+    "contributor": "",
+    "description": "Documentation update for the ECR PutReplicationConfiguration API to increase the replication rule limit from 10 to 25"
+}
