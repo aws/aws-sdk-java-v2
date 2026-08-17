@@ -59,6 +59,7 @@ public class CodingConventionWithSuppressionTest {
                           "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.crtcore.CrtConfigurationUtils"),
                       ArchUtils.classNameToPattern(
                           "software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter"),
                       ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
