@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.53.2__ __2026-08-17__
+## __AWS Organizations__
+  - ### Features
+    - Add new Transfer Responsibility error codes and document related CloudTrail events for accepting and terminating a Transfer Responsibility.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - AgenticRetrieveStream API now supports Amazon Bedrock AgentCore Memory. Use the new memoryConfiguration parameter to continue a session from short-term memory and retrieve from long-term memory.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds implementations of third-party evaluators, both managed-as-a-service and as templates within custom evaluators.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds new APIs to create, describe, update, delete, and list extraction definitions, enabling customers to manage lifecycle of extraction definition resources. Additionally, this release adds new event sources for Rules related to ACW and new action to Extract Information.
+
+## __Amazon Elastic Container Registry__
+  - ### Features
+    - Documentation update for the ECR PutReplicationConfiguration API to increase the replication rule limit from 10 to 25
+
+## __Amazon Location Service Maps V2__
+  - ### Features
+    - Amazon Location Service now supports POI density and category filtering on dynamic maps. The GetStyleDescriptor API adds two optional parameters. PoiDensity (Off to VeryDense) controls POI volume, and PoiCategories filters by up to nine categories. Available on HERE and Grab map styles.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - AWS Elastic Disaster Recovery (AWS DRS) now offers Recovery Plans to recover multi-server applications in the right order in one action. Define the launch sequence once, with ordered steps and wait times, and DRS runs it automatically. Validate with non-disruptive drills and monitor in real time.
+
 # __2.53.1__ __2026-08-14__
 ## __AWS Glue__
   - ### Features
