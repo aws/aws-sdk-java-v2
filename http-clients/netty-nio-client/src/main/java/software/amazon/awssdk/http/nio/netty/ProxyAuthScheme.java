@@ -23,12 +23,19 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 @SdkPublicApi
 public enum ProxyAuthScheme {
     /**
-     * Basic authentication.
+     * Basic authentication, as defined by <a href="https://datatracker.ietf.org/doc/html/rfc7617">RFC 7617</a>. Requires a
+     * username and password.
      */
     BASIC("Basic"),
 
     /**
-     * Kerberos authentication.
+     * Kerberos authentication, using SPNEGO as defined by
+     * <a href="https://datatracker.ietf.org/doc/html/rfc4559">RFC 4559</a>.
+     * <p>
+     * Credentials are read from the environment Kerberos ticket cache. The client never prompts for a password and never reads a
+     * keytab, so the environment must already hold a valid ticket-granting ticket, typically obtained by running
+     * {@code kinit} and verifiable with {@code klist}. The cache location follows the usual Kerberos conventions, including
+     * the {@code KRB5CCNAME} environment variable. Any username and password configured on the proxy are ignored.
      */
     NEGOTIATE("Negotiate"),
     ;

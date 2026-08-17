@@ -24,9 +24,11 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests for {@link ProxyConfiguration}.
@@ -207,6 +209,39 @@ public class ProxyConfigurationTest {
                                                    .build();
 
         assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.NEGOTIATE);
+    }
+
+    @Test
+    void build_negotiateAuthSchemeWithCredentials_warnsAndKeepsBuilding() {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                       .host("localhost")
+                                                       .port(8888)
+                                                       .proxyAuthScheme(ProxyAuthScheme.NEGOTIATE)
+                                                       .username(TEST_USER)
+                                                       .password(TEST_PASSWORD)
+                                                       .build();
+
+            assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.NEGOTIATE);
+            assertThat(logCaptor.loggedEvents()).singleElement()
+                                                .satisfies(event -> assertThat(event.getMessage().getFormattedMessage())
+                                                    .contains("NEGOTIATE")
+                                                    .contains("will be ignored"));
+        }
+    }
+
+    @Test
+    void build_negotiateAuthSchemeWithSystemPropertyCredentials_doesNotWarn() {
+        setHttpProxyProperties();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            ProxyConfiguration.builder()
+                              .proxyAuthScheme(ProxyAuthScheme.NEGOTIATE)
+                              .build();
+
+            // Credentials the caller did not set here are not their mistake to fix, so warning about them would be noise.
+            assertThat(logCaptor.loggedEvents()).isEmpty();
+        }
     }
 
     @Test

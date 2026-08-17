@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -34,6 +35,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(ProxyConfiguration.class);
+
     private final Boolean useSystemPropertyValues;
     private final Boolean useEnvironmentVariablesValues;
     private final String scheme;
@@ -60,12 +63,28 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.proxyAuthScheme = builder.proxyAuthScheme;
         this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfigProvider);
         validateProxyAuthConfig(proxyAuthScheme, username, password);
+        warnOnIgnoredCredentials(builder);
     }
 
     private static void validateProxyAuthConfig(ProxyAuthScheme proxyAuthScheme, String username, String password) {
         if (proxyAuthScheme == ProxyAuthScheme.BASIC
             && (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))) {
             throw new IllegalArgumentException("username and password must be configured when using BASIC proxy auth");
+        }
+    }
+
+    /**
+     * NEGOTIATE reads its credentials from the Kerberos ticket cache, so a username and password are dead configuration. Warn
+     * rather than fail, and only when they were set directly on this builder: values resolved from system properties or
+     * environment variables may not be under the caller's control, and warning about those would be noise.
+     */
+    private static void warnOnIgnoredCredentials(BuilderImpl builder) {
+        if (builder.proxyAuthScheme == ProxyAuthScheme.NEGOTIATE
+            && (builder.username != null || builder.password != null)) {
+            log.warn(null, () -> "A proxy username and/or password was configured alongside the "
+                                 + ProxyAuthScheme.NEGOTIATE + " proxy auth scheme, and will be ignored. " +
+                                 ProxyAuthScheme.NEGOTIATE + " authenticates using the Kerberos ticket cache. Configure "
+                                 + ProxyAuthScheme.BASIC + " to authenticate with a username and password instead.");
         }
     }
 
@@ -278,6 +297,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * If set to {@link ProxyAuthScheme#BASIC}, {@link #username(String)} and {@link #password(String)} must also be
          * configured (directly, or resolved from system properties or environment variables), otherwise
          * {@link Builder#build()} throws {@link IllegalArgumentException}.
+         * <p>
+         * If set to {@link ProxyAuthScheme#NEGOTIATE}, credentials come from the Kerberos ticket cache rather than from this
+         * configuration, and any configured username and password are ignored. See {@link ProxyAuthScheme#NEGOTIATE} for the
+         * environment it requires and for how a missing or expired ticket surfaces.
          *
          * @param proxyAuthScheme The auth scheme.
          * @return This object for method chaining.
