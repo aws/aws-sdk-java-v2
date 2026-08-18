@@ -48,7 +48,6 @@ import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
  *   <li>{@code "rules"} — SDK v2 rules-based (no BDD)</li>
  *   <li>{@code "baselineBdd"} — SDK v2 original table-driven BDD</li>
  *   <li>{@code "optimizedBdd"} — SDK v2 optimized inlined-branch BDD</li>
- *   <li>{@code "smithyJavaBytecode"} — smithy-java interpreted {@link software.amazon.smithy.java.rulesengine.BytecodeEndpointResolver}</li>
  *   <li>{@code "smithyJavaGenerated"} — smithy-java code-generated {@link GeneratedEndpointResolver},
  *       using the {@link GeneratedEndpointResolver.GeneratedParameters} fast path to skip
  *       {@link EndpointResolverParams} allocation on every call</li>
@@ -66,15 +65,14 @@ public class ConnectEndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaBytecode", "smithyJavaGenerated"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaGenerated"})
     private String resolver;
 
     // SDK resolvers — non-null for rules/baselineBdd/optimizedBdd
     private ConnectEndpointProvider sdkProvider;
 
-    // smithy-java resolvers — non-null for smithyJava* variants
+    // smithy-java resolvers — non-null for smithyJavaGenerated
     private SmithyJavaResolverFactory.Resolvers smithyResolvers;
-    private boolean useGeneratedResolver;
 
     // SDK params (rules/baselineBdd/optimizedBdd)
     private ConnectEndpointParams case0SdkParams;
@@ -84,7 +82,7 @@ public class ConnectEndpointBenchmark {
     private ConnectEndpointParams case4SdkParams;
     private ConnectEndpointParams case5SdkParams;
 
-    // Bytecode resolver params (smithyJavaBytecode)
+    // Smithy-java resolver params (provides context for generatedParams)
     private EndpointResolverParams case0BytecodeParams;
     private EndpointResolverParams case1BytecodeParams;
     private EndpointResolverParams case2BytecodeParams;
@@ -109,10 +107,8 @@ public class ConnectEndpointBenchmark {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
             case "optimizedBdd":        sdkProvider = new OptimizedBddConnectEndpointProvider(); break;
-            case "smithyJavaBytecode":
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forConnect();
-                useGeneratedResolver = "smithyJavaGenerated".equals(resolver);
                 break;
             default: throw new IllegalArgumentException("Unknown resolver: " + resolver);
         }
@@ -167,16 +163,11 @@ public class ConnectEndpointBenchmark {
             for (Object p : shuffledCases) {
                 bh.consume(sdkProvider.resolveEndpoint((ConnectEndpointParams) p).join());
             }
-        } else if (useGeneratedResolver) {
+        } else {
             var gen = asGenerated();
-            var ctx = case0BytecodeParams.context(); // context is reused; only GeneratedParameters varies
+            var ctx = case0BytecodeParams.context();
             for (Object p : shuffledCases) {
                 bh.consume(gen.resolveEndpoint(ctx, (GeneratedEndpointResolver.GeneratedParameters) p));
-            }
-        } else {
-            var r = smithyResolvers.bytecode;
-            for (Object p : shuffledCases) {
-                bh.consume(r.resolveEndpoint((EndpointResolverParams) p));
             }
         }
     }
@@ -185,44 +176,38 @@ public class ConnectEndpointBenchmark {
 
     @Benchmark
     public void case0_usEast1(Blackhole bh) {
-        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
-        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case0BytecodeParams.context(), case0GeneratedParams));
-        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case0BytecodeParams));
+        if (sdkProvider != null)   bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
+        else                       bh.consume(asGenerated().resolveEndpoint(case0BytecodeParams.context(), case0GeneratedParams));
     }
 
     @Benchmark
     public void case1_customEndpoint(Blackhole bh) {
-        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
-        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case1BytecodeParams.context(), case1GeneratedParams));
-        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case1BytecodeParams));
+        if (sdkProvider != null)   bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
+        else                       bh.consume(asGenerated().resolveEndpoint(case1BytecodeParams.context(), case1GeneratedParams));
     }
 
     @Benchmark
     public void case2_usEast1Fips(Blackhole bh) {
-        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
-        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case2BytecodeParams.context(), case2GeneratedParams));
-        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case2BytecodeParams));
+        if (sdkProvider != null)   bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
+        else                       bh.consume(asGenerated().resolveEndpoint(case2BytecodeParams.context(), case2GeneratedParams));
     }
 
     @Benchmark
     public void case3_usWest2FipsDualStack(Blackhole bh) {
-        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
-        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case3BytecodeParams.context(), case3GeneratedParams));
-        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case3BytecodeParams));
+        if (sdkProvider != null)   bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
+        else                       bh.consume(asGenerated().resolveEndpoint(case3BytecodeParams.context(), case3GeneratedParams));
     }
 
     @Benchmark
     public void case4_euCentral1DualStack(Blackhole bh) {
-        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
-        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case4BytecodeParams.context(), case4GeneratedParams));
-        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case4BytecodeParams));
+        if (sdkProvider != null)   bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
+        else                       bh.consume(asGenerated().resolveEndpoint(case4BytecodeParams.context(), case4GeneratedParams));
     }
 
     @Benchmark
     public void case5_cnNorth1DualStack(Blackhole bh) {
-        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case5SdkParams).join());
-        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case5BytecodeParams.context(), case5GeneratedParams));
-        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case5BytecodeParams));
+        if (sdkProvider != null)   bh.consume(sdkProvider.resolveEndpoint(case5SdkParams).join());
+        else                       bh.consume(asGenerated().resolveEndpoint(case5BytecodeParams.context(), case5GeneratedParams));
     }
 
     // ------------------------------------------------------------------------------------- helpers
@@ -237,12 +222,9 @@ public class ConnectEndpointBenchmark {
         if (sdkProvider != null) {
             cases.add(case0SdkParams); cases.add(case1SdkParams); cases.add(case2SdkParams);
             cases.add(case3SdkParams); cases.add(case4SdkParams); cases.add(case5SdkParams);
-        } else if (useGeneratedResolver) {
+        } else {
             cases.add(case0GeneratedParams); cases.add(case1GeneratedParams); cases.add(case2GeneratedParams);
             cases.add(case3GeneratedParams); cases.add(case4GeneratedParams); cases.add(case5GeneratedParams);
-        } else {
-            cases.add(case0BytecodeParams); cases.add(case1BytecodeParams); cases.add(case2BytecodeParams);
-            cases.add(case3BytecodeParams); cases.add(case4BytecodeParams); cases.add(case5BytecodeParams);
         }
         return cases;
     }
