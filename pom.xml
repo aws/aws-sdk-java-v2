@@ -74,6 +74,7 @@
         <module>third-party</module>
         <module>v2-migration</module>
         <module>test/http-client-tests</module>
+        <module>test/warmup-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
         <module>test/service-test-utils</module>

@@ -40,7 +40,7 @@ import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
@@ -64,7 +64,7 @@ public class V2OptimizedClientCreationBenchmark implements SdkClientCreationBenc
                                         .region(Region.US_WEST_2)
                                         .credentialsProvider(StaticCredentialsProvider.create(
                                             AwsBasicCredentials.create("test", "test")))
-                                        .httpClient(ApacheHttpClient.builder().build())
+                                        .httpClient(Apache5HttpClient.builder().build())
                                         .overrideConfiguration(ClientOverrideConfiguration.builder().build())
                                         .endpointDiscoveryEnabled(false)
                                         .build();

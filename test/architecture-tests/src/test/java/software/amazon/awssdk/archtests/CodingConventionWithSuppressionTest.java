@@ -65,9 +65,11 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
                       ArchUtils.classNameToPattern(KnownContentLengthAsyncRequestBodySubscriber.class),
                       ArchUtils.classNameToPattern(UnknownContentLengthAsyncRequestBodySubscriber.class),
-                      ArchUtils.classNameToPattern(CopyObjectHelper.class),
                       ArchUtils.classNameToPattern(
-                          "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload")));
+                          "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload"),
+                      ArchUtils.classNameToPattern(CopyObjectHelper.class),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.WarmUpDiscovery"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(

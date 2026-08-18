@@ -777,6 +777,10 @@ public class Metadata {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
 
+    public String getFullWarmUpInternalPackageName() {
+        return joinPackageNames(getFullInternalPackageName(), "warmup");
+    }
+
     public Metadata setJmesPathPackageName(String jmesPathPackageName) {
         this.jmesPathPackageName = jmesPathPackageName;
         return this;
