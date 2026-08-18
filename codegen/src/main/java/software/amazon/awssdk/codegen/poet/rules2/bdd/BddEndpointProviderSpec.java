@@ -15,14 +15,15 @@
 
 package software.amazon.awssdk.codegen.poet.rules2.bdd;
 
+import com.fasterxml.jackson.core.JsonToken;
+import com.fasterxml.jackson.core.TreeNode;
+import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-import java.io.DataInputStream;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -50,10 +51,25 @@ import software.amazon.awssdk.codegen.poet.rules2.RuleExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleRuntimeTypeMirror;
 import software.amazon.awssdk.codegen.poet.rules2.RuleType;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Generates the BDD (binary decision diagram) based endpoint provider using a smithy-java-inspired
+ * approach: each BDD node is emitted as a pair of {@code nodeP<i>/nodeN<i>} methods that return
+ * {@code Endpoint} directly (null for no-match). Simple conditions (isSet, booleanEquals, stringEquals
+ * on plain register references) are inlined as ternary expressions. Complex conditions that compute
+ * and store values are emitted as separate {@code cond<i>()} methods.
+ *
+ * <p>The evaluator state is reused via a ThreadLocal to eliminate per-call allocation.
+ */
 public class BddEndpointProviderSpec implements ClassSpec {
+    /**
+     * Node references at or above this value denote results; {@code ref - RESULT_OFFSET} is the result index.
+     */
+    private static final int RESULT_OFFSET = 100000001;
+
     private final IntermediateModel intermediateModel;
     private final EndpointBddModel endpointBddModel;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
@@ -61,6 +77,8 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private final RuleRuntimeTypeMirror typeMirror;
     private final Map<String, RegistryInfo> registerInfoMap;
     private final ClassName evaluatorType;
+    private final List<EndpointBddModel.BddNode> bddNodes;
+    private final List<ConditionType> conditionTypes;
 
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -71,6 +89,8 @@ public class BddEndpointProviderSpec implements ClassSpec {
         this.knownEndpointAttributes = knownEndpointAttributes(intermediateModel);
         this.registerInfoMap = buildRegisterInfoMap();
         this.evaluatorType = className().nestedClass("Evaluator");
+        this.bddNodes = endpointBddModel.getDecodedNodes();
+        this.conditionTypes = analyzeConditions();
     }
 
     @Override
@@ -78,55 +98,182 @@ public class BddEndpointProviderSpec implements ClassSpec {
         TypeSpec.Builder builder = PoetUtils.createClassBuilder(className())
                                             .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
-                                            .addType(evaluatorClass())
-                                            .addField(bddDefinition())
-                                            .addStaticBlock(staticInitLoadBddDefinition())
                                             .addAnnotation(SdkInternalApi.class);
 
+        // ThreadLocal field for evaluator reuse
+        builder.addField(FieldSpec.builder(
+                    ClassName.get(ThreadLocal.class), "STATE",
+                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                .initializer("new $T<>()", ThreadLocal.class)
+                .build());
+
+        builder.addType(evaluatorClass());
         builder.addMethod(resolveEndpointMethod());
+
         return builder.build();
     }
 
     private TypeSpec evaluatorClass() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(evaluatorType)
-                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                                          .addField(FieldSpec
-                                                        .builder(endpointRulesSpecUtils.parametersClassName(), "params")
-                                                        .build());
+                                          .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
 
+        // inUse flag for reentrancy guard
+        builder.addField(FieldSpec.builder(boolean.class, "inUse").build());
+
+        // params field
+        builder.addField(FieldSpec.builder(endpointRulesSpecUtils.parametersClassName(), "params").build());
+
+        // Register fields
         registerInfoMap.forEach((k, r) -> {
             TypeName type = r.getRuleType().type();
             if (type.isPrimitive() && r.isNullable()) {
                 type = type.box();
             }
             if (!r.isNonRegionParam()) {
-                builder.addField(
-                    FieldSpec
-                        .builder(type, r.getName())
-                        .build()
-                );
+                builder.addField(FieldSpec.builder(type, r.getName()).build());
             }
         });
 
-        builder.addMethod(evaluatorConditionMethod());
-        builder.addMethod(evaluatorResultMethod());
-        builder.addMethods(resultFns());
+        // BDD node methods
+        builder.addMethods(bddNodeMethods());
+
+        // Condition methods (only for complex conditions)
+        builder.addMethods(conditionMethods());
+
+        // Result methods
+        builder.addMethods(resultMethods());
+
         return builder.build();
     }
 
-    private MethodSpec evaluatorConditionMethod() {
-        MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("cond")
-                                                  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                                                  .returns(boolean.class)
-                                                  .addParameter(int.class, "i");
+    /**
+     * Generates one method pair (nodeP<i> / nodeN<i>) per BDD node. Each evaluates its condition
+     * and branches to child nodes, returning Endpoint directly.
+     *
+     * <p>Simple conditions are inlined as ternary expressions. Complex conditions call cond<i>().
+     */
+    private List<MethodSpec> bddNodeMethods() {
+        List<MethodSpec> methods = new ArrayList<>();
 
-        CodeBlock.Builder codeBuilder = CodeBlock.builder()
-                                                 .beginControlFlow("switch (i)");
+        for (int i = 0; i < bddNodes.size(); i++) {
+            EndpointBddModel.BddNode node = bddNodes.get(i);
+            int condIdx = node.getConditionIndex();
 
+            // Skip dummy/sentinel nodes (conditionIndex < 0) — emit methods that return null
+            if (condIdx < 0 || condIdx >= conditionTypes.size()) {
+                methods.add(MethodSpec.methodBuilder("nodeP" + i)
+                                      .addModifiers(Modifier.PRIVATE)
+                                      .returns(Endpoint.class)
+                                      .addStatement("return null")
+                                      .build());
+                methods.add(MethodSpec.methodBuilder("nodeN" + i)
+                                      .addModifiers(Modifier.PRIVATE)
+                                      .returns(Endpoint.class)
+                                      .addStatement("return null")
+                                      .build());
+                continue;
+            }
+
+            ConditionType ct = conditionTypes.get(condIdx);
+
+            // nodeP: positive (non-complemented) evaluation
+            methods.add(MethodSpec.methodBuilder("nodeP" + i)
+                                  .addModifiers(Modifier.PRIVATE)
+                                  .returns(Endpoint.class)
+                                  .addCode(nodeBody(ct, condIdx, false, node.getHighRef(), node.getLowRef()))
+                                  .build());
+
+            // nodeN: negated (complemented) evaluation — edges are swapped
+            methods.add(MethodSpec.methodBuilder("nodeN" + i)
+                                  .addModifiers(Modifier.PRIVATE)
+                                  .returns(Endpoint.class)
+                                  .addCode(nodeBody(ct, condIdx, true, node.getHighRef(), node.getLowRef()))
+                                  .build());
+        }
+
+        return methods;
+    }
+
+    /**
+     * Generates the body of a nodeP or nodeN method as a ternary return statement.
+     */
+    private CodeBlock nodeBody(ConditionType ct, int condIdx, boolean negated, int highRef, int lowRef) {
+        CodeBlock.Builder code = CodeBlock.builder();
+        String condExpr = conditionExpression(ct, condIdx, negated);
+        // When negated, swap the branches (high/low)
+        int thenRef = negated ? lowRef : highRef;
+        int elseRef = negated ? highRef : lowRef;
+        code.addStatement("return $L\n    ? $L\n    : $L",
+                          condExpr,
+                          referenceExpression(thenRef),
+                          referenceExpression(elseRef));
+        return code.build();
+    }
+
+    /**
+     * Returns the Java expression for evaluating a condition, possibly negated.
+     * Simple conditions are inlined; complex ones call cond<i>().
+     */
+    private String conditionExpression(ConditionType ct, int condIdx, boolean negated) {
+        String expr;
+        switch (ct.kind) {
+            case ISSET:
+                expr = ct.registerName + " != null";
+                break;
+            case NOT_SET:
+                expr = ct.registerName + " == null";
+                break;
+            case BOOL_TRUE:
+                expr = "Boolean.TRUE.equals(" + ct.registerName + ")";
+                break;
+            case BOOL_FALSE:
+                expr = "Boolean.FALSE.equals(" + ct.registerName + ")";
+                break;
+            case STRING_EQ:
+                expr = ct.registerName + " != null && " + ct.registerName + ".equals(" + ct.stringConstant + ")";
+                break;
+            case COMPLEX:
+            default:
+                expr = "cond" + condIdx + "()";
+                break;
+        }
+        if (negated) {
+            return "!(" + expr + ")";
+        }
+        return expr;
+    }
+
+    /**
+     * Returns the Java expression for a BDD reference: a node call, a result call, or null (terminal).
+     */
+    private String referenceExpression(int ref) {
+        if (ref == 1 || ref == -1) {
+            return "null";
+        }
+        if (ref >= RESULT_OFFSET) {
+            return "result" + (ref - RESULT_OFFSET) + "()";
+        }
+        // Positive ref → nodeP; negative ref → nodeN
+        int nodeIndex = Math.abs(ref) - 1;
+        if (ref > 0) {
+            return "nodeP" + nodeIndex + "()";
+        } else {
+            return "nodeN" + nodeIndex + "()";
+        }
+    }
+
+    /**
+     * Generates condition methods only for complex conditions (those that compute and store values).
+     */
+    private List<MethodSpec> conditionMethods() {
+        List<MethodSpec> methods = new ArrayList<>();
         for (int cI = 0; cI < endpointBddModel.getConditions().size(); cI++) {
-            codeBuilder.beginControlFlow("case $L:", cI);
+            if (conditionTypes.get(cI).kind != ConditionKind.COMPLEX) {
+                continue;
+            }
+            CodeBlock.Builder codeBuilder = CodeBlock.builder();
             ConditionModel c = endpointBddModel.getConditions().get(cI);
-            // hack for now to work around ExpressionParser
+            // Use existing expression parser for complex conditions
             RuleModel synthetic = new RuleModel();
             synthetic.setType("error");
             synthetic.setError("synthetic");
@@ -136,93 +283,33 @@ public class BddEndpointProviderSpec implements ClassSpec {
                 .accept(new PrepareForCodegenVisitor());
             parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(codeBuilder, typeMirror, registerInfoMap,
                                                                        endpointRulesSpecUtils));
-            codeBuilder.endControlFlow(); // end case, no "break" required as all cases will return
+            methods.add(MethodSpec.methodBuilder("cond" + cI)
+                                  .addModifiers(Modifier.PRIVATE)
+                                  .returns(boolean.class)
+                                  .addCode(codeBuilder.build())
+                                  .build());
         }
-
-        codeBuilder
-            .beginControlFlow("default:")
-            .addStatement("throw new IllegalArgumentException($S)", "Unknown condition index")
-            .endControlFlow();
-        codeBuilder.endControlFlow(); // end switch
-
-        methodSpec.addCode(codeBuilder.build());
-        return methodSpec.build();
+        return methods;
     }
 
-    private MethodSpec evaluatorResultMethod() {
-        MethodSpec.Builder methodSpec = MethodSpec.methodBuilder("result")
-                                                  .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                                                  .returns(typeMirror.rulesResult().type())
-                                                  .addParameter(int.class, "i");
-
-        CodeBlock.Builder codeBuilder = CodeBlock.builder()
-                                                 .beginControlFlow("switch (i)");
-
-        for (int rI = 0; rI < endpointBddModel.getResults().size(); rI++) {
-            codeBuilder.beginControlFlow("case $L:", rI)
-                       .addStatement("return result$L()", rI)
-                       .endControlFlow(); // end case
-        }
-
-        codeBuilder
-            .beginControlFlow("default:")
-            .addStatement("throw new IllegalArgumentException($S)", "Unknown result index")
-            .endControlFlow();
-        codeBuilder.endControlFlow(); // end switch
-
-        methodSpec.addCode(codeBuilder.build());
-        return methodSpec.build();
-    }
-
-    // generate the BDD_DEFINITION array which defines the nodes in a compact form:
-    // an array of 3*numNodes.  3 integers per node, (conditionRef, highRef, lowRef)
-    private FieldSpec bddDefinition() {
-        return FieldSpec.builder(int[].class, "BDD_DEFINITION",
-                                 Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                        .build();
-    }
-
-    // static initialization code to load the BDD definition from the binary resource file
-    private CodeBlock staticInitLoadBddDefinition() {
-        String fileName = "/endpoints_bdd_" + Integer.toHexString(endpointBddModel.getNodes().hashCode()) + ".bin";
-        return CodeBlock.builder()
-                        .beginControlFlow("try ($T in = $T.class.getResourceAsStream($S))",
-                                          ClassName.get("java.io", "InputStream"),
-                                          className(),
-                                          fileName)
-                        .beginControlFlow("if (in == null)")
-                        .addStatement("throw new $T($S)",
-                                      IllegalStateException.class,
-                                      "Resource " + fileName + " not found")
-                        .endControlFlow()
-                        .addStatement("BDD_DEFINITION = new int[$L]", endpointBddModel.getNodeCount() * 3)
-                        .addStatement("$T data = new $T(in)", DataInputStream.class, DataInputStream.class)
-                        .beginControlFlow("for(int i=0; i < $L; i++)", endpointBddModel.getNodeCount() * 3)
-                        .addStatement("BDD_DEFINITION[i] = data.readInt()")
-                        .endControlFlow()
-                        .nextControlFlow("catch ($T e)", IOException.class)
-                        .addStatement("throw new $T(e)",
-                                      ExceptionInInitializerError.class)
-                        .endControlFlow()
-                        .build();
-    }
-
-    private List<MethodSpec> resultFns() {
+    /**
+     * Generates result methods that return Endpoint directly or throw SdkClientException for errors.
+     */
+    private List<MethodSpec> resultMethods() {
         List<MethodSpec> methods = new ArrayList<>();
         for (int rI = 0; rI < endpointBddModel.getResults().size(); rI++) {
             CodeBlock.Builder codeBuilder = CodeBlock.builder();
             RuleExpression parsedSynthetic = ExpressionParser
                 .parseRuleSetExpression(endpointBddModel.getResults().get(rI))
                 .accept(new PrepareForCodegenVisitor());
-            parsedSynthetic.accept(new ResultFnCodeGeneratorVisitor(
+            parsedSynthetic.accept(new BddResultCodeGeneratorVisitor(
                 codeBuilder, typeMirror, registerInfoMap, knownEndpointAttributes, endpointRulesSpecUtils,
                 intermediateModel.getCustomizationConfig().useS3ExpressSessionAuth()));
-            methods.add(MethodSpec
-                            .methodBuilder("result" + rI)
-                            .addModifiers(Modifier.PRIVATE, Modifier.FINAL)
-                            .returns(typeMirror.rulesResult().type())
-                            .addCode(codeBuilder.build())
-                            .build());
+            methods.add(MethodSpec.methodBuilder("result" + rI)
+                                  .addModifiers(Modifier.PRIVATE)
+                                  .returns(Endpoint.class)
+                                  .addCode(codeBuilder.build())
+                                  .build());
         }
         return methods;
     }
@@ -232,58 +319,55 @@ public class BddEndpointProviderSpec implements ClassSpec {
                                               .addModifiers(Modifier.PUBLIC)
                                               .returns(endpointRulesSpecUtils.resolverReturnType())
                                               .addAnnotation(Override.class)
-                                              .addParameter(endpointRulesSpecUtils.parametersClassName(), "params");
+                                              .addParameter(endpointRulesSpecUtils.parametersClassName(), "endpointParams");
 
         builder.addCode(validateRequiredParams());
-        builder.addStatement("$T evaluator = new $T()", evaluatorType, evaluatorType);
 
-        // region builtin parameter needs to be mapped from Region to String
+        // ThreadLocal state acquisition with reentrancy guard
+        builder.addStatement("$T evaluator = ($T) STATE.get()", evaluatorType, evaluatorType);
+        builder.beginControlFlow("if (evaluator == null)")
+               .addStatement("evaluator = new $T()", evaluatorType)
+               .addStatement("STATE.set(evaluator)")
+               .nextControlFlow("else if (evaluator.inUse)")
+               .addStatement("evaluator = new $T()", evaluatorType)
+               .endControlFlow();
+        builder.addStatement("evaluator.inUse = true");
+
+        builder.beginControlFlow("try");
+
+        // Initialize evaluator from params
+        builder.addStatement("evaluator.params = endpointParams");
         String regionParamName = regionParamName();
         if (regionParamName != null) {
             String regionMethodName = endpointRulesSpecUtils.paramMethodName(regionParamName);
-            builder.addStatement("evaluator.$L = params.$L() == null ? null : params.$L().id()",
+            builder.addStatement("evaluator.$L = endpointParams.$L() == null ? null : endpointParams.$L().id()",
                                  registerInfoMap.get(regionParamName).getName(),
                                  regionMethodName, regionMethodName);
         }
 
-        builder.addStatement("evaluator.params = params");
-        builder.addStatement("final $T bdd = BDD_DEFINITION", int[].class);
-        builder.addStatement("int nodeRef = $L", endpointBddModel.getRoot());
-
-        // optimize the code generated loop if there are no complemented nodes.
-        if (endpointBddModel.hasComplementedNodes()) {
-            builder
-                .beginControlFlow("while ((nodeRef > 1 || nodeRef < -1) && nodeRef < 100000000)")
-                .addStatement("int base  = (Math.abs(nodeRef) - 1) * 3")
-                .addStatement("int complemented = nodeRef >> 31 & 1; // 1 if complemented edge, else 0")
-                .addStatement("int conditionResult = evaluator.cond(bdd[base]) ? 1 : 0")
-                .addStatement("nodeRef = bdd[base + 2 - (complemented ^ conditionResult)]")
-                .endControlFlow();
-        } else {
-            builder
-                .beginControlFlow("while (nodeRef > 1 && nodeRef < 100000000)")
-                .addStatement("int base  = (nodeRef - 1) * 3")
-                .addStatement("int conditionResult = evaluator.cond(bdd[base]) ? 1 : 0")
-                .addStatement("nodeRef = bdd[base + 2 - conditionResult]")
-                .endControlFlow();
-        }
-
-        builder.beginControlFlow("if (nodeRef == 1 || nodeRef == -1)")
-               .addStatement("return $T.failedFuture($T.create($S))", CompletableFutureUtils.class,
-                             SdkClientException.class, "Rule engine did not reach an error or endpoint result")
-               .nextControlFlow("else")
-               .addStatement("RuleResult result = evaluator.result(nodeRef-100000001)")
-               .beginControlFlow("if (result.isError())")
-               .addStatement("String errorMsg = result.error()")
-               .beginControlFlow("if (errorMsg.contains(\"Invalid ARN\") && errorMsg.contains(\":s3:::\"))")
-               .addStatement("errorMsg += $S", ". Use the bucket name instead of simple bucket ARNs in "
-                                               + "GetBucketLocationRequest.")
-               .endControlFlow()
-               .addStatement("return $T.failedFuture($T.create(errorMsg))", CompletableFutureUtils.class,
-                             SdkClientException.class)
-               .endControlFlow()
-               .addStatement("return $T.completedFuture(result.endpoint())", CompletableFuture.class)
+        // Evaluate BDD — returns Endpoint directly (null = no match)
+        builder.addStatement("$T result = evaluator.$L",
+                             Endpoint.class, referenceExpression(endpointBddModel.getRoot()));
+        builder.beginControlFlow("if (result == null)")
+               .addStatement("return $T.failedFuture($T.create($S))",
+                             CompletableFutureUtils.class, SdkClientException.class,
+                             "Rule engine did not reach an error or endpoint result")
                .endControlFlow();
+        builder.addStatement("return $T.completedFuture(result)", CompletableFuture.class);
+
+        // Catch errors thrown from result methods
+        builder.nextControlFlow("catch ($T e)", SdkClientException.class);
+        builder.addStatement("String errorMsg = e.getMessage()");
+        builder.beginControlFlow("if (errorMsg != null && errorMsg.contains(\"Invalid ARN\") && errorMsg.contains(\":s3:::\"))")
+               .addStatement("return $T.failedFuture($T.create(errorMsg + $S))",
+                             CompletableFutureUtils.class, SdkClientException.class,
+                             ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.")
+               .endControlFlow();
+        builder.addStatement("return $T.failedFuture(e)", CompletableFutureUtils.class);
+
+        builder.nextControlFlow("finally");
+        builder.addStatement("evaluator.inUse = false");
+        builder.endControlFlow();
 
         return builder.build();
     }
@@ -295,7 +379,134 @@ public class BddEndpointProviderSpec implements ClassSpec {
                              "Default" + endpointRulesSpecUtils.providerInterfaceName().simpleName());
     }
 
-    // return the name of the region param (mapped to region builtin). Returns null if none set.
+    // ---- Condition analysis ----
+
+    /**
+     * Analyzes each condition in the BDD model to determine if it can be inlined in a node method
+     * or needs a full cond<i>() method.
+     */
+    private List<ConditionType> analyzeConditions() {
+        List<ConditionType> types = new ArrayList<>();
+        for (ConditionModel condition : endpointBddModel.getConditions()) {
+            types.add(classifyCondition(condition));
+        }
+        return types;
+    }
+
+    private ConditionType classifyCondition(ConditionModel condition) {
+        // Conditions with assign always need a method (they have side effects)
+        if (condition.getAssign() != null) {
+            return ConditionType.complex();
+        }
+
+        String fn = condition.getFn();
+        List<TreeNode> argv = condition.getArgv();
+
+        // isSet({ref}) -> ISSET
+        if ("isSet".equals(fn) && argv.size() == 1 && isSimpleRef(argv.get(0))) {
+            String refName = getRefName(argv.get(0));
+            return ConditionType.isSet(resolveRegisterAccessExpression(refName));
+        }
+
+        // booleanEquals({ref}, true/false) -> BOOL_TRUE or BOOL_FALSE
+        if ("booleanEquals".equals(fn) && argv.size() == 2 && isSimpleRef(argv.get(0)) && isBooleanLiteral(argv.get(1))) {
+            String refName = getRefName(argv.get(0));
+            boolean value = getBooleanValue(argv.get(1));
+            String registerExpr = resolveRegisterAccessExpression(refName);
+            return value ? ConditionType.boolTrue(registerExpr) : ConditionType.boolFalse(registerExpr);
+        }
+
+        // stringEquals({ref}, "literal") -> STRING_EQ
+        if ("stringEquals".equals(fn) && argv.size() == 2 && isSimpleRef(argv.get(0)) && isStringLiteral(argv.get(1))) {
+            String refName = getRefName(argv.get(0));
+            String literal = getStringValue(argv.get(1));
+            String registerExpr = resolveRegisterAccessExpression(refName);
+            // Quote the string literal for use in generated code
+            String quotedLiteral = "\"" + escapeJavaString(literal) + "\"";
+            return ConditionType.stringEq(registerExpr, quotedLiteral);
+        }
+
+        return ConditionType.complex();
+    }
+
+    /**
+     * Resolves a parameter/register name to the Java expression that accesses it in the Evaluator.
+     * For non-region params, this is {@code params.xxx()}; for registers, it's the field name.
+     */
+    private String resolveRegisterAccessExpression(String name) {
+        RegistryInfo info = registerInfoMap.get(name);
+        if (info == null) {
+            // Fallback — shouldn't happen for well-formed models
+            return intermediateModel.getNamingStrategy().getVariableName(name);
+        }
+        if (info.isNonRegionParam()) {
+            return "params." + endpointRulesSpecUtils.paramMethodName(info.getNonRegionParamKey()) + "()";
+        }
+        return info.getName();
+    }
+
+    private static boolean isSimpleRef(TreeNode node) {
+        // A simple ref is: {"ref": "SomeName"} — an object with exactly one field "ref" that is a string value
+        if (!node.isObject() || node.size() != 1) {
+            return false;
+        }
+        TreeNode refNode = node.get("ref");
+        return refNode != null && refNode.isValueNode() && refNode.asToken() == JsonToken.VALUE_STRING;
+    }
+
+    private static String getRefName(TreeNode node) {
+        return ((JrsValue) node.get("ref")).asText();
+    }
+
+    private static boolean isBooleanLiteral(TreeNode node) {
+        if (!node.isValueNode()) {
+            return false;
+        }
+        JsonToken token = node.asToken();
+        return token == JsonToken.VALUE_TRUE || token == JsonToken.VALUE_FALSE;
+    }
+
+    private static boolean getBooleanValue(TreeNode node) {
+        return node.asToken() == JsonToken.VALUE_TRUE;
+    }
+
+    private static boolean isStringLiteral(TreeNode node) {
+        return node.isValueNode() && node.asToken() == JsonToken.VALUE_STRING;
+    }
+
+    private static String getStringValue(TreeNode node) {
+        return ((JrsValue) node).asText();
+    }
+
+    private static String escapeJavaString(String s) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '"':
+                    sb.append("\\\"");
+                    break;
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                default:
+                    sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    // ---- Helpers ----
+
     private String regionParamName() {
         for (Map.Entry<String, ParameterModel> entry : endpointBddModel.getParameters().entrySet()) {
             if (entry.getValue().getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
@@ -313,7 +524,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
                   .forEach(e -> {
                       b.addStatement("$T.notNull($N.$N(), $S)",
                                      Validate.class,
-                                     "params",
+                                     "endpointParams",
                                      endpointRulesSpecUtils.paramMethodName(e.getKey()),
                                      String.format("Parameter '%s' must not be null", e.getKey()));
                   });
@@ -338,8 +549,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
         // add an entry for every assigned variable. assigns are guaranteed to be globally unique
         for (ConditionModel conditionModel : endpointBddModel.getConditions()) {
             if (conditionModel.getAssign() != null) {
-                // at this point we don't know the type.
-                // Create a RulesetExpression that will be used to infer the type using the visitor
                 RuleModel synthetic = new RuleModel();
                 synthetic.setType("error");
                 synthetic.setError("synthetic");
@@ -390,5 +599,48 @@ public class BddEndpointProviderSpec implements ClassSpec {
             knownEndpointAttributes = Collections.emptyMap();
         }
         return knownEndpointAttributes;
+    }
+
+    // ---- Condition type classification ----
+
+    enum ConditionKind {
+        ISSET,
+        NOT_SET,
+        BOOL_TRUE,
+        BOOL_FALSE,
+        STRING_EQ,
+        COMPLEX
+    }
+
+    static class ConditionType {
+        final ConditionKind kind;
+        final String registerName;  // Java expression to access the register/param
+        final String stringConstant; // Only for STRING_EQ
+
+        private ConditionType(ConditionKind kind, String registerName, String stringConstant) {
+            this.kind = kind;
+            this.registerName = registerName;
+            this.stringConstant = stringConstant;
+        }
+
+        static ConditionType complex() {
+            return new ConditionType(ConditionKind.COMPLEX, null, null);
+        }
+
+        static ConditionType isSet(String registerName) {
+            return new ConditionType(ConditionKind.ISSET, registerName, null);
+        }
+
+        static ConditionType boolTrue(String registerName) {
+            return new ConditionType(ConditionKind.BOOL_TRUE, registerName, null);
+        }
+
+        static ConditionType boolFalse(String registerName) {
+            return new ConditionType(ConditionKind.BOOL_FALSE, registerName, null);
+        }
+
+        static ConditionType stringEq(String registerName, String stringConstant) {
+            return new ConditionType(ConditionKind.STRING_EQ, registerName, stringConstant);
+        }
     }
 }
