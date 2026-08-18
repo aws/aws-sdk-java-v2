@@ -480,8 +480,7 @@ public final class ClientClassUtils {
         builder.endControlFlow();
     }
 
-    // Any AwsExecutionAttribute added here must also be added to addAuthSchemeCacheLookup().
-    // Enforced by AuthSchemeCacheKeyConsistencyTest.
+    // Any AwsExecutionAttribute added here must also be added to addAuthSchemeCacheLookup(). Enforced by AuthSchemeCacheKeyTest.
     private static void addSimpleAuthSchemeResolution(MethodSpec.Builder builder,
                                                       AuthSchemeSpecUtils authSchemeSpecUtils) {
         ClassName paramsInterface = authSchemeSpecUtils.parametersInterfaceName();
