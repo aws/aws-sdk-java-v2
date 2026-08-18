@@ -24,7 +24,6 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -44,8 +43,7 @@ public class NamingConventionWithSuppressionTest {
      * <p>
      * DO NOT ADD NEW EXCEPTIONS
      */
-    private static final Set<Pattern> ALLOWED_SUPPLIER_SUPPRESSION = new HashSet<>(
-        Collections.singletonList(Pattern.compile(".*/DefaultEndpointAuthSchemeStrategyFactory.class")));
+    private static final Set<Pattern> ALLOWED_SUPPLIER_SUPPRESSION = Collections.emptySet();
 
     @Test
     void supplierImpl_shouldHaveSupplierSuffix() {
