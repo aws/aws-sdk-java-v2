@@ -98,6 +98,25 @@ public class EndpointBddModel {
         this.nodes = nodes;
     }
 
+    public List<Integer> getCompactDecodedNodes() {
+        List<Integer> out = new ArrayList<>(nodeCount * 3);
+        byte[] data = Base64.getDecoder().decode(nodes);
+        ByteBuffer buf = ByteBuffer.wrap(data); // big-endian by default
+        while (buf.remaining() >= 12) {
+            out.add(buf.getInt()); // conditionIndex
+            out.add(buf.getInt()); // highRef
+            out.add(buf.getInt()); // lowRef
+        }
+        return out;
+    }
+
+    /**
+     * @return true if any of the node references are complemented (negative)
+     */
+    public boolean hasComplementedNodes() {
+        return getCompactDecodedNodes().stream().anyMatch(n -> n < 0);
+    }
+
     public List<BddNode> getDecodedNodes() {
         List<BddNode> out = new ArrayList<>(nodeCount);
         byte[] data = Base64.getDecoder().decode(nodes);

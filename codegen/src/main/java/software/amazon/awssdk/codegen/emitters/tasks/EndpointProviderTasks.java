@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointResolverUtilsSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
 import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
 import software.amazon.awssdk.codegen.poet.rules2.bdd.BddEndpointProviderSpec;
+import software.amazon.awssdk.codegen.poet.rules2.bdd.WriteBinaryBddResourceTask;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -53,6 +54,7 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         if (shouldGenerateCompiledEndpointRules()) {
             if (generatorTaskParams.getModel().getEndpointBddModel() != null) {
                 tasks.add(generateDefaultProviderBdd());
+                tasks.add(new WriteBinaryBddResourceTask(model, generatorTaskParams));
             } else {
                 tasks.add(generateDefaultProvider2());
             }
