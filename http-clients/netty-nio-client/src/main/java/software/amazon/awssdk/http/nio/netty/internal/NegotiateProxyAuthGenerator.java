@@ -20,6 +20,8 @@ import java.security.PrivilegedActionException;
 import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import javax.security.auth.Subject;
 import javax.security.auth.login.AppConfigurationEntry;
 import javax.security.auth.login.Configuration;
@@ -33,6 +35,7 @@ import org.ietf.jgss.Oid;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.utils.BinaryUtils;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Auth generator for Kerberos. This does not login/authentication to Kerberos. It expects the ticket cache to be present and
@@ -45,17 +48,20 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
     private static final String OID = "1.3.6.1.5.5.2";
     private static final String SERVICE_NAME = "HTTP";
     private final Configuration config;
+    private final Executor executor;
 
-    public NegotiateProxyAuthGenerator() {
-        this(createDefaultConfig());
-    }
-
-    public NegotiateProxyAuthGenerator(Configuration config) {
+    /**
+     * @param config The JAAS configuration to log in with, or null to use the default ticket-cache-only configuration.
+     * @param executor Executor to run the blocking Kerberos work on. Must not be a Netty event loop; see
+     * {@link #generateAuthParams(URI)}. Its lifecycle is owned by the caller.
+     */
+    public NegotiateProxyAuthGenerator(Configuration config, Executor executor) {
         if (config != null) {
             this.config = config;
         } else {
             this.config = createDefaultConfig();
         }
+        this.executor = Validate.paramNotNull(executor, "executor");
     }
 
     @Override
@@ -64,7 +70,14 @@ public class NegotiateProxyAuthGenerator implements ProxyAuthGenerator {
     }
 
     @Override
-    public String generateAuthParams(URI proxyEndpoint) {
+    public CompletableFuture<String> generateAuthParams(URI proxyEndpoint) {
+        // Must not run on the caller's thread: the caller is a Netty event loop thread, and the work below reads the ticket
+        // cache from disk and may make a blocking TGS request to the KDC. Blocking the loop would stall every other channel
+        // assigned to it.
+        return CompletableFuture.supplyAsync(() -> generateAuthParamsBlocking(proxyEndpoint), executor);
+    }
+
+    private String generateAuthParamsBlocking(URI proxyEndpoint) {
         try {
             Subject subject = getSubject();
 

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty.internal;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 
@@ -31,6 +32,10 @@ public interface ProxyAuthGenerator {
 
     /**
      * Generate the auth params for this request.
+     * <p>
+     * This is asynchronous because generating the params may block - Kerberos, for example, may need to read the ticket cache
+     * from disk and contact the KDC. Implementations that block MUST complete the returned future from a thread other than the
+     * caller's; the caller is a Netty event loop thread, and blocking it would stall every other channel assigned to that loop.
      */
-    String generateAuthParams(URI proxyEndpoint);
+    CompletableFuture<String> generateAuthParams(URI proxyEndpoint);
 }

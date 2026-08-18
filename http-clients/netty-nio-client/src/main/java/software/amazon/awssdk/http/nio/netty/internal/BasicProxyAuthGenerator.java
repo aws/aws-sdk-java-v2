@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import io.netty.util.CharsetUtil;
 import java.net.URI;
 import java.util.Base64;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
 import software.amazon.awssdk.utils.Validate;
@@ -43,8 +44,9 @@ public class BasicProxyAuthGenerator implements ProxyAuthGenerator {
     }
 
     @Override
-    public String generateAuthParams(URI proxyEndpoint) {
+    public CompletableFuture<String> generateAuthParams(URI proxyEndpoint) {
+        // Purely local and cheap, so this completes inline rather than hopping to another thread.
         String authToken = String.format("%s:%s", this.username, this.password);
-        return Base64.getEncoder().encodeToString(authToken.getBytes(CharsetUtil.UTF_8));
+        return CompletableFuture.completedFuture(Base64.getEncoder().encodeToString(authToken.getBytes(CharsetUtil.UTF_8)));
     }
 }

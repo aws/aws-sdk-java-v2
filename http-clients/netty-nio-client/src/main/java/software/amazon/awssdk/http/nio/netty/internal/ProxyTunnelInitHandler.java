@@ -31,6 +31,8 @@ import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.concurrent.Promise;
 import java.io.IOException;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -95,9 +97,50 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         ChannelPipeline pipeline = ctx.pipeline();
         pipeline.addBefore(ctx.name(), null, httpCodecSupplier.get());
 
+        if (authGenerator == null) {
+            sendConnectRequest(ctx, null);
+            return;
+        }
+
+        CompletableFuture<String> authParams;
+        try {
+            authParams = authGenerator.generateAuthParams(proxyAddress);
+        } catch (Throwable t) {
+            handleConnectRequestFailure(ctx, t);
+            return;
+        }
+
+        // Basic auth completes inline, so only pay for a thread hop when the generator is actually asynchronous. When it is,
+        // the future completes on another thread, so hop back to the event loop before touching the channel or this
+        // handler's state.
+        boolean completesInline = authParams.isDone();
+        authParams.whenComplete((params, error) -> {
+            if (completesInline) {
+                sendConnectRequestWithAuth(ctx, params, error);
+            } else {
+                ctx.executor().execute(() -> sendConnectRequestWithAuth(ctx, params, error));
+            }
+        });
+    }
+
+    private void sendConnectRequestWithAuth(ChannelHandlerContext ctx, String authParams, Throwable error) {
+        // The channel may have gone away while we were waiting; whoever completed the promise has already cleaned up.
+        if (initPromise.isDone()) {
+            return;
+        }
+
+        if (error != null) {
+            handleConnectRequestFailure(ctx, unwrap(error));
+            return;
+        }
+
+        sendConnectRequest(ctx, String.format("%s %s", authGenerator.scheme().value(), authParams));
+    }
+
+    private void sendConnectRequest(ChannelHandlerContext ctx, String proxyAuthorization) {
         HttpRequest connectRequest;
         try {
-            connectRequest = connectRequest();
+            connectRequest = connectRequest(proxyAuthorization);
         } catch (Throwable t) {
             handleConnectRequestFailure(ctx, t);
             return;
@@ -108,6 +151,10 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
                 handleConnectRequestFailure(ctx, f.cause());
             }
         });
+    }
+
+    private static Throwable unwrap(Throwable t) {
+        return t instanceof CompletionException && t.getCause() != null ? t.getCause() : t;
     }
 
     @Override
@@ -170,15 +217,14 @@ public final class ProxyTunnelInitHandler extends ChannelDuplexHandler {
         sourcePool.release(ctx.channel());
     }
 
-    private HttpRequest connectRequest() {
+    private HttpRequest connectRequest(String proxyAuthorization) {
         String uri = getUri();
         HttpRequest request = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.CONNECT, uri,
                                                          Unpooled.EMPTY_BUFFER);
         request.headers().add(HttpHeaderNames.HOST, uri);
 
-        if (authGenerator != null) {
-            String auth = String.format("%s %s", authGenerator.scheme().value(), authGenerator.generateAuthParams(proxyAddress));
-            request.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, auth);
+        if (proxyAuthorization != null) {
+            request.headers().add(HttpHeaderNames.PROXY_AUTHORIZATION, proxyAuthorization);
         }
         
         return request;
