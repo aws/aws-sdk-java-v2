@@ -79,9 +79,10 @@ public final class SyncHttpClientWarmer implements HttpClientWarmer {
     @Override
     public void warmAll() {
         URI endpoint = endpointProvider.get();
+        String userAgent = HttpClientWarmer.warmUpUserAgent();
         WarmUpDiscovery.forEachDiscovered(services.iterator(), service -> {
             SdkHttpClient client = service.createHttpClientBuilder().buildWithDefaults(AttributeMap.empty());
-            warmClient(client, endpoint);
+            warmClient(client, endpoint, userAgent);
         });
     }
 
@@ -89,11 +90,12 @@ public final class SyncHttpClientWarmer implements HttpClientWarmer {
      * Sends the warm-up {@code GET} to {@code endpoint}, drains the response body, and closes the client. Best-effort: the
      * goal is JIT compilation, not a successful request, so any failure is logged and swallowed.
      */
-    private void warmClient(SdkHttpClient client, URI endpoint) {
+    private void warmClient(SdkHttpClient client, URI endpoint, String userAgent) {
         try {
             SdkHttpRequest httpRequest = SdkHttpRequest.builder()
                                                        .method(SdkHttpMethod.GET)
                                                        .uri(endpoint)
+                                                       .putHeader(HEADER_USER_AGENT, userAgent)
                                                        .build();
             HttpExecuteRequest request = HttpExecuteRequest.builder()
                                                            .request(httpRequest)

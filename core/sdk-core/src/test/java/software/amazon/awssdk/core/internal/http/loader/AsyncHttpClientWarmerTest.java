@@ -78,6 +78,18 @@ class AsyncHttpClientWarmerTest {
     }
 
     @Test
+    void warmAll_whenInvoked_addsWarmUpUserAgentHeader() {
+        SdkAsyncHttpClient client = stubClient(emptyBody());
+        ArgumentCaptor<AsyncExecuteRequest> request = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+
+        warmer(serviceFor(client)).warmAll();
+
+        verify(client).execute(request.capture());
+        assertThat(request.getValue().request().firstMatchingHeader("User-Agent"))
+            .hasValueSatisfying(userAgent -> assertThat(userAgent).contains("aws-sdk-java/2.").contains("ft/warmup"));
+    }
+
+    @Test
     void warmAll_whenRequestFails_swallowsAndStillClosesClient() {
         SdkAsyncHttpClient client = mock(SdkAsyncHttpClient.class);
         when(client.execute(any(AsyncExecuteRequest.class))).thenThrow(new RuntimeException("offline"));
