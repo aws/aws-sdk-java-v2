@@ -166,7 +166,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
 
-        ClientClassUtils.authSchemeCacheField(authSchemeSpecUtils, endpointRulesSpecUtils).ifPresent(type::addField);
+        ClientClassUtils.authSchemeCacheField(authSchemeSpecUtils).ifPresent(type::addField);
     }
 
     @Override

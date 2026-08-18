@@ -20,7 +20,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.lang.reflect.Field;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,19 +31,19 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.multiauth.MultiauthClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.auth.scheme.ProtocolRestJsonAuthSchemeParams;
 import software.amazon.awssdk.services.protocolrestjson.auth.scheme.ProtocolRestJsonAuthSchemeProvider;
 
-/**
- * Tests verifying auth scheme options cache behavior:
- * - Custom client-level providers bypass the cache (instanceof guard)
- * - Per-request overrides bypass the cache
- * - Default provider with caching doesn't break correctness
- */
 class AuthSchemeCacheTest {
 
     @Mock
@@ -71,15 +74,11 @@ class AuthSchemeCacheTest {
             .authSchemeProvider(customProvider)
             .build();
 
-        // Custom provider is invoked on every call — instanceof guard prevents caching
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
         assertThat(resolveCount.get()).isEqualTo(1);
 
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
         assertThat(resolveCount.get()).isEqualTo(2);
-
-        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
-        assertThat(resolveCount.get()).isEqualTo(3);
 
         client.close();
     }
@@ -94,24 +93,20 @@ class AuthSchemeCacheTest {
                 AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.SCHEME_ID).build());
         };
 
-        // Use default provider on the client (cache will be active)
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
             .httpClient(mockHttpClient)
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .region(Region.US_WEST_2)
             .build();
 
-        // First call with default provider — populates cache
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
         assertThat(requestProviderCount.get()).isEqualTo(0);
 
-        // Per-request override — must use the override, not the cache
         assertThatThrownBy(() -> client.allTypes(r -> r.overrideConfiguration(
             c -> c.authSchemeProvider(requestProvider)
         ))).hasMessageContaining("stop");
         assertThat(requestProviderCount.get()).isEqualTo(1);
 
-        // Without override — back to cache (request provider not called again)
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
         assertThat(requestProviderCount.get()).isEqualTo(1);
 
@@ -120,21 +115,156 @@ class AuthSchemeCacheTest {
 
     @Test
     void defaultProvider_multipleOperationsSucceed() {
-        // Smoke test: default provider with caching active doesn't break across operations
         ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
             .httpClient(mockHttpClient)
             .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
             .region(Region.US_WEST_2)
             .build();
 
-        // Multiple calls to the same operation succeed (cache hit path)
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
         assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
-
-        // Different operation also succeeds (cache miss then hit)
         assertThatThrownBy(() -> client.deleteOperation(r -> {})).hasMessageContaining("stop");
         assertThatThrownBy(() -> client.deleteOperation(r -> {})).hasMessageContaining("stop");
 
         client.close();
+    }
+
+    @Test
+    void defaultProvider_returnsUnmodifiableList() {
+        List<AuthSchemeOption> options = ProtocolRestJsonAuthSchemeProvider.defaultProvider().resolveAuthScheme(
+            ProtocolRestJsonAuthSchemeParams.builder().operation("AllTypes").region(Region.US_WEST_2).build());
+
+        assertThat(options).isNotEmpty();
+        assertThatThrownBy(() -> options.add(AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.SCHEME_ID).build()))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    @Test
+    void defaultProvider_cachesUnmodifiableListAndReusesInstance() throws Exception {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+            .httpClient(mockHttpClient)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .region(Region.US_WEST_2)
+            .build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+
+        Map<String, List<AuthSchemeOption>> cache = authSchemeCache(client);
+        assertThat(cache).isNotEmpty();
+        List<AuthSchemeOption> cached = cache.values().iterator().next();
+
+        assertThatThrownBy(() -> cached.add(AuthSchemeOption.builder().schemeId(AwsV4AuthScheme.SCHEME_ID).build()))
+            .isInstanceOf(UnsupportedOperationException.class);
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        assertThat(cache.values().iterator().next()).isSameAs(cached);
+
+        client.close();
+    }
+
+    @Test
+    void perOpAuthService_differentOperationsSeparateCacheEntries() throws Exception {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+            .httpClient(mockHttpClient)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .region(Region.US_WEST_2)
+            .build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        Map<String, List<AuthSchemeOption>> cache = authSchemeCache(client);
+        assertThat(cache).hasSize(1);
+
+        assertThatThrownBy(() -> client.deleteOperation(r -> {})).hasMessageContaining("stop");
+        assertThat(cache).hasSize(2);
+
+        client.close();
+    }
+
+
+    @Test
+    void regionChange_causesCacheMiss() throws Exception {
+        AtomicInteger callCount = new AtomicInteger(0);
+        ExecutionInterceptor regionSwitcher = new ExecutionInterceptor() {
+            @Override
+            public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+                if (callCount.incrementAndGet() > 1) {
+                    executionAttributes.putAttribute(AwsExecutionAttribute.AWS_REGION, Region.EU_WEST_1);
+                }
+            }
+        };
+
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+            .httpClient(mockHttpClient)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .region(Region.US_WEST_2)
+            .overrideConfiguration(c -> c.addExecutionInterceptor(regionSwitcher))
+            .build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        Map<String, List<AuthSchemeOption>> cache = authSchemeCache(client);
+        assertThat(cache).hasSize(1);
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        assertThat(cache).hasSize(2);
+
+        client.close();
+    }
+
+    @Test
+    void cacheHit_returnsSameInstanceOnRepeatedCalls() throws Exception {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+            .httpClient(mockHttpClient)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .region(Region.US_WEST_2)
+            .build();
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        Map<String, List<AuthSchemeOption>> cache = authSchemeCache(client);
+        assertThat(cache).hasSize(1);
+        List<AuthSchemeOption> firstResult = cache.values().iterator().next();
+
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        assertThatThrownBy(() -> client.allTypes(r -> {})).hasMessageContaining("stop");
+        assertThat(cache).hasSize(1);
+        assertThat(cache.values().iterator().next()).isSameAs(firstResult);
+
+        client.close();
+    }
+
+    @Test
+    void regionSetChange_causesCacheMiss() throws Exception {
+        AtomicInteger callCount = new AtomicInteger(0);
+        ExecutionInterceptor regionSetSwitcher = new ExecutionInterceptor() {
+            @Override
+            public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+                if (callCount.incrementAndGet() > 1) {
+                    executionAttributes.putAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET,
+                        Collections.singleton("eu-west-1"));
+                }
+            }
+        };
+
+        MultiauthClient client = MultiauthClient.builder()
+            .httpClient(mockHttpClient)
+            .credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid")))
+            .region(Region.US_WEST_2)
+            .overrideConfiguration(c -> c.addExecutionInterceptor(regionSetSwitcher))
+            .build();
+
+        assertThatThrownBy(() -> client.multiAuthWithOnlySigv4a(r -> {})).hasMessageContaining("stop");
+        Map<String, List<AuthSchemeOption>> cache = authSchemeCache(client);
+        assertThat(cache).hasSize(1);
+
+        assertThatThrownBy(() -> client.multiAuthWithOnlySigv4a(r -> {})).hasMessageContaining("stop");
+        assertThat(cache).hasSize(2);
+
+        client.close();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, List<AuthSchemeOption>> authSchemeCache(Object client) throws Exception {
+        Field field = client.getClass().getDeclaredField("authSchemeCache");
+        field.setAccessible(true);
+        return (Map<String, List<AuthSchemeOption>>) field.get(client);
     }
 }
