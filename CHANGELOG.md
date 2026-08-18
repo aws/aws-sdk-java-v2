@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.53.3__ __2026-08-18__
+## __AWS Batch__
+  - ### Features
+    - Update AWS Batch documentation with newer Fargate Supported configurations, notes, and fix broken Docker link re-directs.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports SCTE-35 marker passthrough without IDR frame insertion for CMAF Ingest, MediaPackage V2, and transport stream outputs.
+
+## __AWS EntityResolution__
+  - ### Features
+    - Added ResourceNotFoundException to DeleteSchemaMapping, DeleteMatchingWorkflow, DeleteIdMappingWorkflow, and DeleteIdNamespace. These operations now return a 404 ResourceNotFoundException (previously a 200 Success) when the target resource does not exist.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Introducing two new APIs, DescribeAssessment and ListAssessments. These APIs expose validation issues on Marketplace resources. The validation issues are exposed via a newly created resource called Assessment.
+
+## __AWS Outposts__
+  - ### Features
+    - AWS Outposts now supports VPC Endpoint configuration in CreatePrivateConnectivityConfig, enabling scoped private connectivity with provisioning role creation for secure outpost installations
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Doc release for CreateImage support for instances with local snapshots in Outpost
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Amazon WorkSpaces now supports nested virtualization, allowing you to run hypervisors and virtualization-based workloads within your WorkSpaces. You can enable or disable nested virtualization when creating a WorkSpace or by modifying an existing WorkSpace's properties.
+
+## __S3 Transfer Manager__
+  - ### Features
+    - Use CRT's response file when downloading to a file with the CRT-based S3TransferManager - CRT now writes the object to the destination file directly instead of streaming the body back through the SDK. Pausing such a download uses CRT's new asynchronous pause, so the resume token reflects a fully flushed file.
+
 # __2.53.2__ __2026-08-17__
 ## __AWS Organizations__
   - ### Features
