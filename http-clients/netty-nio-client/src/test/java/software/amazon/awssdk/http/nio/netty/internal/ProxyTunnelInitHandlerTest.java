@@ -48,7 +48,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Supplier;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -57,7 +56,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 
 /**
  * Unit tests for {@link ProxyTunnelInitHandler}.

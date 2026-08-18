@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.http.nio.netty;
+package software.amazon.awssdk.http;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 

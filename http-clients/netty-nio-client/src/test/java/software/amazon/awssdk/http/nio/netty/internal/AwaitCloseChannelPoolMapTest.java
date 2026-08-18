@@ -56,7 +56,7 @@ import org.mockito.Mockito;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.TlsKeyManagersProvider;
-import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.RecordingNetworkTrafficListener;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;

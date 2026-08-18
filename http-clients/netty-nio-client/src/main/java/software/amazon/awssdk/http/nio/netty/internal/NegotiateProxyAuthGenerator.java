@@ -33,7 +33,7 @@ import org.ietf.jgss.GSSManager;
 import org.ietf.jgss.GSSName;
 import org.ietf.jgss.Oid;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
 

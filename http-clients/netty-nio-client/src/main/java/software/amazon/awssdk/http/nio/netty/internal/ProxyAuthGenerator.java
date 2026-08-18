@@ -18,7 +18,7 @@ package software.amazon.awssdk.http.nio.netty.internal;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 
 /**
  * Generates the auth params for an {@code Authorization} HTTP header.

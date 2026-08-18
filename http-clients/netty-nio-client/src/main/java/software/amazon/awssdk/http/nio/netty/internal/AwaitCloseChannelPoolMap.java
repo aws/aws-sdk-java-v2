@@ -44,7 +44,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
-import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 import software.amazon.awssdk.http.nio.netty.ProxyConfiguration;
 import software.amazon.awssdk.http.nio.netty.SdkEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.http2.HttpOrHttp2ChannelPool;
