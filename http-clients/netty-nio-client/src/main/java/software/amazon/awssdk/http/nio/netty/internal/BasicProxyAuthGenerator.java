@@ -20,7 +20,7 @@ import java.net.URI;
 import java.util.Base64;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.http.nio.netty.ProxyAuthScheme;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 import software.amazon.awssdk.utils.Validate;
 
 /**

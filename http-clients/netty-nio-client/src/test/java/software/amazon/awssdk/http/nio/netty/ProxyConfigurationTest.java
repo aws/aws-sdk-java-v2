@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 import software.amazon.awssdk.testutils.LogCaptor;
 
 /**

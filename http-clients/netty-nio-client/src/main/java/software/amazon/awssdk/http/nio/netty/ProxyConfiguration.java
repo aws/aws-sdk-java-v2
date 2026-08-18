@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.ProxyAuthScheme;
 import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
