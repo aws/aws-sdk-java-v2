@@ -951,8 +951,9 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
                                                                                                                              "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider");
         boolean useCache = requestAuthSchemeProvider == null
                 && authSchemeProvider instanceof DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         if (useCache) {
-            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
             if (cached != null) {
                 return cached;
             }
@@ -962,7 +963,8 @@ final class DefaultSmithyRpcV2ProtocolAsyncClient implements SmithyRpcV2Protocol
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         if (useCache) {
-            authSchemeCache.put(operationName, options);
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
         }
         return options;
     }

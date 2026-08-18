@@ -789,8 +789,10 @@ final class DefaultDatabaseClient implements DatabaseClient {
                           "Expected an instance of DatabaseAuthSchemeProvider");
         boolean useCache = requestAuthSchemeProvider == null
                 && authSchemeProvider instanceof DefaultDatabaseAuthSchemeProvider;
+        String cacheKey = operationName + ":" + executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION) + ":"
+                + executionAttributes.getAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET);
         if (useCache) {
-            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
             if (cached != null) {
                 return cached;
             }
@@ -803,7 +805,8 @@ final class DefaultDatabaseClient implements DatabaseClient {
         }
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         if (useCache) {
-            authSchemeCache.put(operationName, options);
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
         }
         return options;
     }

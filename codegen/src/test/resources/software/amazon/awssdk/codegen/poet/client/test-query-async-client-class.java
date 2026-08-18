@@ -1250,8 +1250,9 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                           "Expected an instance of QueryAuthSchemeProvider");
         boolean useCache = requestAuthSchemeProvider == null
                 && authSchemeProvider instanceof DefaultQueryAuthSchemeProvider;
+        String cacheKey = operationName + ":" + executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
         if (useCache) {
-            List<AuthSchemeOption> cached = authSchemeCache.get(operationName);
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
             if (cached != null) {
                 return cached;
             }
@@ -1260,7 +1261,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
         if (useCache) {
-            authSchemeCache.put(operationName, options);
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
         }
         return options;
     }
