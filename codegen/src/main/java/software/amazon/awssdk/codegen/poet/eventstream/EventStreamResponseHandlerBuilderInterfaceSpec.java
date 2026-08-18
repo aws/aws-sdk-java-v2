@@ -67,8 +67,10 @@ public class EventStreamResponseHandlerBuilderInterfaceSpec implements ClassSpec
 
         return PoetUtils.createInterfaceBuilder(className()).addModifiers(Modifier.PUBLIC, Modifier.STATIC)
                         .addJavadoc("Builder for {@link $1T}. This can be used to create the {@link $1T} in a more "
-                                    + "functional way, you may also directly implement the {@link $1T} interface if "
-                                    + "preferred.",
+                                    + "functional way. Directly implementing the {@link $1T} interface is possible but "
+                                    + "requires subscribing to the event publisher, requesting data via the Subscription, "
+                                    + "resetting state on retry, and freeing resources on error; the builder handles all "
+                                    + "of this automatically.",
                                     responseHandlerType)
                         .addSuperinterface(superBuilderInterface);
     }
