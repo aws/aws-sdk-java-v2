@@ -333,6 +333,7 @@
             <Class name="~software\.amazon\.awssdk\.http\.nio\.netty\.internal\.AwaitCloseChannelPoolMap" />
             <Class name="~software\.amazon\.awssdk\.http\.nio\.netty\.internal\.ChannelAttributeKey" />
             <Class name="~software\.amazon\.awssdk\.transfer\.s3\.internal\.progress\.ResumeTransferProgress" />
+            <Class name="~software\.amazon\.awssdk\.transfer\.s3\.internal\.model\.CrtFileDownload" />
             <Class name="~software\.amazon\.awssdk\.utils\.CompletableFutureUtils" />
             <Class name="~software\.amazon\.awssdk\.metrics\.publishers\.cloudwatch\.CloudWatchMetricPublisher" />
             <Class name="~software\.amazon\.awssdk\.http\.apache\.internal\.conn\.IdleConnectionReaper\$ReaperTask" />
@@ -348,7 +349,7 @@
 
             <Class name="~software\.amazon\.awssdk\.messagemanager\.sns\.internal\.SnsHostProvider" />
 
-            <!-- CRaC warm-up must block until the warm-up request finishes, so it is ready before the checkpoint is taken. -->
+            <!-- Warm-up must block until the warm-up request finishes, so it is ready before the checkpoint is taken. -->
             <Class name="~software\.amazon\.awssdk\.core\.internal\.http\.loader\.AsyncHttpClientWarmer" />
 
             <!-- test modules are allowed to make blocking call as parts of their testing -->

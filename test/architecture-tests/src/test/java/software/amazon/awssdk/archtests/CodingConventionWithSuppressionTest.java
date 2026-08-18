@@ -59,11 +59,14 @@ public class CodingConventionWithSuppressionTest {
                           "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.crtcore.CrtConfigurationUtils"),
                       ArchUtils.classNameToPattern(
                           "software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter"),
                       ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
                       ArchUtils.classNameToPattern(KnownContentLengthAsyncRequestBodySubscriber.class),
                       ArchUtils.classNameToPattern(UnknownContentLengthAsyncRequestBodySubscriber.class),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload"),
                       ArchUtils.classNameToPattern(CopyObjectHelper.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.WarmUpDiscovery"),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker")));
