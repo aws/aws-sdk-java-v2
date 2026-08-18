@@ -315,8 +315,6 @@ public class CustomizationConfig {
     private boolean s3ExpressAuthSupport;
 
     /**
-
-    /**
      * Customization related to auth scheme derived from endpoints.
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
