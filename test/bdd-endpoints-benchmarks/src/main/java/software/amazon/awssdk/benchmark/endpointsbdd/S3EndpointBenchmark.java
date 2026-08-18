@@ -39,27 +39,23 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineRulesEndpointResolver;
-import software.amazon.awssdk.services.s3.endpoints.internal.DefaultS3EndpointProvider;
-import software.amazon.smithy.java.endpoints.EndpointResolver;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
-import software.amazon.smithy.java.rulesengine.BytecodeEndpointResolver;
+import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
 /**
- * Compares S3 endpoint resolution across four resolver implementations:
+ * Compares S3 endpoint resolution across five resolver implementations:
  * <ul>
  *   <li>{@code "rules"} — SDK v2 rules-based (no BDD)</li>
  *   <li>{@code "baselineBdd"} — SDK v2 original table-driven BDD</li>
  *   <li>{@code "optimizedBdd"} — SDK v2 optimized inlined-branch BDD</li>
- *   <li>{@code "smithyJava"} — smithy-java {@link BytecodeEndpointResolver}</li>
+ *   <li>{@code "smithyJavaBytecode"} — smithy-java interpreted bytecode resolver</li>
+ *   <li>{@code "smithyJavaGenerated"} — smithy-java code-generated resolver with pre-marshalled
+ *       {@link GeneratedEndpointResolver.GeneratedParameters} fast path</li>
  * </ul>
  *
- * <p>The five cases mirror those in {@code S3BddEndpointCaseBenchmark} and
- * {@code S3EndpointResolverBenchmark}: virtual addressing, path style, S3 Express data plane,
- * access point ARN, and S3 Outposts.
- *
- * <p>For {@code smithyJava}, parameters are passed entirely via {@code ADDITIONAL_ENDPOINT_PARAMS}
- * matching the S3 reference benchmark's "canned" param mode — bucket and key are in the params
- * map, not extracted from the input shape.
+ * <p>Cases mirror the smithy-java reference S3 benchmarks: virtual addressing, path style,
+ * S3 Express data plane, access point ARN, and S3 Outposts. All smithy-java params are
+ * passed via {@code ADDITIONAL_ENDPOINT_PARAMS} (canned mode, no input-shape extraction).
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -71,11 +67,12 @@ public class S3EndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJava"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaBytecode", "smithyJavaGenerated"})
     private String resolver;
 
     private S3EndpointProvider sdkProvider;
-    private EndpointResolver smithyProvider;
+    private SmithyJavaResolverFactory.Resolvers smithyResolvers;
+    private boolean useGeneratedResolver;
 
     private S3EndpointParams case0SdkParams;
     private S3EndpointParams case1SdkParams;
@@ -83,11 +80,17 @@ public class S3EndpointBenchmark {
     private S3EndpointParams case3SdkParams;
     private S3EndpointParams case4SdkParams;
 
-    private EndpointResolverParams case0SmithyParams;
-    private EndpointResolverParams case1SmithyParams;
-    private EndpointResolverParams case2SmithyParams;
-    private EndpointResolverParams case3SmithyParams;
-    private EndpointResolverParams case4SmithyParams;
+    private EndpointResolverParams case0BytecodeParams;
+    private EndpointResolverParams case1BytecodeParams;
+    private EndpointResolverParams case2BytecodeParams;
+    private EndpointResolverParams case3BytecodeParams;
+    private EndpointResolverParams case4BytecodeParams;
+
+    private GeneratedEndpointResolver.GeneratedParameters case0GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case1GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case2GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case3GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case4GeneratedParams;
 
     private List<Object> shuffledCases;
     private Random random;
@@ -95,74 +98,68 @@ public class S3EndpointBenchmark {
     @Setup(Level.Trial)
     public void setup() {
         switch (resolver) {
-            case "rules":        sdkProvider = new BaselineRulesEndpointResolver(); break;
-            case "baselineBdd":  sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd": sdkProvider = new DefaultS3EndpointProvider(); break;
-            case "smithyJava":   smithyProvider = SmithyJavaResolverFactory.forS3(); break;
+            case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
+            case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new OptimizedBddS3EndpointProvider(); break;
+            case "smithyJavaBytecode":
+            case "smithyJavaGenerated":
+                smithyResolvers = SmithyJavaResolverFactory.forS3();
+                useGeneratedResolver = "smithyJavaGenerated".equals(resolver);
+                break;
             default: throw new IllegalArgumentException("Unknown resolver: " + resolver);
         }
 
-        // Case 0: vanilla virtual addressing@us-west-2
-        case0SdkParams = S3EndpointParams.builder()
-                                         .bucket("bucket-name").region(Region.US_WEST_2)
-                                         .useFips(false).useDualStack(false)
-                                         .forcePathStyle(false).accelerate(false)
-                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false)
-                                         .build();
-        case0SmithyParams = SmithyJavaResolverFactory.params("us-west-2",
-                Map.of("Accelerate", false, "Bucket", "bucket-name", "ForcePathStyle", false,
-                       "Region", "us-west-2", "UseDualStack", false, "UseFIPS", false));
+        Map<String, Object> p0 = Map.of("Accelerate", false, "Bucket", "bucket-name",
+                                        "ForcePathStyle", false, "Region", "us-west-2",
+                                        "UseDualStack", false, "UseFIPS", false);
+        Map<String, Object> p1 = Map.of("Accelerate", false, "Bucket", "bucket-name",
+                                        "ForcePathStyle", true, "Region", "us-west-2",
+                                        "UseDualStack", false, "UseFIPS", false);
+        Map<String, Object> p2 = Map.of("Region", "us-east-1", "Bucket", "mybucket--abcd-ab1--x-s3",
+                                        "UseFIPS", false, "UseDualStack", false,
+                                        "Accelerate", false, "UseS3ExpressControlEndpoint", false);
+        Map<String, Object> p3 = Map.of("Accelerate", false,
+                                        "Bucket", "arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint",
+                                        "ForcePathStyle", false, "Region", "us-west-2",
+                                        "UseDualStack", false, "UseFIPS", false);
+        Map<String, Object> p4 = Map.of("Region", "us-west-2", "UseFIPS", false, "UseDualStack", false,
+                                        "Accelerate", false,
+                                        "Bucket", "arn:aws:s3-outposts:us-west-2:123456789012:outpost/op-01234567890123456/accesspoint/reports");
 
-        // Case 1: vanilla path style@us-west-2
-        case1SdkParams = S3EndpointParams.builder()
-                                         .bucket("bucket-name").region(Region.US_WEST_2)
-                                         .useFips(false).useDualStack(false)
-                                         .forcePathStyle(true).accelerate(false)
-                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false)
-                                         .build();
-        case1SmithyParams = SmithyJavaResolverFactory.params("us-west-2",
-                Map.of("Accelerate", false, "Bucket", "bucket-name", "ForcePathStyle", true,
-                       "Region", "us-west-2", "UseDualStack", false, "UseFIPS", false));
-
-        // Case 2: S3 Express data plane with short zone name
-        case2SdkParams = S3EndpointParams.builder()
-                                         .bucket("mybucket--abcd-ab1--x-s3").region(Region.US_EAST_1)
-                                         .useFips(false).useDualStack(false)
-                                         .forcePathStyle(false).accelerate(false)
-                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false)
-                                         .disableS3ExpressSessionAuth(false)
-                                         .build();
-        case2SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "Bucket", "mybucket--abcd-ab1--x-s3",
-                       "UseFIPS", false, "UseDualStack", false, "Accelerate", false,
-                       "UseS3ExpressControlEndpoint", false));
-
-        // Case 3: vanilla access point ARN@us-west-2
+        case0SdkParams = S3EndpointParams.builder().bucket("bucket-name").region(Region.US_WEST_2)
+                                         .useFips(false).useDualStack(false).forcePathStyle(false)
+                                         .accelerate(false).useGlobalEndpoint(false).disableMultiRegionAccessPoints(false).build();
+        case1SdkParams = S3EndpointParams.builder().bucket("bucket-name").region(Region.US_WEST_2)
+                                         .useFips(false).useDualStack(false).forcePathStyle(true)
+                                         .accelerate(false).useGlobalEndpoint(false).disableMultiRegionAccessPoints(false).build();
+        case2SdkParams = S3EndpointParams.builder().bucket("mybucket--abcd-ab1--x-s3").region(Region.US_EAST_1)
+                                         .useFips(false).useDualStack(false).forcePathStyle(false)
+                                         .accelerate(false).useGlobalEndpoint(false).disableMultiRegionAccessPoints(false)
+                                         .disableS3ExpressSessionAuth(false).build();
         case3SdkParams = S3EndpointParams.builder()
                                          .bucket("arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint")
-                                         .region(Region.US_WEST_2)
-                                         .useFips(false).useDualStack(false)
+                                         .region(Region.US_WEST_2).useFips(false).useDualStack(false)
                                          .forcePathStyle(false).accelerate(false)
-                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false)
-                                         .build();
-        case3SmithyParams = SmithyJavaResolverFactory.params("us-west-2",
-                Map.of("Accelerate", false,
-                       "Bucket", "arn:aws:s3:us-west-2:123456789012:accesspoint:myendpoint",
-                       "ForcePathStyle", false,
-                       "Region", "us-west-2", "UseDualStack", false, "UseFIPS", false));
-
-        // Case 4: S3 Outposts vanilla test
+                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false).build();
         case4SdkParams = S3EndpointParams.builder()
                                          .bucket("arn:aws:s3-outposts:us-west-2:123456789012:outpost/op-01234567890123456/accesspoint/reports")
-                                         .region(Region.US_WEST_2)
-                                         .useFips(false).useDualStack(false)
+                                         .region(Region.US_WEST_2).useFips(false).useDualStack(false)
                                          .forcePathStyle(false).accelerate(false)
-                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false)
-                                         .build();
-        case4SmithyParams = SmithyJavaResolverFactory.params("us-west-2",
-                Map.of("Region", "us-west-2", "UseFIPS", false, "UseDualStack", false,
-                       "Accelerate", false,
-                       "Bucket", "arn:aws:s3-outposts:us-west-2:123456789012:outpost/op-01234567890123456/accesspoint/reports"));
+                                         .useGlobalEndpoint(false).disableMultiRegionAccessPoints(false).build();
+
+        case0BytecodeParams = SmithyJavaResolverFactory.params("us-west-2", p0);
+        case1BytecodeParams = SmithyJavaResolverFactory.params("us-west-2", p1);
+        case2BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p2);
+        case3BytecodeParams = SmithyJavaResolverFactory.params("us-west-2", p3);
+        case4BytecodeParams = SmithyJavaResolverFactory.params("us-west-2", p4);
+
+        if (smithyResolvers != null) {
+            case0GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p0);
+            case1GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p1);
+            case2GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p2);
+            case3GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p3);
+            case4GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p4);
+        }
 
         shuffledCases = buildShuffledCases();
         random = new Random(SHUFFLE_SEED);
@@ -181,9 +178,16 @@ public class S3EndpointBenchmark {
             for (Object p : shuffledCases) {
                 bh.consume(sdkProvider.resolveEndpoint((S3EndpointParams) p).join());
             }
-        } else {
+        } else if (useGeneratedResolver) {
+            var gen = asGenerated();
+            var ctx = case0BytecodeParams.context();
             for (Object p : shuffledCases) {
-                bh.consume(smithyProvider.resolveEndpoint((EndpointResolverParams) p));
+                bh.consume(gen.resolveEndpoint(ctx, (GeneratedEndpointResolver.GeneratedParameters) p));
+            }
+        } else {
+            var r = smithyResolvers.bytecode;
+            for (Object p : shuffledCases) {
+                bh.consume(r.resolveEndpoint((EndpointResolverParams) p));
             }
         }
     }
@@ -192,59 +196,57 @@ public class S3EndpointBenchmark {
 
     @Benchmark
     public void case0_virtualAddressing(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case0SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case0BytecodeParams.context(), case0GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case0BytecodeParams));
     }
 
     @Benchmark
     public void case1_pathStyle(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case1SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case1BytecodeParams.context(), case1GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case1BytecodeParams));
     }
 
     @Benchmark
     public void case2_s3ExpressDataPlane(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case2SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case2BytecodeParams.context(), case2GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case2BytecodeParams));
     }
 
     @Benchmark
     public void case3_accessPointArn(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case3SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case3BytecodeParams.context(), case3GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case3BytecodeParams));
     }
 
     @Benchmark
     public void case4_outposts(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case4SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case4BytecodeParams.context(), case4GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case4BytecodeParams));
     }
 
     // ------------------------------------------------------------------------------------- helpers
+
+    @SuppressWarnings("unchecked")
+    private GeneratedEndpointResolver<GeneratedEndpointResolver.EvaluationState> asGenerated() {
+        return (GeneratedEndpointResolver<GeneratedEndpointResolver.EvaluationState>) smithyResolvers.generated;
+    }
 
     private List<Object> buildShuffledCases() {
         List<Object> cases = new ArrayList<>();
         if (sdkProvider != null) {
             cases.add(case0SdkParams); cases.add(case1SdkParams); cases.add(case2SdkParams);
             cases.add(case3SdkParams); cases.add(case4SdkParams);
+        } else if (useGeneratedResolver) {
+            cases.add(case0GeneratedParams); cases.add(case1GeneratedParams); cases.add(case2GeneratedParams);
+            cases.add(case3GeneratedParams); cases.add(case4GeneratedParams);
         } else {
-            cases.add(case0SmithyParams); cases.add(case1SmithyParams); cases.add(case2SmithyParams);
-            cases.add(case3SmithyParams); cases.add(case4SmithyParams);
+            cases.add(case0BytecodeParams); cases.add(case1BytecodeParams); cases.add(case2BytecodeParams);
+            cases.add(case3BytecodeParams); cases.add(case4BytecodeParams);
         }
         return cases;
     }

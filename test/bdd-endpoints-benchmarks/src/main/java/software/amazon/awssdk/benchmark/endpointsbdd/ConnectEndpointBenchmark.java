@@ -39,28 +39,22 @@ import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointParams;
 import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointProvider;
 import software.amazon.awssdk.services.connect.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.connect.endpoints.internal.BaselineRulesEndpointResolver;
-import software.amazon.awssdk.services.connect.endpoints.internal.DefaultConnectEndpointProvider;
-import software.amazon.smithy.java.endpoints.EndpointResolver;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
-import software.amazon.smithy.java.rulesengine.BytecodeEndpointResolver;
+import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
 /**
- * Compares Connect endpoint resolution across four resolver implementations:
+ * Compares Connect endpoint resolution across five resolver implementations:
  * <ul>
  *   <li>{@code "rules"} — SDK v2 rules-based (no BDD)</li>
  *   <li>{@code "baselineBdd"} — SDK v2 original table-driven BDD</li>
  *   <li>{@code "optimizedBdd"} — SDK v2 optimized inlined-branch BDD</li>
- *   <li>{@code "smithyJava"} — smithy-java {@link BytecodeEndpointResolver} compiled from the
- *       smithy model's {@code smithy.rules#endpointBdd} trait via the sifting→cost→reversal
- *       optimization pipeline</li>
+ *   <li>{@code "smithyJavaBytecode"} — smithy-java interpreted {@link software.amazon.smithy.java.rulesengine.BytecodeEndpointResolver}</li>
+ *   <li>{@code "smithyJavaGenerated"} — smithy-java code-generated {@link GeneratedEndpointResolver},
+ *       using the {@link GeneratedEndpointResolver.GeneratedParameters} fast path to skip
+ *       {@link EndpointResolverParams} allocation on every call</li>
  * </ul>
  *
- * <p>Contains both an <em>aggregate</em> benchmark (all cases shuffled per iteration) and
- * per-case benchmarks for independent JIT specialization.
- *
- * <p>For {@code smithyJava}, all parameters are supplied via {@code ADDITIONAL_ENDPOINT_PARAMS}
- * on the {@link software.amazon.smithy.java.context.Context} (the "canned" mode from the
- * smithy-java reference benchmarks). No input-shape extraction occurs.
+ * <p>The BDD trait is taken from the model as-is with no re-optimization.
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -72,12 +66,17 @@ public class ConnectEndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJava"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaBytecode", "smithyJavaGenerated"})
     private String resolver;
 
+    // SDK resolvers — non-null for rules/baselineBdd/optimizedBdd
     private ConnectEndpointProvider sdkProvider;
-    private EndpointResolver smithyProvider;
 
+    // smithy-java resolvers — non-null for smithyJava* variants
+    private SmithyJavaResolverFactory.Resolvers smithyResolvers;
+    private boolean useGeneratedResolver;
+
+    // SDK params (rules/baselineBdd/optimizedBdd)
     private ConnectEndpointParams case0SdkParams;
     private ConnectEndpointParams case1SdkParams;
     private ConnectEndpointParams case2SdkParams;
@@ -85,12 +84,21 @@ public class ConnectEndpointBenchmark {
     private ConnectEndpointParams case4SdkParams;
     private ConnectEndpointParams case5SdkParams;
 
-    private EndpointResolverParams case0SmithyParams;
-    private EndpointResolverParams case1SmithyParams;
-    private EndpointResolverParams case2SmithyParams;
-    private EndpointResolverParams case3SmithyParams;
-    private EndpointResolverParams case4SmithyParams;
-    private EndpointResolverParams case5SmithyParams;
+    // Bytecode resolver params (smithyJavaBytecode)
+    private EndpointResolverParams case0BytecodeParams;
+    private EndpointResolverParams case1BytecodeParams;
+    private EndpointResolverParams case2BytecodeParams;
+    private EndpointResolverParams case3BytecodeParams;
+    private EndpointResolverParams case4BytecodeParams;
+    private EndpointResolverParams case5BytecodeParams;
+
+    // Generated resolver params (smithyJavaGenerated) — pre-marshalled, allocation-free at call time
+    private GeneratedEndpointResolver.GeneratedParameters case0GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case1GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case2GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case3GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case4GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case5GeneratedParams;
 
     private List<Object> shuffledCases;
     private Random random;
@@ -98,48 +106,49 @@ public class ConnectEndpointBenchmark {
     @Setup(Level.Trial)
     public void setup() {
         switch (resolver) {
-            case "rules":        sdkProvider = new BaselineRulesEndpointResolver(); break;
-            case "baselineBdd":  sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd": sdkProvider = new DefaultConnectEndpointProvider(); break;
-            case "smithyJava":   smithyProvider = SmithyJavaResolverFactory.forConnect(); break;
+            case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
+            case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new OptimizedBddConnectEndpointProvider(); break;
+            case "smithyJavaBytecode":
+            case "smithyJavaGenerated":
+                smithyResolvers = SmithyJavaResolverFactory.forConnect();
+                useGeneratedResolver = "smithyJavaGenerated".equals(resolver);
+                break;
             default: throw new IllegalArgumentException("Unknown resolver: " + resolver);
         }
 
-        // Case 0: us-east-1, standard regional
-        case0SdkParams = ConnectEndpointParams.builder()
-                                              .region(Region.US_EAST_1).build();
-        case0SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false));
+        Map<String, Object> p0 = Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false);
+        Map<String, Object> p1 = Map.of("Endpoint", "http://localhost:8080", "UseFIPS", false, "UseDualStack", false);
+        Map<String, Object> p2 = Map.of("Region", "us-east-1", "UseFIPS", true, "UseDualStack", false);
+        Map<String, Object> p3 = Map.of("Region", "us-west-2", "UseFIPS", true, "UseDualStack", true);
+        Map<String, Object> p4 = Map.of("Region", "eu-central-1", "UseFIPS", false, "UseDualStack", true);
+        Map<String, Object> p5 = Map.of("Region", "cn-north-1", "UseFIPS", false, "UseDualStack", true);
 
-        // Case 1: custom endpoint override (no region)
-        case1SdkParams = ConnectEndpointParams.builder()
-                                              .endpoint("http://localhost:8080").build();
-        case1SmithyParams = SmithyJavaResolverFactory.params(null,
-                Map.of("Endpoint", "http://localhost:8080", "UseFIPS", false, "UseDualStack", false));
+        // SDK params
+        case0SdkParams = ConnectEndpointParams.builder().region(Region.US_EAST_1).build();
+        case1SdkParams = ConnectEndpointParams.builder().endpoint("http://localhost:8080").build();
+        case2SdkParams = ConnectEndpointParams.builder().region(Region.US_EAST_1).useFips(true).build();
+        case3SdkParams = ConnectEndpointParams.builder().region(Region.US_WEST_2).useFips(true).useDualStack(true).build();
+        case4SdkParams = ConnectEndpointParams.builder().region(Region.EU_CENTRAL_1).useDualStack(true).build();
+        case5SdkParams = ConnectEndpointParams.builder().region(Region.CN_NORTH_1).useDualStack(true).build();
 
-        // Case 2: us-east-1 with FIPS
-        case2SdkParams = ConnectEndpointParams.builder()
-                                              .region(Region.US_EAST_1).useFips(true).build();
-        case2SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "UseFIPS", true, "UseDualStack", false));
+        // Bytecode params
+        case0BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p0);
+        case1BytecodeParams = SmithyJavaResolverFactory.params(null, p1);
+        case2BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p2);
+        case3BytecodeParams = SmithyJavaResolverFactory.params("us-west-2", p3);
+        case4BytecodeParams = SmithyJavaResolverFactory.params("eu-central-1", p4);
+        case5BytecodeParams = SmithyJavaResolverFactory.params("cn-north-1", p5);
 
-        // Case 3: us-west-2 with FIPS and dual-stack
-        case3SdkParams = ConnectEndpointParams.builder()
-                                              .region(Region.US_WEST_2).useFips(true).useDualStack(true).build();
-        case3SmithyParams = SmithyJavaResolverFactory.params("us-west-2",
-                Map.of("Region", "us-west-2", "UseFIPS", true, "UseDualStack", true));
-
-        // Case 4: eu-central-1 with dual-stack
-        case4SdkParams = ConnectEndpointParams.builder()
-                                              .region(Region.EU_CENTRAL_1).useDualStack(true).build();
-        case4SmithyParams = SmithyJavaResolverFactory.params("eu-central-1",
-                Map.of("Region", "eu-central-1", "UseFIPS", false, "UseDualStack", true));
-
-        // Case 5: cn-north-1 with dual-stack
-        case5SdkParams = ConnectEndpointParams.builder()
-                                              .region(Region.CN_NORTH_1).useDualStack(true).build();
-        case5SmithyParams = SmithyJavaResolverFactory.params("cn-north-1",
-                Map.of("Region", "cn-north-1", "UseFIPS", false, "UseDualStack", true));
+        // Generated params (only populated when the generated resolver is loaded)
+        if (smithyResolvers != null) {
+            case0GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p0);
+            case1GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p1);
+            case2GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p2);
+            case3GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p3);
+            case4GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p4);
+            case5GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p5);
+        }
 
         shuffledCases = buildShuffledCases();
         random = new Random(SHUFFLE_SEED);
@@ -158,9 +167,16 @@ public class ConnectEndpointBenchmark {
             for (Object p : shuffledCases) {
                 bh.consume(sdkProvider.resolveEndpoint((ConnectEndpointParams) p).join());
             }
-        } else {
+        } else if (useGeneratedResolver) {
+            var gen = asGenerated();
+            var ctx = case0BytecodeParams.context(); // context is reused; only GeneratedParameters varies
             for (Object p : shuffledCases) {
-                bh.consume(smithyProvider.resolveEndpoint((EndpointResolverParams) p));
+                bh.consume(gen.resolveEndpoint(ctx, (GeneratedEndpointResolver.GeneratedParameters) p));
+            }
+        } else {
+            var r = smithyResolvers.bytecode;
+            for (Object p : shuffledCases) {
+                bh.consume(r.resolveEndpoint((EndpointResolverParams) p));
             }
         }
     }
@@ -169,68 +185,64 @@ public class ConnectEndpointBenchmark {
 
     @Benchmark
     public void case0_usEast1(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case0SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case0BytecodeParams.context(), case0GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case0BytecodeParams));
     }
 
     @Benchmark
     public void case1_customEndpoint(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case1SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case1BytecodeParams.context(), case1GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case1BytecodeParams));
     }
 
     @Benchmark
     public void case2_usEast1Fips(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case2SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case2BytecodeParams.context(), case2GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case2BytecodeParams));
     }
 
     @Benchmark
     public void case3_usWest2FipsDualStack(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case3SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case3BytecodeParams.context(), case3GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case3BytecodeParams));
     }
 
     @Benchmark
     public void case4_euCentral1DualStack(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case4SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case4BytecodeParams.context(), case4GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case4BytecodeParams));
     }
 
     @Benchmark
     public void case5_cnNorth1DualStack(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case5SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case5SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case5SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case5BytecodeParams.context(), case5GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case5BytecodeParams));
     }
 
     // ------------------------------------------------------------------------------------- helpers
+
+    @SuppressWarnings("unchecked")
+    private GeneratedEndpointResolver<GeneratedEndpointResolver.EvaluationState> asGenerated() {
+        return (GeneratedEndpointResolver<GeneratedEndpointResolver.EvaluationState>) smithyResolvers.generated;
+    }
 
     private List<Object> buildShuffledCases() {
         List<Object> cases = new ArrayList<>();
         if (sdkProvider != null) {
             cases.add(case0SdkParams); cases.add(case1SdkParams); cases.add(case2SdkParams);
             cases.add(case3SdkParams); cases.add(case4SdkParams); cases.add(case5SdkParams);
+        } else if (useGeneratedResolver) {
+            cases.add(case0GeneratedParams); cases.add(case1GeneratedParams); cases.add(case2GeneratedParams);
+            cases.add(case3GeneratedParams); cases.add(case4GeneratedParams); cases.add(case5GeneratedParams);
         } else {
-            cases.add(case0SmithyParams); cases.add(case1SmithyParams); cases.add(case2SmithyParams);
-            cases.add(case3SmithyParams); cases.add(case4SmithyParams); cases.add(case5SmithyParams);
+            cases.add(case0BytecodeParams); cases.add(case1BytecodeParams); cases.add(case2BytecodeParams);
+            cases.add(case3BytecodeParams); cases.add(case4BytecodeParams); cases.add(case5BytecodeParams);
         }
         return cases;
     }

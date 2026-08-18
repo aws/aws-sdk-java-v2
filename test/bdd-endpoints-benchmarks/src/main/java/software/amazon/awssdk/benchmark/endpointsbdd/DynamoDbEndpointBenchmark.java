@@ -39,22 +39,19 @@ import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointParams
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineRulesEndpointResolver;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.DefaultDynamoDbEndpointProvider;
-import software.amazon.smithy.java.endpoints.EndpointResolver;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
-import software.amazon.smithy.java.rulesengine.BytecodeEndpointResolver;
+import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
 /**
- * Compares DynamoDB endpoint resolution across four resolver implementations:
+ * Compares DynamoDB endpoint resolution across five resolver implementations:
  * <ul>
  *   <li>{@code "rules"} — SDK v2 rules-based (no BDD)</li>
  *   <li>{@code "baselineBdd"} — SDK v2 original table-driven BDD</li>
  *   <li>{@code "optimizedBdd"} — SDK v2 optimized inlined-branch BDD</li>
- *   <li>{@code "smithyJava"} — smithy-java {@link BytecodeEndpointResolver}</li>
+ *   <li>{@code "smithyJavaBytecode"} — smithy-java interpreted bytecode resolver</li>
+ *   <li>{@code "smithyJavaGenerated"} — smithy-java code-generated resolver with pre-marshalled
+ *       {@link GeneratedEndpointResolver.GeneratedParameters} fast path</li>
  * </ul>
- *
- * <p>Cases: standard regional, FIPS+dual-stack, account-ID preferred, account-ID+CN (fallback),
- * custom endpoint override.
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -66,11 +63,12 @@ public class DynamoDbEndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJava"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaBytecode", "smithyJavaGenerated"})
     private String resolver;
 
     private DynamoDbEndpointProvider sdkProvider;
-    private EndpointResolver smithyProvider;
+    private SmithyJavaResolverFactory.Resolvers smithyResolvers;
+    private boolean useGeneratedResolver;
 
     private DynamoDbEndpointParams case0SdkParams;
     private DynamoDbEndpointParams case1SdkParams;
@@ -78,11 +76,17 @@ public class DynamoDbEndpointBenchmark {
     private DynamoDbEndpointParams case3SdkParams;
     private DynamoDbEndpointParams case4SdkParams;
 
-    private EndpointResolverParams case0SmithyParams;
-    private EndpointResolverParams case1SmithyParams;
-    private EndpointResolverParams case2SmithyParams;
-    private EndpointResolverParams case3SmithyParams;
-    private EndpointResolverParams case4SmithyParams;
+    private EndpointResolverParams case0BytecodeParams;
+    private EndpointResolverParams case1BytecodeParams;
+    private EndpointResolverParams case2BytecodeParams;
+    private EndpointResolverParams case3BytecodeParams;
+    private EndpointResolverParams case4BytecodeParams;
+
+    private GeneratedEndpointResolver.GeneratedParameters case0GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case1GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case2GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case3GeneratedParams;
+    private GeneratedEndpointResolver.GeneratedParameters case4GeneratedParams;
 
     private List<Object> shuffledCases;
     private Random random;
@@ -90,54 +94,48 @@ public class DynamoDbEndpointBenchmark {
     @Setup(Level.Trial)
     public void setup() {
         switch (resolver) {
-            case "rules":        sdkProvider = new BaselineRulesEndpointResolver(); break;
-            case "baselineBdd":  sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd": sdkProvider = new DefaultDynamoDbEndpointProvider(); break;
-            case "smithyJava":   smithyProvider = SmithyJavaResolverFactory.forDynamoDb(); break;
+            case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
+            case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new OptimizedBddDynamoDbEndpointProvider(); break;
+            case "smithyJavaBytecode":
+            case "smithyJavaGenerated":
+                smithyResolvers = SmithyJavaResolverFactory.forDynamoDb();
+                useGeneratedResolver = "smithyJavaGenerated".equals(resolver);
+                break;
             default: throw new IllegalArgumentException("Unknown resolver: " + resolver);
         }
 
-        // Case 0: standard regional — us-east-1, no FIPS, no dual-stack
-        case0SdkParams = DynamoDbEndpointParams.builder()
-                                               .region(Region.US_EAST_1).useFips(false).useDualStack(false)
-                                               .build();
-        case0SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false));
+        Map<String, Object> p0 = Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false);
+        Map<String, Object> p1 = Map.of("Region", "us-east-1", "UseFIPS", true, "UseDualStack", true);
+        Map<String, Object> p2 = Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false,
+                                        "AccountId", "111111111111", "AccountIdEndpointMode", "preferred");
+        Map<String, Object> p3 = Map.of("Region", "cn-north-1", "UseFIPS", false, "UseDualStack", false,
+                                        "AccountId", "111111111111", "AccountIdEndpointMode", "preferred");
+        Map<String, Object> p4 = Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false,
+                                        "AccountIdEndpointMode", "disabled", "Endpoint", "https://localhost:8000");
 
-        // Case 1: FIPS + dual-stack
-        case1SdkParams = DynamoDbEndpointParams.builder()
-                                               .region(Region.US_EAST_1).useFips(true).useDualStack(true)
-                                               .build();
-        case1SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "UseFIPS", true, "UseDualStack", true));
+        case0SdkParams = DynamoDbEndpointParams.builder().region(Region.US_EAST_1).useFips(false).useDualStack(false).build();
+        case1SdkParams = DynamoDbEndpointParams.builder().region(Region.US_EAST_1).useFips(true).useDualStack(true).build();
+        case2SdkParams = DynamoDbEndpointParams.builder().region(Region.US_EAST_1).useFips(false).useDualStack(false)
+                                               .accountId("111111111111").accountIdEndpointMode("preferred").build();
+        case3SdkParams = DynamoDbEndpointParams.builder().region(Region.CN_NORTH_1).useFips(false).useDualStack(false)
+                                               .accountId("111111111111").accountIdEndpointMode("preferred").build();
+        case4SdkParams = DynamoDbEndpointParams.builder().region(Region.US_EAST_1).useFips(false).useDualStack(false)
+                                               .accountIdEndpointMode("disabled").endpoint("https://localhost:8000").build();
 
-        // Case 2: account ID based endpoint, preferred mode
-        case2SdkParams = DynamoDbEndpointParams.builder()
-                                               .region(Region.US_EAST_1).useFips(false).useDualStack(false)
-                                               .accountId("111111111111").accountIdEndpointMode("preferred")
-                                               .build();
-        case2SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false,
-                       "AccountId", "111111111111", "AccountIdEndpointMode", "preferred"));
+        case0BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p0);
+        case1BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p1);
+        case2BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p2);
+        case3BytecodeParams = SmithyJavaResolverFactory.params("cn-north-1", p3);
+        case4BytecodeParams = SmithyJavaResolverFactory.params("us-east-1", p4);
 
-        // Case 3: account ID + CN partition (falls back to regional)
-        case3SdkParams = DynamoDbEndpointParams.builder()
-                                               .region(Region.CN_NORTH_1).useFips(false).useDualStack(false)
-                                               .accountId("111111111111").accountIdEndpointMode("preferred")
-                                               .build();
-        case3SmithyParams = SmithyJavaResolverFactory.params("cn-north-1",
-                Map.of("Region", "cn-north-1", "UseFIPS", false, "UseDualStack", false,
-                       "AccountId", "111111111111", "AccountIdEndpointMode", "preferred"));
-
-        // Case 4: custom endpoint override
-        case4SdkParams = DynamoDbEndpointParams.builder()
-                                               .region(Region.US_EAST_1).useFips(false).useDualStack(false)
-                                               .accountIdEndpointMode("disabled")
-                                               .endpoint("https://localhost:8000")
-                                               .build();
-        case4SmithyParams = SmithyJavaResolverFactory.params("us-east-1",
-                Map.of("Region", "us-east-1", "UseFIPS", false, "UseDualStack", false,
-                       "AccountIdEndpointMode", "disabled", "Endpoint", "https://localhost:8000"));
+        if (smithyResolvers != null) {
+            case0GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p0);
+            case1GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p1);
+            case2GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p2);
+            case3GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p3);
+            case4GeneratedParams = SmithyJavaResolverFactory.generatedParams(smithyResolvers.generated, p4);
+        }
 
         shuffledCases = buildShuffledCases();
         random = new Random(SHUFFLE_SEED);
@@ -156,9 +154,16 @@ public class DynamoDbEndpointBenchmark {
             for (Object p : shuffledCases) {
                 bh.consume(sdkProvider.resolveEndpoint((DynamoDbEndpointParams) p).join());
             }
-        } else {
+        } else if (useGeneratedResolver) {
+            var gen = asGenerated();
+            var ctx = case0BytecodeParams.context();
             for (Object p : shuffledCases) {
-                bh.consume(smithyProvider.resolveEndpoint((EndpointResolverParams) p));
+                bh.consume(gen.resolveEndpoint(ctx, (GeneratedEndpointResolver.GeneratedParameters) p));
+            }
+        } else {
+            var r = smithyResolvers.bytecode;
+            for (Object p : shuffledCases) {
+                bh.consume(r.resolveEndpoint((EndpointResolverParams) p));
             }
         }
     }
@@ -167,59 +172,57 @@ public class DynamoDbEndpointBenchmark {
 
     @Benchmark
     public void case0_regional(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case0SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case0SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case0BytecodeParams.context(), case0GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case0BytecodeParams));
     }
 
     @Benchmark
     public void case1_fipsDualStack(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case1SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case1SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case1BytecodeParams.context(), case1GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case1BytecodeParams));
     }
 
     @Benchmark
     public void case2_accountIdPreferred(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case2SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case2SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case2BytecodeParams.context(), case2GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case2BytecodeParams));
     }
 
     @Benchmark
     public void case3_accountIdChinaFallback(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case3SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case3SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case3BytecodeParams.context(), case3GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case3BytecodeParams));
     }
 
     @Benchmark
     public void case4_customEndpoint(Blackhole bh) {
-        if (sdkProvider != null) {
-            bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
-        } else {
-            bh.consume(smithyProvider.resolveEndpoint(case4SmithyParams));
-        }
+        if (sdkProvider != null)         bh.consume(sdkProvider.resolveEndpoint(case4SdkParams).join());
+        else if (useGeneratedResolver)   bh.consume(asGenerated().resolveEndpoint(case4BytecodeParams.context(), case4GeneratedParams));
+        else                             bh.consume(smithyResolvers.bytecode.resolveEndpoint(case4BytecodeParams));
     }
 
     // ------------------------------------------------------------------------------------- helpers
+
+    @SuppressWarnings("unchecked")
+    private GeneratedEndpointResolver<GeneratedEndpointResolver.EvaluationState> asGenerated() {
+        return (GeneratedEndpointResolver<GeneratedEndpointResolver.EvaluationState>) smithyResolvers.generated;
+    }
 
     private List<Object> buildShuffledCases() {
         List<Object> cases = new ArrayList<>();
         if (sdkProvider != null) {
             cases.add(case0SdkParams); cases.add(case1SdkParams); cases.add(case2SdkParams);
             cases.add(case3SdkParams); cases.add(case4SdkParams);
+        } else if (useGeneratedResolver) {
+            cases.add(case0GeneratedParams); cases.add(case1GeneratedParams); cases.add(case2GeneratedParams);
+            cases.add(case3GeneratedParams); cases.add(case4GeneratedParams);
         } else {
-            cases.add(case0SmithyParams); cases.add(case1SmithyParams); cases.add(case2SmithyParams);
-            cases.add(case3SmithyParams); cases.add(case4SmithyParams);
+            cases.add(case0BytecodeParams); cases.add(case1BytecodeParams); cases.add(case2BytecodeParams);
+            cases.add(case3BytecodeParams); cases.add(case4BytecodeParams);
         }
         return cases;
     }
