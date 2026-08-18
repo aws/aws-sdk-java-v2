@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Batch",
+    "contributor": "",
+    "description": "Update AWS Batch documentation with newer Fargate Supported configurations, notes, and fix broken Docker link re-directs."
+}
