@@ -19,6 +19,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.post;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.common.SingleRootFileSource;
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration;
@@ -30,7 +31,7 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesRequest;
@@ -71,7 +72,7 @@ public class RestJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = SdkClientException.class)
+    @Test
     public void clientCalculatesCrc32FromCompressedData_WhenCrc32IsInvalid_ThrowsException() {
         stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
                 .withStatus(200)
@@ -84,7 +85,8 @@ public class RestJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        client.simple(SimpleRequest.builder().build());
+        assertThatThrownBy(() -> client.simple(SimpleRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 
     @Test
@@ -105,7 +107,7 @@ public class RestJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = SdkClientException.class)
+    @Test
     public void clientCalculatesCrc32FromDecompressedData_WhenCrc32IsInvalid_ThrowsException() {
         stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
                 .withStatus(200)
@@ -118,7 +120,8 @@ public class RestJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        client.allTypes(AllTypesRequest.builder().build());
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 
     @Test
@@ -138,7 +141,7 @@ public class RestJsonCrc32ChecksumTests {
         Assert.assertEquals("foo", result.stringMember());
     }
 
-    @Test(expected = SdkClientException.class)
+    @Test
     public void useGzipFalse_WhenCrc32IsInvalid_ThrowException() {
         stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
                 .withStatus(200)
@@ -151,6 +154,24 @@ public class RestJsonCrc32ChecksumTests {
                 .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
                 .build();
 
-        client.allTypes(AllTypesRequest.builder().build());
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
+    }
+
+    @Test
+    public void emptyBody_WhenCrc32HeaderIsNonZero_ThrowsCrc32Mismatch() {
+        stubFor(post(urlEqualTo(RESOURCE_PATH)).willReturn(aResponse()
+                .withStatus(200)
+                .withHeader("x-amz-crc32", JSON_BODY_Crc32_CHECKSUM)
+                .withHeader("Content-Length", "0")));
+
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+                .credentialsProvider(FAKE_CREDENTIALS_PROVIDER)
+                .region(Region.US_EAST_1)
+                .endpointOverride(URI.create("http://localhost:" + mockServer.port()))
+                .build();
+
+        assertThatThrownBy(() -> client.allTypes(AllTypesRequest.builder().build()))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 }

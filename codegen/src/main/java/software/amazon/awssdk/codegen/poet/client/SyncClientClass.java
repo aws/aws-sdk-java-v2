@@ -54,12 +54,14 @@ import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.PreClientExecutionRequestCustomizer;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.client.specs.Ec2ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.JsonProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.QueryProtocolSpec;
 import software.amazon.awssdk.codegen.poet.client.specs.XmlProtocolSpec;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -83,6 +85,8 @@ public class SyncClientClass extends SyncClientInterface {
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
+    private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
 
     public SyncClientClass(GeneratorTaskParams taskParams) {
         super(taskParams.getModel());
@@ -92,6 +96,8 @@ public class SyncClientClass extends SyncClientInterface {
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
@@ -123,6 +129,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(SyncClientHandler.class, "clientHandler", PRIVATE, FINAL)
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
+        protocolSpec.errorResponseMapperField().ifPresent(type::addField);
     }
 
     @Override
@@ -133,7 +140,10 @@ public class SyncClientClass extends SyncClientInterface {
         type.addMethod(constructor())
             .addMethod(nameMethod())
             .addMethods(protocolSpec.additionalMethods())
-            .addMethod(resolveMetricPublishersMethod());
+            .addMethod(resolveMetricPublishersMethod())
+            .addMethod(ClientClassUtils.publishMetricsMethod())
+            .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
+            .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
@@ -332,7 +342,7 @@ public class SyncClientClass extends SyncClientInterface {
         method.addCode(protocolSpec.executionHandler(opModel))
               .endControlFlow()
               .beginControlFlow("finally")
-              .addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+              .addStatement("publishMetrics(metricPublishers, apiCallMetricCollector)")
               .endControlFlow();
 
         return method.build();

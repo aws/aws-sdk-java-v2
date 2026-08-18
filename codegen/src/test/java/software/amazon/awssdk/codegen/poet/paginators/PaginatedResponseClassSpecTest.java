@@ -71,7 +71,7 @@ public class PaginatedResponseClassSpecTest {
     public void testGeneratedResponseForSyncOperations() {
         paginators.getPagination().entrySet()
                   .stream()
-                  .filter(entry -> entry.getValue().isValid())
+                  .filter(entry -> entry.getValue().hasAllRequiredFields())
                   .forEach(entry ->
                            {
                                ClassSpec classSpec = getSyncResponseSpec(entry);
@@ -83,7 +83,7 @@ public class PaginatedResponseClassSpecTest {
     public void testGeneratedResponseForAsyncOperations() {
         paginators.getPagination().entrySet()
                   .stream()
-                  .filter(entry -> entry.getValue().isValid())
+                  .filter(entry -> entry.getValue().hasAllRequiredFields())
                   .forEach(entry ->
                            {
                                ClassSpec classSpec = getAsyncResponseSpec(entry);

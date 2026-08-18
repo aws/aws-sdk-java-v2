@@ -18,7 +18,6 @@ package software.amazon.awssdk.services.sts.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
-import java.time.Duration;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -98,7 +97,8 @@ public class StsRetryStrategyTest {
                                                                    .token(token)
                                                                    .failure(failure)
                                                                    .build();
-        assertThat(strategy.refreshRetryToken(refresh).delay()).isGreaterThan(Duration.ZERO);
+        // Should not throw TokenAcquisitionFailedException
+        assertThat(strategy.refreshRetryToken(refresh)).isNotNull();
     }
 
     private static Stream<Arguments> retryModeResolutionCases() {

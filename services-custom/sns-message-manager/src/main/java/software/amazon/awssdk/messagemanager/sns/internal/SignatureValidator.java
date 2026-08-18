@@ -21,6 +21,10 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import java.util.StringJoiner;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
@@ -52,6 +56,9 @@ public final class SignatureValidator {
     private static final String TYPE = "Type";
 
     private static final String NEWLINE = "\n";
+
+    private static final DateTimeFormatter TIMESTAMP_FORMATTER =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT).withZone(ZoneOffset.UTC);
 
     public void validateSignature(SnsMessage message, PublicKey publicKey) {
         Validate.paramNotNull(message, "message");
@@ -101,7 +108,7 @@ public final class SignatureValidator {
             joiner.add(SUBJECT).add(notification.subject());
         }
 
-        joiner.add(TIMESTAMP).add(notification.timestamp().toString());
+        joiner.add(TIMESTAMP).add(formatTimestamp(notification.timestamp()));
         joiner.add(TOPIC_ARN).add(notification.topicArn());
         joiner.add(TYPE).add(notification.type().toString());
 
@@ -114,7 +121,7 @@ public final class SignatureValidator {
         joiner.add(MESSAGE).add(message.message());
         joiner.add(MESSAGE_ID).add(message.messageId());
         joiner.add(SUBSCRIBE_URL).add(message.subscribeUrl().toString());
-        joiner.add(TIMESTAMP).add(message.timestamp().toString());
+        joiner.add(TIMESTAMP).add(formatTimestamp(message.timestamp()));
         joiner.add(TOKEN).add(message.token());
         joiner.add(TOPIC_ARN).add(message.topicArn());
         joiner.add(TYPE).add(message.type().toString());
@@ -127,12 +134,16 @@ public final class SignatureValidator {
         joiner.add(MESSAGE).add(message.message());
         joiner.add(MESSAGE_ID).add(message.messageId());
         joiner.add(SUBSCRIBE_URL).add(message.subscribeUrl().toString());
-        joiner.add(TIMESTAMP).add(message.timestamp().toString());
+        joiner.add(TIMESTAMP).add(formatTimestamp(message.timestamp()));
         joiner.add(TOKEN).add(message.token());
         joiner.add(TOPIC_ARN).add(message.topicArn());
         joiner.add(TYPE).add(message.type().toString());
 
         return joiner.toString();
+    }
+
+    private static String formatTimestamp(Instant timestamp) {
+        return TIMESTAMP_FORMATTER.format(timestamp);
     }
 
     private static void verifySignature(String canonicalMessage, SdkBytes messageSignature, PublicKey publicKey,

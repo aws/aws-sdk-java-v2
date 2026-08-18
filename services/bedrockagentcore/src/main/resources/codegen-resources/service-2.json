@@ -132,6 +132,49 @@
       "documentation":"<p>Creates an event in an AgentCore Memory resource. Events represent interactions or activities that occur within a session and are associated with specific actors.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:CreateEvent</code> permission.</p> <p>This operation is subject to request rate limiting.</p>",
       "idempotent":true
     },
+    "CreatePaymentInstrument":{
+      "name":"CreatePaymentInstrument",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/createPaymentInstrument",
+        "responseCode":201
+      },
+      "input":{"shape":"CreatePaymentInstrumentRequest"},
+      "output":{"shape":"CreatePaymentInstrumentResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"SubscriptionRequiredException"}
+      ],
+      "documentation":"<p>Create a new payment instrument for a connector.</p>",
+      "idempotent":true
+    },
+    "CreatePaymentSession":{
+      "name":"CreatePaymentSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/createPaymentSession",
+        "responseCode":201
+      },
+      "input":{"shape":"CreatePaymentSessionRequest"},
+      "output":{"shape":"CreatePaymentSessionResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"},
+        {"shape":"SubscriptionRequiredException"}
+      ],
+      "documentation":"<p>Create a new payment session.</p>",
+      "idempotent":true
+    },
     "DeleteABTest":{
       "name":"DeleteABTest",
       "http":{
@@ -174,6 +217,25 @@
       "documentation":"<p>Deletes a batch evaluation and its associated results.</p>",
       "idempotent":true
     },
+    "DeleteCapacityProviderSession":{
+      "name":"DeleteCapacityProviderSession",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/capacity-providers/{capacityProviderId}/sessions/{sessionId}",
+        "responseCode":202
+      },
+      "input":{"shape":"DeleteCapacityProviderSessionRequest"},
+      "output":{"shape":"DeleteCapacityProviderSessionResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a session associated with a capacity provider in Amazon Bedrock AgentCore and makes the session unavailable for further use. To delete a capacity provider session, specify both the capacity provider identifier and the session ID. After you delete a session, you cannot restart it.</p>",
+      "idempotent":true
+    },
     "DeleteEvent":{
       "name":"DeleteEvent",
       "http":{
@@ -213,6 +275,44 @@
         {"shape":"ResourceNotFoundException"}
       ],
       "documentation":"<p>Deletes a memory record from an AgentCore Memory resource. When you delete a memory record, it is permanently removed.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:DeleteMemoryRecord</code> permission.</p>"
+    },
+    "DeletePaymentInstrument":{
+      "name":"DeletePaymentInstrument",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/deletePaymentInstrument",
+        "responseCode":200
+      },
+      "input":{"shape":"DeletePaymentInstrumentRequest"},
+      "output":{"shape":"DeletePaymentInstrumentResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a payment instrument. This is a soft delete operation that preserves the record for audit and compliance purposes.</p>",
+      "idempotent":true
+    },
+    "DeletePaymentSession":{
+      "name":"DeletePaymentSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/deletePaymentSession",
+        "responseCode":200
+      },
+      "input":{"shape":"DeletePaymentSessionRequest"},
+      "output":{"shape":"DeletePaymentSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Deletes a payment session. This permanently removes the payment session record.</p>",
+      "idempotent":true
     },
     "DeleteRecommendation":{
       "name":"DeleteRecommendation",
@@ -287,6 +387,7 @@
       "output":{"shape":"GetAgentCardResponse"},
       "errors":[
         {"shape":"ServiceQuotaExceededException"},
+        {"shape":"RetryableConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"RuntimeClientError"},
@@ -396,6 +497,63 @@
       "documentation":"<p>Retrieves a specific memory record from an AgentCore Memory resource.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:GetMemoryRecord</code> permission.</p>",
       "readonly":true
     },
+    "GetPaymentInstrument":{
+      "name":"GetPaymentInstrument",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/getPaymentInstrument",
+        "responseCode":200
+      },
+      "input":{"shape":"GetPaymentInstrumentRequest"},
+      "output":{"shape":"GetPaymentInstrumentResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Get a payment instrument by ID.</p>",
+      "readonly":true
+    },
+    "GetPaymentInstrumentBalance":{
+      "name":"GetPaymentInstrumentBalance",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/getPaymentInstrumentBalance",
+        "responseCode":200
+      },
+      "input":{"shape":"GetPaymentInstrumentBalanceRequest"},
+      "output":{"shape":"GetPaymentInstrumentBalanceResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Get the balance of a payment instrument.</p>",
+      "readonly":true
+    },
+    "GetPaymentSession":{
+      "name":"GetPaymentSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/getPaymentSession",
+        "responseCode":200
+      },
+      "input":{"shape":"GetPaymentSessionRequest"},
+      "output":{"shape":"GetPaymentSessionResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Get a payment session.</p>",
+      "readonly":true
+    },
     "GetRecommendation":{
       "name":"GetRecommendation",
       "http":{
@@ -453,6 +611,26 @@
         {"shape":"InternalServerException"}
       ],
       "documentation":"<p>Returns the OAuth 2.0 token of the provided resource.</p>",
+      "readonly":true
+    },
+    "GetResourcePaymentToken":{
+      "name":"GetResourcePaymentToken",
+      "http":{
+        "method":"POST",
+        "requestUri":"/identities/payment/token",
+        "responseCode":200
+      },
+      "input":{"shape":"GetResourcePaymentTokenRequest"},
+      "output":{"shape":"GetResourcePaymentTokenResponse"},
+      "errors":[
+        {"shape":"UnauthorizedException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Generates authentication tokens for payment providers that use vendor-specific authentication mechanisms.</p>",
       "readonly":true
     },
     "GetWorkloadAccessToken":{
@@ -523,6 +701,7 @@
       "output":{"shape":"InvokeAgentRuntimeResponse"},
       "errors":[
         {"shape":"ServiceQuotaExceededException"},
+        {"shape":"RetryableConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"RuntimeClientError"},
@@ -543,6 +722,7 @@
       "output":{"shape":"InvokeAgentRuntimeCommandResponse"},
       "errors":[
         {"shape":"ServiceQuotaExceededException"},
+        {"shape":"RetryableConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"RuntimeClientError"},
@@ -601,7 +781,9 @@
       "input":{"shape":"InvokeHarnessRequest"},
       "output":{"shape":"InvokeHarnessResponse"},
       "errors":[
+        {"shape":"ServiceQuotaExceededException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"RuntimeClientError"},
         {"shape":"ValidationException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
@@ -767,6 +949,42 @@
       "documentation":"<p>Lists memory records in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:ListMemoryRecords</code> permission.</p>",
       "readonly":true
     },
+    "ListPaymentInstruments":{
+      "name":"ListPaymentInstruments",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/listPaymentInstruments",
+        "responseCode":200
+      },
+      "input":{"shape":"ListPaymentInstrumentsRequest"},
+      "output":{"shape":"ListPaymentInstrumentsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>List payment instruments for a manager.</p>",
+      "readonly":true
+    },
+    "ListPaymentSessions":{
+      "name":"ListPaymentSessions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/listPaymentSessions",
+        "responseCode":200
+      },
+      "input":{"shape":"ListPaymentSessionsRequest"},
+      "output":{"shape":"ListPaymentSessionsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>List payment sessions.</p>",
+      "readonly":true
+    },
     "ListRecommendations":{
       "name":"ListRecommendations",
       "http":{
@@ -805,6 +1023,28 @@
       ],
       "documentation":"<p>Lists sessions in an AgentCore Memory resource based on specified criteria. We recommend using pagination to ensure that the operation returns quickly and successfully.</p> <p>Empty sessions are automatically deleted after one day.</p> <p>To use this operation, you must have the <code>bedrock-agentcore:ListSessions</code> permission.</p>",
       "readonly":true
+    },
+    "ProcessPayment":{
+      "name":"ProcessPayment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/payments/processPayment",
+        "responseCode":200
+      },
+      "input":{"shape":"ProcessPaymentRequest"},
+      "output":{"shape":"ProcessPaymentResponse"},
+      "errors":[
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"InternalServerException"},
+        {"shape":"SubscriptionRequiredException"}
+      ],
+      "documentation":"<p>Processes a payment using a payment instrument within a payment session.</p>",
+      "idempotent":true
     },
     "RetrieveMemoryRecords":{
       "name":"RetrieveMemoryRecords",
@@ -1041,6 +1281,7 @@
       "errors":[
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"UnauthorizedException"},
+        {"shape":"RetryableConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ConflictException"},
@@ -1271,6 +1512,44 @@
       "type":"list",
       "member":{"shape":"ActorSummary"}
     },
+    "AffectedSession":{
+      "type":"structure",
+      "required":[
+        "sessionId",
+        "explanation",
+        "fixType",
+        "recommendation",
+        "failureSpans"
+      ],
+      "members":{
+        "sessionId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the affected session.</p>"
+        },
+        "explanation":{
+          "shape":"String",
+          "documentation":"<p>An explanation of how the failure manifested in this session.</p>"
+        },
+        "fixType":{
+          "shape":"String",
+          "documentation":"<p>The type of fix recommended for this failure.</p>"
+        },
+        "recommendation":{
+          "shape":"String",
+          "documentation":"<p>The specific fix recommendation for this session.</p>"
+        },
+        "failureSpans":{
+          "shape":"FailureSpanDetailList",
+          "documentation":"<p>The list of spans where failures were detected in this session.</p>"
+        }
+      },
+      "documentation":"<p>A session affected by a detected failure pattern, including root cause details.</p>"
+    },
+    "AffectedSessionList":{
+      "type":"list",
+      "member":{"shape":"AffectedSession"},
+      "min":0
+    },
     "AgentCard":{
       "type":"structure",
       "members":{},
@@ -1315,10 +1594,36 @@
         "cloudwatchLogs":{
           "shape":"CloudWatchLogsTraceConfig",
           "documentation":"<p>Agent traces read from CloudWatch Logs.</p>"
+        },
+        "batchEvaluation":{
+          "shape":"BatchEvaluationTraceConfig",
+          "documentation":"<p>Use a completed batch evaluation as the source of agent traces.</p>"
+        },
+        "onlineEvaluation":{
+          "shape":"OnlineEvaluationTraceConfig",
+          "documentation":"<p>Agent traces from an online evaluation configuration over a specified time range.</p>"
         }
       },
       "documentation":"<p>The configuration specifying where to read agent traces from for recommendation analysis.</p>",
       "union":true
+    },
+    "Amount":{
+      "type":"structure",
+      "required":[
+        "value",
+        "currency"
+      ],
+      "members":{
+        "value":{
+          "shape":"String",
+          "documentation":"<p>The numeric value of the amount.</p>"
+        },
+        "currency":{
+          "shape":"Currency",
+          "documentation":"<p>The currency code for the amount.</p>"
+        }
+      },
+      "documentation":"<p>Represents a monetary amount with a currency.</p>"
     },
     "ApiKeyArn":{
       "type":"string",
@@ -1378,6 +1683,20 @@
         }
       },
       "documentation":"<p>Contains information about an update to an automation stream.</p>"
+    },
+    "AvailableLimits":{
+      "type":"structure",
+      "members":{
+        "availableSpendAmount":{
+          "shape":"Amount",
+          "documentation":"<p>The remaining available amount that can be spent.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the available limits were last updated.</p>"
+        }
+      },
+      "documentation":"<p>The available spending limits for a payment session.</p>"
     },
     "BasicAuth":{
       "type":"structure",
@@ -1469,7 +1788,7 @@
     },
     "BatchEvaluationArn":{
       "type":"string",
-      "documentation":"<p>ARN for a batch evaluation</p>"
+      "documentation":"<p>The Amazon Resource Name (ARN) of a batch evaluation.</p>"
     },
     "BatchEvaluationDescription":{
       "type":"string",
@@ -1478,16 +1797,17 @@
     },
     "BatchEvaluationId":{
       "type":"string",
-      "documentation":"<p>Unique identifier for a batch evaluation (name-prefixed format)</p>",
+      "documentation":"<p>The unique identifier for a batch evaluation.</p>",
       "pattern":"[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
     },
     "BatchEvaluationName":{
       "type":"string",
-      "documentation":"<p>Human-readable name for a batch evaluation</p>",
+      "documentation":"<p>A human-readable name for a batch evaluation.</p>",
       "pattern":"[a-zA-Z][a-zA-Z0-9_]{0,47}"
     },
     "BatchEvaluationStatus":{
       "type":"string",
+      "documentation":"<p>The lifecycle status of a batch evaluation job.</p>",
       "enum":[
         "PENDING",
         "IN_PROGRESS",
@@ -1537,6 +1857,10 @@
           "shape":"EvaluatorList",
           "documentation":"<p>The list of evaluators applied during the batch evaluation.</p>"
         },
+        "insights":{
+          "shape":"InsightList",
+          "documentation":"<p>The list of insight analyses applied during the batch evaluation.</p>"
+        },
         "evaluationResults":{
           "shape":"EvaluationJobResults",
           "documentation":"<p>The aggregated evaluation results.</p>"
@@ -1545,16 +1869,31 @@
           "shape":"ErrorDetailsList",
           "documentation":"<p>The error details if the batch evaluation encountered failures.</p>"
         },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt evaluation data.</p>"
+        },
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp when the batch evaluation was last updated.</p>"
         }
       },
-      "documentation":"<p>Summary representation for list responses</p>"
+      "documentation":"<p>Summary representation for list responses.</p>"
     },
     "BatchEvaluationSummaryList":{
       "type":"list",
       "member":{"shape":"BatchEvaluationSummary"}
+    },
+    "BatchEvaluationTraceConfig":{
+      "type":"structure",
+      "required":["batchEvaluationArn"],
+      "members":{
+        "batchEvaluationArn":{
+          "shape":"BatchEvaluationArn",
+          "documentation":"<p>The ARN of the completed batch evaluation to use as the trace source.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for using a batch evaluation as the source of agent traces for recommendations.</p>"
     },
     "BatchUpdateMemoryRecordsInput":{
       "type":"structure",
@@ -1593,6 +1932,17 @@
       }
     },
     "Blob":{"type":"blob"},
+    "BlockchainChainId":{
+      "type":"string",
+      "documentation":"<p>Supported blockchain chain identifiers for balance queries. Each value maps to a specific chain supported by the underlying providers (Privy, Coinbase).</p>",
+      "enum":[
+        "BASE",
+        "BASE_SEPOLIA",
+        "ETHEREUM",
+        "SOLANA",
+        "SOLANA_DEVNET"
+      ]
+    },
     "Body":{
       "type":"blob",
       "max":100000000,
@@ -1724,10 +2074,6 @@
         "SUCCESS",
         "FAILED"
       ]
-    },
-    "BrowserArn":{
-      "type":"string",
-      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:(aws|[0-9]{12}):browser(-custom)?/(aws\\.browser\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})"
     },
     "BrowserEnterprisePolicies":{
       "type":"list",
@@ -1867,6 +2213,28 @@
       "max":512,
       "min":10
     },
+    "CapacityProviderArn":{
+      "type":"string",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:capacity-provider/[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+    },
+    "CapacityProviderId":{
+      "type":"string",
+      "documentation":"<p>Capacity provider identifier. Pattern matches MiskiModel definition.</p>",
+      "max":59,
+      "min":12,
+      "pattern":"[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10}"
+    },
+    "CapacityProviderSessionStatus":{
+      "type":"string",
+      "enum":[
+        "Provisioning",
+        "Deprovisioning",
+        "Active",
+        "Deleting",
+        "Deleted",
+        "Stopped"
+      ]
+    },
     "Certificate":{
       "type":"structure",
       "required":["location"],
@@ -1956,6 +2324,7 @@
     },
     "CloudWatchLogsFilterOperator":{
       "type":"string",
+      "documentation":"<p>The comparison operator used to filter CloudWatch Logs entries.</p>",
       "enum":[
         "Equals",
         "NotEquals",
@@ -2065,11 +2434,7 @@
           "documentation":"<p>The name of the CloudWatch log stream where evaluation results will be written.</p>"
         }
       },
-      "documentation":"<p>CloudWatch Logs destination for batch evaluation results</p>"
-    },
-    "CodeInterpreterArn":{
-      "type":"string",
-      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:(aws|[0-9]{12}):code-interpreter(-custom)?/(aws\\.codeinterpreter\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})"
+      "documentation":"<p>CloudWatch Logs destination for batch evaluation results.</p>"
     },
     "CodeInterpreterResult":{
       "type":"structure",
@@ -2163,6 +2528,63 @@
       "documentation":"<p>Contains output from a code interpreter stream.</p>",
       "eventstream":true
     },
+    "CoinbaseCdpPaymentJwtTokenType":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "sensitive":true
+    },
+    "CoinbaseCdpPaymentRequestBodyType":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\u0009\\u000A\\u000D\\u0020-\\u007E]+"
+    },
+    "CoinbaseCdpTokenRequestInput":{
+      "type":"structure",
+      "required":[
+        "requestMethod",
+        "requestPath"
+      ],
+      "members":{
+        "requestMethod":{
+          "shape":"PaymentHttpMethodType",
+          "documentation":"<p>The HTTP method for the payment API request.</p>"
+        },
+        "requestHost":{
+          "shape":"PaymentRequestHostType",
+          "documentation":"<p>The host for the payment API request. Defaults to \"api.cdp.coinbase.com\".</p>"
+        },
+        "requestPath":{
+          "shape":"PaymentRequestPathType",
+          "documentation":"<p>The path of the payment API request.</p>"
+        },
+        "includeWalletAuthToken":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to true for wallet write operations (requires walletSecret configured).</p>"
+        },
+        "requestBody":{
+          "shape":"CoinbaseCdpPaymentRequestBodyType",
+          "documentation":"<p>Request body JSON — used to generate wallet auth JWT.</p>"
+        }
+      },
+      "documentation":"<p>Coinbase CDP token request parameters.</p>"
+    },
+    "CoinbaseCdpTokenResponseOutput":{
+      "type":"structure",
+      "required":["bearerToken"],
+      "members":{
+        "bearerToken":{
+          "shape":"CoinbaseCdpPaymentJwtTokenType",
+          "documentation":"<p>Bearer Token for Authorization header.</p>"
+        },
+        "walletAuthToken":{
+          "shape":"CoinbaseCdpPaymentJwtTokenType",
+          "documentation":"<p>Wallet Auth Token for X-Wallet-Auth header.</p>"
+        }
+      },
+      "documentation":"<p>Coinbase CDP token response.</p>"
+    },
     "CommandExecutionStatus":{
       "type":"string",
       "enum":[
@@ -2207,7 +2629,7 @@
     },
     "ConfigurationBundleArn":{
       "type":"string",
-      "pattern":"arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:configuration-bundle/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
+      "pattern":"arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:configuration-bundle/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
     },
     "ConfigurationBundleRef":{
       "type":"structure",
@@ -2474,6 +2896,10 @@
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, the service ignores the request, but does not return an error.</p>",
           "idempotencyToken":true
+        },
+        "tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>A map of tag keys and values to associate with the A/B test.</p>"
         }
       }
     },
@@ -2556,6 +2982,10 @@
         "metadata":{
           "shape":"MetadataMap",
           "documentation":"<p>The key-value metadata to attach to the event.</p>"
+        },
+        "extractionMode":{
+          "shape":"ExtractionMode",
+          "documentation":"<p>Controls long-term memory extraction for this event. When set to <code>SKIP</code>, the event is stored in short-term memory but is excluded from long-term memory extraction. If not specified, the event is processed for extraction as usual.</p>"
         }
       }
     },
@@ -2569,11 +2999,176 @@
         }
       }
     },
+    "CreatePaymentInstrumentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "paymentInstrumentType",
+        "paymentInstrumentDetails"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector to use for this instrument.</p>"
+        },
+        "paymentInstrumentType":{
+          "shape":"PaymentInstrumentType",
+          "documentation":"<p>The type of payment instrument being created.</p>"
+        },
+        "paymentInstrumentDetails":{
+          "shape":"PaymentInstrumentDetails",
+          "documentation":"<p>The details of the payment instrument.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Request structure for creating a payment instrument.</p>"
+    },
+    "CreatePaymentInstrumentResponse":{
+      "type":"structure",
+      "required":["paymentInstrument"],
+      "members":{
+        "paymentInstrument":{
+          "shape":"PaymentInstrument",
+          "documentation":"<p>The created payment instrument.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for creating a payment instrument.</p>"
+    },
+    "CreatePaymentSessionRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "expiryTimeInMinutes"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment session.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "limits":{
+          "shape":"SessionLimits",
+          "documentation":"<p>The spending limits for this payment session.</p>"
+        },
+        "expiryTimeInMinutes":{
+          "shape":"CreatePaymentSessionRequestExpiryTimeInMinutesInteger",
+          "documentation":"<p>The session expiry time in minutes. Must be between 15 and 480 minutes.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Request structure for creating a payment session.</p>"
+    },
+    "CreatePaymentSessionRequestExpiryTimeInMinutesInteger":{
+      "type":"integer",
+      "box":true,
+      "max":480,
+      "min":15
+    },
+    "CreatePaymentSessionResponse":{
+      "type":"structure",
+      "required":["paymentSession"],
+      "members":{
+        "paymentSession":{
+          "shape":"PaymentSession",
+          "documentation":"<p>The created payment session.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for creating a payment session.</p>"
+    },
     "CredentialProviderName":{
       "type":"string",
       "max":128,
       "min":1,
       "pattern":"[a-zA-Z0-9\\-_]+"
+    },
+    "CryptoWalletNetwork":{
+      "type":"string",
+      "documentation":"<p>Supported blockchain networks for crypto wallets.</p>",
+      "enum":[
+        "ETHEREUM",
+        "SOLANA"
+      ]
+    },
+    "CryptoX402PaymentInput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "payload"
+      ],
+      "members":{
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the X402 protocol.</p>"
+        },
+        "payload":{
+          "shape":"PaymentDocument",
+          "documentation":"<p>The X402 payment payload.</p>"
+        },
+        "permit2AllowanceLimit":{
+          "shape":"Permit2AllowanceLimit",
+          "documentation":"<p>The maximum on-chain Permit2 allowance to grant before signing the payment authorization, in the asset's smallest denomination. This field is valid only for the <code>upto</code> (metered) scheme; supplying it for the <code>exact</code> scheme returns a validation error.</p> <p>When set, the service approves an ERC-20 allowance for this amount before processing the payment. The approval sets, rather than adds to, the wallet's allowance. Set this field only when the wallet needs approving, for example on its first <code>upto</code> payment, to avoid a redundant on-chain transaction. Omit the field to skip allowance handling. This is the default, and the only behavior for the <code>exact</code> scheme.</p>"
+        }
+      },
+      "documentation":"<p>The input for a crypto X402 payment.</p>"
+    },
+    "CryptoX402PaymentOutput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "payload"
+      ],
+      "members":{
+        "version":{
+          "shape":"String",
+          "documentation":"<p>The version of the X402 protocol.</p>"
+        },
+        "payload":{
+          "shape":"PaymentDocument",
+          "documentation":"<p>The X402 payment response payload.</p>"
+        }
+      },
+      "documentation":"<p>The output from a crypto X402 payment.</p>"
+    },
+    "Currency":{
+      "type":"string",
+      "documentation":"<p>Supported currency codes.</p>",
+      "enum":["USD"]
     },
     "CustomDescriptor":{
       "type":"structure",
@@ -2607,10 +3202,14 @@
       "members":{
         "cloudWatchLogs":{
           "shape":"CloudWatchLogsSource",
-          "documentation":"<p>Pull session spans from CloudWatch</p>"
+          "documentation":"<p>Configuration for pulling agent session traces from CloudWatch Logs.</p>"
+        },
+        "onlineEvaluationConfigSource":{
+          "shape":"OnlineEvaluationConfigSource",
+          "documentation":"<p>Reference an existing OnlineEvaluationConfig as session source</p>"
         }
       },
-      "documentation":"<p>Where to pull session spans from</p>",
+      "documentation":"<p>Configuration for the data source used in evaluation.</p>",
       "union":true
     },
     "DateTimestamp":{
@@ -2682,6 +3281,49 @@
         "status":{
           "shape":"BatchEvaluationStatus",
           "documentation":"<p>The status of the batch evaluation deletion operation.</p>"
+        }
+      }
+    },
+    "DeleteCapacityProviderSessionRequest":{
+      "type":"structure",
+      "required":[
+        "capacityProviderId",
+        "sessionId"
+      ],
+      "members":{
+        "capacityProviderId":{
+          "shape":"CapacityProviderId",
+          "documentation":"<p>The unique identifier of the capacity provider associated with the session.</p>",
+          "location":"uri",
+          "locationName":"capacityProviderId"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the capacity provider session to delete.</p>",
+          "location":"uri",
+          "locationName":"sessionId"
+        }
+      }
+    },
+    "DeleteCapacityProviderSessionResponse":{
+      "type":"structure",
+      "required":[
+        "capacityProviderArn",
+        "sessionId",
+        "status"
+      ],
+      "members":{
+        "capacityProviderArn":{
+          "shape":"CapacityProviderArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the capacity provider associated with the deleted session.</p>"
+        },
+        "sessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The unique identifier of the deleted capacity provider session.</p>"
+        },
+        "status":{
+          "shape":"CapacityProviderSessionStatus",
+          "documentation":"<p>The current status of the capacity provider session. When the status is <code>Deleting</code>, the session is being deleted and is not available. When the status is <code>Deleted</code>, the session is no longer available.</p>"
         }
       }
     },
@@ -2761,6 +3403,81 @@
         }
       }
     },
+    "DeletePaymentInstrumentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "paymentInstrumentId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID making the delete request. Must match the instrument's userId.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The payment manager ARN. Must match the instrument's paymentManagerArn.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The payment connector ID. Must match the instrument's paymentConnectorId.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The payment instrument ID to delete.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for deleting a payment instrument.</p>"
+    },
+    "DeletePaymentInstrumentResponse":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"PaymentInstrumentStatus",
+          "documentation":"<p>The status of the instrument after deletion. Always DELETED for successful soft delete.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for deleting a payment instrument.</p>"
+    },
+    "DeletePaymentSessionRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentSessionId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID making the delete request. Must match the session's userId.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The payment manager ARN. Must match the session's paymentManagerArn.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The payment session ID to delete.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for deleting a payment session.</p>"
+    },
+    "DeletePaymentSessionResponse":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"PaymentSessionStatus",
+          "documentation":"<p>The status of the deletion. Always DELETED for successful hard delete.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for deleting a payment session.</p>"
+    },
     "DeleteRecommendationRequest":{
       "type":"structure",
       "required":["recommendationId"],
@@ -2831,8 +3548,7 @@
     "Document":{
       "type":"structure",
       "members":{},
-      "document":true,
-      "sensitive":true
+      "document":true
     },
     "DomainPattern":{
       "type":"string",
@@ -2861,6 +3577,81 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "EfsAccessPointArn":{
+      "type":"string",
+      "max":128,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:elasticfilesystem:[0-9a-z-:]+:access-point/fsap-[0-9a-f]{8,40}"
+    },
+    "EfsConfiguration":{
+      "type":"structure",
+      "required":[
+        "accessPointArn",
+        "mountPath",
+        "fileSystemArn"
+      ],
+      "members":{
+        "accessPointArn":{
+          "shape":"EfsAccessPointArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Elastic File System (Amazon EFS) access point to mount.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The absolute path within the session at which the access point is mounted, for example <code>/mnt/efs</code>. Each mount path must be unique across all file system configurations in the session.</p>"
+        },
+        "fileSystemArn":{
+          "shape":"EfsFileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Elastic File System (Amazon EFS) file system that owns the access point.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for mounting an Amazon Elastic File System (Amazon EFS) access point that you own into a session.</p>"
+    },
+    "EfsFileSystemArn":{
+      "type":"string",
+      "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Elastic File System (Amazon EFS) file system. The access points you specify must belong to this file system.</p>",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:elasticfilesystem:[a-z0-9-]+:[0-9]{12}:file-system/fs-[0-9a-f]{8,40}"
+    },
+    "Email":{
+      "type":"string",
+      "documentation":"<p>Email address with validation for standard email format.</p>",
+      "max":254,
+      "min":1,
+      "pattern":"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}",
+      "sensitive":true
+    },
+    "EmbeddedCryptoWallet":{
+      "type":"structure",
+      "required":[
+        "network",
+        "linkedAccounts"
+      ],
+      "members":{
+        "network":{
+          "shape":"CryptoWalletNetwork",
+          "documentation":"<p>The blockchain network for this embedded crypto wallet. Supported networks: ETHEREUM, SOLANA.</p>"
+        },
+        "linkedAccounts":{
+          "shape":"LinkedAccountList",
+          "documentation":"<p>List of linked accounts linked to this wallet. Each represents a way the end user can authenticate to this wallet.</p>"
+        },
+        "walletAddress":{
+          "shape":"String",
+          "documentation":"<p>The wallet address on the specified blockchain network.</p>"
+        },
+        "redirectUrl":{
+          "shape":"EmbeddedCryptoWalletRedirectUrlString",
+          "documentation":"<p>URL for the end user to complete a provider-specific action such as wallet linking or onboarding.</p>"
+        }
+      },
+      "documentation":"<p>Embedded crypto wallet instrument details.</p>"
+    },
+    "EmbeddedCryptoWalletRedirectUrlString":{
+      "type":"string",
+      "max":2048,
+      "min":0
     },
     "ErrorDetailsList":{
       "type":"list",
@@ -3014,7 +3805,10 @@
       "type":"structure",
       "required":["context"],
       "members":{
-        "context":{"shape":"Context"},
+        "context":{
+          "shape":"Context",
+          "documentation":"<p> The span context that identifies which session or trace this reference input applies to, used for correlating ground truth with agent output. </p>"
+        },
         "expectedResponse":{
           "shape":"EvaluationContent",
           "documentation":"<p> The expected response for trace-level evaluation. Built-in evaluators that support this field compare the agent's actual response against this value for assessment. Custom evaluators can access it through the <code>{expected_response}</code> placeholder in their instructions. </p>"
@@ -3033,6 +3827,7 @@
     "EvaluationReferenceInputs":{
       "type":"list",
       "member":{"shape":"EvaluationReferenceInput"},
+      "documentation":"<p> A list of reference inputs containing ground truth data for evaluation. </p>",
       "max":1000,
       "min":1,
       "sensitive":true
@@ -3095,7 +3890,8 @@
     },
     "EvaluationResults":{
       "type":"list",
-      "member":{"shape":"EvaluationResultContent"}
+      "member":{"shape":"EvaluationResultContent"},
+      "documentation":"<p> A list of evaluation results from the evaluators applied to the session. </p>"
     },
     "EvaluationTarget":{
       "type":"structure",
@@ -3132,11 +3928,11 @@
           "documentation":"<p>The unique identifier of the evaluator. Can reference built-in evaluators (e.g., <code>Builtin.Helpfulness</code>) or custom evaluators.</p>"
         }
       },
-      "documentation":"<p>An evaluator to run against sessions</p>"
+      "documentation":"<p>An evaluator to run against sessions during batch evaluation.</p>"
     },
     "EvaluatorArn":{
       "type":"string",
-      "pattern":"arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:evaluator\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$|^arn:aws:bedrock-agentcore:::evaluator/Builtin.[a-zA-Z0-9_-]+"
+      "pattern":"arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:evaluator\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$|^arn:aws[a-zA-Z-]*:bedrock-agentcore:::evaluator/Builtin.[a-zA-Z0-9_-]+"
     },
     "EvaluatorId":{
       "type":"string",
@@ -3300,6 +4096,83 @@
       "max":5,
       "min":1
     },
+    "ExecutionSummaryAffectedSession":{
+      "type":"structure",
+      "required":[
+        "sessionId",
+        "approachTaken",
+        "finalOutcome"
+      ],
+      "members":{
+        "sessionId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the session.</p>"
+        },
+        "approachTaken":{
+          "shape":"String",
+          "documentation":"<p>The approach taken by the agent during this session.</p>"
+        },
+        "finalOutcome":{
+          "shape":"String",
+          "documentation":"<p>The final outcome of the session.</p>"
+        }
+      },
+      "documentation":"<p>A session associated with an execution summary cluster.</p>"
+    },
+    "ExecutionSummaryAffectedSessionList":{
+      "type":"list",
+      "member":{"shape":"ExecutionSummaryAffectedSession"},
+      "min":0
+    },
+    "ExecutionSummaryCluster":{
+      "type":"structure",
+      "required":[
+        "clusterId",
+        "name",
+        "description",
+        "affectedSessionCount",
+        "affectedSessions"
+      ],
+      "members":{
+        "clusterId":{
+          "shape":"Integer",
+          "documentation":"<p>The unique identifier of the execution summary cluster.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the execution pattern cluster.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>A description of the execution pattern.</p>"
+        },
+        "affectedSessionCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of sessions with this execution pattern.</p>"
+        },
+        "affectedSessions":{
+          "shape":"ExecutionSummaryAffectedSessionList",
+          "documentation":"<p>The list of sessions with this execution pattern.</p>"
+        }
+      },
+      "documentation":"<p>A cluster of similar execution patterns identified across sessions.</p>"
+    },
+    "ExecutionSummaryClusterList":{
+      "type":"list",
+      "member":{"shape":"ExecutionSummaryCluster"},
+      "min":0
+    },
+    "ExecutionSummaryClusteringResultContent":{
+      "type":"structure",
+      "required":["executionSummaries"],
+      "members":{
+        "executionSummaries":{
+          "shape":"ExecutionSummaryClusterList",
+          "documentation":"<p>The list of execution summary clusters identified across analyzed sessions.</p>"
+        }
+      },
+      "documentation":"<p>The execution summary clustering result containing grouped execution patterns identified across evaluated sessions.</p>"
+    },
     "ExternalProxy":{
       "type":"structure",
       "required":[
@@ -3421,6 +4294,125 @@
     "ExtractionJobStatus":{
       "type":"string",
       "enum":["FAILED"]
+    },
+    "ExtractionMode":{
+      "type":"string",
+      "enum":["SKIP"]
+    },
+    "FailureAnalysisResultContent":{
+      "type":"structure",
+      "required":["failures"],
+      "members":{
+        "failures":{
+          "shape":"FailureCategoryClusterList",
+          "documentation":"<p>The list of failure category clusters identified across analyzed sessions.</p>"
+        }
+      },
+      "documentation":"<p>The failure analysis clustering result containing categorized failure clusters with root causes and remediation recommendations.</p>"
+    },
+    "FailureCategoryCluster":{
+      "type":"structure",
+      "required":[
+        "clusterId",
+        "name",
+        "description",
+        "affectedSessionCount",
+        "subCategories"
+      ],
+      "members":{
+        "clusterId":{
+          "shape":"Integer",
+          "documentation":"<p>The unique identifier of the failure category cluster.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the failure category.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>A description of the failure category pattern.</p>"
+        },
+        "affectedSessionCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of sessions affected by this failure category.</p>"
+        },
+        "subCategories":{
+          "shape":"FailureSubCategoryClusterList",
+          "documentation":"<p>The list of failure subcategories within this category.</p>"
+        }
+      },
+      "documentation":"<p>A top-level failure category identified by clustering similar failure patterns across sessions.</p>"
+    },
+    "FailureCategoryClusterList":{
+      "type":"list",
+      "member":{"shape":"FailureCategoryCluster"},
+      "min":0
+    },
+    "FailureSpanDetail":{
+      "type":"structure",
+      "required":[
+        "spanId",
+        "traceId",
+        "signals"
+      ],
+      "members":{
+        "spanId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the span where the failure occurred.</p>"
+        },
+        "traceId":{
+          "shape":"String",
+          "documentation":"<p>The trace identifier associated with the failure span.</p>"
+        },
+        "signals":{
+          "shape":"InsightsFailureSignalList",
+          "documentation":"<p>The failure signals detected in this span.</p>"
+        }
+      },
+      "documentation":"<p>Details about a specific span where a failure was detected.</p>"
+    },
+    "FailureSpanDetailList":{
+      "type":"list",
+      "member":{"shape":"FailureSpanDetail"},
+      "min":0
+    },
+    "FailureSubCategoryCluster":{
+      "type":"structure",
+      "required":[
+        "clusterId",
+        "name",
+        "description",
+        "affectedSessionCount",
+        "rootCauses"
+      ],
+      "members":{
+        "clusterId":{
+          "shape":"Integer",
+          "documentation":"<p>The unique identifier of the failure subcategory cluster.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the failure subcategory.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>A description of the failure subcategory pattern.</p>"
+        },
+        "affectedSessionCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of sessions affected by this failure subcategory.</p>"
+        },
+        "rootCauses":{
+          "shape":"RootCauseClusterList",
+          "documentation":"<p>The list of root cause clusters identified within this subcategory.</p>"
+        }
+      },
+      "documentation":"<p>A subcategory of failures within a top-level failure category.</p>"
+    },
+    "FailureSubCategoryClusterList":{
+      "type":"list",
+      "member":{"shape":"FailureSubCategoryCluster"},
+      "min":0
     },
     "FilterInput":{
       "type":"structure",
@@ -3672,6 +4664,10 @@
           "shape":"EvaluatorList",
           "documentation":"<p>The list of evaluators applied during the batch evaluation.</p>"
         },
+        "insights":{
+          "shape":"InsightList",
+          "documentation":"<p>The list of insight analyses applied during the batch evaluation.</p>"
+        },
         "dataSourceConfig":{
           "shape":"DataSourceConfig",
           "documentation":"<p>The data source configuration specifying where agent traces are pulled from.</p>"
@@ -3684,6 +4680,18 @@
           "shape":"EvaluationJobResults",
           "documentation":"<p>The aggregated evaluation results, including session completion counts and evaluator score summaries.</p>"
         },
+        "failureAnalysisResult":{
+          "shape":"FailureAnalysisResultContent",
+          "documentation":"<p>The failure analysis results from insights, containing categorized failure clusters with root causes and recommendations.</p>"
+        },
+        "userIntentResult":{
+          "shape":"UserIntentClusteringResultContent",
+          "documentation":"<p>The user intent clustering results from insights, containing grouped user intents across evaluated sessions.</p>"
+        },
+        "executionSummaryResult":{
+          "shape":"ExecutionSummaryClusteringResultContent",
+          "documentation":"<p>The execution summary clustering results from insights, containing grouped execution patterns across evaluated sessions.</p>"
+        },
         "errorDetails":{
           "shape":"ErrorDetailsList",
           "documentation":"<p>The error details if the batch evaluation encountered failures.</p>"
@@ -3695,6 +4703,10 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp when the batch evaluation was last updated.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt evaluation data.</p>"
         }
       }
     },
@@ -3776,6 +4788,10 @@
           "shape":"Certificates",
           "documentation":"<p>The list of certificates installed in the browser session.</p>"
         },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations for the browser session. Each entry describes an access point and its mount path.</p>"
+        },
         "sessionReplayArtifact":{
           "shape":"String",
           "documentation":"<p>The artifact containing the session replay information.</p>"
@@ -3842,6 +4858,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>The list of certificates installed in the code interpreter session.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations for the code interpreter session. Each entry describes an access point and its mount path.</p>"
         }
       }
     },
@@ -3921,6 +4941,155 @@
         }
       }
     },
+    "GetPaymentInstrumentBalanceRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "paymentInstrumentId",
+        "chain",
+        "token"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector associated with this instrument.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument to query balance for.</p>"
+        },
+        "chain":{
+          "shape":"BlockchainChainId",
+          "documentation":"<p>The specific blockchain chain to query balance on. Required because balances are chain-specific.</p>"
+        },
+        "token":{
+          "shape":"InstrumentBalanceToken",
+          "documentation":"<p>The token to query balance for. Only tokens supported for X402 payments are returned.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for getting payment instrument balance.</p>"
+    },
+    "GetPaymentInstrumentBalanceResponse":{
+      "type":"structure",
+      "required":[
+        "paymentInstrumentId",
+        "tokenBalance"
+      ],
+      "members":{
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument.</p>"
+        },
+        "tokenBalance":{
+          "shape":"TokenBalance",
+          "documentation":"<p>The balance of the supported token on the requested chain.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for getting payment instrument balance.</p>"
+    },
+    "GetPaymentInstrumentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentInstrumentId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument to retrieve.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for getting a payment instrument.</p>"
+    },
+    "GetPaymentInstrumentResponse":{
+      "type":"structure",
+      "required":["paymentInstrument"],
+      "members":{
+        "paymentInstrument":{
+          "shape":"PaymentInstrument",
+          "documentation":"<p>The payment instrument details.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for getting a payment instrument.</p>"
+    },
+    "GetPaymentSessionRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentSessionId"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment session.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The ID of the payment session to retrieve.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for getting a payment session.</p>"
+    },
+    "GetPaymentSessionResponse":{
+      "type":"structure",
+      "required":["paymentSession"],
+      "members":{
+        "paymentSession":{
+          "shape":"PaymentSession",
+          "documentation":"<p>The payment session details.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for getting a payment session.</p>"
+    },
     "GetRecommendationRequest":{
       "type":"structure",
       "required":["recommendationId"],
@@ -3985,6 +5154,10 @@
         "recommendationResult":{
           "shape":"RecommendationResult",
           "documentation":"<p>The result of the recommendation, containing the optimized system prompt or tool descriptions. Only present when the recommendation status is <code>COMPLETED</code>.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt recommendation data.</p>"
         }
       }
     },
@@ -4091,6 +5264,38 @@
         }
       }
     },
+    "GetResourcePaymentTokenRequest":{
+      "type":"structure",
+      "required":[
+        "workloadIdentityToken",
+        "resourceCredentialProviderName",
+        "paymentTokenRequest"
+      ],
+      "members":{
+        "workloadIdentityToken":{
+          "shape":"WorkloadIdentityTokenType",
+          "documentation":"<p>Workload access token for authorization.</p>"
+        },
+        "resourceCredentialProviderName":{
+          "shape":"CredentialProviderName",
+          "documentation":"<p>Name of the payment credential provider to use.</p>"
+        },
+        "paymentTokenRequest":{
+          "shape":"PaymentTokenRequestInput",
+          "documentation":"<p>Vendor-specific token request input. Contains all request parameters in a type-safe, vendor-specific structure.</p>"
+        }
+      }
+    },
+    "GetResourcePaymentTokenResponse":{
+      "type":"structure",
+      "required":["paymentTokenResponse"],
+      "members":{
+        "paymentTokenResponse":{
+          "shape":"PaymentTokenResponseOutput",
+          "documentation":"<p>Vendor-specific token response output. Contains all response data in a type-safe, vendor-specific structure.</p>"
+        }
+      }
+    },
     "GetWorkloadAccessTokenForJWTRequest":{
       "type":"structure",
       "required":[
@@ -4170,10 +5375,10 @@
       "members":{
         "inline":{
           "shape":"InlineGroundTruth",
-          "documentation":"<p>Provide ground truth inline</p>"
+          "documentation":"<p>Inline ground truth data provided directly in the request.</p>"
         }
       },
-      "documentation":"<p>Where to pull ground truth from</p>",
+      "documentation":"<p>Where to pull ground truth from.</p>",
       "union":true
     },
     "GroundTruthTurn":{
@@ -4210,7 +5415,7 @@
       "type":"structure",
       "members":{
         "browserArn":{
-          "shape":"BrowserArn",
+          "shape":"HarnessBrowserArn",
           "documentation":"<p>If not populated, the built-in Browser ARN is used.</p>"
         }
       },
@@ -4220,7 +5425,7 @@
       "type":"structure",
       "members":{
         "codeInterpreterArn":{
-          "shape":"CodeInterpreterArn",
+          "shape":"HarnessCodeInterpreterArn",
           "documentation":"<p>If not populated, the built-in Code Interpreter ARN is used.</p>"
         }
       },
@@ -4255,6 +5460,24 @@
       "type":"string",
       "pattern":"arn:([^:]+)?:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:harness/[a-zA-Z][a-zA-Z0-9_]{0,39}-[a-zA-Z0-9]{10}"
     },
+    "HarnessAwsSkillPath":{
+      "type":"string",
+      "max":4096,
+      "min":1,
+      "pattern":"([^*?\\[\\]]|\\*)+"
+    },
+    "HarnessAwsSkillPaths":{
+      "type":"list",
+      "member":{"shape":"HarnessAwsSkillPath"}
+    },
+    "HarnessBedrockApiFormat":{
+      "type":"string",
+      "enum":[
+        "converse_stream",
+        "responses",
+        "chat_completions"
+      ]
+    },
     "HarnessBedrockModelConfig":{
       "type":"structure",
       "required":["modelId"],
@@ -4274,9 +5497,27 @@
         "topP":{
           "shape":"TopP",
           "documentation":"<p>The topP set when calling the model.</p>"
+        },
+        "apiFormat":{
+          "shape":"HarnessBedrockApiFormat",
+          "documentation":"<p>The API format to use when calling the Bedrock provider.</p>"
+        },
+        "additionalParams":{
+          "shape":"Document",
+          "documentation":"<p>Provider-specific parameters passed through to the model provider unchanged.</p>"
         }
       },
       "documentation":"<p>Configuration for an Amazon Bedrock model provider.</p>"
+    },
+    "HarnessBrowserArn":{
+      "type":"string",
+      "documentation":"<p>Browser ARN for Harness tool configuration. Accepts both managed (aws.browser.v1) and custom browser ARNs.</p>",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:(aws|[0-9]{12}):browser(-custom)?/(aws\\.browser\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})"
+    },
+    "HarnessCodeInterpreterArn":{
+      "type":"string",
+      "documentation":"<p>Code Interpreter ARN for Harness tool configuration. Accepts both managed (aws.codeinterpreter.v1) and custom code interpreter ARNs.</p>",
+      "pattern":"arn:aws(-[^:]+)?:bedrock-agentcore:[a-z0-9-]+:(aws|[0-9]{12}):code-interpreter(-custom)?/(aws\\.codeinterpreter\\.v1|[a-zA-Z][a-zA-Z0-9_]{0,47}-[a-zA-Z0-9]{10})"
     },
     "HarnessContentBlock":{
       "type":"structure",
@@ -4319,6 +5560,10 @@
         "reasoningContent":{
           "shape":"HarnessReasoningContentBlockDelta",
           "documentation":"<p>A reasoning content delta.</p>"
+        },
+        "toolResultMetadata":{
+          "shape":"HarnessToolResultMetadataBlockDelta",
+          "documentation":"<p>A tool result metadata delta.</p>"
         }
       },
       "documentation":"<p>A delta update to a content block.</p>",
@@ -4400,6 +5645,10 @@
         "assistant"
       ]
     },
+    "HarnessEndpointName":{
+      "type":"string",
+      "pattern":"[a-zA-Z][a-zA-Z0-9_]{0,47}"
+    },
     "HarnessGatewayOutboundAuth":{
       "type":"structure",
       "members":{
@@ -4449,6 +5698,10 @@
         "topK":{
           "shape":"TopK",
           "documentation":"<p>The topK set when calling the model.</p>"
+        },
+        "additionalParams":{
+          "shape":"Document",
+          "documentation":"<p>Provider-specific parameters passed through to the Gemini model provider unchanged.</p>"
         }
       },
       "documentation":"<p>Configuration for a Google Gemini model provider. Requires an API key stored in AgentCore Identity.</p>"
@@ -4476,6 +5729,47 @@
       "max":4096,
       "min":1,
       "sensitive":true
+    },
+    "HarnessLiteLlmApiBase":{
+      "type":"string",
+      "max":16383,
+      "min":1,
+      "sensitive":true
+    },
+    "HarnessLiteLlmModelConfig":{
+      "type":"structure",
+      "required":["modelId"],
+      "members":{
+        "modelId":{
+          "shape":"ModelId",
+          "documentation":"<p>The LiteLLM model identifier (e.g., \"anthropic/claude-3-sonnet\").</p>"
+        },
+        "apiKeyArn":{
+          "shape":"ApiKeyArn",
+          "documentation":"<p>The ARN of the API key in AgentCore Identity for authenticating with the model provider.</p>"
+        },
+        "apiBase":{
+          "shape":"HarnessLiteLlmApiBase",
+          "documentation":"<p>The base URL for the model provider's API endpoint.</p>"
+        },
+        "maxTokens":{
+          "shape":"MaxTokens",
+          "documentation":"<p>The maximum number of tokens to allow in the generated response per iteration.</p>"
+        },
+        "temperature":{
+          "shape":"Temperature",
+          "documentation":"<p>The temperature to set when calling the model.</p>"
+        },
+        "topP":{
+          "shape":"TopP",
+          "documentation":"<p>The topP set when calling the model.</p>"
+        },
+        "additionalParams":{
+          "shape":"Document",
+          "documentation":"<p>Provider-specific parameters passed through to the model provider unchanged.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for a LiteLLM model provider, enabling connection to third-party model providers.</p>"
     },
     "HarnessMessage":{
       "type":"structure",
@@ -4556,10 +5850,21 @@
         "geminiModelConfig":{
           "shape":"HarnessGeminiModelConfig",
           "documentation":"<p>Configuration for a Google Gemini model.</p>"
+        },
+        "liteLlmModelConfig":{
+          "shape":"HarnessLiteLlmModelConfig",
+          "documentation":"<p>The LiteLLM model configuration for connecting to third-party model providers.</p>"
         }
       },
       "documentation":"<p>Specification of which model to use.</p>",
       "union":true
+    },
+    "HarnessOpenAiApiFormat":{
+      "type":"string",
+      "enum":[
+        "chat_completions",
+        "responses"
+      ]
     },
     "HarnessOpenAiModelConfig":{
       "type":"structure",
@@ -4587,6 +5892,14 @@
         "topP":{
           "shape":"TopP",
           "documentation":"<p>The topP set when calling the model.</p>"
+        },
+        "apiFormat":{
+          "shape":"HarnessOpenAiApiFormat",
+          "documentation":"<p>The API format to use when calling the OpenAI provider.</p>"
+        },
+        "additionalParams":{
+          "shape":"Document",
+          "documentation":"<p>Provider-specific parameters passed through to the model provider unchanged.</p>"
         }
       },
       "documentation":"<p>Configuration for an OpenAI model provider. Requires an API key stored in AgentCore Identity.</p>"
@@ -4670,14 +5983,94 @@
         "path":{
           "shape":"HarnessSkillPath",
           "documentation":"<p>The filesystem path to the skill definition.</p>"
+        },
+        "s3":{
+          "shape":"HarnessSkillS3Source",
+          "documentation":"<p>An S3 source containing the skill.</p>"
+        },
+        "git":{
+          "shape":"HarnessSkillGitSource",
+          "documentation":"<p>A git repository containing the skill.</p>"
+        },
+        "awsSkills":{
+          "shape":"HarnessSkillAwsSkillsSource",
+          "documentation":"<p>AWS Skills baked into the Harness's underlying Runtime.</p>"
         }
       },
       "documentation":"<p>A skill available to the agent.</p>",
       "union":true
     },
+    "HarnessSkillAwsSkillsSource":{
+      "type":"structure",
+      "members":{
+        "paths":{
+          "shape":"HarnessAwsSkillPaths",
+          "documentation":"<p>Optionally filter allowed skills with glob syntax, e.g., ['core-skills/*'].</p>"
+        }
+      },
+      "documentation":"<p>Passed to show that AWS Skills should be included.</p>"
+    },
+    "HarnessSkillGitAuth":{
+      "type":"structure",
+      "required":["credentialArn"],
+      "members":{
+        "credentialArn":{
+          "shape":"ApiKeyArn",
+          "documentation":"<p>The ARN of the credential in AgentCore Identity containing the password or personal access token.</p>"
+        },
+        "username":{
+          "shape":"String",
+          "documentation":"<p>Username for authentication. Defaults to 'oauth2' if not specified.</p>"
+        }
+      },
+      "documentation":"<p>Authentication configuration for accessing a private git repository.</p>"
+    },
+    "HarnessSkillGitSource":{
+      "type":"structure",
+      "required":["url"],
+      "members":{
+        "url":{
+          "shape":"HarnessSkillGitUrl",
+          "documentation":"<p>The HTTPS URL of the git repository.</p>"
+        },
+        "path":{
+          "shape":"String",
+          "documentation":"<p>Subdirectory within the repository containing the skill.</p>"
+        },
+        "auth":{
+          "shape":"HarnessSkillGitAuth",
+          "documentation":"<p>Authentication configuration for private repositories.</p>"
+        }
+      },
+      "documentation":"<p>A git repository source for a skill.</p>"
+    },
+    "HarnessSkillGitUrl":{
+      "type":"string",
+      "max":16383,
+      "min":8,
+      "pattern":"https://[^#@]+"
+    },
     "HarnessSkillPath":{
       "type":"string",
+      "max":4096,
       "min":1
+    },
+    "HarnessSkillS3Source":{
+      "type":"structure",
+      "required":["uri"],
+      "members":{
+        "uri":{
+          "shape":"HarnessSkillS3Uri",
+          "documentation":"<p>The S3 URI pointing to the skill directory (e.g., s3://bucket/skills/my-skill/).</p>"
+        }
+      },
+      "documentation":"<p>An S3 source for a skill.</p>"
+    },
+    "HarnessSkillS3Uri":{
+      "type":"string",
+      "max":16383,
+      "min":5,
+      "pattern":"s3://.*"
     },
     "HarnessSkills":{
       "type":"list",
@@ -4915,6 +6308,17 @@
       "type":"list",
       "member":{"shape":"HarnessToolResultContentBlock"}
     },
+    "HarnessToolResultMetadataBlockDelta":{
+      "type":"structure",
+      "required":["metadata"],
+      "members":{
+        "metadata":{
+          "shape":"SensitiveText",
+          "documentation":"<p>The partial JSON-string fragment of the tool result metadata.</p>"
+        }
+      },
+      "documentation":"<p>Delta payload for a tool result metadata.</p>"
+    },
     "HarnessToolType":{
       "type":"string",
       "enum":[
@@ -5068,11 +6472,11 @@
       "members":{
         "assertions":{
           "shape":"EvaluationContentList",
-          "documentation":"<p>assertions for evaluation, reuses common model EvaluationContentList</p>"
+          "documentation":"<p>Assertions for evaluation, reuses common model EvaluationContentList.</p>"
         },
         "expectedTrajectory":{
           "shape":"EvaluationExpectedTrajectory",
-          "documentation":"<p>expectedTrajectory for evaluation, reuses common model EvaluationExpectedTrajectory</p>"
+          "documentation":"<p>The expected tool call sequence for trajectory evaluation.</p>"
         },
         "turns":{
           "shape":"InlineGroundTruthTurnsList",
@@ -5108,6 +6512,100 @@
     "InputContentBlockList":{
       "type":"list",
       "member":{"shape":"InputContentBlock"}
+    },
+    "Insight":{
+      "type":"structure",
+      "required":["insightId"],
+      "members":{
+        "insightId":{
+          "shape":"InsightId",
+          "documentation":"<p>The unique identifier of the insight to run.</p>"
+        }
+      },
+      "documentation":"<p>A reference to an insight analysis to run against sessions during batch evaluation. Insights provide deeper analysis beyond individual evaluator scores, including failure detection, user intent clustering, and execution summarization.</p>"
+    },
+    "InsightId":{
+      "type":"string",
+      "documentation":"<p>Canonical insight identifiers using the Builtin.Insight.* naming convention. Used by BatchEvaluate, InternalEvaluate, and ServiceEngineEvaluate flows.</p>",
+      "pattern":"(Builtin\\.[a-zA-Z0-9._-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})"
+    },
+    "InsightList":{
+      "type":"list",
+      "member":{"shape":"Insight"},
+      "max":10,
+      "min":0
+    },
+    "InsightsFailureCategory":{
+      "type":"string",
+      "documentation":"<p>Failure category taxonomy for agent session insights. Values must stay in sync with the category registry in AgentCoreLens (amzn_agentcore_lens.config.failure_detection.FAILURE_CATEGORIES).</p>",
+      "enum":[
+        "execution-error-category-authentication",
+        "execution-error-category-resource-not-found",
+        "execution-error-category-service-errors",
+        "execution-error-category-rate-limiting",
+        "execution-error-category-formatting",
+        "execution-error-category-timeout",
+        "execution-error-category-resource-exhaustion",
+        "execution-error-category-environment",
+        "execution-error-category-tool-schema",
+        "task-instruction-category-non-compliance",
+        "task-instruction-category-problem-id",
+        "incorrect-actions-category-tool-selection",
+        "incorrect-actions-category-poor-information-retrieval",
+        "incorrect-actions-category-clarification",
+        "incorrect-actions-category-inappropriate-info-request",
+        "context-handling-error-category-context-handling-failures",
+        "hallucination-category-hall-capabilities",
+        "hallucination-category-hall-misunderstand",
+        "hallucination-category-hall-usage",
+        "hallucination-category-hall-history",
+        "hallucination-category-hall-params",
+        "hallucination-category-fabricate-tool-outputs",
+        "repetitive-behavior-category-repetition-tool",
+        "repetitive-behavior-category-repetition-info",
+        "repetitive-behavior-category-step-repetition",
+        "orchestration-related-errors-category-reasoning-mismatch",
+        "orchestration-related-errors-category-goal-deviation",
+        "orchestration-related-errors-category-premature-termination",
+        "orchestration-related-errors-category-unaware-termination",
+        "llm-output-category-nonsensical",
+        "configuration-mismatch-category-tool-definition",
+        "coding-use-case-specific-failure-types-category-edge-case-oversights",
+        "coding-use-case-specific-failure-types-category-dependency-issues",
+        "other"
+      ]
+    },
+    "InsightsFailureSignal":{
+      "type":"structure",
+      "required":[
+        "category",
+        "evidence",
+        "confidence"
+      ],
+      "members":{
+        "category":{
+          "shape":"InsightsFailureCategory",
+          "documentation":"<p>The failure category classification for this signal.</p>"
+        },
+        "evidence":{
+          "shape":"String",
+          "documentation":"<p>The evidence supporting the failure detection.</p>"
+        },
+        "confidence":{
+          "shape":"Double",
+          "documentation":"<p>The confidence score of the failure detection.</p>"
+        }
+      },
+      "documentation":"<p>A signal indicating a detected failure within a span.</p>"
+    },
+    "InsightsFailureSignalList":{
+      "type":"list",
+      "member":{"shape":"InsightsFailureSignal"}
+    },
+    "InstrumentBalanceToken":{
+      "type":"string",
+      "documentation":"<p>Supported tokens for instrument balance queries. Only tokens supported for X402 payments are returned.</p>",
+      "enum":["USDC"]
     },
     "Integer":{
       "type":"integer",
@@ -5370,6 +6868,18 @@
           "documentation":"<p>The version of the MCP protocol being used.</p>",
           "location":"header",
           "locationName":"Mcp-Protocol-Version"
+        },
+        "mcpMethod":{
+          "shape":"StringType",
+          "documentation":"<p>The MCP method being invoked. For example, <code>tools/call</code>, <code>resources/read</code>, or <code>prompts/get</code>.</p>",
+          "location":"header",
+          "locationName":"Mcp-Method"
+        },
+        "mcpName":{
+          "shape":"StringType",
+          "documentation":"<p>The name of the MCP resource, tool, or prompt being accessed. The value depends on the method:</p> <ul> <li> <p> <code>tools/call</code> – The tool name.</p> </li> <li> <p> <code>resources/read</code> – The resource URI.</p> </li> <li> <p> <code>prompts/get</code> – The prompt name.</p> </li> </ul>",
+          "location":"header",
+          "locationName":"Mcp-Name"
         },
         "runtimeUserId":{
           "shape":"StringType",
@@ -5643,11 +7153,47 @@
           "location":"querystring",
           "locationName":"harnessArn"
         },
+        "qualifier":{
+          "shape":"HarnessEndpointName",
+          "documentation":"<p>The endpoint name to invoke. If omitted, the DEFAULT endpoint is used.</p>",
+          "location":"querystring",
+          "locationName":"qualifier"
+        },
         "runtimeSessionId":{
-          "shape":"SessionId",
+          "shape":"InvokeHarnessRequestRuntimeSessionIdString",
           "documentation":"<p>The session ID for the invocation. Use the same session ID across requests to continue a conversation.</p>",
           "location":"header",
           "locationName":"X-Amzn-Bedrock-AgentCore-Runtime-Session-Id"
+        },
+        "runtimeUserId":{
+          "shape":"String",
+          "documentation":"<p>An identifier for the end user making the request. This value is passed through to the runtime container.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Runtime-User-Id"
+        },
+        "traceParent":{
+          "shape":"InvokeHarnessRequestTraceParentString",
+          "documentation":"<p>W3C trace context parent header containing version, trace ID, parent span ID, and trace flags.</p>",
+          "location":"header",
+          "locationName":"traceparent"
+        },
+        "traceState":{
+          "shape":"InvokeHarnessRequestTraceStateString",
+          "documentation":"<p>W3C trace context state header for vendor-specific trace information.</p>",
+          "location":"header",
+          "locationName":"tracestate"
+        },
+        "traceId":{
+          "shape":"InvokeHarnessRequestTraceIdString",
+          "documentation":"<p>Trace ID for maintaining observability through the operation.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Trace-Id"
+        },
+        "baggage":{
+          "shape":"InvokeHarnessRequestBaggageString",
+          "documentation":"<p>W3C Baggage header for user-defined context propagation. Format: key1=value1,key2=value2</p>",
+          "location":"header",
+          "locationName":"baggage"
         },
         "messages":{
           "shape":"HarnessMessages",
@@ -5691,6 +7237,32 @@
         }
       }
     },
+    "InvokeHarnessRequestBaggageString":{
+      "type":"string",
+      "max":8192,
+      "min":0
+    },
+    "InvokeHarnessRequestRuntimeSessionIdString":{
+      "type":"string",
+      "max":100,
+      "min":33,
+      "pattern":"[a-zA-Z0-9][a-zA-Z0-9-_]*"
+    },
+    "InvokeHarnessRequestTraceIdString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "InvokeHarnessRequestTraceParentString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "InvokeHarnessRequestTraceStateString":{
+      "type":"string",
+      "max":512,
+      "min":0
+    },
     "InvokeHarnessResponse":{
       "type":"structure",
       "required":["stream"],
@@ -5731,10 +7303,20 @@
         },
         "internalServerException":{"shape":"InternalServerException"},
         "validationException":{"shape":"ValidationException"},
-        "runtimeClientError":{"shape":"RuntimeClientError"}
+        "runtimeClientError":{
+          "shape":"RuntimeClientError",
+          "documentation":"<p>An error returned by the runtime container during agent execution.</p>"
+        }
       },
       "documentation":"<p>The streaming events returned by a harness invocation.</p>",
       "eventstream":true
+    },
+    "JwtKeyId":{
+      "type":"string",
+      "documentation":"<p>JWT Key ID (kid) from the JWT header.</p>",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_-]{1,255}"
     },
     "KeyList":{
       "type":"list",
@@ -5836,6 +7418,12 @@
       },
       "documentation":"<p>The result of a key type action.</p>"
     },
+    "KmsKeyArn":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"arn:aws(|-cn|-us-gov):kms:[a-zA-Z0-9-]*:[0-9]{12}:key/[a-zA-Z0-9-]{36}"
+    },
     "LanguageRuntime":{
       "type":"string",
       "enum":[
@@ -5854,6 +7442,111 @@
       },
       "documentation":"<p>Left expression of the event metadata filter.</p>",
       "union":true
+    },
+    "LinkedAccount":{
+      "type":"structure",
+      "members":{
+        "email":{
+          "shape":"LinkedAccountEmail",
+          "documentation":"<p>Email-based linked account.</p>"
+        },
+        "sms":{
+          "shape":"LinkedAccountSms",
+          "documentation":"<p>SMS-based linked account using phone number.</p>"
+        },
+        "developerJwt":{
+          "shape":"LinkedAccountDeveloperJwt",
+          "documentation":"<p>Developer JWT linked account with key ID and subject.</p>"
+        },
+        "oAuth2":{
+          "shape":"LinkedAccountOAuth2",
+          "documentation":"<p>OAuth2 provider linked account (Google, Apple, X, Telegram, GitHub).</p>"
+        }
+      },
+      "documentation":"<p>Represents different linked accounts that can be linked to an embedded wallet. Supports email, SMS, JWT, and OAuth2 approaches.</p>",
+      "sensitive":true,
+      "union":true
+    },
+    "LinkedAccountDeveloperJwt":{
+      "type":"structure",
+      "required":[
+        "kid",
+        "sub"
+      ],
+      "members":{
+        "kid":{
+          "shape":"JwtKeyId",
+          "documentation":"<p>The key ID (kid) from the JWT header. Identifies which key was used to sign the JWT.</p>"
+        },
+        "sub":{
+          "shape":"LinkedAccountDeveloperJwtSubString",
+          "documentation":"<p>The subject (sub) claim from the JWT payload. Identifies the principal that is the subject of the JWT.</p>"
+        }
+      },
+      "documentation":"<p>Authentication method using JWT with key ID and subject claims.</p>"
+    },
+    "LinkedAccountDeveloperJwtSubString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "LinkedAccountEmail":{
+      "type":"structure",
+      "required":["emailAddress"],
+      "members":{
+        "emailAddress":{
+          "shape":"Email",
+          "documentation":"<p>The email address used for the linked account. Must be a valid email format.</p>"
+        }
+      },
+      "documentation":"<p>Linked account using an email address.</p>",
+      "sensitive":true
+    },
+    "LinkedAccountList":{
+      "type":"list",
+      "member":{"shape":"LinkedAccount"},
+      "documentation":"<p>A list of linkedAccount methods linked to an embedded wallet.</p>",
+      "max":1,
+      "min":0
+    },
+    "LinkedAccountOAuth2":{
+      "type":"structure",
+      "members":{
+        "google":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>Google OAuth2 authentication.</p>"
+        },
+        "apple":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>Apple OAuth2 authentication.</p>"
+        },
+        "x":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>X (formerly Twitter) OAuth2 authentication.</p>"
+        },
+        "telegram":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>Telegram OAuth2 authentication.</p>"
+        },
+        "github":{
+          "shape":"OAuth2Authentication",
+          "documentation":"<p>GitHub OAuth2 authentication.</p>"
+        }
+      },
+      "documentation":"<p>Authentication method using OAuth2 providers. Supports Google, Apple, X, Telegram, and GitHub providers.</p>",
+      "union":true
+    },
+    "LinkedAccountSms":{
+      "type":"structure",
+      "required":["phoneNumber"],
+      "members":{
+        "phoneNumber":{
+          "shape":"PhoneNumber",
+          "documentation":"<p>The phone number in E.164 format (e.g., +1234567890).</p>"
+        }
+      },
+      "documentation":"<p>Linked account using a phone number in E.164 format.</p>",
+      "sensitive":true
     },
     "ListABTestsRequest":{
       "type":"structure",
@@ -6153,11 +7846,11 @@
         },
         "namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The namespace prefix to filter memory records by. Returns all memory records in namespaces that start with the provided prefix.</p>"
+          "documentation":"<p>The namespace prefix to filter memory records by. Returns all memory records in namespaces that start with the provided prefix. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "namespacePath":{
           "shape":"Namespace",
-          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy.</p>"
+          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "memoryStrategyId":{
           "shape":"MemoryStrategyId",
@@ -6190,6 +7883,102 @@
           "documentation":"<p>The token to use in a subsequent request to get the next set of results. This value is null when there are no more results to return.</p>"
         }
       }
+    },
+    "ListPaymentInstrumentsRequest":{
+      "type":"structure",
+      "required":["paymentManagerArn"],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with the payment instruments.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns the payment instruments.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector to filter by.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        },
+        "maxResults":{
+          "shape":"Integer",
+          "documentation":"<p>Maximum number of results to return in a single response.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for listing payment instruments.</p>"
+    },
+    "ListPaymentInstrumentsResponse":{
+      "type":"structure",
+      "required":["paymentInstruments"],
+      "members":{
+        "paymentInstruments":{
+          "shape":"PaymentInstrumentSummaryList",
+          "documentation":"<p>List of payment instrument summaries matching the request criteria.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for listing payment instruments.</p>"
+    },
+    "ListPaymentSessionsRequest":{
+      "type":"structure",
+      "required":["paymentManagerArn"],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with the payment sessions.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns the sessions.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        },
+        "maxResults":{
+          "shape":"Integer",
+          "documentation":"<p>Maximum number of results to return in a single response.</p>"
+        }
+      },
+      "documentation":"<p>Request structure for listing payment sessions.</p>"
+    },
+    "ListPaymentSessionsResponse":{
+      "type":"structure",
+      "required":["paymentSessions"],
+      "members":{
+        "paymentSessions":{
+          "shape":"PaymentSessionSummaryList",
+          "documentation":"<p>List of payment session summaries matching the request criteria.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Token for pagination to retrieve the next set of results.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for listing payment sessions.</p>"
     },
     "ListRecommendationsRequest":{
       "type":"structure",
@@ -6346,10 +8135,16 @@
       "min":1,
       "sensitive":true
     },
+    "MemoryDocument":{
+      "type":"structure",
+      "members":{},
+      "document":true,
+      "sensitive":true
+    },
     "MemoryId":{
       "type":"string",
       "min":12,
-      "pattern":"[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
+      "pattern":"(arn:(aws|aws-cn|aws-us-gov):bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:memory/)?[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
     },
     "MemoryMetadataFilterExpression":{
       "type":"structure",
@@ -6744,6 +8539,12 @@
       "min":1
     },
     "ModelId":{"type":"string"},
+    "MountPath":{
+      "type":"string",
+      "max":200,
+      "min":6,
+      "pattern":"/mnt/[a-zA-Z0-9._-]+/?"
+    },
     "MouseButton":{
       "type":"string",
       "documentation":"<p>The mouse button to use for a browser mouse action.</p>",
@@ -6933,6 +8734,63 @@
       },
       "documentation":"<p>The result of a mouse scroll action.</p>"
     },
+    "MppPaymentCredential":{
+      "type":"string",
+      "documentation":"<p>Ready-to-send <code>Authorization: Payment &lt;base64url-token&gt;</code> value. This is a bearer-like payment credential and must not appear in logs, traces, or error messages.</p>",
+      "max":32768,
+      "min":1,
+      "sensitive":true
+    },
+    "MppPaymentInput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "wwwAuthenticateHeaders"
+      ],
+      "members":{
+        "version":{
+          "shape":"Version",
+          "documentation":"<p>The MPP protocol version, for example \"1\" or \"2\".</p>"
+        },
+        "wwwAuthenticateHeaders":{
+          "shape":"WwwAuthenticateHeaderList",
+          "documentation":"<p>The raw <code>WWW-Authenticate: Payment</code> header value from the 402 response, passed verbatim. Provide exactly one entry. The service uses this value to generate the payment credential.</p>"
+        },
+        "buyerPaysGasFees":{
+          "shape":"Boolean",
+          "documentation":"<p>Authorizes the service to sign a payment whose blockchain network (gas) fees are charged to your wallet, on top of the payment amount.</p> <p>The challenge indicates who sponsors the network fees. When the challenge does not sponsor them, the service signs the payment only if this field is <code>true</code>. Otherwise it returns a validation error, so you can decide whether to pay the fees or obtain a challenge that sponsors them.</p> <p>Optional. When omitted or <code>false</code>, you decline to pay network fees. This field has no effect on challenges that already sponsor the fees.</p>"
+        }
+      },
+      "documentation":"<p>Contains the payment challenge from a 402 Payment Required response. Forward the raw <code>WWW-Authenticate: Payment</code> header value verbatim. In response, you receive a payment credential that satisfies the challenge. Provide exactly one challenge per request.</p>"
+    },
+    "MppPaymentOutput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "selectedPaymentId",
+        "paymentCredential"
+      ],
+      "members":{
+        "version":{
+          "shape":"Version",
+          "documentation":"<p>The MPP protocol version, for example \"1\" or \"2\".</p>"
+        },
+        "selectedPaymentId":{
+          "shape":"MppPaymentOutputSelectedPaymentIdString",
+          "documentation":"<p>The id of the challenge that was paid, echoed from the input challenge so you can correlate the result without decoding the credential.</p>"
+        },
+        "paymentCredential":{
+          "shape":"MppPaymentCredential",
+          "documentation":"<p>Ready-to-send value for the <code>Authorization</code> header, in the form \"Payment &lt;base64url-token&gt;\". Attach this header and retry the original request. To inspect the full credential, base64url-decode the token.</p>"
+        }
+      },
+      "documentation":"<p>Contains the payment credential, ready to retry the request.</p>"
+    },
+    "MppPaymentOutputSelectedPaymentIdString":{
+      "type":"string",
+      "max":512,
+      "min":1
+    },
     "Name":{
       "type":"string",
       "max":100,
@@ -6959,6 +8817,45 @@
     "NonBlankString":{
       "type":"string",
       "pattern":"[\\s\\S]+"
+    },
+    "OAuth2Authentication":{
+      "type":"structure",
+      "required":["sub"],
+      "members":{
+        "sub":{
+          "shape":"OAuth2AuthenticationSubString",
+          "documentation":"<p>The subject (sub) claim from the OAuth2 provider. Uniquely identifies the user at the provider.</p>"
+        },
+        "emailAddress":{
+          "shape":"Email",
+          "documentation":"<p>The email address from the OAuth2 provider.</p>"
+        },
+        "name":{
+          "shape":"OAuth2AuthenticationNameString",
+          "documentation":"<p>The user's name from the OAuth2 provider.</p>"
+        },
+        "username":{
+          "shape":"OAuth2AuthenticationUsernameString",
+          "documentation":"<p>The username from the OAuth2 provider.</p>"
+        }
+      },
+      "documentation":"<p>OAuth2 authentication information for third-party providers.</p>",
+      "sensitive":true
+    },
+    "OAuth2AuthenticationNameString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "OAuth2AuthenticationSubString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "OAuth2AuthenticationUsernameString":{
+      "type":"string",
+      "max":255,
+      "min":1
     },
     "OAuthCredentialProvider":{
       "type":"structure",
@@ -7022,7 +8919,8 @@
       "type":"string",
       "enum":[
         "CLIENT_CREDENTIALS",
-        "AUTHORIZATION_CODE"
+        "AUTHORIZATION_CODE",
+        "TOKEN_EXCHANGE"
       ]
     },
     "OAuthScope":{
@@ -7046,7 +8944,45 @@
     },
     "OnlineEvaluationConfigArn":{
       "type":"string",
-      "pattern":"arn:aws:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:online-evaluation-config\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
+      "pattern":"arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:online-evaluation-config\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
+    },
+    "OnlineEvaluationConfigSource":{
+      "type":"structure",
+      "required":["onlineEvaluationConfigArn"],
+      "members":{
+        "onlineEvaluationConfigArn":{
+          "shape":"OnlineEvaluationConfigArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the online evaluation configuration to use as the session source.</p>"
+        },
+        "timeRange":{
+          "shape":"SessionFilterConfig",
+          "documentation":"<p>Optional session filter configuration to narrow down which sessions from the online evaluation configuration to include.</p>"
+        }
+      },
+      "documentation":"<p>A reference to an existing online evaluation configuration to use as the data source for batch evaluation.</p>"
+    },
+    "OnlineEvaluationTraceConfig":{
+      "type":"structure",
+      "required":[
+        "onlineEvaluationConfigArn",
+        "startTime",
+        "endTime"
+      ],
+      "members":{
+        "onlineEvaluationConfigArn":{
+          "shape":"OnlineEvaluationConfigArn",
+          "documentation":"<p>The ARN of the online evaluation configuration to reuse sessions from.</p>"
+        },
+        "startTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The start time of the time range. Only sessions evaluated at or after this timestamp are included.</p>"
+        },
+        "endTime":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The end time of the time range. Only sessions evaluated before this timestamp are included.</p>"
+        }
+      },
+      "documentation":"<p>Contains the configuration for reusing agent traces from an online evaluation configuration for recommendation analysis. Because online evaluation is a continuous stream, a time range specifies which evaluated sessions the recommendation includes.</p>"
     },
     "OperatorType":{
       "type":"string",
@@ -7064,7 +9000,7 @@
           "documentation":"<p>The CloudWatch Logs configuration for writing evaluation results.</p>"
         }
       },
-      "documentation":"<p>Output destination configuration</p>",
+      "documentation":"<p>Output destination configuration.</p>",
       "union":true
     },
     "PaginationToken":{"type":"string"},
@@ -7081,7 +9017,7 @@
           "documentation":"<p>The conversational content of the payload.</p>"
         },
         "blob":{
-          "shape":"Document",
+          "shape":"MemoryDocument",
           "documentation":"<p>The binary content of the payload.</p>"
         }
       },
@@ -7093,6 +9029,361 @@
       "member":{"shape":"PayloadType"},
       "max":100,
       "min":0
+    },
+    "PaymentAgentName":{
+      "type":"string",
+      "documentation":"<p>The agent name associated with the payment request.</p>",
+      "max":256,
+      "min":0
+    },
+    "PaymentConnectorId":{
+      "type":"string",
+      "max":211,
+      "min":12,
+      "pattern":"([0-9a-z][-]?){1,100}-[0-9a-z]{10}"
+    },
+    "PaymentDocument":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Custom document type for payment payloads.</p>",
+      "document":true,
+      "sensitive":true
+    },
+    "PaymentHttpMethodType":{
+      "type":"string",
+      "enum":[
+        "GET",
+        "POST",
+        "PUT",
+        "DELETE",
+        "PATCH"
+      ]
+    },
+    "PaymentInput":{
+      "type":"structure",
+      "members":{
+        "cryptoX402":{
+          "shape":"CryptoX402PaymentInput",
+          "documentation":"<p>Input for a crypto X402 payment.</p>"
+        },
+        "mpp":{"shape":"MppPaymentInput"}
+      },
+      "documentation":"<p>The payment input details, which vary by payment type.</p>",
+      "union":true
+    },
+    "PaymentInstrument":{
+      "type":"structure",
+      "required":[
+        "paymentInstrumentId",
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "userId",
+        "paymentInstrumentType",
+        "paymentInstrumentDetails",
+        "createdAt",
+        "status",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The unique identifier for this payment instrument.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector associated with this instrument.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>"
+        },
+        "paymentInstrumentType":{
+          "shape":"PaymentInstrumentType",
+          "documentation":"<p>The type of payment instrument (e.g., EMBEDDED_CRYPTO_WALLET).</p>"
+        },
+        "paymentInstrumentDetails":{
+          "shape":"PaymentInstrumentDetails",
+          "documentation":"<p>The details specific to the payment instrument type.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was created.</p>"
+        },
+        "status":{
+          "shape":"PaymentInstrumentStatus",
+          "documentation":"<p>The current status of this payment instrument.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Represents a payment instrument.</p>"
+    },
+    "PaymentInstrumentDetails":{
+      "type":"structure",
+      "members":{
+        "embeddedCryptoWallet":{
+          "shape":"EmbeddedCryptoWallet",
+          "documentation":"<p>Embedded crypto wallet managed directly by end user.</p>"
+        }
+      },
+      "documentation":"<p>Details specific to the instrument type.</p>",
+      "union":true
+    },
+    "PaymentInstrumentId":{
+      "type":"string",
+      "max":34,
+      "min":34,
+      "pattern":"payment-instrument-[0-9a-zA-Z-]{15}"
+    },
+    "PaymentInstrumentStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a payment instrument.</p>",
+      "enum":[
+        "INITIATED",
+        "ACTIVE",
+        "FAILED",
+        "DELETED",
+        "BLOCKED"
+      ]
+    },
+    "PaymentInstrumentSummary":{
+      "type":"structure",
+      "required":[
+        "paymentInstrumentId",
+        "paymentManagerArn",
+        "paymentConnectorId",
+        "userId",
+        "paymentInstrumentType",
+        "status",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The unique identifier for this payment instrument.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this payment instrument.</p>"
+        },
+        "paymentConnectorId":{
+          "shape":"PaymentConnectorId",
+          "documentation":"<p>The ID of the payment connector associated with this instrument.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment instrument.</p>"
+        },
+        "paymentInstrumentType":{
+          "shape":"PaymentInstrumentType",
+          "documentation":"<p>The type of payment instrument (e.g., EMBEDDED_CRYPTO_WALLET).</p>"
+        },
+        "status":{
+          "shape":"PaymentInstrumentStatus",
+          "documentation":"<p>The current status of this payment instrument.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when this payment instrument was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Summary of a payment instrument for list operations.</p>"
+    },
+    "PaymentInstrumentSummaryList":{
+      "type":"list",
+      "member":{"shape":"PaymentInstrumentSummary"}
+    },
+    "PaymentInstrumentType":{
+      "type":"string",
+      "documentation":"<p>The type of payment instrument.</p>",
+      "enum":["EMBEDDED_CRYPTO_WALLET"]
+    },
+    "PaymentManagerArn":{
+      "type":"string",
+      "max":2048,
+      "min":66,
+      "pattern":"arn:(aws|aws-[a-z0-9-]+):bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:payment-manager/[a-z0-9]([a-z0-9-]{0,47}[a-z0-9])?-[a-z0-9]{10}"
+    },
+    "PaymentOutput":{
+      "type":"structure",
+      "members":{
+        "cryptoX402":{
+          "shape":"CryptoX402PaymentOutput",
+          "documentation":"<p>Output from a crypto X402 payment.</p>"
+        },
+        "mpp":{"shape":"MppPaymentOutput"}
+      },
+      "documentation":"<p>The payment output details, which vary by payment type.</p>",
+      "union":true
+    },
+    "PaymentRequestHostType":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\-\\.]+"
+    },
+    "PaymentRequestPathType":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"/[a-zA-Z0-9/_\\-\\.~%?=&]+"
+    },
+    "PaymentSession":{
+      "type":"structure",
+      "required":[
+        "paymentSessionId",
+        "paymentManagerArn",
+        "userId",
+        "expiryTimeInMinutes",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The unique identifier of the payment session.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "limits":{
+          "shape":"SessionLimits",
+          "documentation":"<p>The spending limits for the payment session.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this session.</p>"
+        },
+        "expiryTimeInMinutes":{
+          "shape":"Integer",
+          "documentation":"<p>The session expiry time in minutes.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was created.</p>"
+        },
+        "availableLimits":{
+          "shape":"AvailableLimits",
+          "documentation":"<p>The current available spending limits.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was last updated.</p>"
+        }
+      },
+      "documentation":"<p>A payment session for managing payment transactions.</p>"
+    },
+    "PaymentSessionId":{
+      "type":"string",
+      "max":31,
+      "min":31,
+      "pattern":"payment-session-[0-9a-zA-Z-]{15}"
+    },
+    "PaymentSessionStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a payment session.</p>",
+      "enum":[
+        "ACTIVE",
+        "EXPIRED",
+        "DELETED"
+      ]
+    },
+    "PaymentSessionSummary":{
+      "type":"structure",
+      "required":[
+        "paymentSessionId",
+        "paymentManagerArn",
+        "userId",
+        "expiryTimeInMinutes",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The unique identifier of the payment session.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager that owns this session.</p>"
+        },
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this session.</p>"
+        },
+        "expiryTimeInMinutes":{
+          "shape":"Integer",
+          "documentation":"<p>The session expiry time in minutes.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the session was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Summary information about a payment session.</p>"
+    },
+    "PaymentSessionSummaryList":{
+      "type":"list",
+      "member":{"shape":"PaymentSessionSummary"}
+    },
+    "PaymentStatus":{
+      "type":"string",
+      "documentation":"<p>Transaction status enum.</p>",
+      "enum":["PROOF_GENERATED"]
+    },
+    "PaymentTokenRequestInput":{
+      "type":"structure",
+      "members":{
+        "coinbaseCdpTokenRequest":{
+          "shape":"CoinbaseCdpTokenRequestInput",
+          "documentation":"<p>The Coinbase CDP token request.</p>"
+        },
+        "stripePrivyTokenRequest":{
+          "shape":"StripePrivyTokenRequestInput",
+          "documentation":"<p>The Stripe Privy token request.</p>"
+        }
+      },
+      "documentation":"<p>Vendor-specific token request configuration.</p>",
+      "union":true
+    },
+    "PaymentTokenResponseOutput":{
+      "type":"structure",
+      "members":{
+        "coinbaseCdpTokenResponse":{
+          "shape":"CoinbaseCdpTokenResponseOutput",
+          "documentation":"<p>The Coinbase CDP token response.</p>"
+        },
+        "stripePrivyTokenResponse":{
+          "shape":"StripePrivyTokenResponseOutput",
+          "documentation":"<p>The Stripe Privy token response.</p>"
+        }
+      },
+      "documentation":"<p>Vendor-specific token response configuration.</p>",
+      "union":true
+    },
+    "PaymentType":{
+      "type":"string",
+      "documentation":"<p>Payment type enum.</p>",
+      "enum":[
+        "CRYPTO_X402",
+        "MPP"
+      ]
     },
     "PerVariantOnlineEvaluationConfig":{
       "type":"structure",
@@ -7117,6 +9408,130 @@
       "member":{"shape":"PerVariantOnlineEvaluationConfig"},
       "max":2,
       "min":2
+    },
+    "Permit2AllowanceLimit":{
+      "type":"string",
+      "documentation":"<p>The maximum on-chain Permit2 allowance to grant, in the asset's smallest denomination. Pass the value as a numeric string. For example, \"1000000\" is 1 USDC at 6 decimals. To grant an unlimited allowance, pass the uint256 maximum, which is a 78-digit number.</p>",
+      "max":78,
+      "min":1,
+      "pattern":"[0-9]+"
+    },
+    "PhoneNumber":{
+      "type":"string",
+      "documentation":"<p>Phone number in E.164 format (e.g., +1234567890).</p>",
+      "max":16,
+      "min":3,
+      "pattern":"\\+[1-9]\\d{1,14}",
+      "sensitive":true
+    },
+    "ProcessPaymentId":{
+      "type":"string",
+      "max":36,
+      "min":36,
+      "pattern":"[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+    },
+    "ProcessPaymentRequest":{
+      "type":"structure",
+      "required":[
+        "paymentManagerArn",
+        "paymentSessionId",
+        "paymentInstrumentId",
+        "paymentType",
+        "paymentInput"
+      ],
+      "members":{
+        "userId":{
+          "shape":"UserId",
+          "documentation":"<p>The user ID associated with this payment.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-User-Id"
+        },
+        "agentName":{
+          "shape":"PaymentAgentName",
+          "documentation":"<p>The agent name associated with this request, used for observability.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Bedrock-AgentCore-Payments-Agent-Name"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The ID of the payment session.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument to use.</p>"
+        },
+        "paymentType":{
+          "shape":"PaymentType",
+          "documentation":"<p>The type of payment to process.</p>"
+        },
+        "paymentInput":{
+          "shape":"PaymentInput",
+          "documentation":"<p>The payment input details specific to the payment type.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      },
+      "documentation":"<p>Request structure for processing a payment.</p>"
+    },
+    "ProcessPaymentResponse":{
+      "type":"structure",
+      "required":[
+        "processPaymentId",
+        "paymentManagerArn",
+        "paymentSessionId",
+        "paymentInstrumentId",
+        "paymentType",
+        "status",
+        "paymentOutput",
+        "createdAt",
+        "updatedAt"
+      ],
+      "members":{
+        "processPaymentId":{
+          "shape":"ProcessPaymentId",
+          "documentation":"<p>The unique identifier of the processed payment.</p>"
+        },
+        "paymentManagerArn":{
+          "shape":"PaymentManagerArn",
+          "documentation":"<p>The ARN of the payment manager.</p>"
+        },
+        "paymentSessionId":{
+          "shape":"PaymentSessionId",
+          "documentation":"<p>The ID of the payment session used.</p>"
+        },
+        "paymentInstrumentId":{
+          "shape":"PaymentInstrumentId",
+          "documentation":"<p>The ID of the payment instrument used.</p>"
+        },
+        "paymentType":{
+          "shape":"PaymentType",
+          "documentation":"<p>The type of payment processed.</p>"
+        },
+        "status":{
+          "shape":"PaymentStatus",
+          "documentation":"<p>The status of the payment.</p>"
+        },
+        "paymentOutput":{
+          "shape":"PaymentOutput",
+          "documentation":"<p>The payment output details specific to the payment type.</p>"
+        },
+        "createdAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the payment was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"DateTimestamp",
+          "documentation":"<p>The timestamp when the payment was last updated.</p>"
+        }
+      },
+      "documentation":"<p>Response structure for processing a payment.</p>"
     },
     "ProgrammingLanguage":{
       "type":"string",
@@ -7241,6 +9656,11 @@
       },
       "documentation":"<p>A reference to an evaluator used for recommendation assessment.</p>"
     },
+    "RecommendationExplanation":{
+      "type":"string",
+      "max":4096,
+      "min":0
+    },
     "RecommendationId":{
       "type":"string",
       "pattern":"[0-9a-zA-Z_-]{1,48}-[0-9A-Z]{10}"
@@ -7286,6 +9706,7 @@
     },
     "RecommendationStatus":{
       "type":"string",
+      "documentation":"<p>The lifecycle status of a recommendation.</p>",
       "enum":[
         "PENDING",
         "IN_PROGRESS",
@@ -7353,6 +9774,7 @@
     },
     "RecommendationType":{
       "type":"string",
+      "documentation":"<p>The type of recommendation to generate.</p>",
       "enum":[
         "SYSTEM_PROMPT_RECOMMENDATION",
         "TOOL_DESCRIPTION_RECOMMENDATION"
@@ -7594,11 +10016,11 @@
         },
         "namespace":{
           "shape":"Namespace",
-          "documentation":"<p>The namespace prefix to filter memory records by. Searches for memory records in namespaces that start with the provided prefix.</p>"
+          "documentation":"<p>The namespace prefix to filter memory records by. Searches for memory records in namespaces that start with the provided prefix. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "namespacePath":{
           "shape":"Namespace",
-          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy.</p>"
+          "documentation":"<p>Use namespacePath for hierarchical retrievals. Return all memory records where namespace falls under the same parent hierarchy. Either <code>namespace</code> or <code>namespacePath</code> is required.</p>"
         },
         "searchCriteria":{
           "shape":"SearchCriteria",
@@ -7668,6 +10090,49 @@
       "min":1,
       "pattern":"arn:aws(-[^:]+)?:iam::([0-9]{12})?:role/.+"
     },
+    "RootCauseCluster":{
+      "type":"structure",
+      "required":[
+        "clusterId",
+        "name",
+        "rootCause",
+        "recommendation",
+        "affectedSessionCount",
+        "affectedSessions"
+      ],
+      "members":{
+        "clusterId":{
+          "shape":"Integer",
+          "documentation":"<p>The unique identifier of the root cause cluster.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the root cause cluster.</p>"
+        },
+        "rootCause":{
+          "shape":"String",
+          "documentation":"<p>The root cause explanation for this cluster of failures.</p>"
+        },
+        "recommendation":{
+          "shape":"String",
+          "documentation":"<p>The recommended fix for this root cause.</p>"
+        },
+        "affectedSessionCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of sessions affected by this root cause.</p>"
+        },
+        "affectedSessions":{
+          "shape":"AffectedSessionList",
+          "documentation":"<p>The list of sessions affected by this root cause.</p>"
+        }
+      },
+      "documentation":"<p>A cluster of similar root causes identified within a failure subcategory.</p>"
+    },
+    "RootCauseClusterList":{
+      "type":"list",
+      "member":{"shape":"RootCauseCluster"},
+      "min":0
+    },
     "RuntimeClientError":{
       "type":"structure",
       "members":{
@@ -7679,6 +10144,42 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "S3FilesAccessPointArn":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:s3files:[0-9a-z-:]+:file-system/fs-[0-9a-f]{17,40}/access-point/fsap-[0-9a-f]{17,40}"
+    },
+    "S3FilesConfiguration":{
+      "type":"structure",
+      "required":[
+        "accessPointArn",
+        "mountPath",
+        "fileSystemArn"
+      ],
+      "members":{
+        "accessPointArn":{
+          "shape":"S3FilesAccessPointArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Simple Storage Service (Amazon S3) Files access point to mount.</p>"
+        },
+        "mountPath":{
+          "shape":"MountPath",
+          "documentation":"<p>The absolute path within the session at which the access point is mounted, for example <code>/mnt/s3data</code>. Each mount path must be unique across all file system configurations in the session.</p>"
+        },
+        "fileSystemArn":{
+          "shape":"S3FilesFileSystemArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the Amazon Simple Storage Service (Amazon S3) Files file system that owns the access point.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for mounting an Amazon Simple Storage Service (Amazon S3) Files access point that you own into a session.</p>"
+    },
+    "S3FilesFileSystemArn":{
+      "type":"string",
+      "documentation":"<p>The Amazon Resource Name (ARN) of an Amazon Simple Storage Service (Amazon S3) Files file system. The access points you specify must belong to this file system.</p>",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[-a-z]*:s3files:[a-z0-9-]+:[0-9]{12}:file-system/fs-[0-9a-f]{17,40}"
     },
     "S3Location":{
       "type":"structure",
@@ -7984,6 +10485,8 @@
     },
     "ServiceName":{
       "type":"string",
+      "max":256,
+      "min":1,
       "pattern":"[a-zA-Z0-9._-]+"
     },
     "ServiceNameList":{
@@ -8033,6 +10536,17 @@
       "max":100,
       "min":1,
       "pattern":"[a-zA-Z0-9][a-zA-Z0-9-_]*"
+    },
+    "SessionLimits":{
+      "type":"structure",
+      "required":["maxSpendAmount"],
+      "members":{
+        "maxSpendAmount":{
+          "shape":"Amount",
+          "documentation":"<p>The maximum amount that can be spent in the session.</p>"
+        }
+      },
+      "documentation":"<p>The spending limits configuration for a payment session.</p>"
     },
     "SessionMetadataList":{
       "type":"list",
@@ -8183,6 +10697,10 @@
           "shape":"StartBatchEvaluationRequestEvaluatorsList",
           "documentation":"<p>The list of evaluators to apply during the batch evaluation. Can include both built-in evaluators and custom evaluators. Maximum of 10 evaluators.</p>"
         },
+        "insights":{
+          "shape":"StartBatchEvaluationRequestInsightsList",
+          "documentation":"<p>The list of insight analyses to run against sessions during the batch evaluation. Maximum of 10 insights.</p>"
+        },
         "dataSourceConfig":{
           "shape":"DataSourceConfig",
           "documentation":"<p>The data source configuration that specifies where to pull agent session traces from for evaluation.</p>"
@@ -8196,6 +10714,14 @@
           "shape":"EvaluationMetadata",
           "documentation":"<p>Optional metadata for the evaluation, including session-specific ground truth data and test scenario identifiers.</p>"
         },
+        "tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>A map of tag keys and values to associate with the batch evaluation.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt evaluation data. If provided, customer data is encrypted at rest with the specified key.</p>"
+        },
         "description":{
           "shape":"BatchEvaluationDescription",
           "documentation":"<p>The description of the batch evaluation.</p>"
@@ -8205,6 +10731,12 @@
     "StartBatchEvaluationRequestEvaluatorsList":{
       "type":"list",
       "member":{"shape":"Evaluator"},
+      "max":10,
+      "min":0
+    },
+    "StartBatchEvaluationRequestInsightsList":{
+      "type":"list",
+      "member":{"shape":"Insight"},
       "max":10,
       "min":0
     },
@@ -8234,6 +10766,10 @@
           "shape":"EvaluatorList",
           "documentation":"<p>The list of evaluators applied during the batch evaluation.</p>"
         },
+        "insights":{
+          "shape":"InsightList",
+          "documentation":"<p>The list of insight analyses applied during the batch evaluation.</p>"
+        },
         "status":{
           "shape":"BatchEvaluationStatus",
           "documentation":"<p>The status of the batch evaluation.</p>"
@@ -8245,6 +10781,14 @@
         "outputConfig":{
           "shape":"OutputConfig",
           "documentation":"<p>The output configuration specifying where evaluation results are written.</p>"
+        },
+        "tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>The tags associated with the batch evaluation.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt evaluation data.</p>"
         },
         "description":{
           "shape":"BatchEvaluationDescription",
@@ -8305,6 +10849,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>A list of certificates to install in the browser session.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations to mount into the browser session. Use these configurations to mount your own Amazon Simple Storage Service (Amazon S3) Files or Amazon Elastic File System (Amazon EFS) access points. Your session can then read and write your data. If you don't specify this field, no additional file systems are mounted.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -8382,6 +10930,10 @@
         "certificates":{
           "shape":"Certificates",
           "documentation":"<p>A list of certificates to install in the code interpreter session.</p>"
+        },
+        "filesystemConfigurations":{
+          "shape":"ToolsFileSystemConfigurations",
+          "documentation":"<p>The file system configurations to mount into the code interpreter session. Use these configurations to mount your own Amazon Simple Storage Service (Amazon S3) Files or Amazon Elastic File System (Amazon EFS) access points. Your session can then read and write your data. If you don't specify this field, no additional file systems are mounted.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -8480,10 +11032,18 @@
           "shape":"RecommendationConfig",
           "documentation":"<p>The configuration for the recommendation, including the input to optimize, agent traces to analyze, and evaluation settings.</p>"
         },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used to encrypt recommendation data. If provided, customer data is encrypted at rest with the specified key.</p>"
+        },
         "clientToken":{
           "shape":"ClientToken",
           "documentation":"<p>A unique, case-sensitive identifier to ensure that the API request completes no more than one time. If this token matches a previous request, the service ignores the request, but does not return an error.</p>",
           "idempotencyToken":true
+        },
+        "tags":{
+          "shape":"TagsMap",
+          "documentation":"<p>A map of tag keys and values to associate with the recommendation.</p>"
         }
       }
     },
@@ -8814,6 +11374,126 @@
       "max":5,
       "min":1
     },
+    "StripePrivyAppIdType":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\-_]+"
+    },
+    "StripePrivyAuthorizationSignatureType":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "sensitive":true
+    },
+    "StripePrivyBasicAuthTokenType":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "sensitive":true
+    },
+    "StripePrivyRequestBodyType":{
+      "type":"string",
+      "max":16384,
+      "min":1,
+      "pattern":"[\\u0009\\u000A\\u000D\\u0020-\\u007E]+",
+      "sensitive":true
+    },
+    "StripePrivyRequestHostType":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\-\\.]+"
+    },
+    "StripePrivyRequestPathType":{
+      "type":"string",
+      "max":2048,
+      "min":1,
+      "pattern":"/[a-zA-Z0-9/_\\-\\.~%?=&]+"
+    },
+    "StripePrivyTokenRequestInput":{
+      "type":"structure",
+      "required":[
+        "requestPath",
+        "requestBody"
+      ],
+      "members":{
+        "requestHost":{
+          "shape":"StripePrivyRequestHostType",
+          "documentation":"<p>The host for the Privy API request. Defaults to \"api.privy.io\".</p>"
+        },
+        "requestPath":{
+          "shape":"StripePrivyRequestPathType",
+          "documentation":"<p>The path of the Stripe Privy API request.</p>"
+        },
+        "requestBody":{
+          "shape":"StripePrivyRequestBodyType",
+          "documentation":"<p>Request body JSON for the Privy API call.</p>"
+        },
+        "includeAuthorizationSignature":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to true to generate privy-authorization-signature.</p>"
+        }
+      },
+      "documentation":"<p>Stripe Privy token request parameters.</p>"
+    },
+    "StripePrivyTokenResponseOutput":{
+      "type":"structure",
+      "required":[
+        "appId",
+        "basicAuthToken"
+      ],
+      "members":{
+        "authorizationSignature":{
+          "shape":"StripePrivyAuthorizationSignatureType",
+          "documentation":"<p>Base64-encoded ECDSA P-256 authorization signature (only present when includeAuthorizationSignature is true).</p>"
+        },
+        "requestExpiry":{
+          "shape":"Long",
+          "documentation":"<p>Unix timestamp in milliseconds when the authorization signature expires.</p>"
+        },
+        "appId":{
+          "shape":"StripePrivyAppIdType",
+          "documentation":"<p>The Privy app ID for the privy-app-id header.</p>"
+        },
+        "basicAuthToken":{
+          "shape":"StripePrivyBasicAuthTokenType",
+          "documentation":"<p>Base64-encoded Basic Auth token (appId:appSecret) for the Authorization header.</p>"
+        }
+      },
+      "documentation":"<p>Stripe Privy token response containing appId, basicAuthToken, and optionally authorizationSignature.</p>"
+    },
+    "SubscriptionRequiredException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{"shape":"String"},
+        "subscriptionUrl":{
+          "shape":"SubscriptionRequiredExceptionSubscriptionUrlString",
+          "documentation":"<p>The URL to the Marketplace listing where you can subscribe.</p>"
+        },
+        "productName":{
+          "shape":"SubscriptionRequiredExceptionProductNameString",
+          "documentation":"<p>The name of the product that requires a Marketplace subscription.</p>"
+        }
+      },
+      "documentation":"<p>Returned when you attempt a wallet operation against a Coinbase Marketplace connector whose account does not hold an active Marketplace subscription and is not within the legacy exception period. Subscribe to the Marketplace listing before you retry the operation.</p>",
+      "error":{
+        "httpStatusCode":403,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "SubscriptionRequiredExceptionProductNameString":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "SubscriptionRequiredExceptionSubscriptionUrlString":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
     "SyntheticTimestamp_date_time":{
       "type":"timestamp",
       "timestampFormat":"iso8601"
@@ -8860,8 +11540,7 @@
       "type":"structure",
       "required":[
         "systemPrompt",
-        "agentTraces",
-        "evaluationConfig"
+        "agentTraces"
       ],
       "members":{
         "systemPrompt":{
@@ -8890,6 +11569,10 @@
           "shape":"RecommendationResultConfigurationBundle",
           "documentation":"<p>The configuration bundle containing the recommended system prompt, if the input was sourced from a configuration bundle.</p>"
         },
+        "explanation":{
+          "shape":"RecommendationExplanation",
+          "documentation":"<p>An explanation of why the recommendation was generated and what patterns were identified in the agent traces.</p>"
+        },
         "errorCode":{
           "shape":"RecommendationErrorCode",
           "documentation":"<p>The error code if the recommendation failed.</p>"
@@ -8906,6 +11589,25 @@
       "max":20000,
       "min":1,
       "sensitive":true
+    },
+    "TagKey":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\s._:/=+@-]*"
+    },
+    "TagValue":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9\\s._:/=+@-]*"
+    },
+    "TagsMap":{
+      "type":"map",
+      "key":{"shape":"TagKey"},
+      "value":{"shape":"TagValue"},
+      "max":50,
+      "min":0
     },
     "TargetName":{
       "type":"string",
@@ -8971,6 +11673,39 @@
       "exception":true
     },
     "Timestamp":{"type":"timestamp"},
+    "TokenBalance":{
+      "type":"structure",
+      "required":[
+        "amount",
+        "decimals",
+        "token",
+        "network",
+        "chain"
+      ],
+      "members":{
+        "amount":{
+          "shape":"String",
+          "documentation":"<p>Raw balance in the smallest denomination (e.g., USDC base units where 1 USDC = 1000000).</p>"
+        },
+        "decimals":{
+          "shape":"Integer",
+          "documentation":"<p>Number of decimal places for the token (e.g., 6 for USDC).</p>"
+        },
+        "token":{
+          "shape":"InstrumentBalanceToken",
+          "documentation":"<p>The supported token for this balance.</p>"
+        },
+        "network":{
+          "shape":"CryptoWalletNetwork",
+          "documentation":"<p>The blockchain network family (ETHEREUM or SOLANA).</p>"
+        },
+        "chain":{
+          "shape":"BlockchainChainId",
+          "documentation":"<p>The specific blockchain chain.</p>"
+        }
+      },
+      "documentation":"<p>A single token balance entry.</p>"
+    },
     "TokenUsage":{
       "type":"structure",
       "members":{
@@ -9102,6 +11837,10 @@
         "recommendedToolDescription":{
           "shape":"ToolDescriptionText",
           "documentation":"<p>The optimized tool description text generated by the recommendation.</p>"
+        },
+        "explanation":{
+          "shape":"RecommendationExplanation",
+          "documentation":"<p>An explanation of why the recommendation was generated for this tool and what patterns were identified in the agent traces.</p>"
         }
       },
       "documentation":"<p>The output for a single tool description recommendation.</p>"
@@ -9239,6 +11978,28 @@
         }
       },
       "documentation":"<p> The MCP tools definition with a protocol version and inline content. The <code>protocolVersion</code> identifies the MCP protocol version that the tools conform to. This differs from <code>schemaVersion</code> in the server definition, which identifies the server configuration schema format.</p>"
+    },
+    "ToolsFileSystemConfiguration":{
+      "type":"structure",
+      "members":{
+        "s3FilesConfiguration":{
+          "shape":"S3FilesConfiguration",
+          "documentation":"<p>The configuration for mounting your own Amazon Simple Storage Service (Amazon S3) Files access point into the session.</p>"
+        },
+        "efsConfiguration":{
+          "shape":"EfsConfiguration",
+          "documentation":"<p>The configuration for mounting your own Amazon Elastic File System (Amazon EFS) access point into the session.</p>"
+        }
+      },
+      "documentation":"<p>Specifies a file system to mount into the session by providing exactly one of the following:</p> <ul> <li> <p> <code>s3FilesConfiguration</code> - Mounts an Amazon Simple Storage Service (Amazon S3) Files access point.</p> </li> <li> <p> <code>efsConfiguration</code> - Mounts an Amazon Elastic File System (Amazon EFS) access point.</p> </li> </ul>",
+      "union":true
+    },
+    "ToolsFileSystemConfigurations":{
+      "type":"list",
+      "member":{"shape":"ToolsFileSystemConfiguration"},
+      "documentation":"<p>The file system configurations to mount into the session. Each configuration maps an access point to a path inside the session. You can specify up to 4 configurations. The maximum is 2 Amazon Simple Storage Service (Amazon S3) Files access points and 2 Amazon Elastic File System (Amazon EFS) access points.</p>",
+      "max":10,
+      "min":0
     },
     "TopK":{
       "type":"integer",
@@ -9411,6 +12172,11 @@
         }
       }
     },
+    "UserId":{
+      "type":"string",
+      "max":120,
+      "min":0
+    },
     "UserIdType":{
       "type":"string",
       "max":128,
@@ -9430,6 +12196,82 @@
       },
       "documentation":"<p>The OAuth2.0 token or user ID that was used to generate the workload access token used for initiating the user authorization flow to retrieve OAuth2.0 tokens.</p>",
       "union":true
+    },
+    "UserIntentAffectedSession":{
+      "type":"structure",
+      "required":[
+        "sessionId",
+        "userMessages"
+      ],
+      "members":{
+        "sessionId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the session.</p>"
+        },
+        "userMessages":{
+          "shape":"UserIntentList",
+          "documentation":"<p>The user messages from this session that contributed to the intent cluster.</p>"
+        }
+      },
+      "documentation":"<p>A session associated with a user intent cluster.</p>"
+    },
+    "UserIntentAffectedSessionList":{
+      "type":"list",
+      "member":{"shape":"UserIntentAffectedSession"},
+      "min":0
+    },
+    "UserIntentCluster":{
+      "type":"structure",
+      "required":[
+        "clusterId",
+        "name",
+        "description",
+        "affectedSessionCount",
+        "affectedSessions"
+      ],
+      "members":{
+        "clusterId":{
+          "shape":"Integer",
+          "documentation":"<p>The unique identifier of the user intent cluster.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the user intent cluster.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>A description of the user intent pattern.</p>"
+        },
+        "affectedSessionCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of sessions with this user intent.</p>"
+        },
+        "affectedSessions":{
+          "shape":"UserIntentAffectedSessionList",
+          "documentation":"<p>The list of sessions with this user intent.</p>"
+        }
+      },
+      "documentation":"<p>A cluster of similar user intents identified across sessions.</p>"
+    },
+    "UserIntentClusterList":{
+      "type":"list",
+      "member":{"shape":"UserIntentCluster"},
+      "min":0
+    },
+    "UserIntentClusteringResultContent":{
+      "type":"structure",
+      "required":["userIntents"],
+      "members":{
+        "userIntents":{
+          "shape":"UserIntentClusterList",
+          "documentation":"<p>The list of user intent clusters identified across analyzed sessions.</p>"
+        }
+      },
+      "documentation":"<p>The user intent clustering result containing grouped user intents identified across evaluated sessions.</p>"
+    },
+    "UserIntentList":{
+      "type":"list",
+      "member":{"shape":"String"}
     },
     "UserTokenType":{
       "type":"string",
@@ -9591,6 +12433,13 @@
       "max":100,
       "min":1
     },
+    "Version":{
+      "type":"string",
+      "documentation":"<p>A protocol version identifier, as a bare numeric string. For example, \"1\" or \"2\".</p>",
+      "max":10,
+      "min":1,
+      "pattern":"[0-9]+"
+    },
     "ViewPort":{
       "type":"structure",
       "required":[
@@ -9632,6 +12481,19 @@
       "max":131072,
       "min":1,
       "sensitive":true
+    },
+    "WwwAuthenticateHeader":{
+      "type":"string",
+      "documentation":"<p>A raw <code>WWW-Authenticate: Payment</code> header value from a 402 response, containing RFC 9110 auth-params such as <code>id</code>, <code>realm</code>, <code>method</code>, <code>intent</code>, and <code>request</code>. Pass this value in the request body, not as an HTTP header.</p>",
+      "max":16384,
+      "min":1
+    },
+    "WwwAuthenticateHeaderList":{
+      "type":"list",
+      "member":{"shape":"WwwAuthenticateHeader"},
+      "documentation":"<p>The raw WWW-Authenticate header value to fulfill. Provide exactly one entry.</p>",
+      "max":1,
+      "min":1
     }
   },
   "documentation":"<p>Welcome to the Amazon Bedrock AgentCore Data Plane API reference. Data Plane actions process and handle data or workloads within Amazon Web Services services. </p>"

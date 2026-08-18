@@ -168,39 +168,48 @@ public class JsonProtocolSpec implements ProtocolSpec {
         String protocolFactory = protocolFactoryLiteral(model, opModel);
 
         CodeBlock.Builder builder = CodeBlock.builder();
+        builder.add("\n$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, "
+                    + "exceptionMetadataMapper);",
+                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
+
+        return Optional.of(builder.build());
+    }
+
+    @Override
+    public Optional<FieldSpec> errorResponseMapperField() {
         ParameterizedTypeName metadataMapperType = ParameterizedTypeName.get(
             ClassName.get(Function.class),
             ClassName.get(String.class),
             ParameterizedTypeName.get(Optional.class, ExceptionMetadata.class));
 
-        builder.add("\n$T exceptionMetadataMapper = errorCode -> {\n", metadataMapperType);
-        builder.add("if (errorCode == null) {\n");
-        builder.add("return $T.empty();\n", Optional.class);
-        builder.add("}\n");
-        builder.add("switch (errorCode) {\n");
+        CodeBlock.Builder initializer = CodeBlock.builder();
+        initializer.add("errorCode -> {\n");
+        initializer.add("if (errorCode == null) {\n");
+        initializer.add("return $T.empty();\n", Optional.class);
+        initializer.add("}\n");
+        initializer.add("switch (errorCode) {\n");
         model.getShapes().values().stream()
              .filter(shape -> shape.getShapeType() == ShapeType.Exception)
              .forEach(exceptionShape -> {
-                 String exceptionName = exceptionShape.getShapeName();
                  String errorCode = exceptionShape.getErrorCode();
 
-                 builder.add("case $S:\n", errorCode);
-                 builder.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
-                        .add(".errorCode($S)\n", errorCode);
-                 builder.add(populateHttpStatusCode(exceptionShape, model));
-                 builder.add(".exceptionBuilderSupplier($T::builder)\n",
-                             poetExtensions.getModelClassFromShape(exceptionShape))
-                        .add(".build());\n");
+                 initializer.add("case $S:\n", errorCode);
+                 initializer.add("return $T.of($T.builder()\n", Optional.class, ExceptionMetadata.class)
+                            .add(".errorCode($S)\n", errorCode);
+                 initializer.add(populateHttpStatusCode(exceptionShape, model));
+                 initializer.add(".exceptionBuilderSupplier($T::builder)\n",
+                                 poetExtensions.getModelClassFromShape(exceptionShape))
+                            .add(".build());\n");
              });
 
-        builder.add("default: return $T.empty();\n", Optional.class);
-        builder.add("}\n");
-        builder.add("};\n");
+        initializer.add("default: return $T.empty();\n", Optional.class);
+        initializer.add("}\n");
+        initializer.add("}");
 
-        builder.add("$T<$T> errorResponseHandler = createErrorResponseHandler($L, operationMetadata, exceptionMetadataMapper);",
-                    HttpResponseHandler.class, AwsServiceException.class, protocolFactory);
-
-        return Optional.of(builder.build());
+        return Optional.of(FieldSpec.builder(metadataMapperType, "exceptionMetadataMapper",
+                                             Modifier.PRIVATE, Modifier.FINAL)
+                                    .initializer(initializer.build())
+                                    .build());
     }
 
     @Override
@@ -223,7 +232,9 @@ public class JsonProtocolSpec implements ProtocolSpec {
                      .add(LongPollTrait.executionParamSetter(opModel))
                      .add(".withRequestConfiguration(clientConfiguration)")
                      .add(".withInput($L)\n", opModel.getInput().getVariableName())
-                     .add(".withMetricCollector(apiCallMetricCollector)")
+                     .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(".withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)\n")
+                     .add(".withEndpointResolver(this::resolveEndpoint)\n")
                      .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                      .add(HttpChecksumTrait.create(opModel));
 
@@ -298,6 +309,8 @@ public class JsonProtocolSpec implements ProtocolSpec {
                .add(".withErrorResponseHandler(errorResponseHandler)\n")
                .add(".withRequestConfiguration(clientConfiguration)")
                .add(".withMetricCollector(apiCallMetricCollector)\n")
+               .add(".withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)\n")
+               .add(".withEndpointResolver(this::resolveEndpoint)\n")
                .add(hostPrefixExpression(opModel))
                .add(discoveredEndpoint(opModel))
                .add(credentialType(opModel, model))
@@ -321,14 +334,11 @@ public class JsonProtocolSpec implements ProtocolSpec {
         }
         String customerResponseHandler = opModel.hasEventStreamOutput() ?
                                          "asyncResponseHandler" : "finalAsyncResponseTransformer";
-        String whenComplete = whenCompleteBody(opModel, customerResponseHandler);
-        if (!whenComplete.isEmpty()) {
-            String whenCompletedFutureName = "whenCompleted";
-            builder.addStatement("$T<$T> $N = $N$L", CompletableFuture.class, executeFutureValueType,
-                    whenCompletedFutureName, "executeFuture", whenComplete);
-            builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",
-                    CompletableFutureUtils.class, whenCompletedFutureName);
-        }
+        String whenCompletedFutureName = "whenCompleted";
+        builder.addStatement("$T<$T> $N = $L", CompletableFuture.class, executeFutureValueType,
+                whenCompletedFutureName, whenCompleteBody(opModel, customerResponseHandler));
+        builder.addStatement("executeFuture = $T.forwardExceptionTo($N, executeFuture)",
+                CompletableFutureUtils.class, whenCompletedFutureName);
         if (opModel.hasEventStreamOutput()) {
             builder.addStatement("return $T.forwardExceptionTo(future, executeFuture)", CompletableFutureUtils.class);
         } else {
@@ -397,16 +407,15 @@ public class JsonProtocolSpec implements ProtocolSpec {
      *
      * @param operationModel Op model.
      * @param responseHandlerName Variable name of response handler customer passed in.
-     * @return whenComplete to append to future.
+     * @return Expression producing the future that completes once metrics have been published.
      */
     private String whenCompleteBody(OperationModel operationModel, String responseHandlerName) {
         if (operationModel.hasEventStreamOutput()) {
-            return eventStreamOutputWhenComplete(responseHandlerName);
+            return "executeFuture" + eventStreamOutputWhenComplete(responseHandlerName);
         } else if (operationModel.hasStreamingOutput()) {
-            return streamingOutputWhenComplete(responseHandlerName);
+            return "executeFuture" + streamingOutputWhenComplete(responseHandlerName);
         } else {
-            // Non streaming can just return the future as is
-            return publishMetricsWhenComplete();
+            return publishMetricsWhenComplete("executeFuture");
         }
     }
 

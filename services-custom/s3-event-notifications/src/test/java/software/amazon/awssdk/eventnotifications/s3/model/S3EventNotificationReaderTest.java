@@ -22,6 +22,8 @@ import java.io.ByteArrayInputStream;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
@@ -49,7 +51,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.5",
                 null,
                 new ResponseElements(
                     null, null),
@@ -73,7 +75,7 @@ class S3EventNotificationReaderTest {
         String json = eventNotification.toJsonPretty();
         assertThat(json).isEqualTo("{\n"
                                    + "  \"Records\" : [ {\n"
-                                   + "    \"eventVersion\" : \"2.1\",\n"
+                                   + "    \"eventVersion\" : \"2.5\",\n"
                                    + "    \"eventSource\" : \"aws:s3\",\n"
                                    + "    \"awsRegion\" : \"us-west-2\",\n"
                                    + "    \"eventTime\" : \"1970-01-01T00:00:00Z\",\n"
@@ -115,7 +117,7 @@ class S3EventNotificationReaderTest {
         String eventJson = "{  "
                            + "   \"Records\":[  "
                            + "      {  "
-                           + "         \"eventVersion\":\"2.1\","
+                           + "         \"eventVersion\":\"2.5\","
                            + "         \"eventSource\":\"aws:s3\","
                            + "         \"awsRegion\":\"us-west-2\","
                            + "         \"eventTime\":\"1970-01-01T00:00:00.000Z\","
@@ -163,7 +165,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.5",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -192,7 +194,7 @@ class S3EventNotificationReaderTest {
         assertThat(rec.getAwsRegion()).isEqualTo("us-west-2");
         assertThat(rec.getEventName()).isEqualTo("ObjectCreated:Put");
         assertThat(rec.getEventTime()).isEqualTo(Instant.parse("1970-01-01T00:00:00.000Z"));
-        assertThat(rec.getEventVersion()).isEqualTo("2.1");
+        assertThat(rec.getEventVersion()).isEqualTo("2.5");
 
         UserIdentity userIdentity = rec.getUserIdentity();
         assertThat(userIdentity).isNotNull();
@@ -238,7 +240,7 @@ class S3EventNotificationReaderTest {
         String eventJson = "{\n"
                            + "  \"Records\":[\n"
                            + "    {\n"
-                           + "      \"eventVersion\":\"2.1\",\n"
+                           + "      \"eventVersion\":\"2.5\",\n"
                            + "      \"eventSource\":\"aws:s3\",\n"
                            + "      \"awsRegion\":\"us-west-2\",\n"
                            + "      \"eventTime\":\"1970-01-01T00:00:00.000Z\",\n"
@@ -268,8 +270,12 @@ class S3EventNotificationReaderTest {
                            + "          \"size\":1024,\n"
                            + "          \"eTag\":\"d41d8cd98f00b204e9800998ecf8427e\",\n"
                            + "          \"versionId\":\"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
-                           + "          \"sequencer\":\"0055AED6DCD90281E5\"\n"
-                           + "        }\n"
+                           + "          \"sequencer\":\"0055AED6DCD90281E5\",\n"
+                           + "          \"hasObjectAnnotation\":true\n"
+                           + "        },\n"
+                           + "        \"objectAnnotation\":[\n"
+                           + "          {\"name\":\"anno1\",\"size\":50,\"eTag\":\"etag1\"}\n"
+                           + "        ]\n"
                            + "      },\n"
                            + "      \"glacierEventData\": {\n"
                            + "        \"restoreEventData\": {\n"
@@ -309,7 +315,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.5",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -324,8 +330,12 @@ class S3EventNotificationReaderTest {
                         1024L,
                         "d41d8cd98f00b204e9800998ecf8427e",
                         "096fKKXTRTtl3on89fVO.nfljtsv6qko",
-                        "0055AED6DCD90281E5"),
-                    "1.0"
+                        "0055AED6DCD90281E5",
+                        true),
+                    "1.0",
+                    Arrays.asList(
+                        new S3ObjectAnnotation("anno1", 50L, "etag1")
+                    )
                 ),
                 new UserIdentity("AIDAJDPLRKLG7UEXAMPLE"),
                 new GlacierEventData(new RestoreEventData("1970-02-02T00:00:00.000Z", "testStorageClass")),
@@ -372,6 +382,15 @@ class S3EventNotificationReaderTest {
         assertThat(replication.getFailureReason()).isEqualTo("failureReasonTest");
         assertThat(replication.getThreshold()).isEqualTo("thresholdTest");
         assertThat(replication.getS3Operation()).isEqualTo("s3OperationTest");
+
+        S3 s3 = rec.getS3();
+        assertThat(s3.getObjectAnnotation()).hasSize(1);
+        assertThat(s3.getObjectAnnotation().get(0).getName()).isEqualTo("anno1");
+        assertThat(s3.getObjectAnnotation().get(0).getSize()).isEqualTo(50L);
+        assertThat(s3.getObjectAnnotation().get(0).getETag()).isEqualTo("etag1");
+
+        S3Object s3Object = s3.getObject();
+        assertThat(s3Object.getHasObjectAnnotation()).isTrue();
     }
 
     @Test
@@ -402,7 +421,7 @@ class S3EventNotificationReaderTest {
     void missingField_shouldBeNull() {
         String json = "{\n"
                       + "  \"Records\" : [ {\n"
-                      + "    \"eventVersion\" : \"2.1\",\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
                       + "    \"eventSource\" : \"aws:s3\",\n"
                       + "    \"awsRegion\" : \"us-west-2\",\n"
                       + "    \"eventTime\" : \"1970-01-01T01:01:01.001Z\",\n"
@@ -446,7 +465,7 @@ class S3EventNotificationReaderTest {
     void eventTimeIsNullWhenEventNamePresent_shouldSucceed() {
         String json = "{\n"
                       + "  \"Records\" : [ {\n"
-                      + "    \"eventVersion\" : \"2.1\",\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
                       + "    \"eventSource\" : \"aws:s3\",\n"
                       + "    \"awsRegion\" : \"us-west-2\",\n"
                       // missing eventTime
@@ -508,7 +527,7 @@ class S3EventNotificationReaderTest {
         String eventJson = "{  "
                            + "   \"Records\":[  "
                            + "      {  "
-                           + "         \"eventVersion\":\"2.1\","
+                           + "         \"eventVersion\":\"2.5\","
                            + "         \"eventSource\":\"aws:s3\","
                            + "         \"awsRegion\":\"us-west-2\","
                            + "         \"eventTime\":\"1970-01-01T00:00:00.000Z\","
@@ -538,8 +557,10 @@ class S3EventNotificationReaderTest {
                            + "               \"size\":1024,"
                            + "               \"eTag\":\"d41d8cd98f00b204e9800998ecf8427e\","
                            + "               \"versionId\":\"096fKKXTRTtl3on89fVO.nfljtsv6qko\","
-                           + "               \"sequencer\":\"0055AED6DCD90281E5\""
-                           + "            }"
+                           + "               \"sequencer\":\"0055AED6DCD90281E5\","
+                           + "               \"hasObjectAnnotation\":true"
+                           + "            },"
+                           + "            \"objectAnnotation\":[{\"name\":\"anno1\",\"size\":50,\"eTag\":\"etag1\"}]"
                            + "         }"
                            + "      }"
                            + "   ]"
@@ -556,7 +577,7 @@ class S3EventNotificationReaderTest {
                 "ObjectCreated:Put",
                 "aws:s3",
                 "1970-01-01T00:00:00.000Z",
-                "2.1",
+                "2.5",
                 new RequestParameters("127.0.0.1"),
                 new ResponseElements(
                     "FMyUVURIY8/IgAtTv8xRjskZQpcIZ9KG4V5Wp6S7S/JRWeUWerMUE5JgHvANOjpD", "C3D13FE58DE4C810"),
@@ -571,8 +592,12 @@ class S3EventNotificationReaderTest {
                         1024L,
                         "d41d8cd98f00b204e9800998ecf8427e",
                         "096fKKXTRTtl3on89fVO.nfljtsv6qko",
-                        "0055AED6DCD90281E5"),
-                    "1.0"
+                        "0055AED6DCD90281E5",
+                        true),
+                    "1.0",
+                    Arrays.asList(
+                        new S3ObjectAnnotation("anno1", 50L, "etag1")
+                    )
                 ),
                 new UserIdentity("AIDAJDPLRKLG7UEXAMPLE")
             ))
@@ -585,7 +610,7 @@ class S3EventNotificationReaderTest {
         assertThat(rec.getAwsRegion()).isEqualTo("us-west-2");
         assertThat(rec.getEventName()).isEqualTo("ObjectCreated:Put");
         assertThat(rec.getEventTime()).isEqualTo(Instant.parse("1970-01-01T00:00:00.000Z"));
-        assertThat(rec.getEventVersion()).isEqualTo("2.1");
+        assertThat(rec.getEventVersion()).isEqualTo("2.5");
 
         UserIdentity userIdentity = rec.getUserIdentity();
         assertThat(userIdentity).isNotNull();
@@ -619,6 +644,12 @@ class S3EventNotificationReaderTest {
         assertThat(s3Object.getSizeAsLong()).isEqualTo(1024L);
         assertThat(s3Object.getVersionId()).isEqualTo("096fKKXTRTtl3on89fVO.nfljtsv6qko");
         assertThat(s3Object.getSequencer()).isEqualTo("0055AED6DCD90281E5");
+        assertThat(s3Object.getHasObjectAnnotation()).isTrue();
+
+        assertThat(s3.getObjectAnnotation()).hasSize(1);
+        assertThat(s3.getObjectAnnotation().get(0).getName()).isEqualTo("anno1");
+        assertThat(s3.getObjectAnnotation().get(0).getSize()).isEqualTo(50L);
+        assertThat(s3.getObjectAnnotation().get(0).getETag()).isEqualTo("etag1");
 
         assertThat(rec.getGlacierEventData()).isNull();
         assertThat(rec.getIntelligentTieringEventData()).isNull();
@@ -626,4 +657,249 @@ class S3EventNotificationReaderTest {
         assertThat(rec.getReplicationEventData()).isNull();
 
     }
+
+    @Test
+    void awsGeneratedTags_whenPresent_isParsed() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      + "    \"eventTime\" : \"1970-01-01T00:00:00.000Z\",\n"
+                      + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"ownerIdentity\" : {\n"
+                      + "          \"principalId\" : \"A3NL1KOZZKExample\"\n"
+                      + "        },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : {\n"
+                      + "          \"aws:resource:owner\" : \"123456789012\",\n"
+                      + "          \"aws:resource:region\" : \"us-west-2\"\n"
+                      + "        }\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace.jpg\",\n"
+                      + "        \"size\" : 1024,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        S3Bucket bucket = event.getRecords().get(0).getS3().getBucket();
+
+        Map<String, String> expectedTags = new LinkedHashMap<>();
+        expectedTags.put("aws:resource:owner", "123456789012");
+        expectedTags.put("aws:resource:region", "us-west-2");
+        assertThat(bucket.getAwsGeneratedTags()).containsExactlyEntriesOf(expectedTags);
+    }
+
+    @Test
+    void awsGeneratedTags_whenAbsent_isNull() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      + "    \"eventTime\" : \"1970-01-01T00:00:00.000Z\",\n"
+                      + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"ownerIdentity\" : {\n"
+                      + "          \"principalId\" : \"A3NL1KOZZKExample\"\n"
+                      + "        },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\"\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace.jpg\",\n"
+                      + "        \"size\" : 1024,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        assertThat(event.getRecords().get(0).getS3().getBucket().getAwsGeneratedTags()).isNull();
+    }
+
+    @Test
+    void awsGeneratedTags_whenEmpty_isEmptyMap() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      + "    \"eventTime\" : \"1970-01-01T00:00:00.000Z\",\n"
+                      + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"ownerIdentity\" : {\n"
+                      + "          \"principalId\" : \"A3NL1KOZZKExample\"\n"
+                      + "        },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : {}\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace.jpg\",\n"
+                      + "        \"size\" : 1024,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        assertThat(event.getRecords().get(0).getS3().getBucket().getAwsGeneratedTags()).isEmpty();
+    }
+
+    @Test
+    void awsGeneratedTags_withEmptyStringValue_isPreservedAsEmptyString() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      + "    \"eventTime\" : \"1970-01-01T00:00:00.000Z\",\n"
+                      + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"ownerIdentity\" : { \"principalId\" : \"A3NL1KOZZKExample\" },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : {\n"
+                      + "          \"aws:resource:owner\" : \"\"\n"
+                      + "        }\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace.jpg\",\n"
+                      + "        \"size\" : 1024,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        Map<String, String> tags = event.getRecords().get(0).getS3().getBucket().getAwsGeneratedTags();
+        assertThat(tags).containsEntry("aws:resource:owner", "");
+    }
+
+    @Test
+    void awsGeneratedTags_withNullValue_isPreservedAsNull() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"eventVersion\" : \"2.5\",\n"
+                      + "    \"eventSource\" : \"aws:s3\",\n"
+                      + "    \"awsRegion\" : \"us-west-2\",\n"
+                      + "    \"eventTime\" : \"1970-01-01T00:00:00.000Z\",\n"
+                      + "    \"eventName\" : \"ObjectCreated:Put\",\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"s3SchemaVersion\" : \"1.0\",\n"
+                      + "      \"configurationId\" : \"testConfigRule\",\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"ownerIdentity\" : { \"principalId\" : \"A3NL1KOZZKExample\" },\n"
+                      + "        \"arn\" : \"arn:aws:s3:::mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : {\n"
+                      + "          \"aws:resource:owner\" : null,\n"
+                      + "          \"aws:resource:region\" : \"us-west-2\"\n"
+                      + "        }\n"
+                      + "      },\n"
+                      + "      \"object\" : {\n"
+                      + "        \"key\" : \"HappyFace.jpg\",\n"
+                      + "        \"size\" : 1024,\n"
+                      + "        \"eTag\" : \"d41d8cd98f00b204e9800998ecf8427e\",\n"
+                      + "        \"versionId\" : \"096fKKXTRTtl3on89fVO.nfljtsv6qko\",\n"
+                      + "        \"sequencer\" : \"0055AED6DCD90281E5\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        S3EventNotification event = S3EventNotification.fromJson(json);
+        Map<String, String> tags = event.getRecords().get(0).getS3().getBucket().getAwsGeneratedTags();
+        assertThat(tags).containsEntry("aws:resource:owner", null);
+        assertThat(tags).containsEntry("aws:resource:region", "us-west-2");
+    }
+
+    @Test
+    void awsGeneratedTags_withNonStringValue_throws() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : {\n"
+                      + "          \"aws:resource:owner\" : 123\n"
+                      + "        }\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        assertThatThrownBy(() -> S3EventNotification.fromJson(json))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("The value of tag 'aws:resource:owner' in 'awsGeneratedTags' was not a string, but was: 123");
+    }
+
+    @Test
+    void awsGeneratedTags_withBooleanValue_throws() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : {\n"
+                      + "          \"aws:resource:owner\" : true\n"
+                      + "        }\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        assertThatThrownBy(() -> S3EventNotification.fromJson(json))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("The value of tag 'aws:resource:owner' in 'awsGeneratedTags' was not a string, but was: true");
+    }
+
+    @Test
+    void awsGeneratedTags_notAnObject_throws() {
+        String json = "{\n"
+                      + "  \"Records\" : [ {\n"
+                      + "    \"s3\" : {\n"
+                      + "      \"bucket\" : {\n"
+                      + "        \"name\" : \"mybucket\",\n"
+                      + "        \"awsGeneratedTags\" : \"not-an-object\"\n"
+                      + "      }\n"
+                      + "    }\n"
+                      + "  } ]\n"
+                      + "}";
+
+        assertThatThrownBy(() -> S3EventNotification.fromJson(json))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage("expected 'awsGeneratedTags' to be an object, but was not.");
+    }
+
 }

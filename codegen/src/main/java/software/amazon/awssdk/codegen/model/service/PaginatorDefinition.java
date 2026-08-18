@@ -109,12 +109,14 @@ public class PaginatorDefinition {
     }
 
     /**
-     * Returns a boolean value indicating if the information present in this object
-     * is sufficient to generate the paginated APIs.
+     * Returns a boolean value indicating if the required fields are present in this paginator definition.
+     * This does not fully validate the paginator against the service model (e.g. it does not check that referenced
+     * members actually exist in the operation's request/response shapes). It only checks that the minimum required
+     * fields (inputToken, outputToken) are present and well-formed.
      *
-     * @return True if all necessary information to generate paginator APIs is present. Otherwise false.
+     * @return True if the minimum required fields to generate paginator APIs are present. Otherwise false.
      */
-    public boolean isValid() {
+    public boolean hasAllRequiredFields() {
         Pattern p = Pattern.compile(VALID_REGEX);
 
         return !CollectionUtils.isNullOrEmpty(inputToken) &&

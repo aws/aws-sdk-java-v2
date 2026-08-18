@@ -63,6 +63,7 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Defines the information necessary to create an audience model. An audience model is a machine learning model that Clean Rooms ML trains to measure similarity between users. Clean Rooms ML manages training and storing the audience model. The audience model can be used in multiple calls to the <a>StartAudienceGenerationJob</a> API.</p>",
@@ -82,6 +83,7 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Defines the information necessary to create a configured audience model.</p>",
@@ -100,6 +102,7 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Creates a configured model algorithm using a container image stored in an ECR repository.</p>",
@@ -178,7 +181,8 @@
       "errors":[
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Defines the information necessary to create a training dataset. In Clean Rooms ML, the <code>TrainingDataset</code> is metadata that points to a Glue table, which is read only during <code>AudienceModel</code> creation.</p>",
       "idempotent":true
@@ -195,7 +199,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes the specified audience generation job, and removes all data associated with the job.</p>",
       "idempotent":true
@@ -212,7 +217,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Specifies an audience model that you want to delete. You can't delete an audience model if there are any configured audience models that depend on the audience model.</p>",
       "idempotent":true
@@ -229,7 +235,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes the specified configured audience model. You can't delete a configured audience model if there are any lookalike models that use the configured audience model. If you delete a configured audience model, it will be removed from any collaborations that it is associated to.</p>",
       "idempotent":true
@@ -245,7 +252,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes the specified configured audience model policy.</p>",
       "idempotent":true
@@ -262,7 +270,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Deletes a configured model algorithm.</p>",
       "idempotent":true
@@ -350,7 +359,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Specifies a training dataset that you want to delete. You can't delete a training dataset if there are any audience models that depend on the training dataset. In Clean Rooms ML, the <code>TrainingDataset</code> is metadata that points to a Glue table, which is read only during <code>AudienceModel</code> creation. This action deletes the metadata.</p>",
       "idempotent":true
@@ -367,7 +377,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns information about an audience generation job.</p>",
       "readonly":true
@@ -384,7 +395,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns information about an audience model</p>",
       "readonly":true
@@ -455,7 +467,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns information about a specified configured audience model.</p>",
       "readonly":true
@@ -472,7 +485,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns information about a configured audience model policy.</p>",
       "readonly":true
@@ -489,7 +503,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns information about a configured model algorithm.</p>",
       "readonly":true
@@ -596,7 +611,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns information about a training dataset.</p>",
       "readonly":true
@@ -612,7 +628,8 @@
       "output":{"shape":"ListAudienceExportJobsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns a list of the audience export jobs.</p>",
       "readonly":true
@@ -628,7 +645,8 @@
       "output":{"shape":"ListAudienceGenerationJobsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns a list of audience generation jobs.</p>",
       "readonly":true
@@ -644,7 +662,8 @@
       "output":{"shape":"ListAudienceModelsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns a list of audience models.</p>",
       "readonly":true
@@ -745,7 +764,8 @@
       "output":{"shape":"ListConfiguredAudienceModelsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns a list of the configured audience models.</p>",
       "readonly":true
@@ -778,7 +798,8 @@
       "output":{"shape":"ListConfiguredModelAlgorithmsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns a list of configured model algorithms.</p>",
       "readonly":true
@@ -880,7 +901,8 @@
       "output":{"shape":"ListTrainingDatasetsResponse"},
       "errors":[
         {"shape":"ValidationException"},
-        {"shape":"AccessDeniedException"}
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Returns a list of training datasets.</p>",
       "readonly":true
@@ -897,7 +919,8 @@
       "errors":[
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Create or update the resource policy for a configured audience model.</p>",
       "idempotent":true
@@ -931,6 +954,7 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
       "documentation":"<p>Export an audience of a specified size after you have generated an audience.</p>",
@@ -1040,7 +1064,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"},
-        {"shape":"ResourceNotFoundException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Provides the information necessary to update a configured audience model. Updates that impact audience generation jobs take effect when a new job starts, but do not impact currently running jobs.</p>",
       "idempotent":true
@@ -1643,6 +1668,10 @@
         "description":{
           "shape":"ResourceDescription",
           "documentation":"<p>The description of the ML input channel.</p>"
+        },
+        "payerConfiguration":{
+          "shape":"PayerConfiguration",
+          "documentation":"<p>The payer configuration for the ML input channel.</p>"
         }
       },
       "documentation":"<p>Provides summary information about an ML input channel in a collaboration.</p>"
@@ -1795,6 +1824,10 @@
           "shape":"String",
           "documentation":"<p>Details about the logs status for the trained model inference job.</p>"
         },
+        "mlModelInferencePayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model inference costs.</p>"
+        },
         "createTime":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The time at which the trained model inference job was created.</p>"
@@ -1875,6 +1908,10 @@
         "creatorAccountId":{
           "shape":"AccountId",
           "documentation":"<p>The account ID of the member that created the trained model.</p>"
+        },
+        "mlModelTrainingPayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model training costs.</p>"
         }
       },
       "documentation":"<p>Provides summary information about a trained model in a collaboration.</p>"
@@ -2421,6 +2458,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The optional metadata that you apply to the resource to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define.</p> <p>The following basic restrictions apply to tags:</p> <ul> <li> <p>Maximum number of tags per resource - 50.</p> </li> <li> <p>For each resource, each tag key must be unique, and each tag key can have only one value.</p> </li> <li> <p>Maximum key length - 128 Unicode characters in UTF-8.</p> </li> <li> <p>Maximum value length - 256 Unicode characters in UTF-8.</p> </li> <li> <p>If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.</p> </li> <li> <p>Tag keys and values are case sensitive.</p> </li> <li> <p>Do not use aws:, AWS:, or any upper or lowercase combination of such as a prefix for keys as it is reserved for AWS use. You cannot edit or delete tag keys with this prefix. Values can have this prefix. If a tag value has aws as its prefix but the key does not, then Clean Rooms ML considers it to be a user tag and will count against the limit of 50 tags. Tags with only the key prefix of aws do not count against your tags per resource limit.</p> </li> </ul>"
+        },
+        "payerConfiguration":{
+          "shape":"PayerConfiguration",
+          "documentation":"<p>The payer configuration for the ML input channel. Determines which member account pays for compute and synthetic data costs.</p>"
         }
       }
     },
@@ -2509,6 +2550,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The optional metadata that you apply to the resource to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define.</p> <p>The following basic restrictions apply to tags:</p> <ul> <li> <p>Maximum number of tags per resource - 50.</p> </li> <li> <p>For each resource, each tag key must be unique, and each tag key can have only one value.</p> </li> <li> <p>Maximum key length - 128 Unicode characters in UTF-8.</p> </li> <li> <p>Maximum value length - 256 Unicode characters in UTF-8.</p> </li> <li> <p>If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.</p> </li> <li> <p>Tag keys and values are case sensitive.</p> </li> <li> <p>Do not use aws:, AWS:, or any upper or lowercase combination of such as a prefix for keys as it is reserved for AWS use. You cannot edit or delete tag keys with this prefix. Values can have this prefix. If a tag value has aws as its prefix but the key does not, then Clean Rooms ML considers it to be a user tag and will count against the limit of 50 tags. Tags with only the key prefix of aws do not count against your tags per resource limit.</p> </li> </ul>"
+        },
+        "mlModelTrainingPayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model training costs.</p>"
         }
       }
     },
@@ -3172,6 +3217,10 @@
           "shape":"SyntheticDataConfiguration",
           "documentation":"<p>The synthetic data configuration for this ML input channel, including parameters for generating privacy-preserving synthetic data and evaluation scores for measuring the privacy of the generated data.</p>"
         },
+        "payerConfiguration":{
+          "shape":"PayerConfiguration",
+          "documentation":"<p>The payer configuration for the ML input channel.</p>"
+        },
         "createTime":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The time at which the ML input channel was created.</p>"
@@ -3313,6 +3362,10 @@
         "trainingContainerImageDigest":{
           "shape":"String",
           "documentation":"<p>Information about the training container image.</p>"
+        },
+        "mlModelTrainingPayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model training costs.</p>"
         },
         "createTime":{
           "shape":"SyntheticTimestamp_date_time",
@@ -3700,6 +3753,10 @@
           "shape":"SyntheticDataConfiguration",
           "documentation":"<p>The synthetic data configuration for this ML input channel, including parameters for generating privacy-preserving synthetic data and evaluation scores for measuring the privacy of the generated data.</p>"
         },
+        "payerConfiguration":{
+          "shape":"PayerConfiguration",
+          "documentation":"<p>The payer configuration for the ML input channel.</p>"
+        },
         "createTime":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The time at which the ML input channel was created.</p>"
@@ -3888,6 +3945,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The optional metadata that you applied to the resource to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define.</p> <p>The following basic restrictions apply to tags:</p> <ul> <li> <p>Maximum number of tags per resource - 50.</p> </li> <li> <p>For each resource, each tag key must be unique, and each tag key can have only one value.</p> </li> <li> <p>Maximum key length - 128 Unicode characters in UTF-8.</p> </li> <li> <p>Maximum value length - 256 Unicode characters in UTF-8.</p> </li> <li> <p>If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.</p> </li> <li> <p>Tag keys and values are case sensitive.</p> </li> <li> <p>Do not use aws:, AWS:, or any upper or lowercase combination of such as a prefix for keys as it is reserved for AWS use. You cannot edit or delete tag keys with this prefix. Values can have this prefix. If a tag value has aws as its prefix but the key does not, then Clean Rooms ML considers it to be a user tag and will count against the limit of 50 tags. Tags with only the key prefix of aws do not count against your tags per resource limit.</p> </li> </ul>"
+        },
+        "mlModelInferencePayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model inference costs.</p>"
         }
       }
     },
@@ -4000,6 +4061,10 @@
         "trainingContainerImageDigest":{
           "shape":"String",
           "documentation":"<p>Information about the training image container.</p>"
+        },
+        "mlModelTrainingPayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model training costs.</p>"
         },
         "createTime":{
           "shape":"SyntheticTimestamp_date_time",
@@ -5393,6 +5458,10 @@
         "description":{
           "shape":"ResourceDescription",
           "documentation":"<p>The description of the ML input channel.</p>"
+        },
+        "payerConfiguration":{
+          "shape":"PayerConfiguration",
+          "documentation":"<p>The payer configuration for the ML input channel.</p>"
         }
       },
       "documentation":"<p>Provides summary information about the ML input channel.</p>"
@@ -5630,7 +5699,8 @@
     "ParameterMap":{
       "type":"map",
       "key":{"shape":"ParameterName"},
-      "value":{"shape":"ParameterValue"}
+      "value":{"shape":"ParameterValue"},
+      "sensitive":true
     },
     "ParameterName":{
       "type":"string",
@@ -5640,8 +5710,22 @@
     },
     "ParameterValue":{
       "type":"string",
-      "max":250,
+      "max":1000,
       "min":0
+    },
+    "PayerConfiguration":{
+      "type":"structure",
+      "members":{
+        "computePayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying compute costs.</p>"
+        },
+        "syntheticDataPayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying synthetic data generation costs.</p>"
+        }
+      },
+      "documentation":"<p>Specifies which member accounts are responsible for paying for compute and synthetic data generation costs in a Clean Rooms ML collaboration.</p>"
     },
     "PolicyExistenceCondition":{
       "type":"string",
@@ -6130,6 +6214,10 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>The optional metadata that you apply to the resource to help you categorize and organize them. Each tag consists of a key and an optional value, both of which you define.</p> <p>The following basic restrictions apply to tags:</p> <ul> <li> <p>Maximum number of tags per resource - 50.</p> </li> <li> <p>For each resource, each tag key must be unique, and each tag key can have only one value.</p> </li> <li> <p>Maximum key length - 128 Unicode characters in UTF-8.</p> </li> <li> <p>Maximum value length - 256 Unicode characters in UTF-8.</p> </li> <li> <p>If your tagging schema is used across multiple services and resources, remember that other services may have restrictions on allowed characters. Generally allowed characters are: letters, numbers, and spaces representable in UTF-8, and the following characters: + - = . _ : / @.</p> </li> <li> <p>Tag keys and values are case sensitive.</p> </li> <li> <p>Do not use aws:, AWS:, or any upper or lowercase combination of such as a prefix for keys as it is reserved for AWS use. You cannot edit or delete tag keys with this prefix. Values can have this prefix. If a tag value has aws as its prefix but the key does not, then Clean Rooms ML considers it to be a user tag and will count against the limit of 50 tags. Tags with only the key prefix of aws do not count against your tags per resource limit.</p> </li> </ul>"
+        },
+        "mlModelInferencePayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model inference costs.</p>"
         }
       }
     },
@@ -6343,7 +6431,7 @@
     "TrainedModelArtifactMaxSizeValue":{
       "type":"double",
       "box":true,
-      "max":10.0,
+      "max":100.0,
       "min":0.01
     },
     "TrainedModelExportFileType":{
@@ -6439,7 +6527,7 @@
     "TrainedModelExportsMaxSizeValue":{
       "type":"double",
       "box":true,
-      "max":10.0,
+      "max":50.0,
       "min":0.01
     },
     "TrainedModelInferenceJobArn":{
@@ -6535,6 +6623,10 @@
           "shape":"String",
           "documentation":"<p>Details about the log status for the trained model inference job.</p>"
         },
+        "mlModelInferencePayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model inference costs.</p>"
+        },
         "createTime":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The time at which the trained model inference job was created.</p>"
@@ -6585,7 +6677,7 @@
     "TrainedModelInferenceMaxOutputSizeValue":{
       "type":"double",
       "box":true,
-      "max":50.0,
+      "max":100.0,
       "min":0.01
     },
     "TrainedModelList":{
@@ -6664,6 +6756,10 @@
         "configuredModelAlgorithmAssociationArn":{
           "shape":"ConfiguredModelAlgorithmAssociationArn",
           "documentation":"<p>The Amazon Resource Name (ARN) of the configured model algorithm association that was used to create this trained model.</p>"
+        },
+        "mlModelTrainingPayerAccountId":{
+          "shape":"AccountId",
+          "documentation":"<p>The account ID of the member that is responsible for paying for model training costs.</p>"
         }
       },
       "documentation":"<p>Summary information about the trained model.</p>"
@@ -6853,7 +6949,7 @@
     "WorkerComputeConfigurationNumberInteger":{
       "type":"integer",
       "box":true,
-      "max":400,
+      "max":1024,
       "min":2
     },
     "WorkerComputeConfigurationProperties":{
@@ -6871,7 +6967,8 @@
       "type":"string",
       "enum":[
         "CR.1X",
-        "CR.4X"
+        "CR.4X",
+        "CR.8X"
       ]
     }
   },

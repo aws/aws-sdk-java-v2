@@ -80,6 +80,13 @@ public abstract class BaseClientHandler {
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
+
+        // Snapshot the HTTP request URI before modifyHttpRequest interceptors run.
+        // EndpointResolutionStage uses this to detect if a customer interceptor modified the URL.
+        executionContext.executionAttributes().putAttribute(
+            SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
+            executionContext.interceptorContext().httpRequest().getUri());
+
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }
 
@@ -96,6 +103,8 @@ public abstract class BaseClientHandler {
                                                                  ClientExecutionParams executionParams) {
         if (executionParams.discoveredEndpoint() != null) {
             URI discoveredEndpoint = executionParams.discoveredEndpoint();
+            executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION, true);
+            // Keep deprecated attribute for cross-module compatibility with older generated service clients
             executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
             return originalRequest.toBuilder().host(discoveredEndpoint.getHost()).port(discoveredEndpoint.getPort()).build();
         }

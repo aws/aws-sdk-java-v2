@@ -1,0 +1,5 @@
+bundle-logging-bridge-binding-test
+http-client-tests
+ruleset-testing-core
+service-test-utils
+test-utils

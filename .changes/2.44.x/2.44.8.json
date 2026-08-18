@@ -1,0 +1,60 @@
+{
+    "version": "2.44.8",
+    "date": "2026-05-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "olivergillespie",
+            "description": "Don't force Netty's unpooled ByteBuffer allocator when using the JDK SSL provider. The underlying Netty issue (netty/netty#9768) has been fixed in later versions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Adds support for up to 3 mediaTailorPlaybackConfiguration objects in an ad configuration resource"
+        },
+        {
+            "type": "feature",
+            "category": "Access Analyzer",
+            "contributor": "",
+            "description": "Services manage service-linked analyzers through dedicated APIs - CreateServiceLinkedAnalyzer and DeleteServiceLinkedAnalyzer that separate service-linked specific operations from customer-managed operations. It also shows up in ListAnalyzers and GetAnalyzer responses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Amazon VPC IP Address Manager (IPAM) now supports tags on IPAM pool allocations, enabling all standard tagging features for allocations including tag-on-create."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic VMware Service",
+            "contributor": "",
+            "description": "Amazon EVS now supports up to 32 hosts per EVS environment, increasing the previous host limit to allow a larger scale of VMware workload deployments and reduce operational overhead."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Cases now supports SLA durations of up to 2 years (1,051,200 minutes), increased from the previous maximum of 90 days (129,600 minutes). This enables you to track long-running service level agreements for cases that require extended resolution timelines."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Support for dataset enrichment and geo spatial in new data preparation experience"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Amazon ECS now supports Pause lifecycle hooks for service deployments, allowing customers to automatically pause deployments at specified stages and use the new ContinueServiceDeployment API to continue or roll back with confidence."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

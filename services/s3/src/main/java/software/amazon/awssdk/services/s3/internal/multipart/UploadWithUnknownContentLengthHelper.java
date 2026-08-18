@@ -20,6 +20,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.CloseableAsyncRequestBody;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
@@ -60,6 +61,13 @@ public final class UploadWithUnknownContentLengthHelper {
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
                                                              AsyncRequestBody asyncRequestBody) {
         CompletableFuture<PutObjectResponse> returnFuture = new CompletableFuture<>();
+
+        if (maxMemoryUsageInBytes < 2 * partSizeInBytes) {
+            returnFuture.completeExceptionally(SdkClientException.create(
+                "apiCallBufferSizeInBytes (" + maxMemoryUsageInBytes + ") must be at least 2 x minimumPartSizeInBytes ("
+                + partSizeInBytes + ") when uploading content with an unknown content length"));
+            return returnFuture;
+        }
 
         SdkPublisher<CloseableAsyncRequestBody> splitAsyncRequestBodyResponse =
             asyncRequestBody.splitCloseable(b -> b.chunkSizeInBytes(partSizeInBytes)

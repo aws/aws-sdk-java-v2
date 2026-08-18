@@ -18,20 +18,41 @@ package software.amazon.awssdk.enhanced.dynamodb.model;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
- * <p>
- * The SCALAR_ONLY mode supports updates to scalar attributes to any level (top level, first nested level, second nested level,
- * etc.) when the user wants to update scalar attributes by providing only the delta of changes to be updated. This mode
- * does not support updates to maps and is expected to throw a 4xx DynamoDB exception if done so.
- * <p>
- * In the MAPS_ONLY mode, creation of new map/bean structures through update statements are supported, i.e. setting
- * null/non-existent maps to non-null values. If users try to update scalar attributes in this mode, it will overwrite
- * existing values in the table.
- * <p>
- * The DEFAULT mode disables any special handling around null values in the update query expression
+ * Determines how null-valued attributes in a Java object are handled during an update operation.
+ * This replaces the deprecated 'ignoreNulls' boolean parameter.
+ *
+ * <p>{@code ignoreNulls(false)} is equivalent to {@link #DEFAULT} and {@code ignoreNulls(true)} is equivalent to
+ * {@link #MAPS_ONLY}.
  */
 @SdkPublicApi
 public enum IgnoreNullsMode {
+
+    /**
+     * Ignores all null-valued properties and updates only the non-null scalar attributes at any nesting level.
+     * The SDK constructs update expressions that target individual nested attributes, allowing partial updates
+     * of nested beans or maps without overwriting sibling attributes.
+     *
+     * <p>The target bean or map must already exist in DynamoDB. If it does not, DynamoDB returns a validation
+     * exception because the document path does not exist. Use {@link #MAPS_ONLY} first to create the nested
+     * structure, then use {@code SCALAR_ONLY} for subsequent partial updates.
+     */
     SCALAR_ONLY,
+
+    /**
+     * Ignores null-valued top-level properties and replaces or adds entire beans and maps as whole values.
+     * Null-valued scalar attributes within a provided bean or map are retained (saved as null in DynamoDB).
+     *
+     * <p>Use this mode to add a new nested bean or map that does not yet exist in DynamoDB, or to fully
+     * replace an existing one. This is equivalent to the deprecated {@code ignoreNulls(true)}.
+     */
     MAPS_ONLY,
+
+    /**
+     * Does not ignore any null values. Null-valued attributes in the Java object generate REMOVE actions in the
+     * update expression, deleting those attributes from the item in DynamoDB.
+     *
+     * <p>This is the default mode and is equivalent to the deprecated {@code ignoreNulls(false)}. When using this
+     * mode, you should typically retrieve the item first to avoid unintentionally removing attributes.
+     */
     DEFAULT
 }

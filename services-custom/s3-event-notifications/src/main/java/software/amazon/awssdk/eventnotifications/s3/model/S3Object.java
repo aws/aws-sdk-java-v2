@@ -33,13 +33,19 @@ public class S3Object {
     private final String eTag;
     private final String versionId;
     private final String sequencer;
+    private final Boolean hasObjectAnnotation;
 
     public S3Object(String key, Long size, String eTag, String versionId, String sequencer) {
+        this(key, size, eTag, versionId, sequencer, null);
+    }
+
+    public S3Object(String key, Long size, String eTag, String versionId, String sequencer, Boolean hasObjectAnnotation) {
         this.key = key;
         this.size = size;
         this.eTag = eTag;
         this.versionId = versionId;
         this.sequencer = sequencer;
+        this.hasObjectAnnotation = hasObjectAnnotation;
     }
 
     /**
@@ -94,6 +100,16 @@ public class S3Object {
         return sequencer;
     }
 
+    /**
+     * This field is only set on CopyObject events. Returns false when no annotations were copied,
+     * true when annotations were copied, or null if not applicable.
+     *
+     * @return Boolean indicating whether object annotations were copied, or null if not applicable
+     */
+    public Boolean getHasObjectAnnotation() {
+        return hasObjectAnnotation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -117,7 +133,10 @@ public class S3Object {
         if (!Objects.equals(versionId, s3Object.versionId)) {
             return false;
         }
-        return Objects.equals(sequencer, s3Object.sequencer);
+        if (!Objects.equals(sequencer, s3Object.sequencer)) {
+            return false;
+        }
+        return Objects.equals(hasObjectAnnotation, s3Object.hasObjectAnnotation);
     }
 
     @Override
@@ -127,11 +146,22 @@ public class S3Object {
         result = 31 * result + (eTag != null ? eTag.hashCode() : 0);
         result = 31 * result + (versionId != null ? versionId.hashCode() : 0);
         result = 31 * result + (sequencer != null ? sequencer.hashCode() : 0);
+        result = 31 * result + (hasObjectAnnotation != null ? hasObjectAnnotation.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
+        if (hasObjectAnnotation != null) {
+            return ToString.builder("S3Object")
+                           .add("key", key)
+                           .add("size", size)
+                           .add("eTag", eTag)
+                           .add("versionId", versionId)
+                           .add("sequencer", sequencer)
+                           .add("hasObjectAnnotation", hasObjectAnnotation)
+                           .build();
+        }
         return ToString.builder("S3Object")
                        .add("key", key)
                        .add("size", size)

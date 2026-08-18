@@ -22,6 +22,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import com.google.common.jimfs.Jimfs;
+import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
@@ -139,18 +140,7 @@ class FileAsyncResponseTransformerPublisherTest {
     }
 
     private SdkPublisher<ByteBuffer> createMockPublisher() {
-        return s -> s.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
-                s.onNext(ByteBuffer.wrap("test data".getBytes()));
-                s.onComplete();
-            }
-
-            @Override
-            public void cancel() {
-                // unused for tests
-            }
-        });
+        return SdkPublisher.adapt(Flowable.just(ByteBuffer.wrap("test data".getBytes())));
     }
 
     @ParameterizedTest
@@ -256,17 +246,7 @@ class FileAsyncResponseTransformerPublisherTest {
     }
 
     private SdkPublisher<ByteBuffer> createMockPublisherWithData(byte[] data) {
-        return s -> s.onSubscribe(new Subscription() {
-            @Override
-            public void request(long n) {
-                s.onNext(ByteBuffer.wrap(data));
-                s.onComplete();
-            }
-
-            @Override
-            public void cancel() {
-            }
-        });
+        return SdkPublisher.adapt(Flowable.just(ByteBuffer.wrap(data)));
     }
 
     private static Stream<Function<Path, AsyncResponseTransformer<SdkResponse, SdkResponse>>> transformers() {

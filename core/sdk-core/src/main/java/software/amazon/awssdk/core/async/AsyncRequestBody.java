@@ -29,6 +29,8 @@ import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
@@ -63,6 +65,15 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  * @see ByteBuffersAsyncRequestBody
  */
 @SdkPublicApi
+@SdkAdvancedApi(
+    cautionWhen = Usage.IMPLEMENTED,
+    guidance = "This is a reactive-streams Publisher and must obey the reactive-streams specification. "
+          + "The SDK re-subscribes on each retry attempt, "
+          + "so to support retries, reproduce the full content on every subscribe; a body that cannot should fail the "
+          + "subscriber on a later subscribe rather than emit partial content.",
+    saferAlternative = "Prefer the AsyncRequestBody.fromFile/fromBytes/fromInputStream factories. If you must supply a "
+          + "custom Publisher, build it with an established reactive-streams library such as RxJava or Reactor rather "
+          + "than implementing Publisher by hand.")
 public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
@@ -94,6 +105,16 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * @param publisher Publisher of source data
      * @return Implementation of {@link AsyncRequestBody} that produces data send by the publisher
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned AsyncRequestBody passes each subscribe straight through to the supplied publisher, so "
+              + "the publisher must itself meet the AsyncRequestBody contract: obey the reactive-streams "
+              + "specification, and since the SDK re-subscribes on each "
+              + "retry attempt, reproduce the full content on every subscribe to support retries; a publisher that "
+              + "cannot should fail the subscriber on a later subscribe rather than emit partial content.",
+        saferAlternative = "Prefer the AsyncRequestBody.fromFile/fromBytes/fromInputStream factories, which do not "
+              + "require the caller to supply a contract-compliant publisher. If you must supply one, build it with an "
+              + "established reactive-streams library such as RxJava or Reactor rather than by hand.")
     static AsyncRequestBody fromPublisher(Publisher<ByteBuffer> publisher) {
         return new AsyncRequestBody() {
 

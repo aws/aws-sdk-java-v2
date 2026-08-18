@@ -36,7 +36,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.utils.Retryable
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -90,14 +89,26 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public void attemptFirstExecute(CompletableFuture<Response<OutputT>> future) {
-            Duration backoffDelay = retryableStageHelper.acquireInitialToken();
-            if (backoffDelay.isZero()) {
-                attemptExecute(future);
-            } else {
-                retryableStageHelper.logBackingOff(backoffDelay);
-                long totalDelayMillis = backoffDelay.toMillis();
-                scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
-            }
+            Thread caller = Thread.currentThread();
+            retryableStageHelper.acquireInitialTokenAsync().whenComplete((r, t) -> {
+                if (t != null) {
+                    future.completeExceptionally(t);
+                    return;
+                }
+
+                if (!r.isZero()) {
+                    retryableStageHelper.logBackingOff(r);
+                }
+
+                // Avoid scheduling if there's no delay and we're still on the calling thread (e.g. not on a retry strategy
+                // owned thread such as the rate limiter
+                if (r.isZero() && Thread.currentThread().equals(caller)) {
+                    attemptExecute(future);
+                } else {
+                    scheduledExecutor.schedule(() -> attemptExecute(future), r.toMillis(), MILLISECONDS);
+                }
+            });
+
         }
 
         private void attemptExecute(CompletableFuture<Response<OutputT>> future) {
@@ -140,33 +151,38 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public void maybeAttemptExecute(CompletableFuture<Response<OutputT>> future) {
-            Either<Duration, Duration> backoffDelay = retryableStageHelper.tryRefreshToken(suggestedDelay());
-
-            Optional<Duration> acquireFailureDelay = backoffDelay.right();
-            if (acquireFailureDelay.isPresent()) {
-                Duration delay = acquireFailureDelay.get();
-                retryableStageHelper.logAcquireFailureBackingOff(delay);
-                SdkException disallowedException = retryableStageHelper.retryPolicyDisallowedRetryException();
-                // Avoid needless scheduling if we won't wait
-                if (delay.isZero()) {
-                    future.completeExceptionally(disallowedException);
-                } else {
-                    scheduledExecutor.schedule(() -> future.completeExceptionally(disallowedException),
-                                               delay.toMillis(), MILLISECONDS);
+            retryableStageHelper.tryRefreshTokenAsync(suggestedDelay()).whenComplete((backoffDelay, t) -> {
+                if (t != null) {
+                    future.completeExceptionally(t);
+                    return;
                 }
-                return;
-            }
-            // We failed the last attempt, but will retry. The response handler wants to know when that happens.
-            responseHandler.onError(retryableStageHelper.getLastException());
 
-            // Reset the request provider to the original one before retries, in case it was modified downstream.
-            context.requestProvider(originalRequestBody);
+                Optional<Duration> acquireFailureDelay = backoffDelay.right();
+                if (acquireFailureDelay.isPresent()) {
+                    Duration delay = acquireFailureDelay.get();
+                    retryableStageHelper.logAcquireFailureBackingOff(delay);
+                    SdkException disallowedException = retryableStageHelper.retryPolicyDisallowedRetryException();
+                    // Avoid needless scheduling if we won't wait
+                    if (delay.isZero()) {
+                        future.completeExceptionally(disallowedException);
+                    } else {
+                        scheduledExecutor.schedule(() -> future.completeExceptionally(disallowedException),
+                                                   delay.toMillis(), MILLISECONDS);
+                    }
+                    return;
+                }
+                // We failed the last attempt, but will retry. The response handler wants to know when that happens.
+                responseHandler.onError(retryableStageHelper.getLastException());
 
-            // get() is safe, Either requires left OR right to be present
-            Duration successDelay = backoffDelay.left().get();
-            retryableStageHelper.logBackingOff(successDelay);
-            long totalDelayMillis = successDelay.toMillis();
-            scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
+                // Reset the request provider to the original one before retries, in case it was modified downstream.
+                context.requestProvider(originalRequestBody);
+
+                // get() is safe, Either requires left OR right to be present
+                Duration successDelay = backoffDelay.left().get();
+                retryableStageHelper.logBackingOff(successDelay);
+                long totalDelayMillis = successDelay.toMillis();
+                scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
+            });
         }
 
         private void maybeRetryExecute(CompletableFuture<Response<OutputT>> future, Exception exception) {
@@ -192,6 +208,10 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
      * Returns the suggested backoff delay based on the 'x-amz-retry-after' header value in the response.
      */
     private Optional<Duration> xAmzRetryAfter(SdkHttpResponse response) {
+        if (response == null) {
+            return Optional.empty();
+        }
+
         Optional<String> optionalXAmzRetryAfter = response.firstMatchingHeader(X_AMZ_RETRY_AFTER_HEADER);
         return optionalXAmzRetryAfter.map(xAmzRetryAfter -> {
             try {

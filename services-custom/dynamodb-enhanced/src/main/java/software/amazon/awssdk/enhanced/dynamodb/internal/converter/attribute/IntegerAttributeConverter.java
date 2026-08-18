@@ -69,7 +69,7 @@ public final class IntegerAttributeConverter implements AttributeConverter<Integ
 
     @Override
     public AttributeValue transformFrom(Integer input) {
-        return AttributeValue.builder().n(INTEGER_STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.createN(INTEGER_STRING_CONVERTER.toString(input));
     }
 
     @Override

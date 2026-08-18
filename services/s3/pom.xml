@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.44.1-SNAPSHOT</version>
+        <version>2.53.3-SNAPSHOT</version>
     </parent>
     <artifactId>s3</artifactId>
     <name>AWS Java SDK :: Services :: Amazon S3</name>
@@ -181,11 +181,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>org.reactivestreams</groupId>
-            <artifactId>reactive-streams-tck</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>auth-crt</artifactId>
             <version>${awsjavasdk.version}</version>
@@ -200,6 +195,12 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-crt-client</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>apache-client</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>

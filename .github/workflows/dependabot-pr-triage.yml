@@ -1,0 +1,129 @@
+name: dependabot-pr-triage
+
+on:
+  pull_request:
+    types: [opened, synchronize, edited]
+
+concurrency:
+  group: dependabot-triage-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  triage:
+    if: |
+      github.repository == 'aws/aws-sdk-java-v2' &&
+      github.event.pull_request.user.login == 'dependabot[bot]' &&
+      contains(github.event.pull_request.title, 'netty')
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check for CVEs in Netty Dependabot PRs
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const body = pr.body || '';
+
+            // Check if already notified
+            const labels = pr.labels.map(l => l.name);
+            if (labels.includes('needs-review')) {
+              console.log('Already labeled needs-review, skipping.');
+              return;
+            }
+
+            // Extract all GHSA IDs from the PR body
+            const ghsaPattern = /GHSA-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}/gi;
+            const ghsaIds = [...new Set(body.match(ghsaPattern) || [])];
+
+            if (ghsaIds.length === 0) {
+              console.log('No GHSA references found in PR body.');
+              return;
+            }
+
+            console.log(`Found ${ghsaIds.length} unique GHSA IDs.`);
+
+            // SDK Netty packages (from netty-nio-client/pom.xml)
+            const sdkPackages = [
+              'io.netty:netty-codec-http',
+              'io.netty:netty-codec-http2',
+              'io.netty:netty-codec',
+              'io.netty:netty-transport',
+              'io.netty:netty-transport-native-epoll',
+              'io.netty:netty-transport-classes-epoll',
+              'io.netty:netty-common',
+              'io.netty:netty-buffer',
+              'io.netty:netty-handler',
+              'io.netty:netty-resolver',
+              'io.netty:netty-resolver-dns'
+            ];
+
+            // Check all GHSAs and collect relevant ones
+            const relevantCves = [];
+            for (const ghsaId of ghsaIds) {
+              try {
+                console.log(`Checking ${ghsaId}...`);
+                const advisory = await github.rest.securityAdvisories.getGlobalAdvisory({
+                  ghsa_id: ghsaId
+                });
+
+                const vulnerabilities = advisory.data.vulnerabilities || [];
+                const affectedSdkPkgs = vulnerabilities
+                  .filter(v => sdkPackages.includes(v.package?.name || ''))
+                  .map(v => v.package.name);
+
+                if (affectedSdkPkgs.length > 0) {
+                  relevantCves.push({
+                    ghsa: ghsaId,
+                    cve: advisory.data.cve_id || ghsaId,
+                    severity: (advisory.data.severity || 'unknown').toUpperCase(),
+                    packages: [...new Set(affectedSdkPkgs)],
+                    summary: advisory.data.summary || ''
+                  });
+                }
+              } catch (e) {
+                console.log(`Failed to fetch ${ghsaId}: ${e.message}`);
+              }
+            }
+
+            if (relevantCves.length === 0) {
+              console.log('No CVEs affecting SDK Netty packages found.');
+              return;
+            }
+
+            console.log(`Found ${relevantCves.length} CVEs affecting SDK packages.`);
+
+            // Add label
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              labels: ['needs-review']
+            });
+
+            // Extract version info from PR body
+            const versionMatch = body.match(/from\s+([\d.]+\.Final)\s+to\s+([\d.]+\.Final)/i);
+            const fromVersion = versionMatch ? versionMatch[1] : 'current';
+            const toVersion = versionMatch ? versionMatch[2] : 'latest';
+
+            // Build Slack message
+            const cveList = relevantCves
+              .map(c => `  • <https://github.com/advisories/${c.ghsa}|${c.cve}> (${c.severity}) — ${c.packages.join(', ')}`)
+              .join('\n');
+
+            const message = `⚠️ *Netty dependency update contains ${relevantCves.length} CVE fix(es) affecting SDK*\n\n` +
+              `${cveList}\n\n` +
+              `PR: ${pr.html_url}\n` +
+              `Total CVEs in release: ${ghsaIds.length} | Relevant to SDK: ${relevantCves.length}\n\n` +
+              `*Action needed*: Upgrade Netty from \`${fromVersion}\` → \`${toVersion}\` to address CVEs`;
+
+            console.log('Slack message:', message);
+
+            await fetch(process.env.SLACK_WEBHOOK_URL, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text: message })
+            });
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.CI_SLACK_WEBHOOK_URL }}

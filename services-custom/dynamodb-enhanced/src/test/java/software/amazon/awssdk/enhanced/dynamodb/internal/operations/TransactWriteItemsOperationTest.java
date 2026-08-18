@@ -15,10 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -84,6 +82,17 @@ public class TransactWriteItemsOperationTest {
     }
 
     @Test
+    public void returnsCorrectOperationName() {
+        TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
+            TransactWriteItemsEnhancedRequest.builder()
+                                             .addPutItem(fakeItemMappedTable, fakeItem1)
+                                             .build();
+        TransactWriteItemsOperation operation = TransactWriteItemsOperation.create(transactGetItemsEnhancedRequest);
+
+        assertThat(operation.operationName().label()).isEqualTo("TransactWriteItems");
+    }
+
+    @Test
     public void generateRequest_singleTransaction() {
         TransactWriteItemsEnhancedRequest transactGetItemsEnhancedRequest =
             TransactWriteItemsEnhancedRequest.builder()
@@ -96,7 +105,7 @@ public class TransactWriteItemsOperationTest {
                                                                              .transactItems(fakeTransactWriteItem1)
                                                                              .build();
 
-        assertThat(actualRequest, is(expectedRequest));
+        assertThat(actualRequest).isEqualTo(expectedRequest);
         verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
@@ -115,7 +124,7 @@ public class TransactWriteItemsOperationTest {
                                      .transactItems(fakeTransactWriteItem1, fakeTransactWriteItem2)
                                      .build();
 
-        assertThat(actualRequest, is(expectedRequest));
+        assertThat(actualRequest).isEqualTo(expectedRequest);
         verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
@@ -126,7 +135,7 @@ public class TransactWriteItemsOperationTest {
         TransactWriteItemsRequest actualRequest = operation.generateRequest(mockDynamoDbEnhancedClientExtension);
 
         TransactWriteItemsRequest expectedRequest = TransactWriteItemsRequest.builder().build();
-        assertThat(actualRequest, is(expectedRequest));
+        assertThat(actualRequest).isEqualTo(expectedRequest);
         verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }
 
@@ -145,7 +154,7 @@ public class TransactWriteItemsOperationTest {
 
         TransactWriteItemsResponse actualResponse = operation.serviceCall(mockDynamoDbClient).apply(request);
 
-        assertThat(actualResponse, is(sameInstance(expectedResponse)));
+        assertThat(actualResponse).isSameAs(expectedResponse);
         verify(mockDynamoDbClient).transactWriteItems(request);
         verifyNoMoreInteractions(mockDynamoDbEnhancedClientExtension);
     }

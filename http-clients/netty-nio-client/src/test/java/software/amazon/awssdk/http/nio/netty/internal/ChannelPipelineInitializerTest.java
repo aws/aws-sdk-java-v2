@@ -15,18 +15,14 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
-import static org.hamcrest.CoreMatchers.is;
-import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS;
 
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.channel.pool.ChannelPool;
 import io.netty.handler.codec.http2.Http2MultiplexHandler;
@@ -49,15 +45,6 @@ public class ChannelPipelineInitializerTest {
 
     private final URI TARGET_URI = URI.create("https://some-awesome-service-1234.amazonaws.com:8080");
     private static final SslProvider SSL_PROVIDER = SslProvider.JDK;
-
-    @Test
-    public void channelConfigOptionCheck() {
-        ChannelPipelineInitializer pipelineInitializer = createChannelPipelineInitializer(Protocol.HTTP1_1, ProtocolNegotiation.ASSUME_PROTOCOL);
-        Channel channel = new EmbeddedChannel();
-        pipelineInitializer.channelCreated(channel);
-
-        assertThat(channel.config().getOption(ChannelOption.ALLOCATOR), is(UnpooledByteBufAllocator.DEFAULT));
-    }
 
     @Test
     @EnabledIf("alpnSupported")
@@ -126,7 +113,6 @@ public class ChannelPipelineInitializerTest {
         return new ChannelPipelineInitializer(protocol,
                                               protocolNegotiation,
                                               sslContextProvider.sslContext(),
-                                              SSL_PROVIDER,
                                               100,
                                               1024,
                                               Duration.ZERO,

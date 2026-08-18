@@ -22,9 +22,27 @@ import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.utils.Validate;
 
-/**
- * A container for the identity resolver, signer and auth option that we selected for use with this service call attempt.
- */
+
+///
+///  A container for the identity resolver, signer and auth option that we selected for use with this service call attempt.
+/// ## The Hierarchy
+/// ```
+/// IDENTITY_PROVIDERS (IdentityProviders)
+///     └── contains multiple IdentityProvider<T> instances
+///             e.g., IdentityProvider<AwsCredentialsIdentity> for AWS credentials
+///             e.g., IdentityProvider<TokenIdentity> for bearer tokens
+///
+/// AUTH_SCHEMES (Map<String, AuthScheme<?>>)
+///     └── each AuthScheme knows:
+///             - which IdentityProvider type it needs
+///             - which HttpSigner to use
+///
+/// SELECTED_AUTH_SCHEME (SelectedAuthScheme<T>)
+///     └── the chosen auth scheme, containing:
+///             - identity: CompletableFuture<T>  ← the resolved identity!
+///             - signer: HttpSigner<T>
+///             - authSchemeOption: AuthSchemeOption
+/// ```
 @SdkProtectedApi
 public final class SelectedAuthScheme<T extends Identity> {
     private final CompletableFuture<? extends T> identity;

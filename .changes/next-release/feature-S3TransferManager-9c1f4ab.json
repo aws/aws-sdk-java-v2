@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Use CRT's response file when downloading to a file with the CRT-based S3TransferManager - CRT now writes the object to the destination file directly instead of streaming the body back through the SDK. Pausing such a download uses CRT's new asynchronous pause, so the resume token reflects a fully flushed file."
+}

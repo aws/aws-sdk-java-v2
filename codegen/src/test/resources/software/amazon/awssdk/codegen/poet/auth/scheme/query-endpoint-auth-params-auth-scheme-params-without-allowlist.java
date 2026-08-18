@@ -6,6 +6,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeParams;
+import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -20,6 +21,32 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
      */
     static Builder builder() {
         return DefaultQueryAuthSchemeParams.builder();
+    }
+
+    /**
+     * Create a builder pre-populated with endpoint parameters.
+     *
+     * @param endpointParams
+     *        the endpoint parameters to copy
+     * @return a builder with values from the endpoint parameters
+     */
+    static Builder fromEndpointParams(QueryEndpointParams endpointParams) {
+        Builder builder = builder();
+        builder.region(endpointParams.region());
+        builder.useDualStackEndpoint(endpointParams.useDualStackEndpoint());
+        builder.useFipsEndpoint(endpointParams.useFipsEndpoint());
+        builder.accountId(endpointParams.accountId());
+        builder.accountIdEndpointMode(endpointParams.accountIdEndpointMode());
+        builder.listOfStrings(endpointParams.listOfStrings());
+        builder.defaultListOfStrings(endpointParams.defaultListOfStrings());
+        builder.endpointId(endpointParams.endpointId());
+        builder.defaultTrueParam(endpointParams.defaultTrueParam());
+        builder.defaultStringParam(endpointParams.defaultStringParam());
+        builder.deprecatedParam(endpointParams.deprecatedParam());
+        builder.booleanContextParam(endpointParams.booleanContextParam());
+        builder.stringContextParam(endpointParams.stringContextParam());
+        builder.operationContextParam(endpointParams.operationContextParam());
+        return builder;
     }
 
     /**

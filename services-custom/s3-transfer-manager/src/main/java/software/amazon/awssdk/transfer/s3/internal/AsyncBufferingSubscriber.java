@@ -40,6 +40,7 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
     private final int maxConcurrentExecutions;
     private final AtomicInteger numRequestsInFlight;
     private volatile boolean upstreamDone;
+    private volatile boolean onErrorInvoked;
     private volatile Subscription subscription;
 
     private final Set<CompletableFuture<?>> requestsInFlight;
@@ -56,9 +57,14 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         returnFuture.whenComplete((r, t) -> {
             if (t != null) {
                 requestsInFlight.forEach(f -> f.cancel(true));
-                synchronized (this) {
-                    if (subscription != null) {
-                        subscription.cancel();
+                // Skip cancelling when the failure came from onError: upstream has already terminated, and cancelling here
+                // would call Subscription::cancel from within onError (Reactive Streams rule 2.3). Still cancel on an
+                // external abort.
+                if (!onErrorInvoked) {
+                    synchronized (this) {
+                        if (subscription != null) {
+                            subscription.cancel();
+                        }
                     }
                 }
             }
@@ -79,6 +85,8 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onNext(T item) {
+        // Reactive Streams rule 2.13: onNext must throw NullPointerException on a null element.
+        Validate.paramNotNull(item, "item");
         numRequestsInFlight.incrementAndGet();
         CompletableFuture<?> currentRequest;
 
@@ -93,6 +101,13 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
         }
 
         requestsInFlight.add(currentRequest);
+
+        // When returnFuture completes exceptionally, the cancel handler iterates requestsInFlight and cancels every future in
+        // it. That iteration only happens once. If it already ran before we added currentRequest to the set, currentRequest
+        // was missed. This check ensures we cancel it ourselves in that case.
+        if (returnFuture.isCompletedExceptionally()) {
+            currentRequest.cancel(true);
+        }
         currentRequest.whenComplete((r, t) -> {
             checkForCompletion(numRequestsInFlight.decrementAndGet());
             requestsInFlight.remove(currentRequest);
@@ -104,6 +119,9 @@ public class AsyncBufferingSubscriber<T> implements Subscriber<T> {
 
     @Override
     public void onError(Throwable t) {
+        // Set before completing the future: completeExceptionally may run the whenComplete handler synchronously, and it
+        // must see this flag to avoid cancelling the subscription from within onError (see constructor).
+        onErrorInvoked = true;
         // Need to complete future exceptionally first to prevent
         // accidental successful completion by a concurrent checkForCompletion.
         returnFuture.completeExceptionally(t);

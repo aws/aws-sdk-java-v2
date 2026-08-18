@@ -19,7 +19,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.ToString;
@@ -39,27 +40,27 @@ public class MultipartDownloadResumeContext {
     /**
      * Keep track of the byte index to the last byte of the last completed part
      */
-    private Long bytesToLastCompletedParts;
+    private final AtomicLong bytesToLastCompletedParts;
 
     /**
      * The total number of parts of the multipart download.
      */
-    private Integer totalParts;
+    private volatile Integer totalParts;
 
     /**
      * The GetObjectResponse to return to the user.
      */
-    private GetObjectResponse response;
+    private volatile GetObjectResponse response;
 
     public MultipartDownloadResumeContext() {
-        this(new TreeSet<>(), 0L);
+        this(new ConcurrentSkipListSet<>(), 0L);
     }
 
     public MultipartDownloadResumeContext(Collection<Integer> completedParts, Long bytesToLastCompletedParts) {
-        this.completedParts = new TreeSet<>(Validate.notNull(
+        this.completedParts = new ConcurrentSkipListSet<>(Validate.notNull(
             completedParts, "completedParts must not be null"));
-        this.bytesToLastCompletedParts = Validate.notNull(
-            bytesToLastCompletedParts, "bytesToLastCompletedParts must not be null");
+        this.bytesToLastCompletedParts = new AtomicLong(Validate.notNull(
+            bytesToLastCompletedParts, "bytesToLastCompletedParts must not be null"));
     }
 
     public List<Integer> completedParts() {
@@ -67,7 +68,7 @@ public class MultipartDownloadResumeContext {
     }
 
     public Long bytesToLastCompletedParts() {
-        return bytesToLastCompletedParts;
+        return bytesToLastCompletedParts.get();
     }
 
     public void addCompletedPart(int partNumber) {
@@ -75,7 +76,7 @@ public class MultipartDownloadResumeContext {
     }
 
     public void addToBytesToLastCompletedParts(long bytes) {
-        bytesToLastCompletedParts += bytes;
+        bytesToLastCompletedParts.addAndGet(bytes);
     }
 
     public void totalParts(int totalParts) {

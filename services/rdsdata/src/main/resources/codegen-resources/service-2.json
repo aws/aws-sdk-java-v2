@@ -31,8 +31,8 @@
         {"shape":"TransactionNotFoundException"},
         {"shape":"InvalidSecretException"},
         {"shape":"InvalidResourceStateException"},
-        {"shape":"ServiceUnavailableError"},
         {"shape":"ForbiddenException"},
+        {"shape":"ServiceUnavailableError"},
         {"shape":"DatabaseNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"BadRequestException"},
@@ -59,8 +59,8 @@
         {"shape":"TransactionNotFoundException"},
         {"shape":"InvalidSecretException"},
         {"shape":"InvalidResourceStateException"},
-        {"shape":"ServiceUnavailableError"},
         {"shape":"ForbiddenException"},
+        {"shape":"ServiceUnavailableError"},
         {"shape":"DatabaseNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"BadRequestException"},
@@ -86,8 +86,8 @@
         {"shape":"TransactionNotFoundException"},
         {"shape":"InvalidSecretException"},
         {"shape":"InvalidResourceStateException"},
-        {"shape":"ServiceUnavailableError"},
         {"shape":"ForbiddenException"},
+        {"shape":"ServiceUnavailableError"},
         {"shape":"DatabaseNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"BadRequestException"},
@@ -113,7 +113,7 @@
         {"shape":"ForbiddenException"},
         {"shape":"ServiceUnavailableError"}
       ],
-      "documentation":"<p>Runs one or more SQL statements.</p> <note> <p>This operation isn't supported for Aurora Serverless v2 and provisioned DB clusters. For Aurora Serverless v1 DB clusters, the operation is deprecated. Use the <code>BatchExecuteStatement</code> or <code>ExecuteStatement</code> operation.</p> </note>",
+      "documentation":"<p>Runs one or more SQL statements.</p> <note> <p>This operation is deprecated. Please use the <code>BatchExecuteStatement</code> or <code>ExecuteStatement</code> operation.</p> </note>",
       "deprecated":true,
       "deprecatedMessage":"The ExecuteSql API is deprecated, please use the ExecuteStatement API.",
       "deprecatedSince":"2019-03-21"
@@ -136,8 +136,8 @@
         {"shape":"TransactionNotFoundException"},
         {"shape":"InvalidSecretException"},
         {"shape":"InvalidResourceStateException"},
-        {"shape":"ServiceUnavailableError"},
         {"shape":"ForbiddenException"},
+        {"shape":"ServiceUnavailableError"},
         {"shape":"DatabaseNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"BadRequestException"},
@@ -164,8 +164,8 @@
         {"shape":"TransactionNotFoundException"},
         {"shape":"InvalidSecretException"},
         {"shape":"InvalidResourceStateException"},
-        {"shape":"ServiceUnavailableError"},
         {"shape":"ForbiddenException"},
+        {"shape":"ServiceUnavailableError"},
         {"shape":"DatabaseNotFoundException"},
         {"shape":"AccessDeniedException"},
         {"shape":"BadRequestException"},
@@ -191,36 +191,37 @@
     },
     "Arn":{
       "type":"string",
-      "max":100,
+      "max":570,
       "min":11
     },
     "ArrayOfArray":{
       "type":"list",
       "member":{"shape":"ArrayValue"},
-      "documentation":"<p>An array of arrays.</p> <note> <p>Some array entries can be null.</p> </note>"
+      "documentation":"<p>An array of arrays. Can contain null values.</p>",
+      "sparse":true
     },
     "ArrayValue":{
       "type":"structure",
       "members":{
         "booleanValues":{
           "shape":"BooleanArray",
-          "documentation":"<p>An array of Boolean values.</p>"
+          "documentation":"<p>An array of Boolean values. Can contain null values.</p>"
         },
         "longValues":{
           "shape":"LongArray",
-          "documentation":"<p>An array of integers.</p>"
+          "documentation":"<p>An array of integers. Can contain null values.</p>"
         },
         "doubleValues":{
           "shape":"DoubleArray",
-          "documentation":"<p>An array of floating-point numbers.</p>"
+          "documentation":"<p>An array of floating-point numbers. Can contain null values.</p>"
         },
         "stringValues":{
           "shape":"StringArray",
-          "documentation":"<p>An array of strings.</p>"
+          "documentation":"<p>An array of strings. Can contain null values.</p>"
         },
         "arrayValues":{
           "shape":"ArrayOfArray",
-          "documentation":"<p>An array of arrays.</p>"
+          "documentation":"<p>An array of arrays. Can contain null values.</p>"
         }
       },
       "documentation":"<p>Contains an array.</p>",
@@ -238,7 +239,7 @@
           "documentation":"<p>The error message returned by this <code>BadRequestException</code> error.</p>"
         }
       },
-      "documentation":"<p>There is an error in the call or in a SQL statement. (This error only appears in calls from Aurora Serverless v1 databases.)</p>",
+      "documentation":"<p>There is an error in the call or in a SQL statement. This exception is deprecated.</p>",
       "error":{
         "httpStatusCode":400,
         "senderFault":true
@@ -335,7 +336,8 @@
     "BooleanArray":{
       "type":"list",
       "member":{"shape":"BoxedBoolean"},
-      "documentation":"<p>An array of Boolean values.</p> <note> <p>Some array entries can be null.</p> </note>"
+      "documentation":"<p>An array of Boolean values. Can contain null values.</p>",
+      "sparse":true
     },
     "BoxedBoolean":{
       "type":"boolean",
@@ -481,7 +483,7 @@
       "members":{
         "message":{"shape":"ErrorMessage"}
       },
-      "documentation":"<p>A request was cancelled because the Aurora Serverless v2 DB instance was paused. The Data API request automatically resumes the DB instance. Wait a few seconds and try again.</p>",
+      "documentation":"<p>A request was cancelled because the Aurora Serverless DB instance was paused. The Data API request automatically resumes the DB instance. Wait a few seconds and try again.</p>",
       "error":{
         "httpStatusCode":400,
         "senderFault":true
@@ -490,8 +492,7 @@
     },
     "DatabaseUnavailableException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The writer instance in the DB cluster isn't available.</p>",
       "error":{"httpStatusCode":504},
       "exception":true,
@@ -512,7 +513,8 @@
     "DoubleArray":{
       "type":"list",
       "member":{"shape":"BoxedDouble"},
-      "documentation":"<p>An array of floating-point numbers.</p> <note> <p>Some array entries can be null.</p> </note>"
+      "documentation":"<p>An array of floating-point numbers. Can contain null values.</p>",
+      "sparse":true
     },
     "ErrorMessage":{"type":"string"},
     "ExecuteSqlRequest":{
@@ -570,7 +572,7 @@
         },
         "secretArn":{
           "shape":"Arn",
-          "documentation":"<p>The ARN of the secret that enables access to the DB cluster. Enter the database user name and password for the credentials in the secret.</p> <p>For information about creating the secret, see <a href=\"https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_database_secret.html\">Create a database secret</a>.</p>"
+          "documentation":"<p>The ARN of the secret that enables access to the DB cluster. Enter the database user name and password for the credentials in the secret.</p> <p>For information about creating the secret, see <a href=\"https://docs.aws.amazon.com/secretsmanager/latest/userguide/create_database_secret.html\">Create a database secret</a>.</p> <note> <p>When you use the CLI on Linux to reference a secret created in the RDS console, the ARN might include special characters like <code>rds!cluster</code>. If you enclose the ARN in double quotes, the <code>!</code> character might trigger a shell expansion error, such as <code>-bash: !cluster: event not found</code>. To avoid this, escape the exclamation mark (\\!) in the ARN or enclose the entire ARN in single quotes (') instead of double quotes.</p> <p>Alternatively, disable shell history expansion by running <code>set +H</code> before you execute the command.</p> </note>"
         },
         "sql":{
           "shape":"SqlStatement",
@@ -712,8 +714,7 @@
     "Integer":{"type":"integer"},
     "InternalServerErrorException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An internal error occurred.</p>",
       "error":{"httpStatusCode":500},
       "exception":true,
@@ -747,7 +748,8 @@
     "LongArray":{
       "type":"list",
       "member":{"shape":"BoxedLong"},
-      "documentation":"<p>An array of integers.</p> <note> <p>Some array entries can be null.</p> </note>"
+      "documentation":"<p>An array of integers. Can contain null values.</p>",
+      "sparse":true
     },
     "LongReturnType":{
       "type":"string",
@@ -891,8 +893,7 @@
     },
     "ServiceUnavailableError":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The service specified by the <code>resourceArn</code> parameter isn't available.</p>",
       "error":{"httpStatusCode":503},
       "exception":true,
@@ -974,7 +975,8 @@
     "StringArray":{
       "type":"list",
       "member":{"shape":"String"},
-      "documentation":"<p>An array of strings.</p> <note> <p>Some array entries can be null.</p> </note>"
+      "documentation":"<p>An array of strings. Can contain null values.</p>",
+      "sparse":true
     },
     "StructValue":{
       "type":"structure",
@@ -1088,5 +1090,5 @@
       "union":true
     }
   },
-  "documentation":"<p><fullname>RDS Data API</fullname> <p>Amazon RDS provides an HTTP endpoint to run SQL statements on an Amazon Aurora DB cluster. To run these statements, you use the RDS Data API (Data API).</p> <p>Data API is available with the following types of Aurora databases:</p> <ul> <li> <p>Aurora PostgreSQL - Serverless v2, provisioned, and Serverless v1</p> </li> <li> <p>Aurora MySQL - Serverless v2, provisioned, and Serverless v1</p> </li> </ul> <p>For more information about the Data API, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p></p>"
+  "documentation":"<p><fullname>RDS Data API</fullname> <p>Amazon RDS provides an HTTP endpoint to run SQL statements on an Amazon Aurora DB cluster. To run these statements, you use the RDS Data API (Data API).</p> <p>Data API is available with the following types of Aurora databases:</p> <ul> <li> <p>Aurora PostgreSQL - Serverless and provisioned</p> </li> <li> <p>Aurora MySQL - Serverless and provisioned</p> </li> </ul> <p>For more information about the Data API, see <a href=\"https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/data-api.html\">Using RDS Data API</a> in the <i>Amazon Aurora User Guide</i>.</p></p>"
 }

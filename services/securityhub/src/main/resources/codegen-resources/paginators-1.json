@@ -66,6 +66,12 @@
       "limit_key": "MaxResults",
       "result_key": "Insights"
     },
+    "GetRecommendedPolicyV2": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "RecommendationSteps"
+    },
     "GetResourcesTrendsV2": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -107,6 +113,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "FindingAggregators"
+    },
+    "ListFreeTrialStatusesV2": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AccountFreeTrialStatuses"
     },
     "ListInvitations": {
       "input_token": "NextToken",

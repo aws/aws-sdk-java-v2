@@ -1,0 +1,54 @@
+{
+    "version": "2.44.12",
+    "date": "2026-05-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Added new Gen6 stream classes based on the EC2 G6e instance family. These classes are designed for streaming high-fidelity, graphically demanding games and applications that benefit from additional GPU memory and performance."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Invoicing",
+            "contributor": "",
+            "description": "Adds support for idempotency with a new ClientToken field for the CreateInvoiceUnit, DeleteInvoiceUnit, UpdateInvoiceUnit, DeleteProcurementPortalPreference, PutProcurementPortalPreference, and UpdateProcurementPortalPreferenceStatus APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Performance Insights",
+            "contributor": "",
+            "description": "Added ListPerformanceAnalysisReportRecommendations API to retrieve recommendations for a performance analysis report. Added analysis configuration support to CreatePerformanceAnalysisReport for enhanced analysis types such as vacuum analysis."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "The ModifyInstanceAttribute API now supports modification of EnclaveOptions for the instance as a typed parameter."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "Added guardrail assessment results to inference spans in the ListSpans API. You can now see which AI Guardrail policies were evaluated, whether content was blocked or masked, and per-policy details for each Bedrock Converse call"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Add support for VPC connection"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Security Agent",
+            "contributor": "",
+            "description": "Adds support for verification scripts on penetration test findings. Customers can now download executable scripts to independently reproduce confirmed vulnerabilities, with instructions and required environment variables provided for each finding."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

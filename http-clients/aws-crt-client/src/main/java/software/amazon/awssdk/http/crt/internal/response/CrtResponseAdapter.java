@@ -65,7 +65,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder);
     }
 
-    public static HttpStreamBaseResponseHandler toCrtResponseHandler(
+    public static CrtResponseAdapter toCrtResponseHandler(
         CompletableFuture<Void> requestFuture,
         SdkAsyncHttpResponseHandler responseHandler) {
         return new CrtResponseAdapter(requestFuture, responseHandler);
@@ -144,5 +144,13 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         } catch (RuntimeException e) {
             log.warn(() -> "Exception raised from SdkAsyncHttpResponseHandler#onError.", e);
         }
+    }
+
+    public void onAcquireStream(HttpStreamBase stream) {
+        responseHandlerHelper.onAcquireStream(stream);
+    }
+
+    public void closeConnection() {
+        responseHandlerHelper.closeConnection();
     }
 }

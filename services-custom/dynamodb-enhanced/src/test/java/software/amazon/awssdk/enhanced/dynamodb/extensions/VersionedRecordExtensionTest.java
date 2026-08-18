@@ -15,16 +15,19 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.extensions;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static java.util.Collections.singletonMap;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension.AttributeTags.versionAttribute;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemWithSort.createUniqueFakeItemWithSort;
+import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.stream.Stream;
 import org.junit.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -41,6 +44,8 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeVersi
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeVersionedStaticImmutableItem;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DefaultOperationContext;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -64,7 +69,7 @@ public class VersionedRecordExtensionTest {
                                                    .tableMetadata(FakeItem.getTableMetadata())
                                                    .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result, is(ReadModification.builder().build()));
+        assertThat(result).isEqualTo(ReadModification.builder().build());
     }
 
     @Test
@@ -79,11 +84,10 @@ public class VersionedRecordExtensionTest {
                     .tableMetadata(FakeItem.getTableMetadata())
                     .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("attribute_not_exists(#AMZN_MAPPED_version)")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
-                                .build()));
+                                .build());
     }
 
     @Test
@@ -101,7 +105,7 @@ public class VersionedRecordExtensionTest {
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
 
-        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.transformedItem()).isEqualTo(fakeItemWithInitialVersion);
     }
 
     @Test
@@ -121,7 +125,7 @@ public class VersionedRecordExtensionTest {
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.transformedItem()).isEqualTo(fakeItemWithInitialVersion);
     }
 
     @Test
@@ -136,13 +140,12 @@ public class VersionedRecordExtensionTest {
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("#AMZN_MAPPED_version = :old_version_value")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
                                 .expressionValues(singletonMap(":old_version_value",
                                                                AttributeValue.builder().n("13").build()))
-                                .build()));
+                                .build());
     }
 
     @Test
@@ -160,7 +163,7 @@ public class VersionedRecordExtensionTest {
                                                      .tableMetadata(FakeItem.getTableMetadata())
                                                      .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(fakeItemWithInitialVersion));
+        assertThat(result.transformedItem()).isEqualTo(fakeItemWithInitialVersion);
     }
 
     @Test
@@ -174,7 +177,7 @@ public class VersionedRecordExtensionTest {
                                                                                                                    .operationContext(PRIMARY_CONTEXT)
                                                                                                                    .tableMetadata(FakeItemWithSort.getTableMetadata())
                                                                                                                    .build());
-        assertThat(writeModification, is(WriteModification.builder().build()));
+        assertThat(writeModification).isEqualTo(WriteModification.builder().build());
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -211,8 +214,7 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(FakeItem.getTableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value");
     }
 
     @ParameterizedTest
@@ -245,12 +247,11 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(FakeItem.getTableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedInitialVersion));
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.transformedItem()).isEqualTo(expectedInitialVersion);
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("attribute_not_exists(#AMZN_MAPPED_version)")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
-                                .build()));
+                                .build());
     }
 
     public static Stream<Arguments> customStartAtAndIncrementValues() {
@@ -273,7 +274,32 @@ public class VersionedRecordExtensionTest {
     public static Stream<Arguments> customFailingStartAtAndIncrementValues() {
         return Stream.of(
             Arguments.of(-2L, 1L),
-            Arguments.of(3L, 0L));
+            Arguments.of(3L, 0L),
+            Arguments.of(-1L, 0L));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidBuilderSetterArguments")
+    public void builder_invalidSetter_throwsIllegalArgumentException(
+        String caseDescription,
+        BiConsumer<VersionedRecordExtension.Builder, Long> setter,
+        long invalidValue) {
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            VersionedRecordExtension.Builder builder = VersionedRecordExtension.builder();
+            setter.accept(builder, invalidValue);
+            builder.build();
+        });
+    }
+
+    private static Stream<Arguments> invalidBuilderSetterArguments() {
+        BiConsumer<VersionedRecordExtension.Builder, Long> startAt = VersionedRecordExtension.Builder::startAt;
+        BiConsumer<VersionedRecordExtension.Builder, Long> incrementBy = VersionedRecordExtension.Builder::incrementBy;
+        return Stream.of(
+            Arguments.of("startAt(-2)", startAt, -2L),
+            Arguments.of("startAt(MIN_VALUE)", startAt, Long.MIN_VALUE),
+            Arguments.of("incrementBy(0)", incrementBy, 0L),
+            Arguments.of("incrementBy(-1)", incrementBy, -1L));
     }
 
     @Test
@@ -296,8 +322,7 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("#AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :old_version_value");
     }
 
     @Test
@@ -320,8 +345,7 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value");
     }
 
 
@@ -364,12 +388,11 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedInitialVersion));
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.transformedItem()).isEqualTo(expectedInitialVersion);
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("attribute_not_exists(#AMZN_MAPPED_version)")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
-                                .build()));
+                                .build());
     }
 
     @Test
@@ -396,12 +419,11 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedInitialVersion));
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.transformedItem()).isEqualTo(expectedInitialVersion);
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("attribute_not_exists(#AMZN_MAPPED_version)")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
-                                .build()));
+                                .build());
     }
 
     @DynamoDbBean
@@ -445,12 +467,11 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedInitialVersion));
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.transformedItem()).isEqualTo(expectedInitialVersion);
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("attribute_not_exists(#AMZN_MAPPED_version)")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
-                                .build()));
+                                .build());
     }
 
     @DynamoDbBean
@@ -508,9 +529,8 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(FakeItem.getTableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedVersionedItem));
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("#AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.transformedItem()).isEqualTo(expectedVersionedItem);
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :old_version_value");
     }
 
     @ParameterizedTest
@@ -546,9 +566,8 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(FakeVersionedStaticImmutableItem.getTableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedVersionedItem));
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("#AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.transformedItem()).isEqualTo(expectedVersionedItem);
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :old_version_value");
     }
 
     @Test
@@ -574,12 +593,11 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedInitialVersion));
-        assertThat(result.additionalConditionalExpression(),
-                   is(Expression.builder()
+        assertThat(result.transformedItem()).isEqualTo(expectedInitialVersion);
+        assertThat(result.additionalConditionalExpression()).isEqualTo(Expression.builder()
                                 .expression("attribute_not_exists(#AMZN_MAPPED_version)")
                                 .expressionNames(singletonMap("#AMZN_MAPPED_version", "version"))
-                                .build()));
+                                .build());
     }
 
     @Test(expected = IllegalStateException.class)
@@ -630,8 +648,7 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(schema.tableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("#AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("#AMZN_MAPPED_version = :old_version_value");
     }
 
     @Test
@@ -649,8 +666,7 @@ public class VersionedRecordExtensionTest {
                                             .tableMetadata(FakeItem.getTableMetadata())
                                             .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.additionalConditionalExpression().expression(),
-                   is("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value"));
+        assertThat(result.additionalConditionalExpression().expression()).isEqualTo("attribute_not_exists(#AMZN_MAPPED_version) OR #AMZN_MAPPED_version = :old_version_value");
     }
 
     @Test
@@ -671,7 +687,7 @@ public class VersionedRecordExtensionTest {
                                       .tableMetadata(FakeItem.getTableMetadata())
                                       .operationContext(PRIMARY_CONTEXT).build());
 
-        assertThat(result.transformedItem(), is(expectedItem));
+        assertThat(result.transformedItem()).isEqualTo(expectedItem);
     }
 
     public static Stream<Arguments> customIncrementForExistingVersionValues() {
@@ -680,5 +696,81 @@ public class VersionedRecordExtensionTest {
             Arguments.of(3L, 2L, 7L, "9"),
             Arguments.of(3L, null, 10L, "11"),
             Arguments.of(null, 3L, 4L, "7"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidVersionAttributeTagArguments")
+    public void versionAttribute_withInvalidStartAtOrIncrementBy_throwsIllegalArgumentException(
+        String caseDescription,
+        long startAt,
+        long incrementBy,
+        String expectedMessage) {
+
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() -> buildTestItemStaticSchemaWithLongVersion(versionAttribute(startAt, incrementBy)))
+            .withMessage(expectedMessage);
+    }
+
+    private static Stream<Arguments> invalidVersionAttributeTagArguments() {
+        return Stream.of(
+            Arguments.of("invalid startAt", -2L, 1L, "startAt must be -1 or greater."),
+            Arguments.of("invalid incrementBy", 0L, 0L, "incrementBy must be greater than 0."));
+    }
+
+    @Test
+    public void versionAttribute_withNonNumericType_throwsIllegalArgumentException() {
+        assertThatExceptionOfType(IllegalArgumentException.class)
+            .isThrownBy(() ->
+                            testItemStaticSchemaBuilderThroughPk()
+                                .addAttribute(String.class,
+                                              a -> a.name("version")
+                                                    .getter(TestItem::getId)
+                                                    .setter(TestItem::setId)
+                                                    .addTag(versionAttribute()))
+                                .build()
+            )
+            .withMessageContaining(
+                "is not a suitable type to be used as a version attribute. Only type 'N' is supported.");
+    }
+
+    private static StaticTableSchema.Builder<TestItem> testItemStaticSchemaBuilderThroughPk() {
+        return StaticTableSchema.builder(TestItem.class)
+                                .newItemSupplier(TestItem::new)
+                                .addAttribute(String.class,
+                                              a -> a.name("id")
+                                                    .getter(TestItem::getId)
+                                                    .setter(TestItem::setId)
+                                                    .addTag(primaryPartitionKey()));
+    }
+
+    private static void buildTestItemStaticSchemaWithLongVersion(StaticAttributeTag versionTag) {
+        testItemStaticSchemaBuilderThroughPk()
+            .addAttribute(Long.class,
+                          a -> a.name("version")
+                                .getter(TestItem::getVersion)
+                                .setter(TestItem::setVersion)
+                                .addTag(versionTag))
+            .build();
+    }
+
+    private static class TestItem {
+        private String id;
+        private Long version;
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Long getVersion() {
+            return version;
+        }
+
+        public void setVersion(Long version) {
+            this.version = version;
+        }
     }
 }

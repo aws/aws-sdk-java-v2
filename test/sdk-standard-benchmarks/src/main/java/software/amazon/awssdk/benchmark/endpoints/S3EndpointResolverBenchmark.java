@@ -39,7 +39,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
-import software.amazon.awssdk.services.s3.endpoints.internal.S3ResolveEndpointInterceptor;
+import software.amazon.awssdk.services.s3.endpoints.internal.S3EndpointResolverUtils;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -121,7 +121,7 @@ public class S3EndpointResolverBenchmark {
 
     @Benchmark
     public void resolveEndpoint(Blackhole blackhole) {
-        S3EndpointParams params = S3ResolveEndpointInterceptor.ruleParams(request, executionAttributes);
+        S3EndpointParams params = S3EndpointResolverUtils.ruleParams(request, executionAttributes);
         blackhole.consume(provider.resolveEndpoint(params).join());
     }
 
