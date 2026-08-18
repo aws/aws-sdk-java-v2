@@ -60,8 +60,8 @@ class EndpointProviderCompiledRulesClassSpecTest {
     }
 
     @Test
-    void endpointProviderClass_rootRuleDelegatesWithoutUsingRegion_compilesSuccessfully() {
-        // Covers the case where the root rule delegates without directly using region.
+    void endpointProviderClass_regionDeclaredButNeverReferenced_compilesSuccessfully() {
+        // Covers the case where region is declared as a parameter but never referenced in any rule.
         ClassSpec endpointProviderSpec =
             new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithDelegatingRootRule());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-delegating-root-class.java"));

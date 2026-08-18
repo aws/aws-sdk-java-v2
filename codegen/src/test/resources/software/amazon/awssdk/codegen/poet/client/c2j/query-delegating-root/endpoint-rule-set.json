@@ -22,7 +22,7 @@
     },
     "rules": [
         {
-            "documentation": "Root rule: delegates to child rules without using region directly",
+            "documentation": "Root rule: region is declared but never referenced in any rule",
             "type": "tree",
             "conditions": [],
             "rules": [
@@ -42,48 +42,14 @@
                     "type": "endpoint"
                 },
                 {
-                    "documentation": "Child rule that actually uses region",
-                    "conditions": [
-                        {
-                            "fn": "aws.partition",
-                            "argv": [{"ref": "region"}],
-                            "assign": "partitionResult"
-                        }
-                    ],
-                    "type": "tree",
-                    "rules": [
-                        {
-                            "documentation": "FIPS endpoint",
-                            "conditions": [
-                                {
-                                    "fn": "booleanEquals",
-                                    "argv": [{"ref": "useFIPSEndpoint"}, true]
-                                }
-                            ],
-                            "endpoint": {
-                                "url": "https://query-fips.{region}.{partitionResult#dnsSuffix}",
-                                "properties": {},
-                                "headers": {}
-                            },
-                            "type": "endpoint"
-                        },
-                        {
-                            "documentation": "Standard endpoint",
-                            "conditions": [],
-                            "endpoint": {
-                                "url": "https://query.{region}.{partitionResult#dnsSuffix}",
-                                "properties": {},
-                                "headers": {}
-                            },
-                            "type": "endpoint"
-                        }
-                    ]
-                },
-                {
-                    "documentation": "Fallback error",
+                    "documentation": "Default endpoint without using region",
                     "conditions": [],
-                    "error": "No valid endpoint could be determined",
-                    "type": "error"
+                    "endpoint": {
+                        "url": "https://query.amazonaws.com",
+                        "properties": {},
+                        "headers": {}
+                    },
+                    "type": "endpoint"
                 }
             ]
         }

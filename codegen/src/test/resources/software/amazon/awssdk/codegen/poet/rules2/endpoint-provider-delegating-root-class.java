@@ -44,30 +44,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         if (params.endpoint() != null) {
             return RuleResult.endpoint(Endpoint.builder().endpointUrl(EndpointUrl.fromString(params.endpoint())).build());
         }
-        RuleResult result = endpointRule3(params);
-        if (result.isResolved()) {
-            return result;
-        }
-        return RuleResult.error("No valid endpoint could be determined");
-    }
-
-    private static RuleResult endpointRule3(QueryEndpointParams params) {
-        RulePartition partitionResult = RulesFunctions.awsPartition(params.regionId());
-        if (partitionResult != null) {
-            if (params.useFipsEndpoint()) {
-                return RuleResult.endpoint(Endpoint
-                                               .builder()
-                                               .endpointUrl(
-                                                   EndpointUrl.fromComponents("https",
-                                                                              "query-fips." + params.regionId() + "." + partitionResult.dnsSuffix(), -1, "")).build());
-            }
-            return RuleResult.endpoint(Endpoint
-                                           .builder()
-                                           .endpointUrl(
-                                               EndpointUrl.fromComponents("https", "query." + params.regionId() + "." + partitionResult.dnsSuffix(),
-                                                                          -1, "")).build());
-        }
-        return RuleResult.carryOn();
+        return RuleResult.endpoint(Endpoint.builder()
+                .endpointUrl(EndpointUrl.fromComponents("https", "query.amazonaws.com", -1, "")).build());
     }
 
     @Override
