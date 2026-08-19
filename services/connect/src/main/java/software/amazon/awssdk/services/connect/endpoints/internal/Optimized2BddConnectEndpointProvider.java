@@ -20,9 +20,9 @@
  *   <li>Simple conditions (isSet, booleanEquals, stringEquals on plain refs) inlined as ternary expressions</li>
  *   <li>Complex conditions (with assign side-effects) as dedicated cond N methods</li>
  *   <li>Result methods return Endpoint directly or throw SdkClientException - eliminates RuleResult allocation</li>
- *   <li>Per-call Evaluator allocation (lightweight, no ThreadLocal overhead - young-gen collected immediately)</li>
+ *   <li>Per-call Evaluator allocation (lightweight, no ThreadLocal overhead)</li>
  *   <li>Endpoint.ofAttribute() factory eliminates HashMap allocation for the common single-attribute case</li>
- *   <li>ThreadLocal function caches in RulesFunctions: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
+ *   <li>ThreadLocal awsPartition cache in RulesFunctions (avoids HashMap+regex on every call)</li>
  * </ul>
  *
  * <p>This file is a copy of the generated DefaultConnectEndpointProvider, renamed for benchmarking.

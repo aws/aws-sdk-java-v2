@@ -20,7 +20,7 @@
  *   <li>Error results throw SdkClientException directly instead of allocating RuleResult.error()</li>
  *   <li>Null-checks replace RuleResult.isResolved() - eliminates RuleResult allocation on every call</li>
  *   <li>Endpoint.ofAttribute() factory eliminates HashMap allocation for the common single-attribute case</li>
- *   <li>ThreadLocal function caches: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
+ *   <li>ThreadLocal awsPartition cache in RulesFunctions (avoids HashMap+regex on every call)</li>
  * </ul>
  *
  * <p>This file is a copy of the generated DefaultDynamoDbEndpointProvider, renamed for benchmarking.

@@ -37,19 +37,6 @@ public class RulesFunctions {
         // awsPartition cache: (lastRegion -> lastPartition)
         String lastPartitionRegion;
         RulePartition lastPartitionResult;
-
-        // uriEncode cache: (lastInput -> lastOutput)
-        String lastUriEncodeInput;
-        String lastUriEncodeOutput;
-
-        // awsIsVirtualHostableS3Bucket cache: (lastBucket, lastAllowDots -> lastResult)
-        String lastVhostBucket;
-        boolean lastVhostAllowDots;
-        boolean lastVhostResult;
-        boolean lastVhostValid; // whether the cache entry is populated
-
-        // Auth scheme list cache: (signingRegion, signingName, dde -> cached list)
-        // Reserved for future use when auth scheme caching is implemented in codegen.
     }
 
     @SafeVarargs
@@ -138,18 +125,11 @@ public class RulesFunctions {
 
     // URI related functions
     public static String uriEncode(String uri) {
-        FunctionCache cache = CACHE.get();
-        if (uri != null && uri.equals(cache.lastUriEncodeInput)) {
-            return cache.lastUriEncodeOutput;
-        }
-
         try {
             String encoded = URLEncoder.encode(uri, "UTF-8");
             for (int i = 0; i < ENCODED_CHARACTERS.length; i++) {
                 encoded = encoded.replace(ENCODED_CHARACTERS[i], ENCODED_CHARACTERS_REPLACEMENTS[i]);
             }
-            cache.lastUriEncodeInput = uri;
-            cache.lastUriEncodeOutput = encoded;
             return encoded;
         } catch (UnsupportedEncodingException e) {
             throw SdkClientException.create("Unable to URI encode value: " + uri, e);
@@ -285,21 +265,6 @@ public class RulesFunctions {
     }
 
     public static boolean awsIsVirtualHostableS3Bucket(String hostLabel, boolean allowDots) {
-        FunctionCache cache = CACHE.get();
-        if (cache.lastVhostValid && allowDots == cache.lastVhostAllowDots
-                && hostLabel != null && hostLabel.equals(cache.lastVhostBucket)) {
-            return cache.lastVhostResult;
-        }
-
-        boolean result = computeIsVirtualHostableS3Bucket(hostLabel, allowDots);
-        cache.lastVhostBucket = hostLabel;
-        cache.lastVhostAllowDots = allowDots;
-        cache.lastVhostResult = result;
-        cache.lastVhostValid = true;
-        return result;
-    }
-
-    private static boolean computeIsVirtualHostableS3Bucket(String hostLabel, boolean allowDots) {
         // Bucket names must be between 3 (min) and 63 (max) characters long.
         int bucketLength = hostLabel == null ? 0 : hostLabel.length();
         if (bucketLength < MIN_BUCKET_SIZE || bucketLength > MAX_HOST_LABEL_SIZE) {
