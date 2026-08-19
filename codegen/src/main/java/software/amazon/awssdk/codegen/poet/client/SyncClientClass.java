@@ -130,6 +130,7 @@ public class SyncClientClass extends SyncClientInterface {
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
         protocolSpec.errorResponseMapperField().ifPresent(type::addField);
+        ClientClassUtils.authSchemeCacheField(authSchemeSpecUtils).ifPresent(type::addField);
     }
 
     @Override

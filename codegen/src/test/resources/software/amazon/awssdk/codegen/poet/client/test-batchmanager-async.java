@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -52,6 +53,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.batchmanagertest.auth.scheme.BatchManagerTestAuthSchemeParams;
 import software.amazon.awssdk.services.batchmanagertest.auth.scheme.BatchManagerTestAuthSchemeProvider;
+import software.amazon.awssdk.services.batchmanagertest.auth.scheme.internal.DefaultBatchManagerTestAuthSchemeProvider;
 import software.amazon.awssdk.services.batchmanagertest.batchmanager.BatchManagerTestAsyncBatchManager;
 import software.amazon.awssdk.services.batchmanagertest.endpoints.BatchManagerTestEndpointParams;
 import software.amazon.awssdk.services.batchmanagertest.endpoints.BatchManagerTestEndpointProvider;
@@ -95,6 +97,8 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
     };
 
     private final ScheduledExecutorService executorService;
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultBatchManagerTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -224,10 +228,23 @@ final class DefaultBatchManagerTestAsyncClient implements BatchManagerTestAsyncC
                                                                                                   : Validate.isInstanceOf(BatchManagerTestAuthSchemeProvider.class,
                                                                                                                           executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                           "Expected an instance of BatchManagerTestAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultBatchManagerTestAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         BatchManagerTestAuthSchemeParams.Builder paramsBuilder = BatchManagerTestAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 

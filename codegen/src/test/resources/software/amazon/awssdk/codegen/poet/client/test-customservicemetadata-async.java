@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.auth.scheme.ProtocolRestJsonWithCustomContentTypeAuthSchemeParams;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.auth.scheme.ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider;
+import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.auth.scheme.internal.DefaultProtocolRestJsonWithCustomContentTypeAuthSchemeProvider;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.endpoints.ProtocolRestJsonWithCustomContentTypeEndpointParams;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.endpoints.ProtocolRestJsonWithCustomContentTypeEndpointProvider;
 import software.amazon.awssdk.services.protocolrestjsonwithcustomcontenttype.endpoints.internal.ProtocolRestJsonWithCustomContentTypeEndpointResolverUtils;
@@ -91,6 +93,8 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
                 return Optional.empty();
         }
     };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultProtocolRestJsonWithCustomContentTypeAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -218,10 +222,23 @@ final class DefaultProtocolRestJsonWithCustomContentTypeAsyncClient implements P
                                                                                                                        : Validate.isInstanceOf(ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider.class,
                                                                                                                                                executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                                "Expected an instance of ProtocolRestJsonWithCustomContentTypeAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultProtocolRestJsonWithCustomContentTypeAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         ProtocolRestJsonWithCustomContentTypeAuthSchemeParams.Builder paramsBuilder = ProtocolRestJsonWithCustomContentTypeAuthSchemeParams
             .builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 
