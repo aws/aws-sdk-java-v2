@@ -37,7 +37,7 @@ import org.openjdk.jmh.runner.options.CommandLineOptionException;
 import org.openjdk.jmh.runner.options.CommandLineOptions;
 import org.openjdk.jmh.runner.options.Options;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 /**
@@ -58,7 +58,7 @@ public class V2DefaultClientCreationBenchmark implements SdkClientCreationBenchm
     public void createClient(Blackhole blackhole) throws Exception {
         client = DynamoDbClient.builder()
                                .endpointDiscoveryEnabled(false)
-                               .httpClient(ApacheHttpClient.builder().build()).build();
+                               .httpClient(Apache5HttpClient.builder().build()).build();
         blackhole.consume(client);
     }
 

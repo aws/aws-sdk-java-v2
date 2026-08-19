@@ -16,13 +16,35 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.crt.s3.ResumeToken;
 
 public class S3MetaRequestPauseObservableTest {
     @Test
     void pause_notYetSubscribed_returnsNull() {
         S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
         assertThat(observable.pause()).isNull();
+    }
+
+    @Test
+    void pauseAsync_notYetSubscribed_returnsFutureCompletedWithNull() {
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+        assertThat(observable.pauseAsync()).isCompletedWithValue(null);
+    }
+
+    @Test
+    void pauseAsync_subscribed_delegatesToMetaRequest() {
+        ResumeToken token = new ResumeToken(new ResumeToken.PutResumeTokenBuilder().withUploadId("id"));
+        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
+        when(metaRequest.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+
+        S3MetaRequestPauseObservable observable = new S3MetaRequestPauseObservable();
+        observable.subscribe(metaRequest);
+
+        assertThat(observable.pauseAsync()).isCompletedWithValue(token);
     }
 }
