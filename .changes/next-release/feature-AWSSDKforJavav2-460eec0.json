@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Enable compiled endpoint rules for all services by default, with a fix for region parameter handling in the generated endpoint providers."
-}
