@@ -33,7 +33,7 @@ import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
  * re-constructing the shapes map. First add the shapes referenced by the
  * operations and then adding the shapes referenced by each shapes.
  */
-final class RemoveUnusedShapes {
+public final class RemoveUnusedShapes {
 
     private RemoveUnusedShapes() {
     }
