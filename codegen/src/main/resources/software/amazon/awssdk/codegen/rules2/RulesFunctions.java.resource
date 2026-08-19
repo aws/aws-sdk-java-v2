@@ -24,6 +24,31 @@ public class RulesFunctions {
     private static final int MAX_HOST_LABEL_SIZE = 63;
     private static final int MIN_BUCKET_SIZE = 3;
 
+    // Per-thread caches to avoid recomputing results for repeated calls with the same inputs.
+    // These are common in endpoint resolution where the same region/bucket is resolved many times.
+    private static final ThreadLocal<FunctionCache> CACHE = new ThreadLocal<FunctionCache>() {
+        @Override
+        protected FunctionCache initialValue() {
+            return new FunctionCache();
+        }
+    };
+
+    private static final class FunctionCache {
+        // awsPartition cache: (lastRegion -> lastPartition)
+        String lastPartitionRegion;
+        RulePartition lastPartitionResult;
+
+        // uriEncode cache: (lastInput -> lastOutput)
+        String lastUriEncodeInput;
+        String lastUriEncodeOutput;
+
+        // awsIsVirtualHostableS3Bucket cache: (lastBucket, lastAllowDots -> lastResult)
+        String lastVhostBucket;
+        boolean lastVhostAllowDots;
+        boolean lastVhostResult;
+        boolean lastVhostValid; // whether the cache entry is populated
+    }
+
     @SafeVarargs
     public static <T> T coalesce(T... args) {
         if (args == null || args.length < 2) {
@@ -110,11 +135,18 @@ public class RulesFunctions {
 
     // URI related functions
     public static String uriEncode(String uri) {
+        FunctionCache cache = CACHE.get();
+        if (uri != null && uri.equals(cache.lastUriEncodeInput)) {
+            return cache.lastUriEncodeOutput;
+        }
+
         try {
             String encoded = URLEncoder.encode(uri, "UTF-8");
             for (int i = 0; i < ENCODED_CHARACTERS.length; i++) {
                 encoded = encoded.replace(ENCODED_CHARACTERS[i], ENCODED_CHARACTERS_REPLACEMENTS[i]);
             }
+            cache.lastUriEncodeInput = uri;
+            cache.lastUriEncodeOutput = encoded;
             return encoded;
         } catch (UnsupportedEncodingException e) {
             throw SdkClientException.create("Unable to URI encode value: " + uri, e);
@@ -191,6 +223,11 @@ public class RulesFunctions {
     // AWS related functions
 
     public static RulePartition awsPartition(String regionName) {
+        FunctionCache cache = CACHE.get();
+        if (regionName != null && regionName.equals(cache.lastPartitionRegion)) {
+            return cache.lastPartitionResult;
+        }
+
         PartitionData data = PARTITION_DATA.value();
         Partition matchedPartition;
 
@@ -211,7 +248,10 @@ public class RulesFunctions {
             matchedPartition = AWS_PARTITION.value();
         }
 
-        return RulePartition.from(matchedPartition.id(), matchedPartition.outputs());
+        RulePartition result = RulePartition.from(matchedPartition.id(), matchedPartition.outputs());
+        cache.lastPartitionRegion = regionName;
+        cache.lastPartitionResult = result;
+        return result;
     }
 
     public static RuleArn awsParseArn(String value) {
@@ -242,6 +282,21 @@ public class RulesFunctions {
     }
 
     public static boolean awsIsVirtualHostableS3Bucket(String hostLabel, boolean allowDots) {
+        FunctionCache cache = CACHE.get();
+        if (cache.lastVhostValid && allowDots == cache.lastVhostAllowDots
+                && hostLabel != null && hostLabel.equals(cache.lastVhostBucket)) {
+            return cache.lastVhostResult;
+        }
+
+        boolean result = computeIsVirtualHostableS3Bucket(hostLabel, allowDots);
+        cache.lastVhostBucket = hostLabel;
+        cache.lastVhostAllowDots = allowDots;
+        cache.lastVhostResult = result;
+        cache.lastVhostValid = true;
+        return result;
+    }
+
+    private static boolean computeIsVirtualHostableS3Bucket(String hostLabel, boolean allowDots) {
         // Bucket names must be between 3 (min) and 63 (max) characters long.
         int bucketLength = hostLabel == null ? 0 : hostLabel.length();
         if (bucketLength < MIN_BUCKET_SIZE || bucketLength > MAX_HOST_LABEL_SIZE) {

@@ -20,6 +20,7 @@
  *   <li>Error results throw SdkClientException directly instead of allocating RuleResult.error()</li>
  *   <li>Null-checks replace RuleResult.isResolved() checks - eliminates RuleResult allocation on every call</li>
  *   <li>resolveEndpoint uses try/catch for error handling instead of checking RuleResult.isError()</li>
+ *   <li>ThreadLocal function caches in RulesFunctions: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
  * </ul>
  *
  * <p>This file is a copy of the generated DefaultDynamoDbEndpointProvider, renamed for benchmarking.
