@@ -54,12 +54,22 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- smithy-java endpoint resolver stack (1.4.2-rebased — the locally available version) -->
+        <!-- smithy-java endpoint resolver stack.
+             rulesengine/endpoints/context/aws-client-core/aws-client-rulesengine are published
+             to Maven Central at 1.5.1. The locally-built version (from the bdd-codegen branch)
+             must be installed first:
+               cd .kiro/reference/smithy-java
+               ./gradlew :rulesengine:publishToMavenLocal :endpoints:publishToMavenLocal \
+                         :context:publishToMavenLocal ":aws:client:aws-client-core:publishToMavenLocal" \
+                         ":aws:client:aws-client-rulesengine:publishToMavenLocal" \
+                         -x test -->
         <dependency>
             <groupId>software.amazon.smithy.java</groupId>
             <artifactId>rulesengine</artifactId>
             <version>${smithy.java.version}</version>
         </dependency>
+        <!-- Registers AWS-specific built-in functions (aws.partition, aws.isVirtualHostableS3Bucket,
+             etc.) into the RulesEngineBuilder SPI — required both at model load time and at runtime. -->
         <dependency>
             <groupId>software.amazon.smithy.java</groupId>
             <artifactId>aws-client-rulesengine</artifactId>
@@ -87,29 +97,18 @@
             <artifactId>smithy-model</artifactId>
             <version>1.72.0</version>
         </dependency>
-        <!-- EndpointRuleSetTrait, EndpointBddTrait, BDD optimization pipeline -->
+        <!-- EndpointBddTrait, EndpointRuleSetTrait -->
         <dependency>
             <groupId>software.amazon.smithy</groupId>
             <artifactId>smithy-rules-engine</artifactId>
             <version>1.72.0</version>
         </dependency>
-        <!-- S3TreeRewriter (S3-specific BDD tree rewrites) -->
+        <!-- Registers aws.partition and other AWS built-in functions used in endpointBdd traits,
+             needed by ModelAssembler when loading the smithy model JSON files. -->
         <dependency>
             <groupId>software.amazon.smithy</groupId>
             <artifactId>smithy-aws-endpoints</artifactId>
             <version>1.72.0</version>
-        </dependency>
-        <!-- DynamicClient — builds real ApiOperation/SerializableStruct from smithy model -->
-        <dependency>
-            <groupId>software.amazon.smithy.java</groupId>
-            <artifactId>dynamic-client</artifactId>
-            <version>${smithy.java.version}</version>
-        </dependency>
-        <!-- EndpointRulesPlugin — wires the rules engine into DynamicClient -->
-        <dependency>
-            <groupId>software.amazon.smithy.java</groupId>
-            <artifactId>client-rulesengine</artifactId>
-            <version>${smithy.java.version}</version>
         </dependency>
 
         <!-- AWS SDK v2 service modules (for the SDK resolvers under comparison) -->

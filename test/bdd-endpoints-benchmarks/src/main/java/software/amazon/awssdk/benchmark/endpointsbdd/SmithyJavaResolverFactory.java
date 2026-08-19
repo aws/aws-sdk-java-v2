@@ -19,74 +19,95 @@ import java.net.URL;
 import java.util.Map;
 import software.amazon.smithy.java.aws.client.core.settings.RegionSetting;
 import software.amazon.smithy.java.context.Context;
+import software.amazon.smithy.java.endpoints.EndpointResolver;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
 import software.amazon.smithy.java.rulesengine.BytecodeEndpointResolver;
+import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 import software.amazon.smithy.java.rulesengine.RulesEngineBuilder;
 import software.amazon.smithy.java.rulesengine.RulesEngineSettings;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.loader.ModelAssembler;
 import software.amazon.smithy.model.shapes.ServiceShape;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.rulesengine.logic.bdd.CostOptimization;
-import software.amazon.smithy.rulesengine.logic.bdd.NodeReversal;
-import software.amazon.smithy.rulesengine.logic.bdd.SiftingOptimization;
-import software.amazon.smithy.rulesengine.logic.cfg.Cfg;
 import software.amazon.smithy.rulesengine.traits.EndpointBddTrait;
 import software.amazon.smithy.rulesengine.traits.EndpointRuleSetTrait;
 
 /**
- * Compiles a smithy-java {@link BytecodeEndpointResolver} from a smithy model JSON resource.
+ * Builds smithy-java endpoint resolvers from smithy model JSON resources on the classpath.
  *
- * <p>The BDD is compiled through the same optimization pipeline used in the smithy-java reference
- * benchmarks: sifting → cost → node-reversal. Compilation happens once at trial setup so it is
- * excluded from measurements.
+ * <h2>Compilation</h2>
+ * The model's {@code smithy.rules#endpointBdd} trait is used as-is — no re-optimization is
+ * applied. Per the smithy-java team's guidance, re-running the sifting/cost/reversal pipeline
+ * on an already-optimized trait degrades performance rather than improving it.
+ *
+ * <p>Two resolver variants are produced from the same {@link software.amazon.smithy.java.rulesengine.Bytecode}:
+ * <ul>
+ *   <li>{@link BytecodeEndpointResolver} — interpreted bytecode dispatch (the existing approach)</li>
+ *   <li>{@link GeneratedEndpointResolver} — code-generated Java class compiled at setup time,
+ *       using thread-local field-based state and a {@link GeneratedEndpointResolver.GeneratedParameters}
+ *       fast path that avoids {@link EndpointResolverParams} allocation on every call</li>
+ * </ul>
  *
  * <h2>Parameter passing</h2>
- * All endpoint parameters are supplied via
- * {@link RulesEngineSettings#ADDITIONAL_ENDPOINT_PARAMS} on the {@link Context}, matching the
- * "canned" param mode from the smithy-java reference benchmarks. This means the resolver reads
- * directly from the pre-built params map and performs no extraction from the input shape — the
- * {@link NullApiOperation} and {@link NullSerializableStruct} stubs satisfy the
- * {@link EndpointResolverParams} non-null requirement without contributing anything to resolution.
+ * All parameters are supplied via {@link RulesEngineSettings#ADDITIONAL_ENDPOINT_PARAMS} (the
+ * "canned" mode from the smithy-java reference benchmarks). No input-shape extraction occurs.
+ * {@link NullApiOperation} and {@link NullSerializableStruct} satisfy the non-null requirement
+ * of {@link EndpointResolverParams} without contributing to resolution.
  */
 public final class SmithyJavaResolverFactory {
 
     private SmithyJavaResolverFactory() {
     }
 
+    /**
+     * Holds both resolver variants built from the same compiled bytecode.
+     */
+    public static final class Resolvers {
+        /** Interpreted bytecode dispatcher. */
+        public final BytecodeEndpointResolver bytecode;
+        /** Code-generated Java resolver (compiled at setup time via javax.tools). */
+        public final EndpointResolver generated;
+
+        private Resolvers(BytecodeEndpointResolver bytecode, EndpointResolver generated) {
+            this.bytecode = bytecode;
+            this.generated = generated;
+        }
+    }
+
     // ----- per-service convenience methods -------------------------------------------------------
 
-    public static BytecodeEndpointResolver forConnect() {
-        return compile("smithy-models/connect_model.json",
-                       "com.amazonaws.connect#AmazonConnectService");
+    public static Resolvers forConnect() {
+        return build("smithy-models/connect_model.json",
+                     "com.amazonaws.connect#AmazonConnectService",
+                     "GeneratedConnect");
     }
 
-    public static BytecodeEndpointResolver forDynamoDb() {
-        return compile("smithy-models/dynamodb_model.json",
-                       "com.amazonaws.dynamodb#DynamoDB_20120810");
+    public static Resolvers forDynamoDb() {
+        return build("smithy-models/dynamodb_model.json",
+                     "com.amazonaws.dynamodb#DynamoDB_20120810",
+                     "GeneratedDynamoDb");
     }
 
-    public static BytecodeEndpointResolver forS3() {
-        return compile("smithy-models/s3_model.json",
-                       "com.amazonaws.s3#AmazonS3");
+    public static Resolvers forS3() {
+        return build("smithy-models/s3_model.json",
+                     "com.amazonaws.s3#AmazonS3",
+                     "GeneratedS3");
     }
 
-    public static BytecodeEndpointResolver forLambda() {
-        return compile("smithy-models/lambda_model.json",
-                       "com.amazonaws.lambda#AWSGirApiService");
+    public static Resolvers forLambda() {
+        return build("smithy-models/lambda_model.json",
+                     "com.amazonaws.lambda#AWSGirApiService",
+                     "GeneratedLambda");
     }
 
-    // ----- param construction helper -------------------------------------------------------------
+    // ----- param construction helpers ------------------------------------------------------------
 
     /**
-     * Build an {@link EndpointResolverParams} for the smithy-java resolver.
+     * Build {@link EndpointResolverParams} for the bytecode resolver path.
+     * All resolution parameters come from {@code ADDITIONAL_ENDPOINT_PARAMS}; the operation and
+     * input value are no-op stubs.
      *
-     * <p>All resolution parameters are supplied via {@code ADDITIONAL_ENDPOINT_PARAMS} (using the
-     * exact parameter names from the service rule set, e.g. {@code "Region"}, {@code "UseFIPS"}).
-     * {@link RegionSetting#REGION} is also set on the context so the resolver's built-in region
-     * provider can read it. The operation and input value are no-op stubs.
-     *
-     * @param region           the AWS region string, or {@code null} for no-region cases
+     * @param region           AWS region string, or {@code null} for no-region cases
      * @param additionalParams rule-set parameter map, e.g.
      *                         {@code Map.of("Region", "us-east-1", "UseFIPS", false, ...)}
      */
@@ -103,9 +124,20 @@ public final class SmithyJavaResolverFactory {
                                      .build();
     }
 
-    // ----- BDD compilation -----------------------------------------------------------------------
+    /**
+     * Build pre-marshalled {@link GeneratedEndpointResolver.GeneratedParameters} for the generated
+     * resolver's fast path. These are constructed once at setup time from the same
+     * {@code additionalParams} map and reused across all benchmark invocations, avoiding allocation.
+     */
+    @SuppressWarnings("unchecked")
+    public static GeneratedEndpointResolver.GeneratedParameters generatedParams(
+            EndpointResolver generated, Map<String, Object> additionalParams) {
+        return ((GeneratedEndpointResolver<?>) generated).createParameters(additionalParams);
+    }
 
-    private static BytecodeEndpointResolver compile(String modelResource, String serviceShapeId) {
+    // ----- core build logic ----------------------------------------------------------------------
+
+    private static Resolvers build(String modelResource, String serviceShapeId, String generatedClassName) {
         URL modelUrl = SmithyJavaResolverFactory.class.getClassLoader().getResource(modelResource);
         if (modelUrl == null) {
             throw new IllegalStateException("Model resource not found on classpath: " + modelResource);
@@ -121,35 +153,23 @@ public final class SmithyJavaResolverFactory {
         ServiceShape service = model.expectShape(ShapeId.from(serviceShapeId), ServiceShape.class);
         RulesEngineBuilder engine = new RulesEngineBuilder();
 
-        // Use the pre-built BDD trait when present; fall back to deriving from the rule set.
+        // Take the BDD trait from the model as-is — do NOT re-optimize. The trait was already
+        // optimized when the model was generated; re-running sifting/cost/reversal on it hurts
+        // performance rather than improving it.
         EndpointBddTrait bddTrait;
         if (service.hasTrait(EndpointBddTrait.class)) {
             bddTrait = service.expectTrait(EndpointBddTrait.class);
         } else {
-            var ruleSet = service.expectTrait(EndpointRuleSetTrait.class).getEndpointRuleSet();
-            bddTrait = EndpointBddTrait.from(Cfg.from(ruleSet));
+            throw new IllegalStateException(
+                    "Service " + serviceShapeId + " does not have the smithy.rules#endpointBdd trait. "
+                    + "The smithy model must be generated with BDD support enabled.");
         }
 
-        // Full optimization pipeline: sifting → cost → node-reversal, matching the reference benchmarks.
-        // Fall back to the pre-built BDD trait without re-optimization if sifting fails (e.g., S3's
-        // large BDD can trigger size-mismatch errors in the sifting optimizer).
-        EndpointBddTrait optimizedTrait;
-        try {
-            var cfg = Cfg.from(service.expectTrait(EndpointRuleSetTrait.class).getEndpointRuleSet());
-            var sifted = SiftingOptimization.builder().cfg(cfg).build().apply(bddTrait);
-            var costOpt = CostOptimization.builder().cfg(cfg).build().apply(sifted);
-            optimizedTrait = new NodeReversal().apply(costOpt);
-        } catch (Exception e) {
-            // Optimization failed (e.g., sifting size mismatch on large rule sets like S3).
-            // Fall back to compiling the pre-built BDD trait as-is.
-            System.out.println("[SmithyJavaResolverFactory] Optimization pipeline failed for "
-                               + serviceShapeId + ", using pre-built BDD trait: " + e.getMessage());
-            optimizedTrait = bddTrait;
-        }
+        var bytecode = engine.compile(bddTrait);
+        var bytecodeResolver = new BytecodeEndpointResolver(
+                bytecode, engine.getExtensions(), engine.getBuiltinProviders());
+        var generatedResolver = GeneratedResolverFactory.create(bytecode, generatedClassName);
 
-        return new BytecodeEndpointResolver(
-                engine.compile(optimizedTrait),
-                engine.getExtensions(),
-                engine.getBuiltinProviders());
+        return new Resolvers(bytecodeResolver, generatedResolver);
     }
 }
