@@ -176,6 +176,9 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
         /**
          * Define the maximum number of attempts to try before transitioning the waiter to a failure state.
          *
+         * <p>{@code maxAttempts} works alongside {@link #waitTimeout(Duration)}, which, when set, acts as an upper bound
+         * on the total wait time. The waiter transitions to a failure state as soon as either limit is reached.
+         *
          * @param maxAttempts The new maxAttempts value.
          * @return This object for method chaining.
          */
@@ -189,10 +192,15 @@ public final class WaiterOverrideConfiguration implements ToCopyableBuilder<Wait
          * timeout doesn't have strict guarantees on how quickly a request is aborted when the timeout is breached. The request
          * can timeout early if it is determined that the next retry will breach the max wait time. It's disabled by default.
          *
-         * <p>When set, {@code waitTimeout} works alongside {@link #maxAttempts(Integer)}, which caps the number of polling
-         * attempts and has a service-provided default. The waiter transitions to a failure state as soon as either limit
-         * is reached. To wait longer than the service-provided default, override {@link #maxAttempts(Integer)} to increase
-         * the number of polling attempts or {@link #backoffStrategyV2(BackoffStrategy)} to lengthen the delay between polls.
+         * <p>When set, {@code waitTimeout} is an upper bound on the total wait time and works alongside {@link #maxAttempts(Integer)},
+         * which caps the number of polling attempts (with a service-provided default). The waiter transitions to a failure
+         * state as soon as either limit is reached — the waiter may error out at the attempt limit before {@code waitTimeout}
+         * elapses. For example, if a service defines a default {@code maxAttempts=100} with a 6-second delay between polls,
+         * setting only {@code waitTimeout(Duration.ofMinutes(30))} still terminates the waiter at ~10 minutes because
+         * {@code maxAttempts} is reached first.
+         *
+         * <p>To wait longer than the service-provided default, override {@link #maxAttempts(Integer)} to increase the number
+         * of polling attempts or {@link #backoffStrategyV2(BackoffStrategy)} to lengthen the delay between polls.
          *
          * @param waitTimeout The new waitTimeout value.
          * @return This object for method chaining.
