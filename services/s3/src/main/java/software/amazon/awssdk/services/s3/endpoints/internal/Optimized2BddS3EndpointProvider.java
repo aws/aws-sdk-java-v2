@@ -20,9 +20,9 @@
  *   <li>Simple conditions (isSet, booleanEquals, stringEquals on plain refs) inlined as ternary expressions</li>
  *   <li>Complex conditions (with assign side-effects) as dedicated cond N methods</li>
  *   <li>Result methods return Endpoint directly or throw SdkClientException - eliminates RuleResult allocation</li>
- *   <li>ThreadLocal Evaluator with inUse reentrancy guard - eliminates per-call Evaluator allocation</li>
+ *   <li>Per-call Evaluator allocation (lightweight, no ThreadLocal overhead - young-gen collected immediately)</li>
  *   <li>Endpoint.ofAttribute() factory eliminates HashMap allocation for the common single-attribute case</li>
- *   <li>ThreadLocal function caches: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
+ *   <li>ThreadLocal function caches in RulesFunctions: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
  * </ul>
  *
  * <p>This file is a copy of the generated DefaultS3EndpointProvider, renamed for benchmarking.
@@ -43,19 +43,10 @@ import software.amazon.awssdk.services.s3.endpoints.authscheme.DynamicEndpointAu
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 public final class Optimized2BddS3EndpointProvider implements S3EndpointProvider {
-    private static final ThreadLocal STATE = new ThreadLocal<>();
-
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(S3EndpointParams endpointParams) {
-        Evaluator evaluator = (Evaluator) STATE.get();
-        if (evaluator == null) {
-            evaluator = new Evaluator();
-            STATE.set(evaluator);
-        } else if (evaluator.inUse) {
-            evaluator = new Evaluator();
-        }
-        evaluator.inUse = true;
         try {
+            Evaluator evaluator = new Evaluator();
             evaluator.params = endpointParams;
             evaluator.region = endpointParams.region() == null ? null : endpointParams.region().id();
             Endpoint result = evaluator.nodeP1();
@@ -71,14 +62,10 @@ public final class Optimized2BddS3EndpointProvider implements S3EndpointProvider
                         + ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest."));
             }
             return CompletableFutureUtils.failedFuture(e);
-        } finally {
-            evaluator.inUse = false;
         }
     }
 
     private static final class Evaluator {
-        boolean inUse;
-
         S3EndpointParams params;
 
         String region;

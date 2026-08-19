@@ -62,7 +62,9 @@ import software.amazon.awssdk.utils.Validate;
  * on plain register references) are inlined as ternary expressions. Complex conditions that compute
  * and store values are emitted as separate {@code cond<i>()} methods.
  *
- * <p>The evaluator state is reused via a ThreadLocal to eliminate per-call allocation.
+ * <p>The evaluator is allocated per call (lightweight — just register fields, no maps).
+ * Function-level caches (awsPartition, uriEncode, isVirtualHostable) live on a ThreadLocal
+ * in the shared RulesFunctions class and benefit all code paths.
  */
 public class BddEndpointProviderSpec implements ClassSpec {
     /**
@@ -100,13 +102,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
                                             .addAnnotation(SdkInternalApi.class);
 
-        // ThreadLocal field for evaluator reuse
-        builder.addField(FieldSpec.builder(
-                    ClassName.get(ThreadLocal.class), "STATE",
-                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                .initializer("new $T<>()", ThreadLocal.class)
-                .build());
-
         builder.addType(evaluatorClass());
         builder.addMethod(resolveEndpointMethod());
 
@@ -116,9 +111,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private TypeSpec evaluatorClass() {
         TypeSpec.Builder builder = TypeSpec.classBuilder(evaluatorType)
                                           .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL);
-
-        // inUse flag for reentrancy guard
-        builder.addField(FieldSpec.builder(boolean.class, "inUse").build());
 
         // params field
         builder.addField(FieldSpec.builder(endpointRulesSpecUtils.parametersClassName(), "params").build());
@@ -323,17 +315,12 @@ public class BddEndpointProviderSpec implements ClassSpec {
 
         builder.addCode(validateRequiredParams());
 
-        // ThreadLocal state acquisition with reentrancy guard
-        builder.addStatement("$T evaluator = ($T) STATE.get()", evaluatorType, evaluatorType);
-        builder.beginControlFlow("if (evaluator == null)")
-               .addStatement("evaluator = new $T()", evaluatorType)
-               .addStatement("STATE.set(evaluator)")
-               .nextControlFlow("else if (evaluator.inUse)")
-               .addStatement("evaluator = new $T()", evaluatorType)
-               .endControlFlow();
-        builder.addStatement("evaluator.inUse = true");
-
         builder.beginControlFlow("try");
+
+        // Allocate evaluator per call — lightweight (just fields, no maps), immediately young-gen collected.
+        // Function caches (awsPartition, uriEncode, isVirtualHostable) live on RulesFunctions' ThreadLocal
+        // and are shared across calls regardless.
+        builder.addStatement("$T evaluator = new $T()", evaluatorType, evaluatorType);
 
         // Initialize evaluator from params
         builder.addStatement("evaluator.params = endpointParams");
@@ -365,8 +352,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
                .endControlFlow();
         builder.addStatement("return $T.failedFuture(e)", CompletableFutureUtils.class);
 
-        builder.nextControlFlow("finally");
-        builder.addStatement("evaluator.inUse = false");
         builder.endControlFlow();
 
         return builder.build();

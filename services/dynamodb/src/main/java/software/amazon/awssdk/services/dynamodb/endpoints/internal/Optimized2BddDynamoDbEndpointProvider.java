@@ -20,9 +20,9 @@
  *   <li>Simple conditions (isSet, booleanEquals, stringEquals on plain refs) inlined as ternary expressions</li>
  *   <li>Complex conditions (with assign side-effects) as dedicated cond N methods</li>
  *   <li>Result methods return Endpoint directly or throw SdkClientException - eliminates RuleResult allocation</li>
- *   <li>ThreadLocal Evaluator with inUse reentrancy guard - eliminates per-call Evaluator allocation</li>
+ *   <li>Per-call Evaluator allocation (lightweight, no ThreadLocal overhead - young-gen collected immediately)</li>
  *   <li>Endpoint.ofAttribute() factory eliminates HashMap allocation for the common single-attribute case</li>
- *   <li>ThreadLocal function caches: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
+ *   <li>ThreadLocal function caches in RulesFunctions: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
  * </ul>
  *
  * <p>This file is a copy of the generated DefaultDynamoDbEndpointProvider, renamed for benchmarking.
@@ -36,23 +36,30 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointUrl;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointParams;
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.Validate;
 
 public final class Optimized2BddDynamoDbEndpointProvider implements DynamoDbEndpointProvider {
+    private static final ThreadLocal STATE = new ThreadLocal<>();
+
     @Override
-    public CompletableFuture<Endpoint> resolveEndpoint(DynamoDbEndpointParams params) {
-        Validate.notNull(params.useDualStack(), "Parameter 'UseDualStack' must not be null");
-        Validate.notNull(params.useFips(), "Parameter 'UseFIPS' must not be null");
+    public CompletableFuture<Endpoint> resolveEndpoint(DynamoDbEndpointParams endpointParams) {
+        Evaluator evaluator = (Evaluator) STATE.get();
+        if (evaluator == null) {
+            evaluator = new Evaluator();
+            STATE.set(evaluator);
+        } else if (evaluator.inUse) {
+            evaluator = new Evaluator();
+        }
+        evaluator.inUse = true;
         try {
-            Region region = params.region();
-            String regionId = region == null ? null : region.id();
-            Endpoint result = endpointRule0(params, regionId);
+            evaluator.params = endpointParams;
+            evaluator.region = endpointParams.region() == null ? null : endpointParams.region().id();
+            Endpoint result = evaluator.nodeP1();
             if (result == null) {
-                throw SdkClientException.create("Rule engine did not reach an error or endpoint result");
+                return CompletableFutureUtils.failedFuture(SdkClientException
+                        .create("Rule engine did not reach an error or endpoint result"));
             }
             return CompletableFuture.completedFuture(result);
         } catch (SdkClientException e) {
@@ -62,331 +69,742 @@ public final class Optimized2BddDynamoDbEndpointProvider implements DynamoDbEndp
                         + ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest."));
             }
             return CompletableFutureUtils.failedFuture(e);
-        } catch (Exception error) {
-            return CompletableFutureUtils.failedFuture(error);
+        } finally {
+            evaluator.inUse = false;
         }
     }
 
-    private static Endpoint endpointRule0(DynamoDbEndpointParams params, String region) {
-        Endpoint result = endpointRule1(params, region);
-        if (result != null) {
-            return result;
-        }
-        result = endpointRule6(params);
-        if (result != null) {
-            return result;
-        }
-        result = endpointRule10(params, region);
-        if (result != null) {
-            return result;
-        }
-        throw SdkClientException.create("Invalid Configuration: Missing Region");
-    }
+    private static final class Evaluator {
+        boolean inUse;
 
-    private static Endpoint endpointRule1(DynamoDbEndpointParams params, String region) {
-        if (params.endpoint() != null && region != null) {
-            RulePartition partitionResult = RulesFunctions.awsPartition(region);
-            if (partitionResult != null) {
-                if (params.useFips()) {
-                    throw SdkClientException.create("Invalid Configuration: FIPS and custom endpoint are not supported");
-                }
-                if (params.useDualStack()) {
-                    throw SdkClientException.create("Invalid Configuration: Dualstack and custom endpoint are not supported");
-                }
-                if (RulesFunctions.stringEquals(params.endpoint(),
-                        "https://dynamodb." + region + "." + partitionResult.dualStackDnsSuffix())) {
-                    throw SdkClientException
-                            .create("Endpoint override is not supported for dual-stack endpoints. Please enable dual-stack functionality by enabling the configuration. For more details, see: https://docs.aws.amazon.com/sdkref/latest/guide/feature-endpoints.html");
-                }
-                return Endpoint.builder().endpointUrl(EndpointUrl.fromString(params.endpoint())).build();
-            }
-        }
-        return null;
-    }
+        DynamoDbEndpointParams params;
 
-    private static Endpoint endpointRule6(DynamoDbEndpointParams params) {
-        if (params.endpoint() != null) {
-            if (params.useFips()) {
-                throw SdkClientException.create("Invalid Configuration: FIPS and custom endpoint are not supported");
-            }
-            if (params.useDualStack()) {
-                throw SdkClientException.create("Invalid Configuration: Dualstack and custom endpoint are not supported");
-            }
+        String region;
+
+        RulePartition partitionResult;
+
+        RuleArn parsedArn_ssa_2;
+
+        String firstArn;
+
+        RuleArn parsedArn_ssa_1;
+
+        private Endpoint nodeP0() {
+            return null;
+        }
+
+        private Endpoint nodeN0() {
+            return null;
+        }
+
+        private Endpoint nodeP1() {
+            return region != null ? nodeP4() : nodeP2();
+        }
+
+        private Endpoint nodeN1() {
+            return !(region != null) ? nodeP2() : nodeP4();
+        }
+
+        private Endpoint nodeP2() {
+            return params.endpoint() != null ? nodeP3() : result24();
+        }
+
+        private Endpoint nodeN2() {
+            return !(params.endpoint() != null) ? result24() : nodeP3();
+        }
+
+        private Endpoint nodeP3() {
+            return Boolean.TRUE.equals(params.useFips()) ? result0() : nodeP64();
+        }
+
+        private Endpoint nodeN3() {
+            return !(Boolean.TRUE.equals(params.useFips())) ? nodeP64() : result0();
+        }
+
+        private Endpoint nodeP4() {
+            return params.endpoint() != null ? nodeP62() : nodeP5();
+        }
+
+        private Endpoint nodeN4() {
+            return !(params.endpoint() != null) ? nodeP5() : nodeP62();
+        }
+
+        private Endpoint nodeP5() {
+            return Boolean.TRUE.equals(params.useFips()) ? nodeP51() : nodeP6();
+        }
+
+        private Endpoint nodeN5() {
+            return !(Boolean.TRUE.equals(params.useFips())) ? nodeP6() : nodeP51();
+        }
+
+        private Endpoint nodeP6() {
+            return cond3() ? nodeP7() : result24();
+        }
+
+        private Endpoint nodeN6() {
+            return !(cond3()) ? result24() : nodeP7();
+        }
+
+        private Endpoint nodeP7() {
+            return region != null && region.equals("local") ? nodeP50() : nodeP8();
+        }
+
+        private Endpoint nodeN7() {
+            return !(region != null && region.equals("local")) ? nodeP8() : nodeP50();
+        }
+
+        private Endpoint nodeP8() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? nodeP29() : nodeP9();
+        }
+
+        private Endpoint nodeN8() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? nodeP9() : nodeP29();
+        }
+
+        private Endpoint nodeP9() {
+            return params.accountIdEndpointMode() != null ? nodeP10() : result10();
+        }
+
+        private Endpoint nodeN9() {
+            return !(params.accountIdEndpointMode() != null) ? result10() : nodeP10();
+        }
+
+        private Endpoint nodeP10() {
+            return cond10() ? nodeP12() : nodeP11();
+        }
+
+        private Endpoint nodeN10() {
+            return !(cond10()) ? nodeP11() : nodeP12();
+        }
+
+        private Endpoint nodeP11() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required") ? result18()
+                    : result10();
+        }
+
+        private Endpoint nodeN11() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required")) ? result10()
+                    : result18();
+        }
+
+        private Endpoint nodeP12() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("disabled") ? nodeP28()
+                    : nodeP13();
+        }
+
+        private Endpoint nodeN12() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("disabled")) ? nodeP13()
+                    : nodeP28();
+        }
+
+        private Endpoint nodeP13() {
+            return params.resourceArn() != null ? nodeP14() : nodeP19();
+        }
+
+        private Endpoint nodeN13() {
+            return !(params.resourceArn() != null) ? nodeP19() : nodeP14();
+        }
+
+        private Endpoint nodeP14() {
+            return cond13() ? nodeP15() : nodeP19();
+        }
+
+        private Endpoint nodeN14() {
+            return !(cond13()) ? nodeP19() : nodeP15();
+        }
+
+        private Endpoint nodeP15() {
+            return cond14() ? nodeP16() : nodeP19();
+        }
+
+        private Endpoint nodeN15() {
+            return !(cond14()) ? nodeP19() : nodeP16();
+        }
+
+        private Endpoint nodeP16() {
+            return cond15() ? nodeP17() : nodeP19();
+        }
+
+        private Endpoint nodeN16() {
+            return !(cond15()) ? nodeP19() : nodeP17();
+        }
+
+        private Endpoint nodeP17() {
+            return cond16() ? nodeP18() : nodeP19();
+        }
+
+        private Endpoint nodeN17() {
+            return !(cond16()) ? nodeP19() : nodeP18();
+        }
+
+        private Endpoint nodeP18() {
+            return cond17() ? result21() : nodeP19();
+        }
+
+        private Endpoint nodeN18() {
+            return !(cond17()) ? nodeP19() : result21();
+        }
+
+        private Endpoint nodeP19() {
+            return params.resourceArnList() != null ? nodeP20() : nodeP26();
+        }
+
+        private Endpoint nodeN19() {
+            return !(params.resourceArnList() != null) ? nodeP26() : nodeP20();
+        }
+
+        private Endpoint nodeP20() {
+            return cond19() ? nodeP21() : nodeP26();
+        }
+
+        private Endpoint nodeN20() {
+            return !(cond19()) ? nodeP26() : nodeP21();
+        }
+
+        private Endpoint nodeP21() {
+            return cond20() ? nodeP22() : nodeP26();
+        }
+
+        private Endpoint nodeN21() {
+            return !(cond20()) ? nodeP26() : nodeP22();
+        }
+
+        private Endpoint nodeP22() {
+            return cond21() ? nodeP23() : nodeP26();
+        }
+
+        private Endpoint nodeN22() {
+            return !(cond21()) ? nodeP26() : nodeP23();
+        }
+
+        private Endpoint nodeP23() {
+            return cond22() ? nodeP24() : nodeP26();
+        }
+
+        private Endpoint nodeN23() {
+            return !(cond22()) ? nodeP26() : nodeP24();
+        }
+
+        private Endpoint nodeP24() {
+            return cond23() ? nodeP25() : nodeP26();
+        }
+
+        private Endpoint nodeN24() {
+            return !(cond23()) ? nodeP26() : nodeP25();
+        }
+
+        private Endpoint nodeP25() {
+            return cond24() ? result22() : nodeP26();
+        }
+
+        private Endpoint nodeN25() {
+            return !(cond24()) ? nodeP26() : result22();
+        }
+
+        private Endpoint nodeP26() {
+            return params.accountId() != null ? nodeP27() : nodeP28();
+        }
+
+        private Endpoint nodeN26() {
+            return !(params.accountId() != null) ? nodeP28() : nodeP27();
+        }
+
+        private Endpoint nodeP27() {
+            return cond27() ? result23() : result16();
+        }
+
+        private Endpoint nodeN27() {
+            return !(cond27()) ? result16() : result23();
+        }
+
+        private Endpoint nodeP28() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required") ? result17()
+                    : result10();
+        }
+
+        private Endpoint nodeN28() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required")) ? result10()
+                    : result17();
+        }
+
+        private Endpoint nodeP29() {
+            return cond7() ? nodeP30() : result20();
+        }
+
+        private Endpoint nodeN29() {
+            return !(cond7()) ? result20() : nodeP30();
+        }
+
+        private Endpoint nodeP30() {
+            return params.accountIdEndpointMode() != null ? nodeP31() : result19();
+        }
+
+        private Endpoint nodeN30() {
+            return !(params.accountIdEndpointMode() != null) ? result19() : nodeP31();
+        }
+
+        private Endpoint nodeP31() {
+            return cond10() ? nodeP33() : nodeP32();
+        }
+
+        private Endpoint nodeN31() {
+            return !(cond10()) ? nodeP32() : nodeP33();
+        }
+
+        private Endpoint nodeP32() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required") ? result18()
+                    : result19();
+        }
+
+        private Endpoint nodeN32() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required")) ? result19()
+                    : result18();
+        }
+
+        private Endpoint nodeP33() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("disabled") ? nodeP49()
+                    : nodeP34();
+        }
+
+        private Endpoint nodeN33() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("disabled")) ? nodeP34()
+                    : nodeP49();
+        }
+
+        private Endpoint nodeP34() {
+            return params.resourceArn() != null ? nodeP35() : nodeP40();
+        }
+
+        private Endpoint nodeN34() {
+            return !(params.resourceArn() != null) ? nodeP40() : nodeP35();
+        }
+
+        private Endpoint nodeP35() {
+            return cond13() ? nodeP36() : nodeP40();
+        }
+
+        private Endpoint nodeN35() {
+            return !(cond13()) ? nodeP40() : nodeP36();
+        }
+
+        private Endpoint nodeP36() {
+            return cond14() ? nodeP37() : nodeP40();
+        }
+
+        private Endpoint nodeN36() {
+            return !(cond14()) ? nodeP40() : nodeP37();
+        }
+
+        private Endpoint nodeP37() {
+            return cond15() ? nodeP38() : nodeP40();
+        }
+
+        private Endpoint nodeN37() {
+            return !(cond15()) ? nodeP40() : nodeP38();
+        }
+
+        private Endpoint nodeP38() {
+            return cond16() ? nodeP39() : nodeP40();
+        }
+
+        private Endpoint nodeN38() {
+            return !(cond16()) ? nodeP40() : nodeP39();
+        }
+
+        private Endpoint nodeP39() {
+            return cond17() ? result13() : nodeP40();
+        }
+
+        private Endpoint nodeN39() {
+            return !(cond17()) ? nodeP40() : result13();
+        }
+
+        private Endpoint nodeP40() {
+            return params.resourceArnList() != null ? nodeP41() : nodeP47();
+        }
+
+        private Endpoint nodeN40() {
+            return !(params.resourceArnList() != null) ? nodeP47() : nodeP41();
+        }
+
+        private Endpoint nodeP41() {
+            return cond19() ? nodeP42() : nodeP47();
+        }
+
+        private Endpoint nodeN41() {
+            return !(cond19()) ? nodeP47() : nodeP42();
+        }
+
+        private Endpoint nodeP42() {
+            return cond20() ? nodeP43() : nodeP47();
+        }
+
+        private Endpoint nodeN42() {
+            return !(cond20()) ? nodeP47() : nodeP43();
+        }
+
+        private Endpoint nodeP43() {
+            return cond21() ? nodeP44() : nodeP47();
+        }
+
+        private Endpoint nodeN43() {
+            return !(cond21()) ? nodeP47() : nodeP44();
+        }
+
+        private Endpoint nodeP44() {
+            return cond22() ? nodeP45() : nodeP47();
+        }
+
+        private Endpoint nodeN44() {
+            return !(cond22()) ? nodeP47() : nodeP45();
+        }
+
+        private Endpoint nodeP45() {
+            return cond23() ? nodeP46() : nodeP47();
+        }
+
+        private Endpoint nodeN45() {
+            return !(cond23()) ? nodeP47() : nodeP46();
+        }
+
+        private Endpoint nodeP46() {
+            return cond24() ? result14() : nodeP47();
+        }
+
+        private Endpoint nodeN46() {
+            return !(cond24()) ? nodeP47() : result14();
+        }
+
+        private Endpoint nodeP47() {
+            return params.accountId() != null ? nodeP48() : nodeP49();
+        }
+
+        private Endpoint nodeN47() {
+            return !(params.accountId() != null) ? nodeP49() : nodeP48();
+        }
+
+        private Endpoint nodeP48() {
+            return cond27() ? result15() : result16();
+        }
+
+        private Endpoint nodeN48() {
+            return !(cond27()) ? result16() : result15();
+        }
+
+        private Endpoint nodeP49() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required") ? result17()
+                    : result19();
+        }
+
+        private Endpoint nodeN49() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required")) ? result19()
+                    : result17();
+        }
+
+        private Endpoint nodeP50() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? result5() : result6();
+        }
+
+        private Endpoint nodeN50() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? result6() : result5();
+        }
+
+        private Endpoint nodeP51() {
+            return cond3() ? nodeP52() : result24();
+        }
+
+        private Endpoint nodeN51() {
+            return !(cond3()) ? result24() : nodeP52();
+        }
+
+        private Endpoint nodeP52() {
+            return region != null && region.equals("local") ? result4() : nodeP53();
+        }
+
+        private Endpoint nodeN52() {
+            return !(region != null && region.equals("local")) ? nodeP53() : result4();
+        }
+
+        private Endpoint nodeP53() {
+            return cond5() ? nodeP55() : nodeP54();
+        }
+
+        private Endpoint nodeN53() {
+            return !(cond5()) ? nodeP54() : nodeP55();
+        }
+
+        private Endpoint nodeP54() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? result9() : result12();
+        }
+
+        private Endpoint nodeN54() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? result12() : result9();
+        }
+
+        private Endpoint nodeP55() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? nodeP59() : nodeP56();
+        }
+
+        private Endpoint nodeN55() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? nodeP56() : nodeP59();
+        }
+
+        private Endpoint nodeP56() {
+            return params.accountIdEndpointMode() != null ? nodeP57() : nodeP58();
+        }
+
+        private Endpoint nodeN56() {
+            return !(params.accountIdEndpointMode() != null) ? nodeP58() : nodeP57();
+        }
+
+        private Endpoint nodeP57() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required") ? result7()
+                    : nodeP58();
+        }
+
+        private Endpoint nodeN57() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required")) ? nodeP58()
+                    : result7();
+        }
+
+        private Endpoint nodeP58() {
+            return cond28() ? result10() : result11();
+        }
+
+        private Endpoint nodeN58() {
+            return !(cond28()) ? result11() : result10();
+        }
+
+        private Endpoint nodeP59() {
+            return cond7() ? nodeP60() : result9();
+        }
+
+        private Endpoint nodeN59() {
+            return !(cond7()) ? result9() : nodeP60();
+        }
+
+        private Endpoint nodeP60() {
+            return params.accountIdEndpointMode() != null ? nodeP61() : result8();
+        }
+
+        private Endpoint nodeN60() {
+            return !(params.accountIdEndpointMode() != null) ? result8() : nodeP61();
+        }
+
+        private Endpoint nodeP61() {
+            return params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required") ? result7()
+                    : result8();
+        }
+
+        private Endpoint nodeN61() {
+            return !(params.accountIdEndpointMode() != null && params.accountIdEndpointMode().equals("required")) ? result8()
+                    : result7();
+        }
+
+        private Endpoint nodeP62() {
+            return Boolean.TRUE.equals(params.useFips()) ? result0() : nodeP63();
+        }
+
+        private Endpoint nodeN62() {
+            return !(Boolean.TRUE.equals(params.useFips())) ? nodeP63() : result0();
+        }
+
+        private Endpoint nodeP63() {
+            return cond3() ? nodeP65() : nodeP64();
+        }
+
+        private Endpoint nodeN63() {
+            return !(cond3()) ? nodeP64() : nodeP65();
+        }
+
+        private Endpoint nodeP64() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? result1() : result3();
+        }
+
+        private Endpoint nodeN64() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? result3() : result1();
+        }
+
+        private Endpoint nodeP65() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? result1() : nodeP66();
+        }
+
+        private Endpoint nodeN65() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? nodeP66() : result1();
+        }
+
+        private Endpoint nodeP66() {
+            return cond8() ? result2() : result3();
+        }
+
+        private Endpoint nodeN66() {
+            return !(cond8()) ? result3() : result2();
+        }
+
+        private boolean cond3() {
+            partitionResult = RulesFunctions.awsPartition(region);
+            return partitionResult != null;
+        }
+
+        private boolean cond5() {
+            return (partitionResult.supportsFIPS());
+        }
+
+        private boolean cond7() {
+            return (partitionResult.supportsDualStack());
+        }
+
+        private boolean cond8() {
+            return (RulesFunctions.stringEquals("https://dynamodb." + region + "." + partitionResult.dualStackDnsSuffix(),
+                    params.endpoint()));
+        }
+
+        private boolean cond10() {
+            return ("aws".equals(partitionResult.name()));
+        }
+
+        private boolean cond13() {
+            parsedArn_ssa_2 = RulesFunctions.awsParseArn(params.resourceArn());
+            return parsedArn_ssa_2 != null;
+        }
+
+        private boolean cond14() {
+            return (RulesFunctions.stringEquals(parsedArn_ssa_2.region(), region));
+        }
+
+        private boolean cond15() {
+            return ("dynamodb".equals(parsedArn_ssa_2.service()));
+        }
+
+        private boolean cond16() {
+            return (RulesFunctions.isValidHostLabel(parsedArn_ssa_2.accountId(), false));
+        }
+
+        private boolean cond17() {
+            return (RulesFunctions.isValidHostLabel(parsedArn_ssa_2.region(), false));
+        }
+
+        private boolean cond19() {
+            firstArn = RulesFunctions.listAccess(params.resourceArnList(), 0);
+            return firstArn != null;
+        }
+
+        private boolean cond20() {
+            parsedArn_ssa_1 = RulesFunctions.awsParseArn(firstArn);
+            return parsedArn_ssa_1 != null;
+        }
+
+        private boolean cond21() {
+            return (RulesFunctions.stringEquals(parsedArn_ssa_1.region(), region));
+        }
+
+        private boolean cond22() {
+            return ("dynamodb".equals(parsedArn_ssa_1.service()));
+        }
+
+        private boolean cond23() {
+            return (RulesFunctions.isValidHostLabel(parsedArn_ssa_1.accountId(), false));
+        }
+
+        private boolean cond24() {
+            return (RulesFunctions.isValidHostLabel(parsedArn_ssa_1.region(), false));
+        }
+
+        private boolean cond27() {
+            return (RulesFunctions.isValidHostLabel(params.accountId(), false));
+        }
+
+        private boolean cond28() {
+            return ("aws-us-gov".equals(partitionResult.name()));
+        }
+
+        private Endpoint result0() {
+            throw SdkClientException.create("Invalid Configuration: FIPS and custom endpoint are not supported");
+        }
+
+        private Endpoint result1() {
+            throw SdkClientException.create("Invalid Configuration: Dualstack and custom endpoint are not supported");
+        }
+
+        private Endpoint result2() {
+            throw SdkClientException
+                    .create("Endpoint override is not supported for dual-stack endpoints. Please enable dual-stack functionality by enabling the configuration. For more details, see: https://docs.aws.amazon.com/sdkref/latest/guide/feature-endpoints.html");
+        }
+
+        private Endpoint result3() {
             return Endpoint.builder().endpointUrl(EndpointUrl.fromString(params.endpoint())).build();
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule10(DynamoDbEndpointParams params, String region) {
-        if (region != null) {
-            return endpointRule11(params, region);
+        private Endpoint result4() {
+            throw SdkClientException.create("Invalid Configuration: FIPS and local endpoint are not supported");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule11(DynamoDbEndpointParams params, String region) {
-        RulePartition partitionResult = RulesFunctions.awsPartition(region);
-        if (partitionResult != null) {
-            Endpoint result = endpointRule12(params, region);
-            if (result != null) {
-                return result;
-            }
-            result = endpointRule16(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            result = endpointRule22(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            result = endpointRule32(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            if (params.accountIdEndpointMode() != null && !("disabled".equals(params.accountIdEndpointMode()))
-                    && "aws".equals(partitionResult.name()) && !(params.useFips()) && params.resourceArn() != null) {
-                RuleArn parsedArn = RulesFunctions.awsParseArn(params.resourceArn());
-                if (parsedArn != null) {
-                    if ("dynamodb".equals(parsedArn.service()) && RulesFunctions.isValidHostLabel(parsedArn.region(), false)
-                            && RulesFunctions.stringEquals(parsedArn.region(), region)
-                            && RulesFunctions.isValidHostLabel(parsedArn.accountId(), false)) {
-                        return Endpoint
-                                .builder()
-                                .endpointUrl(
-                                        EndpointUrl.fromComponents("https", parsedArn.accountId() + ".ddb." + region + "."
-                                                + partitionResult.dnsSuffix(), -1, ""))
-                                .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
-                    }
-                }
-            }
-            if (params.accountIdEndpointMode() != null && !("disabled".equals(params.accountIdEndpointMode()))
-                    && "aws".equals(partitionResult.name()) && !(params.useFips()) && params.resourceArnList() != null) {
-                String firstArn = RulesFunctions.listAccess(params.resourceArnList(), 0);
-                if (firstArn != null) {
-                    RuleArn parsedArn = RulesFunctions.awsParseArn(firstArn);
-                    if (parsedArn != null) {
-                        if ("dynamodb".equals(parsedArn.service()) && RulesFunctions.isValidHostLabel(parsedArn.region(), false)
-                                && RulesFunctions.stringEquals(parsedArn.region(), region)
-                                && RulesFunctions.isValidHostLabel(parsedArn.accountId(), false)) {
-                            return Endpoint
-                                    .builder()
-                                    .endpointUrl(
-                                            EndpointUrl.fromComponents("https", parsedArn.accountId() + ".ddb." + region + "."
-                                                    + partitionResult.dnsSuffix(), -1, ""))
-                                    .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
-                        }
-                    }
-                }
-            }
-            result = endpointRule50(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            result = endpointRule54(params, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "dynamodb." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .build();
+        private Endpoint result5() {
+            throw SdkClientException.create("Invalid Configuration: Dualstack and local endpoint are not supported");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule12(DynamoDbEndpointParams params, String region) {
-        if ("local".equals(region)) {
-            if (params.useFips()) {
-                throw SdkClientException.create("Invalid Configuration: FIPS and local endpoint are not supported");
-            }
-            if (params.useDualStack()) {
-                throw SdkClientException.create("Invalid Configuration: Dualstack and local endpoint are not supported");
-            }
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("http", "localhost", 8000, ""))
-                    .putAttribute(AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().signingName("dynamodb").signingRegion("us-east-1").build()))
-                    .build();
+        private Endpoint result6() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("http", "localhost", 8000, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().signingName("dynamodb").signingRegion("us-east-1").build()));
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule16(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (params.useFips() && params.useDualStack()) {
-            Endpoint result = endpointRule17(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException.create("FIPS and DualStack are enabled, but this partition does not support one or both");
+        private Endpoint result7() {
+            throw SdkClientException
+                    .create("Invalid Configuration: AccountIdEndpointMode is required and FIPS is enabled, but FIPS account endpoints are not supported");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule17(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (partitionResult.supportsFIPS() && partitionResult.supportsDualStack()) {
-            Endpoint result = endpointRule18(params);
-            if (result != null) {
-                return result;
-            }
+        private Endpoint result8() {
             return Endpoint
                     .builder()
                     .endpointUrl(
                             EndpointUrl.fromComponents("https",
                                     "dynamodb-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).build();
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule18(DynamoDbEndpointParams params) {
-        if (params.accountIdEndpointMode() != null && "required".equals(params.accountIdEndpointMode())) {
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required and FIPS is enabled, but FIPS account endpoints are not supported");
+        private Endpoint result9() {
+            throw SdkClientException.create("FIPS and DualStack are enabled, but this partition does not support one or both");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule22(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (params.useFips()) {
-            Endpoint result = endpointRule23(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException.create("FIPS is enabled but this partition does not support FIPS");
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule23(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (partitionResult.supportsFIPS()) {
-            Endpoint result = endpointRule24(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            result = endpointRule28(params);
-            if (result != null) {
-                return result;
-            }
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "dynamodb-fips." + region + "." + partitionResult.dnsSuffix(),
-                                    -1, "")).build();
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule24(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if ("aws-us-gov".equals(partitionResult.name())) {
-            Endpoint result = endpointRule25(params);
-            if (result != null) {
-                return result;
-            }
+        private Endpoint result10() {
             return Endpoint
                     .builder()
                     .endpointUrl(
                             EndpointUrl.fromComponents("https", "dynamodb." + region + "." + partitionResult.dnsSuffix(), -1, ""))
                     .build();
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule25(DynamoDbEndpointParams params) {
-        if (params.accountIdEndpointMode() != null && "required".equals(params.accountIdEndpointMode())) {
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required and FIPS is enabled, but FIPS account endpoints are not supported");
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule28(DynamoDbEndpointParams params) {
-        if (params.accountIdEndpointMode() != null && "required".equals(params.accountIdEndpointMode())) {
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required and FIPS is enabled, but FIPS account endpoints are not supported");
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule32(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (params.useDualStack()) {
-            Endpoint result = endpointRule33(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException.create("DualStack is enabled but this partition does not support DualStack");
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule33(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (partitionResult.supportsDualStack()) {
-            if (params.accountIdEndpointMode() != null && !("disabled".equals(params.accountIdEndpointMode()))
-                    && "aws".equals(partitionResult.name()) && !(params.useFips()) && params.resourceArn() != null) {
-                RuleArn parsedArn = RulesFunctions.awsParseArn(params.resourceArn());
-                if (parsedArn != null) {
-                    if ("dynamodb".equals(parsedArn.service()) && RulesFunctions.isValidHostLabel(parsedArn.region(), false)
-                            && RulesFunctions.stringEquals(parsedArn.region(), region)
-                            && RulesFunctions.isValidHostLabel(parsedArn.accountId(), false)) {
-                        return Endpoint
-                                .builder()
-                                .endpointUrl(
-                                        EndpointUrl.fromComponents("https", parsedArn.accountId() + ".ddb." + region + "."
-                                                + partitionResult.dualStackDnsSuffix(), -1, ""))
-                                .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
-                    }
-                }
-            }
-            if (params.accountIdEndpointMode() != null && !("disabled".equals(params.accountIdEndpointMode()))
-                    && "aws".equals(partitionResult.name()) && !(params.useFips()) && params.resourceArnList() != null) {
-                String firstArn = RulesFunctions.listAccess(params.resourceArnList(), 0);
-                if (firstArn != null) {
-                    RuleArn parsedArn = RulesFunctions.awsParseArn(firstArn);
-                    if (parsedArn != null) {
-                        if ("dynamodb".equals(parsedArn.service()) && RulesFunctions.isValidHostLabel(parsedArn.region(), false)
-                                && RulesFunctions.stringEquals(parsedArn.region(), region)
-                                && RulesFunctions.isValidHostLabel(parsedArn.accountId(), false)) {
-                            return Endpoint
-                                    .builder()
-                                    .endpointUrl(
-                                            EndpointUrl.fromComponents("https", parsedArn.accountId() + ".ddb." + region + "."
-                                                    + partitionResult.dualStackDnsSuffix(), -1, ""))
-                                    .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
-                        }
-                    }
-                }
-            }
-            Endpoint result = endpointRule36(params, partitionResult, region);
-            if (result != null) {
-                return result;
-            }
-            result = endpointRule40(params, partitionResult);
-            if (result != null) {
-                return result;
-            }
+        private Endpoint result11() {
             return Endpoint
                     .builder()
                     .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    "dynamodb." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).build();
+                            EndpointUrl.fromComponents("https", "dynamodb-fips." + region + "." + partitionResult.dnsSuffix(),
+                                    -1, "")).build();
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule36(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (params.accountIdEndpointMode() != null && !("disabled".equals(params.accountIdEndpointMode()))
-                && "aws".equals(partitionResult.name()) && !(params.useFips()) && params.accountId() != null) {
-            Endpoint result = endpointRule37(params, region, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException.create("Credentials-sourced account ID parameter is invalid");
+        private Endpoint result12() {
+            throw SdkClientException.create("FIPS is enabled but this partition does not support FIPS");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule37(DynamoDbEndpointParams params, String region, RulePartition partitionResult) {
-        if (RulesFunctions.isValidHostLabel(params.accountId(), false)) {
+        private Endpoint result13() {
+            return Endpoint
+                    .builder()
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https", parsedArn_ssa_2.accountId() + ".ddb." + region + "."
+                                    + partitionResult.dualStackDnsSuffix(), -1, ""))
+                    .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
+        }
+
+        private Endpoint result14() {
+            return Endpoint
+                    .builder()
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https", parsedArn_ssa_1.accountId() + ".ddb." + region + "."
+                                    + partitionResult.dualStackDnsSuffix(), -1, ""))
+                    .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
+        }
+
+        private Endpoint result15() {
             return Endpoint
                     .builder()
                     .endpointUrl(
@@ -394,55 +812,52 @@ public final class Optimized2BddDynamoDbEndpointProvider implements DynamoDbEndp
                                     params.accountId() + ".ddb." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""))
                     .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule40(DynamoDbEndpointParams params, RulePartition partitionResult) {
-        if (params.accountIdEndpointMode() != null && "required".equals(params.accountIdEndpointMode())) {
-            Endpoint result = endpointRule41(params, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required and FIPS is enabled, but FIPS account endpoints are not supported");
+        private Endpoint result16() {
+            throw SdkClientException.create("Credentials-sourced account ID parameter is invalid");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule41(DynamoDbEndpointParams params, RulePartition partitionResult) {
-        if (!(params.useFips())) {
-            Endpoint result = endpointRule42(params, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required but account endpoints are not supported in this partition");
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule42(DynamoDbEndpointParams params, RulePartition partitionResult) {
-        if ("aws".equals(partitionResult.name())) {
+        private Endpoint result17() {
             throw SdkClientException
                     .create("AccountIdEndpointMode is required but no AccountID was provided or able to be loaded");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule50(DynamoDbEndpointParams params, RulePartition partitionResult, String region) {
-        if (params.accountIdEndpointMode() != null && !("disabled".equals(params.accountIdEndpointMode()))
-                && "aws".equals(partitionResult.name()) && !(params.useFips()) && params.accountId() != null) {
-            Endpoint result = endpointRule51(params, region, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException.create("Credentials-sourced account ID parameter is invalid");
+        private Endpoint result18() {
+            throw SdkClientException
+                    .create("Invalid Configuration: AccountIdEndpointMode is required but account endpoints are not supported in this partition");
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule51(DynamoDbEndpointParams params, String region, RulePartition partitionResult) {
-        if (RulesFunctions.isValidHostLabel(params.accountId(), false)) {
+        private Endpoint result19() {
+            return Endpoint
+                    .builder()
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https",
+                                    "dynamodb." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).build();
+        }
+
+        private Endpoint result20() {
+            throw SdkClientException.create("DualStack is enabled but this partition does not support DualStack");
+        }
+
+        private Endpoint result21() {
+            return Endpoint
+                    .builder()
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https", parsedArn_ssa_2.accountId() + ".ddb." + region + "."
+                                    + partitionResult.dnsSuffix(), -1, ""))
+                    .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
+        }
+
+        private Endpoint result22() {
+            return Endpoint
+                    .builder()
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https", parsedArn_ssa_1.accountId() + ".ddb." + region + "."
+                                    + partitionResult.dnsSuffix(), -1, ""))
+                    .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
+        }
+
+        private Endpoint result23() {
             return Endpoint
                     .builder()
                     .endpointUrl(
@@ -450,48 +865,9 @@ public final class Optimized2BddDynamoDbEndpointProvider implements DynamoDbEndp
                                     params.accountId() + ".ddb." + region + "." + partitionResult.dnsSuffix(), -1, ""))
                     .putAttribute(AwsEndpointAttribute.METRIC_VALUES, Arrays.asList("O")).build();
         }
-        return null;
-    }
 
-    private static Endpoint endpointRule54(DynamoDbEndpointParams params, RulePartition partitionResult) {
-        if (params.accountIdEndpointMode() != null && "required".equals(params.accountIdEndpointMode())) {
-            Endpoint result = endpointRule55(params, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required and FIPS is enabled, but FIPS account endpoints are not supported");
+        private Endpoint result24() {
+            throw SdkClientException.create("Invalid Configuration: Missing Region");
         }
-        return null;
-    }
-
-    private static Endpoint endpointRule55(DynamoDbEndpointParams params, RulePartition partitionResult) {
-        if (!(params.useFips())) {
-            Endpoint result = endpointRule56(params, partitionResult);
-            if (result != null) {
-                return result;
-            }
-            throw SdkClientException
-                    .create("Invalid Configuration: AccountIdEndpointMode is required but account endpoints are not supported in this partition");
-        }
-        return null;
-    }
-
-    private static Endpoint endpointRule56(DynamoDbEndpointParams params, RulePartition partitionResult) {
-        if ("aws".equals(partitionResult.name())) {
-            throw SdkClientException
-                    .create("AccountIdEndpointMode is required but no AccountID was provided or able to be loaded");
-        }
-        return null;
-    }
-
-    @Override
-    public boolean equals(Object rhs) {
-        return rhs != null && getClass().equals(rhs.getClass());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
     }
 }
