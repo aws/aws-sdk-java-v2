@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Account Access",
+    "contributor": "",
+    "description": "Adds throttling exceptions to operation outputs that were previously inconsistent with other operations."
+}
