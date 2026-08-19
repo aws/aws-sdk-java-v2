@@ -30,11 +30,18 @@ import software.amazon.smithy.model.Model;
  */
 class SmithyIntermediateModelBuilderTest {
 
+    /**
+     * {@code clientContextParams} binds the rule-set parameter to the service model, which the
+     * rules-engine validator requires for any parameter that is not a registered built-in.
+     */
     private static final String RULE_SET =
-        "@smithy.rules#endpointRuleSet({\n"
+        "@smithy.rules#clientContextParams(\n"
+        + "  Region: { type: \"string\", documentation: \"The region\" }\n"
+        + ")\n"
+        + "@smithy.rules#endpointRuleSet({\n"
         + "  version: \"1.0\"\n"
         + "  parameters: {\n"
-        + "    Region: { builtIn: \"AWS::Region\", required: false, type: \"string\" }\n"
+        + "    Region: { required: false, type: \"string\" }\n"
         + "  }\n"
         + "  rules: [\n"
         + "    { conditions: [], endpoint: { url: \"https://example.amazonaws.com\" }, type: \"endpoint\" }\n"

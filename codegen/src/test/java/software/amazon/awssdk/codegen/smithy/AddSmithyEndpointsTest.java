@@ -29,12 +29,21 @@ import software.amazon.smithy.model.shapes.ServiceShape;
  */
 class AddSmithyEndpointsTest {
 
+    /**
+     * Rule-set parameters must be bound in the service model, and AWS built-ins like
+     * {@code AWS::Region} are registered by smithy-aws-endpoints, which codegen does not depend on.
+     * Binding through {@code clientContextParams} keeps the model self-contained.
+     */
     private static final String RULE_SET =
-        "@smithy.rules#endpointRuleSet({\n"
+        "@smithy.rules#clientContextParams(\n"
+        + "  Region: { type: \"string\", documentation: \"The region\" }\n"
+        + "  UseFIPS: { type: \"boolean\", documentation: \"Use FIPS endpoints\" }\n"
+        + ")\n"
+        + "@smithy.rules#endpointRuleSet({\n"
         + "  version: \"1.0\"\n"
         + "  parameters: {\n"
-        + "    Region: { builtIn: \"AWS::Region\", required: false, documentation: \"The region\", type: \"string\" }\n"
-        + "    UseFIPS: { builtIn: \"AWS::UseFIPS\", required: true, default: false, type: \"boolean\" }\n"
+        + "    Region: { required: false, documentation: \"The region\", type: \"string\" }\n"
+        + "    UseFIPS: { required: true, default: false, type: \"boolean\" }\n"
         + "  }\n"
         + "  rules: [\n"
         + "    { conditions: [], endpoint: { url: \"https://example.amazonaws.com\" }, type: \"endpoint\" }\n"
