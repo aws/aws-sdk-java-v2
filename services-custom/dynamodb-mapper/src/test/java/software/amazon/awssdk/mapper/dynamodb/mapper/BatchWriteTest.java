@@ -18,11 +18,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.mapper.dynamodb.pojos.BinaryAttributeByteBufferClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import java.math.BigDecimal;
@@ -51,16 +51,16 @@ public class BatchWriteTest extends LocalDynamoDBTestBase {
     private static int byteStart = 1;
     private static int startKeyDebug = 1;
     private static long startKey = System.currentTimeMillis();
-    private static AmazonDynamoDB dynamo;
+    private static DynamoDbClient dynamo;
 
     @BeforeClass
     public static void setUp() throws Exception {
         dynamo = client();
         DynamoDBMapper mapper = new DynamoDBMapper(dynamo);
         dynamo.createTable(mapper.generateCreateTableRequest(NumberSetAttributeClass.class)
-                                 .withProvisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT));
+                                 .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build());
         dynamo.createTable(mapper.generateCreateTableRequest(RangeKeyClass.class)
-                                 .withProvisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT));
+                                 .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build());
     }
 
     @Test

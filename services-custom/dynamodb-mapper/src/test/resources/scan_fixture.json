@@ -1,0 +1,8 @@
+{
+  "consistent-read" : "DynamoDB_20120810.Scan\n{\"TableName\":\"M_String\",\"ConsistentRead\":true}",
+  "filter-expression" : "DynamoDB_20120810.Scan\n{\"TableName\":\"M_String\",\"FilterExpression\":\"#v = :v\",\"ExpressionAttributeNames\":{\"#v\":\"value\"},\"ExpressionAttributeValues\":{\":v\":{\"S\":\"hello\"}}}",
+  "filtered-limited" : "DynamoDB_20120810.Scan\n{\"TableName\":\"M_String\",\"Limit\":25,\"ScanFilter\":{\"value\":{\"AttributeValueList\":[{\"S\":\"hello\"}],\"ComparisonOperator\":\"EQ\"}}}",
+  "projection-expression" : "DynamoDB_20120810.Scan\n{\"TableName\":\"M_String\",\"ProjectionExpression\":\"#v\",\"ExpressionAttributeNames\":{\"#v\":\"value\"}}",
+  "segment" : "DynamoDB_20120810.Scan\n{\"TableName\":\"M_String\",\"TotalSegments\":4,\"Segment\":1}",
+  "unfiltered" : "DynamoDB_20120810.Scan\n{\"TableName\":\"M_String\"}"
+}

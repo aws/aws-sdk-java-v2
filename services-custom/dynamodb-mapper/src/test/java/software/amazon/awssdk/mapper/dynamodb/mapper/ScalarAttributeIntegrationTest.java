@@ -17,7 +17,7 @@ package software.amazon.awssdk.mapper.dynamodb.mapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBScalarAttribute;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AutoKeyAndVal;
 
 import java.util.UUID;

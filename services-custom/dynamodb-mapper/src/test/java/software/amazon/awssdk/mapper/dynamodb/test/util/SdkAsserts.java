@@ -30,9 +30,9 @@ import java.util.Arrays;
 
 import org.junit.Assert;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.util.IOUtils;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.utils.IoUtils;
 
 public class SdkAsserts {
 
@@ -194,10 +194,10 @@ public class SdkAsserts {
 
             return Arrays.equals(expectedDigest, actualDigest);
         } catch (NoSuchAlgorithmException nse) {
-            throw new AmazonClientException(nse.getMessage(), nse);
+            throw SdkClientException.create(nse.getMessage(), nse);
         } finally {
-            IOUtils.closeQuietly(expected, null);
-            IOUtils.closeQuietly(actual, null);
+            IoUtils.closeQuietly(expected, null);
+            IoUtils.closeQuietly(actual, null);
         }
     }
 
@@ -220,24 +220,25 @@ public class SdkAsserts {
     }
 
     /**
-     * Asserts that the specified AmazonServiceException is valid, meaning it has a non-empty,
+     * Asserts that the specified AwsServiceException is valid, meaning it has a non-empty,
      * non-null value for its message, requestId, etc.
      *
      * @param e
      *            The exception to validate.
      */
-    public static void assertValidException(AmazonServiceException e) {
-        assertNotNull(e.getRequestId());
-        assertTrue(e.getRequestId().trim().length() > 0);
+    public static void assertValidException(AwsServiceException e) {
+        assertNotNull(e.requestId());
+        assertTrue(e.requestId().trim().length() > 0);
 
         assertNotNull(e.getMessage());
         assertTrue(e.getMessage().trim().length() > 0);
 
-        assertNotNull(e.getErrorCode());
-        assertTrue(e.getErrorCode().trim().length() > 0);
+        assertNotNull(e.awsErrorDetails().errorCode());
+        assertTrue(e.awsErrorDetails().errorCode().trim().length() > 0);
 
-        assertNotNull(e.getServiceName());
-        assertTrue(e.getServiceName().startsWith("Amazon") || e.getServiceName().startsWith("AWS"));
+        assertNotNull(e.awsErrorDetails().serviceName());
+        assertTrue(e.awsErrorDetails().serviceName().startsWith("Amazon")
+                   || e.awsErrorDetails().serviceName().startsWith("AWS"));
     }
 
 }

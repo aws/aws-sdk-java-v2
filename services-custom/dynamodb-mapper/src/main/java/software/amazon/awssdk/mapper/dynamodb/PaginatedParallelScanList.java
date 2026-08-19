@@ -17,9 +17,9 @@ package software.amazon.awssdk.mapper.dynamodb;
 import java.util.LinkedList;
 import java.util.List;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 /**
  * Implementation of the List interface that represents the results from a parallel scan
@@ -46,7 +46,7 @@ public class PaginatedParallelScanList<T> extends PaginatedList<T> {
     public PaginatedParallelScanList(
             DynamoDBMapper mapper,
             Class<T> clazz,
-            AmazonDynamoDB dynamo,
+            DynamoDbClient dynamo,
             ParallelScanTask parallelScanTask,
             PaginationLoadingStrategy paginationLoadingStrategy,
             DynamoDBMapperConfig config) {
@@ -74,13 +74,13 @@ public class PaginatedParallelScanList<T> extends PaginatedList<T> {
         return marshalParallelScanResultsIntoObjects(parallelScanTask.getNextBatchOfScanResults());
     }
 
-    private List<T> marshalParallelScanResultsIntoObjects(List<ScanResult> scanResults) {
+    private List<T> marshalParallelScanResultsIntoObjects(List<ScanResponse> scanResults) {
         List<T> allItems = new LinkedList<T>();
-        for (ScanResult scanResult : scanResults) {
+        for (ScanResponse scanResult : scanResults) {
             if (null != scanResult) {
                 allItems.addAll(mapper.marshallIntoObjects(
                     mapper.toParameters(
-                        scanResult.getItems(),
+                        scanResult.items(),
                         clazz,
                         parallelScanTask.getTableName(),
                         config)));

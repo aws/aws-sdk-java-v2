@@ -14,7 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.test.retry;
 
-import com.amazonaws.util.ValidationUtils;
+import software.amazon.awssdk.utils.Validate;
 import org.junit.rules.TestRule;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
@@ -34,7 +34,7 @@ public class RetryRule implements TestRule {
     public RetryRule(int maxRetryAttempts, long delay, TimeUnit timeUnit) {
         this.maxRetryAttempts = maxRetryAttempts;
         this.delay = delay;
-        this.timeUnit = ValidationUtils.assertNotNull(timeUnit, "timeUnit");
+        this.timeUnit = Validate.paramNotNull(timeUnit, "timeUnit");
     }
 
     @Override

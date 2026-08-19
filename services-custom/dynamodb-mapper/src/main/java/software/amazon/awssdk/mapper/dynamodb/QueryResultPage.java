@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.Map;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 
 /**
  * Container for a page of query results

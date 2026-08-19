@@ -32,11 +32,10 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBVersionAttribute;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.util.ImmutableMapParameter;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -253,9 +252,9 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
             try {
             	DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
             	Map<String,ExpectedAttributeValue> expected = new HashMap<String,ExpectedAttributeValue>();
-            	ExpectedAttributeValue expectedVersion = new ExpectedAttributeValue()
-                    .withValue(new AttributeValue()
-                    .withN(obj.getVersion().add(BigInteger.valueOf(1)).toString()));
+            	ExpectedAttributeValue expectedVersion = ExpectedAttributeValue.builder()
+                    .value(AttributeValue.builder()
+                    .n(obj.getVersion().add(BigInteger.valueOf(1)).toString()).build()).build();
             	expected.put("version", expectedVersion);
             	saveExpression.setExpected(expected);
                 util.save(obj, saveExpression);
@@ -367,9 +366,9 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
             try {
                 DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
                 Map<String,ExpectedAttributeValue> expected = new HashMap<String,ExpectedAttributeValue>();
-                ExpectedAttributeValue expectedVersion = new ExpectedAttributeValue()
-                    .withValue(new AttributeValue()
-                    .withN("2"));  //version is still 2 in db
+                ExpectedAttributeValue expectedVersion = ExpectedAttributeValue.builder()
+                    .value(AttributeValue.builder()
+                    .n("2").build()).build();  //version is still 2 in db
                 expected.put("version", expectedVersion);
                 deleteExpression.setExpected(expected);
                 util.delete(obj, deleteExpression);
@@ -394,7 +393,7 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
         // for auto-generated keys.
         DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression()
                 .withExpected(Collections.singletonMap(
-                        "otherAttribute", new ExpectedAttributeValue(false)))
+                        "otherAttribute", ExpectedAttributeValue.builder().exists(false).build()))
                 .withConditionalOperator(ConditionalOperator.AND);
         // The save should succeed since the user provided conditions are joined by AND.
         mapper.save(versionedObject, saveExpression);
@@ -406,7 +405,7 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
         // delete should also work
         DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression()
                 .withExpected(Collections.singletonMap(
-                        "otherAttribute", new ExpectedAttributeValue(false)))
+                        "otherAttribute", ExpectedAttributeValue.builder().exists(false).build()))
                 .withConditionalOperator(ConditionalOperator.AND);
         mapper.delete(versionedObject, deleteExpression);
 
@@ -425,16 +424,12 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
 
         // User-provided OR conditions should work if they completely override
         // the generated conditions for the version field.
-        Map<String, ExpectedAttributeValue> goodConditions =
-                ImmutableMapParameter.of(
-                    "otherAttribute", new ExpectedAttributeValue(false),
-                    "version",        new ExpectedAttributeValue(false)
-                );
-        Map<String, ExpectedAttributeValue> badConditions =
-                ImmutableMapParameter.of(
-                        "otherAttribute", new ExpectedAttributeValue(new AttributeValue("non-existent-value")),
-                        "version",        new ExpectedAttributeValue(new AttributeValue().withN("-1"))
-                );
+        Map<String, ExpectedAttributeValue> goodConditions = new HashMap<String, ExpectedAttributeValue>();
+        goodConditions.put("otherAttribute", ExpectedAttributeValue.builder().exists(false).build());
+        goodConditions.put("version", ExpectedAttributeValue.builder().exists(false).build());
+        Map<String, ExpectedAttributeValue> badConditions = new HashMap<String, ExpectedAttributeValue>();
+        badConditions.put("otherAttribute", ExpectedAttributeValue.builder().value(AttributeValue.builder().s("non-existent-value").build()).build());
+        badConditions.put("version", ExpectedAttributeValue.builder().value(AttributeValue.builder().n("-1").build()).build());
 
         IntegerVersionField newObj = getUniqueObject(new IntegerVersionField());
         saveExpression.setExpected(badConditions);

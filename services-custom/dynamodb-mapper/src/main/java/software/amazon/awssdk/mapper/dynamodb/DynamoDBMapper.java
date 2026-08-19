@@ -14,63 +14,61 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.AmazonWebServiceRequest;
-import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentialsProvider;
-import com.amazonaws.retry.RetryUtils;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.retry.RetryUtils;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.BatchWriteRetryStrategy;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
-import com.amazonaws.services.dynamodbv2.model.AttributeAction;
+import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
 import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.BatchGetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.BatchGetItemResult;
-import com.amazonaws.services.dynamodbv2.model.BatchWriteItemRequest;
-import com.amazonaws.services.dynamodbv2.model.BatchWriteItemResult;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.ConditionCheck;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchWriteItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.ConditionCheck;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.Delete;
-import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteRequest;
+import software.amazon.awssdk.services.dynamodb.model.Delete;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
 import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodbv2.model.Get;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.ItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.Get;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.ItemResponse;
 import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeysAndAttributes;
-import com.amazonaws.services.dynamodbv2.model.Put;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
-import com.amazonaws.services.dynamodbv2.model.PutItemResult;
-import com.amazonaws.services.dynamodbv2.model.PutRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryRequest;
-import com.amazonaws.services.dynamodbv2.model.QueryResult;
-import com.amazonaws.services.dynamodbv2.model.ReturnValue;
-import com.amazonaws.services.dynamodbv2.model.ReturnValuesOnConditionCheckFailure;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
+import software.amazon.awssdk.services.dynamodb.model.Put;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
-import com.amazonaws.services.dynamodbv2.model.Select;
-import com.amazonaws.services.dynamodbv2.model.TransactGetItem;
-import com.amazonaws.services.dynamodbv2.model.TransactGetItemsRequest;
-import com.amazonaws.services.dynamodbv2.model.TransactGetItemsResult;
-import com.amazonaws.services.dynamodbv2.model.TransactWriteItem;
-import com.amazonaws.services.dynamodbv2.model.TransactWriteItemsRequest;
-import com.amazonaws.services.dynamodbv2.model.Update;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
-import com.amazonaws.services.dynamodbv2.model.WriteRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
+import software.amazon.awssdk.services.dynamodb.model.Select;
+import software.amazon.awssdk.services.dynamodb.model.TransactGetItem;
+import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsRequest;
+import software.amazon.awssdk.services.dynamodb.model.TransactGetItemsResponse;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItem;
+import software.amazon.awssdk.services.dynamodb.model.TransactWriteItemsRequest;
+import software.amazon.awssdk.services.dynamodb.model.Update;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 import com.amazonaws.services.s3.model.Region;
-import com.amazonaws.util.VersionInfoUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -90,8 +88,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import static com.amazonaws.services.dynamodbv2.model.KeyType.HASH;
-import static com.amazonaws.services.dynamodbv2.model.KeyType.RANGE;
+import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
+import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.TransactionWriteOperation;
 import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.TransactionWriteOperationType;
 
@@ -208,7 +206,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  */
 public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
-    private final AmazonDynamoDB db;
+    private final DynamoDbClient db;
     private final DynamoDBMapperModelFactory models;
     private final S3Link.Factory s3Links;
 
@@ -228,16 +226,6 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      * same as request items
      */
     static final int BATCH_GET_MAX_RETRY_COUNT_ALL_KEYS = 5;
-
-    /**
-     * User agent for requests made using the {@link DynamoDBMapper}.
-     */
-    private static final String USER_AGENT =
-            DynamoDBMapper.class.getName() + "/" + VersionInfoUtils.getVersion();
-    private static final String USER_AGENT_BATCH_OPERATION  =
-            DynamoDBMapper.class.getName() + "_batch_operation/" + VersionInfoUtils.getVersion();
-    private static final String USER_AGENT_TRANSACTION_OPERATION  =
-            DynamoDBMapper.class.getName() + "_transaction_operation/" + VersionInfoUtils.getVersion();
 
     private static final Log log = LogFactory.getLog(DynamoDBMapper.class);
 
@@ -286,7 +274,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      *            The service object to use for all service calls.
      * @see DynamoDBMapperConfig#DEFAULT
      */
-    public DynamoDBMapper(final AmazonDynamoDB dynamoDB) {
+    public DynamoDBMapper(final DynamoDbClient dynamoDB) {
         this(dynamoDB, DynamoDBMapperConfig.DEFAULT, null, null);
     }
 
@@ -300,7 +288,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      *            be overridden on a per-operation basis.
      */
     public DynamoDBMapper(
-            final AmazonDynamoDB dynamoDB,
+            final DynamoDbClient dynamoDB,
             final DynamoDBMapperConfig config) {
 
         this(dynamoDB, config, null, null);
@@ -318,7 +306,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @see DynamoDBMapperConfig#DEFAULT
      */
     public DynamoDBMapper(
-            final AmazonDynamoDB ddb,
+            final DynamoDbClient ddb,
             final AWSCredentialsProvider s3CredentialProvider) {
 
         this(ddb, DynamoDBMapperConfig.DEFAULT, s3CredentialProvider);
@@ -338,7 +326,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      *            deserializing an object.
      */
     public DynamoDBMapper(
-            final AmazonDynamoDB dynamoDB,
+            final DynamoDbClient dynamoDB,
             final DynamoDBMapperConfig config,
             final AttributeTransformer transformer) {
 
@@ -359,7 +347,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      *            Relevant only if {@link S3Link} is involved.
      */
     public DynamoDBMapper(
-            final AmazonDynamoDB dynamoDB,
+            final DynamoDbClient dynamoDB,
             final DynamoDBMapperConfig config,
             final AWSCredentialsProvider s3CredentialProvider) {
 
@@ -394,7 +382,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      *            Relevant only if {@link S3Link} is involved.
      */
     public DynamoDBMapper(
-            final AmazonDynamoDB dynamoDB,
+            final DynamoDbClient dynamoDB,
             final DynamoDBMapperConfig config,
             final AttributeTransformer transformer,
             final AWSCredentialsProvider s3CredentialsProvider) {
@@ -425,19 +413,17 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         String tableName = getTableName(clazz, keyObject, config);
 
-        GetItemRequest rq = new GetItemRequest()
-            .withRequestMetricCollector(config.getRequestMetricCollector());
-
         Map<String, AttributeValue> key = model.convertKey(keyObject);
 
-        rq.setKey(key);
-        rq.setTableName(tableName);
-        rq.setConsistentRead(config.getConsistentReads() == ConsistentReads.CONSISTENT);
+        GetItemRequest rq = GetItemRequest.builder()
+            .key(key)
+            .tableName(tableName)
+            .consistentRead(config.getConsistentReads() == ConsistentReads.CONSISTENT)
+            .build();
 
-
-        GetItemResult item = db.getItem(applyUserAgent(rq));
-        Map<String, AttributeValue> itemAttributes = item.getItem();
-        if ( itemAttributes == null ) {
+        GetItemResponse item = db.getItem(rq);
+        Map<String, AttributeValue> itemAttributes = item.item();
+        if ( itemAttributes == null || itemAttributes.isEmpty() ) {
             return null;
         }
 
@@ -541,8 +527,8 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                         AttributeValue keyAttributeValue) {
                     /* Treat key values as common attribute value updates. */
                     getAttributeValueUpdates().put(attributeName,
-                            new AttributeValueUpdate().withValue(keyAttributeValue)
-                                    .withAction("PUT"));
+                            AttributeValueUpdate.builder().value(keyAttributeValue)
+                                    .action("PUT").build());
                 }
 
                 /* Use default implementation of onNonKeyAttribute(...) */
@@ -578,13 +564,13 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                      * we do an "ADD" update instead of the default "PUT".
                      */
                     if (getLocalSaveBehavior() == SaveBehavior.APPEND_SET) {
-                        if (currentValue.getBS() != null
-                                || currentValue.getNS() != null
-                                || currentValue.getSS() != null) {
+                        if (currentValue.hasBs()
+                                || currentValue.hasNs()
+                                || currentValue.hasSs()) {
                             getAttributeValueUpdates().put(
                                     attributeName,
-                                    new AttributeValueUpdate().withValue(
-                                            currentValue).withAction("ADD"));
+                                    AttributeValueUpdate.builder().value(
+                                            currentValue).action("ADD").build());
                             return;
                         }
                     }
@@ -607,34 +593,34 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                         /* Delete attributes that are set as null in the object. */
                         getAttributeValueUpdates()
                                 .put(attributeName,
-                                        new AttributeValueUpdate()
-                                                .withAction("DELETE"));
+                                        AttributeValueUpdate.builder()
+                                                .action("DELETE").build());
                     }
                 }
 
                 @Override
                 protected void executeLowLevelRequest() {
-                    UpdateItemResult updateItemResult = doUpdateItem();
+                    UpdateItemResponse updateItemResult = doUpdateItem();
 
                     // The UpdateItem request is specified to return ALL_NEW
                     // attributes of the affected item. So if the returned
-                    // UpdateItemResult does not include any ReturnedAttributes,
+                    // UpdateItemResponse does not include any ReturnedAttributes,
                     // it indicates the UpdateItem failed silently (e.g. the
                     // key-only-put nightmare -
                     // https://forums.aws.amazon.com/thread.jspa?threadID=86798&tstart=25),
                     // in which case we should re-send a PutItem
                     // request instead.
-                    if (updateItemResult.getAttributes() == null
-                            || updateItemResult.getAttributes().isEmpty()) {
+                    if (!updateItemResult.hasAttributes()
+                            || updateItemResult.attributes().isEmpty()) {
                         // Before we proceed with PutItem, we need to put all
                         // the key attributes (prepared for the
                         // UpdateItemRequest) into the AttributeValueUpdates
                         // collection.
                         for (String keyAttributeName : getPrimaryKeyAttributeValues().keySet()) {
                             getAttributeValueUpdates().put(keyAttributeName,
-                                    new AttributeValueUpdate()
-                                            .withValue(getPrimaryKeyAttributeValues().get(keyAttributeName))
-                                            .withAction("PUT"));
+                                    AttributeValueUpdate.builder()
+                                            .value(getPrimaryKeyAttributeValues().get(keyAttributeName))
+                                            .action("PUT").build());
                         }
 
                         doPutItem();
@@ -789,8 +775,8 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
          *            The updated value of the given attribute.
          */
         protected void onNonKeyAttribute(String attributeName, AttributeValue currentValue) {
-            updateValues.put(attributeName, new AttributeValueUpdate()
-                    .withValue(currentValue).withAction("PUT"));
+            updateValues.put(attributeName, AttributeValueUpdate.builder()
+                    .value(currentValue).action("PUT").build());
         }
 
         /**
@@ -858,23 +844,23 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
          * of the new version of the item after the update. The handler will use
          * the returned attributes to detect silent failure on the server-side.
          */
-        protected UpdateItemResult doUpdateItem() {
-            UpdateItemRequest req = new UpdateItemRequest()
-                    .withTableName(getTableName())
-                    .withKey(getPrimaryKeyAttributeValues())
-                    .withAttributeUpdates(
+        protected UpdateItemResponse doUpdateItem() {
+            UpdateItemRequest req = UpdateItemRequest.builder()
+                    .tableName(getTableName())
+                    .key(getPrimaryKeyAttributeValues())
+                    .attributeUpdates(
                             transformAttributeUpdates(
                                     this.clazz,
                                     getTableName(),
                                     getPrimaryKeyAttributeValues(),
                                     getAttributeValueUpdates(),
                                     saveConfig))
-                    .withExpected(mergeExpectedAttributeValueConditions())
-                    .withConditionalOperator(userProvidedConditionOperator)
-                    .withReturnValues(ReturnValue.ALL_NEW)
-                    .withRequestMetricCollector(saveConfig.getRequestMetricCollector());
+                    .expected(mergeExpectedAttributeValueConditions())
+                    .conditionalOperator(userProvidedConditionOperator)
+                    .returnValues(ReturnValue.ALL_NEW)
+                    .build();
 
-            return db.updateItem(applyUserAgent(req));
+            return db.updateItem(req);
         }
 
         /**
@@ -888,7 +874,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
          *          that we used to handle by the keyOnlyPut(...) hack.
          * </ul>
          */
-        protected PutItemResult doPutItem() {
+        protected PutItemResponse doPutItem() {
             Map<String, AttributeValue> attributeValues = convertToItem(getAttributeValueUpdates());
 
             attributeValues = transformAttributes(
@@ -896,14 +882,14 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                                  this.clazz,
                                  getTableName(),
                                  saveConfig));
-            PutItemRequest req = new PutItemRequest()
-                    .withTableName(getTableName())
-                    .withItem(attributeValues)
-                    .withExpected(mergeExpectedAttributeValueConditions())
-                    .withConditionalOperator(userProvidedConditionOperator)
-                    .withRequestMetricCollector(saveConfig.getRequestMetricCollector());
+            PutItemRequest req = PutItemRequest.builder()
+                    .tableName(getTableName())
+                    .item(attributeValues)
+                    .expected(mergeExpectedAttributeValueConditions())
+                    .conditionalOperator(userProvidedConditionOperator)
+                    .build();
 
-            return db.putItem(applyUserAgent(req));
+            return db.putItem(req);
         }
 
         /**
@@ -912,7 +898,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
          */
         private void onAutoGenerate(DynamoDBMapperFieldModel<Object,Object> field) {
             AttributeValue value = field.convert(field.generate(field.get(object)));
-            updateValues.put(field.name(),  new AttributeValueUpdate().withAction("PUT").withValue(value));
+            updateValues.put(field.name(), AttributeValueUpdate.builder().action("PUT").value(value).build());
             inMemoryUpdates.add(new ValueUpdate(field, value, object));
         }
 
@@ -929,7 +915,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                 // Add an expect clause to make sure that the item
                 // doesn't already exist, since it's supposed to be new
                 internalExpectedValueAssertions.put(field.name(),
-                                                    new ExpectedAttributeValue().withExists(false));
+                                                    ExpectedAttributeValue.builder().exists(false).build());
             }
         }
 
@@ -947,10 +933,10 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                 final Object current = field.get(object);
                 if (current == null) {
                     internalExpectedValueAssertions.put(field.name(),
-                        new ExpectedAttributeValue().withExists(false));
+                        ExpectedAttributeValue.builder().exists(false).build());
                 } else {
                     internalExpectedValueAssertions.put(field.name(),
-                        new ExpectedAttributeValue().withExists(true).withValue(field.convert(current)));
+                        ExpectedAttributeValue.builder().exists(true).value(field.convert(current)).build());
                 }
             }
 
@@ -966,8 +952,8 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             Map<String, AttributeValue> map = new HashMap<String, AttributeValue>();
             for ( Entry<String, AttributeValueUpdate> entry : putValues.entrySet() ) {
                 String attributeName = entry.getKey();
-                AttributeValue attributeValue = entry.getValue().getValue();
-                String attributeAction = entry.getValue().getAction();
+                AttributeValue attributeValue = entry.getValue().value();
+                String attributeAction = entry.getValue().actionAsString();
 
                 /*
                  * AttributeValueUpdate allows nulls for its values, since they are
@@ -1018,21 +1004,14 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
                 AttributeValueUpdate update = updateValues.get(entry.getKey());
                 if (update != null) {
-                    update.getValue()
-                        .withB(entry.getValue().getB())
-                        .withBS(entry.getValue().getBS())
-                        .withN(entry.getValue().getN())
-                        .withNS(entry.getValue().getNS())
-                        .withS(entry.getValue().getS())
-                        .withSS(entry.getValue().getSS())
-                        .withM(entry.getValue().getM())
-                        .withL(entry.getValue().getL())
-                        .withNULL(entry.getValue().getNULL())
-                        .withBOOL(entry.getValue().getBOOL());
+                    updateValues.put(entry.getKey(),
+                                     update.toBuilder().value(entry.getValue()).build());
                 } else {
                     updateValues.put(entry.getKey(),
-                                     new AttributeValueUpdate(entry.getValue(),
-                                                              "PUT"));
+                                     AttributeValueUpdate.builder()
+                                             .value(entry.getValue())
+                                             .action("PUT")
+                                             .build());
                 }
             }
 
@@ -1062,60 +1041,58 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             for ( final DynamoDBMapperFieldModel<T,Object> field : model.versions() ) {
                 final AttributeValue current = field.getAndConvert(object);
                 if (current == null) {
-                    internalAssertions.put(field.name(), new ExpectedAttributeValue(false));
+                    internalAssertions.put(field.name(), ExpectedAttributeValue.builder().exists(false).build());
                 } else {
-                    internalAssertions.put(field.name(), new ExpectedAttributeValue(true).withValue(current));
+                    internalAssertions.put(field.name(), ExpectedAttributeValue.builder().exists(true).value(current).build());
                 }
                 break;
             }
         }
 
-        DeleteItemRequest req = new DeleteItemRequest().withKey(key)
-                .withTableName(tableName).withExpected(internalAssertions)
-                .withRequestMetricCollector(config.getRequestMetricCollector());
+        DeleteItemRequest.Builder reqBuilder = DeleteItemRequest.builder()
+                .key(key)
+                .tableName(tableName)
+                .expected(internalAssertions);
 
         if (deleteExpression != null) {
             String conditionalExpression = deleteExpression.getConditionExpression();
 
             if (conditionalExpression != null) {
                 if (internalAssertions != null && !internalAssertions.isEmpty()) {
-                    throw new SdkClientException(
+                    throw SdkClientException.create(
                             "Condition Expressions cannot be used if a versioned attribute is present");
                 }
 
-                req = req
-                        .withConditionExpression(conditionalExpression)
-                        .withExpressionAttributeNames(
+                reqBuilder = reqBuilder
+                        .conditionExpression(conditionalExpression)
+                        .expressionAttributeNames(
                                 deleteExpression.getExpressionAttributeNames())
-                        .withExpressionAttributeValues(
+                        .expressionAttributeValues(
                                 deleteExpression.getExpressionAttributeValues());
             }
 
-            req = req.withExpected(
+            reqBuilder = reqBuilder.expected(
                     mergeExpectedAttributeValueConditions(internalAssertions,
                             deleteExpression.getExpected(),
                             deleteExpression.getConditionalOperator()))
-                    .withConditionalOperator(
+                    .conditionalOperator(
                             deleteExpression.getConditionalOperator());
 
         }
-        db.deleteItem(applyUserAgent(req));
+        db.deleteItem(reqBuilder.build());
     }
 
     @Override
     public void transactionWrite(TransactionWriteRequest transactionWriteRequest, DynamoDBMapperConfig config) {
         if (transactionWriteRequest == null || isNullOrEmpty(transactionWriteRequest.getTransactionWriteOperations())) {
-            throw new SdkClientException("Input request is null or empty");
+            throw SdkClientException.create("Input request is null or empty");
         }
 
         final DynamoDBMapperConfig finalConfig = mergeConfig(config);
 
         List<TransactionWriteOperation> writeOperations = transactionWriteRequest.getTransactionWriteOperations();
         List<ValueUpdate> inMemoryUpdates = new LinkedList<ValueUpdate>();
-        TransactWriteItemsRequest transactWriteItemsRequest = new TransactWriteItemsRequest();
         List<TransactWriteItem> transactWriteItems = new ArrayList<TransactWriteItem>();
-
-        transactWriteItemsRequest.setClientRequestToken(transactionWriteRequest.getIdempotencyToken());
 
         for (TransactionWriteOperation writeOperation : writeOperations) {
             transactWriteItems.add(generateTransactWriteItem(writeOperation,
@@ -1124,9 +1101,12 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         }
 
-        transactWriteItemsRequest.setTransactItems(transactWriteItems);
+        TransactWriteItemsRequest transactWriteItemsRequest = TransactWriteItemsRequest.builder()
+                .clientRequestToken(transactionWriteRequest.getIdempotencyToken())
+                .transactItems(transactWriteItems)
+                .build();
 
-        db.transactWriteItems(applyTransactionOperationUserAgent(transactWriteItemsRequest));
+        db.transactWriteItems(transactWriteItemsRequest);
 
         // Update the inMemory values for autogenerated attributeValues after successful completion of transaction
         for (ValueUpdate update : inMemoryUpdates) {
@@ -1159,32 +1139,31 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             final DynamoDBMapperTableModel<Object> model = getTableModel(clazz, finalConfig);
 
             Map<String, AttributeValue> key = model.convertKey(objectToLoad);
-            TransactGetItem transactGetItem = new TransactGetItem();
-            Get getItem = new Get();
-            getItem.setTableName(tableName);
-            getItem.setKey(key);
+            Get.Builder getItem = Get.builder()
+                    .tableName(tableName)
+                    .key(key);
             if (expressionForLoad != null) {
-                getItem.setExpressionAttributeNames(expressionForLoad.getExpressionAttributeNames());
-                getItem.setProjectionExpression(expressionForLoad.getProjectionExpression());
+                getItem.expressionAttributeNames(expressionForLoad.getExpressionAttributeNames());
+                getItem.projectionExpression(expressionForLoad.getProjectionExpression());
             }
-            transactGetItem.setGet(getItem);
-            transactGetItems.add(transactGetItem);
+            transactGetItems.add(TransactGetItem.builder().get(getItem.build()).build());
         }
 
-        TransactGetItemsRequest transactGetItemsRequest = new TransactGetItemsRequest();
-        transactGetItemsRequest.withTransactItems(transactGetItems);
-        TransactGetItemsResult transactGetItemsResult = db.transactGetItems(applyTransactionOperationUserAgent(transactGetItemsRequest));
-        List<ItemResponse> responseItems = transactGetItemsResult.getResponses();
+        TransactGetItemsRequest transactGetItemsRequest = TransactGetItemsRequest.builder()
+                .transactItems(transactGetItems)
+                .build();
+        TransactGetItemsResponse transactGetItemsResult = db.transactGetItems(transactGetItemsRequest);
+        List<ItemResponse> responseItems = transactGetItemsResult.responses();
 
         List<Object> resultObjects = new ArrayList<Object>();
 
         for (int i = 0 ; i < responseItems.size(); i++) {
-            if (responseItems.get(i).getItem() == null) {
+            if (!responseItems.get(i).hasItem()) {
                 resultObjects.add(null);
             } else {
                 resultObjects.add(
                         privateMarshallIntoObject(
-                                toParameters(responseItems.get(i).getItem(),
+                                toParameters(responseItems.get(i).item(),
                                              classList.get(i),
                                              tableNameList.get(i),
                                              finalConfig)));
@@ -1233,7 +1212,9 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             AttributeTransformer.Parameters<?> parameters =
                 toParameters(attributeValues, clazz, tableName, config);
 
-            requestItems.add(tableName, new WriteRequest(new PutRequest(transformAttributes(parameters))));
+            requestItems.add(tableName, WriteRequest.builder()
+                    .putRequest(PutRequest.builder().item(transformAttributes(parameters)).build())
+                    .build());
         }
 
         for ( Object toDelete : objectsToDelete ) {
@@ -1244,7 +1225,9 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
             Map<String, AttributeValue> key = model.convertKey(toDelete);
 
-            requestItems.add(tableName, new WriteRequest(new DeleteRequest(key)));
+            requestItems.add(tableName, WriteRequest.builder()
+                    .deleteRequest(DeleteRequest.builder().key(key).build())
+                    .build());
         }
 
         // Break into chunks of 25 items and make service requests to DynamoDB
@@ -1325,7 +1308,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             Map<String, List<WriteRequest>> batch,
             BatchWriteRetryStrategy batchWriteRetryStrategy) {
 
-        BatchWriteItemResult result = null;
+        BatchWriteItemResponse result = null;
         int retries = 0;
         int maxRetries = batchWriteRetryStrategy
                 .getMaxRetryOnUnprocessedItems(Collections
@@ -1336,15 +1319,14 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         while (true) {
             try {
-                result = db.batchWriteItem(applyBatchOperationUserAgent(
-                        new BatchWriteItemRequest().withRequestItems(pendingItems)));
+                result = db.batchWriteItem(BatchWriteItemRequest.builder().requestItems(pendingItems).build());
             } catch (Exception e) {
                 failedBatch = new FailedBatch();
                 failedBatch.setUnprocessedItems(pendingItems);
                 failedBatch.setException(e);
                 return failedBatch;
             }
-            pendingItems = result.getUnprocessedItems();
+            pendingItems = result.unprocessedItems();
 
             if (pendingItems.size() > 0) {
 
@@ -1375,7 +1357,8 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             return new HashMap<String, List<Object>>();
         }
 
-        Map<String, KeysAndAttributes> requestItems = new HashMap<String, KeysAndAttributes>();
+        Map<String, List<Map<String, AttributeValue>>> keysByTableName =
+                new HashMap<String, List<Map<String, AttributeValue>>>();
         Map<String, Class<?>> classesByTableName = new HashMap<String, Class<?>>();
         Map<String, List<Object>> resultSet = new HashMap<String, List<Object>>();
         int count = 0;
@@ -1387,28 +1370,39 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             String tableName = getTableName(clazz, keyObject, config);
             classesByTableName.put(tableName, clazz);
 
-            if ( !requestItems.containsKey(tableName) ) {
-                requestItems.put(
-                        tableName,
-                        new KeysAndAttributes().withConsistentRead(consistentReads).withKeys(
-                                new LinkedList<Map<String, AttributeValue>>()));
+            if ( !keysByTableName.containsKey(tableName) ) {
+                keysByTableName.put(tableName, new LinkedList<Map<String, AttributeValue>>());
             }
 
-            requestItems.get(tableName).getKeys().add(model.convertKey(keyObject));
+            keysByTableName.get(tableName).add(model.convertKey(keyObject));
 
             // Reach the maximum number which can be handled in a single batchGet
             if ( ++count == 100 ) {
-                processBatchGetRequest(classesByTableName, requestItems, resultSet, config);
-                requestItems.clear();
+                processBatchGetRequest(classesByTableName, buildKeysAndAttributes(keysByTableName, consistentReads),
+                        resultSet, config);
+                keysByTableName.clear();
                 count = 0;
             }
         }
 
         if ( count > 0 ) {
-            processBatchGetRequest(classesByTableName, requestItems, resultSet, config);
+            processBatchGetRequest(classesByTableName, buildKeysAndAttributes(keysByTableName, consistentReads),
+                    resultSet, config);
         }
 
         return resultSet;
+    }
+
+    private static Map<String, KeysAndAttributes> buildKeysAndAttributes(
+            Map<String, List<Map<String, AttributeValue>>> keysByTableName, boolean consistentReads) {
+        Map<String, KeysAndAttributes> requestItems = new HashMap<String, KeysAndAttributes>();
+        for (Map.Entry<String, List<Map<String, AttributeValue>>> entry : keysByTableName.entrySet()) {
+            requestItems.put(entry.getKey(), KeysAndAttributes.builder()
+                    .consistentRead(consistentReads)
+                    .keys(entry.getValue())
+                    .build());
+        }
+        return requestItems;
     }
 
     @Override
@@ -1437,10 +1431,10 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             final Map<String, List<Object>> resultSet,
             final DynamoDBMapperConfig config) {
 
-        BatchGetItemResult batchGetItemResult = null;
-        BatchGetItemRequest batchGetItemRequest = new BatchGetItemRequest()
-            .withRequestMetricCollector(config.getRequestMetricCollector());
-        batchGetItemRequest.setRequestItems(requestItems);
+        BatchGetItemResponse batchGetItemResult = null;
+        BatchGetItemRequest batchGetItemRequest = BatchGetItemRequest.builder()
+            .requestItems(requestItems)
+            .build();
 
         BatchLoadRetryStrategy batchLoadStrategy = config.getBatchLoadRetryStrategy();
 
@@ -1452,17 +1446,18 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             if ( batchGetItemResult != null ) {
                 retries++;
                 batchLoadContext.setRetriesAttempted(retries);
-                if (!isNullOrEmpty(batchGetItemResult.getUnprocessedKeys())) {
+                if (!isNullOrEmpty(batchGetItemResult.unprocessedKeys())) {
                     pause(batchLoadStrategy.getDelayBeforeNextRetry(batchLoadContext));
-                    batchGetItemRequest.setRequestItems(
-                        batchGetItemResult.getUnprocessedKeys());
+                    batchGetItemRequest = batchGetItemRequest.toBuilder()
+                        .requestItems(batchGetItemResult.unprocessedKeys())
+                        .build();
+                    batchLoadContext.setBatchGetItemRequest(batchGetItemRequest);
                 }
             }
 
-            batchGetItemResult = db.batchGetItem(
-                    applyBatchOperationUserAgent(batchGetItemRequest));
+            batchGetItemResult = db.batchGetItem(batchGetItemRequest);
 
-            Map<String, List<Map<String, AttributeValue>>> responses = batchGetItemResult.getResponses();
+            Map<String, List<Map<String, AttributeValue>>> responses = batchGetItemResult.responses();
             for ( String tableName : responses.keySet() ) {
                 List<Object> objects = null;
                 if ( resultSet.get(tableName) != null ) {
@@ -1487,10 +1482,10 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             // the number of unprocessed keys and  Batch Load Strategy will drive the number of retries
         } while ( batchLoadStrategy.shouldRetry(batchLoadContext) );
 
-        if (!isNullOrEmpty(batchGetItemResult.getUnprocessedKeys())) {
+        if (!isNullOrEmpty(batchGetItemResult.unprocessedKeys())) {
             throw new BatchGetItemException(
                     "The BatchGetItemResult has unprocessed keys after max retry attempts. Catch the BatchGetItemException to get the list of unprocessed keys.",
-                    batchGetItemResult.getUnprocessedKeys(), resultSet);
+                    batchGetItemResult.unprocessedKeys(), resultSet);
         }
     }
 
@@ -1500,6 +1495,12 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
     private static <T> boolean isNullOrEmpty(List<T> list) {
         return list == null || list.isEmpty();
+    }
+
+    /** Normalizes v2's empty (non-null) final-page LastEvaluatedKey back to null per the ResultPage contract. */
+    private static Map<String, AttributeValue> lastEvaluatedKeyOrNull(boolean hasLastEvaluatedKey,
+                                                                      Map<String, AttributeValue> lastEvaluatedKey) {
+        return hasLastEvaluatedKey && !lastEvaluatedKey.isEmpty() ? lastEvaluatedKey : null;
     }
 
     /**
@@ -1573,7 +1574,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         ScanRequest scanRequest = createScanRequestFromExpression(clazz, scanExpression, config);
 
-        ScanResult scanResult = db.scan(applyUserAgent(scanRequest));
+        ScanResponse scanResult = db.scan(scanRequest);
         return new PaginatedScanList<T>(this, clazz, db, scanRequest, scanResult, config.getPaginationLoadingStrategy(), config);
     }
 
@@ -1599,16 +1600,16 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         ScanRequest scanRequest = createScanRequestFromExpression(clazz, scanExpression, config);
 
-        ScanResult scanResult = db.scan(applyUserAgent(scanRequest));
+        ScanResponse scanResult = db.scan(scanRequest);
         ScanResultPage<T> result = new ScanResultPage<T>();
         List<AttributeTransformer.Parameters<T>> parameters =
-            toParameters(scanResult.getItems(), clazz, scanRequest.getTableName(), config);
+            toParameters(scanResult.items(), clazz, scanRequest.tableName(), config);
 
         result.setResults(marshallIntoObjects(parameters));
-        result.setLastEvaluatedKey(scanResult.getLastEvaluatedKey());
-        result.setCount(scanResult.getCount());
-        result.setScannedCount(scanResult.getScannedCount());
-        result.setConsumedCapacity(scanResult.getConsumedCapacity());
+        result.setLastEvaluatedKey(lastEvaluatedKeyOrNull(scanResult.hasLastEvaluatedKey(), scanResult.lastEvaluatedKey()));
+        result.setCount(scanResult.count());
+        result.setScannedCount(scanResult.scannedCount());
+        result.setConsumedCapacity(scanResult.consumedCapacity());
 
         return result;
     }
@@ -1621,7 +1622,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         QueryRequest queryRequest = createQueryRequestFromExpression(clazz, queryExpression, config);
 
-        QueryResult queryResult = db.query(applyUserAgent(queryRequest));
+        QueryResponse queryResult = db.query(queryRequest);
         return new PaginatedQueryList<T>(this, clazz, db, queryRequest, queryResult, config.getPaginationLoadingStrategy(), config);
     }
 
@@ -1633,17 +1634,17 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         QueryRequest queryRequest = createQueryRequestFromExpression(clazz, queryExpression, config);
 
-        QueryResult queryResult = db.query(applyUserAgent(queryRequest));
+        QueryResponse queryResult = db.query(queryRequest);
         QueryResultPage<T> result = new QueryResultPage<T>();
 
         List<AttributeTransformer.Parameters<T>> parameters =
-            toParameters(queryResult.getItems(), clazz, queryRequest.getTableName(), config);
+            toParameters(queryResult.items(), clazz, queryRequest.tableName(), config);
 
         result.setResults(marshallIntoObjects(parameters));
-        result.setLastEvaluatedKey(queryResult.getLastEvaluatedKey());
-        result.setCount(queryResult.getCount());
-        result.setScannedCount(queryResult.getScannedCount());
-        result.setConsumedCapacity(queryResult.getConsumedCapacity());
+        result.setLastEvaluatedKey(lastEvaluatedKeyOrNull(queryResult.hasLastEvaluatedKey(), queryResult.lastEvaluatedKey()));
+        result.setCount(queryResult.count());
+        result.setScannedCount(queryResult.scannedCount());
+        result.setConsumedCapacity(queryResult.consumedCapacity());
 
         return result;
     }
@@ -1652,17 +1653,17 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
     public int count(Class<?> clazz, DynamoDBScanExpression scanExpression, DynamoDBMapperConfig config) {
         config = mergeConfig(config);
 
-        ScanRequest scanRequest = createScanRequestFromExpression(clazz, scanExpression, config);
-        scanRequest.setSelect(Select.COUNT);
+        ScanRequest scanRequest = createScanRequestFromExpression(clazz, scanExpression, config)
+                .toBuilder().select(Select.COUNT).build();
 
         // Count scans can also be truncated for large datasets
         int count = 0;
-        ScanResult scanResult = null;
+        ScanResponse scanResult = null;
         do {
-            scanResult = db.scan(applyUserAgent(scanRequest));
-            count += scanResult.getCount();
-            scanRequest.setExclusiveStartKey(scanResult.getLastEvaluatedKey());
-        } while (scanResult.getLastEvaluatedKey() != null);
+            scanResult = db.scan(scanRequest);
+            count += scanResult.count();
+            scanRequest = scanRequest.toBuilder().exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
+        } while (scanResult.hasLastEvaluatedKey() && !scanResult.lastEvaluatedKey().isEmpty());
 
         return count;
     }
@@ -1671,17 +1672,17 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
     public <T> int count(Class<T> clazz, DynamoDBQueryExpression<T> queryExpression, DynamoDBMapperConfig config) {
         config = mergeConfig(config);
 
-        QueryRequest queryRequest = createQueryRequestFromExpression(clazz, queryExpression, config);
-        queryRequest.setSelect(Select.COUNT);
+        QueryRequest queryRequest = createQueryRequestFromExpression(clazz, queryExpression, config)
+                .toBuilder().select(Select.COUNT).build();
 
         // Count queries can also be truncated for large datasets
         int count = 0;
-        QueryResult queryResult = null;
+        QueryResponse queryResult = null;
         do {
-            queryResult = db.query(applyUserAgent(queryRequest));
-            count += queryResult.getCount();
-            queryRequest.setExclusiveStartKey(queryResult.getLastEvaluatedKey());
-        } while (queryResult.getLastEvaluatedKey() != null);
+            queryResult = db.query(queryRequest);
+            count += queryResult.count();
+            queryRequest = queryRequest.toBuilder().exclusiveStartKey(queryResult.lastEvaluatedKey()).build();
+        } while (queryResult.hasLastEvaluatedKey() && !queryResult.lastEvaluatedKey().isEmpty());
 
         return count;
     }
@@ -1690,28 +1691,23 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @param config never null
      */
     private ScanRequest createScanRequestFromExpression(Class<?> clazz, DynamoDBScanExpression scanExpression, DynamoDBMapperConfig config) {
-        ScanRequest scanRequest = new ScanRequest();
-
-        scanRequest.setTableName(getTableName(clazz, config));
-        scanRequest.setIndexName(scanExpression.getIndexName());
-        scanRequest.setScanFilter(scanExpression.getScanFilter());
-        scanRequest.setLimit(scanExpression.getLimit());
-        scanRequest.setExclusiveStartKey(scanExpression.getExclusiveStartKey());
-        scanRequest.setTotalSegments(scanExpression.getTotalSegments());
-        scanRequest.setSegment(scanExpression.getSegment());
-        scanRequest.setConditionalOperator(scanExpression.getConditionalOperator());
-        scanRequest.setFilterExpression(scanExpression.getFilterExpression());
-        scanRequest.setExpressionAttributeNames(scanExpression
-                .getExpressionAttributeNames());
-        scanRequest.setExpressionAttributeValues(scanExpression
-                .getExpressionAttributeValues());
-        scanRequest.setRequestMetricCollector(config.getRequestMetricCollector());
-        scanRequest.setSelect(scanExpression.getSelect());
-        scanRequest.setProjectionExpression(scanExpression.getProjectionExpression());
-        scanRequest.setReturnConsumedCapacity(scanExpression.getReturnConsumedCapacity());
-        scanRequest.setConsistentRead(scanExpression.isConsistentRead());
-
-        return applyUserAgent(scanRequest);
+        return ScanRequest.builder()
+                .tableName(getTableName(clazz, config))
+                .indexName(scanExpression.getIndexName())
+                .scanFilter(scanExpression.getScanFilter())
+                .limit(scanExpression.getLimit())
+                .exclusiveStartKey(scanExpression.getExclusiveStartKey())
+                .totalSegments(scanExpression.getTotalSegments())
+                .segment(scanExpression.getSegment())
+                .conditionalOperator(scanExpression.getConditionalOperator())
+                .filterExpression(scanExpression.getFilterExpression())
+                .expressionAttributeNames(scanExpression.getExpressionAttributeNames())
+                .expressionAttributeValues(scanExpression.getExpressionAttributeValues())
+                .select(scanExpression.getSelect())
+                .projectionExpression(scanExpression.getProjectionExpression())
+                .returnConsumedCapacity(scanExpression.getReturnConsumedCapacity())
+                .consistentRead(scanExpression.isConsistentRead())
+                .build();
     }
 
     /**
@@ -1732,9 +1728,10 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         List<ScanRequest> parallelScanRequests= new LinkedList<ScanRequest>();
         for (int segment = 0; segment < totalSegments; segment++) {
             ScanRequest scanRequest = createScanRequestFromExpression(clazz, scanExpression, config);
-            parallelScanRequests.add(scanRequest
-                    .withSegment(segment).withTotalSegments(totalSegments)
-                    .withExclusiveStartKey(null));
+            parallelScanRequests.add(scanRequest.toBuilder()
+                    .segment(segment).totalSegments(totalSegments)
+                    .exclusiveStartKey(null)
+                    .build());
         }
         return parallelScanRequests;
     }
@@ -1744,28 +1741,27 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         final DynamoDBMapperTableModel<T> model = getTableModel(clazz, config);
 
-        QueryRequest req = new QueryRequest();
-        req.setConsistentRead(xpress.isConsistentRead());
-        req.setTableName(getTableName(clazz, xpress.getHashKeyValues(), config));
-        req.setIndexName(xpress.getIndexName());
+        QueryRequest.Builder req = QueryRequest.builder();
+        req.consistentRead(xpress.isConsistentRead());
+        req.tableName(getTableName(clazz, xpress.getHashKeyValues(), config));
+        req.indexName(xpress.getIndexName());
 
-        req.setKeyConditionExpression(xpress.getKeyConditionExpression());
+        req.keyConditionExpression(xpress.getKeyConditionExpression());
         processKeyConditions(req, xpress, model);
 
-        req.withScanIndexForward(xpress.isScanIndexForward())
-           .withLimit(xpress.getLimit())
-           .withExclusiveStartKey(xpress.getExclusiveStartKey())
-           .withQueryFilter(xpress.getQueryFilter())
-           .withConditionalOperator(xpress.getConditionalOperator())
-           .withSelect(xpress.getSelect())
-           .withProjectionExpression(xpress.getProjectionExpression())
-           .withFilterExpression(xpress.getFilterExpression())
-           .withExpressionAttributeNames(xpress.getExpressionAttributeNames())
-           .withExpressionAttributeValues(xpress.getExpressionAttributeValues())
-           .withReturnConsumedCapacity(xpress.getReturnConsumedCapacity())
-           .withRequestMetricCollector(config.getRequestMetricCollector())
+        req.scanIndexForward(xpress.isScanIndexForward())
+           .limit(xpress.getLimit())
+           .exclusiveStartKey(xpress.getExclusiveStartKey())
+           .queryFilter(xpress.getQueryFilter())
+           .conditionalOperator(xpress.getConditionalOperator())
+           .select(xpress.getSelect())
+           .projectionExpression(xpress.getProjectionExpression())
+           .filterExpression(xpress.getFilterExpression())
+           .expressionAttributeNames(xpress.getExpressionAttributeNames())
+           .expressionAttributeValues(xpress.getExpressionAttributeValues())
+           .returnConsumedCapacity(xpress.getReturnConsumedCapacity())
            ;
-        return applyUserAgent(req);
+        return req.build();
     }
 
     /**
@@ -1787,7 +1783,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      *            allow at most one range key condition.
      */
     private static <T> void processKeyConditions(
-        final QueryRequest queryRequest,
+        final QueryRequest.Builder queryRequest,
         final DynamoDBQueryExpression<T> expression,
         final DynamoDBMapperTableModel<T> model
     ) {
@@ -1808,7 +1804,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         final Map<String, Condition> rangeKeyConditions = expression.getRangeKeyConditions();
 
         // There should be least one hash key condition.
-        final String keyCondExpression = queryRequest.getKeyConditionExpression();
+        final String keyCondExpression = expression.getKeyConditionExpression();
         if (keyCondExpression == null) {
             if (isNullOrEmpty(hashKeyConditions)) {
                 throw new IllegalArgumentException(
@@ -1835,7 +1831,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         }
         final boolean hasRangeKeyCondition = (rangeKeyConditions != null)
                                             && (!rangeKeyConditions.isEmpty());
-        final String userProvidedIndexName = queryRequest.getIndexName();
+        final String userProvidedIndexName = expression.getIndexName();
         final String primaryHashKeyName = model.hashKey().name();
 
         // First collect the names of all the global/local secondary indexes that could be applied to this query.
@@ -2013,7 +2009,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                 if (hashKeyNameForThisQuery != null) {
                     keyConditions.put(hashKeyNameForThisQuery, hashKeyConditions.get(hashKeyNameForThisQuery));
                     keyConditions.putAll(rangeKeyConditions);
-                    queryRequest.setIndexName(inferredIndexName);
+                    queryRequest.indexName(inferredIndexName);
                 } else {
                     throw new IllegalArgumentException(
                             "Illegal query expression: Cannot infer the index name from the query expression.");
@@ -2038,7 +2034,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                     if ( !hasPrimaryHashKeyCondition ) {
                         if (annotatedGSIsOnHashKeys.get(hashKeyName).size() == 1) {
                             // Set the index if the index hash key is only annotated with one GSI.
-                            queryRequest.setIndexName(annotatedGSIsOnHashKeys.get(hashKeyName).iterator().next());
+                            queryRequest.indexName(annotatedGSIsOnHashKeys.get(hashKeyName).iterator().next());
                         } else if (annotatedGSIsOnHashKeys.get(hashKeyName).size() > 1) {
                             throw new IllegalArgumentException(
                                     "Ambiguous query expression: More than one GSIs (" +
@@ -2057,7 +2053,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             }
         }
 
-        queryRequest.setKeyConditions(keyConditions);
+        queryRequest.keyConditions(keyConditions);
     }
 
     private <T> AttributeTransformer.Parameters<T> toParameters(
@@ -2239,21 +2235,6 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         return mergedExpectedValues;
     }
 
-    static <X extends AmazonWebServiceRequest> X applyUserAgent(X request) {
-        request.getRequestClientOptions().appendUserAgent(USER_AGENT);
-        return request;
-    }
-
-    static <X extends AmazonWebServiceRequest> X applyBatchOperationUserAgent(X request) {
-        request.getRequestClientOptions().appendUserAgent(USER_AGENT_BATCH_OPERATION);
-        return request;
-    }
-
-    static <X extends AmazonWebServiceRequest> X applyTransactionOperationUserAgent(X request) {
-        request.getRequestClientOptions().appendUserAgent(USER_AGENT_TRANSACTION_OPERATION);
-        return request;
-    }
-
     @Override
     public S3ClientCache getS3ClientCache() {
         return s3Links.getS3ClientCache();
@@ -2276,9 +2257,9 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         final CreateTableRequest request = new CreateTableRequest();
         request.setTableName(getTableName(clazz, config));
-        request.withKeySchema(new KeySchemaElement(model.hashKey().name(), HASH));
+        request.withKeySchema(new KeySchemaElement(model.hashKey().name(), com.amazonaws.services.dynamodbv2.model.KeyType.HASH));
         if (model.rangeKeyIfExists() != null) {
-            request.withKeySchema(new KeySchemaElement(model.rangeKey().name(), RANGE));
+            request.withKeySchema(new KeySchemaElement(model.rangeKey().name(), com.amazonaws.services.dynamodbv2.model.KeyType.RANGE));
         }
         request.setGlobalSecondaryIndexes(model.globalSecondaryIndexes());
         request.setLocalSecondaryIndexes(model.localSecondaryIndexes());
@@ -2341,13 +2322,13 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         }
 
         private final boolean isRequestEntityTooLarge() {
-            return exception instanceof AmazonServiceException &&
-                RetryUtils.isRequestEntityTooLargeException((AmazonServiceException)exception);
+            return exception instanceof SdkException &&
+                RetryUtils.isRequestEntityTooLargeException((SdkException)exception);
         }
 
         private final boolean isThrottling() {
-            return exception instanceof AmazonServiceException &&
-                RetryUtils.isThrottlingException((AmazonServiceException)exception);
+            return exception instanceof SdkException &&
+                RetryUtils.isThrottlingException((SdkException)exception);
         }
 
         private final int size() {
@@ -2404,7 +2385,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             Thread.sleep(delay);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            throw new SdkClientException(e.getMessage(), e);
+            throw SdkClientException.create(e.getMessage(), e);
         }
     }
 
@@ -2413,7 +2394,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
         private final Map<String, List<Object>> responses;
 
         public BatchGetItemException(String message, Map<String, KeysAndAttributes> unprocessedKeys, Map<String, List<Object>> responses) {
-            super(message);
+            super(SdkClientException.builder().message(message));
             this.unprocessedKeys = unprocessedKeys;
             this.responses = responses;
         }
@@ -2453,7 +2434,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             AttributeValue currentValue = null;
             if (field.versioned()) {
                 if (writeExpression != null) {
-                    throw new SdkClientException("A transactional write operation may not also specify a condition " +
+                    throw SdkClientException.create("A transactional write operation may not also specify a condition " +
                                                          "expression if a versioned attribute is present on the " +
                                                          "model of the item.");
                 } else {
@@ -2485,53 +2466,52 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                 toParameters(attributeValues, clazz, tableName, config);
         Map<String, AttributeValue> attributeValueMap = transformAttributes(parameters);
 
-        TransactWriteItem transactWriteItem = new TransactWriteItem();
+        TransactWriteItem.Builder transactWriteItem = TransactWriteItem.builder();
 
         switch (operationType) {
             case Put:
-                transactWriteItem.setPut(generatePut(tableName, attributeValueMap, returnValuesOnConditionCheckFailure, writeExpression));
+                transactWriteItem.put(generatePut(tableName, attributeValueMap, returnValuesOnConditionCheckFailure, writeExpression));
                 break;
             case Update:
-                transactWriteItem.setUpdate(
+                transactWriteItem.update(
                         generateUpdate(model, tableName, attributeValueMap, returnValuesOnConditionCheckFailure, writeExpression));
                 break;
             case ConditionCheck:
-                transactWriteItem.setConditionCheck(
+                transactWriteItem.conditionCheck(
                         generateConditionCheck(model, tableName, objectToWrite, returnValuesOnConditionCheckFailure, writeExpression));
                 break;
             case Delete:
-                transactWriteItem.setDelete(
+                transactWriteItem.delete(
                         generateDelete(model, tableName, objectToWrite, returnValuesOnConditionCheckFailure, writeExpression));
                 break;
             default:
                 throw new UnsupportedOperationException("Unsupported operationType: " + operationType + " for object: " +  model.convertKey(objectToWrite) + " of type: " + clazz);
         }
-        return transactWriteItem;
+        return transactWriteItem.build();
     }
 
     private Put generatePut(String tableName,
                             Map<String, AttributeValue> attributeValueMap,
                             ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure,
                             DynamoDBTransactionWriteExpression writeExpression) {
-        Put put = new Put();
-        put.setItem(attributeValueMap);
-        put.setTableName(tableName);
+        Put.Builder put = Put.builder();
+        put.item(attributeValueMap);
+        put.tableName(tableName);
         if (returnValuesOnConditionCheckFailure != null) {
-            put.setReturnValuesOnConditionCheckFailure(
-                    returnValuesOnConditionCheckFailure.toString());
+            put.returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
         }
         if (writeExpression != null) {
             if (writeExpression.getConditionExpression() != null) {
-                put.setConditionExpression(writeExpression.getConditionExpression());
+                put.conditionExpression(writeExpression.getConditionExpression());
             }
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeNames())) {
-                put.setExpressionAttributeNames(writeExpression.getExpressionAttributeNames());
+                put.expressionAttributeNames(writeExpression.getExpressionAttributeNames());
             }
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeValues())) {
-                put.setExpressionAttributeValues(writeExpression.getExpressionAttributeValues());
+                put.expressionAttributeValues(writeExpression.getExpressionAttributeValues());
             }
         }
-        return put;
+        return put.build();
     }
 
     private Update generateUpdate(DynamoDBMapperTableModel<Object> model,
@@ -2539,16 +2519,15 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                                   Map<String, AttributeValue> attributeValueMap,
                                   ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure,
                                   DynamoDBTransactionWriteExpression writeExpression) {
-        Update update = new Update();
+        Update.Builder update = Update.builder();
         Map<String, String> expressionAttributeNamesMap = new HashMap<String, String>();
         Map<String, AttributeValue> expressionsAttributeValuesMap = new HashMap<String, AttributeValue>();
         if (returnValuesOnConditionCheckFailure != null) {
-            update.setReturnValuesOnConditionCheckFailure(
-                    returnValuesOnConditionCheckFailure.toString());
+            update.returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
         }
         if (writeExpression != null) {
             if (writeExpression.getConditionExpression() != null) {
-                update.setConditionExpression(writeExpression.getConditionExpression());
+                update.conditionExpression(writeExpression.getConditionExpression());
             }
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeNames())) {
                 expressionAttributeNamesMap.putAll(writeExpression.getExpressionAttributeNames());
@@ -2584,20 +2563,20 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             }
         }
 
-        update.setTableName(tableName);
-        update.setUpdateExpression(new UpdateExpressionGenerator()
+        update.tableName(tableName);
+        update.updateExpression(new UpdateExpressionGenerator()
                                            .generateUpdateExpressionAndUpdateAttributeMaps(expressionAttributeNamesMap,
                                                                                            expressionsAttributeValuesMap,
                                                                                            nonKeyNonNullAttributeValueMap,
                                                                                            nullValuedNonKeyAttributeNames));
-        update.setKey(keyAttributeValueMap);
+        update.key(keyAttributeValueMap);
         if (expressionAttributeNamesMap.size() > 0) {
-            update.setExpressionAttributeNames(expressionAttributeNamesMap);
+            update.expressionAttributeNames(expressionAttributeNamesMap);
         }
         if (expressionsAttributeValuesMap.size() > 0) {
-            update.setExpressionAttributeValues(expressionsAttributeValuesMap);
+            update.expressionAttributeValues(expressionsAttributeValuesMap);
         }
-        return update;
+        return update.build();
     }
 
     private ConditionCheck generateConditionCheck(DynamoDBMapperTableModel<Object> model,
@@ -2605,23 +2584,22 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                                                   Object objectToConditionCheck,
                                                   ReturnValuesOnConditionCheckFailure returnValuesOnConditionCheckFailure,
                                                   DynamoDBTransactionWriteExpression writeExpression) {
-        ConditionCheck conditionCheck = new ConditionCheck();
-        conditionCheck.setKey(model.convertKey(objectToConditionCheck));
-        conditionCheck.setTableName(tableName);
+        ConditionCheck.Builder conditionCheck = ConditionCheck.builder();
+        conditionCheck.key(model.convertKey(objectToConditionCheck));
+        conditionCheck.tableName(tableName);
         if (returnValuesOnConditionCheckFailure != null) {
-            conditionCheck.setReturnValuesOnConditionCheckFailure(
-                    returnValuesOnConditionCheckFailure.toString());
+            conditionCheck.returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
         }
         if (writeExpression != null) {
-            conditionCheck.setConditionExpression(writeExpression.getConditionExpression());
+            conditionCheck.conditionExpression(writeExpression.getConditionExpression());
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeNames())) {
-                conditionCheck.setExpressionAttributeNames(writeExpression.getExpressionAttributeNames());
+                conditionCheck.expressionAttributeNames(writeExpression.getExpressionAttributeNames());
             }
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeValues())) {
-                conditionCheck.setExpressionAttributeValues(writeExpression.getExpressionAttributeValues());
+                conditionCheck.expressionAttributeValues(writeExpression.getExpressionAttributeValues());
             }
         }
-        return conditionCheck;
+        return conditionCheck.build();
     }
 
     private Delete generateDelete(DynamoDBMapperTableModel<Object> model,
@@ -2631,25 +2609,24 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
                                   DynamoDBTransactionWriteExpression writeExpression) {
 
 
-        Delete delete = new Delete();
-        delete.setKey(model.convertKey(objectToDelete));
-        delete.setTableName(tableName);
+        Delete.Builder delete = Delete.builder();
+        delete.key(model.convertKey(objectToDelete));
+        delete.tableName(tableName);
         if (returnValuesOnConditionCheckFailure != null) {
-            delete.setReturnValuesOnConditionCheckFailure(
-                    returnValuesOnConditionCheckFailure.toString());
+            delete.returnValuesOnConditionCheckFailure(returnValuesOnConditionCheckFailure);
         }
         if (writeExpression != null) {
             if (writeExpression.getConditionExpression() != null) {
-                delete.setConditionExpression(writeExpression.getConditionExpression());
+                delete.conditionExpression(writeExpression.getConditionExpression());
             }
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeNames())) {
-                delete.setExpressionAttributeNames(writeExpression.getExpressionAttributeNames());
+                delete.expressionAttributeNames(writeExpression.getExpressionAttributeNames());
             }
             if (!isNullOrEmpty(writeExpression.getExpressionAttributeValues())) {
-                delete.setExpressionAttributeValues(writeExpression.getExpressionAttributeValues());
+                delete.expressionAttributeValues(writeExpression.getExpressionAttributeValues());
             }
         }
-        return delete;
+        return delete.build();
     }
 
 }

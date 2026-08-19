@@ -15,7 +15,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static software.amazon.awssdk.mapper.dynamodb.pojos.CustomBooleanClass.CustomBoolean;
 
@@ -25,17 +25,18 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression
 import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
 import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
 import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.TransactionWriteOperation;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableResult;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
-import com.amazonaws.services.dynamodbv2.model.ReturnValuesOnConditionCheckFailure;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableResponse;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AllSupportedAnnotationsClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.AllSupportedDataTypesClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.Currency;
@@ -51,7 +52,6 @@ import software.amazon.awssdk.mapper.dynamodb.pojos.SchemaViolatingTestItem;
 import software.amazon.awssdk.mapper.dynamodb.pojos.SlimAttributeNamesClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
-import com.amazonaws.services.dynamodbv2.util.TableUtils;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -67,8 +67,8 @@ import java.util.UUID;
 
 public class TestObjectCreator {
 
-    public static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT = new ProvisionedThroughput().withReadCapacityUnits(10L)
-                                                                                                          .withWriteCapacityUnits(10L);
+    public static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT =
+        ProvisionedThroughput.builder().readCapacityUnits(10L).writeCapacityUnits(10L).build();
 
     private static final String AWS_JAVA_SDK_UTIL_TABLE_NAME = "aws-java-sdk-util";
     private static final String AWS_JAVA_SDK_DYNAMODB_MAPPER_SAVE_CONFIG_TEST_TABLE_NAME = "aws-java-sdk-dynamodb-mapper-save-config-test";
@@ -678,11 +678,11 @@ public class TestObjectCreator {
         return set;
     }
 
-    public static void createStringHashKeyTable(AmazonDynamoDB dynamoDB) throws InterruptedException {
+    public static void createStringHashKeyTable(DynamoDbClient dynamoDB) throws InterruptedException {
         createStringHashKeyTable(dynamoDB, AWS_JAVA_SDK_UTIL_TABLE_NAME);
     }
 
-    public static void createStringHashKeyTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createStringHashKeyTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "key" /* hashKeyName */,
@@ -691,11 +691,11 @@ public class TestObjectCreator {
                         null /* rangeKeyAttributeType */);
     }
 
-    public static void createSdkMapperSaveConfigTable(AmazonDynamoDB dynamoDB) throws InterruptedException {
+    public static void createSdkMapperSaveConfigTable(DynamoDbClient dynamoDB) throws InterruptedException {
         createSdkMapperSaveConfigTable(dynamoDB, AWS_JAVA_SDK_DYNAMODB_MAPPER_SAVE_CONFIG_TEST_TABLE_NAME);
     }
 
-    public static void createSdkMapperSaveConfigTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createSdkMapperSaveConfigTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "hashKey",
@@ -704,11 +704,11 @@ public class TestObjectCreator {
                         ScalarAttributeType.N);
     }
 
-    public static void createSdkRangeTestTable(AmazonDynamoDB dynamoDB) throws InterruptedException {
+    public static void createSdkRangeTestTable(DynamoDbClient dynamoDB) throws InterruptedException {
         createSdkRangeTestTable(dynamoDB, AWS_JAVA_SDK_RANGE_TEST_TABLE_NAME);
     }
 
-    public static void createSdkRangeTestTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createSdkRangeTestTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "key",
@@ -717,11 +717,11 @@ public class TestObjectCreator {
                         ScalarAttributeType.N);
     }
 
-    public static void createSdkStringRangeTable(AmazonDynamoDB dynamoDB) throws InterruptedException {
+    public static void createSdkStringRangeTable(DynamoDbClient dynamoDB) throws InterruptedException {
         createSdkStringRangeTable(dynamoDB, AWS_JAVA_SDK_STRING_RANGE_TABLE_NAME);
     }
 
-    public static void createSdkStringRangeTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createSdkStringRangeTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "key",
@@ -730,7 +730,7 @@ public class TestObjectCreator {
                         ScalarAttributeType.S);
     }
 
-    public static void createHashKeyRangeKeyTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createHashKeyRangeKeyTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "hashKey",
@@ -739,11 +739,11 @@ public class TestObjectCreator {
                         ScalarAttributeType.N);
     }
 
-    public static void createSdkDocAttributeTable(AmazonDynamoDB dynamoDB) throws InterruptedException {
+    public static void createSdkDocAttributeTable(DynamoDbClient dynamoDB) throws InterruptedException {
         createSdkDocAttributeTable(dynamoDB, AWS_JAVA_SDK_DOC_ATTRIBUTE_TABLE);
     }
 
-    public static void createSdkDocAttributeTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createSdkDocAttributeTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "id" /* hashKeyName */,
@@ -752,7 +752,7 @@ public class TestObjectCreator {
                         null /* rangeKeyAttributeType */);
     }
 
-    public static void createAllSupportedAnnotationsTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    public static void createAllSupportedAnnotationsTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         createTestTable(dynamoDB, DEFAULT_PROVISIONED_THROUGHPUT,
                         tableName,
                         "id" /* hashKeyName */,
@@ -768,41 +768,45 @@ public class TestObjectCreator {
      * rangeKeyName and rangeKeyAttributeType are optional.
      *
      */
-    public static void createTestTable(AmazonDynamoDB dynamoDB,
+    public static void createTestTable(DynamoDbClient dynamoDB,
                                        ProvisionedThroughput provisionedThroughput,
                                        String tableName,
                                        String hashKeyName,
                                        ScalarAttributeType hashKeyAttributeType,
                                        String rangeKeyName,
                                        ScalarAttributeType rangeKeyAttributeType) throws InterruptedException {
-        CreateTableRequest createTableRequest = null;
-        createTableRequest = new CreateTableRequest()
-                                     .withTableName(tableName)
-                                     .withKeySchema(
-                                             new KeySchemaElement().withAttributeName(
-                                                     hashKeyName).withKeyType(
-                                                     KeyType.HASH))
-                                     .withAttributeDefinitions(
-                                             new AttributeDefinition().withAttributeName(
-                                                     hashKeyName).withAttributeType(
-                                                     hashKeyAttributeType));
+        List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+        List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
+
+        keySchema.add(KeySchemaElement.builder().attributeName(hashKeyName).keyType(KeyType.HASH).build());
+        attributeDefinitions.add(
+            AttributeDefinition.builder().attributeName(hashKeyName).attributeType(hashKeyAttributeType).build());
 
         if (rangeKeyName != null) {
-            createTableRequest
-                    .withKeySchema(
-                            new KeySchemaElement().withAttributeName(
-                                    rangeKeyName).withKeyType(
-                                    KeyType.RANGE))
-
-                    .withAttributeDefinitions(
-                            new AttributeDefinition().withAttributeName(
-                                    rangeKeyName).withAttributeType(
-                                    rangeKeyAttributeType));
+            keySchema.add(KeySchemaElement.builder().attributeName(rangeKeyName).keyType(KeyType.RANGE).build());
+            attributeDefinitions.add(
+                AttributeDefinition.builder().attributeName(rangeKeyName).attributeType(rangeKeyAttributeType).build());
         }
-        createTableRequest.setProvisionedThroughput(provisionedThroughput);
 
-        if (TableUtils.createTableIfNotExists(dynamoDB, createTableRequest)) {
-            TableUtils.waitUntilActive(dynamoDB, tableName);
+        CreateTableRequest createTableRequest = CreateTableRequest.builder()
+                                                                  .tableName(tableName)
+                                                                  .keySchema(keySchema)
+                                                                  .attributeDefinitions(attributeDefinitions)
+                                                                  .provisionedThroughput(provisionedThroughput)
+                                                                  .build();
+
+        if (createTableIfNotExists(dynamoDB, createTableRequest)) {
+            dynamoDB.waiter().waitUntilTableExists(b -> b.tableName(tableName));
+        }
+    }
+
+    private static boolean createTableIfNotExists(DynamoDbClient dynamoDB, CreateTableRequest createTableRequest) {
+        try {
+            dynamoDB.createTable(createTableRequest);
+            return true;
+        } catch (software.amazon.awssdk.services.dynamodb.model.ResourceInUseException e) {
+            // Table already exists.
+            return false;
         }
     }
 
@@ -810,22 +814,26 @@ public class TestObjectCreator {
      * Helper method to delete a table in Amazon DynamoDB.
      * Waits till the table becomes deleted or transitions to DELETING state.
      */
-    public static void deleteTestTable(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
-        DeleteTableRequest deleteTableRequest = new DeleteTableRequest().withTableName(tableName);
+    public static void deleteTestTable(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
+        DeleteTableRequest deleteTableRequest = DeleteTableRequest.builder().tableName(tableName).build();
 
-        if (TableUtils.deleteTableIfExists(dynamoDB, deleteTableRequest)) {
+        try {
+            dynamoDB.deleteTable(deleteTableRequest);
             waitUntilTableDeletedOrInDeleting(dynamoDB, tableName);
+        } catch (ResourceNotFoundException e) {
+            // Table does not exist; nothing to delete.
         }
     }
 
-    private static void waitUntilTableDeletedOrInDeleting(AmazonDynamoDB dynamoDB, String tableName) throws InterruptedException {
+    private static void waitUntilTableDeletedOrInDeleting(DynamoDbClient dynamoDB, String tableName) throws InterruptedException {
         long startTime = System.currentTimeMillis();
         // Wait up to one minute for a table to be deleted or transition to DELETING state.
         long endTime = startTime + 60 * 1000;
         while (System.currentTimeMillis() < endTime) {
             try {
-                DescribeTableResult describeTableResult = dynamoDB.describeTable(tableName);
-                if ("DELETING".equals(describeTableResult.getTable().getTableStatus())) {
+                DescribeTableResponse describeTableResult =
+                    dynamoDB.describeTable(b -> b.tableName(tableName));
+                if (describeTableResult.table().tableStatus() == TableStatus.DELETING) {
                     // Table will eventually get deleted, stopping to wait here reduces test run time by more than half
                     return;
                 }
@@ -1099,8 +1107,8 @@ public class TestObjectCreator {
         attributeNameMap.put("#sA", "stringAttribute");
         writeExpression.withConditionExpression("(#sA IN (:attr1, :attr2))");
         Map<String, AttributeValue> attributeValueMap = new HashMap<String, AttributeValue>();
-        attributeValueMap.put(":attr1", new AttributeValue(matchingString1));
-        attributeValueMap.put(":attr2", new AttributeValue(matchingString2));
+        attributeValueMap.put(":attr1", AttributeValue.builder().s(matchingString1).build());
+        attributeValueMap.put(":attr2", AttributeValue.builder().s(matchingString2).build());
         writeExpression.withExpressionAttributeValues(attributeValueMap);
         writeExpression.withExpressionAttributeNames(attributeNameMap);
         return writeExpression;
@@ -1113,7 +1121,7 @@ public class TestObjectCreator {
         attributeNameMap.put("#sA", "stringAttribute");
         writeExpression.withConditionExpression("contains(#sA, :attrV)");
         Map<String, AttributeValue> attributeValueMap = new HashMap<String, AttributeValue>();
-        attributeValueMap.put(":attrV", new AttributeValue(matchingSubString));
+        attributeValueMap.put(":attrV", AttributeValue.builder().s(matchingSubString).build());
         writeExpression.withExpressionAttributeValues(attributeValueMap);
         writeExpression.withExpressionAttributeNames(attributeNameMap);
         return writeExpression;
@@ -1136,7 +1144,7 @@ public class TestObjectCreator {
         DynamoDBTransactionWriteExpression writeExpression = new DynamoDBTransactionWriteExpression();
         writeExpression.withConditionExpression("contains(stringAttribute, :attrV)");
         Map<String, AttributeValue> attributeValueMap = new HashMap<String, AttributeValue>();
-        attributeValueMap.put(":attrV", new AttributeValue(subStringToMatch));
+        attributeValueMap.put(":attrV", AttributeValue.builder().s(subStringToMatch).build());
         writeExpression.withExpressionAttributeValues(attributeValueMap);
         return writeExpression;
     }

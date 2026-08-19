@@ -16,10 +16,10 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import java.util.List;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
-import com.amazonaws.services.dynamodbv2.model.ScanRequest;
-import com.amazonaws.services.dynamodbv2.model.ScanResult;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 
 /**
  * Implementation of the List interface that represents the results from a scan
@@ -39,19 +39,19 @@ import com.amazonaws.services.dynamodbv2.model.ScanResult;
 public class PaginatedScanList<T> extends PaginatedList<T> {
 
     /** The current scan request */
-    private final ScanRequest scanRequest;
+    private ScanRequest scanRequest;
 
     private final DynamoDBMapperConfig config;
 
     /** The current results for the last executed scan operation */
-    private ScanResult scanResult;
+    private ScanResponse scanResult;
 
     public PaginatedScanList(
             DynamoDBMapper mapper,
             Class<T> clazz,
-            AmazonDynamoDB dynamo,
+            DynamoDbClient dynamo,
             ScanRequest scanRequest,
-            ScanResult scanResult,
+            ScanResponse scanResult,
             PaginationLoadingStrategy paginationLoadingStrategy,
             DynamoDBMapperConfig config
     ) {
@@ -63,9 +63,9 @@ public class PaginatedScanList<T> extends PaginatedList<T> {
 
         allResults.addAll(mapper.marshallIntoObjects(
             mapper.toParameters(
-                    scanResult.getItems(),
+                    scanResult.items(),
                     clazz,
-                    scanRequest.getTableName(),
+                    scanRequest.tableName(),
                     config)));
 
         // If the results should be eagerly loaded at once
@@ -76,17 +76,17 @@ public class PaginatedScanList<T> extends PaginatedList<T> {
 
     @Override
     protected boolean atEndOfResults() {
-        return scanResult.getLastEvaluatedKey() == null;
+        return !scanResult.hasLastEvaluatedKey() || scanResult.lastEvaluatedKey().isEmpty();
     }
 
     @Override
     protected synchronized List<T> fetchNextPage() {
-        scanRequest.setExclusiveStartKey(scanResult.getLastEvaluatedKey());
-        scanResult = dynamo.scan(DynamoDBMapper.applyUserAgent(scanRequest));
+        scanRequest = scanRequest.toBuilder().exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
+        scanResult = dynamo.scan(scanRequest);
         return mapper.marshallIntoObjects(mapper.toParameters(
-            scanResult.getItems(),
+            scanResult.items(),
             clazz,
-            scanRequest.getTableName(),
+            scanRequest.tableName(),
             config));
     }
 

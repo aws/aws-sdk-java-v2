@@ -24,21 +24,23 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.amazonaws.AmazonClientException;
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.TableDescription;
-import com.amazonaws.services.dynamodbv2.model.TableStatus;
+import java.net.URI;
+
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.TableDescription;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.mapper.dynamodb.test.AWSTestBase;
 
 public class DynamoDBTestBase extends AWSTestBase {
 
     protected static final String ENDPOINT = "http://dynamodb.us-east-1.amazonaws.com/";
 
-    protected static AmazonDynamoDBClient dynamo;
+    protected static DynamoDbClient dynamo;
 
     /**
      * Gets a map of key values for the single hash key attribute value given.
@@ -53,14 +55,17 @@ public class DynamoDBTestBase extends AWSTestBase {
         try {
             setUpCredentials();
         } catch (Exception e) {
-            throw new AmazonClientException("Unable to load credential property file.", e);
+            throw SdkClientException.create("Unable to load credential property file.", e);
         }
-        
-        dynamo = new AmazonDynamoDBClient(credentials);
-        dynamo.setEndpoint(ENDPOINT);
+
+        dynamo = DynamoDbClient.builder()
+                               .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                               .region(Region.US_EAST_1)
+                               .endpointOverride(URI.create(ENDPOINT))
+                               .build();
     }
 
-    public static AmazonDynamoDB getClient() {
+    public static DynamoDbClient getClient() {
         if (dynamo == null) {
             setUpTestBase();
         }
@@ -71,7 +76,7 @@ public class DynamoDBTestBase extends AWSTestBase {
         waitForTableToBecomeDeleted(dynamo, tableName);
     }
 
-    public static void waitForTableToBecomeDeleted(AmazonDynamoDB dynamo, String tableName) {
+    public static void waitForTableToBecomeDeleted(DynamoDbClient dynamo, String tableName) {
         System.out.println("Waiting for " + tableName + " to become Deleted...");
 
         long startTime = System.currentTimeMillis();
@@ -82,15 +87,14 @@ public class DynamoDBTestBase extends AWSTestBase {
             } catch ( Exception e ) {
             }
             try {
-                DescribeTableRequest request = new DescribeTableRequest().withTableName(tableName);
-                TableDescription table = dynamo.describeTable(request).getTable();
+                TableDescription table = dynamo.describeTable(b -> b.tableName(tableName)).table();
 
-                String tableStatus = table.getTableStatus();
+                TableStatus tableStatus = table.tableStatus();
                 System.out.println("  - current state: " + tableStatus);
-                if ( tableStatus.equals(TableStatus.DELETING.toString()) )
+                if ( tableStatus == TableStatus.DELETING )
                     continue;
-            } catch ( AmazonServiceException ase ) {
-                if ( ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException") == true ){
+            } catch ( AwsServiceException ase ) {
+                if ( "ResourceNotFoundException".equalsIgnoreCase(ase.awsErrorDetails().errorCode()) ){
                      System.out.println("successfully deleted");
                     return;
                     }

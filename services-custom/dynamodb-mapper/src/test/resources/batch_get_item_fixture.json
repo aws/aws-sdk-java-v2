@@ -1,0 +1,3 @@
+{
+  "two-keys" : "DynamoDB_20120810.BatchGetItem\n{\"RequestItems\":{\"M_String\":{\"Keys\":[{\"id\":{\"S\":\"a\"}},{\"id\":{\"S\":\"b\"}}],\"ConsistentRead\":false}}}"
+}

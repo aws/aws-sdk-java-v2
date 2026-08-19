@@ -33,9 +33,9 @@ import java.util.List;
 import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.mapper.NoSuchTableClass;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;

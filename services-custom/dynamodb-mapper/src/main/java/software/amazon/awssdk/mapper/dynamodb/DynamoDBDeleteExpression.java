@@ -19,9 +19,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
-import com.amazonaws.services.dynamodbv2.model.DeleteItemRequest;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
+import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 
 /**
  * Enables adding options to a delete operation.
@@ -312,9 +312,6 @@ public class DynamoDBDeleteExpression {
      * @param value
      *            The corresponding value of the entry to be added into
      *            ExpressionAttributeValues.
-     *
-     * @see DeleteItemRequest#addExpressionAttributeValuesEntry(String,
-     *      AttributeValue)
      */
     public DynamoDBDeleteExpression addExpressionAttributeValuesEntry(
             String key, AttributeValue value) {

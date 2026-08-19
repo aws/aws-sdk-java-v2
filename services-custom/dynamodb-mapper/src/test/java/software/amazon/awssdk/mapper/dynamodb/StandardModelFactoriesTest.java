@@ -23,7 +23,7 @@ import software.amazon.awssdk.mapper.dynamodb.pojos.Currency;
 import software.amazon.awssdk.mapper.dynamodb.pojos.DateRange;
 import software.amazon.awssdk.mapper.dynamodb.pojos.KeyAndVal;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.math.BigDecimal;

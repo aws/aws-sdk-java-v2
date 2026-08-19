@@ -26,7 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
 import org.junit.BeforeClass;
@@ -90,8 +90,8 @@ public class TransactionWriteTableMapperUnitTest extends TransactionsUnitTestBas
         Map<String, String> attributeNameMap = new HashMap<String, String>();
         attributeNameMap.put("#sA", "stringAttribute");
         Map<String, AttributeValue> attributeValueMap = new HashMap<String, AttributeValue>();
-        attributeValueMap.put(":attr1", new AttributeValue(objectToBeConditionChecked.getStringAttribute()));
-        attributeValueMap.put(":attr2", new AttributeValue("not" + updatedStringAttribute));
+        attributeValueMap.put(":attr1", AttributeValue.builder().s(objectToBeConditionChecked.getStringAttribute()).build());
+        attributeValueMap.put(":attr2", AttributeValue.builder().s("not" + updatedStringAttribute).build());
         conditionCheckWriteExpression.withExpressionAttributeValues(attributeValueMap);
         conditionCheckWriteExpression.withExpressionAttributeNames(attributeNameMap);
         transactionWriteRequest.addConditionCheck(objectToBeConditionChecked, conditionCheckWriteExpression);

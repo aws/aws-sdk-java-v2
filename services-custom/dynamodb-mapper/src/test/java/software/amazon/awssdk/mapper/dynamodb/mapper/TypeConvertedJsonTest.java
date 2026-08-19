@@ -14,23 +14,25 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import java.util.HashMap;
+import java.util.Map;
+
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedJson;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.util.ImmutableMapParameter;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,17 +41,17 @@ public class TypeConvertedJsonTest {
     private static final String HASH_KEY = "1234";
 
     @Mock
-    private AmazonDynamoDB ddb;
+    private DynamoDbClient ddb;
 
     @Test
     public void responseWithUnmappedField_IgnoresUnknownFieldAndUnmarshallsCorrectly() {
         final DynamoDBMapper mapper = new DynamoDBMapper(ddb);
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("hashKey", AttributeValue.builder().s(HASH_KEY).build());
+        item.put("jsonMappedPojo", AttributeValue.builder().s(
+                "{\"knownField\": \"knownValue\", \"unknownField\": \"unknownValue\"}").build());
         when(ddb.getItem(any(GetItemRequest.class)))
-                .thenReturn(new GetItemResult().withItem(
-                        ImmutableMapParameter.of("hashKey", new AttributeValue(HASH_KEY),
-                                                 "jsonMappedPojo", new AttributeValue(
-                                        "{\"knownField\": \"knownValue\", \"unknownField\": \"unknownValue\"}")
-                        )));
+                .thenReturn(GetItemResponse.builder().item(item).build());
 
         final TopLevelPojo pojo = mapper.load(new TopLevelPojo().setHashKey(HASH_KEY));
         assertEquals("knownValue", pojo.getJsonMappedPojo().getKnownField());

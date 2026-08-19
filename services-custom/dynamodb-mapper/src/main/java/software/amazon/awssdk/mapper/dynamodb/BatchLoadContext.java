@@ -16,9 +16,9 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.model.BatchGetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.BatchGetItemResult;
-import com.amazonaws.util.ValidationUtils;
+import java.util.Objects;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
 
 
 /**
@@ -28,13 +28,13 @@ import com.amazonaws.util.ValidationUtils;
  */
 public class BatchLoadContext {
     /**
-     * The BatchGetItemResult returned by the DynamoDB client.
+     * The BatchGetItemResponse returned by the DynamoDB client.
      */
-    private BatchGetItemResult batchGetItemResult;
+    private BatchGetItemResponse batchGetItemResult;
     /**
      * The BatchGetItemRequest.
      */
-    private final BatchGetItemRequest batchGetItemRequest;
+    private BatchGetItemRequest batchGetItemRequest;
     /**
      * The number of times the request has been retried.
      */
@@ -45,22 +45,22 @@ public class BatchLoadContext {
      *  @param batchGetItemRequest  see {@link BatchGetItemRequest}.
      * */
     public BatchLoadContext(BatchGetItemRequest batchGetItemRequest) {
-        this.batchGetItemRequest = ValidationUtils.assertNotNull(batchGetItemRequest, "batchGetItemRequest");
+        this.batchGetItemRequest = Objects.requireNonNull(batchGetItemRequest, "batchGetItemRequest");
         this.batchGetItemResult = null;
         this.retriesAttempted = 0;
     }
 
     /**
-     * @return the BatchGetItemResult
+     * @return the BatchGetItemResponse
      */
-    public BatchGetItemResult getBatchGetItemResult() {
+    public BatchGetItemResponse getBatchGetItemResult() {
         return batchGetItemResult;
     }
 
     /**
-     * @return the BatchGetItemResult
+     * @return the BatchGetItemResponse
      */
-    public void setBatchGetItemResult(BatchGetItemResult batchGetItemResult) {
+    public void setBatchGetItemResult(BatchGetItemResponse batchGetItemResult) {
         this.batchGetItemResult = batchGetItemResult;
     }
 
@@ -70,6 +70,13 @@ public class BatchLoadContext {
      */
     public BatchGetItemRequest getBatchGetItemRequest() {
         return batchGetItemRequest;
+    }
+
+    /**
+     * Updates the BatchGetItemRequest for the next retry attempt.
+     */
+    public void setBatchGetItemRequest(BatchGetItemRequest batchGetItemRequest) {
+        this.batchGetItemRequest = batchGetItemRequest;
     }
 
     /**

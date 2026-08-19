@@ -17,7 +17,7 @@
 package software.amazon.awssdk.mapper.dynamodb.utils;
 
 import software.amazon.awssdk.mapper.dynamodb.AttributeTransformer;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,7 +35,7 @@ public class AttributeAdder implements AttributeTransformer {
     @Override
     public Map<String, AttributeValue> transform(final Parameters<?> parameters) {
         Map<String, AttributeValue> rval = new HashMap<String, AttributeValue>(parameters.getAttributeValues());
-        rval.put(additionalAttribute, new AttributeValue().withN(String.valueOf(start++)));
+        rval.put(additionalAttribute, AttributeValue.builder().n(String.valueOf(start++)).build());
         return rval;
     }
 

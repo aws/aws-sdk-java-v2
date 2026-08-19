@@ -19,19 +19,19 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProviderChain;
-import com.amazonaws.auth.EnvironmentVariableCredentialsProvider;
-import com.amazonaws.auth.PropertiesFileCredentialsProvider;
-import com.amazonaws.auth.SystemPropertiesCredentialsProvider;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProviderChain;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.SystemPropertyCredentialsProvider;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.mapper.dynamodb.test.util.InputStreamUtils;
 import software.amazon.awssdk.mapper.dynamodb.test.util.SdkAsserts;
-import com.amazonaws.util.IOUtils;
+import software.amazon.awssdk.utils.IoUtils;
 import java.util.concurrent.TimeUnit;
 
-import com.amazonaws.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 import org.junit.Rule;
 
 public abstract class AWSTestBase {
@@ -39,17 +39,16 @@ public abstract class AWSTestBase {
     /**
      * Shared AWS credentials, loaded from a properties file. Direct access to this field is
      * deprecated
-     * 
-     * @deprecated Extend from {@link AWSIntegrationTestBase} to access credentials
+     *
+     * @deprecated Use the credentials resolved by this base class instead of accessing this field directly
      */
     @Deprecated
-    public static AWSCredentials credentials;
+    public static AwsCredentials credentials;
 
-    /** Default Properties Credentials file path */
-    private static final String propertiesFilePath = System.getProperty("user.home")
-            + "/.aws/awsTestAccount.properties";
-
-    private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-java-sdk-test";
+    // Matches the profile that v2's shared AwsIntegrationTestBase/AwsTestBase resolve, and the profile the
+    // catapult release/PR buildspec writes credentials under (alongside [default]). See
+    // test/service-test-utils AwsIntegrationTestBase and AwsSdkJava2CatapultCDK test-specs.
+    private static final String TEST_CREDENTIALS_PROFILE_NAME = "aws-test-account";
 
     /**
      * ToD test can be configured to use Role ARN and will pull them from STS. These credentials are then available
@@ -59,19 +58,19 @@ public abstract class AWSTestBase {
 
     private static final String TOD_CREDENTIAL_PATH = System.getenv("TOD_CUSTOMER_CREDENTIAL_PATH");
 
-    private static final AWSCredentialsProviderChain chain = createChain();
+    private static final AwsCredentialsProviderChain chain = createChain();
 
     @Rule
     public RetryRule retry = new RetryRule(3, 2, TimeUnit.SECONDS);
 
     /**
-     * @deprecated Extend from {@link AWSIntegrationTestBase} to access credentials
+     * @deprecated Use the credentials resolved by this base class instead of calling this directly
      */
     @Deprecated
     public static void setUpCredentials() {
         if (credentials == null) {
             try {
-                credentials = chain.getCredentials();
+                credentials = chain.resolveCredentials();
             } catch (Exception ignored) {
             }
         }
@@ -93,7 +92,7 @@ public abstract class AWSTestBase {
     protected String getResourceAsString(String location) {
         try {
             InputStream resourceStream = getClass().getResourceAsStream(location);
-            String resourceAsString = IOUtils.toString(resourceStream);
+            String resourceAsString = IoUtils.toUtf8String(resourceStream);
             resourceStream.close();
             return resourceAsString;
         } catch (Exception e) {
@@ -185,23 +184,22 @@ public abstract class AWSTestBase {
      * @deprecated Use static imports for custom asserts in {@link SdkAsserts} instead
      */
     @Deprecated
-    protected void assertValidException(AmazonServiceException e) {
+    protected void assertValidException(AwsServiceException e) {
         SdkAsserts.assertValidException(e);
     }
 
-    private static AWSCredentialsProviderChain createChain() {
-        if (StringUtils.isNullOrEmpty(TOD_CREDENTIAL_PATH)) {
-            return new AWSCredentialsProviderChain(
-                    new PropertiesFileCredentialsProvider(propertiesFilePath),
-                    new ProfileCredentialsProvider(TEST_CREDENTIALS_PROFILE_NAME),
-                    new EnvironmentVariableCredentialsProvider(),
-                    new SystemPropertiesCredentialsProvider());
+    private static AwsCredentialsProviderChain createChain() {
+        if (StringUtils.isBlank(TOD_CREDENTIAL_PATH)) {
+            // Mirror v2's shared AwsIntegrationTestBase: the aws-test-account profile first, then the default
+            // provider chain (env vars, system properties, the [default] profile, and container/instance creds).
+            return AwsCredentialsProviderChain.of(
+                    ProfileCredentialsProvider.create(TEST_CREDENTIALS_PROFILE_NAME),
+                    DefaultCredentialsProvider.create());
         }
-        return new AWSCredentialsProviderChain(
-                new ProfileCredentialsProvider(TOD_CREDENTIAL_PATH, "default"),
-                new PropertiesFileCredentialsProvider(propertiesFilePath),
-                new ProfileCredentialsProvider(TEST_CREDENTIALS_PROFILE_NAME),
-                new EnvironmentVariableCredentialsProvider(),
-                new SystemPropertiesCredentialsProvider());
+        return AwsCredentialsProviderChain.of(
+                ProfileCredentialsProvider.create("default"),
+                ProfileCredentialsProvider.create(TEST_CREDENTIALS_PROFILE_NAME),
+                EnvironmentVariableCredentialsProvider.create(),
+                SystemPropertyCredentialsProvider.create());
     }
 }

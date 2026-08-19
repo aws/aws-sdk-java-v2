@@ -32,7 +32,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedJson;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedEpochDate;
 
-import com.amazonaws.services.dynamodbv2.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
 
 import java.util.Date;
 import java.util.UUID;

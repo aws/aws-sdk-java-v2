@@ -15,8 +15,8 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import com.amazonaws.metrics.RequestMetricCollector;
-import com.amazonaws.services.dynamodbv2.model.KeysAndAttributes;
-import com.amazonaws.services.dynamodbv2.model.WriteRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
+import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -808,9 +808,9 @@ public class DynamoDBMapperConfig {
 
         @Override
         public long getDelayBeforeNextRetry(final BatchLoadContext batchLoadContext) {
-            Map<String, KeysAndAttributes> requestedKeys = batchLoadContext.getBatchGetItemRequest().getRequestItems();
+            Map<String, KeysAndAttributes> requestedKeys = batchLoadContext.getBatchGetItemRequest().requestItems();
             Map<String, KeysAndAttributes> unprocessedKeys = batchLoadContext.getBatchGetItemResult()
-                    .getUnprocessedKeys();
+                    .unprocessedKeys();
 
             long delay = 0;
             //Exponential backoff only when all keys are unprocessed
@@ -826,7 +826,7 @@ public class DynamoDBMapperConfig {
 
         @Override
         public boolean shouldRetry(BatchLoadContext batchLoadContext) {
-            Map<String, KeysAndAttributes> unprocessedKeys = batchLoadContext.getBatchGetItemResult().getUnprocessedKeys();
+            Map<String, KeysAndAttributes> unprocessedKeys = batchLoadContext.getBatchGetItemResult().unprocessedKeys();
             return (unprocessedKeys != null && unprocessedKeys.size() > 0 && batchLoadContext.getRetriesAttempted() < MAX_RETRIES);
         }
 

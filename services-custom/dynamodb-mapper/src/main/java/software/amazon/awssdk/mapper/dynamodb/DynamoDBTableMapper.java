@@ -14,19 +14,15 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
-import com.amazonaws.services.dynamodbv2.model.ConditionalCheckFailedException;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
-import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ResourceInUseException;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
-import com.amazonaws.services.dynamodbv2.model.TableDescription;
-import com.amazonaws.services.s3.model.Region;
+import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
+import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 
 import java.util.Collections;
 import java.util.List;
@@ -143,7 +139,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
     private final DynamoDBMapperFieldModel<T,R> rk;
     private final DynamoDBMapperConfig config;
     private final DynamoDBMapper mapper;
-    private final AmazonDynamoDB db;
+    private final DynamoDbClient db;
 
     /**
      * Constructs a new table mapper for the given class.
@@ -151,7 +147,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @param mapper The DynamoDB mapper.
      * @param db The service object to use for all service calls.
      */
-    protected DynamoDBTableMapper(AmazonDynamoDB db, DynamoDBMapper mapper, final DynamoDBMapperConfig config, final DynamoDBMapperTableModel<T> model) {
+    protected DynamoDBTableMapper(DynamoDbClient db, DynamoDBMapper mapper, final DynamoDBMapperConfig config, final DynamoDBMapperTableModel<T> model) {
         this.rk = model.rangeKeyIfExists();
         this.hk = model.hashKey();
         this.model = model;
@@ -320,8 +316,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
     public void saveIfNotExists(T object) throws ConditionalCheckFailedException {
         final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
         for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
-            saveExpression.withExpectedEntry(key.name(), new ExpectedAttributeValue()
-                .withExists(false));
+            saveExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
+                .exists(false).build());
         }
         mapper.<T>save(object, saveExpression);
     }
@@ -338,8 +334,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
     public void saveIfExists(T object) throws ConditionalCheckFailedException {
         final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
         for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
-            saveExpression.withExpectedEntry(key.name(), new ExpectedAttributeValue()
-                .withExists(true).withValue(key.convert(key.get(object))));
+            saveExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
+                .exists(true).value(key.convert(key.get(object))).build());
         }
         mapper.<T>save(object, saveExpression);
     }
@@ -376,8 +372,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
     public void deleteIfExists(T object) throws ConditionalCheckFailedException {
         final DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
         for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
-            deleteExpression.withExpectedEntry(key.name(), new ExpectedAttributeValue()
-                .withExists(true).withValue(key.convert(key.get(object))));
+            deleteExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
+                .exists(true).value(key.convert(key.get(object))).build());
         }
         mapper.delete(object, deleteExpression);
     }
@@ -469,9 +465,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#describeTable
      */
     public TableDescription describeTable() {
-        return db.describeTable(
-            mapper.getTableName(model.targetType(), config)
-        ).getTable();
+        throw new UnsupportedOperationException("table admin not yet ported to v2");
     }
 
     /**
@@ -483,14 +477,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
      */
     public TableDescription createTable(ProvisionedThroughput throughput) {
-        final CreateTableRequest request = mapper.generateCreateTableRequest(model.targetType());
-        request.setProvisionedThroughput(throughput);
-        if (request.getGlobalSecondaryIndexes() != null) {
-            for (final GlobalSecondaryIndex gsi : request.getGlobalSecondaryIndexes()) {
-                gsi.setProvisionedThroughput(throughput);
-            }
-        }
-        return db.createTable(request).getTableDescription();
+        throw new UnsupportedOperationException("table admin not yet ported to v2");
     }
 
     /**
@@ -520,9 +507,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
      */
     public TableDescription deleteTable() {
-        return db.deleteTable(
-            mapper.generateDeleteTableRequest(model.targetType())
-        ).getTableDescription();
+        throw new UnsupportedOperationException("table admin not yet ported to v2");
     }
 
     /**

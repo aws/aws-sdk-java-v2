@@ -32,7 +32,7 @@ import java.util.List;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
 import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.mapper.dynamodb.pojos.HashKeyRangeKeyClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;

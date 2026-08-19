@@ -37,9 +37,9 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
 import software.amazon.awssdk.mapper.dynamodb.TransactionLoadRequest;
 import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.CancellationReason;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.CancellationReason;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.mapper.dynamodb.pojos.StringAttributeClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.TestItem;
 import org.junit.BeforeClass;
@@ -283,9 +283,9 @@ public class TransactionWriteTableMapperTest extends TransactionsTestBase {
             throw new IllegalArgumentException("Unsupported expectedObject type: " + expectedObject.getClass());
         }
         StringAttributeClass expectedStringAttributeObject = (StringAttributeClass) expectedObject;
-        assertEquals(expectedStringAttributeObject.getKey(), item.get("key").getS());
-        assertEquals(expectedStringAttributeObject.getStringAttribute(), item.get("stringAttribute").getS());
-        assertEquals(expectedStringAttributeObject.getRenamedAttribute(), item.get("originalName").getS());
+        assertEquals(expectedStringAttributeObject.getKey(), item.get("key").s());
+        assertEquals(expectedStringAttributeObject.getStringAttribute(), item.get("stringAttribute").s());
+        assertEquals(expectedStringAttributeObject.getRenamedAttribute(), item.get("originalName").s());
     }
 
     @Override
@@ -315,12 +315,12 @@ public class TransactionWriteTableMapperTest extends TransactionsTestBase {
                 actualResponseObjects = tableMapper.transactionLoad(transactionLoadRequest);
                 break;
             } catch (TransactionCanceledException tce) {
-                List<CancellationReason> cancellationReasons = tce.getCancellationReasons();
+                List<CancellationReason> cancellationReasons = tce.cancellationReasons();
                 Set<String> uniqueCancellationReasonCodes = new HashSet<String>();
                 for (CancellationReason cancellationReason: cancellationReasons) {
-                    uniqueCancellationReasonCodes.add(cancellationReason.getCode());
+                    uniqueCancellationReasonCodes.add(cancellationReason.code());
                 }
-                if (uniqueCancellationReasonCodes.size() != 1 || !"TransactionConflict".equals(cancellationReasons.get(0).getCode())) {
+                if (uniqueCancellationReasonCodes.size() != 1 || !"TransactionConflict".equals(cancellationReasons.get(0).code())) {
                     fail("transactionLoad failed with TransactionCanceledException having non-TransactionConflict cancellation reason(s): " + tce);
                 }
                 // Sleep for some time before re-trying transactionLoad

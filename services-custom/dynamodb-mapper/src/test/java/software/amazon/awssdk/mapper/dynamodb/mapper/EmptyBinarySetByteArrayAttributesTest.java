@@ -14,34 +14,35 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.AttributeValueUpdate;
-import com.amazonaws.services.dynamodbv2.model.GetItemRequest;
-import com.amazonaws.services.dynamodbv2.model.GetItemResult;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemRequest;
-import com.amazonaws.services.dynamodbv2.model.UpdateItemResult;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
+import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 import software.amazon.awssdk.mapper.dynamodb.pojos.BinaryAttributeByteArrayClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 /**
  * Tests empty binary set attributes represented as byte[]
@@ -54,7 +55,7 @@ public class EmptyBinarySetByteArrayAttributesTest {
     private static final String KEY_VALUE = "test-id";
     private static final byte[] EMPTY_BINARY = new byte[]{};
     private static final Set<byte[]> EMPTY_BINARY_SET;
-    private static final AttributeValue EMPTY_BINARY_SET_AV = new AttributeValue().withBS(ByteBuffer.wrap(EMPTY_BINARY));
+    private static final AttributeValue EMPTY_BINARY_SET_AV = AttributeValue.builder().bs(SdkBytes.fromByteArray(EMPTY_BINARY)).build();
 
     private static final Map<String, AttributeValue> ITEM_MAP;
     private static final Map<String, AttributeValue> KEY_MAP;
@@ -65,10 +66,10 @@ public class EmptyBinarySetByteArrayAttributesTest {
         EMPTY_BINARY_SET.add(EMPTY_BINARY);
 
         KEY_MAP = new HashMap<>();
-        KEY_MAP.put(KEY_NAME, new AttributeValue().withS(KEY_VALUE));
+        KEY_MAP.put(KEY_NAME, AttributeValue.builder().s(KEY_VALUE).build());
 
         ITEM_MAP = new HashMap<>();
-        ITEM_MAP.put(KEY_NAME, new AttributeValue().withS(KEY_VALUE));
+        ITEM_MAP.put(KEY_NAME, AttributeValue.builder().s(KEY_VALUE).build());
         ITEM_MAP.put(BINARY_SET_ATTRIBUTE, EMPTY_BINARY_SET_AV);
 
         TEST_OBJECT = new BinaryAttributeByteArrayClass();
@@ -77,7 +78,7 @@ public class EmptyBinarySetByteArrayAttributesTest {
     }
 
     @Mock
-    private AmazonDynamoDB mockDynamo;
+    private DynamoDbClient mockDynamo;
 
     @Captor
     private ArgumentCaptor<GetItemRequest> getItemRequestCaptor;
@@ -90,17 +91,21 @@ public class EmptyBinarySetByteArrayAttributesTest {
 
     @Test
     public void testLoad() {
-        when(mockDynamo.getItem(any(GetItemRequest.class))).thenReturn(new GetItemResult().withItem(ITEM_MAP));
+        when(mockDynamo.getItem(any(GetItemRequest.class))).thenReturn(GetItemResponse.builder().item(ITEM_MAP).build());
         DynamoDBMapper dynamoDBMapper = new DynamoDBMapper(mockDynamo);
 
         BinaryAttributeByteArrayClass x = dynamoDBMapper.load(BinaryAttributeByteArrayClass.class,
-                                                              ITEM_MAP.get(KEY_NAME).getS());
-        assertEquals(ITEM_MAP.get(KEY_NAME).getS(), x.getKey());
-        assertEquals(EMPTY_BINARY_SET, x.getBinarySetAttribute());
+                                                              ITEM_MAP.get(KEY_NAME).s());
+        assertEquals(ITEM_MAP.get(KEY_NAME).s(), x.getKey());
+        // v2 SdkBytes.asByteArray() returns a defensive copy, so Set equality (which compares byte[]
+        // elements by identity) would fail; compare the single element by content instead.
+        Set<byte[]> loadedSet = x.getBinarySetAttribute();
+        assertEquals(EMPTY_BINARY_SET.size(), loadedSet.size());
+        assertArrayEquals(EMPTY_BINARY_SET.iterator().next(), loadedSet.iterator().next());
 
         verify(mockDynamo).getItem(getItemRequestCaptor.capture());
         GetItemRequest getItemRequest = getItemRequestCaptor.getValue();
-        assertEquals(KEY_MAP, getItemRequest.getKey());
+        assertEquals(KEY_MAP, getItemRequest.key());
     }
 
     @Test
@@ -113,13 +118,13 @@ public class EmptyBinarySetByteArrayAttributesTest {
 
         verify(mockDynamo).putItem(putItemRequestCaptor.capture());
         PutItemRequest putItemRequest = putItemRequestCaptor.getValue();
-        assertEquals(ITEM_MAP, putItemRequest.getItem());
+        assertEquals(ITEM_MAP, putItemRequest.item());
     }
 
     @Test
     public void testSaveUsingUpdate() {
         when(mockDynamo.updateItem(any(UpdateItemRequest.class)))
-            .thenReturn(new UpdateItemResult().withAttributes(ITEM_MAP));
+            .thenReturn(UpdateItemResponse.builder().attributes(ITEM_MAP).build());
         DynamoDBMapper dynamoDBMapper = new DynamoDBMapper(mockDynamo);
 
         dynamoDBMapper.save(TEST_OBJECT, DynamoDBMapperConfig.builder()
@@ -128,10 +133,10 @@ public class EmptyBinarySetByteArrayAttributesTest {
 
         verify(mockDynamo).updateItem(updateItemRequestArgumentCaptor.capture());
         UpdateItemRequest updateItemRequest = updateItemRequestArgumentCaptor.getValue();
-        assertEquals(KEY_MAP, updateItemRequest.getKey());
-        Map<String, AttributeValueUpdate> updates = updateItemRequest.getAttributeUpdates();
+        assertEquals(KEY_MAP, updateItemRequest.key());
+        Map<String, AttributeValueUpdate> updates = updateItemRequest.attributeUpdates();
         AttributeValueUpdate attributeValueUpdate = updates.get(BINARY_SET_ATTRIBUTE);
-        assertEquals(EMPTY_BINARY_SET_AV, attributeValueUpdate.getValue());
-        assertEquals("PUT", attributeValueUpdate.getAction());
+        assertEquals(EMPTY_BINARY_SET_AV, attributeValueUpdate.value());
+        assertEquals("PUT", attributeValueUpdate.actionAsString());
     }
 }

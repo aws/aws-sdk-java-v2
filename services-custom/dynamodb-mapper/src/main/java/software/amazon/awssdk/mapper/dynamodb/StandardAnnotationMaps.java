@@ -15,12 +15,12 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import static software.amazon.awssdk.mapper.dynamodb.DynamoDBAutoGenerateStrategy.CREATE;
-import static com.amazonaws.services.dynamodbv2.model.KeyType.HASH;
-import static com.amazonaws.services.dynamodbv2.model.KeyType.RANGE;
+import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
+import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 
 import com.amazonaws.annotation.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import com.amazonaws.util.StringUtils;
 
 import java.lang.annotation.Annotation;

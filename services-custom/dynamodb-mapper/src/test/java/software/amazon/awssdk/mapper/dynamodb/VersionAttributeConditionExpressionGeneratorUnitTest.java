@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.mapper.dynamodb.pojos.MultiVersionRangeKeyClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import org.junit.Test;

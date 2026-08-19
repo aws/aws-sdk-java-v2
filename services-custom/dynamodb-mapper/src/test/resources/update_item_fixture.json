@@ -1,0 +1,8 @@
+{
+  "append-set-behavior" : "DynamoDB_20120810.UpdateItem\n{\"TableName\":\"M_AllTypes\",\"Key\":{\"id\":{\"S\":\"k\"}},\"AttributeUpdates\":{\"stringSet\":{\"Value\":{\"SS\":[\"a\",\"b\"]},\"Action\":\"ADD\"}},\"ReturnValues\":\"ALL_NEW\"}",
+  "null-attr-delete" : "DynamoDB_20120810.UpdateItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"AttributeUpdates\":{\"value\":{\"Action\":\"DELETE\"}},\"ReturnValues\":\"ALL_NEW\"}",
+  "null-attr-skip" : "DynamoDB_20120810.UpdateItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"AttributeUpdates\":{},\"ReturnValues\":\"ALL_NEW\"}",
+  "save-default-update" : "DynamoDB_20120810.UpdateItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"AttributeUpdates\":{\"value\":{\"Value\":{\"S\":\"hello\"},\"Action\":\"PUT\"}},\"ReturnValues\":\"ALL_NEW\"}",
+  "save-with-expected-expression" : "DynamoDB_20120810.UpdateItem\n{\"TableName\":\"M_String\",\"Key\":{\"id\":{\"S\":\"k\"}},\"AttributeUpdates\":{\"value\":{\"Value\":{\"S\":\"hello\"},\"Action\":\"PUT\"}},\"Expected\":{\"value\":{\"Exists\":false}},\"ReturnValues\":\"ALL_NEW\"}",
+  "versioned-first-save" : "DynamoDB_20120810.UpdateItem\n{\"TableName\":\"M_Versioned\",\"Key\":{\"id\":{\"S\":\"k\"}},\"AttributeUpdates\":{\"version\":{\"Value\":{\"N\":\"1\"},\"Action\":\"PUT\"}},\"Expected\":{\"version\":{\"Exists\":false}},\"ReturnValues\":\"ALL_NEW\"}"
+}

@@ -20,11 +20,11 @@ import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getMultiV
 import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.getUniqueRangeKeyObject;
 import static org.junit.Assert.assertEquals;
 
-import com.amazonaws.SdkClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.mapper.dynamodb.TestObjectCreator;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
 import software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest;
-import com.amazonaws.services.dynamodbv2.model.TransactionCanceledException;
+import software.amazon.awssdk.services.dynamodb.model.TransactionCanceledException;
 import software.amazon.awssdk.mapper.dynamodb.pojos.MultiVersionRangeKeyClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import org.junit.Rule;

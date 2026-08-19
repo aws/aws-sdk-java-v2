@@ -31,8 +31,8 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBRangeKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBVersionAttribute;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 /**
  * Tests of exception handling
@@ -182,8 +182,8 @@ public class ExceptionHandlingIntegrationTest extends DynamoDBMapperIntegrationT
     @Test(expected = DynamoDBMappingException.class)
     public void testPrivateKeySetterLoad() throws Exception {
         Map<String, AttributeValue> attr = new HashMap<String, AttributeValue>();
-        attr.put(KEY_NAME, new AttributeValue().withS("abc"));
-        dynamo.putItem(new PutItemRequest().withTableName("aws-java-sdk-util").withItem(attr));
+        attr.put(KEY_NAME, AttributeValue.builder().s("abc").build());
+        dynamo.putItem(PutItemRequest.builder().tableName("aws-java-sdk-util").item(attr).build());
         DynamoDBMapper util = new DynamoDBMapper(dynamo);
         util.load(PrivateKeySetter.class, "abc");
     }
@@ -320,21 +320,21 @@ public class ExceptionHandlingIntegrationTest extends DynamoDBMapperIntegrationT
     @Test(expected = DynamoDBMappingException.class)
     public void testWrongDataType() {
         Map<String, AttributeValue> attr = new HashMap<String, AttributeValue>();
-        attr.put("integerProperty", new AttributeValue().withS("abc"));
-        attr.put(KEY_NAME, new AttributeValue().withS("" + startKey++));
-        dynamo.putItem(new PutItemRequest().withTableName("aws-java-sdk-util").withItem(attr));
+        attr.put("integerProperty", AttributeValue.builder().s("abc").build());
+        attr.put(KEY_NAME, AttributeValue.builder().s("" + startKey++).build());
+        dynamo.putItem(PutItemRequest.builder().tableName("aws-java-sdk-util").item(attr).build());
         DynamoDBMapper util = new DynamoDBMapper(dynamo);
-        util.load(NumericFields.class, attr.get(KEY_NAME).getS());
+        util.load(NumericFields.class, attr.get(KEY_NAME).s());
     }
 
     @Test(expected = DynamoDBMappingException.class)
     public void testWrongDataType2() {
         Map<String, AttributeValue> attr = new HashMap<String, AttributeValue>();
-        attr.put("integerProperty", new AttributeValue().withNS("1", "2", "3"));
-        attr.put(KEY_NAME, new AttributeValue().withS("" + startKey++));
-        dynamo.putItem(new PutItemRequest().withTableName("aws-java-sdk-util").withItem(attr));
+        attr.put("integerProperty", AttributeValue.builder().ns("1", "2", "3").build());
+        attr.put(KEY_NAME, AttributeValue.builder().s("" + startKey++).build());
+        dynamo.putItem(PutItemRequest.builder().tableName("aws-java-sdk-util").item(attr).build());
         DynamoDBMapper util = new DynamoDBMapper(dynamo);
-        util.load(NumericFields.class, attr.get(KEY_NAME).getS());
+        util.load(NumericFields.class, attr.get(KEY_NAME).s());
     }
 
     @DynamoDBTable(tableName = "aws-java-sdk-util")

@@ -22,7 +22,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.Transacti
 import static software.amazon.awssdk.mapper.dynamodb.TestObjectCreator.TransactionLoadTestDataRequest;
 import static org.junit.Assert.assertEquals;
 
-import com.amazonaws.AmazonServiceException;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import org.junit.Test;
 
 public class TransactionLoadExpressionTest extends TransactionsTestBase {
@@ -81,8 +81,8 @@ public class TransactionLoadExpressionTest extends TransactionsTestBase {
 
         try {
             executeAndValidateTransactionLoad(testData.getTransactionLoadRequest(), testData.getExpectedObjects());
-        } catch (AmazonServiceException ex) {
-            assertEquals("ValidationException", ex.getErrorCode());
+        } catch (AwsServiceException ex) {
+            assertEquals("ValidationException", ex.awsErrorDetails().errorCode());
         }
     }
 }
