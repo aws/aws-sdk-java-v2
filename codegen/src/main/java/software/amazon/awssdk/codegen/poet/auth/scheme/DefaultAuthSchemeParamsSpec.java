@@ -187,6 +187,13 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
                                   .returns(Region.class)
                                   .addStatement("return region")
                                   .build());
+
+            b.addMethod(MethodSpec.methodBuilder("regionId")
+                                  .addModifiers(Modifier.PUBLIC)
+                                  .addAnnotation(Override.class)
+                                  .returns(String.class)
+                                  .addStatement("return region == null ? null : region.id()")
+                                  .build());
         }
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {

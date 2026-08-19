@@ -16,19 +16,21 @@
 package software.amazon.awssdk.codegen.poet.rules2;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import software.amazon.awssdk.utils.Validate;
 
 public final class SymbolTable {
     private final Map<String, RuleType> params;
     private final Map<String, RuleType> locals;
-    private final String regionParamName;
+    private final Set<String> regionParams;
 
     SymbolTable(Builder builder) {
         this.params = Collections.unmodifiableMap(new LinkedHashMap<>(builder.params));
         this.locals = Collections.unmodifiableMap(new LinkedHashMap<>(builder.locals));
-        this.regionParamName = builder.regionParamName;
+        this.regionParams = Collections.unmodifiableSet(new HashSet<>(builder.regionParams));
     }
 
     public static Builder builder() {
@@ -59,8 +61,20 @@ public final class SymbolTable {
         return params;
     }
 
-    public String regionParamName() {
-        return regionParamName;
+    /**
+     * Returns the set of parameter names that are Region-typed in Java (i.e., the Java getter returns {@code Region}
+     * rather than {@code String}). The codegen needs to append {@code .id()} when accessing these params to convert
+     * to the String value expected by the endpoint rules.
+     */
+    public Set<String> regionParams() {
+        return regionParams;
+    }
+
+    /**
+     * Returns true if the given parameter name is a Region-typed param that needs {@code .id()} appended.
+     */
+    public boolean isRegionParam(String name) {
+        return regionParams.contains(name);
     }
 
     public Builder toBuilder() {
@@ -70,7 +84,7 @@ public final class SymbolTable {
     public static class Builder {
         private final Map<String, RuleType> params = new LinkedHashMap<>();
         private final Map<String, RuleType> locals = new LinkedHashMap<>();
-        private String regionParamName;
+        private final Set<String> regionParams = new HashSet<>();
 
         public Builder() {
         }
@@ -78,7 +92,7 @@ public final class SymbolTable {
         public Builder(SymbolTable table) {
             this.params.putAll(table.params);
             this.locals.putAll(table.locals);
-            this.regionParamName = table.regionParamName;
+            this.regionParams.addAll(table.regionParams);
         }
 
         public Builder putParam(String name, RuleType type) {
@@ -99,8 +113,8 @@ public final class SymbolTable {
             return locals.get(name);
         }
 
-        public Builder regionParamName(String regionParamName) {
-            this.regionParamName = regionParamName;
+        public Builder addRegionParam(String name) {
+            regionParams.add(Validate.paramNotNull(name, "name"));
             return this;
         }
 
