@@ -40,7 +40,6 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -94,11 +93,7 @@ public class EndpointProviderSpec2 implements ClassSpec {
         parameters.forEach((k, v) -> {
             builder.putParam(k, fromParameterModel(v));
             if (v.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
-                // Region is a special case since it's already public API and uses an actual `Region` instance instead of
-                // `String`. We then introduce here a local with the same name but with String type such that we don't have
-                // to do the conversion everywhere a string represented region is used.
-                builder.regionParamName(k);
-                builder.putLocal(k, RuleRuntimeTypeMirror.STRING);
+                builder.addRegionParam(k);
             }
         });
         return builder.build();
@@ -150,14 +145,7 @@ public class EndpointProviderSpec2 implements ClassSpec {
 
         builder.addCode(validateRequiredParams());
         builder.beginControlFlow("try");
-        String regionParamName = utils.regionParamName();
-        if (regionParamName != null) {
-            builder.addStatement("$T region = params.$L()", Region.class, regionParamName);
-            builder.addStatement("$T regionId = region == null ? null : region.id()", String.class);
-            builder.addStatement("$T result = $L(params, regionId)", ruleResult(), utils.root().ruleId());
-        } else {
-            builder.addStatement("$T result = $L(params)", ruleResult(), utils.root().ruleId());
-        }
+        builder.addStatement("$T result = $L(params)", ruleResult(), utils.root().ruleId());
         builder.beginControlFlow("if (result.canContinue())")
                .addStatement("throw $T.create($S)", SdkClientException.class, "Rule engine did not reach an error or "
                                                                               + "endpoint result")
