@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Redshift Serverless",
-    "contributor": "",
-    "description": "Amazon Redshift Enhanced System Table Retention that allows customers to store their system table data directly in S3 Tables in customer's account instead of Redshift Managed Storage"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "documentation",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Add the @SdkAdvancedApi annotation to generated, operation event stream response handlers."
-}
