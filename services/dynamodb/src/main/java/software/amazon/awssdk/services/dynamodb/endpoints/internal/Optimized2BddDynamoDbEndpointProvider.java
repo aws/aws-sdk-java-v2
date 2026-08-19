@@ -27,7 +27,7 @@
  *
  * <p>This file is a copy of the generated DefaultDynamoDbEndpointProvider, renamed for benchmarking.
  */
-package software.amazon.awssdk.benchmark.endpointsbdd;
+package software.amazon.awssdk.services.dynamodb.endpoints.internal;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -41,9 +41,6 @@ import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointParams
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.RuleArn;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.RulePartition;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.RulesFunctions;
 
 public final class Optimized2BddDynamoDbEndpointProvider implements DynamoDbEndpointProvider {
     @Override

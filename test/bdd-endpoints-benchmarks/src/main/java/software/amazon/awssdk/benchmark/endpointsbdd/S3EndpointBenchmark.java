@@ -39,6 +39,8 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineRulesEndpointResolver;
+import software.amazon.awssdk.services.s3.endpoints.internal.Optimized2BddS3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.internal.OptimizedRulesS3EndpointProvider;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
 import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 

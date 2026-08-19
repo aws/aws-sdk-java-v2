@@ -25,7 +25,7 @@
  *
  * <p>This file is a copy of the generated DefaultS3EndpointProvider, renamed for benchmarking.
  */
-package software.amazon.awssdk.benchmark.endpointsbdd;
+package software.amazon.awssdk.services.s3.endpoints.internal;
 
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
@@ -41,11 +41,6 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.authscheme.S3ExpressEndpointAuthScheme;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
-import software.amazon.awssdk.services.s3.endpoints.internal.KnownS3ExpressEndpointProperty;
-import software.amazon.awssdk.services.s3.endpoints.internal.RuleArn;
-import software.amazon.awssdk.services.s3.endpoints.internal.RulePartition;
-import software.amazon.awssdk.services.s3.endpoints.internal.RuleUrl;
-import software.amazon.awssdk.services.s3.endpoints.internal.RulesFunctions;
 
 public final class OptimizedRulesS3EndpointProvider implements S3EndpointProvider {
     @Override

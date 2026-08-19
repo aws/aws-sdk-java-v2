@@ -39,6 +39,8 @@ import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointParams
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineRulesEndpointResolver;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.Optimized2BddDynamoDbEndpointProvider;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.OptimizedRulesDynamoDbEndpointProvider;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
 import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
