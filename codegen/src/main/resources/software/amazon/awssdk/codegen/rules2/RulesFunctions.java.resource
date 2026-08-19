@@ -47,6 +47,9 @@ public class RulesFunctions {
         boolean lastVhostAllowDots;
         boolean lastVhostResult;
         boolean lastVhostValid; // whether the cache entry is populated
+
+        // Auth scheme list cache: (signingRegion, signingName, dde -> cached list)
+        // Reserved for future use when auth scheme caching is implemented in codegen.
     }
 
     @SafeVarargs

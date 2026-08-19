@@ -17,13 +17,12 @@
  * <p>Optimizations applied (inspired by smithy-java GeneratedEndpointResolver):
  * <ul>
  *   <li>Each BDD node emitted as a nodeP/nodeN method returning Endpoint directly (null = no match)</li>
- *   <li>Simple conditions (isSet, booleanEquals, stringEquals on plain refs) inlined as ternary expressions -
- *       no method call overhead, one branch-predictor site per node</li>
+ *   <li>Simple conditions (isSet, booleanEquals, stringEquals on plain refs) inlined as ternary expressions</li>
  *   <li>Complex conditions (with assign side-effects) as dedicated cond N methods</li>
  *   <li>Result methods return Endpoint directly or throw SdkClientException - eliminates RuleResult allocation</li>
  *   <li>ThreadLocal Evaluator with inUse reentrancy guard - eliminates per-call Evaluator allocation</li>
- *   <li>No binary BDD resource, no cond(int) switch dispatch, no result(int) switch dispatch</li>
- *   <li>ThreadLocal function caches in RulesFunctions: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
+ *   <li>Endpoint.ofAttribute() factory eliminates HashMap allocation for the common single-attribute case</li>
+ *   <li>ThreadLocal function caches: awsPartition, uriEncode, isVirtualHostableS3Bucket</li>
  * </ul>
  *
  * <p>This file is a copy of the generated DefaultS3EndpointProvider, renamed for benchmarking.
@@ -4817,27 +4816,23 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result6() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + url.authority() + "/" + uri_encoded_bucket + url.path()))
-                    .putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express")
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true)
-                                    .signingName("s3express").signingRegion(region).create(_s3e_auth))).build();
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + "/" + uri_encoded_bucket + url.path()),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
         }
 
         private Endpoint result7() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()))
-                    .putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express")
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true)
-                                    .signingName("s3express").signingRegion(region).create(_s3e_auth))).build();
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
         }
 
         private Endpoint result8() {
@@ -4845,30 +4840,25 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result9() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3express-control" + _s3e_fips + _s3e_ds + "." + region + "."
-                                    + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket))
-                    .putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express")
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3express")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromComponents("https", "s3express-control" + _s3e_fips + _s3e_ds + "." + region + "."
+                            + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).build()));
         }
 
         private Endpoint result10() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3express" + _s3e_fips + "-"
-                                    + s3expressAvailabilityZoneId + _s3e_ds + "." + region + "." + partitionResult.dnsSuffix(),
-                                    -1, ""))
-                    .putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express")
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true)
-                                    .signingName("s3express").signingRegion(region).create(_s3e_auth))).build();
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".s3express" + _s3e_fips + "-"
+                            + s3expressAvailabilityZoneId + _s3e_ds + "." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
         }
 
         private Endpoint result11() {
@@ -4876,27 +4866,24 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result12() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()))
-                    .putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express")
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true)
-                                    .signingName("s3express").signingRegion(region).create(_s3e_auth))).build();
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
         }
 
         private Endpoint result13() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3express-control" + _s3e_fips + _s3e_ds + "." + region + "."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(KnownS3ExpressEndpointProperty.BACKEND, "S3Express")
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3express")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromComponents("https", "s3express-control" + _s3e_fips + _s3e_ds + "." + region + "."
+                            + partitionResult.dnsSuffix(), -1, ""),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).build()));
         }
 
         private Endpoint result14() {
@@ -4904,57 +4891,40 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result15() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", params.bucket() + ".ec2." + url.authority(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
-                                    .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder()
-                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(region).build()))
-                    .build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".ec2." + url.authority(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(region).build()));
         }
 
         private Endpoint result16() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".ec2.s3-outposts." + region + "."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
-                                    .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder()
-                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(region).build()))
-                    .build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".ec2.s3-outposts." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(region).build()));
         }
 
         private Endpoint result17() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".op-" + outpostId_ssa_2 + "." + url.authority(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
-                                    .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder()
-                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(region).build()))
-                    .build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.bucket() + ".op-" + outpostId_ssa_2 + "."
+                    + url.authority(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder()
+                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegionSet(Arrays.asList("*")).build(),
+                    SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result18() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".op-" + outpostId_ssa_2 + ".s3-outposts."
-                                    + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
-                                    .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder()
-                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(region).build()))
-                    .build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".op-" + outpostId_ssa_2 + ".s3-outposts." + region
+                            + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(region).build()));
         }
 
         private Endpoint result19() {
@@ -4979,203 +4949,140 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result24() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3-fips.dualstack.us-east-1."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result25() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3-fips.dualstack." + region + "."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result26() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.bucket() + ".s3-fips.us-east-1."
+                    + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme
+                    .builder().disableDoubleEncoding(true).signingName("s3").signingRegion("us-east-1").build()));
         }
 
         private Endpoint result27() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result28() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3-accelerate.dualstack.us-east-1."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-accelerate.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result29() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3-accelerate.dualstack." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-accelerate.dualstack." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result30() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result31() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3.dualstack." + region + "."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result32() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath()
-                                    + params.bucket()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + params.bucket()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result33() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result34() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath()
-                                    + params.bucket()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + params.bucket()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result35() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result36() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3-accelerate." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    params.bucket() + ".s3-accelerate." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion("us-east-1").build()));
         }
 
         private Endpoint result37() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3-accelerate." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    params.bucket() + ".s3-accelerate." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion(region).build()));
         }
 
         private Endpoint result38() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result39() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", params.bucket() + ".s3." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result40() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    params.bucket() + ".s3." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.bucket() + ".s3." + region + "."
+                    + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme
+                    .builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region).build()));
         }
 
         private Endpoint result41() {
@@ -5204,39 +5111,30 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result47() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + "." + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + accessPointName_ssa_1 + "-" + bucketArn.accountId() + "."
+                            + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result48() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + ".s3-object-lambda-fips." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-object-lambda-fips." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result49() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + ".s3-object-lambda." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-object-lambda." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result50() {
@@ -5283,64 +5181,47 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
 
         private Endpoint result59() {
             return Endpoint
-                    .builder()
-                    .endpointUrl(
+                    .ofAttribute(
                             EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
                                     + ".s3-accesspoint-fips.dualstack." + bucketArn.region() + "." + bucketPartition.dnsSuffix(),
-                                    -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(bucketArn.region()).build())).build();
+                                    -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder()
+                                    .disableDoubleEncoding(true).signingName("s3").signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result60() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + ".s3-accesspoint-fips." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-accesspoint-fips." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result61() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + ".s3-accesspoint.dualstack." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1,
-                                    ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-accesspoint.dualstack." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result62() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + "." + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + accessPointName_ssa_1 + "-" + bucketArn.accountId() + "."
+                            + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result63() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
-                                    + ".s3-accesspoint." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(bucketArn.region()).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId() + ".s3-accesspoint."
+                            + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result64() {
@@ -5364,15 +5245,12 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result69() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + ".accesspoint.s3-global."
-                                    + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegionSet(Arrays.asList("*")).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            accessPointName_ssa_1 + ".accesspoint.s3-global." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegionSet(Arrays.asList("*")).build()));
         }
 
         private Endpoint result70() {
@@ -5401,32 +5279,24 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result76() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", accessPointName_ssa_2 + "-" + bucketArn.accountId() + "."
-                                    + outpostId_ssa_1 + "." + url.authority(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
-                                    .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder()
-                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(bucketArn.region())
-                                    .build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_2 + "-" + bucketArn.accountId() + "."
+                            + outpostId_ssa_1 + "." + url.authority(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result77() {
             return Endpoint
-                    .builder()
-                    .endpointUrl(
+                    .ofAttribute(
                             EndpointUrl.fromComponents("https", accessPointName_ssa_2 + "-" + bucketArn.accountId() + "."
                                     + outpostId_ssa_1 + ".s3-outposts." + bucketArn.region() + "." + bucketPartition.dnsSuffix(),
-                                    -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
-                                    .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder()
-                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(bucketArn.region())
-                                    .build())).build();
+                                    -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder()
+                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegionSet(Arrays.asList("*"))
+                                    .build(), SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                                    .signingRegion(bucketArn.region()).build()));
         }
 
         private Endpoint result78() {
@@ -5472,134 +5342,96 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result88() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1,
-                                    "/" + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result89() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    "s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, "/"
-                                            + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    "s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion(region).build()));
         }
 
         private Endpoint result90() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
-                                    + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result91() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, "/"
-                                    + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result92() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
-                                    + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result93() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1,
-                                    "/" + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result94() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath()
-                                    + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result95() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath()
-                                    + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result96() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result97() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result98() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3." + region + "." + partitionResult.dnsSuffix(), -1, "/"
-                                    + uri_encoded_bucket))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + region + "." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result99() {
@@ -5607,155 +5439,112 @@ public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider 
         }
 
         private Endpoint result100() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(region).build()));
         }
 
         private Endpoint result101() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    "s3-object-lambda-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", "s3-object-lambda-fips." + region + "."
+                    + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme
+                    .builder().disableDoubleEncoding(true).signingName("s3-object-lambda").signingRegion(region).build()));
         }
 
         private Endpoint result102() {
             return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3-object-lambda." + region + "." + partitionResult.dnsSuffix(),
-                                    -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
-                                    .signingRegion(region).build())).build();
+                    .ofAttribute(EndpointUrl.fromComponents("https",
+                            "s3-object-lambda." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                            AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder()
+                                    .disableDoubleEncoding(true).signingName("s3-object-lambda").signingRegion(region).build()));
         }
 
         private Endpoint result103() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1,
-                                    ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result104() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https",
-                                    "s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    "s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion(region).build()));
         }
 
         private Endpoint result105() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", "s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result106() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result107() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result108() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(
-                            EndpointUrl.fromComponents("https", "s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1,
-                                    ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result109() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result110() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result111() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion("us-east-1").build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
         }
 
         private Endpoint result112() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result113() {
-            return Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", "s3." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
-                                    .signingRegion(region).build())).build();
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
         }
 
         private Endpoint result114() {
