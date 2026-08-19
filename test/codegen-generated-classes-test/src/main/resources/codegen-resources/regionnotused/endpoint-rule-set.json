@@ -1,0 +1,42 @@
+{
+    "version": "1.0",
+    "parameters": {
+        "Region": {
+            "builtIn": "AWS::Region",
+            "required": true,
+            "documentation": "The AWS region - declared but never referenced in rules",
+            "type": "string"
+        },
+        "Endpoint": {
+            "builtIn": "SDK::Endpoint",
+            "required": false,
+            "documentation": "Override the endpoint",
+            "type": "string"
+        }
+    },
+    "rules": [
+        {
+            "conditions": [
+                {
+                    "fn": "isSet",
+                    "argv": [{"ref": "Endpoint"}]
+                }
+            ],
+            "endpoint": {
+                "url": "{Endpoint}",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": "https://regionnotused.amazonaws.com",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        }
+    ]
+}
