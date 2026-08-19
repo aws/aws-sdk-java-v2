@@ -21,12 +21,15 @@ import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
 
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -385,6 +388,7 @@ public final class ClientClassUtils {
                              + ".orElse(null)",
                              providerInterface, Validate.class, providerInterface,
                              "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
+
         builder.addStatement("$T authSchemeProvider = requestAuthSchemeProvider != null "
                              + "? requestAuthSchemeProvider "
                              + ": $T.isInstanceOf($T.class, "
@@ -393,13 +397,24 @@ public final class ClientClassUtils {
                              SdkInternalExecutionAttribute.class,
                              "Expected an instance of " + authSchemeSpecUtils.providerInterfaceName().simpleName());
 
+        boolean canCache = !authSchemeSpecUtils.useEndpointBasedAuthProvider();
+        if (canCache) {
+            addAuthSchemeCacheLookup(builder, authSchemeSpecUtils);
+        }
+
         if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             addEndpointBasedAuthSchemeResolution(builder, authSchemeSpecUtils, endpointRulesSpecUtils);
         } else {
             addSimpleAuthSchemeResolution(builder, authSchemeSpecUtils);
         }
 
-        if (endpointRulesSpecUtils.isS3()) {
+        if (canCache) {
+            builder.beginControlFlow("if (useCache)");
+            builder.addStatement("options = $T.unmodifiableList(options)", Collections.class);
+            builder.addStatement("authSchemeCache.put(cacheKey, options)");
+            builder.endControlFlow();
+            builder.addStatement("return options");
+        } else if (endpointRulesSpecUtils.isS3()) {
             ClassName sdkIdentityProperty = ClassName.get("software.amazon.awssdk.core.identity", "SdkIdentityProperty");
             builder.addStatement("$T sdkClient = executionAttributes.getAttribute($T.SDK_CLIENT)",
                                  SdkClient.class, SdkInternalExecutionAttribute.class);
@@ -414,6 +429,58 @@ public final class ClientClassUtils {
         return builder.build();
     }
 
+    /**
+     * Returns a field spec for the auth scheme options cache, used when simple (non-endpoint-based) auth is in effect.
+     */
+    static Optional<FieldSpec> authSchemeCacheField(AuthSchemeSpecUtils authSchemeSpecUtils) {
+        if (authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
+            return Optional.empty();
+        }
+        ClassName concurrentHashMap = ClassName.get("java.util.concurrent", "ConcurrentHashMap");
+        ParameterizedTypeName mapType = ParameterizedTypeName.get(
+            concurrentHashMap,
+            ClassName.get(String.class),
+            ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(AuthSchemeOption.class)));
+        return Optional.of(FieldSpec.builder(mapType, "authSchemeCache", PRIVATE, Modifier.FINAL)
+                                    .initializer("new $T<>()", concurrentHashMap)
+                                    .build());
+    }
+
+    private static void addAuthSchemeCacheLookup(MethodSpec.Builder builder, AuthSchemeSpecUtils authSchemeSpecUtils) {
+        ClassName defaultProviderClass = authSchemeSpecUtils.defaultAuthSchemeProviderName();
+        builder.addStatement("boolean useCache = requestAuthSchemeProvider == null "
+                             + "&& authSchemeProvider instanceof $T", defaultProviderClass);
+
+        ClassName awsExecAttr = ClassName.get("software.amazon.awssdk.awscore", "AwsExecutionAttribute");
+        List<CodeBlock> parts = new ArrayList<>();
+        if (authSchemeSpecUtils.hasPerOperationAuthOverrides()) {
+            parts.add(CodeBlock.of("operationName"));
+        }
+        if (authSchemeSpecUtils.usesSigV4()) {
+            parts.add(CodeBlock.of("executionAttributes.getAttribute($T.AWS_REGION)", awsExecAttr));
+        }
+        if (authSchemeSpecUtils.usesSigV4a()) {
+            parts.add(CodeBlock.of("executionAttributes.getAttribute($T.AWS_SIGV4A_SIGNING_REGION_SET)", awsExecAttr));
+        }
+
+        if (parts.isEmpty()) {
+            builder.addStatement("$T cacheKey = $S", String.class, "default");
+        } else if (parts.size() == 1) {
+            builder.addStatement("$T cacheKey = $T.valueOf($L)", String.class, String.class, parts.get(0));
+        } else {
+            builder.addStatement("$T cacheKey = $L", String.class, CodeBlock.join(parts, " + \":\" + "));
+        }
+
+        builder.beginControlFlow("if (useCache)");
+        builder.addStatement("$T<$T> cached = authSchemeCache.get(cacheKey)",
+                             List.class, AuthSchemeOption.class);
+        builder.beginControlFlow("if (cached != null)");
+        builder.addStatement("return cached");
+        builder.endControlFlow();
+        builder.endControlFlow();
+    }
+
+    // Any AwsExecutionAttribute added here must also be added to addAuthSchemeCacheLookup(). Enforced by AuthSchemeCacheKeyTest.
     private static void addSimpleAuthSchemeResolution(MethodSpec.Builder builder,
                                                       AuthSchemeSpecUtils authSchemeSpecUtils) {
         ClassName paramsInterface = authSchemeSpecUtils.parametersInterfaceName();
