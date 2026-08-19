@@ -94,7 +94,7 @@ public class DynamoDbEndpointBenchmark {
         switch (resolver) {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd":        sdkProvider = new OptimizedBddDynamoDbEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new Optimized2BddDynamoDbEndpointProvider(); break;
             case "optimizedRules":      sdkProvider = new OptimizedRulesDynamoDbEndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forDynamoDb();

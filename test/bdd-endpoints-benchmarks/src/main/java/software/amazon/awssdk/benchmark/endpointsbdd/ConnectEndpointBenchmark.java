@@ -106,7 +106,7 @@ public class ConnectEndpointBenchmark {
         switch (resolver) {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd":        sdkProvider = new OptimizedBddConnectEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new Optimized2BddConnectEndpointProvider(); break;
             case "optimizedRules":      sdkProvider = new OptimizedRulesConnectEndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forConnect();

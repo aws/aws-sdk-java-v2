@@ -47,7 +47,7 @@ import software.amazon.awssdk.services.s3.endpoints.internal.RulePartition;
 import software.amazon.awssdk.services.s3.endpoints.internal.RuleUrl;
 import software.amazon.awssdk.services.s3.endpoints.internal.RulesFunctions;
 
-public final class OptimizedBddS3EndpointProvider implements S3EndpointProvider {
+public final class Optimized2BddS3EndpointProvider implements S3EndpointProvider {
     private static final ThreadLocal STATE = new ThreadLocal<>();
 
     @Override

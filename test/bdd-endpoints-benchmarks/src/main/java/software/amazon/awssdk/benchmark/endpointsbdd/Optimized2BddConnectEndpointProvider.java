@@ -41,7 +41,7 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.services.connect.endpoints.internal.RulePartition;
 import software.amazon.awssdk.services.connect.endpoints.internal.RulesFunctions;
 
-public final class OptimizedBddConnectEndpointProvider implements ConnectEndpointProvider {
+public final class Optimized2BddConnectEndpointProvider implements ConnectEndpointProvider {
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(ConnectEndpointParams params) {
         Validate.notNull(params.useDualStack(), "Parameter 'UseDualStack' must not be null");

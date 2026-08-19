@@ -45,7 +45,7 @@ import software.amazon.awssdk.services.dynamodb.endpoints.internal.RuleArn;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.RulePartition;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.RulesFunctions;
 
-public final class OptimizedBddDynamoDbEndpointProvider implements DynamoDbEndpointProvider {
+public final class Optimized2BddDynamoDbEndpointProvider implements DynamoDbEndpointProvider {
     @Override
     public CompletableFuture<Endpoint> resolveEndpoint(DynamoDbEndpointParams params) {
         Validate.notNull(params.useDualStack(), "Parameter 'UseDualStack' must not be null");

@@ -98,7 +98,7 @@ public class S3EndpointBenchmark {
         switch (resolver) {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd":        sdkProvider = new OptimizedBddS3EndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new Optimized2BddS3EndpointProvider(); break;
             case "optimizedRules":      sdkProvider = new OptimizedRulesS3EndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forS3();
