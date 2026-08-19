@@ -62,7 +62,7 @@ public class DynamoDbEndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaGenerated"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "optimizedRules", "smithyJavaGenerated"})
     private String resolver;
 
     private DynamoDbEndpointProvider sdkProvider;
@@ -95,6 +95,7 @@ public class DynamoDbEndpointBenchmark {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
             case "optimizedBdd":        sdkProvider = new OptimizedBddDynamoDbEndpointProvider(); break;
+            case "optimizedRules":      sdkProvider = new OptimizedRulesDynamoDbEndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forDynamoDb();
                 break;

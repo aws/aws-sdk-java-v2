@@ -66,7 +66,7 @@ public class S3EndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaGenerated"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "optimizedRules", "smithyJavaGenerated"})
     private String resolver;
 
     private S3EndpointProvider sdkProvider;
@@ -99,6 +99,7 @@ public class S3EndpointBenchmark {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
             case "optimizedBdd":        sdkProvider = new OptimizedBddS3EndpointProvider(); break;
+            case "optimizedRules":      sdkProvider = new OptimizedRulesS3EndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forS3();
                 break;

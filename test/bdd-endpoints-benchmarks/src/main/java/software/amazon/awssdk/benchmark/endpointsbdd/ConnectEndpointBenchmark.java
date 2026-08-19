@@ -65,7 +65,7 @@ public class ConnectEndpointBenchmark {
 
     private static final long SHUFFLE_SEED = 20260730L;
 
-    @Param({"rules", "baselineBdd", "optimizedBdd", "smithyJavaGenerated"})
+    @Param({"rules", "baselineBdd", "optimizedBdd", "optimizedRules", "smithyJavaGenerated"})
     private String resolver;
 
     // SDK resolvers — non-null for rules/baselineBdd/optimizedBdd
@@ -107,6 +107,7 @@ public class ConnectEndpointBenchmark {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
             case "optimizedBdd":        sdkProvider = new OptimizedBddConnectEndpointProvider(); break;
+            case "optimizedRules":      sdkProvider = new OptimizedRulesConnectEndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forConnect();
                 break;

@@ -19,141 +19,94 @@ import software.amazon.awssdk.utils.Validate;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class DefaultQueryEndpointProvider implements QueryEndpointProvider {
-    @Override
-    public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams params) {
-        Validate.notNull(params.region(), "Parameter 'region' must not be null");
-        try {
-            Region region = params.region();
-            String regionId = region == null ? null : region.id();
-            RuleResult result = endpointRule0(params, regionId);
-            if (result.canContinue()) {
-                throw SdkClientException.create("Rule engine did not reach an error or endpoint result");
-            }
-            if (result.isError()) {
-                String errorMsg = result.error();
-                if (errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
-                    errorMsg += ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.";
-                }
-                throw SdkClientException.create(errorMsg);
-            }
-            return CompletableFuture.completedFuture(result.endpoint());
-        } catch (Exception error) {
-            return CompletableFutureUtils.failedFuture(error);
+  @Override
+  public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams params) {
+    Validate.notNull(params.region(), "Parameter 'region' must not be null");
+    try {
+      Region region = params.region();
+      String regionId = region == null ? null : region.id();
+      Endpoint result = endpointRule0(params, regionId);
+      if (result == null) {
+        throw SdkClientException.create("Rule engine did not reach an error or endpoint result");
+      }
+      return CompletableFuture.completedFuture(result);
+    } catch (SdkClientException e) {
+      String errorMsg = e.getMessage();
+      if (errorMsg != null && errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
+        return CompletableFutureUtils.failedFuture(SdkClientException.create(errorMsg + ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest."));
+      }
+      return CompletableFutureUtils.failedFuture(e);
+    } catch (Exception error) {
+      return CompletableFutureUtils.failedFuture(error);
+    }
+  }
+
+  private static Endpoint endpointRule0(QueryEndpointParams params, String region) {
+    return endpointRule1(params, region);
+  }
+
+  private static Endpoint endpointRule1(QueryEndpointParams params, String region) {
+    RulePartition partitionResult = RulesFunctions.awsPartition(region);
+    if (partitionResult != null) {
+      Endpoint result = endpointRule2(params, partitionResult);
+      if (result != null) {
+        return result;
+      }
+      result = endpointRule6(params, region, partitionResult);
+      if (result != null) {
+        return result;
+      }
+      throw SdkClientException.create(region + " is not a valid HTTP host-label");
+      if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint() && params.arnList() != null) {
+        String firstArn = RulesFunctions.listAccess(params.arnList(), 0);
+        if (firstArn != null) {
+          RuleArn parsedArn = RulesFunctions.awsParseArn(firstArn);
+          if (parsedArn != null) {
+            return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+          }
         }
+      }
     }
+    return null;
+  }
 
-    private static RuleResult endpointRule0(QueryEndpointParams params, String region) {
-        return endpointRule1(params, region);
+  private static Endpoint endpointRule2(QueryEndpointParams params, RulePartition partitionResult) {
+    if (params.endpointId() != null) {
+      if (params.useFipsEndpoint() != null && params.useFipsEndpoint()) {
+        throw SdkClientException.create("FIPS endpoints not supported with multi-region endpoints");
+      }
+      if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint()) {
+        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+      }
+      return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
     }
+    return null;
+  }
 
-    private static RuleResult endpointRule1(QueryEndpointParams params, String region) {
-        RulePartition partitionResult = RulesFunctions.awsPartition(region);
-        if (partitionResult != null) {
-            RuleResult result = endpointRule2(params, partitionResult);
-            if (result.isResolved()) {
-                return result;
-            }
-            result = endpointRule6(params, region, partitionResult);
-            if (result.isResolved()) {
-                return result;
-            }
-            return RuleResult.error(region + " is not a valid HTTP host-label");
-            if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint()
-                    && params.arnList() != null) {
-                String firstArn = RulesFunctions.listAccess(params.arnList(), 0);
-                if (firstArn != null) {
-                    RuleArn parsedArn = RulesFunctions.awsParseArn(firstArn);
-                    if (parsedArn != null) {
-                        return RuleResult.endpoint(Endpoint
-                                .builder()
-                                .endpointUrl(
-                                        EndpointUrl.fromComponents("https",
-                                                params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""))
-                                .putAttribute(
-                                        AwsEndpointAttribute.AUTH_SCHEMES,
-                                        Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
-                                                .signingRegionSet(Arrays.asList("*")).build())).build());
-                    }
-                }
-            }
-        }
-        return RuleResult.carryOn();
+  private static Endpoint endpointRule6(QueryEndpointParams params, String region,
+      RulePartition partitionResult) {
+    if (RulesFunctions.isValidHostLabel(region, false)) {
+      if (params.useFipsEndpoint() != null && params.useFipsEndpoint() && params.useDualStackEndpoint() == null) {
+        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+      }
+      if (params.useDualStackEndpoint() != null && params.useDualStackEndpoint() && params.useFipsEndpoint() == null) {
+        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().signingName("query").signingRegion(region).build())).build();
+      }
+      if (params.useDualStackEndpoint() != null && params.useFipsEndpoint() != null && params.useDualStackEndpoint() && params.useFipsEndpoint()) {
+        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+      }
+      return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dnsSuffix(), -1, "")).build();
     }
+    return null;
+  }
 
-    private static RuleResult endpointRule2(QueryEndpointParams params, RulePartition partitionResult) {
-        if (params.endpointId() != null) {
-            if (params.useFipsEndpoint() != null && params.useFipsEndpoint()) {
-                return RuleResult.error("FIPS endpoints not supported with multi-region endpoints");
-            }
-            if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint()) {
-                return RuleResult.endpoint(Endpoint
-                        .builder()
-                        .endpointUrl(
-                                EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(),
-                                        -1, ""))
-                        .putAttribute(
-                                AwsEndpointAttribute.AUTH_SCHEMES,
-                                Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
-                                        .signingRegionSet(Arrays.asList("*")).build())).build());
-            }
-            return RuleResult.endpoint(Endpoint
-                    .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(), -1, ""))
-                    .putAttribute(
-                            AwsEndpointAttribute.AUTH_SCHEMES,
-                            Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*"))
-                                    .build())).build());
-        }
-        return RuleResult.carryOn();
-    }
+  @Override
+  public boolean equals(Object rhs) {
+    return rhs != null && getClass().equals(rhs.getClass());
+  }
 
-    private static RuleResult endpointRule6(QueryEndpointParams params, String region, RulePartition partitionResult) {
-        if (RulesFunctions.isValidHostLabel(region, false)) {
-            if (params.useFipsEndpoint() != null && params.useFipsEndpoint() && params.useDualStackEndpoint() == null) {
-                return RuleResult.endpoint(Endpoint
-                        .builder()
-                        .endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""))
-                        .putAttribute(
-                                AwsEndpointAttribute.AUTH_SCHEMES,
-                                Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
-                                        .signingRegionSet(Arrays.asList("*")).build())).build());
-            }
-            if (params.useDualStackEndpoint() != null && params.useDualStackEndpoint() && params.useFipsEndpoint() == null) {
-                return RuleResult.endpoint(Endpoint
-                        .builder()
-                        .endpointUrl(
-                                EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""))
-                        .putAttribute(
-                                AwsEndpointAttribute.AUTH_SCHEMES,
-                                Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
-                                        .signingRegionSet(Arrays.asList("*")).build(),
-                                        SigV4AuthScheme.builder().signingName("query").signingRegion(region).build())).build());
-            }
-            if (params.useDualStackEndpoint() != null && params.useFipsEndpoint() != null && params.useDualStackEndpoint()
-                    && params.useFipsEndpoint()) {
-                return RuleResult.endpoint(Endpoint
-                        .builder()
-                        .endpointUrl(
-                                EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1,
-                                        ""))
-                        .putAttribute(
-                                AwsEndpointAttribute.AUTH_SCHEMES,
-                                Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
-                                        .signingRegionSet(Arrays.asList("*")).build())).build());
-            }
-            return RuleResult.endpoint(Endpoint.builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dnsSuffix(), -1, "")).build());
-        }
-        return RuleResult.carryOn();
-    }
-
-    @Override
-    public boolean equals(Object rhs) {
-        return rhs != null && getClass().equals(rhs.getClass());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
+  @Override
+  public int hashCode() {
+    return getClass().hashCode();
+  }
 }
