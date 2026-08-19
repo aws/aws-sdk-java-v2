@@ -64,7 +64,6 @@
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequestTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/HashKeyOnlyTableWithGSITest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/MapperLoadingStrategyConfigTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/AWSIntegrationTestBase.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/DynamoDBTableResource.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/ResourceCentricBlockJUnit4ClassRunner.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/TestResourceUtils.java</testExclude>
@@ -161,8 +160,7 @@
         </dependency>
         <dependency>
             <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
+            <artifactId>mockito-core</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

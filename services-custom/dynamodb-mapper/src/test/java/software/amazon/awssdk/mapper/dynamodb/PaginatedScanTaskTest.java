@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -41,7 +41,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static org.mockito.Matchers.argThat;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -182,7 +182,7 @@ public class PaginatedScanTaskTest {
     /**
      * Custom argument matcher to match a {@link ScanRequest} on the segment number.
      */
-    private static class SegmentArgumentMatcher extends ArgumentMatcher<ScanRequest> {
+    private static class SegmentArgumentMatcher implements ArgumentMatcher<ScanRequest> {
 
         private final int matchingSegmentNumber;
 
@@ -191,11 +191,11 @@ public class PaginatedScanTaskTest {
         }
 
         @Override
-        public boolean matches(Object argument) {
-            if (!(argument instanceof ScanRequest)) {
+        public boolean matches(ScanRequest argument) {
+            if (argument == null) {
                 return false;
             }
-            return matchingSegmentNumber == ((ScanRequest) argument).segment();
+            return matchingSegmentNumber == argument.segment();
         }
     }
 }

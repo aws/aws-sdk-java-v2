@@ -39,8 +39,8 @@ public abstract class AWSTestBase {
     /**
      * Shared AWS credentials, loaded from a properties file. Direct access to this field is
      * deprecated
-     * 
-     * @deprecated Extend from {@link AWSIntegrationTestBase} to access credentials
+     *
+     * @deprecated Use the credentials resolved by this base class instead of accessing this field directly
      */
     @Deprecated
     public static AwsCredentials credentials;
@@ -64,7 +64,7 @@ public abstract class AWSTestBase {
     public RetryRule retry = new RetryRule(3, 2, TimeUnit.SECONDS);
 
     /**
-     * @deprecated Extend from {@link AWSIntegrationTestBase} to access credentials
+     * @deprecated Use the credentials resolved by this base class instead of calling this directly
      */
     @Deprecated
     public static void setUpCredentials() {

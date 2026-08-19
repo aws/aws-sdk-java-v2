@@ -231,7 +231,6 @@ public class ParallelScanTask {
         } else {
             segmentScanRequest = segmentScanRequest.toBuilder().exclusiveStartKey(null).build();
         }
-        parallelScanRequests.set(currentSegment, segmentScanRequest);
         ScanResponse scanResult = dynamo.scan(segmentScanRequest);
 
         /**
