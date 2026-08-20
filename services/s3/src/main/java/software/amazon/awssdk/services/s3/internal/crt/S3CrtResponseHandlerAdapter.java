@@ -17,10 +17,12 @@ package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -28,6 +30,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.function.LongSupplier;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -35,15 +39,24 @@ import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.crt.CRT;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.crt.s3.S3RequestMetrics;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpMetric;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.metrics.SdkMetric;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -65,20 +78,21 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final Duration s3MetaRequestTimeout;
+    private final List<MetricPublisher> metricPublishers;
 
     private volatile boolean responseHandlingInitiated;
 
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
-                                       PublisherListener<S3MetaRequestProgress> progressListener,
+                                       SdkHttpExecutionAttributes httpExecutionAttributes,
                                        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
-        this(executeFuture, responseHandler, progressListener, metaRequestFuture, META_REQUEST_TIMEOUT);
+        this(executeFuture, responseHandler, httpExecutionAttributes, metaRequestFuture, META_REQUEST_TIMEOUT);
     }
 
     @SdkTestInternalApi
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
-                                       PublisherListener<S3MetaRequestProgress> progressListener,
+                                       SdkHttpExecutionAttributes httpExecutionAttributes,
                                        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
                                        Duration s3MetaRequestTimeout) {
         this.resultFuture = executeFuture;
@@ -97,7 +111,11 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         });
 
         this.responseHandler = responseHandler;
+        PublisherListener<S3MetaRequestProgress> progressListener = httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER);
         this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
+        List<MetricPublisher> publishers =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
+        this.metricPublishers = publishers == null ? Collections.emptyList() : publishers;
         this.s3MetaRequestTimeout = s3MetaRequestTimeout;
     }
 
@@ -302,6 +320,68 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     @Override
     public void onProgress(S3MetaRequestProgress progress) {
         this.progressListener.subscriberOnNext(progress);
+    }
+
+    /**
+     * Invoked by CRT once per underlying HTTP request (e.g. each ranged part GET / upload part) with that request's
+     * telemetry. We publish each as its own nested ApiCall -> ApiCallAttempt -> HttpClient MetricCollection, mirroring
+     * the node placement of the standard client so all metric publishers render it consistently. Runs on a CRT native
+     * thread; it only reads the metrics object and publishes, and never throws back into the native callback.
+     */
+    @Override
+    public void onTelemetry(S3RequestMetrics requestMetrics) {
+        if (metricPublishers.isEmpty()) {
+            return;
+        }
+        try {
+            MetricCollector apiCall = MetricCollector.create("ApiCall");
+            apiCall.reportMetric(CoreMetric.SERVICE_ID, "S3");
+            report(apiCall, CoreMetric.OPERATION_NAME, requestMetrics::getOperationName);
+            report(apiCall, CoreMetric.API_CALL_SUCCESSFUL, requestMetrics::isApiCallSuccessful);
+            report(apiCall, CoreMetric.RETRY_COUNT, requestMetrics::getRetryCount);
+            reportDuration(apiCall, CoreMetric.API_CALL_DURATION, requestMetrics::getApiCallDurationNs);
+
+            MetricCollector attempt = apiCall.createChild("ApiCallAttempt");
+            reportDuration(attempt, CoreMetric.SIGNING_DURATION, requestMetrics::getSigningDurationNs);
+            reportDuration(attempt, CoreMetric.SERVICE_CALL_DURATION, requestMetrics::getServiceCallDurationNs);
+            reportDuration(attempt, CoreMetric.BACKOFF_DELAY_DURATION, requestMetrics::getBackoffDelayDurationNs);
+            report(attempt, CoreMetric.AWS_REQUEST_ID, requestMetrics::getAwsRequestId);
+            report(attempt, CoreMetric.AWS_EXTENDED_REQUEST_ID, requestMetrics::getAwsExtendedRequestId);
+
+            MetricCollector httpClient = attempt.createChild("HttpClient");
+            httpClient.reportMetric(HttpMetric.HTTP_CLIENT_NAME, S3CrtAsyncHttpClient.CLIENT_NAME);
+
+            // TODO: map when CRT exposes them - HTTP status, endpoint URL, TTFB/TTLB, connection-pool metrics.
+
+            MetricCollection collection = apiCall.collect();
+            metricPublishers.forEach(p -> p.publish(collection));
+        } catch (RuntimeException e) {
+            log.warn(() -> "Failed to publish CRT S3 request metrics", e);
+        }
+    }
+
+    /**
+     * Reports a metric from a CRT getter, guarding against {@link CrtRuntimeException} (error code 14358,
+     * AWS_ERROR_S3_METRIC_DATA_NOT_AVAILABLE) which CRT throws when the value is not available for this request.
+     * A missing/unavailable value skips only that one metric.
+     */
+    private <T> void report(MetricCollector collector, SdkMetric<T> metric, Supplier<T> getter) {
+        try {
+            T value = getter.get();
+            if (value != null) {
+                collector.reportMetric(metric, value);
+            }
+        } catch (CrtRuntimeException e) {
+            log.trace(() -> "CRT metric " + metric.name() + " unavailable: " + e.getMessage());
+        }
+    }
+
+    private void reportDuration(MetricCollector collector, SdkMetric<Duration> metric, LongSupplier nanos) {
+        try {
+            collector.reportMetric(metric, Duration.ofNanos(nanos.getAsLong()));
+        } catch (CrtRuntimeException e) {
+            log.trace(() -> "CRT metric " + metric.name() + " unavailable: " + e.getMessage());
+        }
     }
 
     private static SdkHttpResponse.Builder populateSdkHttpResponse(SdkHttpResponse.Builder respBuilder,

@@ -30,6 +30,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3NativeClientConf
 import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -64,6 +65,7 @@ import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -236,7 +238,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                                  .withMaxRetries(builder.retryConfiguration.numRetries())));
         }
         return S3CrtAsyncHttpClient.builder()
-                                   .s3ClientConfiguration(nativeClientBuilder.build());
+                                   .s3ClientConfiguration(nativeClientBuilder.build())
+                                   .metricPublishers(builder.metricPublishers);
     }
 
     public static final class DefaultS3CrtClientBuilder implements S3CrtAsyncClientBuilder {
@@ -261,6 +264,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
+        private List<MetricPublisher> metricPublishers;
 
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
 
@@ -403,6 +407,22 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions) {
             this.advancedOptions.putAll(advancedOptions);
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder metricPublishers(Collection<MetricPublisher> metricPublishers) {
+            this.metricPublishers = metricPublishers == null ? null : new ArrayList<>(metricPublishers);
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder addMetricPublisher(MetricPublisher metricPublisher) {
+            Validate.paramNotNull(metricPublisher, "metricPublisher");
+            if (this.metricPublishers == null) {
+                this.metricPublishers = new ArrayList<>();
+            }
+            this.metricPublishers.add(metricPublisher);
             return this;
         }
 
