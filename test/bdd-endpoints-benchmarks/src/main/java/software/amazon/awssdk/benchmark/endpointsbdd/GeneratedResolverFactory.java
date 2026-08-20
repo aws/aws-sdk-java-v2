@@ -52,6 +52,10 @@ final class GeneratedResolverFactory {
             Files.writeString(sourceFile,
                               new JavaEndpointResolverGenerator(bytecode).generate(PACKAGE, className));
 
+            // Write the BDD binary resource file that the generated resolver loads at construction time
+            Path resourceFile = sourceDir.resolve(className + ".bdd");
+            Files.write(resourceFile, bytecode.getBytecode());
+
             var compiler = ToolProvider.getSystemJavaCompiler();
             if (compiler == null) {
                 throw new IllegalStateException(
