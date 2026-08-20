@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon SQS",
+    "contributor": "",
+    "description": "Fixed `SqsAsyncBatchManager.close()` re-sending the same buffered batch in a busy loop. On close, each buffered batch (including partial batches) is now flushed exactly once, and close waits a bounded grace period for in-flight batch sends to complete so their callers receive the real result instead of a cancellation."
+}

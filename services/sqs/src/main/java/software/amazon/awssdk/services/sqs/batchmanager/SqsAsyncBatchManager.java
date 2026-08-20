@@ -148,6 +148,13 @@ public interface SqsAsyncBatchManager extends SdkAutoCloseable {
         return receiveMessage(ReceiveMessageRequest.builder().applyMutation(request).build());
     }
 
+    /**
+     * Closes the batch manager and releases its resources. Buffered requests are first flushed to the service, then
+     * this method blocks for up to a bounded grace period waiting for the in-flight batch sends to complete so their
+     * callers receive the real service result. Requests still outstanding when the grace period expires are cancelled.
+     */
+    @Override
+    void close();
 
     interface Builder {
 
