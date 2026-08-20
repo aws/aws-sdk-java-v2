@@ -10,7 +10,6 @@ import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointUrl;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -23,9 +22,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams params) {
         Validate.notNull(params.region(), "Parameter 'region' must not be null");
         try {
-            Region region = params.region();
-            String regionId = region == null ? null : region.id();
-            RuleResult result = endpointRule0(params, regionId);
+            RuleResult result = endpointRule0(params);
             if (result.canContinue()) {
                 throw SdkClientException.create("Rule engine did not reach an error or endpoint result");
             }
@@ -42,22 +39,22 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         }
     }
 
-    private static RuleResult endpointRule0(QueryEndpointParams params, String region) {
-        return endpointRule1(params, region);
+    private static RuleResult endpointRule0(QueryEndpointParams params) {
+        return endpointRule1(params);
     }
 
-    private static RuleResult endpointRule1(QueryEndpointParams params, String region) {
-        RulePartition partitionResult = RulesFunctions.awsPartition(region);
+    private static RuleResult endpointRule1(QueryEndpointParams params) {
+        RulePartition partitionResult = RulesFunctions.awsPartition(params.regionId());
         if (partitionResult != null) {
             RuleResult result = endpointRule2(params, partitionResult);
             if (result.isResolved()) {
                 return result;
             }
-            result = endpointRule6(params, region, partitionResult);
+            result = endpointRule6(params, partitionResult);
             if (result.isResolved()) {
                 return result;
             }
-            return RuleResult.error(region + " is not a valid HTTP host-label");
+            return RuleResult.error(params.regionId() + " is not a valid HTTP host-label");
         }
         return RuleResult.carryOn();
     }
@@ -71,8 +68,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                 return RuleResult.endpoint(Endpoint
                         .builder()
                         .endpointUrl(
-                                EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(),
-                                        -1, ""))
+                                EndpointUrl.fromComponents("https",
+                                        params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
@@ -80,7 +77,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             }
             return RuleResult.endpoint(Endpoint
                     .builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(), -1, ""))
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(),
+                                    -1, ""))
                     .putAttribute(
                             AwsEndpointAttribute.AUTH_SCHEMES,
                             Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*"))
@@ -89,12 +88,14 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         return RuleResult.carryOn();
     }
 
-    private static RuleResult endpointRule6(QueryEndpointParams params, String region, RulePartition partitionResult) {
-        if (RulesFunctions.isValidHostLabel(region, false)) {
+    private static RuleResult endpointRule6(QueryEndpointParams params, RulePartition partitionResult) {
+        if (RulesFunctions.isValidHostLabel(params.regionId(), false)) {
             if (params.useFipsEndpoint() != null && params.useFipsEndpoint() && params.useDualStackEndpoint() == null) {
                 return RuleResult.endpoint(Endpoint
                         .builder()
-                        .endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""))
+                        .endpointUrl(
+                                EndpointUrl.fromComponents("https",
+                                        "query-fips." + params.regionId() + "." + partitionResult.dnsSuffix(), -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
@@ -104,27 +105,32 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
                 return RuleResult.endpoint(Endpoint
                         .builder()
                         .endpointUrl(
-                                EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""))
+                                EndpointUrl.fromComponents("https",
+                                        "query." + params.regionId() + "." + partitionResult.dualStackDnsSuffix(), -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
                                         .signingRegionSet(Arrays.asList("*")).build(),
-                                        SigV4AuthScheme.builder().signingName("query").signingRegion(region).build())).build());
+                                        SigV4AuthScheme.builder().signingName("query").signingRegion(params.regionId()).build()))
+                        .build());
             }
             if (params.useDualStackEndpoint() != null && params.useFipsEndpoint() != null && params.useDualStackEndpoint()
                     && params.useFipsEndpoint()) {
                 return RuleResult.endpoint(Endpoint
                         .builder()
                         .endpointUrl(
-                                EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1,
-                                        ""))
+                                EndpointUrl.fromComponents("https",
+                                        "query-fips." + params.regionId() + "." + partitionResult.dualStackDnsSuffix(), -1, ""))
                         .putAttribute(
                                 AwsEndpointAttribute.AUTH_SCHEMES,
                                 Arrays.asList(SigV4aAuthScheme.builder().signingName("query")
                                         .signingRegionSet(Arrays.asList("*")).build())).build());
             }
-            return RuleResult.endpoint(Endpoint.builder()
-                    .endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dnsSuffix(), -1, "")).build());
+            return RuleResult.endpoint(Endpoint
+                    .builder()
+                    .endpointUrl(
+                            EndpointUrl.fromComponents("https", "query." + params.regionId() + "." + partitionResult.dnsSuffix(),
+                                    -1, "")).build());
         }
         return RuleResult.carryOn();
     }

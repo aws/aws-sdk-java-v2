@@ -1,0 +1,57 @@
+{
+    "version": "1.0",
+    "parameters": {
+        "region": {
+            "builtIn": "AWS::Region",
+            "required": true,
+            "documentation": "The AWS region",
+            "type": "string"
+        },
+        "Endpoint": {
+            "builtIn": "SDK::Endpoint",
+            "required": false,
+            "documentation": "Override the endpoint",
+            "type": "string"
+        },
+        "useFIPSEndpoint": {
+            "builtIn": "AWS::UseFIPS",
+            "required": true,
+            "default": false,
+            "type": "boolean"
+        }
+    },
+    "rules": [
+        {
+            "documentation": "Root rule: region is declared but never referenced in any rule",
+            "type": "tree",
+            "conditions": [],
+            "rules": [
+                {
+                    "documentation": "If endpoint override is set, use it directly",
+                    "conditions": [
+                        {
+                            "fn": "isSet",
+                            "argv": [{"ref": "Endpoint"}]
+                        }
+                    ],
+                    "endpoint": {
+                        "url": "{Endpoint}",
+                        "properties": {},
+                        "headers": {}
+                    },
+                    "type": "endpoint"
+                },
+                {
+                    "documentation": "Default endpoint without using region",
+                    "conditions": [],
+                    "endpoint": {
+                        "url": "https://query.amazonaws.com",
+                        "properties": {},
+                        "headers": {}
+                    },
+                    "type": "endpoint"
+                }
+            ]
+        }
+    ]
+}
