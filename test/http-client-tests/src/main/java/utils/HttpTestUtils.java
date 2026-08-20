@@ -36,23 +36,15 @@ import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Test helpers for building {@link AmazonSyncHttpClient} / {@link AmazonAsyncHttpClient} around a caller-supplied
+ * {@link SdkHttpClient} / {@link SdkAsyncHttpClient}. Unlike the sdk-core copy of this class, the builders here require an
+ * explicit transport (there is no ServiceLoader-based default), so that per-client test suites can drive the sdk-core
+ * execution pipeline over each real HTTP client.
+ */
 public class HttpTestUtils {
-    public static SdkHttpClient testSdkHttpClient() {
-        return StubSdkHttpClient.create();
-    }
-
-    public static SdkAsyncHttpClient testSdkAsyncHttpClient() {
-        return StubSdkAsyncHttpClient.create();
-    }
-
-    public static AmazonSyncHttpClient testAmazonHttpClient() {
-        return testClientBuilder().httpClient(testSdkHttpClient()).build();
-    }
-
-    public static AmazonAsyncHttpClient testAsyncHttpClient() {
-        return new TestAsyncClientBuilder().asyncHttpClient(testSdkAsyncHttpClient()).build();
-    }
 
     public static TestClientBuilder testClientBuilder() {
         return new TestClientBuilder();
@@ -112,7 +104,7 @@ public class HttpTestUtils {
         }
 
         public AmazonSyncHttpClient build() {
-            SdkHttpClient sdkHttpClient = this.httpClient != null ? this.httpClient : testSdkHttpClient();
+            SdkHttpClient sdkHttpClient = Validate.paramNotNull(this.httpClient, "httpClient");
             return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
                                                                      .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
                                                                      .applyMutation(this::configureRetryStrategy)
@@ -171,7 +163,7 @@ public class HttpTestUtils {
         }
 
         public AmazonAsyncHttpClient build() {
-            SdkAsyncHttpClient asyncHttpClient = this.asyncHttpClient != null ? this.asyncHttpClient : testSdkAsyncHttpClient();
+            SdkAsyncHttpClient asyncHttpClient = Validate.paramNotNull(this.asyncHttpClient, "asyncHttpClient");
             return new AmazonAsyncHttpClient(testClientConfiguration().toBuilder()
                                                                       .option(SdkClientOption.ASYNC_HTTP_CLIENT, asyncHttpClient)
                                                                       .option(SdkClientOption.API_CALL_TIMEOUT, apiCallTimeout)

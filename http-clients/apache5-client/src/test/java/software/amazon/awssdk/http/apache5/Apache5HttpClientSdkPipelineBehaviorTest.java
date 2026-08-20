@@ -13,13 +13,14 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.http;
+package software.amazon.awssdk.http.apache5;
 
-import software.amazon.awssdk.core.http.server.MockServer;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientSdkPipelineBehaviorTestSuite;
 
-public abstract class UnresponsiveMockServerTestBase extends MockServerTestBase {
+public class Apache5HttpClientSdkPipelineBehaviorTest extends SdkHttpClientSdkPipelineBehaviorTestSuite {
     @Override
-    protected MockServer buildMockServer() {
-        return MockServer.createMockServer(MockServer.ServerBehavior.UNRESPONSIVE);
+    protected SdkHttpClient createSdkHttpClient() {
+        return Apache5HttpClient.builder().build();
     }
 }

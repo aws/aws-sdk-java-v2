@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.timers;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
@@ -27,16 +23,12 @@ import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTest
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.superSlowResponseHandler;
 import static utils.HttpTestUtils.testAsyncClientBuilder;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -51,12 +43,10 @@ import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
+import utils.StubSdkAsyncHttpClient;
 import utils.ValidSdkObjects;
 
 public class AsyncHttpClientApiCallTimeoutTests {
-
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
 
     private AmazonAsyncHttpClient httpClient;
 
@@ -65,30 +55,38 @@ public class AsyncHttpClientApiCallTimeoutTests {
         httpClient = testAsyncClientBuilder()
             .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .apiCallTimeout(API_CALL_TIMEOUT)
+            .asyncHttpClient(StubSdkAsyncHttpClient.create())
             .build();
     }
 
     @Test
     public void errorResponse_SlowErrorResponseHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(500).withBody("{}")));
+        AmazonAsyncHttpClient errorClient = testAsyncClientBuilder()
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
+            .apiCallTimeout(API_CALL_TIMEOUT)
+            .asyncHttpClient(StubSdkAsyncHttpClient.create(500))
+            .build();
 
         ExecutionContext executionContext = ClientExecutionAndRequestTimerTestUtils.executionContext(null);
 
-        CompletableFuture future = httpClient.requestExecutionBuilder()
-                                             .originalRequest(NoopTestRequest.builder().build())
-                                             .executionContext(executionContext)
-                                             .request(generateRequest())
-                                             .execute(combinedAsyncResponseHandler(noOpResponseHandler(),
-                                                                                   superSlowResponseHandler(API_CALL_TIMEOUT.toMillis())));
+        CompletableFuture future = errorClient.requestExecutionBuilder()
+                                              .originalRequest(NoopTestRequest.builder().build())
+                                              .executionContext(executionContext)
+                                              .request(generateRequest())
+                                              .execute(combinedAsyncResponseHandler(noOpResponseHandler(),
+                                                                                    superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() * 2)));
 
         assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
     }
 
     @Test
     public void errorResponse_SlowAfterErrorRequestHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(500).withBody("{}")));
+        AmazonAsyncHttpClient errorClient = testAsyncClientBuilder()
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
+            .apiCallTimeout(API_CALL_TIMEOUT)
+            .asyncHttpClient(StubSdkAsyncHttpClient.create(500))
+            .build();
+
         ExecutionInterceptorChain interceptors =
             new ExecutionInterceptorChain(
                 Collections.singletonList(new SlowExecutionInterceptor().onExecutionFailureWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT)));
@@ -109,20 +107,18 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                                             .build();
 
         CompletableFuture future =
-            httpClient.requestExecutionBuilder()
-                      .originalRequest(NoopTestRequest.builder().build())
-                      .request(request)
-                      .executionContext(executionContext)
-                      .execute(combinedAsyncResponseHandler(noOpResponseHandler(),
-                                                            noOpResponseHandler(SdkServiceException.builder().build())));
+            errorClient.requestExecutionBuilder()
+                       .originalRequest(NoopTestRequest.builder().build())
+                       .request(request)
+                       .executionContext(executionContext)
+                       .execute(combinedAsyncResponseHandler(noOpResponseHandler(),
+                                                             noOpResponseHandler(SdkServiceException.builder().build())));
 
         assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
     }
 
     @Test
     public void successfulResponse_SlowBeforeRequestRequestHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
         ExecutionInterceptor interceptor =
             new SlowExecutionInterceptor().beforeTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
 
@@ -133,23 +129,8 @@ public class AsyncHttpClientApiCallTimeoutTests {
 
     @Test
     public void successfulResponse_SlowResponseHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
-        CompletableFuture future = requestBuilder().execute(superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()));
+        CompletableFuture future = requestBuilder().execute(superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() * 2));
         assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
-    }
-
-    @Test
-    public void slowApiAttempt_ThrowsApiCallAttemptTimeoutException() {
-        httpClient = testAsyncClientBuilder()
-            .apiCallTimeout(API_CALL_TIMEOUT)
-            .apiCallAttemptTimeout(Duration.ofMillis(1))
-            .build();
-
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}").withFixedDelay(1_000)));
-        CompletableFuture future = requestBuilder().execute(noOpResponseHandler());
-        assertThatThrownBy(future::join).hasCauseInstanceOf(ApiCallAttemptTimeoutException.class);
     }
 
     private AmazonAsyncHttpClient.RequestExecutionBuilder requestBuilder() {
@@ -160,7 +141,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
     }
 
     private SdkHttpFullRequest generateRequest() {
-        return ValidSdkObjects.sdkHttpFullRequest(wireMock.port())
+        return ValidSdkObjects.sdkHttpFullRequest()
                               .host("localhost")
                               .contentStreamProvider(() -> new ByteArrayInputStream("test".getBytes())).build();
     }

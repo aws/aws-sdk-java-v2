@@ -15,10 +15,6 @@
 
 package software.amazon.awssdk.core.internal.http.timers;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
-import static com.github.tomakehurst.wiremock.client.WireMock.get;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.internal.http.timers.TimeoutTestConstants.SLOW_REQUEST_HANDLER_TIMEOUT;
@@ -27,11 +23,9 @@ import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.superSlowResponseHandler;
 import static utils.HttpTestUtils.testClientBuilder;
 
-import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.util.Arrays;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -46,13 +40,11 @@ import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
+import utils.StubSdkHttpClient;
 import utils.ValidSdkObjects;
 
 
 public class HttpClientApiCallTimeoutTest {
-
-    @Rule
-    public WireMockRule wireMock = new WireMockRule(0);
 
     private AmazonSyncHttpClient httpClient;
 
@@ -61,14 +53,12 @@ public class HttpClientApiCallTimeoutTest {
         httpClient = testClientBuilder()
             .retryStrategy(DefaultRetryStrategy.doNotRetry())
             .apiCallTimeout(API_CALL_TIMEOUT)
+            .httpClient(StubSdkHttpClient.create())
             .build();
     }
 
     @Test
     public void successfulResponse_SlowResponseHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
-
         assertThatThrownBy(() -> requestBuilder().execute(combinedSyncResponseHandler(
             superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() * 2), null)))
             .isInstanceOf(ApiCallTimeoutException.class);
@@ -76,24 +66,25 @@ public class HttpClientApiCallTimeoutTest {
 
     @Test
     public void errorResponse_SlowErrorResponseHandler_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(500).withBody("{}")));
+        AmazonSyncHttpClient errorClient = testClientBuilder()
+            .retryStrategy(DefaultRetryStrategy.doNotRetry())
+            .apiCallTimeout(API_CALL_TIMEOUT)
+            .httpClient(StubSdkHttpClient.create(500))
+            .build();
 
         ExecutionContext executionContext = ClientExecutionAndRequestTimerTestUtils.executionContext(null);
 
-        assertThatThrownBy(() -> httpClient.requestExecutionBuilder()
-                                           .originalRequest(NoopTestRequest.builder().build())
-                                           .executionContext(executionContext)
-                                           .request(generateRequest())
-                                           .execute(combinedSyncResponseHandler(noOpSyncResponseHandler(),
-                                                                                superSlowResponseHandler(API_CALL_TIMEOUT.toMillis()))))
+        assertThatThrownBy(() -> errorClient.requestExecutionBuilder()
+                                            .originalRequest(NoopTestRequest.builder().build())
+                                            .executionContext(executionContext)
+                                            .request(generateRequest())
+                                            .execute(combinedSyncResponseHandler(noOpSyncResponseHandler(),
+                                                                                 superSlowResponseHandler(API_CALL_TIMEOUT.toMillis() * 2))))
             .isInstanceOf(ApiCallTimeoutException.class);
     }
 
     @Test
     public void successfulResponse_SlowBeforeTransmissionExecutionInterceptor_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
         ExecutionInterceptor interceptor =
             new SlowExecutionInterceptor().beforeTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
 
@@ -104,8 +95,6 @@ public class HttpClientApiCallTimeoutTest {
 
     @Test
     public void successfulResponse_SlowAfterResponseExecutionInterceptor_ThrowsApiCallTimeoutException() {
-        stubFor(get(anyUrl())
-                    .willReturn(aResponse().withStatus(200).withBody("{}")));
         ExecutionInterceptor interceptor =
             new SlowExecutionInterceptor().afterTransmissionWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT);
         assertThatThrownBy(() -> requestBuilder().executionContext(withInterceptors(interceptor))
@@ -121,7 +110,7 @@ public class HttpClientApiCallTimeoutTest {
     }
 
     private SdkHttpFullRequest generateRequest() {
-        return ValidSdkObjects.sdkHttpFullRequest(wireMock.port())
+        return ValidSdkObjects.sdkHttpFullRequest()
                               .host("localhost")
                               .contentStreamProvider(() -> new ByteArrayInputStream("test".getBytes())).build();
     }
