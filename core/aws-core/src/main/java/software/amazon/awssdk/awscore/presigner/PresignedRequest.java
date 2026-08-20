@@ -27,6 +27,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 
 /**
@@ -49,7 +50,13 @@ public abstract class PresignedRequest {
         this.signedHeaders = Validate.notEmpty(builder.signedHeaders, "signedHeaders");
         this.signedPayload = builder.signedPayload;
         this.httpRequest = Validate.notNull(builder.httpRequest, "httpRequest");
-        this.url = invokeSafely(httpRequest.getUri()::toURL);
+        this.url = toUrl(httpRequest);
+    }
+
+    private static URL toUrl(SdkHttpRequest request) {
+        String queryString = request.encodedQueryParameters().map(query -> "?" + query).orElse("");
+        int port = SdkHttpUtils.isUsingStandardPort(request.protocol(), request.port()) ? -1 : request.port();
+        return invokeSafely(() -> new URL(request.protocol(), request.host(), port, request.encodedPath() + queryString));
     }
 
     /**
