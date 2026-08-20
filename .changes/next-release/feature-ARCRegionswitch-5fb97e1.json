@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "ARC - Region switch",
+    "contributor": "",
+    "description": "Adds support for Rds switchover read replica for Oracle databases in Region switch plans"
+}
