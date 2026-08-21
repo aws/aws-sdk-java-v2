@@ -409,6 +409,11 @@ class UpdateExpressionConverterTest {
     }
 
     @Test
+    void findAttributeNames_nullExpression_returnsEmptyList() {
+        assertThat(UpdateExpressionConverter.findAttributeNames(null)).isEmpty();
+    }
+
+    @Test
     void findAttributeNames_noComposedNames_noTokens() {
         UpdateExpression updateExpression = createUpdateExpression(addAction("attribute1", string("val1"), null, VALUE_TOKEN),
                                                                    deleteAction("attribute2", string("val2"), null, VALUE_TOKEN),
@@ -433,7 +438,7 @@ class UpdateExpressionConverterTest {
         UpdateExpression updateExpression = createUpdateExpression(addAction("attribute1", string("val1"), null, VALUE_TOKEN),
                                                                    deleteAction("attribute1", string("val2"), KEY_TOKEN, VALUE_TOKEN));
         List<String> attributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
-        assertThat(attributes).containsExactlyInAnyOrder("attribute1", "attribute1");
+        assertThat(attributes).containsExactly("attribute1");
     }
 
     @Test
@@ -461,7 +466,7 @@ class UpdateExpressionConverterTest {
         UpdateExpression updateExpression = createUpdateExpression(addAction("attribute1[1]", string("val1"), null, VALUE_TOKEN),
                                                                    deleteAction("attribute1.nested", string("val2"), KEY_TOKEN, VALUE_TOKEN));
         List<String> attributes = UpdateExpressionConverter.findAttributeNames(updateExpression);
-        assertThat(attributes).containsExactlyInAnyOrder("attribute1", "attribute1");
+        assertThat(attributes).containsExactly("attribute1");
     }
 
     private static RemoveAction removeAction(String attributeName, String keyToken) {
