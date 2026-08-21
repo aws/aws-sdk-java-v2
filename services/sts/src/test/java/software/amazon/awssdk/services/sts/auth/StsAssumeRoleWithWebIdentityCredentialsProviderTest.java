@@ -15,6 +15,17 @@
 
 package software.amazon.awssdk.services.sts.auth;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.auth.StsAssumeRoleWithWebIdentityCredentialsProvider.Builder;
@@ -55,5 +66,36 @@ public class StsAssumeRoleWithWebIdentityCredentialsProviderTest
     @Override
     protected String providerName() {
         return BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE_WEB_ID.value();
+    }
+
+    @Test
+    public void refreshRequestConsumerIsInvokedForEachCredentialRefresh() {
+        Credentials credentials = Credentials.builder()
+                                             .accessKeyId("a")
+                                             .secretAccessKey("b")
+                                             .sessionToken("c")
+                                             .expiration(Instant.now().minus(Duration.ofSeconds(5)))
+                                             .build();
+        when(stsClient.assumeRoleWithWebIdentity(any(AssumeRoleWithWebIdentityRequest.class)))
+            .thenReturn(getResponse(credentials));
+
+        AtomicInteger tokenNumber = new AtomicInteger();
+        try (StsAssumeRoleWithWebIdentityCredentialsProvider credentialsProvider =
+                 StsAssumeRoleWithWebIdentityCredentialsProvider.builder()
+                                                               .stsClient(stsClient)
+                                                               .refreshRequest(request ->
+                                                                   request.webIdentityToken("token-" +
+                                                                                            tokenNumber.incrementAndGet()))
+                                                               .build()) {
+            credentialsProvider.resolveCredentials();
+            credentialsProvider.resolveCredentials();
+        }
+
+        ArgumentCaptor<AssumeRoleWithWebIdentityRequest> requestCaptor =
+            ArgumentCaptor.forClass(AssumeRoleWithWebIdentityRequest.class);
+        verify(stsClient, times(2)).assumeRoleWithWebIdentity(requestCaptor.capture());
+        assertThat(requestCaptor.getAllValues())
+            .extracting(AssumeRoleWithWebIdentityRequest::webIdentityToken)
+            .containsExactly("token-1", "token-2");
     }
 }
