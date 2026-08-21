@@ -41,31 +41,32 @@ final class AddSmithyEndpoints {
     }
 
     /**
-     * Returns null when the service has no rule-set trait, letting the caller fall back to the
-     * sidecar file.
+     * Returns null when the service has no rule-set trait. {@code IntermediateModel} then
+     * substitutes the default rules.
      */
     static EndpointRuleSetModel endpointRuleSet(ServiceShape service) {
         return service.getTrait(EndpointRuleSetTrait.class)
-                      .map(trait -> parse(EndpointRuleSetModel.class, trait.getRuleSet()))
+                      .map(trait -> parse(EndpointRuleSetModel.class, trait.getRuleSet(), service))
                       .orElse(null);
     }
 
     /**
-     * Returns null when the service has no endpoint-tests trait, letting the caller fall back to
-     * the sidecar file. Uses {@code toNode()} rather than {@code getTestCases()} because the POJO
-     * expects the whole {@code {version, testCases}} object.
+     * Returns null when the service has no endpoint-tests trait. {@code IntermediateModel} then
+     * substitutes an empty test suite. Uses {@code toNode()} rather than {@code getTestCases()}
+     * because the POJO expects the whole {@code {version, testCases}} object.
      */
     static EndpointTestSuiteModel endpointTests(ServiceShape service) {
         return service.getTrait(EndpointTestsTrait.class)
-                      .map(trait -> parse(EndpointTestSuiteModel.class, trait.toNode()))
+                      .map(trait -> parse(EndpointTestSuiteModel.class, trait.toNode(), service))
                       .orElse(null);
     }
 
-    private static <T> T parse(Class<T> clazz, Node node) {
+    private static <T> T parse(Class<T> clazz, Node node, ServiceShape service) {
         try {
             return Jackson.load(clazz, Node.printJson(node));
         } catch (IOException e) {
-            throw new RuntimeException("Failed to read " + clazz.getSimpleName() + " from a Smithy trait", e);
+            throw new RuntimeException("Failed to read " + clazz.getSimpleName() + " from a Smithy trait on "
+                                       + service.getId(), e);
         }
     }
 }
