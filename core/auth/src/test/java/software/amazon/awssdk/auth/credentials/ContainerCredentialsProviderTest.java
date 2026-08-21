@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -25,6 +26,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.SdkSystemSetting.AWS_CONTAINER_CREDENTIALS_RELATIVE_URI;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
+import java.time.Duration;
+import java.time.Instant;
 import org.apache.commons.lang.exception.ExceptionUtils;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -34,6 +37,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.core.util.SdkUserAgent;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
+import software.amazon.awssdk.utils.DateUtils;
 
 import java.util.Optional;
 
@@ -139,5 +143,83 @@ public class ContainerCredentialsProviderTest {
                "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
                "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
                "\"Expiration\":\"3000-05-03T04:55:54Z\"}";
+    }
+
+    /**
+     * Tests that when the cache is stale and refresh fails, the provider returns cached credentials
+     * instead of throwing an exception (ALLOW behavior / static stability).
+     */
+    @Test
+    public void testRefreshFailureReturnsCachedCredentials_whenCacheIsStale() {
+        // First call succeeds with credentials that are already expired (stale immediately on next get)
+        String alreadyExpiredBody = "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
+                                    "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
+                                    "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
+                                    "\"Expiration\":\"2020-01-01T00:00:00Z\"}";
+
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(200)
+                                    .withHeader("Content-Type", "application/json")
+                                    .withBody(alreadyExpiredBody)));
+
+        // First call succeeds (initial fetch always succeeds even if credentials are expired)
+        AwsCredentials firstCredentials = credentialsProvider.resolveCredentials();
+        assertThat(firstCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+
+        // Now stub the endpoint to return a 500 error (simulating container metadata endpoint failure)
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("Internal Server Error")));
+
+        // Second call: cache is stale (expiration is in the past), refresh fails with 500,
+        // but ALLOW behavior should return the cached credentials
+        AwsCredentials secondCredentials = credentialsProvider.resolveCredentials();
+        assertThat(secondCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(secondCredentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+    }
+
+    /**
+     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
+     * configured window covers the credential's entire lifetime, so the advisory window opens the moment the credentials are
+     * issued and the very next call must contact the endpoint. A jittered window would instead open at a random point up to a
+     * minute before the mandatory refresh window, and the second call would be served from the cache.
+     */
+    @Test
+    public void resolveCredentials_advisoryWindowIsNotJittered() {
+        Duration lifetime = Duration.ofMinutes(10);
+        stubFor200Response("{\"AccessKeyId\":\"" + ACCESS_KEY_ID + "\"," +
+                           "\"SecretAccessKey\":\"" + SECRET_ACCESS_KEY + "\"," +
+                           "\"Token\":\"" + TOKEN + "\"," +
+                           "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(lifetime)) + "\"}");
+        mockServer.resetRequests();
+
+        ContainerCredentialsProvider provider =
+            ContainerCredentialsProvider.builder()
+                                        .endpoint("http://localhost:" + mockServer.port())
+                                        .prefetchTime(lifetime)
+                                        .build();
+
+        provider.resolveCredentials();
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+
+        provider.resolveCredentials();
+        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * Tests that when no credentials are cached (initial fetch) and the endpoint fails,
+     * an exception is thrown.
+     */
+    @Test
+    public void testInitialFetchFailure_throwsException() {
+        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(500)
+                                    .withBody("Internal Server Error")));
+
+        assertThatThrownBy(credentialsProvider::resolveCredentials)
+            .isInstanceOf(SdkClientException.class);
     }
 }

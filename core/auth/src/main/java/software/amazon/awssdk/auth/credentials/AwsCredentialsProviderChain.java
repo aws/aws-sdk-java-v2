@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -128,6 +129,44 @@ public final class AwsCredentialsProviderChain
                                 .message("Unable to load credentials from any of the providers in the chain " +
                                          this + " : " + exceptionMessages)
                                 .build();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (reuseLastProviderEnabled && lastUsedProvider != null) {
+            return invalidateProvider(lastUsedProvider, identity)
+                .exceptionally(e -> {
+                    log.debug(() -> "Failed to invalidate provider " + lastUsedProvider + ": " + e.getMessage(), e);
+                    return null;
+                });
+        }
+
+        CompletableFuture<?>[] futures = credentialsProviders.stream()
+            .map(provider -> {
+                try {
+                    return invalidateProvider(provider, identity)
+                        .exceptionally(e -> {
+                            log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
+                            return null;
+                        });
+                } catch (Exception e) {
+                    log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
+                    return CompletableFuture.<Void>completedFuture(null);
+                }
+            })
+            .toArray(CompletableFuture<?>[]::new);
+        return CompletableFuture.allOf(futures);
+    }
+
+    /**
+     * Helper to call invalidate with proper type capture, avoiding unchecked casts.
+     * The identity is always an {@code AwsCredentialsIdentity}, and all providers in this chain
+     * are {@code IdentityProvider<? extends AwsCredentialsIdentity>}, so the cast is safe.
+     */
+    @SuppressWarnings("unchecked")
+    private static <T extends AwsCredentialsIdentity> CompletableFuture<Void> invalidateProvider(
+            IdentityProvider<T> provider, AwsCredentialsIdentity identity) {
+        return provider.invalidate((T) identity);
     }
 
     @Override

@@ -101,7 +101,7 @@ public final class QueryEndpointResolverUtils {
         if (v4AuthScheme.signingName() != null) {
           option.putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, v4AuthScheme.signingName());
         }
-        return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build());
+        return SelectedAuthScheme.<T>builder().identity(selectedAuthScheme.identity()).signer(selectedAuthScheme.signer()).authSchemeOption(option.build()).identityProvider(selectedAuthScheme.identityProvider()).build();
       }
       if (endpointAuthScheme instanceof SigV4aAuthScheme) {
         SigV4aAuthScheme v4aAuthScheme = (SigV4aAuthScheme) endpointAuthScheme;
@@ -117,7 +117,7 @@ public final class QueryEndpointResolverUtils {
         if (v4aAuthScheme.signingName() != null) {
           option.putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, v4aAuthScheme.signingName());
         }
-        return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build());
+        return SelectedAuthScheme.<T>builder().identity(selectedAuthScheme.identity()).signer(selectedAuthScheme.signer()).authSchemeOption(option.build()).identityProvider(selectedAuthScheme.identityProvider()).build();
       }
       throw new IllegalArgumentException("Endpoint auth scheme '" + endpointAuthScheme.name()
                                          + "' cannot be mapped to the SDK auth scheme. Was it declared in the service's model?");
