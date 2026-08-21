@@ -180,8 +180,6 @@ public class GenerationMojo extends AbstractMojo {
         SmithyModels smithyModels = SmithyModels.builder()
                                                 .model(model)
                                                 .customizationConfig(r.customizationConfig)
-                                                .endpointRuleSetModel(loadEndpointRuleSetModel(modelRootPath))
-                                                .endpointTestSuiteModel(loadEndpointTestSuiteModel(modelRootPath))
                                                 .build();
         IntermediateModel intermediateModel = new SmithyIntermediateModelBuilder(smithyModels).build();
         return new GenerationParams().withIntermediateModel(intermediateModel)

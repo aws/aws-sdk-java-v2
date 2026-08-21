@@ -16,8 +16,6 @@
 package software.amazon.awssdk.codegen.smithy;
 
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
-import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.smithy.model.Model;
 
@@ -31,17 +29,10 @@ public final class SmithyModels {
 
     private final Model model;
     private final CustomizationConfig customizationConfig;
-    private final EndpointRuleSetModel endpointRuleSetModel;
-    private final EndpointTestSuiteModel endpointTestSuiteModel;
 
-    private SmithyModels(Model model,
-                         CustomizationConfig customizationConfig,
-                         EndpointRuleSetModel endpointRuleSetModel,
-                         EndpointTestSuiteModel endpointTestSuiteModel) {
+    private SmithyModels(Model model, CustomizationConfig customizationConfig) {
         this.model = model;
         this.customizationConfig = customizationConfig;
-        this.endpointRuleSetModel = endpointRuleSetModel;
-        this.endpointTestSuiteModel = endpointTestSuiteModel;
     }
 
     public static Builder builder() {
@@ -56,20 +47,10 @@ public final class SmithyModels {
         return customizationConfig;
     }
 
-    public EndpointRuleSetModel endpointRuleSetModel() {
-        return endpointRuleSetModel;
-    }
-
-    public EndpointTestSuiteModel endpointTestSuiteModel() {
-        return endpointTestSuiteModel;
-    }
-
     public static final class Builder implements SdkBuilder<Builder, SmithyModels> {
 
         private Model model;
         private CustomizationConfig customizationConfig;
-        private EndpointRuleSetModel endpointRuleSetModel;
-        private EndpointTestSuiteModel endpointTestSuiteModel;
 
         private Builder() {
         }
@@ -84,20 +65,10 @@ public final class SmithyModels {
             return this;
         }
 
-        public Builder endpointRuleSetModel(EndpointRuleSetModel endpointRuleSetModel) {
-            this.endpointRuleSetModel = endpointRuleSetModel;
-            return this;
-        }
-
-        public Builder endpointTestSuiteModel(EndpointTestSuiteModel endpointTestSuiteModel) {
-            this.endpointTestSuiteModel = endpointTestSuiteModel;
-            return this;
-        }
-
         @Override
         public SmithyModels build() {
             CustomizationConfig config = customizationConfig != null ? customizationConfig : CustomizationConfig.create();
-            return new SmithyModels(model, config, endpointRuleSetModel, endpointTestSuiteModel);
+            return new SmithyModels(model, config);
         }
     }
 }

@@ -83,8 +83,8 @@ public final class SmithyIntermediateModelBuilder {
         this.typeUtils = new TypeUtils(namingStrategy);
         this.serviceIndex = ServiceIndex.of(model);
         this.protocol = ProtocolUtils.resolveProtocol(serviceIndex, service);
-        this.endpointRuleSet = models.endpointRuleSetModel();
-        this.endpointTestSuiteModel = models.endpointTestSuiteModel();
+        this.endpointRuleSet = AddSmithyEndpoints.endpointRuleSet(service);
+        this.endpointTestSuiteModel = AddSmithyEndpoints.endpointTests(service);
         this.shapeProcessors = createShapeProcessors();
     }
 
