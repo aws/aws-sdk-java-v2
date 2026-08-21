@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Device Farm",
+    "contributor": "",
+    "description": "Added support to CreateRemoveAccessSession for selecting a server version on the mobile WebDriver endpoint."
+}
