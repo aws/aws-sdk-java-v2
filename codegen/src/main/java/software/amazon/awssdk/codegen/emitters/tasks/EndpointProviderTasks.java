@@ -35,6 +35,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointProviderTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointResolverUtilsSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
 import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
+import software.amazon.awssdk.codegen.poet.rules2.bdd.BddEndpointProviderSpec;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -49,7 +50,11 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateInterface());
         tasks.add(generateParams());
-        if (shouldGenerateCompiledEndpointRules()) {
+        if (generatorTaskParams.getModel().getEndpointBddModel() != null) {
+            tasks.add(generateDefaultProviderBdd());
+            tasks.add(new RulesEngineRuntimeLiteGeneratorTask(generatorTaskParams));
+            tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
+        } else if (shouldGenerateCompiledEndpointRules()) {
             tasks.add(generateDefaultProvider2());
             tasks.add(new RulesEngineRuntimeLiteGeneratorTask(generatorTaskParams));
             tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
@@ -88,6 +93,14 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
 
     private GeneratorTask generateDefaultProvider2() {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec2(model));
+    }
+
+    private GeneratorTask generateDefaultProviderBdd() {
+        return new PoetGeneratorTask(
+            endpointRulesInternalDir(),
+            model.getFileHeader(),
+            new BddEndpointProviderSpec(model)
+        );
     }
 
     private GeneratorTask generateDefaultPartitionsProvider() {
