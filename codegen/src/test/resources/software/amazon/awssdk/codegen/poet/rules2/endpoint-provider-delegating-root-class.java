@@ -44,9 +44,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
   private static Endpoint endpointRule1(QueryEndpointParams params) {
     if (params.endpoint() != null) {
-      return Endpoint.builder().endpointUrl(EndpointUrl.fromString(params.endpoint())).build();
+      return Endpoint.of(EndpointUrl.fromString(params.endpoint()));
     }
-    return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query.amazonaws.com", -1, "")).build();
+    return Endpoint.of(EndpointUrl.fromComponents("https", "query.amazonaws.com", -1, ""));
   }
 
   @Override
