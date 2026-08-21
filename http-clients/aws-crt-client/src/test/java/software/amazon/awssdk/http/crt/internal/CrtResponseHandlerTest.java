@@ -16,6 +16,9 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.nio.ByteBuffer;
@@ -71,6 +74,22 @@ public class CrtResponseHandlerTest extends BaseHttpStreamResponseHandlerTest {
         assertThatThrownBy(() -> requestFuture.join()).isInstanceOf(CancellationException.class).hasStackTraceContaining(
             "subscription has been cancelled");
         verify(httpStream).close();
+    }
+
+    @Test
+    void failRequest_thenCancelDerivedComplete_invokesOnErrorOnceWithOriginalError() {
+        SdkAsyncHttpResponseHandler responseHandler = spy(new TestAsyncHttpResponseHandler());
+        CrtResponseAdapter adapter = CrtResponseAdapter.toCrtResponseHandler(requestFuture, responseHandler);
+        adapter.onAcquireStream(httpStream);
+
+        RuntimeException original = new RuntimeException("test error");
+        adapter.failRequest(original);
+
+        // closeConnection's cancel later surfaces as a cancel-derived onResponseComplete; it must not re-notify onError.
+        adapter.onResponseComplete(httpStream, 1);
+
+        verify(responseHandler, times(1)).onError(any());
+        assertThatThrownBy(() -> requestFuture.join()).hasCause(original);
     }
 
     private static class TestAsyncHttpResponseHandler implements SdkAsyncHttpResponseHandler {

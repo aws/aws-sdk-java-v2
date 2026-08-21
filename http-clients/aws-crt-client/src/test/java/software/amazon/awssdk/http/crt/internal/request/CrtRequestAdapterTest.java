@@ -95,7 +95,7 @@ public class CrtRequestAdapterTest {
                                                                .readBufferSize(2000)
                                                                .protocol(Protocol.HTTP1_1)
                                                                .build();
-        return CrtRequestAdapter.toAsyncCrtRequest(context);
+        return CrtRequestAdapter.toAsyncCrtRequest(context, t -> { });
     }
 
     private static HttpRequestBase toCrtRequest(SdkHttpFullRequest sdkRequest) {

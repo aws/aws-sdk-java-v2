@@ -42,6 +42,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.DrainingSubscriber;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
@@ -254,6 +255,44 @@ public class S3CrtResponseHandlerAdapterTest {
 
         assertThatThrownBy(() -> future.join()).hasRootCause(cause).hasMessageContaining(message);
         verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void bodyError_completesFutureWithOriginalError_andSuppressesLaterCancelOnError() {
+        RuntimeException originalError = new RuntimeException("test error");
+
+        // The body adapter fails the execute future with the original publisher error.
+        future.completeExceptionally(originalError);
+
+        assertThat(sdkResponseHandler.error).isSameAs(originalError);
+        assertThatThrownBy(() -> future.join()).hasCause(originalError);
+        verify(s3MetaRequest).cancel();
+        verify(s3MetaRequest).close();
+
+        // The cancel() above later surfaces as onFinished(AWS_ERROR_S3_CANCELED). It must not re-notify onError.
+        responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
+
+        assertThat(sdkResponseHandler.error).isSameAs(originalError);
+        verify(sdkResponseHandler, times(1)).onError(any());
+    }
+
+    @Test
+    public void pipelineForwardedError_completesFutureWithThatError_andSuppressesLaterCancelOnError() {
+        // A pipeline-forwarded failure (e.g. an API-call-attempt timeout that MakeAsyncHttpRequestStage forwards onto the
+        // execute future) completes resultFuture exceptionally the same way a body error does. The whenComplete must
+        // deliver that error to onError exactly once, not the later cancel-derived S3_CANCELED wrapper.
+        ApiCallAttemptTimeoutException timeout = ApiCallAttemptTimeoutException.create(1000);
+
+        future.completeExceptionally(timeout);
+
+        assertThat(sdkResponseHandler.error).isSameAs(timeout);
+        assertThatThrownBy(() -> future.join()).hasCause(timeout);
+        verify(s3MetaRequest).cancel();
+
+        responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
+
+        assertThat(sdkResponseHandler.error).isSameAs(timeout);
+        verify(sdkResponseHandler, times(1)).onError(any());
     }
 
     private S3FinishedResponseContext stubResponseContext(int errorCode, int responseStatus, byte[] errorPayload) {
