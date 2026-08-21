@@ -27,6 +27,7 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
 import software.amazon.awssdk.codegen.model.config.customization.KeyTypePair;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.endpoints.Endpoint;
 
 public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
@@ -239,7 +240,7 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
             }
         }
         if (needsReturn(expr)) {
-            builder.addStatement("return $T.carryOn()", typeMirror.rulesResult().type());
+            builder.addStatement("return null");
         }
     }
 
@@ -296,7 +297,7 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
             if (isFirst) {
                 isFirst = false;
                 builder.addStatement("$T result = $L($L)",
-                                     typeMirror.rulesResult().type(),
+                                     Endpoint.class,
                                      child.ruleId(),
                                      callParams(child.ruleId()));
             } else {
@@ -304,7 +305,7 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
                                      child.ruleId(),
                                      callParams(child.ruleId()));
             }
-            builder.beginControlFlow("if (result.isResolved())")
+            builder.beginControlFlow("if (result != null)")
                    .addStatement("return result")
                    .endControlFlow();
         }
@@ -327,14 +328,12 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
 
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
-        builder.add("return $T.endpoint(", typeMirror.rulesResult().type());
-        builder.add("$T.builder().endpointUrl(", Endpoint.class);
+        builder.add("return $T.builder().endpointUrl(", Endpoint.class);
         EndpointUrlCodeEmitter.emit(e.url(), builder, this);
         builder.add(")");
         e.headers().accept(this);
         e.properties().accept(this);
-        builder.add(".build()");
-        builder.addStatement(")");
+        builder.addStatement(".build()");
         return null;
     }
 
@@ -369,7 +368,7 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
 
     @Override
     public Void visitErrorExpression(ErrorExpression e) {
-        builder.add("return $T.error(", typeMirror.rulesResult().type());
+        builder.add("throw $T.create(", SdkClientException.class);
         e.error().accept(this);
         builder.addStatement(")");
         return null;

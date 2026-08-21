@@ -35,9 +35,9 @@ public final class RenameForCodegenVisitor extends RewriteRuleExpressionVisitor 
      * Returns the new symbol table with the renamed symbols.
      */
     public SymbolTable symbolTable() {
-        // Carry over region params with their renamed java names
-        for (String regionParam : symbolTable.regionParams()) {
-            renames.addRegionParam(javaName(regionParam));
+        String regionParamName = symbolTable.regionParamName();
+        if (regionParamName != null) {
+            renames.regionParamName(javaName(regionParamName));
         }
         return renames.build();
     }
@@ -58,14 +58,11 @@ public final class RenameForCodegenVisitor extends RewriteRuleExpressionVisitor 
             RuleType type = symbolTable.paramType(name);
             String newName = javaName(name);
             renames.putParam(newName, type);
-            // Region params return a Region object in Java but the rules use it as a String.
-            // Access the "{name}Id" method which returns the region ID as a String (null-safe).
-            String accessorName = symbolTable.isRegionParam(name) ? newName + "Id" : newName;
             return MemberAccessExpression
                 .builder()
                 .type(e.type())
                 .source(VariableReferenceExpression.builder().variableName("params").build())
-                .name(accessorName)
+                .name(newName)
                 .build();
         }
         return e;
