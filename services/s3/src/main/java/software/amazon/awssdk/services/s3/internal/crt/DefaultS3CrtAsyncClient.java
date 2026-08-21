@@ -412,7 +412,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         @Override
         public DefaultS3CrtClientBuilder metricPublishers(Collection<MetricPublisher> metricPublishers) {
-            this.metricPublishers = metricPublishers == null ? null : new ArrayList<>(metricPublishers);
+            Validate.paramNotNull(metricPublishers, "metricPublishers");
+            this.metricPublishers = new ArrayList<>(metricPublishers);
             return this;
         }
 
