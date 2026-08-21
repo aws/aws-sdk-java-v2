@@ -328,13 +328,62 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
 
     @Override
     public Void visitEndpointExpression(EndpointExpression e) {
-        builder.add("return $T.builder().endpointUrl(", Endpoint.class);
-        EndpointUrlCodeEmitter.emit(e.url(), builder, this);
-        builder.add(")");
-        e.headers().accept(this);
-        e.properties().accept(this);
-        builder.addStatement(".build()");
+        Map<String, RuleExpression> properties = e.properties().properties();
+        boolean hasHeaders = !e.headers().headers().isEmpty();
+        boolean hasAuthSchemesOnly = !hasHeaders && properties.size() == 1 && properties.containsKey("authSchemes");
+        boolean hasTwoAttrs = !hasHeaders && properties.size() == 2 && properties.containsKey("authSchemes");
+
+        if (hasAuthSchemesOnly) {
+            // Optimized: Endpoint.ofAttribute(url, AUTH_SCHEMES, list)
+            builder.add("return $T.ofAttribute(", Endpoint.class);
+            EndpointUrlCodeEmitter.emit(e.url(), builder, this);
+            builder.add(", $T.AUTH_SCHEMES, ", AwsEndpointAttribute.class);
+            addAuthSchemesInlineValue(properties.get("authSchemes"));
+            builder.addStatement(")");
+        } else if (hasTwoAttrs) {
+            // Optimized: Endpoint.ofAttributes(url, key1, val1, key2, val2)
+            builder.add("return $T.ofAttributes(", Endpoint.class);
+            EndpointUrlCodeEmitter.emit(e.url(), builder, this);
+            for (Map.Entry<String, RuleExpression> entry : properties.entrySet()) {
+                builder.add(", ");
+                if ("authSchemes".equals(entry.getKey())) {
+                    builder.add("$T.AUTH_SCHEMES, ", AwsEndpointAttribute.class);
+                    addAuthSchemesInlineValue(entry.getValue());
+                } else if (knownEndpointAttributes.containsKey(entry.getKey())) {
+                    KeyTypePair keyType = knownEndpointAttributes.get(entry.getKey());
+                    ClassConstant classConstant = parseClassConstant(keyType.getKey());
+                    builder.add("$T.$L, ", classConstant.className(), classConstant.fieldName());
+                    entry.getValue().accept(this);
+                } else {
+                    builder.add("$T.AUTH_SCHEMES, ", AwsEndpointAttribute.class);
+                    entry.getValue().accept(this);
+                }
+            }
+            builder.addStatement(")");
+        } else {
+            // General case: use builder pattern
+            builder.add("return $T.builder().endpointUrl(", Endpoint.class);
+            EndpointUrlCodeEmitter.emit(e.url(), builder, this);
+            builder.add(")");
+            e.headers().accept(this);
+            e.properties().accept(this);
+            builder.addStatement(".build()");
+        }
         return null;
+    }
+
+    private void addAuthSchemesInlineValue(RuleExpression authSchemesExpr) {
+        ListExpression expr = (ListExpression) authSchemesExpr;
+        builder.add("$T.asList(", Arrays.class);
+        boolean isFirst = true;
+        for (RuleExpression authSchemeExpr : expr.expressions()) {
+            if (!isFirst) {
+                builder.add(", ");
+            }
+            addAuthSchemesBody(authSchemeExpr);
+            isFirst = false;
+        }
+        builder.add(")");
     }
 
     @Override
