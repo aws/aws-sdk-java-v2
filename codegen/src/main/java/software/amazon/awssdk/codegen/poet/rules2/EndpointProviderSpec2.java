@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.poet.rules2;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
-import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,6 +39,8 @@ import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -93,7 +94,11 @@ public class EndpointProviderSpec2 implements ClassSpec {
         parameters.forEach((k, v) -> {
             builder.putParam(k, fromParameterModel(v));
             if (v.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
-                builder.addRegionParam(k);
+                // Region is a special case since it's already public API and uses an actual `Region` instance instead of
+                // `String`. We then introduce here a local with the same name but with String type such that we don't have
+                // to do the conversion everywhere a string represented region is used.
+                builder.regionParamName(k);
+                builder.putLocal(k, RuleRuntimeTypeMirror.STRING);
             }
         });
         return builder.build();
@@ -145,22 +150,28 @@ public class EndpointProviderSpec2 implements ClassSpec {
 
         builder.addCode(validateRequiredParams());
         builder.beginControlFlow("try");
-        builder.addStatement("$T result = $L(params)", ruleResult(), utils.root().ruleId());
-        builder.beginControlFlow("if (result.canContinue())")
+        String regionParamName = utils.regionParamName();
+        if (regionParamName != null) {
+            builder.addStatement("$T region = params.$L()", Region.class, regionParamName);
+            builder.addStatement("$T regionId = region == null ? null : region.id()", String.class);
+            builder.addStatement("$T result = $L(params, regionId)", Endpoint.class, utils.root().ruleId());
+        } else {
+            builder.addStatement("$T result = $L(params)", Endpoint.class, utils.root().ruleId());
+        }
+        builder.beginControlFlow("if (result == null)")
                .addStatement("throw $T.create($S)", SdkClientException.class, "Rule engine did not reach an error or "
                                                                               + "endpoint result")
                .endControlFlow();
 
-        builder.beginControlFlow("if (result.isError())")
-               .addStatement("String errorMsg = result.error()")
-               .beginControlFlow("if (errorMsg.contains(\"Invalid ARN\") && errorMsg.contains(\":s3:::\"))")
-               .addStatement("errorMsg += $S", ". Use the bucket name instead of simple bucket ARNs in "
-                                               + "GetBucketLocationRequest.")
-               .endControlFlow()
-               .addStatement("throw $T.create(errorMsg)", SdkClientException.class)
+        builder.addStatement("return $T.completedFuture(result)", CompletableFuture.class);
+        builder.nextControlFlow("catch ($T e)", SdkClientException.class);
+        builder.addStatement("String errorMsg = e.getMessage()");
+        builder.beginControlFlow("if (errorMsg != null && errorMsg.contains(\"Invalid ARN\") && errorMsg.contains(\":s3:::\"))")
+               .addStatement("return $T.failedFuture($T.create(errorMsg + $S))",
+                             CompletableFutureUtils.class, SdkClientException.class,
+                             ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest.")
                .endControlFlow();
-
-        builder.addStatement("return $T.completedFuture(result.endpoint())", CompletableFuture.class);
+        builder.addStatement("return $T.failedFuture(e)", CompletableFutureUtils.class);
         builder.nextControlFlow("catch ($T error)", Exception.class);
         builder.addStatement("return $T.failedFuture(error)", CompletableFutureUtils.class);
         builder.endControlFlow();
@@ -203,7 +214,7 @@ public class EndpointProviderSpec2 implements ClassSpec {
         MethodSpec.Builder builder =
             MethodSpec.methodBuilder(expr.ruleId())
                       .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
-                      .returns(ruleResult());
+                      .returns(Endpoint.class);
         ComputeScopeTree.Scope scope = utils.scopesByName().get(expr.ruleId());
         builder.addParameter(endpointRulesSpecUtils.parametersClassName(), "params");
         for (String param : scope.usesLocals()) {
@@ -223,10 +234,6 @@ public class EndpointProviderSpec2 implements ClassSpec {
                                                                 utils.scopesByName(),
                                                                 builder);
         visitor.visitRuleSetExpression(expr);
-    }
-
-    private TypeName ruleResult() {
-        return typeMirror.rulesResult().type();
     }
 
     private MethodSpec equalsMethod() {
