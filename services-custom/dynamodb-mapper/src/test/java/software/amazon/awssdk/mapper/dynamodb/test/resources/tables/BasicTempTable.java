@@ -1,11 +1,11 @@
 package software.amazon.awssdk.mapper.dynamodb.test.resources.tables;
 
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 public class BasicTempTable {
     public static final String TEMP_TABLE_NAME = "basic-temp-table";
@@ -13,20 +13,19 @@ public class BasicTempTable {
     public static final Long READ_CAPACITY = 10L;
     public static final Long WRITE_CAPACITY = 5L;
     public static final ProvisionedThroughput DEFAULT_PROVISIONED_THROUGHPUT =
-            new ProvisionedThroughput().withReadCapacityUnits(READ_CAPACITY).withWriteCapacityUnits(WRITE_CAPACITY);
+            ProvisionedThroughput.builder().readCapacityUnits(READ_CAPACITY).writeCapacityUnits(WRITE_CAPACITY).build();
 
     public static CreateTableRequest getCreateTableRequest() {
-        CreateTableRequest request = new CreateTableRequest()
-                .withTableName(TEMP_TABLE_NAME)
-                .withKeySchema(
-                        new KeySchemaElement().withAttributeName(HASH_KEY_NAME)
-                                .withKeyType(KeyType.HASH))
-                .withAttributeDefinitions(
-                        new AttributeDefinition().withAttributeName(
-                                HASH_KEY_NAME).withAttributeType(
-                                ScalarAttributeType.S));
-        request.setProvisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT);
-        return request;
+        return CreateTableRequest.builder()
+                .tableName(TEMP_TABLE_NAME)
+                .keySchema(
+                        KeySchemaElement.builder().attributeName(HASH_KEY_NAME)
+                                .keyType(KeyType.HASH).build())
+                .attributeDefinitions(
+                        AttributeDefinition.builder().attributeName(HASH_KEY_NAME)
+                                .attributeType(ScalarAttributeType.S).build())
+                .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                .build();
     }
 
 }

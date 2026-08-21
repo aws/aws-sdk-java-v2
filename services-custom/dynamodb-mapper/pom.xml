@@ -41,35 +41,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <!-- v1-coupled tests not yet ported to the v2 client/model; tracked for a dedicated
-                         follow-up port PR. The golden-master ShapeRequestTest/ShapeResponseTest suite
-                         proves the ported data-plane paths are behavior-preserving in the meantime. -->
+                    <!-- The only tests still excluded are the S3Link feature tests. They exercise S3Link
+                         main code that is still on the v1 client/model and is ported in a dedicated
+                         follow-up PR; these come off this list when that port lands. -->
                     <testExcludes>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/ConfigureS3LinksTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/DynamoDBS3IntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/DynamoDBS3IntegrationTestBase.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GenerateDeleteTableRequestTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GsiAlwaysUpdateTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/LocalDynamoDB.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/LocalDynamoDBTestBase.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3ClientCacheIntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkIDTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/BatchLoadTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/BatchWriteTest.java</testExclude>
-                            <!-- Blocked on Table-admin: calls mapper.generateCreateTableRequest(), which still
-                                 returns a v1 CreateTableRequest. Rides with the GenerateCreateTableRequest* PR. -->
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/JsonIntegrationTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequest2Test.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequestTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/HashKeyOnlyTableWithGSITest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/MapperLoadingStrategyConfigTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/DynamoDBTableResource.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/ResourceCentricBlockJUnit4ClassRunner.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/TestResourceUtils.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/BasicTempTable.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/TempTableWithBinaryKey.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/TempTableWithSecondaryIndexes.java</testExclude>
                     </testExcludes>
                 </configuration>
             </plugin>

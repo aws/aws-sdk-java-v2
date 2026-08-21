@@ -2,7 +2,7 @@ package software.amazon.awssdk.mapper.dynamodb.mapper;
 
 import static org.junit.Assert.assertEquals;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBIndexHashKey;
@@ -11,20 +11,20 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.PaginatedQueryList;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.Projection;
-import com.amazonaws.services.dynamodbv2.model.ProjectionType;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
-import com.amazonaws.services.dynamodbv2.util.TableUtils;
-import java.util.ArrayList;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.Projection;
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import java.util.List;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -36,38 +36,44 @@ import org.junit.Test;
 public class HashKeyOnlyTableWithGSITest extends LocalDynamoDBTestBase {
 
     public static final String HASH_KEY_ONLY_TABLE_NAME = "no-primary-range-key-gsi-test";
-    private static AmazonDynamoDB dynamo;
+    private static DynamoDbClient dynamo;
 
 
     @BeforeClass
     public static void setUp() throws Exception {
         dynamo = client();
-        List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-        keySchema.add(new KeySchemaElement("id", KeyType.HASH));
 
-        CreateTableRequest req = new CreateTableRequest(HASH_KEY_ONLY_TABLE_NAME, keySchema)
-                .withProvisionedThroughput(new ProvisionedThroughput(10L, 10L))
-                .withAttributeDefinitions(
-                        new AttributeDefinition("id", ScalarAttributeType.S),
-                        new AttributeDefinition("status", ScalarAttributeType.S),
-                        new AttributeDefinition("ts", ScalarAttributeType.S))
-                .withGlobalSecondaryIndexes(
-                        new GlobalSecondaryIndex()
-                                .withProvisionedThroughput(new ProvisionedThroughput(10L, 10L))
-                                .withIndexName("statusAndCreation")
-                                .withKeySchema(
-                                        new KeySchemaElement("status", KeyType.HASH),
-                                        new KeySchemaElement("ts", KeyType.RANGE))
-                                .withProjection(
-                                        new Projection().withProjectionType(ProjectionType.ALL)));
+        CreateTableRequest req = CreateTableRequest.builder()
+                .tableName(HASH_KEY_ONLY_TABLE_NAME)
+                .keySchema(KeySchemaElement.builder().attributeName("id").keyType(KeyType.HASH).build())
+                .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(10L).writeCapacityUnits(10L).build())
+                .attributeDefinitions(
+                        AttributeDefinition.builder().attributeName("id").attributeType(ScalarAttributeType.S).build(),
+                        AttributeDefinition.builder().attributeName("status").attributeType(ScalarAttributeType.S).build(),
+                        AttributeDefinition.builder().attributeName("ts").attributeType(ScalarAttributeType.S).build())
+                .globalSecondaryIndexes(
+                        GlobalSecondaryIndex.builder()
+                                .provisionedThroughput(ProvisionedThroughput.builder().readCapacityUnits(10L).writeCapacityUnits(10L).build())
+                                .indexName("statusAndCreation")
+                                .keySchema(
+                                        KeySchemaElement.builder().attributeName("status").keyType(KeyType.HASH).build(),
+                                        KeySchemaElement.builder().attributeName("ts").keyType(KeyType.RANGE).build())
+                                .projection(
+                                        Projection.builder().projectionType(ProjectionType.ALL).build())
+                                .build())
+                .build();
 
-        TableUtils.createTableIfNotExists(dynamo, req);
-        TableUtils.waitUntilActive(dynamo, HASH_KEY_ONLY_TABLE_NAME);
+        try {
+            dynamo.createTable(req);
+        } catch (ResourceInUseException e) {
+            // Table already exists.
+        }
+        dynamo.waiter().waitUntilTableExists(b -> b.tableName(HASH_KEY_ONLY_TABLE_NAME));
     }
 
     @AfterClass
     public static void tearDown() throws Exception {
-        dynamo.deleteTable(HASH_KEY_ONLY_TABLE_NAME);
+        dynamo.deleteTable(DeleteTableRequest.builder().tableName(HASH_KEY_ONLY_TABLE_NAME).build());
     }
 
     @DynamoDBTable(tableName = HASH_KEY_ONLY_TABLE_NAME)
@@ -126,9 +132,10 @@ public class HashKeyOnlyTableWithGSITest extends LocalDynamoDBTestBase {
                     .withConsistentRead(false)
                     .withHashKeyValues(user)
                     .withRangeKeyCondition("ts",
-                                        new Condition()
-                                                .withComparisonOperator(ComparisonOperator.GT)
-                                                .withAttributeValueList(new AttributeValue("100")));
+                                        Condition.builder()
+                                                .comparisonOperator(ComparisonOperator.GT)
+                                                .attributeValueList(AttributeValue.builder().s("100").build())
+                                                .build());
 
             queryResult = mapper.query(User.class, expr);
         } while (queryResult.size() == 0 && System.currentTimeMillis() < endTime);

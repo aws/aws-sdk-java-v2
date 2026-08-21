@@ -14,17 +14,15 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 
 import static org.junit.Assert.assertNotEquals;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.mapper.dynamodb.pojos.GsiWithAlwaysUpdateTimestamp;
-import com.amazonaws.waiters.WaiterParameters;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
@@ -35,7 +33,7 @@ public class GsiAlwaysUpdateTest extends LocalDynamoDBTestBase {
     private static final String TABLE_NAME =
         GsiAlwaysUpdateTest.class.getSimpleName() + "-" + System.currentTimeMillis();
 
-    private AmazonDynamoDB ddb;
+    private DynamoDbClient ddb;
     private DynamoDBTableMapper<GsiWithAlwaysUpdateTimestamp, String, String> mapper;
 
     @Before
@@ -44,16 +42,14 @@ public class GsiAlwaysUpdateTest extends LocalDynamoDBTestBase {
         mapper = new DynamoDBMapper(ddb, DynamoDBMapperConfig.builder()
                 .withTableNameOverride(new DynamoDBMapperConfig.TableNameOverride(TABLE_NAME))
                 .build()).newTableMapper(GsiWithAlwaysUpdateTimestamp.class);
-        mapper.createTable(new ProvisionedThroughput(5L, 5L));
-        ddb.waiters().tableExists()
-                .run(new WaiterParameters<DescribeTableRequest>(new DescribeTableRequest(TABLE_NAME)));
+        mapper.createTable(ProvisionedThroughput.builder().readCapacityUnits(5L).writeCapacityUnits(5L).build());
+        ddb.waiter().waitUntilTableExists(b -> b.tableName(TABLE_NAME));
     }
 
     @After
     public void tearDown() {
         mapper.deleteTableIfExists();
-        ddb.waiters().tableNotExists()
-                .run(new WaiterParameters<DescribeTableRequest>(new DescribeTableRequest(TABLE_NAME)));
+        ddb.waiter().waitUntilTableNotExists(b -> b.tableName(TABLE_NAME));
     }
 
     @Test

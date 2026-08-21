@@ -14,7 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.test.resources;
 
-import com.amazonaws.AmazonClientException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.mapper.dynamodb.test.resources.RequiredResources.ResourceCreationPolicy;
 import software.amazon.awssdk.mapper.dynamodb.test.resources.TestResource.ResourceStatus;
 
@@ -60,6 +60,6 @@ public class TestResourceUtils {
             Thread.sleep(1000 * 10);
         }
 
-        throw new AmazonClientException("Resource never escaped the transient state.");
+        throw SdkClientException.create("Resource never escaped the transient state.");
     }
 }
