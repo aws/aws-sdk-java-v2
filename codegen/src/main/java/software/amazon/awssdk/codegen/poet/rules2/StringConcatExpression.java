@@ -98,6 +98,11 @@ public final class StringConcatExpression implements RuleExpression {
             return this;
         }
 
+        public Builder addExpressions(List<RuleExpression> expressions) {
+            this.expressions.addAll(expressions);
+            return this;
+        }
+
         public StringConcatExpression build() {
             return new StringConcatExpression(this);
         }

@@ -192,9 +192,33 @@ public final class RuleRuntimeTypeMirror {
             // still does the trick for codegen.
             RuleFunctionMirror
                 .builder("listAccess")
-                .returns(BOOLEAN)
+                .returns(STRING)
                 .addArgument("value", LIST_OF_STRING)
                 .addArgument("index", INTEGER)
+                .containingType(containingType)
+                .build(),
+            RuleFunctionMirror
+                .builder("split")
+                .returns(LIST_OF_STRING)
+                .addArgument("value", STRING)
+                .addArgument("delimiter", STRING)
+                .addArgument("limit", INTEGER)
+                .containingType(containingType)
+                .build(),
+            RuleFunctionMirror
+                .builder("ite")
+                .returns(STRING)
+                .addArgument("condition", BOOLEAN)
+                .addArgument("ifTrue", STRING)
+                .addArgument("ifFalse", STRING)
+                .containingType(containingType)
+                .build(),
+            // coalesce is variadic and generic (return type mirrors type of arguments)
+            RuleFunctionMirror
+                .builder("coalesce")
+                .returns(VOID) // generic, but we must provide a type
+                .addArgument("value1", VOID) // variadic and generic, but add 2 generic args
+                .addArgument("value2", VOID)
                 .containingType(containingType)
                 .build()
         );

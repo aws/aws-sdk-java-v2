@@ -2,6 +2,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,64 @@ public class RulesFunctions {
 
     private static final int MAX_HOST_LABEL_SIZE = 63;
     private static final int MIN_BUCKET_SIZE = 3;
+
+    @SafeVarargs
+    public static <T> T coalesce(T... args) {
+        if (args == null || args.length < 2) {
+            throw new IllegalArgumentException("coalesce requires at least two arguments");
+        }
+        for (T arg : args) {
+            if (arg != null) {
+                return arg;
+            }
+        }
+        // All preceding arguments empty, return last argument (even if empty)
+        return args[args.length - 1];
+    }
+
+    @SafeVarargs
+    public static String coalesce(String... args) {
+        if (args == null || args.length < 2) {
+            throw new IllegalArgumentException("coalesce requires at least two arguments");
+        }
+        for (String arg : args) {
+            if (arg != null && !arg.isEmpty()) {
+                return arg;
+            }
+        }
+        return args[args.length - 1];
+    }
+
+    public static List<String> split(String value, String delimiter, int limit) {
+        if (limit == 1) {
+            return Collections.singletonList(value);
+        }
+        if (value.isEmpty()) {
+            return Collections.singletonList("");
+        }
+        final int delimLen = delimiter.length();
+        // Unlimited split if limit == 0
+        final int maxSplits = (limit == 0) ? Integer.MAX_VALUE : limit - 1;
+        List<String> result = new ArrayList<>(Math.min(limit, 8));
+        int fromIndex = 0;
+        int splits = 0;
+        while (splits < maxSplits) {
+            int index = value.indexOf(delimiter, fromIndex);
+            if (index < 0) {
+                break;
+            }
+            result.add(value.substring(fromIndex, index));
+            fromIndex = index + delimLen;
+            splits++;
+        }
+        // Remainder (always added)
+        result.add(value.substring(fromIndex));
+        return result;
+    }
+
+    public static String ite(boolean condition, String ifTrue, String ifFalse) {
+        return condition ? ifTrue : ifFalse;
+    }
 
     public static String substring(String value, int startIndex, int stopIndex, boolean reverse) {
         if (value == null) {
@@ -169,6 +228,12 @@ public class RulesFunctions {
     public static <T> T listAccess(List<T> values, int index) {
         if (values == null) {
             return null;
+        }
+        if (index < 0) {
+            index = values.size() + index;
+            if (index < 0) {
+                return null;
+            }
         }
         if (index >= values.size()) {
             return null;
