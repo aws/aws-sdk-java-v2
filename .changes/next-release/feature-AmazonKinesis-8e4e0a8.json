@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Kinesis",
+    "contributor": "",
+    "description": "Generate account endpoint for Kinesis Data Streams requests when the account ID is available"
+}
