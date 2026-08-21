@@ -64,6 +64,10 @@ public final class CodegenExpressionBuidler {
         return root;
     }
 
+    public String regionParamName() {
+        return symbolTable.regionParamName();
+    }
+
     public SymbolTable symbolTable() {
         return symbolTable;
     }
