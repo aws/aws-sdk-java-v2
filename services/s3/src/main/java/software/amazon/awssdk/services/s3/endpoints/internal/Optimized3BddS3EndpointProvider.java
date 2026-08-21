@@ -1,0 +1,5532 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
+ * the License. A copy of the License is located at
+ * 
+ * http://aws.amazon.com/apache2.0
+ * 
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+
+package software.amazon.awssdk.services.s3.endpoints.internal;
+
+import java.util.Arrays;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4aAuthScheme;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
+import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.authscheme.DynamicEndpointAuthSchemeFactory;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+
+@Generated("software.amazon.awssdk:codegen")
+@SdkInternalApi
+public final class Optimized3BddS3EndpointProvider implements S3EndpointProvider {
+    @Override
+    public CompletableFuture<Endpoint> resolveEndpoint(S3EndpointParams endpointParams) {
+        try {
+            Evaluator evaluator = new Evaluator();
+            evaluator.params = endpointParams;
+            evaluator.region = endpointParams.region() == null ? null : endpointParams.region().id();
+            Endpoint result = evaluator.nodeP1();
+            if (result == null) {
+                return CompletableFutureUtils.failedFuture(SdkClientException
+                        .create("Rule engine did not reach an error or endpoint result"));
+            }
+            return CompletableFuture.completedFuture(result);
+        } catch (SdkClientException e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
+                return CompletableFutureUtils.failedFuture(SdkClientException.create(errorMsg
+                        + ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest."));
+            }
+            return CompletableFutureUtils.failedFuture(e);
+        }
+    }
+
+    private static final class Evaluator {
+        S3EndpointParams params;
+
+        String region;
+
+        RulePartition partitionResult;
+
+        String accessPointSuffix;
+
+        String regionPrefix;
+
+        String outpostId_ssa_2;
+
+        String hardwareType;
+
+        String _s3e_ds;
+
+        String _s3e_fips;
+
+        String _s3e_auth;
+
+        RuleUrl url;
+
+        RuleArn bucketArn;
+
+        String s3expressAvailabilityZoneId;
+
+        String uri_encoded_bucket;
+
+        String arnType;
+
+        String accessPointName_ssa_1;
+
+        RulePartition bucketPartition;
+
+        String outpostId_ssa_1;
+
+        String outpostType;
+
+        String accessPointName_ssa_2;
+
+        private Endpoint nodeP0() {
+            return null;
+        }
+
+        private Endpoint nodeN0() {
+            return null;
+        }
+
+        private Endpoint nodeP1() {
+            return region != null ? nodeP2() : result114();
+        }
+
+        private Endpoint nodeN1() {
+            return !(region != null) ? result114() : nodeP2();
+        }
+
+        private Endpoint nodeP2() {
+            return Boolean.TRUE.equals(params.accelerate()) ? nodeP423() : nodeP3();
+        }
+
+        private Endpoint nodeN2() {
+            return !(Boolean.TRUE.equals(params.accelerate())) ? nodeP3() : nodeP423();
+        }
+
+        private Endpoint nodeP3() {
+            return Boolean.TRUE.equals(params.useFips()) ? nodeP271() : nodeP4();
+        }
+
+        private Endpoint nodeN3() {
+            return !(Boolean.TRUE.equals(params.useFips())) ? nodeP4() : nodeP271();
+        }
+
+        private Endpoint nodeP4() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? nodeP232() : nodeP5();
+        }
+
+        private Endpoint nodeN4() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? nodeP5() : nodeP232();
+        }
+
+        private Endpoint nodeP5() {
+            return params.endpoint() != null ? nodeP84() : nodeP6();
+        }
+
+        private Endpoint nodeN5() {
+            return !(params.endpoint() != null) ? nodeP6() : nodeP84();
+        }
+
+        private Endpoint nodeP6() {
+            return params.bucket() != null ? nodeP14() : nodeP7();
+        }
+
+        private Endpoint nodeN6() {
+            return !(params.bucket() != null) ? nodeP7() : nodeP14();
+        }
+
+        private Endpoint nodeP7() {
+            return cond8() ? nodeP8() : result114();
+        }
+
+        private Endpoint nodeN7() {
+            return !(cond8()) ? result114() : nodeP8();
+        }
+
+        private Endpoint nodeP8() {
+            return cond16() ? nodeP9() : nodeP12();
+        }
+
+        private Endpoint nodeN8() {
+            return !(cond16()) ? nodeP12() : nodeP9();
+        }
+
+        private Endpoint nodeP9() {
+            return cond18() ? nodeP10() : nodeP12();
+        }
+
+        private Endpoint nodeN9() {
+            return !(cond18()) ? nodeP12() : nodeP10();
+        }
+
+        private Endpoint nodeP10() {
+            return cond19() ? nodeP11() : nodeP12();
+        }
+
+        private Endpoint nodeN10() {
+            return !(cond19()) ? nodeP12() : nodeP11();
+        }
+
+        private Endpoint nodeP11() {
+            return cond22() ? result13() : nodeP12();
+        }
+
+        private Endpoint nodeN11() {
+            return !(cond22()) ? nodeP12() : result13();
+        }
+
+        private Endpoint nodeP12() {
+            return cond35() ? nodeP13() : result41();
+        }
+
+        private Endpoint nodeN12() {
+            return !(cond35()) ? result41() : nodeP13();
+        }
+
+        private Endpoint nodeP13() {
+            return cond36() ? result102() : nodeP434();
+        }
+
+        private Endpoint nodeN13() {
+            return !(cond36()) ? nodeP434() : result102();
+        }
+
+        private Endpoint nodeP14() {
+            return cond6() ? nodeP270() : nodeP15();
+        }
+
+        private Endpoint nodeN14() {
+            return !(cond6()) ? nodeP15() : nodeP270();
+        }
+
+        private Endpoint nodeP15() {
+            return cond7() ? nodeP269() : nodeP16();
+        }
+
+        private Endpoint nodeN15() {
+            return !(cond7()) ? nodeP16() : nodeP269();
+        }
+
+        private Endpoint nodeP16() {
+            return cond8() ? nodeP18() : nodeP17();
+        }
+
+        private Endpoint nodeN16() {
+            return !(cond8()) ? nodeP17() : nodeP18();
+        }
+
+        private Endpoint nodeP17() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP500() : nodeP105();
+        }
+
+        private Endpoint nodeN17() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP105() : nodeP500();
+        }
+
+        private Endpoint nodeP18() {
+            return cond9() ? nodeP19() : nodeP23();
+        }
+
+        private Endpoint nodeN18() {
+            return !(cond9()) ? nodeP23() : nodeP19();
+        }
+
+        private Endpoint nodeP19() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP20() : nodeP23();
+        }
+
+        private Endpoint nodeN19() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP23() : nodeP20();
+        }
+
+        private Endpoint nodeP20() {
+            return cond11() ? nodeP21() : nodeP23();
+        }
+
+        private Endpoint nodeN20() {
+            return !(cond11()) ? nodeP23() : nodeP21();
+        }
+
+        private Endpoint nodeP21() {
+            return cond12() ? nodeP22() : nodeP23();
+        }
+
+        private Endpoint nodeN21() {
+            return !(cond12()) ? nodeP23() : nodeP22();
+        }
+
+        private Endpoint nodeP22() {
+            return cond13() ? nodeP546() : nodeP23();
+        }
+
+        private Endpoint nodeN22() {
+            return !(cond13()) ? nodeP23() : nodeP546();
+        }
+
+        private Endpoint nodeP23() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP76() : nodeP24();
+        }
+
+        private Endpoint nodeN23() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP24() : nodeP76();
+        }
+
+        private Endpoint nodeP24() {
+            return cond20() ? nodeP72() : nodeP25();
+        }
+
+        private Endpoint nodeN24() {
+            return !(cond20()) ? nodeP25() : nodeP72();
+        }
+
+        private Endpoint nodeP25() {
+            return cond26() ? nodeP26() : nodeP77();
+        }
+
+        private Endpoint nodeN25() {
+            return !(cond26()) ? nodeP77() : nodeP26();
+        }
+
+        private Endpoint nodeP26() {
+            return cond37() ? nodeP27() : result85();
+        }
+
+        private Endpoint nodeN26() {
+            return !(cond37()) ? result85() : nodeP27();
+        }
+
+        private Endpoint nodeP27() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP28();
+        }
+
+        private Endpoint nodeN27() {
+            return !(arnType != null && arnType.equals("")) ? nodeP28() : result85();
+        }
+
+        private Endpoint nodeP28() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP46() : nodeP29();
+        }
+
+        private Endpoint nodeN28() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP29() : nodeP46();
+        }
+
+        private Endpoint nodeP29() {
+            return cond48() ? result57() : nodeP30();
+        }
+
+        private Endpoint nodeN29() {
+            return !(cond48()) ? nodeP30() : result57();
+        }
+
+        private Endpoint nodeP30() {
+            return cond50() ? nodeP31() : result84();
+        }
+
+        private Endpoint nodeN30() {
+            return !(cond50()) ? result84() : nodeP31();
+        }
+
+        private Endpoint nodeP31() {
+            return cond51() ? nodeP32() : nodeP135();
+        }
+
+        private Endpoint nodeN31() {
+            return !(cond51()) ? nodeP135() : nodeP32();
+        }
+
+        private Endpoint nodeP32() {
+            return cond55() ? result75() : nodeP33();
+        }
+
+        private Endpoint nodeN32() {
+            return !(cond55()) ? nodeP33() : result75();
+        }
+
+        private Endpoint nodeP33() {
+            return cond59() ? nodeP34() : result83();
+        }
+
+        private Endpoint nodeN33() {
+            return !(cond59()) ? result83() : nodeP34();
+        }
+
+        private Endpoint nodeP34() {
+            return cond60() ? nodeP38() : nodeP35();
+        }
+
+        private Endpoint nodeN34() {
+            return !(cond60()) ? nodeP35() : nodeP38();
+        }
+
+        private Endpoint nodeP35() {
+            return cond61() ? nodeP36() : result82();
+        }
+
+        private Endpoint nodeN35() {
+            return !(cond61()) ? result82() : nodeP36();
+        }
+
+        private Endpoint nodeP36() {
+            return cond62() ? nodeP37() : nodeP145();
+        }
+
+        private Endpoint nodeN36() {
+            return !(cond62()) ? nodeP145() : nodeP37();
+        }
+
+        private Endpoint nodeP37() {
+            return cond63() ? nodeP40() : result45();
+        }
+
+        private Endpoint nodeN37() {
+            return !(cond63()) ? result45() : nodeP40();
+        }
+
+        private Endpoint nodeP38() {
+            return cond61() ? nodeP39() : result82();
+        }
+
+        private Endpoint nodeN38() {
+            return !(cond61()) ? result82() : nodeP39();
+        }
+
+        private Endpoint nodeP39() {
+            return cond62() ? nodeP40() : nodeP149();
+        }
+
+        private Endpoint nodeN39() {
+            return !(cond62()) ? nodeP149() : nodeP40();
+        }
+
+        private Endpoint nodeP40() {
+            return cond64() ? nodeP41() : result53();
+        }
+
+        private Endpoint nodeN40() {
+            return !(cond64()) ? result53() : nodeP41();
+        }
+
+        private Endpoint nodeP41() {
+            return cond66() ? nodeP42() : result52();
+        }
+
+        private Endpoint nodeN41() {
+            return !(cond66()) ? result52() : nodeP42();
+        }
+
+        private Endpoint nodeP42() {
+            return cond70() ? nodeP43() : result51();
+        }
+
+        private Endpoint nodeN42() {
+            return !(cond70()) ? result51() : nodeP43();
+        }
+
+        private Endpoint nodeP43() {
+            return cond71() ? nodeP44() : result80();
+        }
+
+        private Endpoint nodeN43() {
+            return !(cond71()) ? result80() : nodeP44();
+        }
+
+        private Endpoint nodeP44() {
+            return outpostType != null && outpostType.equals("accesspoint") ? nodeP45() : result79();
+        }
+
+        private Endpoint nodeN44() {
+            return !(outpostType != null && outpostType.equals("accesspoint")) ? result79() : nodeP45();
+        }
+
+        private Endpoint nodeP45() {
+            return cond74() ? result77() : result78();
+        }
+
+        private Endpoint nodeN45() {
+            return !(cond74()) ? result78() : result77();
+        }
+
+        private Endpoint nodeP46() {
+            return cond40() ? nodeP47() : result56();
+        }
+
+        private Endpoint nodeN46() {
+            return !(cond40()) ? result56() : nodeP47();
+        }
+
+        private Endpoint nodeP47() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP48();
+        }
+
+        private Endpoint nodeN47() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP48() : result56();
+        }
+
+        private Endpoint nodeP48() {
+            return cond42() ? nodeP184() : nodeP49();
+        }
+
+        private Endpoint nodeN48() {
+            return !(cond42()) ? nodeP49() : nodeP184();
+        }
+
+        private Endpoint nodeP49() {
+            return cond48() ? nodeP61() : nodeP50();
+        }
+
+        private Endpoint nodeN49() {
+            return !(cond48()) ? nodeP50() : nodeP61();
+        }
+
+        private Endpoint nodeP50() {
+            return cond49() ? result44() : nodeP51();
+        }
+
+        private Endpoint nodeN50() {
+            return !(cond49()) ? nodeP51() : result44();
+        }
+
+        private Endpoint nodeP51() {
+            return cond51() ? nodeP52() : nodeP525();
+        }
+
+        private Endpoint nodeN51() {
+            return !(cond51()) ? nodeP525() : nodeP52();
+        }
+
+        private Endpoint nodeP52() {
+            return cond60() ? nodeP55() : nodeP53();
+        }
+
+        private Endpoint nodeN52() {
+            return !(cond60()) ? nodeP53() : nodeP55();
+        }
+
+        private Endpoint nodeP53() {
+            return cond62() ? result54() : nodeP54();
+        }
+
+        private Endpoint nodeN53() {
+            return !(cond62()) ? nodeP54() : result54();
+        }
+
+        private Endpoint nodeP54() {
+            return cond63() ? nodeP56() : result45();
+        }
+
+        private Endpoint nodeN54() {
+            return !(cond63()) ? result45() : nodeP56();
+        }
+
+        private Endpoint nodeP55() {
+            return cond62() ? result54() : nodeP56();
+        }
+
+        private Endpoint nodeN55() {
+            return !(cond62()) ? nodeP56() : result54();
+        }
+
+        private Endpoint nodeP56() {
+            return cond64() ? nodeP57() : result53();
+        }
+
+        private Endpoint nodeN56() {
+            return !(cond64()) ? result53() : nodeP57();
+        }
+
+        private Endpoint nodeP57() {
+            return cond66() ? nodeP58() : result52();
+        }
+
+        private Endpoint nodeN57() {
+            return !(cond66()) ? result52() : nodeP58();
+        }
+
+        private Endpoint nodeP58() {
+            return cond69() ? nodeP59() : result64();
+        }
+
+        private Endpoint nodeN58() {
+            return !(cond69()) ? result64() : nodeP59();
+        }
+
+        private Endpoint nodeP59() {
+            return cond70() ? nodeP60() : result51();
+        }
+
+        private Endpoint nodeN59() {
+            return !(cond70()) ? result51() : nodeP60();
+        }
+
+        private Endpoint nodeP60() {
+            return cond72() ? result63() : result50();
+        }
+
+        private Endpoint nodeN60() {
+            return !(cond72()) ? result50() : result63();
+        }
+
+        private Endpoint nodeP61() {
+            return cond49() ? result44() : nodeP62();
+        }
+
+        private Endpoint nodeN61() {
+            return !(cond49()) ? nodeP62() : result44();
+        }
+
+        private Endpoint nodeP62() {
+            return cond51() ? nodeP63() : nodeP525();
+        }
+
+        private Endpoint nodeN62() {
+            return !(cond51()) ? nodeP525() : nodeP63();
+        }
+
+        private Endpoint nodeP63() {
+            return cond60() ? nodeP66() : nodeP64();
+        }
+
+        private Endpoint nodeN63() {
+            return !(cond60()) ? nodeP64() : nodeP66();
+        }
+
+        private Endpoint nodeP64() {
+            return cond62() ? result54() : nodeP65();
+        }
+
+        private Endpoint nodeN64() {
+            return !(cond62()) ? nodeP65() : result54();
+        }
+
+        private Endpoint nodeP65() {
+            return cond63() ? nodeP67() : result45();
+        }
+
+        private Endpoint nodeN65() {
+            return !(cond63()) ? result45() : nodeP67();
+        }
+
+        private Endpoint nodeP66() {
+            return cond62() ? result54() : nodeP67();
+        }
+
+        private Endpoint nodeN66() {
+            return !(cond62()) ? nodeP67() : result54();
+        }
+
+        private Endpoint nodeP67() {
+            return cond64() ? nodeP68() : result53();
+        }
+
+        private Endpoint nodeN67() {
+            return !(cond64()) ? result53() : nodeP68();
+        }
+
+        private Endpoint nodeP68() {
+            return cond66() ? nodeP69() : result52();
+        }
+
+        private Endpoint nodeN68() {
+            return !(cond66()) ? result52() : nodeP69();
+        }
+
+        private Endpoint nodeP69() {
+            return cond68() ? result46() : nodeP70();
+        }
+
+        private Endpoint nodeN69() {
+            return !(cond68()) ? nodeP70() : result46();
+        }
+
+        private Endpoint nodeP70() {
+            return cond70() ? nodeP71() : result51();
+        }
+
+        private Endpoint nodeN70() {
+            return !(cond70()) ? result51() : nodeP71();
+        }
+
+        private Endpoint nodeP71() {
+            return cond72() ? result49() : result50();
+        }
+
+        private Endpoint nodeN71() {
+            return !(cond72()) ? result50() : result49();
+        }
+
+        private Endpoint nodeP72() {
+            return cond25() ? nodeP73() : result41();
+        }
+
+        private Endpoint nodeN72() {
+            return !(cond25()) ? result41() : nodeP73();
+        }
+
+        private Endpoint nodeP73() {
+            return region != null && region.equals("aws-global") ? result38() : nodeP74();
+        }
+
+        private Endpoint nodeN73() {
+            return !(region != null && region.equals("aws-global")) ? nodeP74() : result38();
+        }
+
+        private Endpoint nodeP74() {
+            return Boolean.TRUE.equals(params.useGlobalEndpoint()) ? nodeP75() : result40();
+        }
+
+        private Endpoint nodeN74() {
+            return !(Boolean.TRUE.equals(params.useGlobalEndpoint())) ? result40() : nodeP75();
+        }
+
+        private Endpoint nodeP75() {
+            return region != null && region.equals("us-east-1") ? result39() : result40();
+        }
+
+        private Endpoint nodeN75() {
+            return !(region != null && region.equals("us-east-1")) ? result40() : result39();
+        }
+
+        private Endpoint nodeP76() {
+            return cond26() ? result87() : nodeP77();
+        }
+
+        private Endpoint nodeN76() {
+            return !(cond26()) ? nodeP77() : result87();
+        }
+
+        private Endpoint nodeP77() {
+            return cond28() ? result86() : nodeP78();
+        }
+
+        private Endpoint nodeN77() {
+            return !(cond28()) ? nodeP78() : result86();
+        }
+
+        private Endpoint nodeP78() {
+            return cond34() ? nodeP81() : nodeP79();
+        }
+
+        private Endpoint nodeN78() {
+            return !(cond34()) ? nodeP79() : nodeP81();
+        }
+
+        private Endpoint nodeP79() {
+            return cond35() ? nodeP80() : nodeP544();
+        }
+
+        private Endpoint nodeN79() {
+            return !(cond35()) ? nodeP544() : nodeP80();
+        }
+
+        private Endpoint nodeP80() {
+            return cond36() ? result102() : result114();
+        }
+
+        private Endpoint nodeN80() {
+            return !(cond36()) ? result114() : result102();
+        }
+
+        private Endpoint nodeP81() {
+            return region != null && region.equals("aws-global") ? result96() : nodeP82();
+        }
+
+        private Endpoint nodeN81() {
+            return !(region != null && region.equals("aws-global")) ? nodeP82() : result96();
+        }
+
+        private Endpoint nodeP82() {
+            return Boolean.TRUE.equals(params.useGlobalEndpoint()) ? nodeP83() : result98();
+        }
+
+        private Endpoint nodeN82() {
+            return !(Boolean.TRUE.equals(params.useGlobalEndpoint())) ? result98() : nodeP83();
+        }
+
+        private Endpoint nodeP83() {
+            return region != null && region.equals("us-east-1") ? result97() : result98();
+        }
+
+        private Endpoint nodeN83() {
+            return !(region != null && region.equals("us-east-1")) ? result98() : result97();
+        }
+
+        private Endpoint nodeP84() {
+            return params.bucket() != null ? nodeP100() : nodeP85();
+        }
+
+        private Endpoint nodeN84() {
+            return !(params.bucket() != null) ? nodeP85() : nodeP100();
+        }
+
+        private Endpoint nodeP85() {
+            return cond8() ? nodeP86() : result114();
+        }
+
+        private Endpoint nodeN85() {
+            return !(cond8()) ? result114() : nodeP86();
+        }
+
+        private Endpoint nodeP86() {
+            return cond16() ? nodeP87() : nodeP88();
+        }
+
+        private Endpoint nodeN86() {
+            return !(cond16()) ? nodeP88() : nodeP87();
+        }
+
+        private Endpoint nodeP87() {
+            return cond18() ? nodeP90() : nodeP88();
+        }
+
+        private Endpoint nodeN87() {
+            return !(cond18()) ? nodeP88() : nodeP90();
+        }
+
+        private Endpoint nodeP88() {
+            return cond19() ? nodeP89() : nodeP91();
+        }
+
+        private Endpoint nodeN88() {
+            return !(cond19()) ? nodeP91() : nodeP89();
+        }
+
+        private Endpoint nodeP89() {
+            return cond21() ? nodeP96() : nodeP94();
+        }
+
+        private Endpoint nodeN89() {
+            return !(cond21()) ? nodeP94() : nodeP96();
+        }
+
+        private Endpoint nodeP90() {
+            return cond19() ? nodeP92() : nodeP91();
+        }
+
+        private Endpoint nodeN90() {
+            return !(cond19()) ? nodeP91() : nodeP92();
+        }
+
+        private Endpoint nodeP91() {
+            return cond21() ? nodeP97() : nodeP94();
+        }
+
+        private Endpoint nodeN91() {
+            return !(cond21()) ? nodeP94() : nodeP97();
+        }
+
+        private Endpoint nodeP92() {
+            return cond21() ? nodeP96() : nodeP93();
+        }
+
+        private Endpoint nodeN92() {
+            return !(cond21()) ? nodeP93() : nodeP96();
+        }
+
+        private Endpoint nodeP93() {
+            return cond22() ? result13() : nodeP94();
+        }
+
+        private Endpoint nodeN93() {
+            return !(cond22()) ? nodeP94() : result13();
+        }
+
+        private Endpoint nodeP94() {
+            return cond35() ? nodeP95() : result41();
+        }
+
+        private Endpoint nodeN94() {
+            return !(cond35()) ? result41() : nodeP95();
+        }
+
+        private Endpoint nodeP95() {
+            return cond36() ? result102() : result41();
+        }
+
+        private Endpoint nodeN95() {
+            return !(cond36()) ? result41() : result102();
+        }
+
+        private Endpoint nodeP96() {
+            return cond22() ? result12() : nodeP97();
+        }
+
+        private Endpoint nodeN96() {
+            return !(cond22()) ? nodeP97() : result12();
+        }
+
+        private Endpoint nodeP97() {
+            return cond35() ? nodeP98() : result41();
+        }
+
+        private Endpoint nodeN97() {
+            return !(cond35()) ? result41() : nodeP98();
+        }
+
+        private Endpoint nodeP98() {
+            return cond36() ? result100() : nodeP99();
+        }
+
+        private Endpoint nodeN98() {
+            return !(cond36()) ? nodeP99() : result100();
+        }
+
+        private Endpoint nodeP99() {
+            return region != null && region.equals("aws-global") ? result109() : result110();
+        }
+
+        private Endpoint nodeN99() {
+            return !(region != null && region.equals("aws-global")) ? result110() : result109();
+        }
+
+        private Endpoint nodeP100() {
+            return cond6() ? nodeP213() : nodeP101();
+        }
+
+        private Endpoint nodeN100() {
+            return !(cond6()) ? nodeP101() : nodeP213();
+        }
+
+        private Endpoint nodeP101() {
+            return cond7() ? nodeP207() : nodeP102();
+        }
+
+        private Endpoint nodeN101() {
+            return !(cond7()) ? nodeP102() : nodeP207();
+        }
+
+        private Endpoint nodeP102() {
+            return cond8() ? nodeP118() : nodeP103();
+        }
+
+        private Endpoint nodeN102() {
+            return !(cond8()) ? nodeP103() : nodeP118();
+        }
+
+        private Endpoint nodeP103() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP117() : nodeP104();
+        }
+
+        private Endpoint nodeN103() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP104() : nodeP117();
+        }
+
+        private Endpoint nodeP104() {
+            return cond21() ? nodeP105() : result22();
+        }
+
+        private Endpoint nodeN104() {
+            return !(cond21()) ? result22() : nodeP105();
+        }
+
+        private Endpoint nodeP105() {
+            return cond26() ? nodeP106() : nodeP501();
+        }
+
+        private Endpoint nodeN105() {
+            return !(cond26()) ? nodeP501() : nodeP106();
+        }
+
+        private Endpoint nodeP106() {
+            return cond37() ? nodeP107() : result85();
+        }
+
+        private Endpoint nodeN106() {
+            return !(cond37()) ? result85() : nodeP107();
+        }
+
+        private Endpoint nodeP107() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP108();
+        }
+
+        private Endpoint nodeN107() {
+            return !(arnType != null && arnType.equals("")) ? nodeP108() : result85();
+        }
+
+        private Endpoint nodeP108() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP111() : nodeP109();
+        }
+
+        private Endpoint nodeN108() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP109() : nodeP111();
+        }
+
+        private Endpoint nodeP109() {
+            return cond48() ? result57() : nodeP110();
+        }
+
+        private Endpoint nodeN109() {
+            return !(cond48()) ? nodeP110() : result57();
+        }
+
+        private Endpoint nodeP110() {
+            return cond50() ? nodeP135() : result84();
+        }
+
+        private Endpoint nodeN110() {
+            return !(cond50()) ? result84() : nodeP135();
+        }
+
+        private Endpoint nodeP111() {
+            return cond40() ? nodeP112() : result56();
+        }
+
+        private Endpoint nodeN111() {
+            return !(cond40()) ? result56() : nodeP112();
+        }
+
+        private Endpoint nodeP112() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP113();
+        }
+
+        private Endpoint nodeN112() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP113() : result56();
+        }
+
+        private Endpoint nodeP113() {
+            return cond42() ? nodeP114() : nodeP499();
+        }
+
+        private Endpoint nodeN113() {
+            return !(cond42()) ? nodeP499() : nodeP114();
+        }
+
+        private Endpoint nodeP114() {
+            return cond48() ? result55() : nodeP115();
+        }
+
+        private Endpoint nodeN114() {
+            return !(cond48()) ? nodeP115() : result55();
+        }
+
+        private Endpoint nodeP115() {
+            return cond52() ? nodeP116() : result71();
+        }
+
+        private Endpoint nodeN115() {
+            return !(cond52()) ? result71() : nodeP116();
+        }
+
+        private Endpoint nodeP116() {
+            return Boolean.TRUE.equals(params.disableMultiRegionAccessPoints()) ? result68() : result71();
+        }
+
+        private Endpoint nodeN116() {
+            return !(Boolean.TRUE.equals(params.disableMultiRegionAccessPoints())) ? result71() : result68();
+        }
+
+        private Endpoint nodeP117() {
+            return cond21() ? nodeP500() : result22();
+        }
+
+        private Endpoint nodeN117() {
+            return !(cond21()) ? result22() : nodeP500();
+        }
+
+        private Endpoint nodeP118() {
+            return cond9() ? nodeP119() : nodeP123();
+        }
+
+        private Endpoint nodeN118() {
+            return !(cond9()) ? nodeP123() : nodeP119();
+        }
+
+        private Endpoint nodeP119() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP120() : nodeP123();
+        }
+
+        private Endpoint nodeN119() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP123() : nodeP120();
+        }
+
+        private Endpoint nodeP120() {
+            return cond11() ? nodeP121() : nodeP123();
+        }
+
+        private Endpoint nodeN120() {
+            return !(cond11()) ? nodeP123() : nodeP121();
+        }
+
+        private Endpoint nodeP121() {
+            return cond12() ? nodeP122() : nodeP123();
+        }
+
+        private Endpoint nodeN121() {
+            return !(cond12()) ? nodeP123() : nodeP122();
+        }
+
+        private Endpoint nodeP122() {
+            return cond13() ? nodeP201() : nodeP123();
+        }
+
+        private Endpoint nodeN122() {
+            return !(cond13()) ? nodeP123() : nodeP201();
+        }
+
+        private Endpoint nodeP123() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP194() : nodeP124();
+        }
+
+        private Endpoint nodeN123() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP124() : nodeP194();
+        }
+
+        private Endpoint nodeP124() {
+            return cond20() ? nodeP189() : nodeP125();
+        }
+
+        private Endpoint nodeN124() {
+            return !(cond20()) ? nodeP125() : nodeP189();
+        }
+
+        private Endpoint nodeP125() {
+            return cond21() ? nodeP126() : result22();
+        }
+
+        private Endpoint nodeN125() {
+            return !(cond21()) ? result22() : nodeP126();
+        }
+
+        private Endpoint nodeP126() {
+            return cond23() ? nodeP127() : nodeP128();
+        }
+
+        private Endpoint nodeN126() {
+            return !(cond23()) ? nodeP128() : nodeP127();
+        }
+
+        private Endpoint nodeP127() {
+            return cond24() ? nodeP188() : nodeP128();
+        }
+
+        private Endpoint nodeN127() {
+            return !(cond24()) ? nodeP128() : nodeP188();
+        }
+
+        private Endpoint nodeP128() {
+            return cond26() ? nodeP129() : nodeP196();
+        }
+
+        private Endpoint nodeN128() {
+            return !(cond26()) ? nodeP196() : nodeP129();
+        }
+
+        private Endpoint nodeP129() {
+            return cond37() ? nodeP130() : result85();
+        }
+
+        private Endpoint nodeN129() {
+            return !(cond37()) ? result85() : nodeP130();
+        }
+
+        private Endpoint nodeP130() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP131();
+        }
+
+        private Endpoint nodeN130() {
+            return !(arnType != null && arnType.equals("")) ? nodeP131() : result85();
+        }
+
+        private Endpoint nodeP131() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP158() : nodeP132();
+        }
+
+        private Endpoint nodeN131() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP132() : nodeP158();
+        }
+
+        private Endpoint nodeP132() {
+            return cond48() ? result57() : nodeP133();
+        }
+
+        private Endpoint nodeN132() {
+            return !(cond48()) ? nodeP133() : result57();
+        }
+
+        private Endpoint nodeP133() {
+            return cond50() ? nodeP134() : result84();
+        }
+
+        private Endpoint nodeN133() {
+            return !(cond50()) ? result84() : nodeP134();
+        }
+
+        private Endpoint nodeP134() {
+            return cond51() ? nodeP140() : nodeP135();
+        }
+
+        private Endpoint nodeN134() {
+            return !(cond51()) ? nodeP135() : nodeP140();
+        }
+
+        private Endpoint nodeP135() {
+            return cond55() ? result75() : nodeP136();
+        }
+
+        private Endpoint nodeN135() {
+            return !(cond55()) ? nodeP136() : result75();
+        }
+
+        private Endpoint nodeP136() {
+            return cond59() ? nodeP137() : result83();
+        }
+
+        private Endpoint nodeN136() {
+            return !(cond59()) ? result83() : nodeP137();
+        }
+
+        private Endpoint nodeP137() {
+            return cond60() ? result82() : nodeP138();
+        }
+
+        private Endpoint nodeN137() {
+            return !(cond60()) ? nodeP138() : result82();
+        }
+
+        private Endpoint nodeP138() {
+            return cond61() ? nodeP139() : result82();
+        }
+
+        private Endpoint nodeN138() {
+            return !(cond61()) ? result82() : nodeP139();
+        }
+
+        private Endpoint nodeP139() {
+            return cond63() ? result82() : result45();
+        }
+
+        private Endpoint nodeN139() {
+            return !(cond63()) ? result45() : result82();
+        }
+
+        private Endpoint nodeP140() {
+            return cond55() ? result75() : nodeP141();
+        }
+
+        private Endpoint nodeN140() {
+            return !(cond55()) ? nodeP141() : result75();
+        }
+
+        private Endpoint nodeP141() {
+            return cond59() ? nodeP142() : result83();
+        }
+
+        private Endpoint nodeN141() {
+            return !(cond59()) ? result83() : nodeP142();
+        }
+
+        private Endpoint nodeP142() {
+            return cond60() ? nodeP147() : nodeP143();
+        }
+
+        private Endpoint nodeN142() {
+            return !(cond60()) ? nodeP143() : nodeP147();
+        }
+
+        private Endpoint nodeP143() {
+            return cond61() ? nodeP144() : result82();
+        }
+
+        private Endpoint nodeN143() {
+            return !(cond61()) ? result82() : nodeP144();
+        }
+
+        private Endpoint nodeP144() {
+            return cond62() ? nodeP146() : nodeP145();
+        }
+
+        private Endpoint nodeN144() {
+            return !(cond62()) ? nodeP145() : nodeP146();
+        }
+
+        private Endpoint nodeP145() {
+            return cond63() ? nodeP149() : result45();
+        }
+
+        private Endpoint nodeN145() {
+            return !(cond63()) ? result45() : nodeP149();
+        }
+
+        private Endpoint nodeP146() {
+            return cond63() ? nodeP152() : result45();
+        }
+
+        private Endpoint nodeN146() {
+            return !(cond63()) ? result45() : nodeP152();
+        }
+
+        private Endpoint nodeP147() {
+            return cond61() ? nodeP148() : result82();
+        }
+
+        private Endpoint nodeN147() {
+            return !(cond61()) ? result82() : nodeP148();
+        }
+
+        private Endpoint nodeP148() {
+            return cond62() ? nodeP152() : nodeP149();
+        }
+
+        private Endpoint nodeN148() {
+            return !(cond62()) ? nodeP149() : nodeP152();
+        }
+
+        private Endpoint nodeP149() {
+            return cond64() ? nodeP150() : result53();
+        }
+
+        private Endpoint nodeN149() {
+            return !(cond64()) ? result53() : nodeP150();
+        }
+
+        private Endpoint nodeP150() {
+            return cond66() ? nodeP151() : result52();
+        }
+
+        private Endpoint nodeN150() {
+            return !(cond66()) ? result52() : nodeP151();
+        }
+
+        private Endpoint nodeP151() {
+            return cond70() ? result81() : result51();
+        }
+
+        private Endpoint nodeN151() {
+            return !(cond70()) ? result51() : result81();
+        }
+
+        private Endpoint nodeP152() {
+            return cond64() ? nodeP153() : result53();
+        }
+
+        private Endpoint nodeN152() {
+            return !(cond64()) ? result53() : nodeP153();
+        }
+
+        private Endpoint nodeP153() {
+            return cond66() ? nodeP154() : result52();
+        }
+
+        private Endpoint nodeN153() {
+            return !(cond66()) ? result52() : nodeP154();
+        }
+
+        private Endpoint nodeP154() {
+            return cond70() ? nodeP155() : result51();
+        }
+
+        private Endpoint nodeN154() {
+            return !(cond70()) ? result51() : nodeP155();
+        }
+
+        private Endpoint nodeP155() {
+            return cond71() ? nodeP156() : result80();
+        }
+
+        private Endpoint nodeN155() {
+            return !(cond71()) ? result80() : nodeP156();
+        }
+
+        private Endpoint nodeP156() {
+            return outpostType != null && outpostType.equals("accesspoint") ? nodeP157() : result79();
+        }
+
+        private Endpoint nodeN156() {
+            return !(outpostType != null && outpostType.equals("accesspoint")) ? result79() : nodeP157();
+        }
+
+        private Endpoint nodeP157() {
+            return cond74() ? result76() : result78();
+        }
+
+        private Endpoint nodeN157() {
+            return !(cond74()) ? result78() : result76();
+        }
+
+        private Endpoint nodeP158() {
+            return cond40() ? nodeP159() : result56();
+        }
+
+        private Endpoint nodeN158() {
+            return !(cond40()) ? result56() : nodeP159();
+        }
+
+        private Endpoint nodeP159() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP160();
+        }
+
+        private Endpoint nodeN159() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP160() : result56();
+        }
+
+        private Endpoint nodeP160() {
+            return cond42() ? nodeP184() : nodeP161();
+        }
+
+        private Endpoint nodeN160() {
+            return !(cond42()) ? nodeP161() : nodeP184();
+        }
+
+        private Endpoint nodeP161() {
+            return cond48() ? nodeP173() : nodeP162();
+        }
+
+        private Endpoint nodeN161() {
+            return !(cond48()) ? nodeP162() : nodeP173();
+        }
+
+        private Endpoint nodeP162() {
+            return cond49() ? result44() : nodeP163();
+        }
+
+        private Endpoint nodeN162() {
+            return !(cond49()) ? nodeP163() : result44();
+        }
+
+        private Endpoint nodeP163() {
+            return cond51() ? nodeP164() : nodeP525();
+        }
+
+        private Endpoint nodeN163() {
+            return !(cond51()) ? nodeP525() : nodeP164();
+        }
+
+        private Endpoint nodeP164() {
+            return cond60() ? nodeP167() : nodeP165();
+        }
+
+        private Endpoint nodeN164() {
+            return !(cond60()) ? nodeP165() : nodeP167();
+        }
+
+        private Endpoint nodeP165() {
+            return cond62() ? result54() : nodeP166();
+        }
+
+        private Endpoint nodeN165() {
+            return !(cond62()) ? nodeP166() : result54();
+        }
+
+        private Endpoint nodeP166() {
+            return cond63() ? nodeP168() : result45();
+        }
+
+        private Endpoint nodeN166() {
+            return !(cond63()) ? result45() : nodeP168();
+        }
+
+        private Endpoint nodeP167() {
+            return cond62() ? result54() : nodeP168();
+        }
+
+        private Endpoint nodeN167() {
+            return !(cond62()) ? nodeP168() : result54();
+        }
+
+        private Endpoint nodeP168() {
+            return cond64() ? nodeP169() : result53();
+        }
+
+        private Endpoint nodeN168() {
+            return !(cond64()) ? result53() : nodeP169();
+        }
+
+        private Endpoint nodeP169() {
+            return cond66() ? nodeP170() : result52();
+        }
+
+        private Endpoint nodeN169() {
+            return !(cond66()) ? result52() : nodeP170();
+        }
+
+        private Endpoint nodeP170() {
+            return cond69() ? nodeP171() : result64();
+        }
+
+        private Endpoint nodeN170() {
+            return !(cond69()) ? result64() : nodeP171();
+        }
+
+        private Endpoint nodeP171() {
+            return cond70() ? nodeP172() : result51();
+        }
+
+        private Endpoint nodeN171() {
+            return !(cond70()) ? result51() : nodeP172();
+        }
+
+        private Endpoint nodeP172() {
+            return cond72() ? result62() : result50();
+        }
+
+        private Endpoint nodeN172() {
+            return !(cond72()) ? result50() : result62();
+        }
+
+        private Endpoint nodeP173() {
+            return cond49() ? result44() : nodeP174();
+        }
+
+        private Endpoint nodeN173() {
+            return !(cond49()) ? nodeP174() : result44();
+        }
+
+        private Endpoint nodeP174() {
+            return cond51() ? nodeP175() : nodeP525();
+        }
+
+        private Endpoint nodeN174() {
+            return !(cond51()) ? nodeP525() : nodeP175();
+        }
+
+        private Endpoint nodeP175() {
+            return cond60() ? nodeP178() : nodeP176();
+        }
+
+        private Endpoint nodeN175() {
+            return !(cond60()) ? nodeP176() : nodeP178();
+        }
+
+        private Endpoint nodeP176() {
+            return cond62() ? result54() : nodeP177();
+        }
+
+        private Endpoint nodeN176() {
+            return !(cond62()) ? nodeP177() : result54();
+        }
+
+        private Endpoint nodeP177() {
+            return cond63() ? nodeP179() : result45();
+        }
+
+        private Endpoint nodeN177() {
+            return !(cond63()) ? result45() : nodeP179();
+        }
+
+        private Endpoint nodeP178() {
+            return cond62() ? result54() : nodeP179();
+        }
+
+        private Endpoint nodeN178() {
+            return !(cond62()) ? nodeP179() : result54();
+        }
+
+        private Endpoint nodeP179() {
+            return cond64() ? nodeP180() : result53();
+        }
+
+        private Endpoint nodeN179() {
+            return !(cond64()) ? result53() : nodeP180();
+        }
+
+        private Endpoint nodeP180() {
+            return cond66() ? nodeP181() : result52();
+        }
+
+        private Endpoint nodeN180() {
+            return !(cond66()) ? result52() : nodeP181();
+        }
+
+        private Endpoint nodeP181() {
+            return cond68() ? result46() : nodeP182();
+        }
+
+        private Endpoint nodeN181() {
+            return !(cond68()) ? nodeP182() : result46();
+        }
+
+        private Endpoint nodeP182() {
+            return cond70() ? nodeP183() : result51();
+        }
+
+        private Endpoint nodeN182() {
+            return !(cond70()) ? result51() : nodeP183();
+        }
+
+        private Endpoint nodeP183() {
+            return cond72() ? result47() : result50();
+        }
+
+        private Endpoint nodeN183() {
+            return !(cond72()) ? result50() : result47();
+        }
+
+        private Endpoint nodeP184() {
+            return cond48() ? result55() : nodeP185();
+        }
+
+        private Endpoint nodeN184() {
+            return !(cond48()) ? nodeP185() : result55();
+        }
+
+        private Endpoint nodeP185() {
+            return cond52() ? nodeP186() : result71();
+        }
+
+        private Endpoint nodeN185() {
+            return !(cond52()) ? result71() : nodeP186();
+        }
+
+        private Endpoint nodeP186() {
+            return Boolean.TRUE.equals(params.disableMultiRegionAccessPoints()) ? result68() : nodeP187();
+        }
+
+        private Endpoint nodeN186() {
+            return !(Boolean.TRUE.equals(params.disableMultiRegionAccessPoints())) ? nodeP187() : result68();
+        }
+
+        private Endpoint nodeP187() {
+            return cond67() ? result69() : result70();
+        }
+
+        private Endpoint nodeN187() {
+            return !(cond67()) ? result70() : result69();
+        }
+
+        private Endpoint nodeP188() {
+            return cond25() ? result35() : result41();
+        }
+
+        private Endpoint nodeN188() {
+            return !(cond25()) ? result41() : result35();
+        }
+
+        private Endpoint nodeP189() {
+            return cond21() ? nodeP190() : result22();
+        }
+
+        private Endpoint nodeN189() {
+            return !(cond21()) ? result22() : nodeP190();
+        }
+
+        private Endpoint nodeP190() {
+            return cond25() ? nodeP191() : result41();
+        }
+
+        private Endpoint nodeN190() {
+            return !(cond25()) ? result41() : nodeP191();
+        }
+
+        private Endpoint nodeP191() {
+            return cond30() ? nodeP193() : nodeP192();
+        }
+
+        private Endpoint nodeN191() {
+            return !(cond30()) ? nodeP192() : nodeP193();
+        }
+
+        private Endpoint nodeP192() {
+            return region != null && region.equals("aws-global") ? result33() : result35();
+        }
+
+        private Endpoint nodeN192() {
+            return !(region != null && region.equals("aws-global")) ? result35() : result33();
+        }
+
+        private Endpoint nodeP193() {
+            return region != null && region.equals("aws-global") ? result32() : result34();
+        }
+
+        private Endpoint nodeN193() {
+            return !(region != null && region.equals("aws-global")) ? result34() : result32();
+        }
+
+        private Endpoint nodeP194() {
+            return cond21() ? nodeP195() : result22();
+        }
+
+        private Endpoint nodeN194() {
+            return !(cond21()) ? result22() : nodeP195();
+        }
+
+        private Endpoint nodeP195() {
+            return cond26() ? result87() : nodeP196();
+        }
+
+        private Endpoint nodeN195() {
+            return !(cond26()) ? nodeP196() : result87();
+        }
+
+        private Endpoint nodeP196() {
+            return cond28() ? result86() : nodeP197();
+        }
+
+        private Endpoint nodeN196() {
+            return !(cond28()) ? nodeP197() : result86();
+        }
+
+        private Endpoint nodeP197() {
+            return cond34() ? nodeP200() : nodeP198();
+        }
+
+        private Endpoint nodeN197() {
+            return !(cond34()) ? nodeP198() : nodeP200();
+        }
+
+        private Endpoint nodeP198() {
+            return cond35() ? nodeP199() : nodeP544();
+        }
+
+        private Endpoint nodeN198() {
+            return !(cond35()) ? nodeP544() : nodeP199();
+        }
+
+        private Endpoint nodeP199() {
+            return cond36() ? result100() : result114();
+        }
+
+        private Endpoint nodeN199() {
+            return !(cond36()) ? result114() : result100();
+        }
+
+        private Endpoint nodeP200() {
+            return region != null && region.equals("aws-global") ? result94() : result95();
+        }
+
+        private Endpoint nodeN200() {
+            return !(region != null && region.equals("aws-global")) ? result95() : result94();
+        }
+
+        private Endpoint nodeP201() {
+            return cond17() ? nodeP202() : result21();
+        }
+
+        private Endpoint nodeN201() {
+            return !(cond17()) ? result21() : nodeP202();
+        }
+
+        private Endpoint nodeP202() {
+            return cond20() ? nodeP203() : result20();
+        }
+
+        private Endpoint nodeN202() {
+            return !(cond20()) ? result20() : nodeP203();
+        }
+
+        private Endpoint nodeP203() {
+            return cond21() ? nodeP204() : nodeP549();
+        }
+
+        private Endpoint nodeN203() {
+            return !(cond21()) ? nodeP549() : nodeP204();
+        }
+
+        private Endpoint nodeP204() {
+            return regionPrefix != null && regionPrefix.equals("beta") ? nodeP205() : nodeP549();
+        }
+
+        private Endpoint nodeN204() {
+            return !(regionPrefix != null && regionPrefix.equals("beta")) ? nodeP549() : nodeP205();
+        }
+
+        private Endpoint nodeP205() {
+            return hardwareType != null && hardwareType.equals("e") ? result15() : nodeP206();
+        }
+
+        private Endpoint nodeN205() {
+            return !(hardwareType != null && hardwareType.equals("e")) ? nodeP206() : result15();
+        }
+
+        private Endpoint nodeP206() {
+            return hardwareType != null && hardwareType.equals("o") ? result17() : result19();
+        }
+
+        private Endpoint nodeN206() {
+            return !(hardwareType != null && hardwareType.equals("o")) ? result19() : result17();
+        }
+
+        private Endpoint nodeP207() {
+            return cond8() ? nodeP208() : nodeP214();
+        }
+
+        private Endpoint nodeN207() {
+            return !(cond8()) ? nodeP214() : nodeP208();
+        }
+
+        private Endpoint nodeP208() {
+            return cond16() ? nodeP209() : nodeP219();
+        }
+
+        private Endpoint nodeN208() {
+            return !(cond16()) ? nodeP219() : nodeP209();
+        }
+
+        private Endpoint nodeP209() {
+            return cond18() ? nodeP210() : nodeP219();
+        }
+
+        private Endpoint nodeN209() {
+            return !(cond18()) ? nodeP219() : nodeP210();
+        }
+
+        private Endpoint nodeP210() {
+            return cond19() ? nodeP211() : nodeP223();
+        }
+
+        private Endpoint nodeN210() {
+            return !(cond19()) ? nodeP223() : nodeP211();
+        }
+
+        private Endpoint nodeP211() {
+            return cond20() ? nodeP212() : nodeP226();
+        }
+
+        private Endpoint nodeN211() {
+            return !(cond20()) ? nodeP226() : nodeP212();
+        }
+
+        private Endpoint nodeP212() {
+            return cond21() ? nodeP230() : nodeP400();
+        }
+
+        private Endpoint nodeN212() {
+            return !(cond21()) ? nodeP400() : nodeP230();
+        }
+
+        private Endpoint nodeP213() {
+            return cond8() ? nodeP217() : nodeP214();
+        }
+
+        private Endpoint nodeN213() {
+            return !(cond8()) ? nodeP214() : nodeP217();
+        }
+
+        private Endpoint nodeP214() {
+            return cond19() ? nodeP215() : result8();
+        }
+
+        private Endpoint nodeN214() {
+            return !(cond19()) ? result8() : nodeP215();
+        }
+
+        private Endpoint nodeP215() {
+            return cond20() ? nodeP216() : nodeP226();
+        }
+
+        private Endpoint nodeN215() {
+            return !(cond20()) ? nodeP226() : nodeP216();
+        }
+
+        private Endpoint nodeP216() {
+            return cond21() ? nodeP230() : result8();
+        }
+
+        private Endpoint nodeN216() {
+            return !(cond21()) ? result8() : nodeP230();
+        }
+
+        private Endpoint nodeP217() {
+            return cond16() ? nodeP218() : nodeP219();
+        }
+
+        private Endpoint nodeN217() {
+            return !(cond16()) ? nodeP219() : nodeP218();
+        }
+
+        private Endpoint nodeP218() {
+            return cond18() ? nodeP222() : nodeP219();
+        }
+
+        private Endpoint nodeN218() {
+            return !(cond18()) ? nodeP219() : nodeP222();
+        }
+
+        private Endpoint nodeP219() {
+            return cond19() ? nodeP220() : nodeP223();
+        }
+
+        private Endpoint nodeN219() {
+            return !(cond19()) ? nodeP223() : nodeP220();
+        }
+
+        private Endpoint nodeP220() {
+            return cond20() ? nodeP221() : nodeP226();
+        }
+
+        private Endpoint nodeN220() {
+            return !(cond20()) ? nodeP226() : nodeP221();
+        }
+
+        private Endpoint nodeP221() {
+            return cond21() ? nodeP230() : result11();
+        }
+
+        private Endpoint nodeN221() {
+            return !(cond21()) ? result11() : nodeP230();
+        }
+
+        private Endpoint nodeP222() {
+            return cond19() ? nodeP225() : nodeP223();
+        }
+
+        private Endpoint nodeN222() {
+            return !(cond19()) ? nodeP223() : nodeP225();
+        }
+
+        private Endpoint nodeP223() {
+            return cond20() ? nodeP224() : result8();
+        }
+
+        private Endpoint nodeN223() {
+            return !(cond20()) ? result8() : nodeP224();
+        }
+
+        private Endpoint nodeP224() {
+            return cond21() ? result8() : result11();
+        }
+
+        private Endpoint nodeN224() {
+            return !(cond21()) ? result11() : result8();
+        }
+
+        private Endpoint nodeP225() {
+            return cond20() ? nodeP229() : nodeP226();
+        }
+
+        private Endpoint nodeN225() {
+            return !(cond20()) ? nodeP226() : nodeP229();
+        }
+
+        private Endpoint nodeP226() {
+            return cond21() ? nodeP227() : result8();
+        }
+
+        private Endpoint nodeN226() {
+            return !(cond21()) ? result8() : nodeP227();
+        }
+
+        private Endpoint nodeP227() {
+            return cond30() ? nodeP228() : result8();
+        }
+
+        private Endpoint nodeN227() {
+            return !(cond30()) ? result8() : nodeP228();
+        }
+
+        private Endpoint nodeP228() {
+            return cond34() ? result6() : result8();
+        }
+
+        private Endpoint nodeN228() {
+            return !(cond34()) ? result8() : result6();
+        }
+
+        private Endpoint nodeP229() {
+            return cond21() ? nodeP230() : nodeP414();
+        }
+
+        private Endpoint nodeN229() {
+            return !(cond21()) ? nodeP414() : nodeP230();
+        }
+
+        private Endpoint nodeP230() {
+            return cond30() ? nodeP231() : result7();
+        }
+
+        private Endpoint nodeN230() {
+            return !(cond30()) ? result7() : nodeP231();
+        }
+
+        private Endpoint nodeP231() {
+            return cond34() ? result6() : result7();
+        }
+
+        private Endpoint nodeN231() {
+            return !(cond34()) ? result7() : result6();
+        }
+
+        private Endpoint nodeP232() {
+            return params.endpoint() != null ? result1() : nodeP233();
+        }
+
+        private Endpoint nodeN232() {
+            return !(params.endpoint() != null) ? nodeP233() : result1();
+        }
+
+        private Endpoint nodeP233() {
+            return params.bucket() != null ? nodeP234() : nodeP479();
+        }
+
+        private Endpoint nodeN233() {
+            return !(params.bucket() != null) ? nodeP479() : nodeP234();
+        }
+
+        private Endpoint nodeP234() {
+            return cond6() ? nodeP270() : nodeP235();
+        }
+
+        private Endpoint nodeN234() {
+            return !(cond6()) ? nodeP235() : nodeP270();
+        }
+
+        private Endpoint nodeP235() {
+            return cond7() ? nodeP269() : nodeP236();
+        }
+
+        private Endpoint nodeN235() {
+            return !(cond7()) ? nodeP236() : nodeP269();
+        }
+
+        private Endpoint nodeP236() {
+            return cond8() ? nodeP237() : nodeP490();
+        }
+
+        private Endpoint nodeN236() {
+            return !(cond8()) ? nodeP490() : nodeP237();
+        }
+
+        private Endpoint nodeP237() {
+            return cond9() ? nodeP238() : nodeP242();
+        }
+
+        private Endpoint nodeN237() {
+            return !(cond9()) ? nodeP242() : nodeP238();
+        }
+
+        private Endpoint nodeP238() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP239() : nodeP242();
+        }
+
+        private Endpoint nodeN238() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP242() : nodeP239();
+        }
+
+        private Endpoint nodeP239() {
+            return cond11() ? nodeP240() : nodeP242();
+        }
+
+        private Endpoint nodeN239() {
+            return !(cond11()) ? nodeP242() : nodeP240();
+        }
+
+        private Endpoint nodeP240() {
+            return cond12() ? nodeP241() : nodeP242();
+        }
+
+        private Endpoint nodeN240() {
+            return !(cond12()) ? nodeP242() : nodeP241();
+        }
+
+        private Endpoint nodeP241() {
+            return cond13() ? nodeP546() : nodeP242();
+        }
+
+        private Endpoint nodeN241() {
+            return !(cond13()) ? nodeP242() : nodeP546();
+        }
+
+        private Endpoint nodeP242() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP265() : nodeP243();
+        }
+
+        private Endpoint nodeN242() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP243() : nodeP265();
+        }
+
+        private Endpoint nodeP243() {
+            return cond20() ? nodeP263() : nodeP244();
+        }
+
+        private Endpoint nodeN243() {
+            return !(cond20()) ? nodeP244() : nodeP263();
+        }
+
+        private Endpoint nodeP244() {
+            return cond26() ? nodeP245() : nodeP266();
+        }
+
+        private Endpoint nodeN244() {
+            return !(cond26()) ? nodeP266() : nodeP245();
+        }
+
+        private Endpoint nodeP245() {
+            return cond37() ? nodeP246() : result85();
+        }
+
+        private Endpoint nodeN245() {
+            return !(cond37()) ? result85() : nodeP246();
+        }
+
+        private Endpoint nodeP246() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP247();
+        }
+
+        private Endpoint nodeN246() {
+            return !(arnType != null && arnType.equals("")) ? nodeP247() : result85();
+        }
+
+        private Endpoint nodeP247() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP248() : nodeP517();
+        }
+
+        private Endpoint nodeN247() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP517() : nodeP248();
+        }
+
+        private Endpoint nodeP248() {
+            return cond40() ? nodeP249() : result56();
+        }
+
+        private Endpoint nodeN248() {
+            return !(cond40()) ? result56() : nodeP249();
+        }
+
+        private Endpoint nodeP249() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP250();
+        }
+
+        private Endpoint nodeN249() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP250() : result56();
+        }
+
+        private Endpoint nodeP250() {
+            return cond42() ? nodeP537() : nodeP251();
+        }
+
+        private Endpoint nodeN250() {
+            return !(cond42()) ? nodeP251() : nodeP537();
+        }
+
+        private Endpoint nodeP251() {
+            return cond48() ? result42() : nodeP252();
+        }
+
+        private Endpoint nodeN251() {
+            return !(cond48()) ? nodeP252() : result42();
+        }
+
+        private Endpoint nodeP252() {
+            return cond49() ? result44() : nodeP253();
+        }
+
+        private Endpoint nodeN252() {
+            return !(cond49()) ? nodeP253() : result44();
+        }
+
+        private Endpoint nodeP253() {
+            return cond51() ? nodeP254() : nodeP525();
+        }
+
+        private Endpoint nodeN253() {
+            return !(cond51()) ? nodeP525() : nodeP254();
+        }
+
+        private Endpoint nodeP254() {
+            return cond60() ? nodeP257() : nodeP255();
+        }
+
+        private Endpoint nodeN254() {
+            return !(cond60()) ? nodeP255() : nodeP257();
+        }
+
+        private Endpoint nodeP255() {
+            return cond62() ? result54() : nodeP256();
+        }
+
+        private Endpoint nodeN255() {
+            return !(cond62()) ? nodeP256() : result54();
+        }
+
+        private Endpoint nodeP256() {
+            return cond63() ? nodeP258() : result45();
+        }
+
+        private Endpoint nodeN256() {
+            return !(cond63()) ? result45() : nodeP258();
+        }
+
+        private Endpoint nodeP257() {
+            return cond62() ? result54() : nodeP258();
+        }
+
+        private Endpoint nodeN257() {
+            return !(cond62()) ? nodeP258() : result54();
+        }
+
+        private Endpoint nodeP258() {
+            return cond64() ? nodeP259() : result53();
+        }
+
+        private Endpoint nodeN258() {
+            return !(cond64()) ? result53() : nodeP259();
+        }
+
+        private Endpoint nodeP259() {
+            return cond66() ? nodeP260() : result52();
+        }
+
+        private Endpoint nodeN259() {
+            return !(cond66()) ? result52() : nodeP260();
+        }
+
+        private Endpoint nodeP260() {
+            return cond69() ? nodeP261() : result64();
+        }
+
+        private Endpoint nodeN260() {
+            return !(cond69()) ? result64() : nodeP261();
+        }
+
+        private Endpoint nodeP261() {
+            return cond70() ? nodeP262() : result51();
+        }
+
+        private Endpoint nodeN261() {
+            return !(cond70()) ? result51() : nodeP262();
+        }
+
+        private Endpoint nodeP262() {
+            return cond72() ? result61() : result50();
+        }
+
+        private Endpoint nodeN262() {
+            return !(cond72()) ? result50() : result61();
+        }
+
+        private Endpoint nodeP263() {
+            return cond25() ? nodeP264() : result41();
+        }
+
+        private Endpoint nodeN263() {
+            return !(cond25()) ? result41() : nodeP264();
+        }
+
+        private Endpoint nodeP264() {
+            return region != null && region.equals("aws-global") ? result30() : result31();
+        }
+
+        private Endpoint nodeN264() {
+            return !(region != null && region.equals("aws-global")) ? result31() : result30();
+        }
+
+        private Endpoint nodeP265() {
+            return cond26() ? result87() : nodeP266();
+        }
+
+        private Endpoint nodeN265() {
+            return !(cond26()) ? nodeP266() : result87();
+        }
+
+        private Endpoint nodeP266() {
+            return cond28() ? result86() : nodeP267();
+        }
+
+        private Endpoint nodeN266() {
+            return !(cond28()) ? nodeP267() : result86();
+        }
+
+        private Endpoint nodeP267() {
+            return cond34() ? nodeP268() : nodeP543();
+        }
+
+        private Endpoint nodeN267() {
+            return !(cond34()) ? nodeP543() : nodeP268();
+        }
+
+        private Endpoint nodeP268() {
+            return region != null && region.equals("aws-global") ? result92() : result93();
+        }
+
+        private Endpoint nodeN268() {
+            return !(region != null && region.equals("aws-global")) ? result93() : result92();
+        }
+
+        private Endpoint nodeP269() {
+            return cond8() ? nodeP396() : result8();
+        }
+
+        private Endpoint nodeN269() {
+            return !(cond8()) ? result8() : nodeP396();
+        }
+
+        private Endpoint nodeP270() {
+            return cond8() ? nodeP406() : result8();
+        }
+
+        private Endpoint nodeN270() {
+            return !(cond8()) ? result8() : nodeP406();
+        }
+
+        private Endpoint nodeP271() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? nodeP345() : nodeP272();
+        }
+
+        private Endpoint nodeN271() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? nodeP272() : nodeP345();
+        }
+
+        private Endpoint nodeP272() {
+            return params.endpoint() != null ? result2() : nodeP273();
+        }
+
+        private Endpoint nodeN272() {
+            return !(params.endpoint() != null) ? nodeP273() : result2();
+        }
+
+        private Endpoint nodeP273() {
+            return params.bucket() != null ? nodeP283() : nodeP274();
+        }
+
+        private Endpoint nodeN273() {
+            return !(params.bucket() != null) ? nodeP274() : nodeP283();
+        }
+
+        private Endpoint nodeP274() {
+            return cond8() ? nodeP275() : result114();
+        }
+
+        private Endpoint nodeN274() {
+            return !(cond8()) ? result114() : nodeP275();
+        }
+
+        private Endpoint nodeP275() {
+            return cond15() ? result4() : nodeP276();
+        }
+
+        private Endpoint nodeN275() {
+            return !(cond15()) ? nodeP276() : result4();
+        }
+
+        private Endpoint nodeP276() {
+            return cond16() ? nodeP277() : nodeP280();
+        }
+
+        private Endpoint nodeN276() {
+            return !(cond16()) ? nodeP280() : nodeP277();
+        }
+
+        private Endpoint nodeP277() {
+            return cond18() ? nodeP278() : nodeP280();
+        }
+
+        private Endpoint nodeN277() {
+            return !(cond18()) ? nodeP280() : nodeP278();
+        }
+
+        private Endpoint nodeP278() {
+            return cond19() ? nodeP279() : nodeP280();
+        }
+
+        private Endpoint nodeN278() {
+            return !(cond19()) ? nodeP280() : nodeP279();
+        }
+
+        private Endpoint nodeP279() {
+            return cond22() ? result13() : nodeP280();
+        }
+
+        private Endpoint nodeN279() {
+            return !(cond22()) ? nodeP280() : result13();
+        }
+
+        private Endpoint nodeP280() {
+            return cond35() ? nodeP281() : result41();
+        }
+
+        private Endpoint nodeN280() {
+            return !(cond35()) ? result41() : nodeP281();
+        }
+
+        private Endpoint nodeP281() {
+            return cond36() ? result101() : nodeP282();
+        }
+
+        private Endpoint nodeN281() {
+            return !(cond36()) ? nodeP282() : result101();
+        }
+
+        private Endpoint nodeP282() {
+            return region != null && region.equals("aws-global") ? result105() : result106();
+        }
+
+        private Endpoint nodeN282() {
+            return !(region != null && region.equals("aws-global")) ? result106() : result105();
+        }
+
+        private Endpoint nodeP283() {
+            return cond6() ? nodeP404() : nodeP284();
+        }
+
+        private Endpoint nodeN283() {
+            return !(cond6()) ? nodeP284() : nodeP404();
+        }
+
+        private Endpoint nodeP284() {
+            return cond7() ? nodeP394() : nodeP285();
+        }
+
+        private Endpoint nodeN284() {
+            return !(cond7()) ? nodeP285() : nodeP394();
+        }
+
+        private Endpoint nodeP285() {
+            return cond8() ? nodeP294() : nodeP286();
+        }
+
+        private Endpoint nodeN285() {
+            return !(cond8()) ? nodeP286() : nodeP294();
+        }
+
+        private Endpoint nodeP286() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP500() : nodeP287();
+        }
+
+        private Endpoint nodeN286() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP287() : nodeP500();
+        }
+
+        private Endpoint nodeP287() {
+            return cond26() ? nodeP288() : nodeP501();
+        }
+
+        private Endpoint nodeN287() {
+            return !(cond26()) ? nodeP501() : nodeP288();
+        }
+
+        private Endpoint nodeP288() {
+            return cond37() ? nodeP289() : result85();
+        }
+
+        private Endpoint nodeN288() {
+            return !(cond37()) ? result85() : nodeP289();
+        }
+
+        private Endpoint nodeP289() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP290();
+        }
+
+        private Endpoint nodeN289() {
+            return !(arnType != null && arnType.equals("")) ? nodeP290() : result85();
+        }
+
+        private Endpoint nodeP290() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP291() : nodeP306();
+        }
+
+        private Endpoint nodeN290() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP306() : nodeP291();
+        }
+
+        private Endpoint nodeP291() {
+            return cond40() ? nodeP292() : result56();
+        }
+
+        private Endpoint nodeN291() {
+            return !(cond40()) ? result56() : nodeP292();
+        }
+
+        private Endpoint nodeP292() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP293();
+        }
+
+        private Endpoint nodeN292() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP293() : result56();
+        }
+
+        private Endpoint nodeP293() {
+            return cond42() ? nodeP334() : nodeP499();
+        }
+
+        private Endpoint nodeN293() {
+            return !(cond42()) ? nodeP499() : nodeP334();
+        }
+
+        private Endpoint nodeP294() {
+            return cond9() ? nodeP295() : nodeP299();
+        }
+
+        private Endpoint nodeN294() {
+            return !(cond9()) ? nodeP299() : nodeP295();
+        }
+
+        private Endpoint nodeP295() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP296() : nodeP299();
+        }
+
+        private Endpoint nodeN295() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP299() : nodeP296();
+        }
+
+        private Endpoint nodeP296() {
+            return cond11() ? nodeP297() : nodeP299();
+        }
+
+        private Endpoint nodeN296() {
+            return !(cond11()) ? nodeP299() : nodeP297();
+        }
+
+        private Endpoint nodeP297() {
+            return cond12() ? nodeP298() : nodeP299();
+        }
+
+        private Endpoint nodeN297() {
+            return !(cond12()) ? nodeP299() : nodeP298();
+        }
+
+        private Endpoint nodeP298() {
+            return cond13() ? nodeP393() : nodeP299();
+        }
+
+        private Endpoint nodeN298() {
+            return !(cond13()) ? nodeP299() : nodeP393();
+        }
+
+        private Endpoint nodeP299() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP338() : nodeP300();
+        }
+
+        private Endpoint nodeN299() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP300() : nodeP338();
+        }
+
+        private Endpoint nodeP300() {
+            return cond15() ? result4() : nodeP301();
+        }
+
+        private Endpoint nodeN300() {
+            return !(cond15()) ? nodeP301() : result4();
+        }
+
+        private Endpoint nodeP301() {
+            return cond20() ? nodeP336() : nodeP302();
+        }
+
+        private Endpoint nodeN301() {
+            return !(cond20()) ? nodeP302() : nodeP336();
+        }
+
+        private Endpoint nodeP302() {
+            return cond26() ? nodeP303() : nodeP340();
+        }
+
+        private Endpoint nodeN302() {
+            return !(cond26()) ? nodeP340() : nodeP303();
+        }
+
+        private Endpoint nodeP303() {
+            return cond37() ? nodeP304() : result85();
+        }
+
+        private Endpoint nodeN303() {
+            return !(cond37()) ? result85() : nodeP304();
+        }
+
+        private Endpoint nodeP304() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP305();
+        }
+
+        private Endpoint nodeN304() {
+            return !(arnType != null && arnType.equals("")) ? nodeP305() : result85();
+        }
+
+        private Endpoint nodeP305() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP308() : nodeP306();
+        }
+
+        private Endpoint nodeN305() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP306() : nodeP308();
+        }
+
+        private Endpoint nodeP306() {
+            return cond48() ? result57() : nodeP307();
+        }
+
+        private Endpoint nodeN306() {
+            return !(cond48()) ? nodeP307() : result57();
+        }
+
+        private Endpoint nodeP307() {
+            return cond50() ? result73() : result84();
+        }
+
+        private Endpoint nodeN307() {
+            return !(cond50()) ? result84() : result73();
+        }
+
+        private Endpoint nodeP308() {
+            return cond40() ? nodeP309() : result56();
+        }
+
+        private Endpoint nodeN308() {
+            return !(cond40()) ? result56() : nodeP309();
+        }
+
+        private Endpoint nodeP309() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP310();
+        }
+
+        private Endpoint nodeN309() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP310() : result56();
+        }
+
+        private Endpoint nodeP310() {
+            return cond42() ? nodeP334() : nodeP311();
+        }
+
+        private Endpoint nodeN310() {
+            return !(cond42()) ? nodeP311() : nodeP334();
+        }
+
+        private Endpoint nodeP311() {
+            return cond48() ? nodeP323() : nodeP312();
+        }
+
+        private Endpoint nodeN311() {
+            return !(cond48()) ? nodeP312() : nodeP323();
+        }
+
+        private Endpoint nodeP312() {
+            return cond49() ? result44() : nodeP313();
+        }
+
+        private Endpoint nodeN312() {
+            return !(cond49()) ? nodeP313() : result44();
+        }
+
+        private Endpoint nodeP313() {
+            return cond51() ? nodeP314() : nodeP525();
+        }
+
+        private Endpoint nodeN313() {
+            return !(cond51()) ? nodeP525() : nodeP314();
+        }
+
+        private Endpoint nodeP314() {
+            return cond60() ? nodeP317() : nodeP315();
+        }
+
+        private Endpoint nodeN314() {
+            return !(cond60()) ? nodeP315() : nodeP317();
+        }
+
+        private Endpoint nodeP315() {
+            return cond62() ? result54() : nodeP316();
+        }
+
+        private Endpoint nodeN315() {
+            return !(cond62()) ? nodeP316() : result54();
+        }
+
+        private Endpoint nodeP316() {
+            return cond63() ? nodeP318() : result45();
+        }
+
+        private Endpoint nodeN316() {
+            return !(cond63()) ? result45() : nodeP318();
+        }
+
+        private Endpoint nodeP317() {
+            return cond62() ? result54() : nodeP318();
+        }
+
+        private Endpoint nodeN317() {
+            return !(cond62()) ? nodeP318() : result54();
+        }
+
+        private Endpoint nodeP318() {
+            return cond64() ? nodeP319() : result53();
+        }
+
+        private Endpoint nodeN318() {
+            return !(cond64()) ? result53() : nodeP319();
+        }
+
+        private Endpoint nodeP319() {
+            return cond66() ? nodeP320() : result52();
+        }
+
+        private Endpoint nodeN319() {
+            return !(cond66()) ? result52() : nodeP320();
+        }
+
+        private Endpoint nodeP320() {
+            return cond69() ? nodeP321() : result64();
+        }
+
+        private Endpoint nodeN320() {
+            return !(cond69()) ? result64() : nodeP321();
+        }
+
+        private Endpoint nodeP321() {
+            return cond70() ? nodeP322() : result51();
+        }
+
+        private Endpoint nodeN321() {
+            return !(cond70()) ? result51() : nodeP322();
+        }
+
+        private Endpoint nodeP322() {
+            return cond72() ? result60() : result50();
+        }
+
+        private Endpoint nodeN322() {
+            return !(cond72()) ? result50() : result60();
+        }
+
+        private Endpoint nodeP323() {
+            return cond49() ? result44() : nodeP324();
+        }
+
+        private Endpoint nodeN323() {
+            return !(cond49()) ? nodeP324() : result44();
+        }
+
+        private Endpoint nodeP324() {
+            return cond51() ? nodeP325() : nodeP525();
+        }
+
+        private Endpoint nodeN324() {
+            return !(cond51()) ? nodeP525() : nodeP325();
+        }
+
+        private Endpoint nodeP325() {
+            return cond60() ? nodeP328() : nodeP326();
+        }
+
+        private Endpoint nodeN325() {
+            return !(cond60()) ? nodeP326() : nodeP328();
+        }
+
+        private Endpoint nodeP326() {
+            return cond62() ? result54() : nodeP327();
+        }
+
+        private Endpoint nodeN326() {
+            return !(cond62()) ? nodeP327() : result54();
+        }
+
+        private Endpoint nodeP327() {
+            return cond63() ? nodeP329() : result45();
+        }
+
+        private Endpoint nodeN327() {
+            return !(cond63()) ? result45() : nodeP329();
+        }
+
+        private Endpoint nodeP328() {
+            return cond62() ? result54() : nodeP329();
+        }
+
+        private Endpoint nodeN328() {
+            return !(cond62()) ? nodeP329() : result54();
+        }
+
+        private Endpoint nodeP329() {
+            return cond64() ? nodeP330() : result53();
+        }
+
+        private Endpoint nodeN329() {
+            return !(cond64()) ? result53() : nodeP330();
+        }
+
+        private Endpoint nodeP330() {
+            return cond66() ? nodeP331() : result52();
+        }
+
+        private Endpoint nodeN330() {
+            return !(cond66()) ? result52() : nodeP331();
+        }
+
+        private Endpoint nodeP331() {
+            return cond68() ? result46() : nodeP332();
+        }
+
+        private Endpoint nodeN331() {
+            return !(cond68()) ? nodeP332() : result46();
+        }
+
+        private Endpoint nodeP332() {
+            return cond70() ? nodeP333() : result51();
+        }
+
+        private Endpoint nodeN332() {
+            return !(cond70()) ? result51() : nodeP333();
+        }
+
+        private Endpoint nodeP333() {
+            return cond72() ? result48() : result50();
+        }
+
+        private Endpoint nodeN333() {
+            return !(cond72()) ? result50() : result48();
+        }
+
+        private Endpoint nodeP334() {
+            return cond48() ? result55() : nodeP335();
+        }
+
+        private Endpoint nodeN334() {
+            return !(cond48()) ? nodeP335() : result55();
+        }
+
+        private Endpoint nodeP335() {
+            return cond52() ? result66() : result71();
+        }
+
+        private Endpoint nodeN335() {
+            return !(cond52()) ? result71() : result66();
+        }
+
+        private Endpoint nodeP336() {
+            return cond25() ? nodeP337() : result41();
+        }
+
+        private Endpoint nodeN336() {
+            return !(cond25()) ? result41() : nodeP337();
+        }
+
+        private Endpoint nodeP337() {
+            return region != null && region.equals("aws-global") ? result26() : result27();
+        }
+
+        private Endpoint nodeN337() {
+            return !(region != null && region.equals("aws-global")) ? result27() : result26();
+        }
+
+        private Endpoint nodeP338() {
+            return cond15() ? result4() : nodeP339();
+        }
+
+        private Endpoint nodeN338() {
+            return !(cond15()) ? nodeP339() : result4();
+        }
+
+        private Endpoint nodeP339() {
+            return cond26() ? result87() : nodeP340();
+        }
+
+        private Endpoint nodeN339() {
+            return !(cond26()) ? nodeP340() : result87();
+        }
+
+        private Endpoint nodeP340() {
+            return cond28() ? result86() : nodeP341();
+        }
+
+        private Endpoint nodeN340() {
+            return !(cond28()) ? nodeP341() : result86();
+        }
+
+        private Endpoint nodeP341() {
+            return cond34() ? nodeP344() : nodeP342();
+        }
+
+        private Endpoint nodeN341() {
+            return !(cond34()) ? nodeP342() : nodeP344();
+        }
+
+        private Endpoint nodeP342() {
+            return cond35() ? nodeP343() : nodeP544();
+        }
+
+        private Endpoint nodeN342() {
+            return !(cond35()) ? nodeP544() : nodeP343();
+        }
+
+        private Endpoint nodeP343() {
+            return cond36() ? result101() : result114();
+        }
+
+        private Endpoint nodeN343() {
+            return !(cond36()) ? result114() : result101();
+        }
+
+        private Endpoint nodeP344() {
+            return region != null && region.equals("aws-global") ? result90() : result91();
+        }
+
+        private Endpoint nodeN344() {
+            return !(region != null && region.equals("aws-global")) ? result91() : result90();
+        }
+
+        private Endpoint nodeP345() {
+            return params.endpoint() != null ? result1() : nodeP346();
+        }
+
+        private Endpoint nodeN345() {
+            return !(params.endpoint() != null) ? nodeP346() : result1();
+        }
+
+        private Endpoint nodeP346() {
+            return params.bucket() != null ? nodeP356() : nodeP347();
+        }
+
+        private Endpoint nodeN346() {
+            return !(params.bucket() != null) ? nodeP347() : nodeP356();
+        }
+
+        private Endpoint nodeP347() {
+            return cond8() ? nodeP348() : result114();
+        }
+
+        private Endpoint nodeN347() {
+            return !(cond8()) ? result114() : nodeP348();
+        }
+
+        private Endpoint nodeP348() {
+            return cond15() ? result4() : nodeP349();
+        }
+
+        private Endpoint nodeN348() {
+            return !(cond15()) ? nodeP349() : result4();
+        }
+
+        private Endpoint nodeP349() {
+            return cond16() ? nodeP350() : nodeP353();
+        }
+
+        private Endpoint nodeN349() {
+            return !(cond16()) ? nodeP353() : nodeP350();
+        }
+
+        private Endpoint nodeP350() {
+            return cond18() ? nodeP351() : nodeP353();
+        }
+
+        private Endpoint nodeN350() {
+            return !(cond18()) ? nodeP353() : nodeP351();
+        }
+
+        private Endpoint nodeP351() {
+            return cond19() ? nodeP352() : nodeP353();
+        }
+
+        private Endpoint nodeN351() {
+            return !(cond19()) ? nodeP353() : nodeP352();
+        }
+
+        private Endpoint nodeP352() {
+            return cond22() ? result13() : nodeP353();
+        }
+
+        private Endpoint nodeN352() {
+            return !(cond22()) ? nodeP353() : result13();
+        }
+
+        private Endpoint nodeP353() {
+            return cond35() ? nodeP354() : result41();
+        }
+
+        private Endpoint nodeN353() {
+            return !(cond35()) ? result41() : nodeP354();
+        }
+
+        private Endpoint nodeP354() {
+            return cond36() ? result42() : nodeP355();
+        }
+
+        private Endpoint nodeN354() {
+            return !(cond36()) ? nodeP355() : result42();
+        }
+
+        private Endpoint nodeP355() {
+            return region != null && region.equals("aws-global") ? result103() : result104();
+        }
+
+        private Endpoint nodeN355() {
+            return !(region != null && region.equals("aws-global")) ? result104() : result103();
+        }
+
+        private Endpoint nodeP356() {
+            return cond6() ? nodeP404() : nodeP357();
+        }
+
+        private Endpoint nodeN356() {
+            return !(cond6()) ? nodeP357() : nodeP404();
+        }
+
+        private Endpoint nodeP357() {
+            return cond7() ? nodeP394() : nodeP358();
+        }
+
+        private Endpoint nodeN357() {
+            return !(cond7()) ? nodeP358() : nodeP394();
+        }
+
+        private Endpoint nodeP358() {
+            return cond8() ? nodeP359() : nodeP490();
+        }
+
+        private Endpoint nodeN358() {
+            return !(cond8()) ? nodeP490() : nodeP359();
+        }
+
+        private Endpoint nodeP359() {
+            return cond9() ? nodeP360() : nodeP364();
+        }
+
+        private Endpoint nodeN359() {
+            return !(cond9()) ? nodeP364() : nodeP360();
+        }
+
+        private Endpoint nodeP360() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP361() : nodeP364();
+        }
+
+        private Endpoint nodeN360() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP364() : nodeP361();
+        }
+
+        private Endpoint nodeP361() {
+            return cond11() ? nodeP362() : nodeP364();
+        }
+
+        private Endpoint nodeN361() {
+            return !(cond11()) ? nodeP364() : nodeP362();
+        }
+
+        private Endpoint nodeP362() {
+            return cond12() ? nodeP363() : nodeP364();
+        }
+
+        private Endpoint nodeN362() {
+            return !(cond12()) ? nodeP364() : nodeP363();
+        }
+
+        private Endpoint nodeP363() {
+            return cond13() ? nodeP393() : nodeP364();
+        }
+
+        private Endpoint nodeN363() {
+            return !(cond13()) ? nodeP364() : nodeP393();
+        }
+
+        private Endpoint nodeP364() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP388() : nodeP365();
+        }
+
+        private Endpoint nodeN364() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP365() : nodeP388();
+        }
+
+        private Endpoint nodeP365() {
+            return cond15() ? result4() : nodeP366();
+        }
+
+        private Endpoint nodeN365() {
+            return !(cond15()) ? nodeP366() : result4();
+        }
+
+        private Endpoint nodeP366() {
+            return cond20() ? nodeP386() : nodeP367();
+        }
+
+        private Endpoint nodeN366() {
+            return !(cond20()) ? nodeP367() : nodeP386();
+        }
+
+        private Endpoint nodeP367() {
+            return cond26() ? nodeP368() : nodeP390();
+        }
+
+        private Endpoint nodeN367() {
+            return !(cond26()) ? nodeP390() : nodeP368();
+        }
+
+        private Endpoint nodeP368() {
+            return cond37() ? nodeP369() : result85();
+        }
+
+        private Endpoint nodeN368() {
+            return !(cond37()) ? result85() : nodeP369();
+        }
+
+        private Endpoint nodeP369() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP370();
+        }
+
+        private Endpoint nodeN369() {
+            return !(arnType != null && arnType.equals("")) ? nodeP370() : result85();
+        }
+
+        private Endpoint nodeP370() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP371() : nodeP517();
+        }
+
+        private Endpoint nodeN370() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP517() : nodeP371();
+        }
+
+        private Endpoint nodeP371() {
+            return cond40() ? nodeP372() : result56();
+        }
+
+        private Endpoint nodeN371() {
+            return !(cond40()) ? result56() : nodeP372();
+        }
+
+        private Endpoint nodeP372() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP373();
+        }
+
+        private Endpoint nodeN372() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP373() : result56();
+        }
+
+        private Endpoint nodeP373() {
+            return cond42() ? nodeP537() : nodeP374();
+        }
+
+        private Endpoint nodeN373() {
+            return !(cond42()) ? nodeP374() : nodeP537();
+        }
+
+        private Endpoint nodeP374() {
+            return cond48() ? result42() : nodeP375();
+        }
+
+        private Endpoint nodeN374() {
+            return !(cond48()) ? nodeP375() : result42();
+        }
+
+        private Endpoint nodeP375() {
+            return cond49() ? result44() : nodeP376();
+        }
+
+        private Endpoint nodeN375() {
+            return !(cond49()) ? nodeP376() : result44();
+        }
+
+        private Endpoint nodeP376() {
+            return cond51() ? nodeP377() : nodeP525();
+        }
+
+        private Endpoint nodeN376() {
+            return !(cond51()) ? nodeP525() : nodeP377();
+        }
+
+        private Endpoint nodeP377() {
+            return cond60() ? nodeP380() : nodeP378();
+        }
+
+        private Endpoint nodeN377() {
+            return !(cond60()) ? nodeP378() : nodeP380();
+        }
+
+        private Endpoint nodeP378() {
+            return cond62() ? result54() : nodeP379();
+        }
+
+        private Endpoint nodeN378() {
+            return !(cond62()) ? nodeP379() : result54();
+        }
+
+        private Endpoint nodeP379() {
+            return cond63() ? nodeP381() : result45();
+        }
+
+        private Endpoint nodeN379() {
+            return !(cond63()) ? result45() : nodeP381();
+        }
+
+        private Endpoint nodeP380() {
+            return cond62() ? result54() : nodeP381();
+        }
+
+        private Endpoint nodeN380() {
+            return !(cond62()) ? nodeP381() : result54();
+        }
+
+        private Endpoint nodeP381() {
+            return cond64() ? nodeP382() : result53();
+        }
+
+        private Endpoint nodeN381() {
+            return !(cond64()) ? result53() : nodeP382();
+        }
+
+        private Endpoint nodeP382() {
+            return cond66() ? nodeP383() : result52();
+        }
+
+        private Endpoint nodeN382() {
+            return !(cond66()) ? result52() : nodeP383();
+        }
+
+        private Endpoint nodeP383() {
+            return cond69() ? nodeP384() : result64();
+        }
+
+        private Endpoint nodeN383() {
+            return !(cond69()) ? result64() : nodeP384();
+        }
+
+        private Endpoint nodeP384() {
+            return cond70() ? nodeP385() : result51();
+        }
+
+        private Endpoint nodeN384() {
+            return !(cond70()) ? result51() : nodeP385();
+        }
+
+        private Endpoint nodeP385() {
+            return cond72() ? result59() : result50();
+        }
+
+        private Endpoint nodeN385() {
+            return !(cond72()) ? result50() : result59();
+        }
+
+        private Endpoint nodeP386() {
+            return cond25() ? nodeP387() : result41();
+        }
+
+        private Endpoint nodeN386() {
+            return !(cond25()) ? result41() : nodeP387();
+        }
+
+        private Endpoint nodeP387() {
+            return region != null && region.equals("aws-global") ? result24() : result25();
+        }
+
+        private Endpoint nodeN387() {
+            return !(region != null && region.equals("aws-global")) ? result25() : result24();
+        }
+
+        private Endpoint nodeP388() {
+            return cond15() ? result4() : nodeP389();
+        }
+
+        private Endpoint nodeN388() {
+            return !(cond15()) ? nodeP389() : result4();
+        }
+
+        private Endpoint nodeP389() {
+            return cond26() ? result87() : nodeP390();
+        }
+
+        private Endpoint nodeN389() {
+            return !(cond26()) ? nodeP390() : result87();
+        }
+
+        private Endpoint nodeP390() {
+            return cond28() ? result86() : nodeP391();
+        }
+
+        private Endpoint nodeN390() {
+            return !(cond28()) ? nodeP391() : result86();
+        }
+
+        private Endpoint nodeP391() {
+            return cond34() ? nodeP392() : nodeP543();
+        }
+
+        private Endpoint nodeN391() {
+            return !(cond34()) ? nodeP543() : nodeP392();
+        }
+
+        private Endpoint nodeP392() {
+            return region != null && region.equals("aws-global") ? result88() : result89();
+        }
+
+        private Endpoint nodeN392() {
+            return !(region != null && region.equals("aws-global")) ? result89() : result88();
+        }
+
+        private Endpoint nodeP393() {
+            return cond15() ? result4() : nodeP546();
+        }
+
+        private Endpoint nodeN393() {
+            return !(cond15()) ? nodeP546() : result4();
+        }
+
+        private Endpoint nodeP394() {
+            return cond8() ? nodeP395() : result8();
+        }
+
+        private Endpoint nodeN394() {
+            return !(cond8()) ? result8() : nodeP395();
+        }
+
+        private Endpoint nodeP395() {
+            return cond15() ? result4() : nodeP396();
+        }
+
+        private Endpoint nodeN395() {
+            return !(cond15()) ? nodeP396() : result4();
+        }
+
+        private Endpoint nodeP396() {
+            return cond16() ? nodeP397() : nodeP409();
+        }
+
+        private Endpoint nodeN396() {
+            return !(cond16()) ? nodeP409() : nodeP397();
+        }
+
+        private Endpoint nodeP397() {
+            return cond18() ? nodeP398() : nodeP409();
+        }
+
+        private Endpoint nodeN397() {
+            return !(cond18()) ? nodeP409() : nodeP398();
+        }
+
+        private Endpoint nodeP398() {
+            return cond19() ? nodeP399() : nodeP409();
+        }
+
+        private Endpoint nodeN398() {
+            return !(cond19()) ? nodeP409() : nodeP399();
+        }
+
+        private Endpoint nodeP399() {
+            return cond20() ? nodeP400() : result8();
+        }
+
+        private Endpoint nodeN399() {
+            return !(cond20()) ? result8() : nodeP400();
+        }
+
+        private Endpoint nodeP400() {
+            return cond27() ? nodeP401() : result11();
+        }
+
+        private Endpoint nodeN400() {
+            return !(cond27()) ? result11() : nodeP401();
+        }
+
+        private Endpoint nodeP401() {
+            return cond29() ? result10() : nodeP402();
+        }
+
+        private Endpoint nodeN401() {
+            return !(cond29()) ? nodeP402() : result10();
+        }
+
+        private Endpoint nodeP402() {
+            return cond31() ? result10() : nodeP403();
+        }
+
+        private Endpoint nodeN402() {
+            return !(cond31()) ? nodeP403() : result10();
+        }
+
+        private Endpoint nodeP403() {
+            return cond32() ? result10() : nodeP421();
+        }
+
+        private Endpoint nodeN403() {
+            return !(cond32()) ? nodeP421() : result10();
+        }
+
+        private Endpoint nodeP404() {
+            return cond8() ? nodeP405() : result8();
+        }
+
+        private Endpoint nodeN404() {
+            return !(cond8()) ? result8() : nodeP405();
+        }
+
+        private Endpoint nodeP405() {
+            return cond15() ? result4() : nodeP406();
+        }
+
+        private Endpoint nodeN405() {
+            return !(cond15()) ? nodeP406() : result4();
+        }
+
+        private Endpoint nodeP406() {
+            return cond16() ? nodeP407() : nodeP409();
+        }
+
+        private Endpoint nodeN406() {
+            return !(cond16()) ? nodeP409() : nodeP407();
+        }
+
+        private Endpoint nodeP407() {
+            return cond18() ? nodeP408() : nodeP409();
+        }
+
+        private Endpoint nodeN407() {
+            return !(cond18()) ? nodeP409() : nodeP408();
+        }
+
+        private Endpoint nodeP408() {
+            return cond19() ? nodeP410() : nodeP409();
+        }
+
+        private Endpoint nodeN408() {
+            return !(cond19()) ? nodeP409() : nodeP410();
+        }
+
+        private Endpoint nodeP409() {
+            return cond20() ? result11() : result8();
+        }
+
+        private Endpoint nodeN409() {
+            return !(cond20()) ? result8() : result11();
+        }
+
+        private Endpoint nodeP410() {
+            return cond20() ? nodeP413() : nodeP411();
+        }
+
+        private Endpoint nodeN410() {
+            return !(cond20()) ? nodeP411() : nodeP413();
+        }
+
+        private Endpoint nodeP411() {
+            return cond22() ? nodeP412() : result8();
+        }
+
+        private Endpoint nodeN411() {
+            return !(cond22()) ? result8() : nodeP412();
+        }
+
+        private Endpoint nodeP412() {
+            return cond34() ? result9() : result8();
+        }
+
+        private Endpoint nodeN412() {
+            return !(cond34()) ? result8() : result9();
+        }
+
+        private Endpoint nodeP413() {
+            return cond22() ? nodeP415() : nodeP414();
+        }
+
+        private Endpoint nodeN413() {
+            return !(cond22()) ? nodeP414() : nodeP415();
+        }
+
+        private Endpoint nodeP414() {
+            return cond27() ? nodeP418() : result11();
+        }
+
+        private Endpoint nodeN414() {
+            return !(cond27()) ? result11() : nodeP418();
+        }
+
+        private Endpoint nodeP415() {
+            return cond27() ? nodeP417() : nodeP416();
+        }
+
+        private Endpoint nodeN415() {
+            return !(cond27()) ? nodeP416() : nodeP417();
+        }
+
+        private Endpoint nodeP416() {
+            return cond34() ? result9() : result11();
+        }
+
+        private Endpoint nodeN416() {
+            return !(cond34()) ? result11() : result9();
+        }
+
+        private Endpoint nodeP417() {
+            return cond34() ? result9() : nodeP418();
+        }
+
+        private Endpoint nodeN417() {
+            return !(cond34()) ? nodeP418() : result9();
+        }
+
+        private Endpoint nodeP418() {
+            return cond43() ? result10() : nodeP419();
+        }
+
+        private Endpoint nodeN418() {
+            return !(cond43()) ? nodeP419() : result10();
+        }
+
+        private Endpoint nodeP419() {
+            return cond47() ? result10() : nodeP420();
+        }
+
+        private Endpoint nodeN419() {
+            return !(cond47()) ? nodeP420() : result10();
+        }
+
+        private Endpoint nodeP420() {
+            return cond53() ? result10() : nodeP421();
+        }
+
+        private Endpoint nodeN420() {
+            return !(cond53()) ? nodeP421() : result10();
+        }
+
+        private Endpoint nodeP421() {
+            return cond54() ? result10() : nodeP422();
+        }
+
+        private Endpoint nodeN421() {
+            return !(cond54()) ? nodeP422() : result10();
+        }
+
+        private Endpoint nodeP422() {
+            return cond56() ? result10() : result11();
+        }
+
+        private Endpoint nodeN422() {
+            return !(cond56()) ? result11() : result10();
+        }
+
+        private Endpoint nodeP423() {
+            return Boolean.TRUE.equals(params.useFips()) ? result0() : nodeP424();
+        }
+
+        private Endpoint nodeN423() {
+            return !(Boolean.TRUE.equals(params.useFips())) ? nodeP424() : result0();
+        }
+
+        private Endpoint nodeP424() {
+            return Boolean.TRUE.equals(params.useDualStack()) ? nodeP477() : nodeP425();
+        }
+
+        private Endpoint nodeN424() {
+            return !(Boolean.TRUE.equals(params.useDualStack())) ? nodeP425() : nodeP477();
+        }
+
+        private Endpoint nodeP425() {
+            return params.endpoint() != null ? result3() : nodeP426();
+        }
+
+        private Endpoint nodeN425() {
+            return !(params.endpoint() != null) ? nodeP426() : result3();
+        }
+
+        private Endpoint nodeP426() {
+            return params.bucket() != null ? nodeP437() : nodeP427();
+        }
+
+        private Endpoint nodeN426() {
+            return !(params.bucket() != null) ? nodeP427() : nodeP437();
+        }
+
+        private Endpoint nodeP427() {
+            return cond8() ? nodeP428() : result114();
+        }
+
+        private Endpoint nodeN427() {
+            return !(cond8()) ? result114() : nodeP428();
+        }
+
+        private Endpoint nodeP428() {
+            return cond16() ? nodeP429() : nodeP432();
+        }
+
+        private Endpoint nodeN428() {
+            return !(cond16()) ? nodeP432() : nodeP429();
+        }
+
+        private Endpoint nodeP429() {
+            return cond18() ? nodeP430() : nodeP432();
+        }
+
+        private Endpoint nodeN429() {
+            return !(cond18()) ? nodeP432() : nodeP430();
+        }
+
+        private Endpoint nodeP430() {
+            return cond19() ? nodeP431() : nodeP432();
+        }
+
+        private Endpoint nodeN430() {
+            return !(cond19()) ? nodeP432() : nodeP431();
+        }
+
+        private Endpoint nodeP431() {
+            return cond22() ? result13() : nodeP432();
+        }
+
+        private Endpoint nodeN431() {
+            return !(cond22()) ? nodeP432() : result13();
+        }
+
+        private Endpoint nodeP432() {
+            return cond35() ? nodeP433() : result41();
+        }
+
+        private Endpoint nodeN432() {
+            return !(cond35()) ? result41() : nodeP433();
+        }
+
+        private Endpoint nodeP433() {
+            return cond36() ? result43() : nodeP434();
+        }
+
+        private Endpoint nodeN433() {
+            return !(cond36()) ? nodeP434() : result43();
+        }
+
+        private Endpoint nodeP434() {
+            return region != null && region.equals("aws-global") ? result111() : nodeP435();
+        }
+
+        private Endpoint nodeN434() {
+            return !(region != null && region.equals("aws-global")) ? nodeP435() : result111();
+        }
+
+        private Endpoint nodeP435() {
+            return Boolean.TRUE.equals(params.useGlobalEndpoint()) ? nodeP436() : result113();
+        }
+
+        private Endpoint nodeN435() {
+            return !(Boolean.TRUE.equals(params.useGlobalEndpoint())) ? result113() : nodeP436();
+        }
+
+        private Endpoint nodeP436() {
+            return region != null && region.equals("us-east-1") ? result112() : result113();
+        }
+
+        private Endpoint nodeN436() {
+            return !(region != null && region.equals("us-east-1")) ? result113() : result112();
+        }
+
+        private Endpoint nodeP437() {
+            return cond6() ? result5() : nodeP438();
+        }
+
+        private Endpoint nodeN437() {
+            return !(cond6()) ? nodeP438() : result5();
+        }
+
+        private Endpoint nodeP438() {
+            return cond7() ? result5() : nodeP439();
+        }
+
+        private Endpoint nodeN438() {
+            return !(cond7()) ? nodeP439() : result5();
+        }
+
+        private Endpoint nodeP439() {
+            return cond8() ? nodeP449() : nodeP440();
+        }
+
+        private Endpoint nodeN439() {
+            return !(cond8()) ? nodeP440() : nodeP449();
+        }
+
+        private Endpoint nodeP440() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP500() : nodeP441();
+        }
+
+        private Endpoint nodeN440() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP441() : nodeP500();
+        }
+
+        private Endpoint nodeP441() {
+            return cond26() ? nodeP442() : nodeP501();
+        }
+
+        private Endpoint nodeN441() {
+            return !(cond26()) ? nodeP501() : nodeP442();
+        }
+
+        private Endpoint nodeP442() {
+            return cond37() ? nodeP443() : result85();
+        }
+
+        private Endpoint nodeN442() {
+            return !(cond37()) ? result85() : nodeP443();
+        }
+
+        private Endpoint nodeP443() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP444();
+        }
+
+        private Endpoint nodeN443() {
+            return !(arnType != null && arnType.equals("")) ? nodeP444() : result85();
+        }
+
+        private Endpoint nodeP444() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP445() : nodeP464();
+        }
+
+        private Endpoint nodeN444() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP464() : nodeP445();
+        }
+
+        private Endpoint nodeP445() {
+            return cond40() ? nodeP446() : result56();
+        }
+
+        private Endpoint nodeN445() {
+            return !(cond40()) ? result56() : nodeP446();
+        }
+
+        private Endpoint nodeP446() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP447();
+        }
+
+        private Endpoint nodeN446() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP447() : result56();
+        }
+
+        private Endpoint nodeP447() {
+            return cond42() ? nodeP470() : nodeP448();
+        }
+
+        private Endpoint nodeN447() {
+            return !(cond42()) ? nodeP448() : nodeP470();
+        }
+
+        private Endpoint nodeP448() {
+            return cond48() ? result43() : nodeP499();
+        }
+
+        private Endpoint nodeN448() {
+            return !(cond48()) ? nodeP499() : result43();
+        }
+
+        private Endpoint nodeP449() {
+            return cond9() ? nodeP450() : nodeP454();
+        }
+
+        private Endpoint nodeN449() {
+            return !(cond9()) ? nodeP454() : nodeP450();
+        }
+
+        private Endpoint nodeP450() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP451() : nodeP454();
+        }
+
+        private Endpoint nodeN450() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP454() : nodeP451();
+        }
+
+        private Endpoint nodeP451() {
+            return cond11() ? nodeP452() : nodeP454();
+        }
+
+        private Endpoint nodeN451() {
+            return !(cond11()) ? nodeP454() : nodeP452();
+        }
+
+        private Endpoint nodeP452() {
+            return cond12() ? nodeP453() : nodeP454();
+        }
+
+        private Endpoint nodeN452() {
+            return !(cond12()) ? nodeP454() : nodeP453();
+        }
+
+        private Endpoint nodeP453() {
+            return cond13() ? nodeP546() : nodeP454();
+        }
+
+        private Endpoint nodeN453() {
+            return !(cond13()) ? nodeP454() : nodeP546();
+        }
+
+        private Endpoint nodeP454() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP472() : nodeP455();
+        }
+
+        private Endpoint nodeN454() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP455() : nodeP472();
+        }
+
+        private Endpoint nodeP455() {
+            return cond15() ? nodeP459() : nodeP456();
+        }
+
+        private Endpoint nodeN455() {
+            return !(cond15()) ? nodeP456() : nodeP459();
+        }
+
+        private Endpoint nodeP456() {
+            return cond20() ? nodeP457() : nodeP460();
+        }
+
+        private Endpoint nodeN456() {
+            return !(cond20()) ? nodeP460() : nodeP457();
+        }
+
+        private Endpoint nodeP457() {
+            return cond25() ? nodeP458() : result41();
+        }
+
+        private Endpoint nodeN457() {
+            return !(cond25()) ? result41() : nodeP458();
+        }
+
+        private Endpoint nodeP458() {
+            return region != null && region.equals("aws-global") ? result36() : result37();
+        }
+
+        private Endpoint nodeN458() {
+            return !(region != null && region.equals("aws-global")) ? result37() : result36();
+        }
+
+        private Endpoint nodeP459() {
+            return cond20() ? nodeP539() : nodeP460();
+        }
+
+        private Endpoint nodeN459() {
+            return !(cond20()) ? nodeP460() : nodeP539();
+        }
+
+        private Endpoint nodeP460() {
+            return cond26() ? nodeP461() : nodeP473();
+        }
+
+        private Endpoint nodeN460() {
+            return !(cond26()) ? nodeP473() : nodeP461();
+        }
+
+        private Endpoint nodeP461() {
+            return cond37() ? nodeP462() : result85();
+        }
+
+        private Endpoint nodeN461() {
+            return !(cond37()) ? result85() : nodeP462();
+        }
+
+        private Endpoint nodeP462() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP463();
+        }
+
+        private Endpoint nodeN462() {
+            return !(arnType != null && arnType.equals("")) ? nodeP463() : result85();
+        }
+
+        private Endpoint nodeP463() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP466() : nodeP464();
+        }
+
+        private Endpoint nodeN463() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP464() : nodeP466();
+        }
+
+        private Endpoint nodeP464() {
+            return cond48() ? result57() : nodeP465();
+        }
+
+        private Endpoint nodeN464() {
+            return !(cond48()) ? nodeP465() : result57();
+        }
+
+        private Endpoint nodeP465() {
+            return cond50() ? result74() : result84();
+        }
+
+        private Endpoint nodeN465() {
+            return !(cond50()) ? result84() : result74();
+        }
+
+        private Endpoint nodeP466() {
+            return cond40() ? nodeP467() : result56();
+        }
+
+        private Endpoint nodeN466() {
+            return !(cond40()) ? result56() : nodeP467();
+        }
+
+        private Endpoint nodeP467() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP468();
+        }
+
+        private Endpoint nodeN467() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP468() : result56();
+        }
+
+        private Endpoint nodeP468() {
+            return cond42() ? nodeP470() : nodeP469();
+        }
+
+        private Endpoint nodeN468() {
+            return !(cond42()) ? nodeP469() : nodeP470();
+        }
+
+        private Endpoint nodeP469() {
+            return cond48() ? result43() : nodeP523();
+        }
+
+        private Endpoint nodeN469() {
+            return !(cond48()) ? nodeP523() : result43();
+        }
+
+        private Endpoint nodeP470() {
+            return cond48() ? result43() : nodeP471();
+        }
+
+        private Endpoint nodeN470() {
+            return !(cond48()) ? nodeP471() : result43();
+        }
+
+        private Endpoint nodeP471() {
+            return cond52() ? result67() : result71();
+        }
+
+        private Endpoint nodeN471() {
+            return !(cond52()) ? result71() : result67();
+        }
+
+        private Endpoint nodeP472() {
+            return cond26() ? result87() : nodeP473();
+        }
+
+        private Endpoint nodeN472() {
+            return !(cond26()) ? nodeP473() : result87();
+        }
+
+        private Endpoint nodeP473() {
+            return cond28() ? result86() : nodeP474();
+        }
+
+        private Endpoint nodeN473() {
+            return !(cond28()) ? nodeP474() : result86();
+        }
+
+        private Endpoint nodeP474() {
+            return cond34() ? result99() : nodeP475();
+        }
+
+        private Endpoint nodeN474() {
+            return !(cond34()) ? nodeP475() : result99();
+        }
+
+        private Endpoint nodeP475() {
+            return cond35() ? nodeP476() : nodeP544();
+        }
+
+        private Endpoint nodeN475() {
+            return !(cond35()) ? nodeP544() : nodeP476();
+        }
+
+        private Endpoint nodeP476() {
+            return cond36() ? result43() : result114();
+        }
+
+        private Endpoint nodeN476() {
+            return !(cond36()) ? result114() : result43();
+        }
+
+        private Endpoint nodeP477() {
+            return params.endpoint() != null ? result1() : nodeP478();
+        }
+
+        private Endpoint nodeN477() {
+            return !(params.endpoint() != null) ? nodeP478() : result1();
+        }
+
+        private Endpoint nodeP478() {
+            return params.bucket() != null ? nodeP487() : nodeP479();
+        }
+
+        private Endpoint nodeN478() {
+            return !(params.bucket() != null) ? nodeP479() : nodeP487();
+        }
+
+        private Endpoint nodeP479() {
+            return cond8() ? nodeP480() : result114();
+        }
+
+        private Endpoint nodeN479() {
+            return !(cond8()) ? result114() : nodeP480();
+        }
+
+        private Endpoint nodeP480() {
+            return cond16() ? nodeP481() : nodeP484();
+        }
+
+        private Endpoint nodeN480() {
+            return !(cond16()) ? nodeP484() : nodeP481();
+        }
+
+        private Endpoint nodeP481() {
+            return cond18() ? nodeP482() : nodeP484();
+        }
+
+        private Endpoint nodeN481() {
+            return !(cond18()) ? nodeP484() : nodeP482();
+        }
+
+        private Endpoint nodeP482() {
+            return cond19() ? nodeP483() : nodeP484();
+        }
+
+        private Endpoint nodeN482() {
+            return !(cond19()) ? nodeP484() : nodeP483();
+        }
+
+        private Endpoint nodeP483() {
+            return cond22() ? result13() : nodeP484();
+        }
+
+        private Endpoint nodeN483() {
+            return !(cond22()) ? nodeP484() : result13();
+        }
+
+        private Endpoint nodeP484() {
+            return cond35() ? nodeP485() : result41();
+        }
+
+        private Endpoint nodeN484() {
+            return !(cond35()) ? result41() : nodeP485();
+        }
+
+        private Endpoint nodeP485() {
+            return cond36() ? result42() : nodeP486();
+        }
+
+        private Endpoint nodeN485() {
+            return !(cond36()) ? nodeP486() : result42();
+        }
+
+        private Endpoint nodeP486() {
+            return region != null && region.equals("aws-global") ? result107() : result108();
+        }
+
+        private Endpoint nodeN486() {
+            return !(region != null && region.equals("aws-global")) ? result108() : result107();
+        }
+
+        private Endpoint nodeP487() {
+            return cond6() ? result5() : nodeP488();
+        }
+
+        private Endpoint nodeN487() {
+            return !(cond6()) ? nodeP488() : result5();
+        }
+
+        private Endpoint nodeP488() {
+            return cond7() ? result5() : nodeP489();
+        }
+
+        private Endpoint nodeN488() {
+            return !(cond7()) ? nodeP489() : result5();
+        }
+
+        private Endpoint nodeP489() {
+            return cond8() ? nodeP502() : nodeP490();
+        }
+
+        private Endpoint nodeN489() {
+            return !(cond8()) ? nodeP490() : nodeP502();
+        }
+
+        private Endpoint nodeP490() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP500() : nodeP491();
+        }
+
+        private Endpoint nodeN490() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP491() : nodeP500();
+        }
+
+        private Endpoint nodeP491() {
+            return cond26() ? nodeP492() : nodeP501();
+        }
+
+        private Endpoint nodeN491() {
+            return !(cond26()) ? nodeP501() : nodeP492();
+        }
+
+        private Endpoint nodeP492() {
+            return cond37() ? nodeP493() : result85();
+        }
+
+        private Endpoint nodeN492() {
+            return !(cond37()) ? result85() : nodeP493();
+        }
+
+        private Endpoint nodeP493() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP494();
+        }
+
+        private Endpoint nodeN493() {
+            return !(arnType != null && arnType.equals("")) ? nodeP494() : result85();
+        }
+
+        private Endpoint nodeP494() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP495() : nodeP517();
+        }
+
+        private Endpoint nodeN494() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP517() : nodeP495();
+        }
+
+        private Endpoint nodeP495() {
+            return cond40() ? nodeP496() : result56();
+        }
+
+        private Endpoint nodeN495() {
+            return !(cond40()) ? result56() : nodeP496();
+        }
+
+        private Endpoint nodeP496() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP497();
+        }
+
+        private Endpoint nodeN496() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP497() : result56();
+        }
+
+        private Endpoint nodeP497() {
+            return cond42() ? nodeP537() : nodeP498();
+        }
+
+        private Endpoint nodeN497() {
+            return !(cond42()) ? nodeP498() : nodeP537();
+        }
+
+        private Endpoint nodeP498() {
+            return cond48() ? result42() : nodeP499();
+        }
+
+        private Endpoint nodeN498() {
+            return !(cond48()) ? nodeP499() : result42();
+        }
+
+        private Endpoint nodeP499() {
+            return cond49() ? result44() : nodeP525();
+        }
+
+        private Endpoint nodeN499() {
+            return !(cond49()) ? nodeP525() : result44();
+        }
+
+        private Endpoint nodeP500() {
+            return cond26() ? result87() : nodeP501();
+        }
+
+        private Endpoint nodeN500() {
+            return !(cond26()) ? nodeP501() : result87();
+        }
+
+        private Endpoint nodeP501() {
+            return cond28() ? result86() : result114();
+        }
+
+        private Endpoint nodeN501() {
+            return !(cond28()) ? result114() : result86();
+        }
+
+        private Endpoint nodeP502() {
+            return cond9() ? nodeP503() : nodeP507();
+        }
+
+        private Endpoint nodeN502() {
+            return !(cond9()) ? nodeP507() : nodeP503();
+        }
+
+        private Endpoint nodeP503() {
+            return accessPointSuffix != null && accessPointSuffix.equals("--op-s3") ? nodeP504() : nodeP507();
+        }
+
+        private Endpoint nodeN503() {
+            return !(accessPointSuffix != null && accessPointSuffix.equals("--op-s3")) ? nodeP507() : nodeP504();
+        }
+
+        private Endpoint nodeP504() {
+            return cond11() ? nodeP505() : nodeP507();
+        }
+
+        private Endpoint nodeN504() {
+            return !(cond11()) ? nodeP507() : nodeP505();
+        }
+
+        private Endpoint nodeP505() {
+            return cond12() ? nodeP506() : nodeP507();
+        }
+
+        private Endpoint nodeN505() {
+            return !(cond12()) ? nodeP507() : nodeP506();
+        }
+
+        private Endpoint nodeP506() {
+            return cond13() ? nodeP546() : nodeP507();
+        }
+
+        private Endpoint nodeN506() {
+            return !(cond13()) ? nodeP507() : nodeP546();
+        }
+
+        private Endpoint nodeP507() {
+            return Boolean.TRUE.equals(params.forcePathStyle()) ? nodeP540() : nodeP508();
+        }
+
+        private Endpoint nodeN507() {
+            return !(Boolean.TRUE.equals(params.forcePathStyle())) ? nodeP508() : nodeP540();
+        }
+
+        private Endpoint nodeP508() {
+            return cond15() ? nodeP512() : nodeP509();
+        }
+
+        private Endpoint nodeN508() {
+            return !(cond15()) ? nodeP509() : nodeP512();
+        }
+
+        private Endpoint nodeP509() {
+            return cond20() ? nodeP510() : nodeP513();
+        }
+
+        private Endpoint nodeN509() {
+            return !(cond20()) ? nodeP513() : nodeP510();
+        }
+
+        private Endpoint nodeP510() {
+            return cond25() ? nodeP511() : result41();
+        }
+
+        private Endpoint nodeN510() {
+            return !(cond25()) ? result41() : nodeP511();
+        }
+
+        private Endpoint nodeP511() {
+            return region != null && region.equals("aws-global") ? result28() : result29();
+        }
+
+        private Endpoint nodeN511() {
+            return !(region != null && region.equals("aws-global")) ? result29() : result28();
+        }
+
+        private Endpoint nodeP512() {
+            return cond20() ? nodeP539() : nodeP513();
+        }
+
+        private Endpoint nodeN512() {
+            return !(cond20()) ? nodeP513() : nodeP539();
+        }
+
+        private Endpoint nodeP513() {
+            return cond26() ? nodeP514() : nodeP541();
+        }
+
+        private Endpoint nodeN513() {
+            return !(cond26()) ? nodeP541() : nodeP514();
+        }
+
+        private Endpoint nodeP514() {
+            return cond37() ? nodeP515() : result85();
+        }
+
+        private Endpoint nodeN514() {
+            return !(cond37()) ? result85() : nodeP515();
+        }
+
+        private Endpoint nodeP515() {
+            return arnType != null && arnType.equals("") ? result85() : nodeP516();
+        }
+
+        private Endpoint nodeN515() {
+            return !(arnType != null && arnType.equals("")) ? nodeP516() : result85();
+        }
+
+        private Endpoint nodeP516() {
+            return arnType != null && arnType.equals("accesspoint") ? nodeP519() : nodeP517();
+        }
+
+        private Endpoint nodeN516() {
+            return !(arnType != null && arnType.equals("accesspoint")) ? nodeP517() : nodeP519();
+        }
+
+        private Endpoint nodeP517() {
+            return cond48() ? result57() : nodeP518();
+        }
+
+        private Endpoint nodeN517() {
+            return !(cond48()) ? nodeP518() : result57();
+        }
+
+        private Endpoint nodeP518() {
+            return cond50() ? result72() : result84();
+        }
+
+        private Endpoint nodeN518() {
+            return !(cond50()) ? result84() : result72();
+        }
+
+        private Endpoint nodeP519() {
+            return cond40() ? nodeP520() : result56();
+        }
+
+        private Endpoint nodeN519() {
+            return !(cond40()) ? result56() : nodeP520();
+        }
+
+        private Endpoint nodeP520() {
+            return accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("") ? result56() : nodeP521();
+        }
+
+        private Endpoint nodeN520() {
+            return !(accessPointName_ssa_1 != null && accessPointName_ssa_1.equals("")) ? nodeP521() : result56();
+        }
+
+        private Endpoint nodeP521() {
+            return cond42() ? nodeP537() : nodeP522();
+        }
+
+        private Endpoint nodeN521() {
+            return !(cond42()) ? nodeP522() : nodeP537();
+        }
+
+        private Endpoint nodeP522() {
+            return cond48() ? result42() : nodeP523();
+        }
+
+        private Endpoint nodeN522() {
+            return !(cond48()) ? nodeP523() : result42();
+        }
+
+        private Endpoint nodeP523() {
+            return cond49() ? result44() : nodeP524();
+        }
+
+        private Endpoint nodeN523() {
+            return !(cond49()) ? nodeP524() : result44();
+        }
+
+        private Endpoint nodeP524() {
+            return cond51() ? nodeP528() : nodeP525();
+        }
+
+        private Endpoint nodeN524() {
+            return !(cond51()) ? nodeP525() : nodeP528();
+        }
+
+        private Endpoint nodeP525() {
+            return cond60() ? result54() : nodeP526();
+        }
+
+        private Endpoint nodeN525() {
+            return !(cond60()) ? nodeP526() : result54();
+        }
+
+        private Endpoint nodeP526() {
+            return cond62() ? result54() : nodeP527();
+        }
+
+        private Endpoint nodeN526() {
+            return !(cond62()) ? nodeP527() : result54();
+        }
+
+        private Endpoint nodeP527() {
+            return cond63() ? result54() : result45();
+        }
+
+        private Endpoint nodeN527() {
+            return !(cond63()) ? result45() : result54();
+        }
+
+        private Endpoint nodeP528() {
+            return cond60() ? nodeP531() : nodeP529();
+        }
+
+        private Endpoint nodeN528() {
+            return !(cond60()) ? nodeP529() : nodeP531();
+        }
+
+        private Endpoint nodeP529() {
+            return cond62() ? result54() : nodeP530();
+        }
+
+        private Endpoint nodeN529() {
+            return !(cond62()) ? nodeP530() : result54();
+        }
+
+        private Endpoint nodeP530() {
+            return cond63() ? nodeP532() : result45();
+        }
+
+        private Endpoint nodeN530() {
+            return !(cond63()) ? result45() : nodeP532();
+        }
+
+        private Endpoint nodeP531() {
+            return cond62() ? result54() : nodeP532();
+        }
+
+        private Endpoint nodeN531() {
+            return !(cond62()) ? nodeP532() : result54();
+        }
+
+        private Endpoint nodeP532() {
+            return cond64() ? nodeP533() : result53();
+        }
+
+        private Endpoint nodeN532() {
+            return !(cond64()) ? result53() : nodeP533();
+        }
+
+        private Endpoint nodeP533() {
+            return cond66() ? nodeP534() : result52();
+        }
+
+        private Endpoint nodeN533() {
+            return !(cond66()) ? result52() : nodeP534();
+        }
+
+        private Endpoint nodeP534() {
+            return cond69() ? nodeP535() : result64();
+        }
+
+        private Endpoint nodeN534() {
+            return !(cond69()) ? result64() : nodeP535();
+        }
+
+        private Endpoint nodeP535() {
+            return cond70() ? nodeP536() : result51();
+        }
+
+        private Endpoint nodeN535() {
+            return !(cond70()) ? result51() : nodeP536();
+        }
+
+        private Endpoint nodeP536() {
+            return cond72() ? result58() : result50();
+        }
+
+        private Endpoint nodeN536() {
+            return !(cond72()) ? result50() : result58();
+        }
+
+        private Endpoint nodeP537() {
+            return cond48() ? result42() : nodeP538();
+        }
+
+        private Endpoint nodeN537() {
+            return !(cond48()) ? nodeP538() : result42();
+        }
+
+        private Endpoint nodeP538() {
+            return cond52() ? result65() : result71();
+        }
+
+        private Endpoint nodeN538() {
+            return !(cond52()) ? result71() : result65();
+        }
+
+        private Endpoint nodeP539() {
+            return cond25() ? result23() : result41();
+        }
+
+        private Endpoint nodeN539() {
+            return !(cond25()) ? result41() : result23();
+        }
+
+        private Endpoint nodeP540() {
+            return cond26() ? result87() : nodeP541();
+        }
+
+        private Endpoint nodeN540() {
+            return !(cond26()) ? nodeP541() : result87();
+        }
+
+        private Endpoint nodeP541() {
+            return cond28() ? result86() : nodeP542();
+        }
+
+        private Endpoint nodeN541() {
+            return !(cond28()) ? nodeP542() : result86();
+        }
+
+        private Endpoint nodeP542() {
+            return cond34() ? result99() : nodeP543();
+        }
+
+        private Endpoint nodeN542() {
+            return !(cond34()) ? nodeP543() : result99();
+        }
+
+        private Endpoint nodeP543() {
+            return cond35() ? nodeP545() : nodeP544();
+        }
+
+        private Endpoint nodeN543() {
+            return !(cond35()) ? nodeP544() : nodeP545();
+        }
+
+        private Endpoint nodeP544() {
+            return cond36() ? result41() : result114();
+        }
+
+        private Endpoint nodeN544() {
+            return !(cond36()) ? result114() : result41();
+        }
+
+        private Endpoint nodeP545() {
+            return cond36() ? result42() : result114();
+        }
+
+        private Endpoint nodeN545() {
+            return !(cond36()) ? result114() : result42();
+        }
+
+        private Endpoint nodeP546() {
+            return cond17() ? nodeP547() : result21();
+        }
+
+        private Endpoint nodeN546() {
+            return !(cond17()) ? result21() : nodeP547();
+        }
+
+        private Endpoint nodeP547() {
+            return cond20() ? nodeP548() : result20();
+        }
+
+        private Endpoint nodeN547() {
+            return !(cond20()) ? result20() : nodeP548();
+        }
+
+        private Endpoint nodeP548() {
+            return regionPrefix != null && regionPrefix.equals("beta") ? nodeP551() : nodeP549();
+        }
+
+        private Endpoint nodeN548() {
+            return !(regionPrefix != null && regionPrefix.equals("beta")) ? nodeP549() : nodeP551();
+        }
+
+        private Endpoint nodeP549() {
+            return hardwareType != null && hardwareType.equals("e") ? result16() : nodeP550();
+        }
+
+        private Endpoint nodeN549() {
+            return !(hardwareType != null && hardwareType.equals("e")) ? nodeP550() : result16();
+        }
+
+        private Endpoint nodeP550() {
+            return hardwareType != null && hardwareType.equals("o") ? result18() : result19();
+        }
+
+        private Endpoint nodeN550() {
+            return !(hardwareType != null && hardwareType.equals("o")) ? result19() : result18();
+        }
+
+        private Endpoint nodeP551() {
+            return hardwareType != null && hardwareType.equals("e") ? result14() : nodeP552();
+        }
+
+        private Endpoint nodeN551() {
+            return !(hardwareType != null && hardwareType.equals("e")) ? nodeP552() : result14();
+        }
+
+        private Endpoint nodeP552() {
+            return hardwareType != null && hardwareType.equals("o") ? result14() : result19();
+        }
+
+        private Endpoint nodeN552() {
+            return !(hardwareType != null && hardwareType.equals("o")) ? result19() : result14();
+        }
+
+        private boolean cond6() {
+            return ((params.bucket() != null && params.bucket().endsWith("--x-s3")));
+        }
+
+        private boolean cond7() {
+            return ((params.bucket() != null && params.bucket().endsWith("--xa-s3")));
+        }
+
+        private boolean cond8() {
+            partitionResult = RulesFunctions.awsPartition(region);
+            return partitionResult != null;
+        }
+
+        private boolean cond9() {
+            accessPointSuffix = RulesFunctions.substring(params.bucket(), 0, 7, true);
+            return accessPointSuffix != null;
+        }
+
+        private boolean cond11() {
+            regionPrefix = RulesFunctions.substring(params.bucket(), 8, 12, true);
+            return regionPrefix != null;
+        }
+
+        private boolean cond12() {
+            outpostId_ssa_2 = RulesFunctions.substring(params.bucket(), 32, 49, true);
+            return outpostId_ssa_2 != null;
+        }
+
+        private boolean cond13() {
+            hardwareType = RulesFunctions.substring(params.bucket(), 49, 50, true);
+            return hardwareType != null;
+        }
+
+        private boolean cond15() {
+            return ("aws-cn".equals(partitionResult.name()));
+        }
+
+        private boolean cond16() {
+            _s3e_ds = (params.useDualStack() ? ".dualstack" : "");
+            return true;
+        }
+
+        private boolean cond17() {
+            return (RulesFunctions.isValidHostLabelSingle(outpostId_ssa_2));
+        }
+
+        private boolean cond18() {
+            _s3e_fips = (params.useFips() ? "-fips" : "");
+            return true;
+        }
+
+        private boolean cond19() {
+            _s3e_auth = ((params.disableS3ExpressSessionAuth() != null ? params.disableS3ExpressSessionAuth() : false) ? "sigv4"
+                    : "sigv4-s3express");
+            return true;
+        }
+
+        private boolean cond20() {
+            return (RulesFunctions.awsIsVirtualHostableS3Bucket(params.bucket(), false));
+        }
+
+        private boolean cond21() {
+            url = RulesFunctions.parseURL(params.endpoint());
+            return url != null;
+        }
+
+        private boolean cond22() {
+            return ((params.useS3ExpressControlEndpoint() != null ? params.useS3ExpressControlEndpoint() : false));
+        }
+
+        private boolean cond23() {
+            return (RulesFunctions.awsIsVirtualHostableS3Bucket(params.bucket(), true));
+        }
+
+        private boolean cond24() {
+            return ("http".equals(url.scheme()));
+        }
+
+        private boolean cond25() {
+            return (RulesFunctions.isValidHostLabelSingle(region));
+        }
+
+        private boolean cond26() {
+            bucketArn = RulesFunctions.awsParseArn(params.bucket());
+            return bucketArn != null;
+        }
+
+        private boolean cond27() {
+            s3expressAvailabilityZoneId = RulesFunctions.listAccess(RulesFunctions.split(params.bucket(), "--", 0), -2);
+            return s3expressAvailabilityZoneId != null;
+        }
+
+        private boolean cond28() {
+            return ((params.bucket() != null && params.bucket().startsWith("arn:")));
+        }
+
+        private boolean cond29() {
+            return ((params.bucket() != null && params.bucket().length() >= 18 && params.bucket().regionMatches(
+                    params.bucket().length() - 18, "--", 0, 2)));
+        }
+
+        private boolean cond30() {
+            return (url.isIp());
+        }
+
+        private boolean cond31() {
+            return ((params.bucket() != null && params.bucket().length() >= 23 && params.bucket().regionMatches(
+                    params.bucket().length() - 23, "--", 0, 2)));
+        }
+
+        private boolean cond32() {
+            return ((params.bucket() != null && params.bucket().length() >= 29 && params.bucket().regionMatches(
+                    params.bucket().length() - 29, "--", 0, 2)));
+        }
+
+        private boolean cond34() {
+            uri_encoded_bucket = RulesFunctions.uriEncode(params.bucket());
+            return uri_encoded_bucket != null;
+        }
+
+        private boolean cond35() {
+            return (RulesFunctions.isValidHostLabelMulti(region));
+        }
+
+        private boolean cond36() {
+            return ((params.useObjectLambdaEndpoint() != null ? params.useObjectLambdaEndpoint() : false));
+        }
+
+        private boolean cond37() {
+            arnType = RulesFunctions.listAccess(bucketArn.resourceId(), 0);
+            return arnType != null;
+        }
+
+        private boolean cond40() {
+            accessPointName_ssa_1 = RulesFunctions.listAccess(bucketArn.resourceId(), 1);
+            return accessPointName_ssa_1 != null;
+        }
+
+        private boolean cond42() {
+            return ("".equals(bucketArn.region()));
+        }
+
+        private boolean cond43() {
+            return ((params.bucket() != null && params.bucket().length() >= 16 && params.bucket().regionMatches(
+                    params.bucket().length() - 16, "--", 0, 2)));
+        }
+
+        private boolean cond47() {
+            return ((params.bucket() != null && params.bucket().length() >= 21 && params.bucket().regionMatches(
+                    params.bucket().length() - 21, "--", 0, 2)));
+        }
+
+        private boolean cond48() {
+            return ("s3-object-lambda".equals(bucketArn.service()));
+        }
+
+        private boolean cond49() {
+            return ((params.disableAccessPoints() != null ? params.disableAccessPoints() : false));
+        }
+
+        private boolean cond50() {
+            return ("s3-outposts".equals(bucketArn.service()));
+        }
+
+        private boolean cond51() {
+            bucketPartition = RulesFunctions.awsPartition(bucketArn.region());
+            return bucketPartition != null;
+        }
+
+        private boolean cond52() {
+            return (RulesFunctions.isValidHostLabelMulti(accessPointName_ssa_1));
+        }
+
+        private boolean cond53() {
+            return ((params.bucket() != null && params.bucket().length() >= 28 && params.bucket().regionMatches(
+                    params.bucket().length() - 28, "--", 0, 2)));
+        }
+
+        private boolean cond54() {
+            return ((params.bucket() != null && params.bucket().length() >= 17 && params.bucket().regionMatches(
+                    params.bucket().length() - 17, "--", 0, 2)));
+        }
+
+        private boolean cond55() {
+            return (RulesFunctions.listAccess(bucketArn.resourceId(), 4) != null);
+        }
+
+        private boolean cond56() {
+            return ((params.bucket() != null && params.bucket().length() >= 22 && params.bucket().regionMatches(
+                    params.bucket().length() - 22, "--", 0, 2)));
+        }
+
+        private boolean cond59() {
+            outpostId_ssa_1 = RulesFunctions.listAccess(bucketArn.resourceId(), 1);
+            return outpostId_ssa_1 != null;
+        }
+
+        private boolean cond60() {
+            return ((params.useArnRegion() != null ? params.useArnRegion() : true));
+        }
+
+        private boolean cond61() {
+            return (RulesFunctions.isValidHostLabelSingle(outpostId_ssa_1));
+        }
+
+        private boolean cond62() {
+            outpostType = RulesFunctions.listAccess(bucketArn.resourceId(), 2);
+            return outpostType != null;
+        }
+
+        private boolean cond63() {
+            return (region.equals(bucketArn.region()));
+        }
+
+        private boolean cond64() {
+            return (bucketPartition.name().equals(partitionResult.name()));
+        }
+
+        private boolean cond66() {
+            return (RulesFunctions.isValidHostLabelMulti(bucketArn.region()));
+        }
+
+        private boolean cond67() {
+            return (bucketArn.partition().equals(partitionResult.name()));
+        }
+
+        private boolean cond68() {
+            return ("".equals(bucketArn.accountId()));
+        }
+
+        private boolean cond69() {
+            return ("s3".equals(bucketArn.service()));
+        }
+
+        private boolean cond70() {
+            return (RulesFunctions.isValidHostLabelSingle(bucketArn.accountId()));
+        }
+
+        private boolean cond71() {
+            accessPointName_ssa_2 = RulesFunctions.listAccess(bucketArn.resourceId(), 3);
+            return accessPointName_ssa_2 != null;
+        }
+
+        private boolean cond72() {
+            return (RulesFunctions.isValidHostLabelSingle(accessPointName_ssa_1));
+        }
+
+        private boolean cond74() {
+            return (RulesFunctions.isValidHostLabelSingle(accessPointName_ssa_2));
+        }
+
+        private Endpoint result0() {
+            throw SdkClientException.create("Accelerate cannot be used with FIPS");
+        }
+
+        private Endpoint result1() {
+            throw SdkClientException.create("Cannot set dual-stack in combination with a custom endpoint.");
+        }
+
+        private Endpoint result2() {
+            throw SdkClientException.create("A custom endpoint cannot be combined with FIPS");
+        }
+
+        private Endpoint result3() {
+            throw SdkClientException.create("A custom endpoint cannot be combined with S3 Accelerate");
+        }
+
+        private Endpoint result4() {
+            throw SdkClientException.create("Partition does not support FIPS");
+        }
+
+        private Endpoint result5() {
+            throw SdkClientException.create("S3Express does not support S3 Accelerate.");
+        }
+
+        private Endpoint result6() {
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + "/" + uri_encoded_bucket + url.path()),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
+        }
+
+        private Endpoint result7() {
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
+        }
+
+        private Endpoint result8() {
+            throw SdkClientException.create("S3Express bucket name is not a valid virtual hostable name.");
+        }
+
+        private Endpoint result9() {
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromComponents("https", "s3express-control" + _s3e_fips + _s3e_ds + "." + region + "."
+                            + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).build()));
+        }
+
+        private Endpoint result10() {
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".s3express" + _s3e_fips + "-"
+                            + s3expressAvailabilityZoneId + _s3e_ds + "." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
+        }
+
+        private Endpoint result11() {
+            throw SdkClientException.create("Unrecognized S3Express bucket name format.");
+        }
+
+        private Endpoint result12() {
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(DynamicEndpointAuthSchemeFactory.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).create(_s3e_auth)));
+        }
+
+        private Endpoint result13() {
+            return Endpoint.ofAttributes(
+                    EndpointUrl.fromComponents("https", "s3express-control" + _s3e_fips + _s3e_ds + "." + region + "."
+                            + partitionResult.dnsSuffix(), -1, ""),
+                    KnownS3ExpressEndpointProperty.BACKEND,
+                    "S3Express",
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3express")
+                            .signingRegion(region).build()));
+        }
+
+        private Endpoint result14() {
+            throw SdkClientException.create("Expected a endpoint to be specified but no endpoint was found");
+        }
+
+        private Endpoint result15() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".ec2." + url.authority(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(region).build()));
+        }
+
+        private Endpoint result16() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".ec2.s3-outposts." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(region).build()));
+        }
+
+        private Endpoint result17() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.bucket() + ".op-" + outpostId_ssa_2 + "."
+                    + url.authority(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder()
+                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegionSet(Arrays.asList("*")).build(),
+                    SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result18() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".op-" + outpostId_ssa_2 + ".s3-outposts." + region
+                            + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(region).build()));
+        }
+
+        private Endpoint result19() {
+            throw SdkClientException.create("Unrecognized hardware type: \"Expected hardware type o or e but got " + hardwareType
+                    + "\"");
+        }
+
+        private Endpoint result20() {
+            throw SdkClientException.create("Invalid Outposts Bucket alias - it must be a valid bucket name.");
+        }
+
+        private Endpoint result21() {
+            throw SdkClientException.create("Invalid ARN: The outpost Id must only contain a-z, A-Z, 0-9 and `-`.");
+        }
+
+        private Endpoint result22() {
+            throw SdkClientException.create("Custom endpoint `" + params.endpoint() + "` was not a valid URI");
+        }
+
+        private Endpoint result23() {
+            throw SdkClientException.create("S3 Accelerate cannot be used in this region");
+        }
+
+        private Endpoint result24() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result25() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result26() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.bucket() + ".s3-fips.us-east-1."
+                    + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme
+                    .builder().disableDoubleEncoding(true).signingName("s3").signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result27() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result28() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-accelerate.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result29() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3-accelerate.dualstack." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result30() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result31() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            params.bucket() + ".s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result32() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + params.bucket()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result33() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result34() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + params.bucket()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result35() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + params.bucket() + "." + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result36() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    params.bucket() + ".s3-accelerate." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result37() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    params.bucket() + ".s3-accelerate." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion(region).build()));
+        }
+
+        private Endpoint result38() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result39() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", params.bucket() + ".s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result40() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.bucket() + ".s3." + region + "."
+                    + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme
+                    .builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region).build()));
+        }
+
+        private Endpoint result41() {
+            throw SdkClientException.create("Invalid region: region was not a valid DNS name.");
+        }
+
+        private Endpoint result42() {
+            throw SdkClientException.create("S3 Object Lambda does not support Dual-stack");
+        }
+
+        private Endpoint result43() {
+            throw SdkClientException.create("S3 Object Lambda does not support S3 Accelerate");
+        }
+
+        private Endpoint result44() {
+            throw SdkClientException.create("Access points are not supported for this operation");
+        }
+
+        private Endpoint result45() {
+            throw SdkClientException.create("Invalid configuration: region from ARN `" + bucketArn.region()
+                    + "` does not match client region `" + region + "` and UseArnRegion is `false`");
+        }
+
+        private Endpoint result46() {
+            throw SdkClientException.create("Invalid ARN: Missing account id");
+        }
+
+        private Endpoint result47() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + accessPointName_ssa_1 + "-" + bucketArn.accountId() + "."
+                            + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result48() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-object-lambda-fips." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result49() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-object-lambda." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result50() {
+            throw SdkClientException.create("Invalid ARN: The access point name may only contain a-z, A-Z, 0-9 and `-`. Found: `"
+                    + accessPointName_ssa_1 + "`");
+        }
+
+        private Endpoint result51() {
+            throw SdkClientException.create("Invalid ARN: The account id may only contain a-z, A-Z, 0-9 and `-`. Found: `"
+                    + bucketArn.accountId() + "`");
+        }
+
+        private Endpoint result52() {
+            throw SdkClientException.create("Invalid region in ARN: `" + bucketArn.region() + "` (invalid DNS name)");
+        }
+
+        private Endpoint result53() {
+            throw SdkClientException.create("Client was configured for partition `" + partitionResult.name() + "` but ARN (`"
+                    + params.bucket() + "`) has `" + bucketPartition.name() + "`");
+        }
+
+        private Endpoint result54() {
+            throw SdkClientException
+                    .create("Invalid ARN: The ARN may only contain a single resource component after `accesspoint`.");
+        }
+
+        private Endpoint result55() {
+            throw SdkClientException.create("Invalid ARN: bucket ARN is missing a region");
+        }
+
+        private Endpoint result56() {
+            throw SdkClientException
+                    .create("Invalid ARN: Expected a resource of the format `accesspoint:<accesspoint name>` but no name was provided");
+        }
+
+        private Endpoint result57() {
+            throw SdkClientException.create("Invalid ARN: Object Lambda ARNs only support `accesspoint` arn types, but found: `"
+                    + arnType + "`");
+        }
+
+        private Endpoint result58() {
+            throw SdkClientException.create("Access Points do not support S3 Accelerate");
+        }
+
+        private Endpoint result59() {
+            return Endpoint
+                    .ofAttribute(
+                            EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                                    + ".s3-accesspoint-fips.dualstack." + bucketArn.region() + "." + bucketPartition.dnsSuffix(),
+                                    -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder()
+                                    .disableDoubleEncoding(true).signingName("s3").signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result60() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-accesspoint-fips." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result61() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId()
+                            + ".s3-accesspoint.dualstack." + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result62() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + accessPointName_ssa_1 + "-" + bucketArn.accountId() + "."
+                            + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result63() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_1 + "-" + bucketArn.accountId() + ".s3-accesspoint."
+                            + bucketArn.region() + "." + bucketPartition.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result64() {
+            throw SdkClientException.create("Invalid ARN: The ARN was not for the S3 service, found: " + bucketArn.service());
+        }
+
+        private Endpoint result65() {
+            throw SdkClientException.create("S3 MRAP does not support dual-stack");
+        }
+
+        private Endpoint result66() {
+            throw SdkClientException.create("S3 MRAP does not support FIPS");
+        }
+
+        private Endpoint result67() {
+            throw SdkClientException.create("S3 MRAP does not support S3 Accelerate");
+        }
+
+        private Endpoint result68() {
+            throw SdkClientException.create("Invalid configuration: Multi-Region Access Point ARNs are disabled.");
+        }
+
+        private Endpoint result69() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https",
+                            accessPointName_ssa_1 + ".accesspoint.s3-global." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegionSet(Arrays.asList("*")).build()));
+        }
+
+        private Endpoint result70() {
+            throw SdkClientException.create("Client was configured for partition `" + partitionResult.name()
+                    + "` but bucket referred to partition `" + bucketArn.partition() + "`");
+        }
+
+        private Endpoint result71() {
+            throw SdkClientException.create("Invalid Access Point Name");
+        }
+
+        private Endpoint result72() {
+            throw SdkClientException.create("S3 Outposts does not support Dual-stack");
+        }
+
+        private Endpoint result73() {
+            throw SdkClientException.create("S3 Outposts does not support FIPS");
+        }
+
+        private Endpoint result74() {
+            throw SdkClientException.create("S3 Outposts does not support S3 Accelerate");
+        }
+
+        private Endpoint result75() {
+            throw SdkClientException.create("Invalid Arn: Outpost Access Point ARN contains sub resources");
+        }
+
+        private Endpoint result76() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", accessPointName_ssa_2 + "-" + bucketArn.accountId() + "."
+                            + outpostId_ssa_1 + "." + url.authority(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4aAuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                            .signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3-outposts").signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result77() {
+            return Endpoint
+                    .ofAttribute(
+                            EndpointUrl.fromComponents("https", accessPointName_ssa_2 + "-" + bucketArn.accountId() + "."
+                                    + outpostId_ssa_1 + ".s3-outposts." + bucketArn.region() + "." + bucketPartition.dnsSuffix(),
+                                    -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder()
+                                    .disableDoubleEncoding(true).signingName("s3-outposts").signingRegionSet(Arrays.asList("*"))
+                                    .build(), SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-outposts")
+                                    .signingRegion(bucketArn.region()).build()));
+        }
+
+        private Endpoint result78() {
+            throw SdkClientException.create("Invalid ARN: The access point name may only contain a-z, A-Z, 0-9 and `-`. Found: `"
+                    + accessPointName_ssa_2 + "`");
+        }
+
+        private Endpoint result79() {
+            throw SdkClientException.create("Expected an outpost type `accesspoint`, found " + outpostType);
+        }
+
+        private Endpoint result80() {
+            throw SdkClientException.create("Invalid ARN: expected an access point name");
+        }
+
+        private Endpoint result81() {
+            throw SdkClientException.create("Invalid ARN: Expected a 4-component resource");
+        }
+
+        private Endpoint result82() {
+            throw SdkClientException.create("Invalid ARN: The outpost Id may only contain a-z, A-Z, 0-9 and `-`. Found: `"
+                    + outpostId_ssa_1 + "`");
+        }
+
+        private Endpoint result83() {
+            throw SdkClientException.create("Invalid ARN: The Outpost Id was not set");
+        }
+
+        private Endpoint result84() {
+            throw SdkClientException.create("Invalid ARN: Unrecognized format: " + params.bucket() + " (type: " + arnType + ")");
+        }
+
+        private Endpoint result85() {
+            throw SdkClientException.create("Invalid ARN: No ARN type specified");
+        }
+
+        private Endpoint result86() {
+            throw SdkClientException.create("Invalid ARN: `" + params.bucket() + "` was not a valid ARN");
+        }
+
+        private Endpoint result87() {
+            throw SdkClientException.create("Path-style addressing cannot be used with ARN buckets");
+        }
+
+        private Endpoint result88() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result89() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    "s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion(region).build()));
+        }
+
+        private Endpoint result90() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result91() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result92() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result93() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result94() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result95() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.normalizedPath() + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result96() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result97() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, "/" + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result98() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + region + "." + partitionResult.dnsSuffix(), -1, "/"
+                            + uri_encoded_bucket),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result99() {
+            throw SdkClientException.create("Path-style addressing cannot be used with S3 Accelerate");
+        }
+
+        private Endpoint result100() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3-object-lambda")
+                            .signingRegion(region).build()));
+        }
+
+        private Endpoint result101() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", "s3-object-lambda-fips." + region + "."
+                    + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme
+                    .builder().disableDoubleEncoding(true).signingName("s3-object-lambda").signingRegion(region).build()));
+        }
+
+        private Endpoint result102() {
+            return Endpoint
+                    .ofAttribute(EndpointUrl.fromComponents("https",
+                            "s3-object-lambda." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                            AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder()
+                                    .disableDoubleEncoding(true).signingName("s3-object-lambda").signingRegion(region).build()));
+        }
+
+        private Endpoint result103() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result104() {
+            return Endpoint.ofAttribute(EndpointUrl.fromComponents("https",
+                    "s3-fips.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true)
+                            .signingName("s3").signingRegion(region).build()));
+        }
+
+        private Endpoint result105() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result106() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result107() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack.us-east-1." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result108() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3.dualstack." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result109() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result110() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromString(url.scheme() + "://" + url.authority() + url.path()),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result111() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3")
+                            .signingRegion("us-east-1").build()));
+        }
+
+        private Endpoint result112() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result113() {
+            return Endpoint.ofAttribute(
+                    EndpointUrl.fromComponents("https", "s3." + region + "." + partitionResult.dnsSuffix(), -1, ""),
+                    AwsEndpointAttribute.AUTH_SCHEMES,
+                    Arrays.asList(SigV4AuthScheme.builder().disableDoubleEncoding(true).signingName("s3").signingRegion(region)
+                            .build()));
+        }
+
+        private Endpoint result114() {
+            throw SdkClientException.create("A region must be set when sending requests to S3.");
+        }
+    }
+}

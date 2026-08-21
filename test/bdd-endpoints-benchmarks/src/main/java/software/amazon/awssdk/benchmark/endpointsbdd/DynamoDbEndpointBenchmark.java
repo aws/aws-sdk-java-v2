@@ -39,8 +39,8 @@ import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointParams
 import software.amazon.awssdk.services.dynamodb.endpoints.DynamoDbEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.dynamodb.endpoints.internal.BaselineRulesEndpointResolver;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.Optimized2BddDynamoDbEndpointProvider;
-import software.amazon.awssdk.services.dynamodb.endpoints.internal.OptimizedRulesDynamoDbEndpointProvider;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.Optimized3BddDynamoDbEndpointProvider;
+import software.amazon.awssdk.services.dynamodb.endpoints.internal.Optimized2RulesDynamoDbEndpointProvider;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
 import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
@@ -96,8 +96,8 @@ public class DynamoDbEndpointBenchmark {
         switch (resolver) {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd":        sdkProvider = new Optimized2BddDynamoDbEndpointProvider(); break;
-            case "optimizedRules":      sdkProvider = new OptimizedRulesDynamoDbEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new Optimized3BddDynamoDbEndpointProvider(); break;
+            case "optimizedRules":      sdkProvider = new Optimized2RulesDynamoDbEndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forDynamoDb();
                 break;

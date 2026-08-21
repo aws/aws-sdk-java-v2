@@ -42,6 +42,7 @@ import software.amazon.awssdk.codegen.poet.rules2.LiteralIntegerExpression;
 import software.amazon.awssdk.codegen.poet.rules2.LiteralStringExpression;
 import software.amazon.awssdk.codegen.poet.rules2.MemberAccessExpression;
 import software.amazon.awssdk.codegen.poet.rules2.MethodCallExpression;
+import software.amazon.awssdk.codegen.poet.rules2.PrepareForCodegenVisitor;
 import software.amazon.awssdk.codegen.poet.rules2.PropertiesExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleExpressionVisitor;
@@ -144,6 +145,12 @@ public class BddResultCodeGeneratorVisitor implements RuleExpressionVisitor<Rule
             builder.add(" == null");
             return RuleRuntimeTypeMirror.BOOLEAN;
         }
+
+        // Peephole-optimized synthetic functions
+        if (fn.startsWith("__")) {
+            return emitPeepholeOptimized(fn, e.arguments());
+        }
+
         RuleFunctionMirror func = typeMirror.resolveFunction(e.name());
         builder.add("$T.$L(", func.containingType().type(), func.javaName());
         List<RuleExpression> args = e.arguments();
@@ -157,9 +164,121 @@ public class BddResultCodeGeneratorVisitor implements RuleExpressionVisitor<Rule
         return func.returns();
     }
 
+    /**
+     * Emits peephole-optimized native Java code for synthetic function calls.
+     */
+    private RuleType emitPeepholeOptimized(String fn, List<RuleExpression> args) {
+        switch (fn) {
+            case PrepareForCodegenVisitor.STARTS_WITH:
+                return emitStartsWith(args);
+            case PrepareForCodegenVisitor.ENDS_WITH:
+                return emitEndsWith(args);
+            case PrepareForCodegenVisitor.REGION_MATCHES:
+                return emitRegionMatches(args);
+            case PrepareForCodegenVisitor.ITE:
+                return emitIte(args);
+            case PrepareForCodegenVisitor.COALESCE_BOOL:
+                return emitCoalesceBoolean(args);
+            case PrepareForCodegenVisitor.IS_VALID_HOST_LABEL:
+                return emitIsValidHostLabel(args);
+            default:
+                throw new IllegalStateException("Unknown peephole function: " + fn);
+        }
+    }
+
+    private RuleType emitStartsWith(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null && ");
+        args.get(0).accept(this);
+        builder.add(".startsWith(");
+        args.get(1).accept(this);
+        builder.add("))");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    private RuleType emitEndsWith(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null && ");
+        args.get(0).accept(this);
+        builder.add(".endsWith(");
+        args.get(1).accept(this);
+        builder.add("))");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    private RuleType emitRegionMatches(List<RuleExpression> args) {
+        RuleExpression strExpr = args.get(0);
+        int offset = ((LiteralIntegerExpression) args.get(1)).value();
+        String literal = ((LiteralStringExpression) args.get(2)).value();
+        int litLen = literal.length();
+
+        builder.add("(");
+        strExpr.accept(this);
+        builder.add(" != null && ");
+
+        if (offset >= 0) {
+            strExpr.accept(this);
+            builder.add(".length() >= $L && ", offset + litLen);
+            strExpr.accept(this);
+            builder.add(".regionMatches($L, $S, 0, $L)", offset, literal, litLen);
+        } else {
+            int stopIdx = -offset;
+            strExpr.accept(this);
+            builder.add(".length() >= $L && ", stopIdx);
+            strExpr.accept(this);
+            builder.add(".regionMatches(");
+            strExpr.accept(this);
+            builder.add(".length() - $L, $S, 0, $L)", stopIdx, literal, litLen);
+        }
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    private RuleType emitIte(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" ? ");
+        args.get(1).accept(this);
+        builder.add(" : ");
+        args.get(2).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.STRING;
+    }
+
+    private RuleType emitCoalesceBoolean(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null ? ");
+        args.get(0).accept(this);
+        builder.add(" : ");
+        args.get(1).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    private RuleType emitIsValidHostLabel(List<RuleExpression> args) {
+        boolean allowDots = ((LiteralBooleanExpression) args.get(1)).value();
+        RuleFunctionMirror func = typeMirror.resolveFunction("isValidHostLabel");
+        builder.add("$T.$L(", func.containingType().type(),
+                    allowDots ? "isValidHostLabelMulti" : "isValidHostLabelSingle");
+        args.get(0).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
     @Override
     public RuleType visitMethodCallExpression(MethodCallExpression e) {
+        // Wrap compound expressions (string concat) in parens to ensure correct binding
+        boolean needsParens = e.source().kind() == RuleExpression.RuleExpressionKind.STRING_CONCAT;
+        if (needsParens) {
+            builder.add("(");
+        }
         e.source().accept(this);
+        if (needsParens) {
+            builder.add(")");
+        }
         builder.add(".$L(", e.name());
         boolean isFirst = true;
         for (RuleExpression arg : e.arguments()) {
@@ -254,10 +373,16 @@ public class BddResultCodeGeneratorVisitor implements RuleExpressionVisitor<Rule
     public RuleType visitEndpointExpression(EndpointExpression e) {
         Map<String, RuleExpression> properties = e.properties().properties();
         boolean hasHeaders = !e.headers().headers().isEmpty();
+        boolean hasNoAttributes = !hasHeaders && properties.isEmpty();
         boolean hasAuthSchemesOnly = !hasHeaders && properties.size() == 1 && properties.containsKey("authSchemes");
         boolean hasTwoAttrs = !hasHeaders && properties.size() == 2 && properties.containsKey("authSchemes");
 
-        if (hasAuthSchemesOnly) {
+        if (hasNoAttributes) {
+            // Most optimized: Endpoint.of(url) — no attributes, no headers, no builder allocation
+            builder.add("return $T.of(", Endpoint.class);
+            EndpointUrlCodeEmitter.emit(e.url(), builder, this);
+            builder.addStatement(")");
+        } else if (hasAuthSchemesOnly) {
             // Optimized: Endpoint.ofAttribute(url, AUTH_SCHEMES, list)
             builder.add("return $T.ofAttribute(", Endpoint.class);
             EndpointUrlCodeEmitter.emit(e.url(), builder, this);

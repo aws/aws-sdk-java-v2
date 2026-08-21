@@ -36,6 +36,7 @@ import software.amazon.awssdk.codegen.poet.rules2.LiteralIntegerExpression;
 import software.amazon.awssdk.codegen.poet.rules2.LiteralStringExpression;
 import software.amazon.awssdk.codegen.poet.rules2.MemberAccessExpression;
 import software.amazon.awssdk.codegen.poet.rules2.MethodCallExpression;
+import software.amazon.awssdk.codegen.poet.rules2.PrepareForCodegenVisitor;
 import software.amazon.awssdk.codegen.poet.rules2.PropertiesExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleExpressionVisitor;
@@ -120,6 +121,12 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             builder.add(" == null");
             return RuleRuntimeTypeMirror.BOOLEAN;
         }
+
+        // Peephole-optimized synthetic functions
+        if (fn.startsWith("__")) {
+            return emitPeepholeOptimized(fn, e.arguments());
+        }
+
         RuleFunctionMirror func = typeMirror.resolveFunction(e.name());
         builder.add("$T.$L(", func.containingType().type(), func.javaName());
         List<RuleExpression> args = e.arguments();
@@ -138,9 +145,159 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
         return func.returns();
     }
 
+    /**
+     * Emits peephole-optimized native Java code for synthetic function calls.
+     * These avoid allocations by using String.startsWith/endsWith/regionMatches
+     * and inline ternary expressions instead of calling RulesFunctions.
+     */
+    private RuleType emitPeepholeOptimized(String fn, List<RuleExpression> args) {
+        switch (fn) {
+            case PrepareForCodegenVisitor.STARTS_WITH:
+                // __startsWith(str, literal) → str != null && str.startsWith("literal")
+                return emitStartsWith(args);
+            case PrepareForCodegenVisitor.ENDS_WITH:
+                // __endsWith(str, literal) → str != null && str.endsWith("literal")
+                return emitEndsWith(args);
+            case PrepareForCodegenVisitor.REGION_MATCHES:
+                // __regionMatches(str, offset, literal) → null-safe regionMatches
+                return emitRegionMatches(args);
+            case PrepareForCodegenVisitor.ITE:
+                // __ite(cond, ifTrue, ifFalse) → (cond ? ifTrue : ifFalse)
+                return emitIte(args);
+            case PrepareForCodegenVisitor.COALESCE_BOOL:
+                // __coalesceBoolean(expr, default) → (expr != null ? expr : default)
+                return emitCoalesceBoolean(args);
+            case PrepareForCodegenVisitor.IS_VALID_HOST_LABEL:
+                // __isValidHostLabel(str, allowDots) → inline validation
+                return emitIsValidHostLabel(args);
+            default:
+                throw new IllegalStateException("Unknown peephole function: " + fn);
+        }
+    }
+
+    /**
+     * Emits: {@code (str != null && str.startsWith("literal"))}
+     */
+    private RuleType emitStartsWith(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null && ");
+        args.get(0).accept(this);
+        builder.add(".startsWith(");
+        args.get(1).accept(this);
+        builder.add("))");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Emits: {@code (str != null && str.endsWith("literal"))}
+     */
+    private RuleType emitEndsWith(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null && ");
+        args.get(0).accept(this);
+        builder.add(".endsWith(");
+        args.get(1).accept(this);
+        builder.add("))");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Emits a regionMatches check. Offset can be negative to indicate "from end" (reverse=true).
+     * <ul>
+     *     <li>Positive offset: {@code (str != null && str.length() >= (offset + litLen)
+     *         && str.regionMatches(offset, "literal", 0, litLen))}</li>
+     *     <li>Negative offset (value = -stopIdx): {@code (str != null && str.length() >= stopIdx
+     *         && str.regionMatches(str.length() - stopIdx, "literal", 0, litLen))}</li>
+     * </ul>
+     */
+    private RuleType emitRegionMatches(List<RuleExpression> args) {
+        RuleExpression strExpr = args.get(0);
+        int offset = ((LiteralIntegerExpression) args.get(1)).value();
+        String literal = ((LiteralStringExpression) args.get(2)).value();
+        int litLen = literal.length();
+
+        builder.add("(");
+        strExpr.accept(this);
+        builder.add(" != null && ");
+
+        if (offset >= 0) {
+            // Forward: str.length() >= (offset + litLen) && str.regionMatches(offset, literal, 0, litLen)
+            strExpr.accept(this);
+            builder.add(".length() >= $L && ", offset + litLen);
+            strExpr.accept(this);
+            builder.add(".regionMatches(");
+            builder.add("$L, $S, 0, $L", offset, literal, litLen);
+            builder.add("))");
+        } else {
+            // Reverse: offset encodes -(stopIdx). Actual position = str.length() - stopIdx
+            int stopIdx = -offset;
+            strExpr.accept(this);
+            builder.add(".length() >= $L && ", stopIdx);
+            strExpr.accept(this);
+            builder.add(".regionMatches(");
+            strExpr.accept(this);
+            builder.add(".length() - $L, $S, 0, $L", stopIdx, literal, litLen);
+            builder.add("))");
+        }
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Emits: {@code (cond ? ifTrue : ifFalse)}
+     */
+    private RuleType emitIte(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" ? ");
+        args.get(1).accept(this);
+        builder.add(" : ");
+        args.get(2).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.STRING;
+    }
+
+    /**
+     * Emits: {@code (expr != null ? expr : defaultValue)}
+     */
+    private RuleType emitCoalesceBoolean(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null ? ");
+        args.get(0).accept(this);
+        builder.add(" : ");
+        args.get(1).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Emits: {@code RulesFunctions.isValidHostLabelSingle(str)} or
+     * {@code RulesFunctions.isValidHostLabelMulti(str)} depending on the allowDots constant.
+     * Avoids the boolean parameter dispatch branch at runtime.
+     */
+    private RuleType emitIsValidHostLabel(List<RuleExpression> args) {
+        boolean allowDots = ((LiteralBooleanExpression) args.get(1)).value();
+        RuleFunctionMirror func = typeMirror.resolveFunction("isValidHostLabel");
+        builder.add("$T.$L(", func.containingType().type(),
+                    allowDots ? "isValidHostLabelMulti" : "isValidHostLabelSingle");
+        args.get(0).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
     @Override
     public RuleType visitMethodCallExpression(MethodCallExpression e) {
+        // Wrap compound expressions (string concat) in parens to ensure correct binding
+        boolean needsParens = e.source().kind() == RuleExpression.RuleExpressionKind.STRING_CONCAT;
+        if (needsParens) {
+            builder.add("(");
+        }
         e.source().accept(this);
+        if (needsParens) {
+            builder.add(")");
+        }
         builder.add(".$L(", e.name());
         boolean isFirst = true;
         for (RuleExpression arg : e.arguments()) {
@@ -211,9 +368,27 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             builder.add("$L = ", registerName);
             v.accept(this);
             builder.addStatement(""); // end the statement we started
-            builder.addStatement("return $L != null", registerName);
+            // __ite always returns non-null (it's a ternary between two string literals),
+            // so skip the dead null-check and just return true
+            if (isAlwaysNonNull(v)) {
+                builder.addStatement("return true");
+            } else {
+                builder.addStatement("return $L != null", registerName);
+            }
         }
         return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Returns true if the expression is guaranteed to produce a non-null value at runtime.
+     * Currently recognizes __ite (inline ternary between two string literals).
+     */
+    private static boolean isAlwaysNonNull(RuleExpression expr) {
+        if (!(expr instanceof FunctionCallExpression)) {
+            return false;
+        }
+        FunctionCallExpression fn = (FunctionCallExpression) expr;
+        return PrepareForCodegenVisitor.ITE.equals(fn.name());
     }
 
     @Override

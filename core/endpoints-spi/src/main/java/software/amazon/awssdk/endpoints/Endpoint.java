@@ -123,6 +123,16 @@ public final class Endpoint {
     }
 
     /**
+     * Creates an endpoint with just a URL (no attributes, no headers).
+     * Optimized factory for the common case in generated endpoint providers where
+     * no endpoint attributes are needed — eliminates builder allocation entirely.
+     */
+    @SdkInternalApi
+    public static Endpoint of(EndpointUrl endpointUrl) {
+        return new Endpoint(endpointUrl, Collections.emptyMap(), Collections.emptyMap());
+    }
+
+    /**
      * Creates an endpoint with a URL and two attributes (no headers).
      * Optimized factory for generated endpoint providers (e.g., S3 Express with BACKEND + AUTH_SCHEMES).
      */

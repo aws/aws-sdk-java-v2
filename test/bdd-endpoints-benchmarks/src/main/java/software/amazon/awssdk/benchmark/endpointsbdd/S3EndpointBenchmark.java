@@ -39,8 +39,8 @@ import software.amazon.awssdk.services.s3.endpoints.S3EndpointParams;
 import software.amazon.awssdk.services.s3.endpoints.S3EndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.s3.endpoints.internal.BaselineRulesEndpointResolver;
-import software.amazon.awssdk.services.s3.endpoints.internal.Optimized2BddS3EndpointProvider;
-import software.amazon.awssdk.services.s3.endpoints.internal.OptimizedRulesS3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.internal.Optimized3BddS3EndpointProvider;
+import software.amazon.awssdk.services.s3.endpoints.internal.Optimized2RulesS3EndpointProvider;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
 import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
@@ -100,8 +100,8 @@ public class S3EndpointBenchmark {
         switch (resolver) {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd":        sdkProvider = new Optimized2BddS3EndpointProvider(); break;
-            case "optimizedRules":      sdkProvider = new OptimizedRulesS3EndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new Optimized3BddS3EndpointProvider(); break;
+            case "optimizedRules":      sdkProvider = new Optimized2RulesS3EndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forS3();
                 break;

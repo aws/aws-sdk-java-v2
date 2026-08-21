@@ -1,0 +1,177 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with
+ * the License. A copy of the License is located at
+ * 
+ * http://aws.amazon.com/apache2.0
+ * 
+ * or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+ * CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions
+ * and limitations under the License.
+ */
+
+package software.amazon.awssdk.services.connect.endpoints.internal;
+
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointParams;
+import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointProvider;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
+import software.amazon.awssdk.utils.Validate;
+
+@Generated("software.amazon.awssdk:codegen")
+@SdkInternalApi
+public final class Optimized2RulesConnectEndpointProvider implements ConnectEndpointProvider {
+    @Override
+    public CompletableFuture<Endpoint> resolveEndpoint(ConnectEndpointParams params) {
+        Validate.notNull(params.useDualStack(), "Parameter 'UseDualStack' must not be null");
+        Validate.notNull(params.useFips(), "Parameter 'UseFIPS' must not be null");
+        try {
+            Region region = params.region();
+            String regionId = region == null ? null : region.id();
+            Endpoint result = endpointRule0(params, regionId);
+            if (result == null) {
+                throw SdkClientException.create("Rule engine did not reach an error or endpoint result");
+            }
+            return CompletableFuture.completedFuture(result);
+        } catch (SdkClientException e) {
+            String errorMsg = e.getMessage();
+            if (errorMsg != null && errorMsg.contains("Invalid ARN") && errorMsg.contains(":s3:::")) {
+                return CompletableFutureUtils.failedFuture(SdkClientException.create(errorMsg
+                        + ". Use the bucket name instead of simple bucket ARNs in GetBucketLocationRequest."));
+            }
+            return CompletableFutureUtils.failedFuture(e);
+        } catch (Exception error) {
+            return CompletableFutureUtils.failedFuture(error);
+        }
+    }
+
+    private static Endpoint endpointRule0(ConnectEndpointParams params, String region) {
+        Endpoint result = endpointRule1(params);
+        if (result != null) {
+            return result;
+        }
+        result = endpointRule5(params, region);
+        if (result != null) {
+            return result;
+        }
+        throw SdkClientException.create("Invalid Configuration: Missing Region");
+    }
+
+    private static Endpoint endpointRule1(ConnectEndpointParams params) {
+        if (params.endpoint() != null) {
+            if (params.useFips()) {
+                throw SdkClientException.create("Invalid Configuration: FIPS and custom endpoint are not supported");
+            }
+            if (params.useDualStack()) {
+                throw SdkClientException.create("Invalid Configuration: Dualstack and custom endpoint are not supported");
+            }
+            return Endpoint.of(EndpointUrl.fromString(params.endpoint()));
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule5(ConnectEndpointParams params, String region) {
+        if (region != null) {
+            return endpointRule6(params, region);
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule6(ConnectEndpointParams params, String region) {
+        RulePartition partitionResult = RulesFunctions.awsPartition(region);
+        if (partitionResult != null) {
+            Endpoint result = endpointRule7(params, partitionResult, region);
+            if (result != null) {
+                return result;
+            }
+            result = endpointRule11(params, partitionResult, region);
+            if (result != null) {
+                return result;
+            }
+            result = endpointRule16(params, partitionResult, region);
+            if (result != null) {
+                return result;
+            }
+            return Endpoint.of(EndpointUrl.fromComponents("https", "connect." + region + "." + partitionResult.dnsSuffix(), -1,
+                    ""));
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule7(ConnectEndpointParams params, RulePartition partitionResult, String region) {
+        if (params.useFips() && params.useDualStack()) {
+            Endpoint result = endpointRule8(params, partitionResult, region);
+            if (result != null) {
+                return result;
+            }
+            throw SdkClientException.create("FIPS and DualStack are enabled, but this partition does not support one or both");
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule8(ConnectEndpointParams params, RulePartition partitionResult, String region) {
+        if (partitionResult.supportsFIPS() && partitionResult.supportsDualStack()) {
+            return Endpoint.of(EndpointUrl.fromComponents("https",
+                    "connect-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""));
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule11(ConnectEndpointParams params, RulePartition partitionResult, String region) {
+        if (params.useFips()) {
+            Endpoint result = endpointRule12(params, partitionResult, region);
+            if (result != null) {
+                return result;
+            }
+            throw SdkClientException.create("FIPS is enabled but this partition does not support FIPS");
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule12(ConnectEndpointParams params, RulePartition partitionResult, String region) {
+        if (partitionResult.supportsFIPS()) {
+            if ("aws-us-gov".equals(partitionResult.name())) {
+                return Endpoint.of(EndpointUrl.fromComponents("https", "connect." + region + ".amazonaws.com", -1, ""));
+            }
+            return Endpoint.of(EndpointUrl.fromComponents("https", "connect-fips." + region + "." + partitionResult.dnsSuffix(),
+                    -1, ""));
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule16(ConnectEndpointParams params, RulePartition partitionResult, String region) {
+        if (params.useDualStack()) {
+            Endpoint result = endpointRule17(params, partitionResult, region);
+            if (result != null) {
+                return result;
+            }
+            throw SdkClientException.create("DualStack is enabled but this partition does not support DualStack");
+        }
+        return null;
+    }
+
+    private static Endpoint endpointRule17(ConnectEndpointParams params, RulePartition partitionResult, String region) {
+        if (partitionResult.supportsDualStack()) {
+            return Endpoint.of(EndpointUrl.fromComponents("https",
+                    "connect." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""));
+        }
+        return null;
+    }
+
+    @Override
+    public boolean equals(Object rhs) {
+        return rhs != null && getClass().equals(rhs.getClass());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
+    }
+}

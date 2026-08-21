@@ -39,8 +39,8 @@ import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointParams;
 import software.amazon.awssdk.services.connect.endpoints.ConnectEndpointProvider;
 import software.amazon.awssdk.services.connect.endpoints.internal.BaselineBddEndpointProvider;
 import software.amazon.awssdk.services.connect.endpoints.internal.BaselineRulesEndpointResolver;
-import software.amazon.awssdk.services.connect.endpoints.internal.Optimized2BddConnectEndpointProvider;
-import software.amazon.awssdk.services.connect.endpoints.internal.OptimizedRulesConnectEndpointProvider;
+import software.amazon.awssdk.services.connect.endpoints.internal.Optimized3BddConnectEndpointProvider;
+import software.amazon.awssdk.services.connect.endpoints.internal.Optimized2RulesConnectEndpointProvider;
 import software.amazon.smithy.java.endpoints.EndpointResolverParams;
 import software.amazon.smithy.java.rulesengine.GeneratedEndpointResolver;
 
@@ -108,8 +108,8 @@ public class ConnectEndpointBenchmark {
         switch (resolver) {
             case "rules":               sdkProvider = new BaselineRulesEndpointResolver(); break;
             case "baselineBdd":         sdkProvider = new BaselineBddEndpointProvider(); break;
-            case "optimizedBdd":        sdkProvider = new Optimized2BddConnectEndpointProvider(); break;
-            case "optimizedRules":      sdkProvider = new OptimizedRulesConnectEndpointProvider(); break;
+            case "optimizedBdd":        sdkProvider = new Optimized3BddConnectEndpointProvider(); break;
+            case "optimizedRules":      sdkProvider = new Optimized2RulesConnectEndpointProvider(); break;
             case "smithyJavaGenerated":
                 smithyResolvers = SmithyJavaResolverFactory.forConnect();
                 break;
