@@ -17,9 +17,11 @@ package software.amazon.awssdk.endpoints;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -107,6 +109,48 @@ public final class Endpoint {
 
     public static Builder builder() {
         return new BuilderImpl();
+    }
+
+    /**
+     * Creates an endpoint with just a URL and a single attribute (no headers).
+     * This is an optimized factory for the common case in generated endpoint providers
+     * where the only attribute is AUTH_SCHEMES and there are no headers — avoids
+     * HashMap allocation.
+     */
+    @SdkInternalApi
+    public static <T> Endpoint ofAttribute(EndpointUrl endpointUrl, EndpointAttributeKey<T> key, T value) {
+        return new Endpoint(endpointUrl, Collections.emptyMap(), Collections.singletonMap(key, value));
+    }
+
+    /**
+     * Creates an endpoint with just a URL (no attributes, no headers).
+     * Optimized factory for the common case in generated endpoint providers where
+     * no endpoint attributes are needed — eliminates builder allocation entirely.
+     */
+    @SdkInternalApi
+    public static Endpoint of(EndpointUrl endpointUrl) {
+        return new Endpoint(endpointUrl, Collections.emptyMap(), Collections.emptyMap());
+    }
+
+    /**
+     * Creates an endpoint with a URL and two attributes (no headers).
+     * Optimized factory for generated endpoint providers (e.g., S3 Express with BACKEND + AUTH_SCHEMES).
+     */
+    @SdkInternalApi
+    public static Endpoint ofAttributes(EndpointUrl endpointUrl,
+                                        EndpointAttributeKey<?> key1, Object value1,
+                                        EndpointAttributeKey<?> key2, Object value2) {
+        Map<EndpointAttributeKey<?>, Object> attrs = new HashMap<>(4);
+        attrs.put(key1, value1);
+        attrs.put(key2, value2);
+        return new Endpoint(endpointUrl, Collections.emptyMap(), attrs);
+    }
+
+    private Endpoint(EndpointUrl endpointUrl, Map<String, List<String>> headers,
+                     Map<EndpointAttributeKey<?>, Object> attributes) {
+        this.endpointUrl = endpointUrl;
+        this.headers = headers;
+        this.attributes = attributes;
     }
 
     public interface Builder {

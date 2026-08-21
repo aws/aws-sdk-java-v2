@@ -64,7 +64,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
           if (parsedArn != null) {
             String arnResourceId = RulesFunctions.listAccess(parsedArn.resourceId(), 0);
             if (arnResourceId != null) {
-              return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", arnResourceId + "." + params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+              return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", arnResourceId + "." + params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build()));
             }
           }
         }
@@ -79,9 +79,9 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
         throw SdkClientException.create("FIPS endpoints not supported with multi-region endpoints");
       }
       if (params.useFipsEndpoint() == null && params.useDualStackEndpoint() != null && params.useDualStackEndpoint()) {
-        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+        return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dualStackDnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build()));
       }
-      return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+      return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", params.endpointId() + ".query." + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build()));
     }
     return null;
   }
@@ -90,13 +90,13 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
       RulePartition partitionResult) {
     if (RulesFunctions.isValidHostLabel(region, false)) {
       if (params.useFipsEndpoint() != null && params.useFipsEndpoint() && params.useDualStackEndpoint() == null) {
-        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+        return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build()));
       }
       if (params.useDualStackEndpoint() != null && params.useDualStackEndpoint() && params.useFipsEndpoint() == null) {
-        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().signingName("query").signingRegion(region).build())).build();
+        return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build(), SigV4AuthScheme.builder().signingName("query").signingRegion(region).build()));
       }
       if (params.useDualStackEndpoint() != null && params.useFipsEndpoint() != null && params.useDualStackEndpoint() && params.useFipsEndpoint()) {
-        return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1, "")).putAttribute(AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build())).build();
+        return Endpoint.ofAttribute(EndpointUrl.fromComponents("https", "query-fips." + region + "." + partitionResult.dualStackDnsSuffix(), -1, ""), AwsEndpointAttribute.AUTH_SCHEMES, Arrays.asList(SigV4aAuthScheme.builder().signingName("query").signingRegionSet(Arrays.asList("*")).build()));
       }
       return Endpoint.builder().endpointUrl(EndpointUrl.fromComponents("https", "query." + region + "." + partitionResult.dnsSuffix(), -1, "")).build();
     }
