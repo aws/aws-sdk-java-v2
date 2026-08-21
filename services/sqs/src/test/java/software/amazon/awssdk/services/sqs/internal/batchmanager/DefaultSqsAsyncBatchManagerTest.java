@@ -48,8 +48,8 @@ import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
 /**
  * Close/shutdown behavior of the real {@link DefaultSqsAsyncBatchManager} (and, through it, the real write batch
  * managers), driven over a mock {@link SqsAsyncClient} whose batch-send futures the test controls. Lives in the
- * internal package to reach the package-private {@link DefaultSqsAsyncBatchManager.DefaultBuilder#shutdownGracePeriod}
- * test seam so a short grace can be injected.
+ * internal package to reach the package-private {@link DefaultSqsAsyncBatchManager.DefaultBuilder#shutdownTimeout}
+ * test seam so a short timeout can be injected.
  */
 class DefaultSqsAsyncBatchManagerTest {
 
@@ -68,7 +68,7 @@ class DefaultSqsAsyncBatchManagerTest {
     }
 
     private SqsAsyncBatchManager batchManager(SqsAsyncClient client, int maxBatchSize, Duration sendFrequency,
-                                              Duration shutdownGracePeriod) {
+                                              Duration shutdownTimeout) {
         DefaultSqsAsyncBatchManager.DefaultBuilder builder =
             (DefaultSqsAsyncBatchManager.DefaultBuilder) DefaultSqsAsyncBatchManager.builder();
         builder.client(client);
@@ -77,14 +77,14 @@ class DefaultSqsAsyncBatchManagerTest {
                                                                 .maxBatchSize(maxBatchSize)
                                                                 .sendRequestFrequency(sendFrequency)
                                                                 .build());
-        builder.shutdownGracePeriod(shutdownGracePeriod);
+        builder.shutdownTimeout(shutdownTimeout);
         return builder.build();
     }
 
     @Test
     @Timeout(20)
-    void close_boundsShutdownToOneSharedGracePeriod_notPerManager() {
-        Duration grace = Duration.ofMillis(400);
+    void close_boundsShutdownToOneSharedTimeout_notPerManager() {
+        Duration timeout = Duration.ofMillis(400);
         SqsAsyncClient client = mock(SqsAsyncClient.class);
         when(client.sendMessageBatch(any(SendMessageBatchRequest.class)))
             .thenReturn(new CompletableFuture<SendMessageBatchResponse>());
@@ -93,7 +93,7 @@ class DefaultSqsAsyncBatchManagerTest {
         when(client.changeMessageVisibilityBatch(any(ChangeMessageVisibilityBatchRequest.class)))
             .thenReturn(new CompletableFuture<ChangeMessageVisibilityBatchResponse>());
 
-        SqsAsyncBatchManager batchManager = batchManager(client, 10, Duration.ofHours(1), grace);
+        SqsAsyncBatchManager batchManager = batchManager(client, 10, Duration.ofHours(1), timeout);
         batchManager.sendMessage(r -> r.queueUrl(QUEUE_URL).messageBody("m"));
         batchManager.deleteMessage(r -> r.queueUrl(QUEUE_URL).receiptHandle("rh"));
         batchManager.changeMessageVisibility(r -> r.queueUrl(QUEUE_URL).receiptHandle("rh").visibilityTimeout(30));
@@ -102,11 +102,11 @@ class DefaultSqsAsyncBatchManagerTest {
         batchManager.close();
         long closeMillis = (System.nanoTime() - start) / 1_000_000;
 
-        assertThat(closeMillis).as("close() should wait about one grace period").isGreaterThanOrEqualTo(300);
+        assertThat(closeMillis).as("close() should wait about one timeout").isGreaterThanOrEqualTo(300);
         assertThat(closeMillis)
-            .as("close() must be bounded by ONE shared grace period, not one per manager (3x would be ~%d ms)",
-                3 * grace.toMillis())
-            .isLessThan(2 * grace.toMillis());
+            .as("close() must be bounded by ONE shared timeout, not one per manager (3x would be ~%d ms)",
+                3 * timeout.toMillis())
+            .isLessThan(2 * timeout.toMillis());
     }
 
     @Test
@@ -148,7 +148,7 @@ class DefaultSqsAsyncBatchManagerTest {
 
     @Test
     @Timeout(20)
-    void close_completesCallerWithRealResult_whenSendCompletesWithinGracePeriod() throws Exception {
+    void close_completesCallerWithRealResult_whenSendCompletesWithinTimeout() throws Exception {
         SqsAsyncClient client = mock(SqsAsyncClient.class);
         CompletableFuture<SendMessageBatchResponse> sendFuture = new CompletableFuture<>();
         when(client.sendMessageBatch(any(SendMessageBatchRequest.class))).thenReturn(sendFuture);
@@ -172,7 +172,7 @@ class DefaultSqsAsyncBatchManagerTest {
 
     @Test
     @Timeout(20)
-    void close_cancelsStragglerSend_thatDoesNotCompleteWithinGracePeriod() {
+    void close_cancelsStragglerSend_thatDoesNotCompleteWithinTimeout() {
         SqsAsyncClient client = mock(SqsAsyncClient.class);
         when(client.sendMessageBatch(any(SendMessageBatchRequest.class)))
             .thenReturn(new CompletableFuture<SendMessageBatchResponse>());

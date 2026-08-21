@@ -45,7 +45,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
 
     private final int maxBatchItems;
     private final Duration sendRequestFrequency;
-    private final Duration shutdownGracePeriod;
+    private final Duration shutdownTimeout;
     private final BatchingMap<RequestT, ResponseT> requestsAndResponsesMaps;
     private final ScheduledExecutorService scheduledExecutor;
     private final Set<CompletableFuture<BatchResponseT>> pendingBatchResponses ;
@@ -58,7 +58,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         batchConfiguration = overrideConfiguration;
         this.maxBatchItems = batchConfiguration.maxBatchItems();
         this.sendRequestFrequency = batchConfiguration.sendRequestFrequency();
-        this.shutdownGracePeriod = batchConfiguration.shutdownGracePeriod();
+        this.shutdownTimeout = batchConfiguration.shutdownTimeout();
         this.scheduledExecutor = Validate.notNull(scheduledExecutor, "Null scheduledExecutor");
         pendingBatchResponses = ConcurrentHashMap.newKeySet();
         pendingResponses = ConcurrentHashMap.newKeySet();
@@ -173,7 +173,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
      * caller can wait on it. Does not block and does not cancel; a second call is a no-op that returns an
      * already-completed future.
      */
-    protected CompletableFuture<Void> dispatchPending() {
+    protected CompletableFuture<Void> closeAndDispatch() {
         if (!closed.compareAndSet(false, true)) {
             return CompletableFuture.completedFuture(null);
         }
@@ -183,7 +183,7 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
     }
 
     /**
-     * Phase 2 of shutdown. Cancels any requests still pending after the grace wait, surfacing
+     * Phase 2 of shutdown. Cancels any requests still pending after the timeout, surfacing
      * {@link java.util.concurrent.CancellationException} to their callers, and releases the buffers. Idempotent.
      */
     protected void cancelPending() {
@@ -192,8 +192,8 @@ public abstract class RequestBatchManager<RequestT, ResponseT, BatchResponseT> {
         requestsAndResponsesMaps.clear();
     }
 
-    protected Duration shutdownGracePeriod() {
-        return shutdownGracePeriod;
+    protected Duration shutdownTimeout() {
+        return shutdownTimeout;
     }
 
     private void drainBuffers() {

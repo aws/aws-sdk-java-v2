@@ -70,7 +70,7 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
             new SendMessageBatchManager(
                 RequestBatchConfiguration.builder(builder.overrideConfiguration)
                                          .maxBatchBytesSize(MAX_SEND_MESSAGE_PAYLOAD_SIZE_BYTES)
-                                         .shutdownGracePeriod(builder.shutdownGracePeriod)
+                                         .shutdownTimeout(builder.shutdownTimeout)
                                          .build(),
                 scheduledExecutor,
                 client
@@ -79,7 +79,7 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         this.deleteMessageBatchManager =
             new DeleteMessageBatchManager(
                 RequestBatchConfiguration.builder(builder.overrideConfiguration)
-                                         .shutdownGracePeriod(builder.shutdownGracePeriod)
+                                         .shutdownTimeout(builder.shutdownTimeout)
                                          .build(),
                 scheduledExecutor,
                 client
@@ -88,7 +88,7 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         this.changeMessageVisibilityBatchManager =
             new ChangeMessageVisibilityBatchManager(
                 RequestBatchConfiguration.builder(builder.overrideConfiguration)
-                                         .shutdownGracePeriod(builder.shutdownGracePeriod)
+                                         .shutdownTimeout(builder.shutdownTimeout)
                                          .build(),
                 scheduledExecutor,
                 client
@@ -136,19 +136,19 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         }
 
         List<CompletableFuture<Void>> futures =
-            requestBatchManagers.stream().map(requestBatchManager -> requestBatchManager.dispatchPending())
+            requestBatchManagers.stream().map(requestBatchManager -> requestBatchManager.closeAndDispatch())
                                                                     .collect(Collectors.toList());
 
         awaitQuietly(CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])),
-                     sendMessageBatchManager.shutdownGracePeriod());
+                     sendMessageBatchManager.shutdownTimeout());
 
         requestBatchManagers.forEach(requestBatchManager -> requestBatchManager.cancelPending());
         receiveMessageBatchManager.close();
     }
 
-    private static void awaitQuietly(CompletableFuture<?> pending, Duration grace) {
+    private static void awaitQuietly(CompletableFuture<?> pending, Duration timeout) {
         try {
-            pending.get(grace.toMillis(), TimeUnit.MILLISECONDS);
+            pending.get(timeout.toMillis(), TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (TimeoutException e) {
@@ -163,14 +163,14 @@ public final class DefaultSqsAsyncBatchManager implements SqsAsyncBatchManager {
         private SqsAsyncClient client;
         private BatchOverrideConfiguration overrideConfiguration;
         private ScheduledExecutorService scheduledExecutor;
-        private Duration shutdownGracePeriod;
+        private Duration shutdownTimeout;
 
         private DefaultBuilder() {
         }
 
         @SdkTestInternalApi
-        DefaultBuilder shutdownGracePeriod(Duration shutdownGracePeriod) {
-            this.shutdownGracePeriod = shutdownGracePeriod;
+        DefaultBuilder shutdownTimeout(Duration shutdownTimeout) {
+            this.shutdownTimeout = shutdownTimeout;
             return this;
         }
 
