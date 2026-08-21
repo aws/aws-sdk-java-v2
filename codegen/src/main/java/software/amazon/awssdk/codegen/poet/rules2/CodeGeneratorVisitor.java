@@ -109,6 +109,13 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
             builder.add(" == null");
             return null;
         }
+
+        // Peephole-optimized synthetic functions
+        if (fn.startsWith("__")) {
+            emitPeepholeOptimized(fn, e.arguments());
+            return null;
+        }
+
         RuleFunctionMirror func = typeMirror.resolveFunction(e.name());
         builder.add("$T.$L(", func.containingType().type(), func.javaName());
         List<RuleExpression> args = e.arguments();
@@ -124,9 +131,152 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
         return null;
     }
 
+    /**
+     * Emits peephole-optimized native Java code for synthetic function calls.
+     * These avoid allocations by using String.startsWith/endsWith/regionMatches
+     * and inline ternary expressions instead of calling RulesFunctions.
+     */
+    private void emitPeepholeOptimized(String fn, List<RuleExpression> args) {
+        switch (fn) {
+            case PrepareForCodegenVisitor.STARTS_WITH:
+                emitStartsWith(args);
+                break;
+            case PrepareForCodegenVisitor.ENDS_WITH:
+                emitEndsWith(args);
+                break;
+            case PrepareForCodegenVisitor.REGION_MATCHES:
+                emitRegionMatches(args);
+                break;
+            case PrepareForCodegenVisitor.ITE:
+                emitIte(args);
+                break;
+            case PrepareForCodegenVisitor.COALESCE_BOOL:
+                emitCoalesceBoolean(args);
+                break;
+            case PrepareForCodegenVisitor.IS_VALID_HOST_LABEL:
+                emitIsValidHostLabel(args);
+                break;
+            default:
+                throw new IllegalStateException("Unknown peephole function: " + fn);
+        }
+    }
+
+    /**
+     * Emits: {@code (str != null && str.startsWith("literal"))}
+     */
+    private void emitStartsWith(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null && ");
+        args.get(0).accept(this);
+        builder.add(".startsWith(");
+        args.get(1).accept(this);
+        builder.add("))");
+    }
+
+    /**
+     * Emits: {@code (str != null && str.endsWith("literal"))}
+     */
+    private void emitEndsWith(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null && ");
+        args.get(0).accept(this);
+        builder.add(".endsWith(");
+        args.get(1).accept(this);
+        builder.add("))");
+    }
+
+    /**
+     * Emits a regionMatches check. Offset can be negative to indicate "from end" (reverse=true).
+     * <ul>
+     *     <li>Positive offset: {@code (str != null && str.length() >= (offset + litLen)
+     *         && str.regionMatches(offset, "literal", 0, litLen))}</li>
+     *     <li>Negative offset (value = -stopIdx): {@code (str != null && str.length() >= stopIdx
+     *         && str.regionMatches(str.length() - stopIdx, "literal", 0, litLen))}</li>
+     * </ul>
+     */
+    private void emitRegionMatches(List<RuleExpression> args) {
+        RuleExpression strExpr = args.get(0);
+        int offset = ((LiteralIntegerExpression) args.get(1)).value();
+        String literal = ((LiteralStringExpression) args.get(2)).value();
+        int litLen = literal.length();
+
+        builder.add("(");
+        strExpr.accept(this);
+        builder.add(" != null && ");
+
+        if (offset >= 0) {
+            // Forward: str.length() >= (offset + litLen) && str.regionMatches(offset, literal, 0, litLen)
+            strExpr.accept(this);
+            builder.add(".length() >= $L && ", offset + litLen);
+            strExpr.accept(this);
+            builder.add(".regionMatches(");
+            builder.add("$L, $S, 0, $L", offset, literal, litLen);
+            builder.add("))");
+        } else {
+            // Reverse: offset encodes -(stopIdx). Actual position = str.length() - stopIdx
+            int stopIdx = -offset;
+            strExpr.accept(this);
+            builder.add(".length() >= $L && ", stopIdx);
+            strExpr.accept(this);
+            builder.add(".regionMatches(");
+            strExpr.accept(this);
+            builder.add(".length() - $L, $S, 0, $L", stopIdx, literal, litLen);
+            builder.add("))");
+        }
+    }
+
+    /**
+     * Emits: {@code (cond ? ifTrue : ifFalse)}
+     */
+    private void emitIte(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" ? ");
+        args.get(1).accept(this);
+        builder.add(" : ");
+        args.get(2).accept(this);
+        builder.add(")");
+    }
+
+    /**
+     * Emits: {@code (expr != null ? expr : defaultValue)}
+     */
+    private void emitCoalesceBoolean(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" != null ? ");
+        args.get(0).accept(this);
+        builder.add(" : ");
+        args.get(1).accept(this);
+        builder.add(")");
+    }
+
+    /**
+     * Emits: {@code RulesFunctions.isValidHostLabelSingle(str)} or
+     * {@code RulesFunctions.isValidHostLabelMulti(str)}
+     */
+    private void emitIsValidHostLabel(List<RuleExpression> args) {
+        boolean allowDots = ((LiteralBooleanExpression) args.get(1)).value();
+        RuleFunctionMirror func = typeMirror.resolveFunction("isValidHostLabel");
+        builder.add("$T.$L(", func.containingType().type(),
+                    allowDots ? "isValidHostLabelMulti" : "isValidHostLabelSingle");
+        args.get(0).accept(this);
+        builder.add(")");
+    }
+
     @Override
     public Void visitMethodCallExpression(MethodCallExpression e) {
+        // Wrap compound expressions (string concat) in parens to ensure correct binding
+        boolean needsParens = e.source().kind() == RuleExpression.RuleExpressionKind.STRING_CONCAT;
+        if (needsParens) {
+            builder.add("(");
+        }
         e.source().accept(this);
+        if (needsParens) {
+            builder.add(")");
+        }
         builder.add(".$L(", e.name());
         boolean isFirst = true;
         for (RuleExpression arg : e.arguments()) {
@@ -330,10 +480,16 @@ public class CodeGeneratorVisitor extends WalkRuleExpressionVisitor {
     public Void visitEndpointExpression(EndpointExpression e) {
         Map<String, RuleExpression> properties = e.properties().properties();
         boolean hasHeaders = !e.headers().headers().isEmpty();
+        boolean hasNoAttributes = !hasHeaders && properties.isEmpty();
         boolean hasAuthSchemesOnly = !hasHeaders && properties.size() == 1 && properties.containsKey("authSchemes");
         boolean hasTwoAttrs = !hasHeaders && properties.size() == 2 && properties.containsKey("authSchemes");
 
-        if (hasAuthSchemesOnly) {
+        if (hasNoAttributes) {
+            // Most optimized: Endpoint.of(url) — no attributes, no headers, no builder allocation
+            builder.add("return $T.of(", Endpoint.class);
+            EndpointUrlCodeEmitter.emit(e.url(), builder, this);
+            builder.addStatement(")");
+        } else if (hasAuthSchemesOnly) {
             // Optimized: Endpoint.ofAttribute(url, AUTH_SCHEMES, list)
             builder.add("return $T.ofAttribute(", Endpoint.class);
             EndpointUrlCodeEmitter.emit(e.url(), builder, this);

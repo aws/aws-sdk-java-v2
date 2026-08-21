@@ -199,6 +199,42 @@ public class RulesFunctions {
         return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
     }
 
+    /**
+     * Validates a single DNS label (no dots allowed). Equivalent to isValidHostLabel(str, false)
+     * but avoids the allowDots branch — called directly by optimized codegen.
+     */
+    public static boolean isValidHostLabelSingle(String hostLabel) {
+        int len = hostLabel == null ? 0 : hostLabel.length();
+        if (len == 0 || len > MAX_HOST_LABEL_SIZE) {
+            return false;
+        }
+        return isValidSingleLabel(hostLabel, 0, len);
+    }
+
+    /**
+     * Validates a multi-label DNS name (dots allowed). Equivalent to isValidHostLabel(str, true)
+     * but avoids the allowDots branch — called directly by optimized codegen.
+     */
+    public static boolean isValidHostLabelMulti(String hostLabel) {
+        int len = hostLabel == null ? 0 : hostLabel.length();
+        if (len == 0) {
+            return false;
+        }
+        int start = 0;
+        for (int i = 0; i <= len; i++) {
+            if (i == len || hostLabel.charAt(i) == '.') {
+                int chunkLen = i - start;
+                if (chunkLen < 1 || chunkLen > MAX_HOST_LABEL_SIZE) {
+                    return false;
+                } else if (!isValidSingleLabel(hostLabel, start, i)) {
+                    return false;
+                }
+                start = i + 1;
+            }
+        }
+        return true;
+    }
+
     private static boolean isLowerCaseAlphanumeric(char c) {
         return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
     }
