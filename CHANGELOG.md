@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.2__ __2026-08-21__
+## __AWS Backup__
+  - ### Features
+    - Updating CLI Docs for Backup Audit Manager List Job Summaries APIs.
+
+## __AWS Device Farm__
+  - ### Features
+    - Added support to CreateRemoveAccessSession for selecting a server version on the mobile WebDriver endpoint.
+
+## __AWS WAFV2__
+  - ### Features
+    - DataProtectionConfig field Key Documentation Update
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Increase spans count from 1k to 20k
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Update Dataset schema to THIRDPARTYEVALUATIONV1
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Allows customers to specify an initial warm up period to wait for metrics to arrive when creating metric or log alarms
+
+## __Amazon Kinesis__
+  - ### Features
+    - Generate account endpoint for Kinesis Data Streams requests when the account ID is available
+
+## __Netty NIO HTTP Client__
+  - ### Features
+    - Add support for Kerberos (SPNEGO) proxy authentication via the new `proxyAuthScheme` option on the Netty client's `ProxyConfiguration`. Setting `ProxyAuthScheme.NEGOTIATE` authenticates proxy CONNECT tunnels using the Kerberos ticket cache in the environment; a valid ticket-granting ticket must already exist (for example via `kinit`), and no password or keytab is read. `ProxyAuthScheme.BASIC` may also be set to select Basic authentication explicitly. See [#7033](https://github.com/aws/aws-sdk-java-v2/issues/7033).
+
+  - ### Bugfixes
+    - Fix `NettyNioAsyncHttpClient` errors when making requests in GraalVM native images, which can lead to timeout exceptions.
+    - Fixed a `NullPointerException` in `HandlerSubscriber` that could intermittently fail async requests (such as S3 `PutObject`/`UploadPart`) when a channel writability change occurred during the `Expect: 100-continue` window before the request body subscription was established. See [#7271](https://github.com/aws/aws-sdk-java-v2/issues/7271).
+
 # __2.54.1__ __2026-08-20__
 ## __ARC - Region switch__
   - ### Features
