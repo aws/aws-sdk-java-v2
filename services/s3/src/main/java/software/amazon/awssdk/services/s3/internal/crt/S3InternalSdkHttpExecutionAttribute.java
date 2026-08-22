@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.file.Path;
+import java.util.List;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttribute;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 
 @SdkInternalApi
@@ -66,6 +68,13 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
 
     public static final S3InternalSdkHttpExecutionAttribute<CrtCredentialsProviderAdapter> CRT_CREDENTIALS_PROVIDER_ADAPTER =
         new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);
+
+    /**
+     * Metric publishers that this request's CRT telemetry is published to.
+     */
+    @SuppressWarnings("unchecked")
+    public static final S3InternalSdkHttpExecutionAttribute<List<MetricPublisher>> METRIC_PUBLISHERS =
+            new S3InternalSdkHttpExecutionAttribute<>((Class<List<MetricPublisher>>) (Class<?>) List.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);

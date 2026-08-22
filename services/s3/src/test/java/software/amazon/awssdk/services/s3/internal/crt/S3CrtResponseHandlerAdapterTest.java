@@ -46,6 +46,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -69,7 +70,7 @@ public class S3CrtResponseHandlerAdapterTest {
         sdkResponseHandler = spy(new TestResponseHandler());
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
-                                                                 null,
+                                                                 SdkHttpExecutionAttributes.builder().build(),
                                                                  CompletableFuture.completedFuture(s3MetaRequest));
     }
 
@@ -102,7 +103,7 @@ public class S3CrtResponseHandlerAdapterTest {
     public void s3MetaRequestNotFinish_shouldFailFuture() throws Exception {
         S3CrtResponseHandlerAdapter responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                                              sdkResponseHandler,
-                                                                                             null,
+                                                                                             SdkHttpExecutionAttributes.builder().build(),
                                                                                              new CompletableFuture<>(),
                                                                                              Duration.ofMillis(10));
         int statusCode = 200;
