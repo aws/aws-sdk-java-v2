@@ -57,6 +57,7 @@ import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -649,6 +650,41 @@ public final class ClientClassUtils {
         b.endControlFlow();
 
         return b.build();
+    }
+
+    static MethodSpec resolveMetricPublishersMethod() {
+        String clientConfigName = "clientConfiguration";
+        String requestOverrideConfigName = "requestOverrideConfiguration";
+
+        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("resolveMetricPublishers")
+                .addModifiers(PRIVATE, STATIC)
+                .returns(ParameterizedTypeName.get(List.class, MetricPublisher.class))
+                .addParameter(SdkClientConfiguration.class, clientConfigName)
+                .addParameter(RequestOverrideConfiguration.class, requestOverrideConfigName);
+
+        String publishersName = "publishers";
+
+        methodBuilder.addStatement("$T $N = null", ParameterizedTypeName.get(List.class, MetricPublisher.class), publishersName);
+
+        methodBuilder.beginControlFlow("if ($N != null)", requestOverrideConfigName)
+                .addStatement("$N = $N.metricPublishers()", publishersName, requestOverrideConfigName)
+                .endControlFlow();
+
+        methodBuilder.beginControlFlow("if ($1N == null || $1N.isEmpty())", publishersName)
+                .addStatement("$N = $N.option($T.$N)",
+                              publishersName,
+                              clientConfigName,
+                              SdkClientOption.class,
+                              "METRIC_PUBLISHERS")
+                .endControlFlow();
+
+        methodBuilder.beginControlFlow("if ($1N == null)", publishersName)
+                .addStatement("$N = $T.emptyList()", publishersName, Collections.class)
+                .endControlFlow();
+
+        methodBuilder.addStatement("return $N", publishersName);
+
+        return methodBuilder.build();
     }
 
     /**
