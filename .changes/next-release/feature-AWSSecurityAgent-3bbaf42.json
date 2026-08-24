@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Agent",
+    "contributor": "",
+    "description": "Adding private and self-signed certificate configuration support for penetration tests"
+}
