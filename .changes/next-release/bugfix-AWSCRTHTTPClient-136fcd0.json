@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Fixed an issue where an error thrown while reading the request body stream was printed to stderr on a CRT event loop thread instead of failing the request with the original error. See [#6715](https://github.com/aws/aws-sdk-java-v2/issues/6715)."
+}

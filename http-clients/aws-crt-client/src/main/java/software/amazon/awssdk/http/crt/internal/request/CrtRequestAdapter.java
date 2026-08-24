@@ -62,7 +62,7 @@ public final class CrtRequestAdapter {
                                crtRequestBodyAdapter);
     }
 
-    public static HttpRequest toCrtRequest(CrtRequestContext request) {
+    public static HttpRequest toCrtRequest(CrtRequestContext request, Consumer<Throwable> onBodyError) {
 
         HttpExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.httpRequest();
@@ -84,7 +84,7 @@ public final class CrtRequestAdapter {
                                 .map(provider -> new HttpRequest(method,
                                                                  finalEncodedPath,
                                                                  crtHeaderArray,
-                                                                 new CrtRequestInputStreamAdapter(provider)))
+                                                                 new CrtRequestInputStreamAdapter(provider, onBodyError)))
                                 .orElse(new HttpRequest(method,
                                                         finalEncodedPath,
                                                         crtHeaderArray, null));
