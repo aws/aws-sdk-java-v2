@@ -44,9 +44,11 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.ItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemResponse;
@@ -2275,11 +2277,16 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             .tableName(getTableName(clazz, config))
             .keySchema(keySchema)
             .attributeDefinitions(attributeDefinitions);
-        if (model.globalSecondaryIndexes() != null) {
-            request.globalSecondaryIndexes(model.globalSecondaryIndexes());
+        // globalSecondaryIndexes()/localSecondaryIndexes() rebuild their collections on every call and
+        // return null (not empty) when the class declares none, so read once and guard on null to keep
+        // the v1 behavior of leaving the field unset.
+        final Collection<GlobalSecondaryIndex> globalSecondaryIndexes = model.globalSecondaryIndexes();
+        if (globalSecondaryIndexes != null) {
+            request.globalSecondaryIndexes(globalSecondaryIndexes);
         }
-        if (model.localSecondaryIndexes() != null) {
-            request.localSecondaryIndexes(model.localSecondaryIndexes());
+        final Collection<LocalSecondaryIndex> localSecondaryIndexes = model.localSecondaryIndexes();
+        if (localSecondaryIndexes != null) {
+            request.localSecondaryIndexes(localSecondaryIndexes);
         }
         return request.build();
     }
