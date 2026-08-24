@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.3__ __2026-08-24__
+## __AWS Batch__
+  - ### Features
+    - Doc Update, Add note that UpdatePolicy applies only to EC2 managed compute environments
+
+## __AWS Elemental Inference__
+  - ### Features
+    - Added support for the GetFixture API, enabling customers to retrieve the details of a fixture from its fixture ID, and added the access role ARN to the CreateFeed, GetFeed, and UpdateFeed responses.
+
+## __AWS Launch Wizard__
+  - ### Features
+    - Added accountConstraints and patternType to GetWorkload, ListWorkloads, GetWorkloadDeploymentPattern and ListWorkloadDeploymentPatterns for Launch Wizard
+
+## __AWS Security Agent__
+  - ### Features
+    - Adding private and self-signed certificate configuration support for penetration tests
+
+## __Amazon Aurora DSQL__
+  - ### Features
+    - Corrected the validation pattern on the ServiceName response field in the GetVpcEndpointServiceName API to match the values Amazon Aurora DSQL actually returns.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Adds support for specifying an inference profile ID or ARN, or an application inference profile ARN as the target model in CreateAdvancedPromptOptimizationJob.
+
+## __Amazon Connect Contact Lens__
+  - ### Features
+    - This release adds the ExtractedInformation segment to the ListRealtimeContactAnalysisSegments API, enabling customers to retrieve information extracted from real-time contact analysis.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the ExtractedInformation segment to the ListRealtimeContactAnalysisSegmentsV2 API, enabling customers to retrieve information extracted from real-time contact analysis.
+
+## __Managed Streaming for Kafka__
+  - ### Features
+    - Amazon MSK Replicator now supports OAuth authentication when connecting to external Apache Kafka clusters, enabling customers to replicate data from clusters that require OAuth for client authentication. This new capability is supported in all AWS Regions where MSK Express brokers are available.
+
+## __Timestream InfluxDB__
+  - ### Features
+    - Service-managed parameter groups now only apply optimized defaults to DB Clusters automatically. New field effectiveDbParameterGroupIdentifier surfaces the parameter group actually applied.
+
 # __2.54.2__ __2026-08-21__
 ## __AWS Backup__
   - ### Features
