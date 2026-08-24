@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Launch Wizard",
-    "contributor": "",
-    "description": "Added accountConstraints and patternType to GetWorkload, ListWorkloads, GetWorkloadDeploymentPattern and ListWorkloadDeploymentPatterns for Launch Wizard"
-}
