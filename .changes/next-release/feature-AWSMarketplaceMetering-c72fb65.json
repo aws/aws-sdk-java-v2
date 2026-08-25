@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWSMarketplace Metering",
+    "contributor": "",
+    "description": "Updated documentation to clarify duplicate-billing prevention and BatchMeterUsage retry guidance"
+}
