@@ -70,11 +70,12 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
         new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);
 
     /**
-     * Metric publishers that this request's CRT telemetry is published to.
+     * The metric publishers this request's CRT telemetry is published to: the request-level publishers if the request
+     * set any, otherwise the client-level publishers. The CRT transport resolves the two and folds the effective set in.
      */
     @SuppressWarnings("unchecked")
     public static final S3InternalSdkHttpExecutionAttribute<List<MetricPublisher>> METRIC_PUBLISHERS =
-            new S3InternalSdkHttpExecutionAttribute<>((Class<List<MetricPublisher>>) (Class<?>) List.class);
+        new S3InternalSdkHttpExecutionAttribute<>((Class<List<MetricPublisher>>) (Class<?>) List.class);
 
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);

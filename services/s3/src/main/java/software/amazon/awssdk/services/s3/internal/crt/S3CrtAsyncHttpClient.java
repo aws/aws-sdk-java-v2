@@ -166,14 +166,20 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
 
-        // The adapter reads its inputs from the execution attributes, so attach the client-level publishers here when
-        // there are any. toBuilder() preserves everything already in the bag (including CRT_PROGRESS_LISTENER); skip the
-        // copy entirely when no publishers are configured, to avoid rebuilding the bag on every request.
+        // The adapter reads its inputs from the execution attributes. METRIC_PUBLISHERS currently holds the
+        // request-level publishers (if any) the interceptor stashed; resolve them against the client-level publishers
+        // (request-level takes precedence) and attach the effective set here when there are any. toBuilder() preserves
+        // everything already in the bag (including CRT_PROGRESS_LISTENER); skip the copy entirely when no publishers
+        // are configured, to avoid rebuilding the bag on every request.
+        List<MetricPublisher> requestMetricPublishers =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
+        List<MetricPublisher> effectivePublishers = resolveEffectiveMetricPublishers(requestMetricPublishers,
+                                                                                     metricPublishers);
         SdkHttpExecutionAttributes adapterAttributes = httpExecutionAttributes;
-        if (!metricPublishers.isEmpty()) {
+        if (!effectivePublishers.isEmpty()) {
             adapterAttributes = httpExecutionAttributes.toBuilder()
                                                        .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS,
-                                                            metricPublishers)
+                                                            effectivePublishers)
                                                        .build();
         }
 
@@ -230,6 +236,19 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return executeFuture;
+    }
+
+    /**
+     * Request-level publishers (if any were set on the request override) take precedence over the client-level
+     * publishers; otherwise the client-level publishers are used.
+     */
+    @SdkTestInternalApi
+    static List<MetricPublisher> resolveEffectiveMetricPublishers(List<MetricPublisher> requestLevel,
+                                                                  List<MetricPublisher> clientLevel) {
+        if (requestLevel != null && !requestLevel.isEmpty()) {
+            return requestLevel;
+        }
+        return clientLevel;
     }
 
     private AwsSigningConfig awsSigningConfig(Region signingRegion, SdkHttpExecutionAttributes httpExecutionAttributes) {

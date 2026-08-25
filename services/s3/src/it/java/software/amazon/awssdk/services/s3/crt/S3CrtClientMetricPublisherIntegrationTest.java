@@ -41,9 +41,9 @@ import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
 /**
- * Verifies that the CRT-based S3 client publishes CRT native request telemetry to a client-level {@link MetricPublisher}
- * configured via {@code crtBuilder().addMetricPublisher(...)}. Each underlying CRT request attempt is published as its
- * own {@code ApiCall -> ApiCallAttempt -> HttpClient} {@link MetricCollection}, so a multipart transfer yields several.
+ * Verifies that the CRT-based S3 client publishes CRT native request telemetry to client-level and request-level
+ * {@link MetricPublisher}s. Each underlying CRT request attempt is published as its own
+ * {@code ApiCall -> ApiCallAttempt -> HttpClient} {@link MetricCollection}, so a multipart transfer yields several.
  */
 @Timeout(value = 5, unit = TimeUnit.MINUTES)
 public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTestBase {
@@ -132,6 +132,60 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
         collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
         assertThat(collections).anySatisfy(
             c -> assertThat(c.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).contains(false));
+    }
+
+    @Test
+    void requestLevelPublisher_overridesClientLevelPublisher() throws InterruptedException {
+        CapturingMetricPublisher clientPublisher = new CapturingMetricPublisher();
+        CapturingMetricPublisher requestPublisher = new CapturingMetricPublisher();
+
+        try (S3AsyncClient client = crtClientWith(clientPublisher)) {
+            client.getObject(b -> b.bucket(BUCKET).key(SMALL_KEY)
+                                   .overrideConfiguration(o -> o.addMetricPublisher(requestPublisher)),
+                             AsyncResponseTransformer.toBytes()).join();
+
+            // The request-level publisher receives the CRT telemetry ...
+            List<MetricCollection> requestCollections = requestPublisher.awaitAtLeast(1, Duration.ofSeconds(30));
+            assertThat(requestCollections).isNotEmpty();
+            requestCollections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
+
+            // ... and this client's own client-level publisher receives nothing, since request-level takes precedence.
+            assertThat(clientPublisher.awaitAtLeast(1, Duration.ofSeconds(1))).isEmpty();
+        }
+    }
+
+    @Test
+    void copyObjectWithRequestLevelPublisher_publishesSubRequestTelemetryToIt() throws InterruptedException {
+        CapturingMetricPublisher clientPublisher = new CapturingMetricPublisher();
+        CapturingMetricPublisher requestPublisher = new CapturingMetricPublisher();
+        String destinationKey = "copy-dest-" + System.nanoTime();
+
+        try (S3AsyncClient client = crtClientWith(clientPublisher)) {
+            // Copy the large object so the copy is orchestrated as multiple sub-requests (head, create, part-copies,
+            // complete). The wrapper attaches the request-level publisher to every sub-request, so each publishes its
+            // own CRT ApiCall collection to it - proving the copyObject wrapper path end-to-end against real S3.
+            client.copyObject(b -> b.sourceBucket(BUCKET).sourceKey(LARGE_KEY)
+                                    .destinationBucket(BUCKET).destinationKey(destinationKey)
+                                    .overrideConfiguration(o -> o.addMetricPublisher(requestPublisher)))
+                  .join();
+
+            List<MetricCollection> collections = requestPublisher.awaitAtLeast(2, Duration.ofSeconds(60));
+            assertThat(collections).hasSizeGreaterThanOrEqualTo(2);
+            collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
+
+            // request-level takes precedence, so this client's own client-level publisher sees none of the sub-requests.
+            assertThat(clientPublisher.awaitAtLeast(1, Duration.ofSeconds(1))).isEmpty();
+        }
+    }
+
+    private static S3AsyncClient crtClientWith(MetricPublisher clientLevelPublisher) {
+        return S3AsyncClient.crtBuilder()
+                            .region(S3IntegrationTestBase.DEFAULT_REGION)
+                            .credentialsProvider(AwsTestBase.CREDENTIALS_PROVIDER_CHAIN)
+                            .minimumPartSizeInBytes(PART_SIZE)
+                            .thresholdInBytes(PART_SIZE)
+                            .addMetricPublisher(clientLevelPublisher)
+                            .build();
     }
 
     private static void assertIsCrtApiCallCollection(MetricCollection apiCall) {
