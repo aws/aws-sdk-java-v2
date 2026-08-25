@@ -22,6 +22,7 @@ import software.amazon.awssdk.codegen.IntermediateModelBuilder;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -644,6 +645,87 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    /**
+     * Uses the S3 BDD, which contains an auth scheme whose name is resolved at runtime. That requires the
+     * {@code useS3ExpressSessionAuth} customization to be enabled.
+     */
+    public static IntermediateModel queryServiceModelsWithBddEndpoints() {
+        return queryServiceModelsWithBddEndpoints(true);
+    }
+
+    public static IntermediateModel queryServiceModelsWithBddEndpoints(boolean useS3ExpressSessionAuth) {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-default-regional.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+        File endpointBddModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-s3.json").getFile());
+        CustomizationConfig customizationConfig = CustomizationConfig.create();
+        customizationConfig.setUseS3ExpressSessionAuth(useS3ExpressSessionAuth);
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .waitersModel(getWaiters(waitersModel))
+            .customizationConfig(customizationConfig)
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .endpointBddModel(getEndpointBdd(endpointBddModel))
+            .build();
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    /**
+     * Uses the simple default-regional BDD (Connect-like, no dynamic auth schemes).
+     * Suitable for fixture-based golden file tests.
+     */
+    public static IntermediateModel queryServiceModelsWithSimpleBddEndpoints() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-default-regional.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+        File endpointBddModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-default-regional.json").getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .waitersModel(getWaiters(waitersModel))
+            .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .endpointBddModel(getEndpointBdd(endpointBddModel))
+            .build();
+        return new IntermediateModelBuilder(models).build();
+    }
+
+    /**
+     * Uses a hand-crafted BDD with a complement edge (negative node reference) to verify that
+     * nodeN methods are generated correctly with swapped branches.
+     */
+    public static IntermediateModel queryServiceModelsWithComplementBddEndpoints() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-default-regional.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
+        File endpointBddModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-bdd-complement.json").getFile());
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .waitersModel(getWaiters(waitersModel))
+            .customizationConfig(CustomizationConfig.create())
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .endpointBddModel(getEndpointBdd(endpointBddModel))
+            .build();
+        return new IntermediateModelBuilder(models).build();
+    }
+
     private static ServiceModel getServiceModel(File file) {
         return ModelLoaderUtils.loadModel(ServiceModel.class, file);
     }
@@ -687,5 +769,9 @@ public class ClientTestModels {
 
     private static Paginators getPaginatorsModel(File file) {
         return ModelLoaderUtils.loadModel(Paginators.class, file);
+    }
+
+    private static EndpointBddModel getEndpointBdd(File file) {
+        return ModelLoaderUtils.loadModel(EndpointBddModel.class, file);
     }
 }
