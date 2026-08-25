@@ -1,4 +1,53 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.4__ __2026-08-25__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds the UpdateApprovalAction API for resolving agent action approvals in AWS DevOps Agent agent spaces.
+
+## __AWS IoT__
+  - ### Features
+    - As part of this release, we are extending capability of AWS IoT Rules Engine to support IoT InfluxDB Action. The IoT InfluxDB action lets customers send messages from IoT sensors and applications to InfluxDB.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Extract the duplicated resolveMetricPublishers generator into ClientClassUtils, removing  verbatim duplication across the sync and async client generators. No change to generated client code or SDK behavior.
+        - Contributed by: [@Se3do](https://github.com/Se3do)
+
+  - ### Bugfixes
+    - Fix an issue where futures from the async SDK clients don't complete with an exception when the client or its [scheduled executor service](https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/core/client/config/ClientOverrideConfiguration.html#scheduledExecutorService()) is closed. See [#7313](https://github.com/aws/aws-sdk-java-v2/issues/7313) for more details.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - Updated documentation to clarify duplicate-billing prevention and BatchMeterUsage retry guidance
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Fleet feature to support Capacity Reservation Resource Groups with Amazon EC2 Capacity Blocks and interruptible Capacity Reservations
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - This feature would give customers the ability to tune TerminatedPodGcThreshold configuration in an Amazon EKS cluster.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - EVS now supports i7i.metal-48xl EC2 bare metal instance type, delivering high random IOPS performance with real-time latency, ideal for IO intensive and latency-sensitive workloads such as transactional databases, real-time analytics, and AI ML pre-processing.
+
+## __Amazon SQS__
+  - ### Bugfixes
+    - Fixed `SqsAsyncBatchManager.close()` re-sending the same buffered batch in a busy loop. On close, each buffered batch (including partial batches) is now flushed exactly once, and close waits a bounded timeout (approximately 5 seconds) for in-flight batch sends to complete so their callers receive the real result instead of a cancellation.
+
+## __Auto Scaling__
+  - ### Features
+    - Adds support for Distribution Segments in mixed instances policies, providing ordered prioritization across On-Demand Capacity Reservations, Capacity Blocks, interruptible Capacity Reservations, and On-Demand capacity.
+
+## __IAM Toolbox (Preview)__
+  - ### Features
+    - AWS Identity and Access Management (IAM) announces access troubleshooter, helping you debug access denied errors faster. Supported error messages now include an identifier you can use to retrieve detailed evaluations of the policies considered and their results. Preview in US East (N. Virginia).
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Se3do](https://github.com/Se3do)
 # __2.54.3__ __2026-08-24__
 ## __AWS Batch__
   - ### Features
