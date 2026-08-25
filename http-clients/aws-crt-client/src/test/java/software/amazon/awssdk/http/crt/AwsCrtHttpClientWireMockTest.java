@@ -20,6 +20,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
+import static java.util.Collections.emptyMap;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
@@ -34,6 +35,8 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.waitForEven
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URI;
 import java.time.Duration;
 import java.util.Set;
@@ -54,6 +57,7 @@ import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -274,6 +278,54 @@ public class AwsCrtHttpClientWireMockTest extends SdkHttpClientTestSuite  {
                 executableRequest.abort();
             assertThatThrownBy(() -> executableRequest.call()).isInstanceOf(IOException.class)
                 .hasMessageContaining("cancelled");
+        }
+    }
+
+    @Test
+    public void call_requestBodyStreamThrows_surfacesOriginalIoException() throws Exception {
+        try (SdkHttpClient client = AwsCrtHttpClient.create()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withStatus(200)));
+            SdkHttpRequest request = createRequest(uri, "/", new byte[] {1, 2, 3, 4, 5}, SdkHttpMethod.PUT, emptyMap());
+
+            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+            executeRequestBuilder.request(request)
+                                 .contentStreamProvider(() -> new InputStream() {
+                                     @Override
+                                     public int read() throws IOException {
+                                         throw new IOException("boom");
+                                     }
+
+                                     @Override
+                                     public int read(byte[] b, int off, int len) throws IOException {
+                                         throw new IOException("boom");
+                                     }
+                                 });
+            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+
+            assertThatThrownBy(executableRequest::call)
+                .isInstanceOf(IOException.class)
+                .hasMessageContaining("boom");
+        }
+    }
+
+    @Test
+    public void call_requestBodyProviderThrowsUncheckedIoException_surfacesOriginalError() throws Exception {
+        try (SdkHttpClient client = AwsCrtHttpClient.create()) {
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withStatus(200)));
+            SdkHttpRequest request = createRequest(uri, "/", new byte[] {1, 2, 3, 4, 5}, SdkHttpMethod.PUT, emptyMap());
+
+            HttpExecuteRequest.Builder executeRequestBuilder = HttpExecuteRequest.builder();
+            executeRequestBuilder.request(request)
+                                 .contentStreamProvider(() -> {
+                                     throw new UncheckedIOException(new IOException("boom"));
+                                 });
+            ExecutableHttpRequest executableRequest = client.prepareRequest(executeRequestBuilder.build());
+
+            assertThatThrownBy(executableRequest::call)
+                .hasRootCauseInstanceOf(IOException.class)
+                .hasRootCauseMessage("boom");
         }
     }
 

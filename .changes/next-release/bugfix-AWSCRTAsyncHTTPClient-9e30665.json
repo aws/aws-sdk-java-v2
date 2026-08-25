@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT Async HTTP Client",
+    "contributor": "",
+    "description": "Fixed an issue where an error signaled by a request body publisher was printed to stderr on a CRT event loop thread instead of failing the request with the original error."
+}

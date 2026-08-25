@@ -58,7 +58,7 @@ public final class CrtRequestExecutor {
         InputStreamAdaptingHttpStreamResponseHandler crtResponseHandler =
             new InputStreamAdaptingHttpStreamResponseHandler(requestFuture);
 
-        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext);
+        HttpRequest crtRequest = CrtRequestAdapter.toCrtRequest(executionContext, requestFuture::completeExceptionally);
         HttpStreamManager streamManager = executionContext.streamManager();
 
         CompletableFuture<HttpStreamBase> streamFuture =

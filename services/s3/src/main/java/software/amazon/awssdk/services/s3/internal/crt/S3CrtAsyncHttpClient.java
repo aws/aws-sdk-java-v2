@@ -138,7 +138,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         URI uri = asyncRequest.request().getUri();
-        HttpRequest httpRequest = toCrtRequest(asyncRequest);
+        HttpRequest httpRequest = toCrtRequest(asyncRequest, executeFuture);
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture = new CompletableFuture<>();
 
@@ -261,7 +261,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
     }
 
-    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {
+    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest, CompletableFuture<Void> executeFuture) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
 
         Path requestFilePath = asyncRequest.httpExecutionAttributes().getAttribute(OBJECT_FILE_PATH);
@@ -280,7 +280,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
 
         S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
-            requestFilePath == null ? new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher()) : null;
+            requestFilePath == null
+            ? new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher(), executeFuture)
+            : null;
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, sdkToCrtRequestPublisher);
     }
