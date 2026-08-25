@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * matches the client's. New objects will be assigned a version of 1 when saved.</p>
  * <p>Note that for batchWrite, and by extension batchSave and batchDelete, <b>no
  * version checks are performed</b>, as required by the
- * {@link com.amazonaws.services.dynamodbv2.AmazonDynamoDB#batchWriteItem(BatchWriteItemRequest)}
+ * {@link software.amazon.awssdk.services.dynamodb.DynamoDbClient#batchWriteItem(BatchWriteItemRequest)}
  * API.</p>
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBVersioned

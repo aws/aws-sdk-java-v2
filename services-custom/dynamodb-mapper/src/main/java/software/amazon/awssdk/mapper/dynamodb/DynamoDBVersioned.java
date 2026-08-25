@@ -43,7 +43,7 @@ import java.util.Arrays;
  *
  * <p>Note that for batchWrite, and by extension batchSave and batchDelete,
  * <b>no version checks are performed</b>, as required by the
- * {@link com.amazonaws.services.dynamodbv2.AmazonDynamoDB#batchWriteItem(BatchWriteItemRequest)}
+ * {@link software.amazon.awssdk.services.dynamodb.DynamoDbClient#batchWriteItem(BatchWriteItemRequest)}
  * API.</p>
  *
  * <p>May be used as a meta-annotation.</p>

@@ -16,25 +16,25 @@ package software.amazon.awssdk.mapper.dynamodb.test.resources;
 
 import java.util.List;
 
-import com.amazonaws.AmazonServiceException;
 import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBTestBase;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndexDescription;
-import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndexDescription;
-import com.amazonaws.services.dynamodbv2.model.Projection;
-import com.amazonaws.services.dynamodbv2.model.TableDescription;
-import com.amazonaws.services.dynamodbv2.model.TableStatus;
-import com.amazonaws.services.dynamodbv2.util.TableUtils;
-import software.amazon.awssdk.mapper.dynamodb.test.resources.TestResource;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DescribeTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndexDescription;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndexDescription;
+import software.amazon.awssdk.services.dynamodb.model.Projection;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
+import software.amazon.awssdk.services.dynamodb.model.TableDescription;
+import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.mapper.dynamodb.test.util.UnorderedCollectionComparator;
 import software.amazon.awssdk.mapper.dynamodb.test.util.UnorderedCollectionComparator.CrossTypeComparator;
 
 public abstract class DynamoDBTableResource implements TestResource {
 
-    protected abstract AmazonDynamoDB getClient();
+    protected abstract DynamoDbClient getClient();
 
     protected abstract CreateTableRequest getCreateTableRequest();
 
@@ -49,22 +49,20 @@ public abstract class DynamoDBTableResource implements TestResource {
 
         if (waitTillFinished) {
             System.out.println("Waiting for " + this + " to become active...");
-            try {
-                TableUtils.waitUntilActive(getClient(), getCreateTableRequest().getTableName());
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            getClient().waiter().waitUntilTableExists(
+                    b -> b.tableName(getCreateTableRequest().tableName()));
         }
     }
 
     @Override
     public void delete(boolean waitTillFinished) {
         System.out.println("Deleting " + this + "...");
-        getClient().deleteTable(getCreateTableRequest().getTableName());
+        getClient().deleteTable(DeleteTableRequest.builder()
+                .tableName(getCreateTableRequest().tableName()).build());
 
         if (waitTillFinished) {
             System.out.println("Waiting for " + this + " to become deleted...");
-            DynamoDBTestBase.waitForTableToBecomeDeleted(getClient(), getCreateTableRequest().getTableName());
+            DynamoDBTestBase.waitForTableToBecomeDeleted(getClient(), getCreateTableRequest().tableName());
         }
     }
 
@@ -73,29 +71,27 @@ public abstract class DynamoDBTableResource implements TestResource {
         CreateTableRequest createRequest = getCreateTableRequest();
         TableDescription table = null;
         try {
-            table = getClient().describeTable(
-                    createRequest.getTableName()).getTable();
-        } catch (AmazonServiceException ase) {
-            if ( ase.getErrorCode().equalsIgnoreCase("ResourceNotFoundException")) {
-                return ResourceStatus.NOT_EXIST;
-            }
+            table = getClient().describeTable(DescribeTableRequest.builder()
+                    .tableName(createRequest.tableName()).build()).table();
+        } catch (ResourceNotFoundException rnfe) {
+            return ResourceStatus.NOT_EXIST;
         }
 
-        String tableStatus = table.getTableStatus();
+        TableStatus tableStatus = table.tableStatus();
 
-        if (tableStatus.equals(TableStatus.ACTIVE.toString())) {
+        if (tableStatus == TableStatus.ACTIVE) {
             // returns AVAILABLE only if table KeySchema + LSIs + GSIs all match.
-            if (UnorderedCollectionComparator.equalUnorderedCollections(createRequest.getKeySchema(), table.getKeySchema())
-                 && equalUnorderedGsiLists(createRequest.getGlobalSecondaryIndexes(), table.getGlobalSecondaryIndexes())
-                 && equalUnorderedLsiLists(createRequest.getLocalSecondaryIndexes(), table.getLocalSecondaryIndexes())
+            if (UnorderedCollectionComparator.equalUnorderedCollections(createRequest.keySchema(), table.keySchema())
+                 && equalUnorderedGsiLists(createRequest.globalSecondaryIndexes(), table.globalSecondaryIndexes())
+                 && equalUnorderedLsiLists(createRequest.localSecondaryIndexes(), table.localSecondaryIndexes())
                ) {
                 return ResourceStatus.AVAILABLE;
             } else {
                 return ResourceStatus.EXIST_INCOMPATIBLE_RESOURCE;
             }
-        } else if (tableStatus.equals(TableStatus.CREATING.toString())
-                || tableStatus.equals(TableStatus.UPDATING.toString())
-                || tableStatus.equals(TableStatus.DELETING.toString())) {
+        } else if (tableStatus == TableStatus.CREATING
+                || tableStatus == TableStatus.UPDATING
+                || tableStatus == TableStatus.DELETING) {
             return ResourceStatus.TRANSIENT;
         } else {
             return ResourceStatus.NOT_EXIST;
@@ -115,9 +111,9 @@ public abstract class DynamoDBTableResource implements TestResource {
                 new CrossTypeComparator<GlobalSecondaryIndex, GlobalSecondaryIndexDescription>() {
                     @Override
                     public boolean equals(GlobalSecondaryIndex a, GlobalSecondaryIndexDescription b) {
-                        return a.getIndexName().equals(b.getIndexName())
-                                && equalProjections(a.getProjection(), b.getProjection())
-                                && UnorderedCollectionComparator.equalUnorderedCollections(a.getKeySchema(), b.getKeySchema());
+                        return a.indexName().equals(b.indexName())
+                                && equalProjections(a.projection(), b.projection())
+                                && UnorderedCollectionComparator.equalUnorderedCollections(a.keySchema(), b.keySchema());
                     }
                 });
     }
@@ -138,9 +134,9 @@ public abstract class DynamoDBTableResource implements TestResource {
                         // Project parameter might not be specified in the
                         // CreateTableRequest. But it should be treated as equal
                         // to the default projection type - KEYS_ONLY.
-                        return a.getIndexName().equals(b.getIndexName())
-                                && equalProjections(a.getProjection(), b.getProjection())
-                                && UnorderedCollectionComparator.equalUnorderedCollections(a.getKeySchema(), b.getKeySchema());
+                        return a.indexName().equals(b.indexName())
+                                && equalProjections(a.projection(), b.projection())
+                                && UnorderedCollectionComparator.equalUnorderedCollections(a.keySchema(), b.keySchema());
                     }
                 });
     }
@@ -154,11 +150,11 @@ public abstract class DynamoDBTableResource implements TestResource {
             throw new IllegalStateException("The projection parameter should never be null.");
         }
 
-        return fromCreateTableRequest.getProjectionType().equals(
-                    fromDescribeTableResult.getProjectionType())
+        return fromCreateTableRequest.projectionType().equals(
+                    fromDescribeTableResult.projectionType())
                 && UnorderedCollectionComparator.equalUnorderedCollections(
-                        fromCreateTableRequest.getNonKeyAttributes(),
-                        fromDescribeTableResult.getNonKeyAttributes());
+                        fromCreateTableRequest.nonKeyAttributes(),
+                        fromDescribeTableResult.nonKeyAttributes());
     }
 
 
@@ -167,7 +163,7 @@ public abstract class DynamoDBTableResource implements TestResource {
      */
     @Override
     public String toString() {
-        return "DynamoDB Table [" + getCreateTableRequest().getTableName() + "]";
+        return "DynamoDB Table [" + getCreateTableRequest().tableName() + "]";
     }
 
     @Override
