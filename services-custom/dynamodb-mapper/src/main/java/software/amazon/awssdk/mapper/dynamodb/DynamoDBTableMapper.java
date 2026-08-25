@@ -315,7 +315,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object exists.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#save
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue
      */
     public void saveIfNotExists(T object) throws ConditionalCheckFailedException {
         final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
@@ -333,7 +333,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object does not exist.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#save
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue
      */
     public void saveIfExists(T object) throws ConditionalCheckFailedException {
         final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
@@ -371,7 +371,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object does not exist.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#delete
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue
      */
     public void deleteIfExists(T object) throws ConditionalCheckFailedException {
         final DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
@@ -480,7 +480,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @param throughput The provisioned throughput.
      * @return The table decription.
      * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#createTable
-     * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
+     * @see software.amazon.awssdk.services.dynamodb.model.CreateTableRequest
      */
     public TableDescription createTable(ProvisionedThroughput throughput) {
         // v1 mutated the generated request in place to stamp throughput onto the table and every GSI;
@@ -503,7 +503,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @param throughput The provisioned throughput.
      * @return True if created, or false if the table already existed.
      * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#createTable
-     * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
+     * @see software.amazon.awssdk.services.dynamodb.model.CreateTableRequest
      */
     public boolean createTableIfNotExists(ProvisionedThroughput throughput) {
         try {
@@ -521,7 +521,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * Deletes the table.
      * @return The table decription.
      * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#deleteTable
-     * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
+     * @see software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest
      */
     public TableDescription deleteTable() {
         return db.deleteTable(mapper.generateDeleteTableRequest(model.targetType())).tableDescription();
@@ -532,7 +532,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * it does not already exist.
      * @return True if the table was deleted, or false if the table did not exist.
      * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#deleteTable
-     * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
+     * @see software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest
      */
     public boolean deleteTableIfExists() {
         try {
