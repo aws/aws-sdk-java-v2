@@ -48,6 +48,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
@@ -330,9 +331,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         String userAgent = model.getCustomizationConfig().getUserAgent();
         RetryMode defaultRetryMode = model.getCustomizationConfig().getDefaultRetryMode();
         Boolean defaultNewRetries2026 = model.getCustomizationConfig().getDefaultNewRetries2026();
+        Boolean defaultEnableReadTimeout2026 = model.getCustomizationConfig().getDefaultEnableReadTimeout2026();
 
         // If none of the options are customized, then we do not need to bother overriding the method
-        if (userAgent == null && defaultRetryMode == null && defaultNewRetries2026 == null) {
+        if (!hasInternalDefaults()) {
             return Optional.empty();
         }
 
@@ -354,8 +356,20 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode("c.option($T.DEFAULT_NEW_RETRIES_2026, $L);\n",
                             SdkClientOption.class, defaultNewRetries2026);
         }
+        if (defaultEnableReadTimeout2026 != null) {
+            builder.addCode("c.option($T.DEFAULT_ENABLE_READ_TIMEOUT_2026, $L);\n",
+                            SdkClientOption.class, defaultEnableReadTimeout2026);
+        }
         builder.addCode("});\n");
         return Optional.of(builder.build());
+    }
+
+    private boolean hasInternalDefaults() {
+        CustomizationConfig customizationConfig = model.getCustomizationConfig();
+        return customizationConfig.getUserAgent() != null
+               || customizationConfig.getDefaultRetryMode() != null
+               || customizationConfig.getDefaultNewRetries2026() != null
+               || customizationConfig.getDefaultEnableReadTimeout2026() != null;
     }
 
     private MethodSpec finalizeServiceConfigurationMethod() {
