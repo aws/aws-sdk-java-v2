@@ -40,6 +40,55 @@ public class BddEndpointProviderSpecTest {
     }
 
     /**
+     * The substring peephole fires on the S3 BDD (the golden-file model has no substring conditions,
+     * so it is not covered there). Each rewrite must emit a single {@code substringEquals} call: the
+     * helper reproduces {@code substring}'s non-ASCII rejection, whereas an inlined
+     * {@code startsWith}/{@code endsWith}/{@code regionMatches} would not, and would silently take a
+     * different branch than the endpoint spec requires for a non-ASCII bucket name.
+     */
+    @Test
+    void substringConditions_emitSpecFaithfulHelperNotInlinedStringOps() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints());
+        String generated = spec.poetSpec().toString();
+
+        assertThat(generated).contains("substringEquals(params.bucket(), 0, 6, true, \"--x-s3\")");
+        assertThat(generated).contains("substringEquals(params.bucket(), 0, 4, false, \"arn:\")");
+        assertThat(generated).contains("substringEquals(params.bucket(), 16, 18, true, \"--\")");
+
+        // No inlined String comparison may remain: those skip the ASCII check.
+        assertThat(generated).doesNotContain(".startsWith(");
+        assertThat(generated).doesNotContain(".endsWith(");
+        assertThat(generated).doesNotContain(".regionMatches(");
+
+        // RulesFunctions.substring calls do legitimately remain, but only for assign conditions that
+        // bind the result to a register for later use in a URL template. Those are not comparisons, so
+        // the peephole must leave them alone.
+        assertThat(generated).contains("accessPointSuffix = ")
+                             .contains("RulesFunctions.substring(params.bucket(), 0, 7, true)");
+    }
+
+    /**
+     * A {@code stringEquals} with two nullable operands must stay a {@code RulesFunctions.stringEquals}
+     * call, which returns false for a null operand. An emitted {@code left.equals(right)} would throw
+     * a {@code NullPointerException} out of endpoint resolution instead.
+     */
+    @Test
+    void stringEqualsWithTwoNullableOperands_staysNullSafe() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints());
+        String generated = spec.poetSpec().toString();
+
+        assertThat(generated).contains("RulesFunctions.stringEquals(region, bucketArn.region())");
+        assertThat(generated).doesNotContain("region.equals(bucketArn.region())");
+        assertThat(generated).doesNotContain("bucketArn.partition().equals(");
+        assertThat(generated).doesNotContain("bucketPartition.name().equals(");
+
+        // Constant-operand comparisons are still rewritten, with the constant as the receiver.
+        assertThat(generated).contains("\"aws-cn\".equals(partitionResult.name())");
+    }
+
+    /**
      * The S3 BDD merges results that differ only in their auth scheme name, so the name is resolved at runtime via
      * {@code DynamicEndpointAuthSchemeFactory.create(name)}. The sibling properties must still be emitted, otherwise
      * the signing configuration would be silently dropped.

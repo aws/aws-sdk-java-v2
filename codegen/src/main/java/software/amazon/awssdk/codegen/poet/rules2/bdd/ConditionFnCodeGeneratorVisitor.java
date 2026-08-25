@@ -121,8 +121,9 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             return RuleRuntimeTypeMirror.BOOLEAN;
         }
 
-        // Peephole-optimized synthetic functions
-        if (fn.startsWith("__")) {
+        // Synthetic functions that are emitted as inline Java rather than a static call.
+        // __substringEquals is not among them: it is a registered function and falls through below.
+        if (BddPeepholeVisitor.isCustomEmitted(fn)) {
             return emitPeepholeOptimized(fn, e.arguments());
         }
 
@@ -145,21 +146,11 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
     }
 
     /**
-     * Emits peephole-optimized native Java code for synthetic function calls.
-     * These avoid allocations by using String.startsWith/endsWith/regionMatches
-     * and inline ternary expressions instead of calling RulesFunctions.
+     * Emits inline Java for synthetic function calls that have no static-call equivalent, avoiding
+     * the boxing and varargs allocation of the corresponding RulesFunctions calls.
      */
     private RuleType emitPeepholeOptimized(String fn, List<RuleExpression> args) {
         switch (fn) {
-            case BddPeepholeVisitor.STARTS_WITH:
-                // __startsWith(str, literal) → str != null && str.startsWith("literal")
-                return emitStartsWith(args);
-            case BddPeepholeVisitor.ENDS_WITH:
-                // __endsWith(str, literal) → str != null && str.endsWith("literal")
-                return emitEndsWith(args);
-            case BddPeepholeVisitor.REGION_MATCHES:
-                // __regionMatches(str, offset, literal) → null-safe regionMatches
-                return emitRegionMatches(args);
             case BddPeepholeVisitor.ITE:
                 // __ite(cond, ifTrue, ifFalse) → (cond ? ifTrue : ifFalse)
                 return emitIte(args);
@@ -172,75 +163,6 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             default:
                 throw new IllegalStateException("Unknown peephole function: " + fn);
         }
-    }
-
-    /**
-     * Emits: {@code (str != null && str.startsWith("literal"))}
-     */
-    private RuleType emitStartsWith(List<RuleExpression> args) {
-        builder.add("(");
-        args.get(0).accept(this);
-        builder.add(" != null && ");
-        args.get(0).accept(this);
-        builder.add(".startsWith(");
-        args.get(1).accept(this);
-        builder.add("))");
-        return RuleRuntimeTypeMirror.BOOLEAN;
-    }
-
-    /**
-     * Emits: {@code (str != null && str.endsWith("literal"))}
-     */
-    private RuleType emitEndsWith(List<RuleExpression> args) {
-        builder.add("(");
-        args.get(0).accept(this);
-        builder.add(" != null && ");
-        args.get(0).accept(this);
-        builder.add(".endsWith(");
-        args.get(1).accept(this);
-        builder.add("))");
-        return RuleRuntimeTypeMirror.BOOLEAN;
-    }
-
-    /**
-     * Emits a regionMatches check. Offset can be negative to indicate "from end" (reverse=true).
-     * <ul>
-     *     <li>Positive offset: {@code (str != null && str.length() >= (offset + litLen)
-     *         && str.regionMatches(offset, "literal", 0, litLen))}</li>
-     *     <li>Negative offset (value = -stopIdx): {@code (str != null && str.length() >= stopIdx
-     *         && str.regionMatches(str.length() - stopIdx, "literal", 0, litLen))}</li>
-     * </ul>
-     */
-    private RuleType emitRegionMatches(List<RuleExpression> args) {
-        RuleExpression strExpr = args.get(0);
-        int offset = ((LiteralIntegerExpression) args.get(1)).value();
-        String literal = ((LiteralStringExpression) args.get(2)).value();
-        int litLen = literal.length();
-
-        builder.add("(");
-        strExpr.accept(this);
-        builder.add(" != null && ");
-
-        if (offset >= 0) {
-            // Forward: str.length() >= (offset + litLen) && str.regionMatches(offset, literal, 0, litLen)
-            strExpr.accept(this);
-            builder.add(".length() >= $L && ", offset + litLen);
-            strExpr.accept(this);
-            builder.add(".regionMatches(");
-            builder.add("$L, $S, 0, $L", offset, literal, litLen);
-            builder.add("))");
-        } else {
-            // Reverse: offset encodes -(stopIdx). Actual position = str.length() - stopIdx
-            int stopIdx = -offset;
-            strExpr.accept(this);
-            builder.add(".length() >= $L && ", stopIdx);
-            strExpr.accept(this);
-            builder.add(".regionMatches(");
-            strExpr.accept(this);
-            builder.add(".length() - $L, $S, 0, $L", stopIdx, literal, litLen);
-            builder.add("))");
-        }
-        return RuleRuntimeTypeMirror.BOOLEAN;
     }
 
     /**

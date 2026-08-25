@@ -18,26 +18,8 @@ public class RulesFunctions {
     private static final LazyValue<PartitionData> PARTITION_DATA = LazyValue.<PartitionData> builder()
             .initializer(RulesFunctions::loadPartitionData).build();
 
-    private static final LazyValue<Partition> AWS_PARTITION = LazyValue.<Partition> builder()
-            .initializer(RulesFunctions::findAwsPartition).build();
-
     private static final int MAX_HOST_LABEL_SIZE = 63;
     private static final int MIN_BUCKET_SIZE = 3;
-
-    // Per-thread caches to avoid recomputing results for repeated calls with the same inputs.
-    // These are common in endpoint resolution where the same region/bucket is resolved many times.
-    private static final ThreadLocal<FunctionCache> CACHE = new ThreadLocal<FunctionCache>() {
-        @Override
-        protected FunctionCache initialValue() {
-            return new FunctionCache();
-        }
-    };
-
-    private static final class FunctionCache {
-        // awsPartition cache: (lastRegion -> lastPartition)
-        String lastPartitionRegion;
-        RulePartition lastPartitionResult;
-    }
 
     @SafeVarargs
     public static <T> T coalesce(T... args) {
@@ -107,11 +89,8 @@ public class RulesFunctions {
             return null;
         }
 
-        for (int i = 0; i < len; i++) {
-            // non-ascii characters (values outside of the 7bit ASCII range)
-            if (value.charAt(i) > 127) {
-                return null;
-            }
+        if (!isAsciiOnly(value)) {
+            return null;
         }
 
         if (reverse) {
@@ -121,6 +100,52 @@ public class RulesFunctions {
         } else {
             return value.substring(startIndex, stopIndex);
         }
+    }
+
+    /**
+     * Equivalent to {@code stringEquals(coalesce(substring(value, startIndex, stopIndex, reverse), ""), literal)}
+     * without allocating the intermediate substring. Called by optimized codegen.
+     *
+     * <p>This mirrors {@link #substring} exactly, including its rejection of any input containing a
+     * character outside the 7-bit ASCII range. The positional comparison is done first because it
+     * fails for almost every input; the O(n) ASCII scan is only reached once the characters already
+     * match, which is precisely where {@link #substring} would have paid the same cost.
+     *
+     * <p>Only equivalent for a non-empty {@code literal}. When {@code startIndex == stopIndex} the
+     * spec's {@code substring} returns null and the coalesce makes the comparison against {@code ""}
+     * true even for a null input; codegen does not rewrite that case into this method.
+     */
+    public static boolean substringEquals(String value, int startIndex, int stopIndex, boolean reverse, String literal) {
+        if (value == null) {
+            return false;
+        }
+
+        int len = value.length();
+        if (startIndex >= stopIndex || len < stopIndex) {
+            return false;
+        }
+
+        int subLen = stopIndex - startIndex;
+        if (literal.length() != subLen) {
+            return false;
+        }
+
+        int offset = reverse ? len - stopIndex : startIndex;
+        if (!value.regionMatches(offset, literal, 0, subLen)) {
+            return false;
+        }
+
+        return isAsciiOnly(value);
+    }
+
+    private static boolean isAsciiOnly(String value) {
+        for (int i = 0; i < value.length(); i++) {
+            // non-ascii characters (values outside of the 7bit ASCII range)
+            if (value.charAt(i) > 127) {
+                return false;
+            }
+        }
+        return true;
     }
 
     // URI related functions
@@ -241,36 +266,34 @@ public class RulesFunctions {
 
     // AWS related functions
 
+    /**
+     * Resolves the partition a region belongs to.
+     *
+     * <p>{@link RulePartition} is immutable and is a pure function of the matched {@link Partition},
+     * of which there are only a handful, loaded once. The instances are therefore built up front in
+     * {@link #loadPartitionData()} and shared, so this method allocates nothing and holds no
+     * per-call state.
+     */
     public static RulePartition awsPartition(String regionName) {
-        FunctionCache cache = CACHE.get();
-        if (regionName != null && regionName.equals(cache.lastPartitionRegion)) {
-            return cache.lastPartitionResult;
-        }
-
         PartitionData data = PARTITION_DATA.value();
-        Partition matchedPartition;
 
         // Known region
-        matchedPartition = data.regionMap.get(regionName);
-        if (matchedPartition == null) {
-            // try matching on region name pattern
-            for (Partition p : data.partitions) {
-                if (p.regionMatches(regionName)) {
-                    matchedPartition = p;
-                    break;
-                }
+        RulePartition matched = data.regionMap.get(regionName);
+        if (matched != null) {
+            return matched;
+        }
+
+        // Try matching on region name pattern
+        List<PartitionEntry> entries = data.partitions;
+        for (int i = 0; i < entries.size(); i++) {
+            PartitionEntry entry = entries.get(i);
+            if (entry.partition.regionMatches(regionName)) {
+                return entry.rulePartition;
             }
         }
 
         // Couldn't find the region by name or pattern matching. Fallback to 'aws' partition.
-        if (matchedPartition == null) {
-            matchedPartition = AWS_PARTITION.value();
-        }
-
-        RulePartition result = RulePartition.from(matchedPartition.id(), matchedPartition.outputs());
-        cache.lastPartitionRegion = regionName;
-        cache.lastPartitionResult = result;
-        return result;
+        return data.awsRulePartition;
     }
 
     public static RuleArn awsParseArn(String value) {
@@ -412,22 +435,38 @@ public class RulesFunctions {
         PartitionData partitionData = new PartitionData();
 
         partitions.partitions().forEach(part -> {
-            partitionData.partitions.add(part);
+            RulePartition rulePartition = RulePartition.from(part.id(), part.outputs());
+            partitionData.partitions.add(new PartitionEntry(part, rulePartition));
             part.regions().forEach((name, override) -> {
-                partitionData.regionMap.put(name, part);
+                partitionData.regionMap.put(name, rulePartition);
             });
+            if ("aws".equalsIgnoreCase(part.id())) {
+                partitionData.awsRulePartition = rulePartition;
+            }
         });
 
         return partitionData;
     }
 
-    private static Partition findAwsPartition() {
-        return PARTITION_DATA.value().partitions.stream().filter(p -> p.id().equalsIgnoreCase("aws")).findFirst().orElse(null);
+    private static class PartitionData {
+        private final List<PartitionEntry> partitions = new ArrayList<>();
+        private final Map<String, RulePartition> regionMap = new HashMap<>();
+        // Fallback used when a region matches neither a known region name nor a partition pattern.
+        private RulePartition awsRulePartition;
     }
 
-    private static class PartitionData {
-        private final List<Partition> partitions = new ArrayList<>();
-        private final Map<String, Partition> regionMap = new HashMap<>();
+    /**
+     * Pairs a {@link Partition} with its precomputed {@link RulePartition}. The former is needed to
+     * evaluate the region pattern, the latter is what callers get back.
+     */
+    private static final class PartitionEntry {
+        private final Partition partition;
+        private final RulePartition rulePartition;
+
+        private PartitionEntry(Partition partition, RulePartition rulePartition) {
+            this.partition = partition;
+            this.rulePartition = rulePartition;
+        }
     }
 
     private static final class LazyValue<T> {

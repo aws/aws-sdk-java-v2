@@ -20,7 +20,6 @@ import software.amazon.awssdk.codegen.poet.rules2.FunctionCallExpression;
 import software.amazon.awssdk.codegen.poet.rules2.LiteralBooleanExpression;
 import software.amazon.awssdk.codegen.poet.rules2.LiteralIntegerExpression;
 import software.amazon.awssdk.codegen.poet.rules2.LiteralStringExpression;
-import software.amazon.awssdk.codegen.poet.rules2.MethodCallExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RewriteRuleExpressionVisitor;
 import software.amazon.awssdk.codegen.poet.rules2.RuleExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleRuntimeTypeMirror;
@@ -34,29 +33,36 @@ import software.amazon.awssdk.codegen.poet.rules2.RuleRuntimeTypeMirror;
  *
  * <p>Optimizations applied:
  * <ul>
- *     <li>{@code stringEquals(coalesce(substring(str, 0, N, false), ""), literal)} →
- *         {@code __startsWith(str, literal)} when {@code N == literal.length()}</li>
- *     <li>{@code stringEquals(coalesce(substring(str, 0, N, true), ""), literal)} →
- *         {@code __endsWith(str, literal)} when {@code N == literal.length()}</li>
  *     <li>{@code stringEquals(coalesce(substring(str, X, Y, reverse), ""), literal)} →
- *         {@code __regionMatches(str, offset, literal)} for interior substring checks</li>
- *     <li>{@code stringEquals(left, right)} → {@code left.equals(right)} to avoid
- *         {@code RulesFunctions.stringEquals} dispatch</li>
+ *         {@code RulesFunctions.substringEquals(str, X, Y, reverse, literal)}, which compares in
+ *         place instead of allocating the substring and the coalesce varargs array. The helper
+ *         reproduces {@code substring}'s semantics exactly, including its rejection of non-ASCII
+ *         input, so the rewrite cannot change which branch a rule takes.</li>
  *     <li>{@code coalesce(boolExpr, boolLiteral)} → {@code __coalesceBoolean(expr, default)}</li>
  *     <li>{@code ite(cond, ifTrue, ifFalse)} → {@code __ite(cond, ifTrue, ifFalse)}</li>
  *     <li>{@code isValidHostLabel(str, boolLiteral)} → {@code __isValidHostLabel(str, allowDots)}</li>
  * </ul>
  *
  * <p>Synthetic function names are prefixed with {@code __} so they cannot collide with endpoint
- * rule standard library function names.
+ * rule standard library function names. Those in {@link #isCustomEmitted(String)} are emitted as
+ * inline Java by the code generators; {@code __substringEquals} is instead registered as a real
+ * function in {@link RuleRuntimeTypeMirror} and emitted by the ordinary static-call path.
  */
 public final class BddPeepholeVisitor extends RewriteRuleExpressionVisitor {
-    public static final String STARTS_WITH = "__startsWith";
-    public static final String ENDS_WITH = "__endsWith";
-    public static final String REGION_MATCHES = "__regionMatches";
     public static final String ITE = "__ite";
     public static final String COALESCE_BOOL = "__coalesceBoolean";
     public static final String IS_VALID_HOST_LABEL = "__isValidHostLabel";
+
+    /**
+     * Returns true for synthetic functions that the BDD code generator emits as inline Java rather
+     * than as a plain static call. {@link RuleRuntimeTypeMirror#SUBSTRING_EQUALS_FN} is deliberately
+     * absent: it is registered as a real function and so needs no custom emitter.
+     */
+    public static boolean isCustomEmitted(String functionName) {
+        return ITE.equals(functionName)
+               || COALESCE_BOOL.equals(functionName)
+               || IS_VALID_HOST_LABEL.equals(functionName);
+    }
 
     @Override
     public RuleExpression visitFunctionCallExpression(FunctionCallExpression e) {
@@ -76,8 +82,9 @@ public final class BddPeepholeVisitor extends RewriteRuleExpressionVisitor {
     }
 
     /**
-     * Rewrites {@code stringEquals} either into a substring peephole (startsWith / endsWith /
-     * regionMatches) or into a direct {@code .equals()} method call.
+     * Rewrites {@code stringEquals} into a {@code substringEquals} call when either side is a
+     * {@code coalesce(substring(..), "")}. Any other {@code stringEquals} is returned unchanged for
+     * {@link software.amazon.awssdk.codegen.poet.rules2.PrepareForCodegenVisitor} to handle.
      */
     private RuleExpression simplifyStringEquals(FunctionCallExpression e) {
         List<RuleExpression> args = e.arguments();
@@ -96,19 +103,12 @@ public final class BddPeepholeVisitor extends RewriteRuleExpressionVisitor {
             return peephole;
         }
 
-        // Put a string constant on the left when present so the emitted .equals() is null-safe.
-        if (right.kind() == RuleExpression.RuleExpressionKind.STRING_VALUE) {
-            return methodCallEquals(right, left);
-        }
-        return methodCallEquals(left, right);
-    }
-
-    private RuleExpression methodCallEquals(RuleExpression source, RuleExpression argument) {
-        return MethodCallExpression.builder()
-                                   .name("equals")
-                                   .source(source)
-                                   .addArgument(argument)
-                                   .build();
+        // Leave the plain comparison alone. PrepareForCodegenVisitor runs immediately after and
+        // rewrites it to constant.equals(other) only when one side is a string constant, keeping the
+        // null-safe RulesFunctions.stringEquals call otherwise. Rewriting it here would emit
+        // left.equals(right) even when both sides are nullable at runtime, which turns the
+        // spec-mandated false into a NullPointerException.
+        return e;
     }
 
     /**
@@ -156,18 +156,20 @@ public final class BddPeepholeVisitor extends RewriteRuleExpressionVisitor {
             return null;
         }
 
-        if (startIdx == 0) {
-            return booleanFunction(reverse ? ENDS_WITH : STARTS_WITH, strExpr, new LiteralStringExpression(literal));
+        // Degenerate case: startIdx == stopIdx makes the spec's substring return null, so the
+        // coalesce yields "" and the comparison against an empty literal is true even for a null
+        // input. substringEquals cannot express that, so leave it to the general path.
+        if (literal.isEmpty()) {
+            return null;
         }
 
-        // Interior match. For reverse the real offset is str.length() - stopIdx, which is unknown at
-        // codegen time, so it is encoded as a negative offset for the generator to resolve.
-        int offset = reverse ? -stopIdx : startIdx;
         return FunctionCallExpression.builder()
-                                     .name(REGION_MATCHES)
+                                     .name(RuleRuntimeTypeMirror.SUBSTRING_EQUALS_FN)
                                      .type(RuleRuntimeTypeMirror.BOOLEAN)
                                      .addArgument(strExpr)
-                                     .addArgument(new LiteralIntegerExpression(offset))
+                                     .addArgument(new LiteralIntegerExpression(startIdx))
+                                     .addArgument(new LiteralIntegerExpression(stopIdx))
+                                     .addArgument(new LiteralBooleanExpression(reverse))
                                      .addArgument(new LiteralStringExpression(literal))
                                      .build();
     }
