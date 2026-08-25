@@ -171,7 +171,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         return operation.apply(stashRequestMetricPublishers(request));
     }
 
-    @SdkTestInternalApi
     @SuppressWarnings("unchecked")
     static <T extends S3Request> T stashRequestMetricPublishers(T request) {
         AwsRequestOverrideConfiguration override = request.overrideConfiguration().orElse(null);
@@ -191,7 +190,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
      * metric publishers, so the inner pipeline stays no-op while the CRT transport publishes telemetry to them. Used to
      * attach a copy's request-level publishers to each copy sub-request, which are otherwise built without them.
      */
-    @SdkTestInternalApi
     @SuppressWarnings("unchecked")
     static <T extends S3Request> T putRequestMetricPublishers(T request, List<MetricPublisher> publishers) {
         AwsRequestOverrideConfiguration override =

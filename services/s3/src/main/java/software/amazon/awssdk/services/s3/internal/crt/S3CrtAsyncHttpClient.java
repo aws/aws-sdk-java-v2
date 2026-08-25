@@ -242,7 +242,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
      * Request-level publishers (if any were set on the request override) take precedence over the client-level
      * publishers; otherwise the client-level publishers are used.
      */
-    @SdkTestInternalApi
     static List<MetricPublisher> resolveEffectiveMetricPublishers(List<MetricPublisher> requestLevel,
                                                                   List<MetricPublisher> clientLevel) {
         if (requestLevel != null && !requestLevel.isEmpty()) {
