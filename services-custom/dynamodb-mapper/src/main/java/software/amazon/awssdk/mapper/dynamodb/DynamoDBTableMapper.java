@@ -132,7 +132,7 @@ import org.apache.commons.logging.LogFactory;
  * @param <R> The range key value type; use <code>?</code> if no range key.
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper
- * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB
+ * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient
  */
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
 
@@ -466,7 +466,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * table, when it was created, the primary key schema, and any indexes on
      * the table.
      * @return The describe table results.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#describeTable
+     * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#describeTable
      */
     public TableDescription describeTable() {
         return db.describeTable(DescribeTableRequest.builder()
@@ -479,7 +479,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * throughput for all global secondary indexes.
      * @param throughput The provisioned throughput.
      * @return The table decription.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#createTable
+     * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#createTable
      * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
      */
     public TableDescription createTable(ProvisionedThroughput throughput) {
@@ -502,7 +502,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * ialready exists.
      * @param throughput The provisioned throughput.
      * @return True if created, or false if the table already existed.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#createTable
+     * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#createTable
      * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
      */
     public boolean createTableIfNotExists(ProvisionedThroughput throughput) {
@@ -520,7 +520,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
     /**
      * Deletes the table.
      * @return The table decription.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#deleteTable
+     * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#deleteTable
      * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
      */
     public TableDescription deleteTable() {
@@ -531,7 +531,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * Deletes the table and ignores the {@code ResourceNotFoundException} if
      * it does not already exist.
      * @return True if the table was deleted, or false if the table did not exist.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#deleteTable
+     * @see software.amazon.awssdk.services.dynamodb.DynamoDbClient#deleteTable
      * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
      */
     public boolean deleteTableIfExists() {

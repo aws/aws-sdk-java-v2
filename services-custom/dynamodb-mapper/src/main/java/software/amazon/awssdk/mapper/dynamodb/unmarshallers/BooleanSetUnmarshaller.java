@@ -24,7 +24,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * A special unmarshaller for Set&lt;Boolean>, which the V1 schema stores as
+ * A special unmarshaller for Set&lt;Boolean&gt;, which the V1 schema stores as
  * an NS using 0/1 for true/false. In the V2 schema these fall through to
  * the {@code ObjectSetToListMarshaller} which stores them as an L or BOOLs.
  */
