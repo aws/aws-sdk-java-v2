@@ -24,6 +24,21 @@ public class RulesFunctions {
     private static final int MAX_HOST_LABEL_SIZE = 63;
     private static final int MIN_BUCKET_SIZE = 3;
 
+    // Per-thread caches to avoid recomputing results for repeated calls with the same inputs.
+    // These are common in endpoint resolution where the same region/bucket is resolved many times.
+    private static final ThreadLocal<FunctionCache> CACHE = new ThreadLocal<FunctionCache>() {
+        @Override
+        protected FunctionCache initialValue() {
+            return new FunctionCache();
+        }
+    };
+
+    private static final class FunctionCache {
+        // awsPartition cache: (lastRegion -> lastPartition)
+        String lastPartitionRegion;
+        RulePartition lastPartitionResult;
+    }
+
     @SafeVarargs
     public static <T> T coalesce(T... args) {
         if (args == null || args.length < 2) {
@@ -184,6 +199,42 @@ public class RulesFunctions {
         return (c >= '0' && c <= '9') || (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z');
     }
 
+    /**
+     * Validates a single DNS label (no dots allowed). Equivalent to isValidHostLabel(str, false)
+     * but avoids the allowDots branch — called directly by optimized codegen.
+     */
+    public static boolean isValidHostLabelSingle(String hostLabel) {
+        int len = hostLabel == null ? 0 : hostLabel.length();
+        if (len == 0 || len > MAX_HOST_LABEL_SIZE) {
+            return false;
+        }
+        return isValidSingleLabel(hostLabel, 0, len);
+    }
+
+    /**
+     * Validates a multi-label DNS name (dots allowed). Equivalent to isValidHostLabel(str, true)
+     * but avoids the allowDots branch — called directly by optimized codegen.
+     */
+    public static boolean isValidHostLabelMulti(String hostLabel) {
+        int len = hostLabel == null ? 0 : hostLabel.length();
+        if (len == 0) {
+            return false;
+        }
+        int start = 0;
+        for (int i = 0; i <= len; i++) {
+            if (i == len || hostLabel.charAt(i) == '.') {
+                int chunkLen = i - start;
+                if (chunkLen < 1 || chunkLen > MAX_HOST_LABEL_SIZE) {
+                    return false;
+                } else if (!isValidSingleLabel(hostLabel, start, i)) {
+                    return false;
+                }
+                start = i + 1;
+            }
+        }
+        return true;
+    }
+
     private static boolean isLowerCaseAlphanumeric(char c) {
         return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9');
     }
@@ -191,6 +242,11 @@ public class RulesFunctions {
     // AWS related functions
 
     public static RulePartition awsPartition(String regionName) {
+        FunctionCache cache = CACHE.get();
+        if (regionName != null && regionName.equals(cache.lastPartitionRegion)) {
+            return cache.lastPartitionResult;
+        }
+
         PartitionData data = PARTITION_DATA.value();
         Partition matchedPartition;
 
@@ -211,7 +267,10 @@ public class RulesFunctions {
             matchedPartition = AWS_PARTITION.value();
         }
 
-        return RulePartition.from(matchedPartition.id(), matchedPartition.outputs());
+        RulePartition result = RulePartition.from(matchedPartition.id(), matchedPartition.outputs());
+        cache.lastPartitionRegion = regionName;
+        cache.lastPartitionResult = result;
+        return result;
     }
 
     public static RuleArn awsParseArn(String value) {

@@ -337,6 +337,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
             synthetic.setConditions(Collections.singletonList(c));
             RuleExpression parsedSynthetic = ExpressionParser
                 .parseRuleSetExpression(synthetic)
+                .accept(new BddPeepholeVisitor())
                 .accept(new PrepareForCodegenVisitor());
             parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(codeBuilder, typeMirror, registerInfoMap,
                                                                        endpointRulesSpecUtils));
@@ -358,6 +359,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
             CodeBlock.Builder codeBuilder = CodeBlock.builder();
             RuleExpression parsedSynthetic = ExpressionParser
                 .parseRuleSetExpression(endpointBddModel.getResults().get(rI))
+                .accept(new BddPeepholeVisitor())
                 .accept(new PrepareForCodegenVisitor());
             parsedSynthetic.accept(new BddResultCodeGeneratorVisitor(
                 codeBuilder, typeMirror, registerInfoMap, knownEndpointAttributes, endpointRulesSpecUtils,
