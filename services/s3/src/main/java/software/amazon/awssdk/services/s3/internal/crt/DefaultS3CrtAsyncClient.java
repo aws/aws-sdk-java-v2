@@ -100,17 +100,15 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         new ExecutionAttribute<>("requestMetricPublishers");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
-    private final long copyPartSizeInBytes;
-    private final long copyThresholdInBytes;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
-        this.copyPartSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
-                                   builder.minimalPartSizeInBytes;
-        this.copyThresholdInBytes = builder.thresholdInBytes == null ? copyPartSizeInBytes : builder.thresholdInBytes;
+        long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
+                               builder.minimalPartSizeInBytes;
+        long thresholdInBytes = builder.thresholdInBytes == null ? partSizeInBytes : builder.thresholdInBytes;
         this.copyObjectHelper = new CopyObjectHelper((S3AsyncClient) delegate(),
-                                                     copyPartSizeInBytes,
-                                                     copyThresholdInBytes);
+                                                     partSizeInBytes,
+                                                     thresholdInBytes);
     }
 
     @Override
@@ -144,19 +142,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
-        List<MetricPublisher> requestMetricPublishers =
-            copyObjectRequest.overrideConfiguration()
-                             .map(AwsRequestOverrideConfiguration::metricPublishers)
-                             .orElse(Collections.emptyList());
-        if (CollectionUtils.isNullOrEmpty(requestMetricPublishers)) {
-            return copyObjectHelper.copyObject(copyObjectRequest);
-        }
-        // copyObject fans out into sub-requests that bypass invokeOperation, so wrap the delegate to attach the
-        // request-level publishers to each sub-request (keeping the inner pipeline no-op).
-        S3AsyncClient publisherInjectingClient =
-            new RequestMetricPublisherInjectingClient((S3AsyncClient) delegate(), requestMetricPublishers);
-        return new CopyObjectHelper(publisherInjectingClient, copyPartSizeInBytes, copyThresholdInBytes)
-            .copyObject(copyObjectRequest);
+        // copyObject's sub-requests bypass invokeOperation, so stash once here; CopyObjectHelper propagates the copy's
+        // override (with the stashed attribute) to each sub-request.
+        return copyObjectHelper.copyObject(stashRequestMetricPublishers(copyObjectRequest));
     }
 
     /**
@@ -183,43 +171,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     .putExecutionAttribute(REQUEST_METRIC_PUBLISHERS, override.metricPublishers())
                     .build();
         return (T) request.toBuilder().overrideConfiguration(newOverride).build();
-    }
-
-    /**
-     * Always sets {@link #REQUEST_METRIC_PUBLISHERS} on the request to the given publishers and clears any inline
-     * metric publishers, so the inner pipeline stays no-op while the CRT transport publishes telemetry to them. Used to
-     * attach a copy's request-level publishers to each copy sub-request, which are otherwise built without them.
-     */
-    @SuppressWarnings("unchecked")
-    static <T extends S3Request> T putRequestMetricPublishers(T request, List<MetricPublisher> publishers) {
-        AwsRequestOverrideConfiguration override =
-            request.overrideConfiguration()
-                   .map(AwsRequestOverrideConfiguration::toBuilder)
-                   .orElseGet(AwsRequestOverrideConfiguration::builder)
-                   .metricPublishers(Collections.emptyList())
-                   .putExecutionAttribute(REQUEST_METRIC_PUBLISHERS, publishers)
-                   .build();
-        return (T) request.toBuilder().overrideConfiguration(override).build();
-    }
-
-    /**
-     * Wraps the inner client so that every operation it is asked to perform carries the given request-level metric
-     * publishers. Used only by {@link #copyObject(CopyObjectRequest)} when the copy request specifies request-level
-     * publishers, so each copy sub-request publishes CRT telemetry to them instead of to the client-level publishers.
-     */
-    static final class RequestMetricPublisherInjectingClient extends DelegatingS3AsyncClient {
-        private final List<MetricPublisher> metricPublishers;
-
-        RequestMetricPublisherInjectingClient(S3AsyncClient delegate, List<MetricPublisher> metricPublishers) {
-            super(delegate);
-            this.metricPublishers = metricPublishers;
-        }
-
-        @Override
-        protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT> invokeOperation(
-            T request, Function<T, CompletableFuture<ReturnT>> operation) {
-            return operation.apply(putRequestMetricPublishers(request, metricPublishers));
-        }
     }
 
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {

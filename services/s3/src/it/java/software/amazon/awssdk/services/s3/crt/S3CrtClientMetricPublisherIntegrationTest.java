@@ -37,6 +37,8 @@ import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.Tag;
+import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
 
@@ -161,9 +163,6 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
         String destinationKey = "copy-dest-" + System.nanoTime();
 
         try (S3AsyncClient client = crtClientWith(clientPublisher)) {
-            // Copy the large object so the copy is orchestrated as multiple sub-requests (head, create, part-copies,
-            // complete). The wrapper attaches the request-level publisher to every sub-request, so each publishes its
-            // own CRT ApiCall collection to it - proving the copyObject wrapper path end-to-end against real S3.
             client.copyObject(b -> b.sourceBucket(BUCKET).sourceKey(LARGE_KEY)
                                     .destinationBucket(BUCKET).destinationKey(destinationKey)
                                     .overrideConfiguration(o -> o.addMetricPublisher(requestPublisher)))
@@ -175,6 +174,32 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
 
             // request-level takes precedence, so this client's own client-level publisher sees none of the sub-requests.
             assertThat(clientPublisher.awaitAtLeast(1, Duration.ofSeconds(1))).isEmpty();
+        }
+    }
+
+    @Test
+    void copyObjectWithTaggingDirective_requestLevelPublisher_receivesTaggingSubRequestMetrics() throws InterruptedException {
+        // Tag the source so a taggingDirective(COPY) copy actually issues GetObjectTagging + PutObjectTagging sub-requests.
+        S3IntegrationTestBase.s3.putObjectTagging(
+            r -> r.bucket(BUCKET).key(LARGE_KEY)
+                  .tagging(t -> t.tagSet(Tag.builder().key("env").value("t").build())));
+
+        CapturingMetricPublisher requestPublisher = new CapturingMetricPublisher();
+        String destinationKey = "copy-tagged-dest-" + System.nanoTime();
+
+        try (S3AsyncClient client = crtClientWith(new CapturingMetricPublisher())) {
+            client.copyObject(b -> b.sourceBucket(BUCKET).sourceKey(LARGE_KEY)
+                                    .destinationBucket(BUCKET).destinationKey(destinationKey)
+                                    .taggingDirective(TaggingDirective.COPY)
+                                    .overrideConfiguration(o -> o.addMetricPublisher(requestPublisher)))
+                  .join();
+
+            List<MetricCollection> collections = requestPublisher.awaitAtLeast(2, Duration.ofSeconds(60));
+            collections.forEach(S3CrtClientMetricPublisherIntegrationTest::assertIsCrtApiCallCollection);
+            assertThat(collections).anySatisfy(
+                c -> assertThat(c.metricValues(CoreMetric.OPERATION_NAME)).contains("GetObjectTagging"));
+            assertThat(collections).anySatisfy(
+                c -> assertThat(c.metricValues(CoreMetric.OPERATION_NAME)).contains("PutObjectTagging"));
         }
     }
 

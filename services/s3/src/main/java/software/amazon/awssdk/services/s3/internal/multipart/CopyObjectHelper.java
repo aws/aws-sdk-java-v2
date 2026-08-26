@@ -32,6 +32,7 @@ import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -181,9 +182,11 @@ public final class CopyObjectHelper {
     }
 
     private CompletableFuture<List<Tag>> fetchSourceTagging(CopyObjectRequest copyObjectRequest, String sourceVersionId) {
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
         return s3AsyncClient.getObjectTagging(r -> r.bucket(copyObjectRequest.sourceBucket())
                                                     .key(copyObjectRequest.sourceKey())
-                                                    .versionId(sourceVersionId))
+                                                    .versionId(sourceVersionId)
+                                                    .overrideConfiguration(override))
                             .thenApply(response -> CollectionUtils.isNullOrEmpty(response.tagSet())
                                                    ? null : response.tagSet());
     }
@@ -197,10 +200,12 @@ public final class CopyObjectHelper {
         Map<String, byte[]> annotationBodies = new ConcurrentHashMap<>();
         Queue<CompletableFuture<Void>> fetchFutures = new ConcurrentLinkedQueue<>();
         CompletableFuture<Map<String, byte[]>> result = new CompletableFuture<>();
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
 
         s3AsyncClient.listObjectAnnotationsPaginator(r -> r.bucket(copyObjectRequest.sourceBucket())
                                                            .key(copyObjectRequest.sourceKey())
-                                                           .versionId(sourceVersionId))
+                                                           .versionId(sourceVersionId)
+                                                           .overrideConfiguration(override))
                      .subscribe(response -> fetchAnnotationBodies(copyObjectRequest, sourceVersionId, response, annotationBodies,
                                                                   fetchFutures))
                      .whenComplete((v, t) -> {
@@ -237,10 +242,12 @@ public final class CopyObjectHelper {
     private CompletableFuture<byte[]> fetchSingleAnnotation(CopyObjectRequest copyObjectRequest,
                                                             String sourceVersionId,
                                                             String annotationName) {
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
         return s3AsyncClient.getObjectAnnotation(r -> r.bucket(copyObjectRequest.sourceBucket())
                                                        .key(copyObjectRequest.sourceKey())
                                                        .versionId(sourceVersionId)
-                                                       .annotationName(annotationName),
+                                                       .annotationName(annotationName)
+                                                       .overrideConfiguration(override),
                                                  AsyncResponseTransformer.toBytes())
                             .thenApply(ResponseBytes::asByteArray);
     }
@@ -250,10 +257,12 @@ public final class CopyObjectHelper {
         CompleteMultipartUploadResponse completeResponse,
         List<Tag> tags) {
 
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
         return s3AsyncClient.putObjectTagging(r -> r.bucket(copyObjectRequest.destinationBucket())
                                                     .key(copyObjectRequest.destinationKey())
                                                     .versionId(completeResponse.versionId())
-                                                    .tagging(Tagging.builder().tagSet(tags).build()))
+                                                    .tagging(Tagging.builder().tagSet(tags).build())
+                                                    .overrideConfiguration(override))
                             .thenApply(r -> completeResponse);
     }
 
@@ -269,6 +278,7 @@ public final class CopyObjectHelper {
 
         String destVersionId = completeResponse.versionId();
         String destETag = completeResponse.eTag();
+        AwsRequestOverrideConfiguration override = copyObjectRequest.overrideConfiguration().orElse(null);
 
         log.debug(() -> String.format("Writing %d annotations to destination object", annotations.size()));
 
@@ -282,7 +292,8 @@ public final class CopyObjectHelper {
                                                                                   .key(copyObjectRequest.destinationKey())
                                                                                   .versionId(destVersionId)
                                                                                   .objectIfMatch(destETag)
-                                                                                  .annotationName(entry.getKey()),
+                                                                                  .annotationName(entry.getKey())
+                                                                                  .overrideConfiguration(override),
                                                                             AsyncRequestBody.fromBytes(entry.getValue()))
                                                        .thenRun(() -> succeededAnnotations.add(entry.getKey())));
         }
