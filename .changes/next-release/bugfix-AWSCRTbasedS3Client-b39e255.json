@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "AWS CRT-based S3 Client",
-    "contributor": "",
-    "description": "Fixed an issue where an error signaled by a request body publisher (for example via `AsyncRequestBody.fromPublisher`) was printed to stderr on a CRT event loop thread instead of failing the operation; the operation's future now completes with the original publisher error. See [#6715](https://github.com/aws/aws-sdk-java-v2/issues/6715)."
-}

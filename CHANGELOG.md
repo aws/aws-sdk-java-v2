@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.5__ __2026-08-26__
+## __AWS CRT Async HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where an error signaled by a request body publisher was printed to stderr on a CRT event loop thread instead of failing the request with the original error.
+
+## __AWS CRT HTTP Client__
+  - ### Bugfixes
+    - Fixed an issue where an error thrown while reading the request body stream was printed to stderr on a CRT event loop thread instead of failing the request with the original error. See [#6715](https://github.com/aws/aws-sdk-java-v2/issues/6715).
+
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue where an error signaled by a request body publisher (for example via `AsyncRequestBody.fromPublisher`) was printed to stderr on a CRT event loop thread instead of failing the operation; the operation's future now completes with the original publisher error. See [#6715](https://github.com/aws/aws-sdk-java-v2/issues/6715).
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - AWS DevOps Agent now supports trigger filter groups for Release Readiness Review, letting you control when the capability auto-triggers based on webhook events and target branches.
+
+## __AWS License Manager User Subscriptions__
+  - ### Features
+    - Released support for License Expiry field in ListProductSubscriptions API
+
+## __AWS Network Firewall__
+  - ### Features
+    - Adding new status enum for Firewalls.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds deleting state to possible VPC States.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker AI now supports ml.g7 instances for model optimization. You can now run model optimization jobs on ml.g7 instances, in supported AWS Regions.
+
 # __2.54.4__ __2026-08-25__
 ## __AWS DevOps Agent Service__
   - ### Features
