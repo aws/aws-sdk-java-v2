@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.MapAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ItemConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class ObjectToMapMarshaller implements MapAttributeMarshaller {
 
     private static final ObjectToMapMarshaller INSTANCE =

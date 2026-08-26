@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.MapperBinaryUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals Binary values as Java {@code ByteBuffer}s.
  */
+@SdkInternalApi
 public class ByteBufferUnmarshaller extends BUnmarshaller {
 
     private static final ByteBufferUnmarshaller INSTANCE =

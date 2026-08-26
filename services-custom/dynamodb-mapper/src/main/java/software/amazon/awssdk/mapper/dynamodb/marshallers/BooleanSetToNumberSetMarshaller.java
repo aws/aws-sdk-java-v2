@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Retained for backwards compatibility with older versions of the mapper which
  * don't know about the DynamoDB BOOL type.
  */
+@SdkInternalApi
 public class BooleanSetToNumberSetMarshaller
         implements NumberSetAttributeMarshaller {
 

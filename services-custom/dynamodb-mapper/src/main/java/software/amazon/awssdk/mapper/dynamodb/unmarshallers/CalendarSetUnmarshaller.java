@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.MapperDateUtils;
 
 import java.util.Calendar;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that unmarshals sets of ISO-8601-formatted dates as sets of
  * Java {@code Calendar} objects.
  */
+@SdkInternalApi
 public class CalendarSetUnmarshaller extends SSUnmarshaller {
 
     private static final CalendarSetUnmarshaller INSTANCE =

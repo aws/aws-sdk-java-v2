@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.math.BigInteger;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that unmarshals DynamoDB Numbers into Java
  * {@code BigInteger}s.
  */
+@SdkInternalApi
 public class BigIntegerUnmarshaller extends NUnmarshaller {
 
     private static final BigIntegerUnmarshaller INSTANCE =

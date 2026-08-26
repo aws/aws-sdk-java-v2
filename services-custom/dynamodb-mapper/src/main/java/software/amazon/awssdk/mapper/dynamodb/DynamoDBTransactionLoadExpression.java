@@ -15,6 +15,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.Map;
 
 /**
@@ -23,6 +24,7 @@ import java.util.Map;
  * @see TransactionLoadRequest#addLoad(Object, DynamoDBTransactionLoadExpression)
  * @see DynamoDBMapper#transactionLoad(TransactionLoadRequest)
  */
+@SdkPublicApi
 public class DynamoDBTransactionLoadExpression {
 
     /**

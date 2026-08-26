@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 
@@ -24,6 +25,7 @@ import software.amazon.awssdk.core.exception.SdkClientException;
  * becomes an {@link AbortedException}; any other checked exception becomes an
  * {@link SdkClientException} (the v2 analog of v1's {@code AmazonClientException}).
  */
+@SdkInternalApi
 final class MapperExceptions {
 
     private MapperExceptions() {

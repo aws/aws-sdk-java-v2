@@ -142,7 +142,7 @@ public @interface DynamoDBVersioned {
             }
 
             private static final <T> Sequence<T> of(final Class<T> targetType) {
-                for (final Sequences s : Sequences.values()) {
+                for (Sequences s : Sequences.values()) {
                     if (s.scalar.is(targetType)) {
                         return (Sequence<T>)s.sequence;
                     }

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * type-determination behavior necessary when turning a service result back
  * into an object.
  */
+@SdkPublicApi
 public interface ArgumentUnmarshaller {
 
     /**

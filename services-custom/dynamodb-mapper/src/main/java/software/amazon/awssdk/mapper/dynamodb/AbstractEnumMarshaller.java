@@ -14,6 +14,8 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Generic marshaller for enumerations.
  *
@@ -28,6 +30,7 @@ package software.amazon.awssdk.mapper.dynamodb;
  *
  * @deprecated Replaced by {@link DynamoDBTypeConvertedEnum}
  */
+@SdkPublicApi
 @Deprecated
 public abstract class AbstractEnumMarshaller<T extends Enum<T>> implements DynamoDBMarshaller<T> {
 

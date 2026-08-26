@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.HashSet;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that unmarshals DynamoDB StringSets as sets of Java
  * {@code String} objects.
  */
+@SdkInternalApi
 public class StringSetUnmarshaller extends SSUnmarshaller {
 
     private static final StringSetUnmarshaller INSTANCE =

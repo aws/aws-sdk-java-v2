@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * An unmarshaller that unmarshals DynamoDB Numbers into Java
  * {@code Integer}s.
  */
+@SdkInternalApi
 public class IntegerUnmarshaller extends NUnmarshaller {
 
     private static final IntegerUnmarshaller INSTANCE =

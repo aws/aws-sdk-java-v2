@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import com.amazonaws.metrics.RequestMetricCollector;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
@@ -40,6 +41,7 @@ import java.util.Random;
  * mapper.delete(obj, SaveBehavior.CLOBBER.config());
  * </pre>
  */
+@SdkPublicApi
 public class DynamoDBMapperConfig {
 
     /**
@@ -667,21 +669,21 @@ public class DynamoDBMapperConfig {
 
         @Override
         public String getTableName(Class<?> clazz, DynamoDBMapperConfig config) {
-            final TableNameOverride override = config.getTableNameOverride();
+            TableNameOverride override = config.getTableNameOverride();
 
             if (override != null) {
-                final String tableName = override.getTableName();
+                String tableName = override.getTableName();
                 if (tableName != null) {
                     return tableName;
                 }
             }
 
-            final StandardBeanProperties.Beans<?> beans = StandardBeanProperties.of(clazz);
+            StandardBeanProperties.Beans<?> beans = StandardBeanProperties.of(clazz);
             if (beans.properties().tableName() == null) {
                 throw new DynamoDBMappingException(clazz + " not annotated with @DynamoDBTable");
             }
 
-            final String prefix = override == null ? null : override.getTableNamePrefix();
+            String prefix = override == null ? null : override.getTableNamePrefix();
             return prefix == null ? beans.properties().tableName() : prefix + beans.properties().tableName();
         }
 

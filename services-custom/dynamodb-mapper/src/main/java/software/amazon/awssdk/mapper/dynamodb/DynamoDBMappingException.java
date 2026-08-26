@@ -14,10 +14,13 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Generic exception for problems occuring when mapping DynamoDB items to Java
  * objects or vice versa. Excludes service exceptions.
  */
+@SdkPublicApi
 public class DynamoDBMappingException extends RuntimeException {
 
     private static final long serialVersionUID = -4883173289978517967L;

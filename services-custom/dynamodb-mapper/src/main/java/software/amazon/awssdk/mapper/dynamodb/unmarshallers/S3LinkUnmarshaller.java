@@ -14,10 +14,12 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.S3ClientCache;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class S3LinkUnmarshaller extends SUnmarshaller {
 
     private static final S3LinkUnmarshaller INSTANCE = new S3LinkUnmarshaller();

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.lang.reflect.Method;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * was added, which stored Java {@code Boolean}s as either the Number 0 (false)
  * or 1 (true).
  */
+@SdkInternalApi
 public class BooleanUnmarshaller implements ArgumentUnmarshaller {
 
     private static final BooleanUnmarshaller INSTANCE =

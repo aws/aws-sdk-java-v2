@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,6 +22,7 @@ import java.util.Map;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class MapUnmarshaller extends MUnmarshaller {
 
     private static final MapUnmarshaller INSTANCE = new MapUnmarshaller();

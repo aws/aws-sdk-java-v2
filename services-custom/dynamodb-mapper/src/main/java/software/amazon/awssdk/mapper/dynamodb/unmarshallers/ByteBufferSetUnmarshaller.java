@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.nio.ByteBuffer;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that unmarshals BinarySet values as sets of Java
  * {@code ByteBuffer}s.
  */
+@SdkInternalApi
 public class ByteBufferSetUnmarshaller extends BSUnmarshaller {
 
     private static final ByteBufferSetUnmarshaller INSTANCE =

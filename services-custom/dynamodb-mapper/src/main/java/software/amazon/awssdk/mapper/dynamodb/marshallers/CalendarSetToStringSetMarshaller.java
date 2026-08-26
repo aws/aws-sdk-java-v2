@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.MapperDateUtils;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A marshaller that marshals sets of Java {@code Calendar} objects into
  * DynamoDB StringSets (in ISO 8601 format, ie {"2014-01-01T00:00:00Z", ...}).
  */
+@SdkInternalApi
 public class CalendarSetToStringSetMarshaller
         implements StringSetAttributeMarshaller {
 

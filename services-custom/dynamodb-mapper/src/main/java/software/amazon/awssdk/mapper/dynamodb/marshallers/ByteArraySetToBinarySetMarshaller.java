@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A marshaller that marshals sets of Java {@code byte[]}s into DynamoDB
  * BinarySet attributes.
  */
+@SdkInternalApi
 public class ByteArraySetToBinarySetMarshaller
         implements BinarySetAttributeMarshaller {
 

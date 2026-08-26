@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.Map;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * {@code untransform} method. These methods SHOULD be inverses, such that
  * untransform(transform(value)) == value.
  */
+@SdkPublicApi
 public interface AttributeTransformer {
     /**
      * Parameters for the {@code transform} and {@code untransform} methods,

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.ListAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class CollectionToListMarshaller implements ListAttributeMarshaller {
 
     private static final CollectionToListMarshaller INSTANCE =

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.text.ParseException;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class ObjectSetUnmarshaller extends LUnmarshaller {
 
     private static final ObjectSetUnmarshaller INSTANCE =

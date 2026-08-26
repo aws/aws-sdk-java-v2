@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -31,6 +32,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
+@SdkPublicApi
 public class ParallelScanTask {
 
     /**
@@ -131,8 +133,8 @@ public class ParallelScanTask {
 
     private void startScanNextPages() {
         for (int segment = 0; segment < totalSegments; segment++) {
-            final int currentSegment = segment;
-            final SegmentScanState currentSegmentState = segmentScanStates.get(currentSegment);
+            int currentSegment = segment;
+            SegmentScanState currentSegmentState = segmentScanStates.get(currentSegment);
             /**
              * Assert: Should never see any task in state of "Scanning" when starting a new batch.
              */

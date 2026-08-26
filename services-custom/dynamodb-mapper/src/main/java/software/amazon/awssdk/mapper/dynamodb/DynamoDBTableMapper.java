@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
@@ -130,6 +131,7 @@ import org.apache.commons.logging.LogFactory;
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper
  * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB
  */
+@SdkPublicApi
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
 
     private static final Log LOG = LogFactory.getLog(DynamoDBTableMapper.class);
@@ -193,7 +195,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#batchLoad
      */
     public List<T> batchLoad(Iterable<T> itemsToGet) {
-        final Map<String,List<Object>> results = mapper.batchLoad(itemsToGet);
+        Map<String,List<Object>> results = mapper.batchLoad(itemsToGet);
         if (results.isEmpty()) {
             return Collections.<T>emptyList();
         }
@@ -314,8 +316,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
      */
     public void saveIfNotExists(T object) throws ConditionalCheckFailedException {
-        final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
-        for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
+        DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
+        for (DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
             saveExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
                 .exists(false).build());
         }
@@ -332,8 +334,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
      */
     public void saveIfExists(T object) throws ConditionalCheckFailedException {
-        final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
-        for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
+        DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
+        for (DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
             saveExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
                 .exists(true).value(key.convert(key.get(object))).build());
         }
@@ -370,8 +372,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
      */
     public void deleteIfExists(T object) throws ConditionalCheckFailedException {
-        final DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
-        for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
+        DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
+        for (DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
             deleteExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
                 .exists(true).value(key.convert(key.get(object))).build());
         }

@@ -57,6 +57,9 @@ import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 @SdkInternalApi
 final class StandardModelFactories {
 
+    private StandardModelFactories() {
+    }
+
     private static final Log LOG = LogFactory.getLog(StandardModelFactories.class);
 
     /**
@@ -80,7 +83,7 @@ final class StandardModelFactories {
 
         @Override
         public TableFactory getTableFactory(DynamoDBMapperConfig config) {
-            final ConversionSchema schema = config.getConversionSchema();
+            ConversionSchema schema = config.getConversionSchema();
             if (!cache.containsKey(schema)) {
                 RuleFactory<Object> rules = rulesOf(config, s3Links, this);
                 rules = new ConversionSchemas.ItemConverterRuleFactory<Object>(config, s3Links, rules);
@@ -118,7 +121,7 @@ final class StandardModelFactories {
     private static final class TableBuilder<T> extends DynamoDBMapperTableModel.Builder<T> {
         private TableBuilder(Class<T> clazz, Beans<T> beans, RuleFactory<Object> rules) {
             super(clazz, beans.properties());
-            for (final Bean<T,Object> bean : beans.map().values()) {
+            for (Bean<T,Object> bean : beans.map().values()) {
                 try {
                     with(new FieldBuilder<T,Object>(clazz, bean, rules.getRule(bean.type())).build());
                 } catch (final RuntimeException e) {
@@ -155,14 +158,14 @@ final class StandardModelFactories {
      * Creates a new set of conversion rules based on the configuration.
      */
     private static final <T> RuleFactory<T> rulesOf(DynamoDBMapperConfig config, S3Link.Factory s3Links, DynamoDBMapperModelFactory models) {
-        final boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
-        final boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
-        final boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
+        boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
+        boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
+        boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
 
-        final DynamoDBTypeConverterFactory.Builder scalars = config.getTypeConverterFactory().override();
+        DynamoDBTypeConverterFactory.Builder scalars = config.getTypeConverterFactory().override();
         scalars.with(String.class, S3Link.class, s3Links);
 
-        final Rules<T> factory = new Rules<T>(scalars.build());
+        Rules<T> factory = new Rules<T>(scalars.build());
         factory.add(factory.new NativeType(!ver1));
         factory.add(factory.new V2CompatibleBool(v2Compatible));
         factory.add(factory.new NativeBool(ver2));
@@ -200,7 +203,7 @@ final class StandardModelFactories {
 
         @Override
         public Rule<T> getRule(ConvertibleType<T> type) {
-            for (final Rule<T> rule : rules) {
+            for (Rule<T> rule : rules) {
                 if (rule.isAssignableFrom(type)) {
                     return rule;
                 }
@@ -408,7 +411,7 @@ final class StandardModelFactories {
                 if (!value.hasBs()) {
                     return null;
                 }
-                final List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
+                List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
                 for (SdkBytes sb : value.bs()) {
                     result.add(MapperBinaryUtils.toWritableByteBuffer(sb));
                 }
@@ -416,7 +419,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<ByteBuffer> o) {
-                final List<SdkBytes> sdkBytes =
+                List<SdkBytes> sdkBytes =
                     new ArrayList<SdkBytes>(o.size());
                 for (ByteBuffer bb : o) {
                     sdkBytes.add(SdkBytes.fromByteBuffer(bb));
@@ -728,7 +731,7 @@ final class StandardModelFactories {
         public abstract S get(AttributeValue o);
         @Override
         public S unconvert(final AttributeValue o) {
-            final S value = get(o);
+            S value = get(o);
             if (value == null && o.nul() == null) {
                 throw new DynamoDBMappingException("expected " + attributeType  + " in value " + o);
             }

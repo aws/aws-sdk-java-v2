@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * attributes by running them through a cascading series of child
  * {@code AttributeTransformer} instances.
  */
+@SdkPublicApi
 public class AttributeTransformerChain implements AttributeTransformer {
 
     private final List<AttributeTransformer> transformers;

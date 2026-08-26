@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * an NS using 0/1 for true/false. In the V2 schema these fall through to
  * the {@code ObjectSetToListMarshaller} which stores them as an L or BOOLs.
  */
+@SdkInternalApi
 public class BooleanSetUnmarshaller implements ArgumentUnmarshaller {
 
     private static final BooleanSetUnmarshaller INSTANCE =

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * using a JSON encoding. For example: {"s3":{"region":"us-west-2",
  *  "bucket":"my-bucket-name", "key": "foo/bar/baz.txt"}}.
  */
+@SdkInternalApi
 public class S3LinkToStringMarshaller implements StringAttributeMarshaller {
 
     private static final S3LinkToStringMarshaller INSTANCE =

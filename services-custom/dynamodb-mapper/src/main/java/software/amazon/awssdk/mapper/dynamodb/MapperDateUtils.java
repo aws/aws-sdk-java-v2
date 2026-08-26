@@ -82,8 +82,8 @@ public final class MapperDateUtils {
             // Joda-time can only handle up to year 292278993 but we are given
             // 292278994; So we parse the date string by first adjusting
             // the year to 292278993. Then we add 1 year back afterwards.
-            final long milliLess365Days = ISO8601_DATE_FORMAT.parseMillis(temp);
-            final long milli = milliLess365Days + MILLI_SECONDS_OF_365_DAYS;
+            long milliLess365Days = ISO8601_DATE_FORMAT.parseMillis(temp);
+            long milli = milliLess365Days + MILLI_SECONDS_OF_365_DAYS;
             if (milli < 0) { // overflow!
                 // re-parse the original date string using JodaTime so as to
                 // throw an exception with a consistent message
@@ -122,8 +122,8 @@ public final class MapperDateUtils {
      * <p>See https://github.com/aws/aws-sdk-java/issues/233</p>
      */
     private static String tempDateStringForJodaTime(final String dateString) {
-        final String fromPrefix = "292278994-";
-        final String toPrefix = "292278993-";
+        String fromPrefix = "292278994-";
+        String toPrefix = "292278993-";
         return dateString.startsWith(fromPrefix)
              ? toPrefix + dateString.substring(fromPrefix.length())
              : dateString;

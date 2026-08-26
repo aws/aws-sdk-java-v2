@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * warning if ever used since we only know how to unmarshal back to Java
  * Strings.
  */
+@SdkInternalApi
 public class ObjectSetToStringSetMarshaller
         implements StringSetAttributeMarshaller {
 

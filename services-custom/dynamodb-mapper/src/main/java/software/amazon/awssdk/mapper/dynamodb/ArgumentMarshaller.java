@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * Interface to make it possible to cache the expensive type determination
  * behavior.
  */
+@SdkPublicApi
 public interface ArgumentMarshaller {
 
     /**

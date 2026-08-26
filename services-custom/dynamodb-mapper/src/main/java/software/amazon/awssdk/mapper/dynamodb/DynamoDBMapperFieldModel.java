@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import static software.amazon.awssdk.mapper.dynamodb.DynamoDBAutoGenerateStrategy.ALWAYS;
 import static software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector.LIST;
 import static software.amazon.awssdk.services.dynamodb.model.ComparisonOperator.BEGINS_WITH;
@@ -49,6 +50,7 @@ import java.util.Map;
  * @param <T> The object type.
  * @param <V> The field model type.
  */
+@SdkPublicApi
 public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, DynamoDBTypeConverter<AttributeValue,V> {
 
     public static enum DynamoDBAttributeType { B, N, S, BS, NS, SS, BOOL, NULL, L, M; };
@@ -417,7 +419,7 @@ public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, 
         }
 
         public final DynamoDBMapperFieldModel<T,V> build() {
-            final DynamoDBMapperFieldModel<T,V> result = new DynamoDBMapperFieldModel<T,V>(this);
+            DynamoDBMapperFieldModel<T,V> result = new DynamoDBMapperFieldModel<T,V>(this);
             if ((result.keyType() != null || result.indexed()) && !result.attributeType().name().matches("[BNS]")) {
                 throw new DynamoDBMappingException(String.format(
                     "%s[%s]; only scalar (B, N, or S) type allowed for key",

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinarySetAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BooleanAttributeMarshaller;
@@ -111,6 +112,7 @@ import java.util.UUID;
 /**
  * Pre-defined strategies for mapping between Java types and DynamoDB types.
  */
+@SdkPublicApi
 public final class ConversionSchemas {
 
     private static final Log LOGGER =
@@ -282,9 +284,9 @@ public final class ConversionSchemas {
 
         @Override
         public DynamoDBMapperFieldModel getFieldModel(Method getter) {
-            final ArgumentMarshaller marshaller = getMarshaller(getter);
+            ArgumentMarshaller marshaller = getMarshaller(getter);
 
-            final DynamoDBAttributeType attributeType;
+            DynamoDBAttributeType attributeType;
             if (marshaller instanceof StringAttributeMarshaller) {
                 attributeType = DynamoDBAttributeType.S;
             } else if (marshaller instanceof NumberAttributeMarshaller) {
@@ -313,8 +315,8 @@ public final class ConversionSchemas {
             // actually correct for @DynamoDBFlattened attributes, however,
             // its the best that can be done given only the method. The
             // proper way to get this information is using the model factory.
-            final StandardAnnotationMaps.FieldMap annotations = StandardAnnotationMaps.of(getter, null);
-            final DynamoDBMapperFieldModel.Builder builder = new DynamoDBMapperFieldModel.Builder(void.class, annotations);
+            StandardAnnotationMaps.FieldMap annotations = StandardAnnotationMaps.of(getter, null);
+            DynamoDBMapperFieldModel.Builder builder = new DynamoDBMapperFieldModel.Builder(void.class, annotations);
             builder.with(attributeType);
             return builder.build();
         }
@@ -339,7 +341,7 @@ public final class ConversionSchemas {
             Map<String, AttributeValue> result =
                     new HashMap<String, AttributeValue>();
 
-            for (final Bean<Object,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
+            for (Bean<Object,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
                 Object getterResult = bean.reflect().get(object);
                 if (getterResult != null) {
                     AttributeValue value = convert(bean.type().getter(), getterResult);
@@ -482,7 +484,7 @@ public final class ConversionSchemas {
                 return result;
             }
 
-            for (final Bean<T,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
+            for (Bean<T,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
                 AttributeValue av = value.get(bean.properties().attributeName());
                 if (av != null) {
                     ArgumentUnmarshaller unmarshaller = getUnmarshaller(bean.type().getter(), bean.type().setter());
@@ -1297,8 +1299,8 @@ public final class ConversionSchemas {
 
         @Override
         public ArgumentMarshaller getMarshaller(Method getter) {
-            final StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            final DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
+            StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
+            DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
             if (marshalling != null) {
                 return new CustomMarshaller(marshalling.marshallerClass());
             } else if (annotations.actualOf(DynamoDBNativeBoolean.class) != null) {
@@ -1326,8 +1328,8 @@ public final class ConversionSchemas {
         public ArgumentUnmarshaller getUnmarshaller(
                 Method getter,
                 Method setter) {
-            final StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            final DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
+            StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
+            DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
             if (marshalling != null) {
                 return new CustomUnmarshaller(getter.getReturnType(), marshalling.marshallerClass());
             }
@@ -1438,8 +1440,8 @@ public final class ConversionSchemas {
         private final boolean customSchema;
 
         ItemConverterRuleFactory(DynamoDBMapperConfig config, S3Link.Factory s3Links, RuleFactory<V> typeConverters) {
-            final ConversionSchema.Dependencies depends = new ConversionSchema.Dependencies().with(S3ClientCache.class, s3Links.getS3ClientCache());
-            final ConversionSchema schema = config.getConversionSchema();
+            ConversionSchema.Dependencies depends = new ConversionSchema.Dependencies().with(S3ClientCache.class, s3Links.getS3ClientCache());
+            ConversionSchema schema = config.getConversionSchema();
 
             this.customSchema = (schema != V1 && schema != V2_COMPATIBLE && schema != V2);
             this.converter = schema.getConverter(depends);
@@ -1486,7 +1488,7 @@ public final class ConversionSchemas {
         }
     }
 
-    ConversionSchemas() {
+    private ConversionSchemas() {
         throw new UnsupportedOperationException();
     }
 }

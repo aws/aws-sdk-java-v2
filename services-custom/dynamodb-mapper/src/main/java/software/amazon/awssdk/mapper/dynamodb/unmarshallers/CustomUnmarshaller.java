@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -22,6 +23,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that delegates to an instance of a
  * {@code DynamoDBMarshaller}-derived custom marshaler.
  */
+@SdkInternalApi
 public class CustomUnmarshaller extends SUnmarshaller {
 
     private final Class<?> targetClass;

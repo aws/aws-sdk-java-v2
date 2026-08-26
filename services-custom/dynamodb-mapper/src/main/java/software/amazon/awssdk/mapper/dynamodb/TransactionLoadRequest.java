@@ -15,6 +15,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,6 +24,7 @@ import com.amazonaws.annotation.NotThreadSafe;
 /**
  * Represents objects to load using {@link DynamoDBMapper#transactionLoad(TransactionLoadRequest)} operation.
  */
+@SdkPublicApi
 @NotThreadSafe
 public class TransactionLoadRequest {
     /**

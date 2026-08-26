@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
  * For example, you may want to delete only if an attribute has a particular value.
  * @see DynamoDBMapper#delete(Object, DynamoDBDeleteExpression)
  */
+@SdkPublicApi
 public class DynamoDBDeleteExpression {
 
     /** Optional expected attributes */

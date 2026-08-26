@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.nio.ByteBuffer;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A marshaller that marshals Java {@code ByteBuffer}s into DynamoDB Binary
  * attributes.
  */
+@SdkInternalApi
 public class ByteBufferToBinaryMarshaller implements BinaryAttributeMarshaller {
 
     private static final ByteBufferToBinaryMarshaller INSTANCE =

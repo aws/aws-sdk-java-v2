@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.NumberAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * for backwards compatibility with older versions of the mapper which don't
  * know about the DynamoDB BOOL type.
  */
+@SdkInternalApi
 public class BooleanToNumberMarshaller implements NumberAttributeMarshaller {
 
     private static final BooleanToNumberMarshaller INSTANCE =

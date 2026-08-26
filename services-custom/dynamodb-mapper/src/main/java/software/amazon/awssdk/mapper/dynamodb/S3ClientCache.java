@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -34,6 +35,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
  * create clients on the fly. Otherwise it just return clients given to it with
  * {@link #useClient(AmazonS3)}.
  */
+@SdkPublicApi
 public class S3ClientCache {
     private final ConcurrentMap<String, AmazonS3> clientsByRegion = new ConcurrentHashMap<String, AmazonS3>();
     private final Map<String, TransferManager> transferManagersByRegion = new ConcurrentHashMap<String, TransferManager>();

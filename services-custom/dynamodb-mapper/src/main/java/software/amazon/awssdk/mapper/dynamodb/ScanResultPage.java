@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.List;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
 /**
  * Container for a page of scan results.
  */
+@SdkPublicApi
 public class ScanResultPage<T> {
 
     private List<T> results;

@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.text.ParseException;
 import java.util.Map;
 
 import software.amazon.awssdk.mapper.dynamodb.ItemConverter;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class ObjectUnmarshaller extends MUnmarshaller {
 
     private static final ObjectUnmarshaller INSTANCE = new ObjectUnmarshaller();

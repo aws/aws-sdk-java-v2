@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.List;
 
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
@@ -36,6 +37,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
  *            The type of objects held in this list.
  * @see PaginatedList
  */
+@SdkPublicApi
 public class PaginatedQueryList<T> extends PaginatedList<T> {
 
     /** The current query request */

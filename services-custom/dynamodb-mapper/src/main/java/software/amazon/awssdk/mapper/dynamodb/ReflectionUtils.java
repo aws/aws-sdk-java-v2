@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -24,8 +25,12 @@ import com.amazonaws.util.StringUtils;
 /**
  * @deprecated Replaced by {@link StandardBeanProperties}
  */
+@SdkInternalApi
 @Deprecated
 class ReflectionUtils {
+
+    private ReflectionUtils() {
+    }
 
     /**
      * Returns the field name that corresponds to the given getter method,

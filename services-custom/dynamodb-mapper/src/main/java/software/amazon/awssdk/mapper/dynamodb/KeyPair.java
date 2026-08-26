@@ -14,6 +14,9 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
+@SdkPublicApi
 public class KeyPair {
 	private Object hashKey;
 	private Object rangeKey;

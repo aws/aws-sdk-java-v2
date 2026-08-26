@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  *
  * @author Sergei Egorov
  */
+@SdkInternalApi
 public class UUIDSetUnmarshaller extends SSUnmarshaller {
 
     private static final UUIDSetUnmarshaller INSTANCE =

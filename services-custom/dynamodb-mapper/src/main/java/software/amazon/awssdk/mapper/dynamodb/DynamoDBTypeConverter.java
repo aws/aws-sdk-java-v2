@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import com.amazonaws.annotation.SdkInternalApi;
 
 /**
@@ -22,6 +23,7 @@ import com.amazonaws.annotation.SdkInternalApi;
  * @param <S> The DynamoDB standard type.
  * @param <T> The object's field/property type.
  */
+@SdkPublicApi
 public interface DynamoDBTypeConverter<S extends Object, T extends Object> {
 
     /**

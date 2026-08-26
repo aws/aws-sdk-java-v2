@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.lang.reflect.Method;
 
 import software.amazon.awssdk.mapper.dynamodb.ArgumentUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 abstract class BSUnmarshaller implements ArgumentUnmarshaller {
 
     @Override

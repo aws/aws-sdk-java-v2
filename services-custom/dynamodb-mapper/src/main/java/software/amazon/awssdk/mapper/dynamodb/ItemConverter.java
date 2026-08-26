@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.lang.reflect.Method;
 import java.util.Map;
 
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * and DynamoDB AttributeValues. Typically created by a
  * {@link ConversionSchema}.
  */
+@SdkPublicApi
 public interface ItemConverter {
     /**
      * Returns the metadata (e.g. name, type) of the DynamoDB attribute that the

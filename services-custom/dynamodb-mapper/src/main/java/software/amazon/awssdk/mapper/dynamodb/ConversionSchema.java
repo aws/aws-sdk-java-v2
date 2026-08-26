@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,6 +24,7 @@ import java.util.Map;
  * Standard implementations are available in the {@link ConversionSchemas}
  * class.
  */
+@SdkPublicApi
 public interface ConversionSchema {
 
     /**

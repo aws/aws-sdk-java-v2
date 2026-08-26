@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BooleanAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -21,6 +22,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A marshaller that marshals Java {@code Boolean} objects to Dynamodb-native
  * {@code BOOL} attribute values.
  */
+@SdkInternalApi
 public class BooleanToBooleanMarshaller implements BooleanAttributeMarshaller {
 
     private static final BooleanToBooleanMarshaller INSTANCE =

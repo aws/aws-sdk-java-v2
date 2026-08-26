@@ -14,6 +14,8 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
+
 /**
  * Marshaller interface for storing complex types in DynamoDB as Strings.
  * Implementors provide methods to transform instances of a class to and from
@@ -43,6 +45,7 @@ package software.amazon.awssdk.mapper.dynamodb;
  * }
  * </pre>
  */
+@SdkPublicApi
 @Deprecated
 public interface DynamoDBMarshaller<T extends Object> {
 

@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that unmarshals DynamoDB NumberSets into sets of Java
  * {@code Float}s.
  */
+@SdkInternalApi
 public class FloatSetUnmarshaller extends NSUnmarshaller {
 
     private static final FloatSetUnmarshaller INSTANCE =

@@ -69,8 +69,8 @@ final class DynamoDBMappingsRegistry {
     static final class Mappings {
         private final Map<String, Mapping> byNames = new HashMap<String, Mapping>();
         private Mappings(final Class<?> clazz) {
-            for (final Map.Entry<String,Bean<Object,Object>> bean : StandardBeanProperties.of((Class<Object>)clazz).map().entrySet()) {
-                final Mapping mapping = new Mapping(bean.getValue());
+            for (Map.Entry<String,Bean<Object,Object>> bean : StandardBeanProperties.of((Class<Object>)clazz).map().entrySet()) {
+                Mapping mapping = new Mapping(bean.getValue());
                 byNames.put(mapping.getAttributeName(), mapping);
             }
         }

@@ -16,6 +16,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.Objects;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
@@ -26,6 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
  *
  * @author avinam
  */
+@SdkPublicApi
 public class BatchLoadContext {
     /**
      * The BatchGetItemResponse returned by the DynamoDB client.

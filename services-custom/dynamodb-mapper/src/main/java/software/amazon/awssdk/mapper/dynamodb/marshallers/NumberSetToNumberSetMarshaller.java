@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A marshaller that marshals sets of Java {@code Number}s into DynamoDB
  * NumberSets.
  */
+@SdkInternalApi
 public class NumberSetToNumberSetMarshaller
         implements NumberSetAttributeMarshaller {
 

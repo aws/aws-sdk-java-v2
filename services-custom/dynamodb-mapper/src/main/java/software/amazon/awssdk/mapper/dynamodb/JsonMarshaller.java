@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
@@ -24,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
  *
  * @deprecated Replaced by {@link DynamoDBTypeConvertedJson}
  */
+@SdkPublicApi
 @Deprecated
 public class JsonMarshaller<T extends Object> implements DynamoDBMarshaller<T> {
 

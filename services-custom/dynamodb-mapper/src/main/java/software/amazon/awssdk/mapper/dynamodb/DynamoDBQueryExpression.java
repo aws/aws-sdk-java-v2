@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
 /**
  * A query expression.
  */
+@SdkPublicApi
 public class DynamoDBQueryExpression <T> {
 
     private boolean consistentRead = true;

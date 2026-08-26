@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Vector;
 
 import java.util.AbstractMap.SimpleImmutableEntry;
@@ -40,6 +41,7 @@ import java.util.Map.Entry;
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig
  */
+@SdkPublicApi
 public abstract class DynamoDBTypeConverterFactory {
 
     /**
@@ -141,7 +143,7 @@ public abstract class DynamoDBTypeConverterFactory {
 
         @SuppressWarnings("unchecked")
         public <S,T> DynamoDBTypeConverter<S,T> get(Class<S> sourceType, Class<T> targetType) {
-            for (final Entry<Key<?,?>,DynamoDBTypeConverter<?,?>> entry : entrySet()) {
+            for (Entry<Key<?,?>,DynamoDBTypeConverter<?,?>> entry : entrySet()) {
                 if (entry.getKey().isAssignableFrom(sourceType, targetType)) {
                     return (DynamoDBTypeConverter<S,T>)entry.getValue();
                 }

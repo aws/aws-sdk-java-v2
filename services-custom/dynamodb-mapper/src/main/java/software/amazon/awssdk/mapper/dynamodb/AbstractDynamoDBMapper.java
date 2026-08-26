@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
@@ -30,6 +31,7 @@ import java.util.Map;
  * corresponding overload that takes a request object, which throws an
  * {@code UnsupportedOperationException}.
  */
+@SdkPublicApi
 public class AbstractDynamoDBMapper implements IDynamoDBMapper {
 
     private final DynamoDBMapperConfig config;

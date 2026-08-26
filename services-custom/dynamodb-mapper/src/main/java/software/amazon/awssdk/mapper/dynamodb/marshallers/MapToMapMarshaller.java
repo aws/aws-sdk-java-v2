@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.MapAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
+@SdkInternalApi
 public class MapToMapMarshaller implements MapAttributeMarshaller {
 
     private static final MapToMapMarshaller INSTANCE =

@@ -14,12 +14,14 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.NumberAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
  * A marshaller that marshals any Java {@code Number} to a DynamoDB number.
  */
+@SdkInternalApi
 public class NumberToNumberMarshaller implements NumberAttributeMarshaller {
 
     private static final NumberToNumberMarshaller INSTANCE =

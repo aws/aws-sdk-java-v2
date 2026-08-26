@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 /**
  * An unmarshaller that unmarshals Lists into Java {@code Lists}.
  */
+@SdkInternalApi
 public class ListUnmarshaller extends LUnmarshaller {
 
     private static final ListUnmarshaller INSTANCE = new ListUnmarshaller();

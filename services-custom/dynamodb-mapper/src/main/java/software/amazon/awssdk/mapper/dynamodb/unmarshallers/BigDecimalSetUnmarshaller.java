@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * An unmarshaller that unmarshals DynamoDB NumberSets into sets of Java
  * {@code BigDecimal}s.
  */
+@SdkInternalApi
 public class BigDecimalSetUnmarshaller extends NSUnmarshaller {
 
     private static final BigDecimalSetUnmarshaller INSTANCE =

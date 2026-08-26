@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.StringAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMarshaller;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * A marshaller that delegates to an instance of a
  * {@code DynamoDBMarshalling}-derived custom marshaler.
  */
+@SdkInternalApi
 public class CustomMarshaller implements StringAttributeMarshaller {
 
     private final Class<? extends DynamoDBMarshaller<?>> marshallerClass;
