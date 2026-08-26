@@ -184,10 +184,11 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
             r -> r.bucket(BUCKET).key(LARGE_KEY)
                   .tagging(t -> t.tagSet(Tag.builder().key("env").value("t").build())));
 
+        CapturingMetricPublisher clientPublisher = new CapturingMetricPublisher();
         CapturingMetricPublisher requestPublisher = new CapturingMetricPublisher();
         String destinationKey = "copy-tagged-dest-" + System.nanoTime();
 
-        try (S3AsyncClient client = crtClientWith(new CapturingMetricPublisher())) {
+        try (S3AsyncClient client = crtClientWith(clientPublisher)) {
             client.copyObject(b -> b.sourceBucket(BUCKET).sourceKey(LARGE_KEY)
                                     .destinationBucket(BUCKET).destinationKey(destinationKey)
                                     .taggingDirective(TaggingDirective.COPY)
@@ -200,6 +201,9 @@ public class S3CrtClientMetricPublisherIntegrationTest extends S3IntegrationTest
                 c -> assertThat(c.metricValues(CoreMetric.OPERATION_NAME)).contains("GetObjectTagging"));
             assertThat(collections).anySatisfy(
                 c -> assertThat(c.metricValues(CoreMetric.OPERATION_NAME)).contains("PutObjectTagging"));
+
+            // request-level takes precedence, so this client's own client-level publisher sees none of the sub-requests.
+            assertThat(clientPublisher.awaitAtLeast(1, Duration.ofSeconds(1))).isEmpty();
         }
     }
 

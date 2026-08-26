@@ -166,11 +166,6 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
 
-        // The adapter reads its inputs from the execution attributes. METRIC_PUBLISHERS currently holds the
-        // request-level publishers (if any) the interceptor stashed; resolve them against the client-level publishers
-        // (request-level takes precedence) and attach the effective set here when there are any. toBuilder() preserves
-        // everything already in the bag (including CRT_PROGRESS_LISTENER); skip the copy entirely when no publishers
-        // are configured, to avoid rebuilding the bag on every request.
         List<MetricPublisher> requestMetricPublishers =
             httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
         List<MetricPublisher> effectivePublishers = resolveEffectiveMetricPublishers(requestMetricPublishers,
