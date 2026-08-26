@@ -18,8 +18,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class DefaultQueryEndpointProvider implements QueryEndpointProvider {
+  private volatile CacheEntry cache;
+
   @Override
   public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams endpointParams) {
+    // Single-entry result cache: reuse the last endpoint when the params still match.
+    CacheEntry cached = this.cache;
+    if (cached != null && cacheParamsMatch(endpointParams, cached.params)) {
+      return CompletableFuture.completedFuture(cached.endpoint);
+    }
     try {
       Evaluator evaluator = new Evaluator();
       evaluator.params = endpointParams;
@@ -28,6 +35,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
       if (result == null) {
         return CompletableFutureUtils.failedFuture(SdkClientException.create("Rule engine did not reach an error or endpoint result"));
       }
+      this.cache = new CacheEntry(endpointParams, result);
       return CompletableFuture.completedFuture(result);
     } catch (SdkClientException e) {
       String errorMsg = e.getMessage();
@@ -38,6 +46,47 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     } catch (Exception error) {
       return CompletableFutureUtils.failedFuture(error);
     }
+  }
+
+  private static boolean cacheParamsMatch(QueryEndpointParams a, QueryEndpointParams b) {
+    if (a.accelerate() != b.accelerate()) return false;
+    if (a.disableAccessPoints() != b.disableAccessPoints()) return false;
+    if (a.disableMultiRegionAccessPoints() != b.disableMultiRegionAccessPoints()) return false;
+    if (a.disableS3ExpressSessionAuth() != b.disableS3ExpressSessionAuth()) return false;
+    if (a.forcePathStyle() != b.forcePathStyle()) return false;
+    if (a.useArnRegion() != b.useArnRegion()) return false;
+    if (a.useDualStack() != b.useDualStack()) return false;
+    if (a.useFips() != b.useFips()) return false;
+    if (a.useGlobalEndpoint() != b.useGlobalEndpoint()) return false;
+    if (a.useObjectLambdaEndpoint() != b.useObjectLambdaEndpoint()) return false;
+    if (a.useS3ExpressControlEndpoint() != b.useS3ExpressControlEndpoint()) return false;
+    if (a.region() != b.region()) return false;
+    if (a.endpoint() != b.endpoint()) {
+      if (a.endpoint() == null || !a.endpoint().equals(b.endpoint())) {
+        return false;
+      }
+    }
+    if (a.bucket() != b.bucket()) {
+      if (a.bucket() == null || !a.bucket().equals(b.bucket())) {
+        return false;
+      }
+    }
+    if (a.copySource() != b.copySource()) {
+      if (a.copySource() == null || !a.copySource().equals(b.copySource())) {
+        return false;
+      }
+    }
+    if (a.key() != b.key()) {
+      if (a.key() == null || !a.key().equals(b.key())) {
+        return false;
+      }
+    }
+    if (a.prefix() != b.prefix()) {
+      if (a.prefix() == null || !a.prefix().equals(b.prefix())) {
+        return false;
+      }
+    }
+    return true;
   }
 
   private static final class Evaluator {
@@ -4097,6 +4146,17 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private Endpoint result114() {
       throw SdkClientException.create("A region must be set when sending requests to S3.");
+    }
+  }
+
+  private static final class CacheEntry {
+    final QueryEndpointParams params;
+
+    final Endpoint endpoint;
+
+    CacheEntry(QueryEndpointParams params, Endpoint endpoint) {
+      this.params = params;
+      this.endpoint = endpoint;
     }
   }
 }

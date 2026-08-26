@@ -26,19 +26,25 @@ public enum AccountIdEndpointMode {
     /**
      * Default value that indicates account ID values will be used in endpoint rules if available.
      */
-    PREFERRED,
+    PREFERRED("preferred"),
 
     /**
      * When mode is disabled, any resolved account ID will not be used in endpoint construction and rules that
      * reference them will be bypassed.
      */
-    DISABLED,
+    DISABLED("disabled"),
 
     /**
      * Required mode would be used in scenarios where endpoint resolution should return an error if no account ID is
      * available.
      */
-    REQUIRED;
+    REQUIRED("required");
+
+    private final String endpointModeValue;
+
+    AccountIdEndpointMode(String endpointModeValue) {
+        this.endpointModeValue = endpointModeValue;
+    }
 
     /**
      * Returns the appropriate AccountIdEndpointMode value after parsing the parameter.
@@ -58,5 +64,17 @@ public enum AccountIdEndpointMode {
         }
 
         throw new IllegalArgumentException("Unrecognized value for account id endpoint mode: " + s);
+    }
+
+    /**
+     * Returns the canonical lowercase string for this mode, as the endpoint rules engine expects to receive it in the
+     * {@code AWS::Auth::AccountIdEndpointMode} built-in.
+     * <p>
+     * Unlike {@code name().toLowerCase()}, this returns the same interned {@link String} reference on every call rather
+     * than a fresh string per request. That removes an allocation from the request path and lets a generated endpoint
+     * provider compare the value by identity.
+     */
+    public String endpointModeValue() {
+        return endpointModeValue;
     }
 }

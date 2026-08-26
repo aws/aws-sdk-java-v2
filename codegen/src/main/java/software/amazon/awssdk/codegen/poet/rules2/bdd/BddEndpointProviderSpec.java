@@ -87,8 +87,10 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private final RuleRuntimeTypeMirror typeMirror;
     private final Map<String, RegistryInfo> registerInfoMap;
     private final ClassName evaluatorType;
+    private final ClassName cacheEntryType;
     private final List<EndpointBddModel.BddNode> bddNodes;
     private final List<ConditionType> conditionTypes;
+    private final EndpointProviderCacheIndex cacheIndex;
 
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -99,8 +101,10 @@ public class BddEndpointProviderSpec implements ClassSpec {
         this.knownEndpointAttributes = knownEndpointAttributes(intermediateModel);
         this.registerInfoMap = buildRegisterInfoMap();
         this.evaluatorType = className().nestedClass("Evaluator");
+        this.cacheEntryType = className().nestedClass("CacheEntry");
         this.bddNodes = endpointBddModel.getDecodedNodes();
         this.conditionTypes = analyzeConditions();
+        this.cacheIndex = EndpointProviderCacheIndex.of(intermediateModel);
     }
 
     @Override
@@ -110,10 +114,150 @@ public class BddEndpointProviderSpec implements ClassSpec {
                                             .addSuperinterface(endpointRulesSpecUtils.providerInterfaceName())
                                             .addAnnotation(SdkInternalApi.class);
 
+        builder.addField(cacheField());
         builder.addType(evaluatorClass());
+        builder.addType(cacheEntryClass());
         builder.addMethod(resolveEndpointMethod());
+        builder.addMethod(cacheParamsMatchMethod());
 
         return builder.build();
+    }
+
+    // ---- Single-entry result cache ----
+
+    /**
+     * Generates {@code private volatile CacheEntry cache;}.
+     *
+     * <p>One entry, holding the most recent successfully resolved {@code (params, endpoint)} pair. A single entry is
+     * enough because the overwhelmingly common shape is a client resolving the same endpoint repeatedly: same region,
+     * same flags, and for most services no request-derived parameters at all. A service whose endpoint genuinely varies
+     * per request simply misses every time and pays only the key check.
+     *
+     * <p>{@code volatile} is the whole of the synchronisation. Racing threads compute equivalent entries for equal
+     * params, so a lost write costs one re-resolution and nothing more; {@code CacheEntry} is immutable with final
+     * fields, so a thread that reads the reference sees fully initialised contents.
+     */
+    private FieldSpec cacheField() {
+        return FieldSpec.builder(cacheEntryType, "cache")
+                        .addModifiers(Modifier.PRIVATE, Modifier.VOLATILE)
+                        .build();
+    }
+
+    /**
+     * Generates the immutable {@code CacheEntry} holding one {@code (params, endpoint)} snapshot.
+     */
+    private TypeSpec cacheEntryClass() {
+        ClassName paramsClass = endpointRulesSpecUtils.parametersClassName();
+        return TypeSpec.classBuilder(cacheEntryType)
+                       .addModifiers(Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                       .addField(paramsClass, "params", Modifier.FINAL)
+                       .addField(Endpoint.class, "endpoint", Modifier.FINAL)
+                       .addMethod(MethodSpec.constructorBuilder()
+                                            .addParameter(paramsClass, "params")
+                                            .addParameter(Endpoint.class, "endpoint")
+                                            .addStatement("this.params = params")
+                                            .addStatement("this.endpoint = endpoint")
+                                            .build())
+                       .build();
+    }
+
+    /**
+     * Generates {@code cacheParamsMatch(a, b)}: true when the two parameter objects are interchangeable as far as
+     * endpoint resolution is concerned.
+     *
+     * <p>Every parameter the BDD model declares is compared. Parameters are ordered by
+     * {@link EndpointCacheKeyClassification}, cheapest comparison first, and the method returns on the first mismatch.
+     *
+     * <p>A parameter that {@link EndpointProviderCacheIndex} classified but that the model no longer declares would be
+     * a hole in the key, so that combination fails codegen instead of generating a comparison that quietly skips it.
+     */
+    private MethodSpec cacheParamsMatchMethod() {
+        ClassName paramsClass = endpointRulesSpecUtils.parametersClassName();
+        Map<String, ParameterModel> parameters = endpointBddModel.getParameters();
+
+        MethodSpec.Builder b = MethodSpec.methodBuilder("cacheParamsMatch")
+                                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                                         .returns(boolean.class)
+                                         .addParameter(paramsClass, "a")
+                                         .addParameter(paramsClass, "b");
+
+        int listIndex = 0;
+        for (Map.Entry<String, EndpointCacheKeyClassification> entry : cacheIndex.classifiedParameters().entrySet()) {
+            String paramName = entry.getKey();
+            if (!parameters.containsKey(paramName)) {
+                throw new IllegalStateException(
+                    "Endpoint parameter '" + paramName + "' was classified for the result cache but is not declared by "
+                    + "the BDD model. Leaving it out of the cache key would let the provider return an endpoint "
+                    + "resolved for a different value of it.");
+            }
+            String getter = endpointRulesSpecUtils.paramMethodName(paramName) + "()";
+            if (entry.getValue() == EndpointCacheKeyClassification.REQUEST_LIST) {
+                addListParamCheck(b, getter, listIndex++);
+            } else {
+                addScalarParamCheck(b, getter, entry.getValue());
+            }
+        }
+
+        b.addStatement("return true");
+        return b.build();
+    }
+
+    /**
+     * Emits the comparison for one non-list parameter, returning false on mismatch.
+     *
+     * <p>{@code BOOLEAN}, {@code CLIENT_STATIC_REF} and {@code OPERATION_STATIC} compare references only. For booleans
+     * that is complete, not just fast: autoboxing hands back the {@code Boolean.TRUE}/{@code Boolean.FALSE} singletons.
+     * For the other two the SDK hands the same reference to every request, and if it ever does not, the result is a
+     * miss and a re-resolution rather than a wrong endpoint.
+     *
+     * <p>The remaining classifications add an {@code equals} fallback so that an equal value arriving as a fresh
+     * reference still hits.
+     */
+    private static void addScalarParamCheck(MethodSpec.Builder b, String getter, EndpointCacheKeyClassification cat) {
+        switch (cat) {
+            case BOOLEAN:
+            case CLIENT_STATIC_REF:
+            case OPERATION_STATIC:
+                b.addStatement("if (a.$L != b.$L) return false", getter, getter);
+                break;
+            default:
+                b.beginControlFlow("if (a.$L != b.$L)", getter, getter);
+                b.beginControlFlow("if (a.$L == null || !a.$L.equals(b.$L))", getter, getter, getter);
+                b.addStatement("return false");
+                b.endControlFlow();
+                b.endControlFlow();
+                break;
+        }
+    }
+
+    /**
+     * Emits the comparison for one {@code stringArray} parameter: identity, then null, then size, then the element
+     * walk. The size cap keeps the check bounded so a request carrying a large list cannot make the cache check itself
+     * a cost worth avoiding.
+     *
+     * <p>{@code idx} suffixes the local variable names so several list parameters can be compared in one method.
+     */
+    private static void addListParamCheck(MethodSpec.Builder b, String getter, int idx) {
+        String listA = "listA" + idx;
+        String listB = "listB" + idx;
+        String i = "i" + idx;
+        String elementA = "elementA" + idx;
+        String elementB = "elementB" + idx;
+        TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
+
+        b.addStatement("$T $L = a.$L", listOfString, listA, getter);
+        b.addStatement("$T $L = b.$L", listOfString, listB, getter);
+        b.beginControlFlow("if ($L != $L)", listA, listB);
+        b.addStatement("if ($L == null || $L == null) return false", listA, listB);
+        b.addStatement("if ($L.size() != $L.size()) return false", listA, listB);
+        b.addStatement("if ($L.size() > $L) return false", listA, EndpointProviderCacheIndex.MAX_LIST_COMPARISON_SIZE);
+        b.beginControlFlow("for (int $L = 0; $L < $L.size(); $L++)", i, i, listA, i);
+        b.addStatement("$T $L = $L.get($L)", String.class, elementA, listA, i);
+        b.addStatement("$T $L = $L.get($L)", String.class, elementB, listB, i);
+        b.addStatement("if ($L != $L && ($L == null || !$L.equals($L))) return false",
+                       elementA, elementB, elementA, elementA, elementB);
+        b.endControlFlow();
+        b.endControlFlow();
     }
 
     private TypeSpec evaluatorClass() {
@@ -386,6 +530,15 @@ public class BddEndpointProviderSpec implements ClassSpec {
 
         builder.addCode(validateRequiredParams());
 
+        // Cache check. This sits after required-param validation so that invalid params fail the same way on a hit as
+        // on a miss. One volatile read into a local, so the entry cannot be replaced between the null check and the
+        // comparison.
+        builder.addComment("Single-entry result cache: reuse the last endpoint when the params still match.");
+        builder.addStatement("$T cached = this.cache", cacheEntryType);
+        builder.beginControlFlow("if (cached != null && cacheParamsMatch(endpointParams, cached.params))");
+        builder.addStatement("return $T.completedFuture(cached.endpoint)", CompletableFuture.class);
+        builder.endControlFlow();
+
         builder.beginControlFlow("try");
 
         // Allocate evaluator per call — lightweight (just fields, no maps), immediately young-gen collected.
@@ -409,6 +562,9 @@ public class BddEndpointProviderSpec implements ClassSpec {
                              CompletableFutureUtils.class, SdkClientException.class,
                              "Rule engine did not reach an error or endpoint result")
                .endControlFlow();
+        // Populate on success only. A rule error and a no-match both leave the previous entry in place, so a transient
+        // bad-params call cannot poison the cache and an error is never replayed from it.
+        builder.addStatement("this.cache = new $T(endpointParams, result)", cacheEntryType);
         builder.addStatement("return $T.completedFuture(result)", CompletableFuture.class);
 
         // Catch errors thrown from result methods

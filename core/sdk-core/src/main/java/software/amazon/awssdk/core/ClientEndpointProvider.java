@@ -49,6 +49,21 @@ public interface ClientEndpointProvider {
     URI clientEndpoint();
 
     /**
+     * Returns the sanitized endpoint string suitable for passing to the endpoint rules engine as the
+     * {@code SDK::Endpoint} built-in.  The default implementation strips query and user-info components on every call;
+     * implementations backed by a static URI (see {@link #create(URI, boolean)}) override this to return a cached
+     * reference, enabling identity ({@code ==}) comparisons in the endpoint-provider result cache.
+     * <p>
+     * Returns {@code null} if the endpoint is not overridden.
+     */
+    default String sanitizedEndpointString() {
+        if (!isEndpointOverridden()) {
+            return null;
+        }
+        return StaticClientEndpointProvider.sanitizeEndpoint(clientEndpoint());
+    }
+
+    /**
      * Returns true if this endpoint was specified as an override by the customer, or false if it was determined
      * automatically by the SDK.
      */

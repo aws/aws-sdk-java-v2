@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.awscore.endpoints;
 
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
-
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -54,19 +52,19 @@ public final class AwsEndpointProviderUtils {
     }
 
     /**
-     * Returns the endpoint set on the client. Note that this strips off the query part of the URI because the endpoint
-     * rules library, e.g. {@code ParseURL} will return an exception if the URI it parses has query parameters.
+     * Returns the endpoint set on the client, sanitized for the rules engine.  The rules engine (e.g.
+     * {@code ParseURL}) rejects URIs with query parameters, so we strip the query and user-info components.
+     * <p>
+     * Delegates to {@link ClientEndpointProvider#sanitizedEndpointString()}, which returns a cached reference on
+     * {@link software.amazon.awssdk.core.internal.StaticClientEndpointProvider}, enabling identity ({@code ==})
+     * comparison inside the endpoint-provider result cache.
      */
     public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
         if (endpointIsOverridden(executionAttributes)) {
             executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(
                 metric -> metric.addMetric(BusinessMetricFeatureId.ENDPOINT_OVERRIDE.value()));
-            return invokeSafely(() -> {
-                URI endpointOverride = executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
-                                                          .clientEndpoint();
-                return new URI(endpointOverride.getScheme(), null, endpointOverride.getHost(), endpointOverride.getPort(),
-                        endpointOverride.getPath(), null, endpointOverride.getFragment()).toString();
-            });
+            return executionAttributes.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER)
+                                      .sanitizedEndpointString();
         }
         return null;
     }

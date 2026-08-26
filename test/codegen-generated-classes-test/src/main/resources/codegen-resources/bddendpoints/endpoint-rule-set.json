@@ -26,6 +26,38 @@
             "required": false,
             "documentation": "Override the endpoint used to send this request",
             "type": "string"
+        },
+        "AccountId": {
+            "builtIn": "AWS::Auth::AccountId",
+            "required": false,
+            "documentation": "The AWS account ID, read off the resolved identity. Declared to exercise the IDENTITY_DERIVED cache tier; the BDD graph does not read it.",
+            "type": "string"
+        },
+        "AccountIdEndpointMode": {
+            "builtIn": "AWS::Auth::AccountIdEndpointMode",
+            "required": false,
+            "documentation": "Whether the account ID may be used in the endpoint. Declared to exercise the SEMI_STABLE cache tier; the BDD graph does not read it.",
+            "type": "string"
+        },
+        "clientStringParam": {
+            "required": false,
+            "documentation": "A client context parameter. Declared to exercise the CLIENT_STATIC_REF cache tier; the BDD graph does not read it.",
+            "type": "string"
+        },
+        "staticStringParam": {
+            "required": false,
+            "documentation": "A parameter bound to a per-operation static literal. Declared to exercise the OPERATION_STATIC cache tier; the BDD graph does not read it.",
+            "type": "string"
+        },
+        "requestStringParam": {
+            "required": false,
+            "documentation": "A parameter bound to a request member. Declared to exercise the REQUEST_DYNAMIC cache tier; the BDD graph does not read it.",
+            "type": "string"
+        },
+        "resourceArnList": {
+            "required": false,
+            "documentation": "A list extracted from the request by JMESPath. Declared to exercise the REQUEST_LIST cache tier; the BDD graph does not read it.",
+            "type": "stringArray"
         }
     },
     "rules": [

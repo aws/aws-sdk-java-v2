@@ -656,8 +656,11 @@ public class ClientTestModels {
     public static IntermediateModel queryServiceModelsWithBddEndpoints(boolean useS3ExpressSessionAuth) {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
         File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        // The S3 rule set, not the default-regional one, because it declares the same 17 parameters as the S3 BDD. The
+        // generated params class comes from the rule set while the provider body comes from the BDD, so pairing the S3
+        // BDD with a 4-parameter rule set would produce a provider referencing getters the params class does not have.
         File endpointRuleSetModel =
-            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-default-regional.json").getFile());
+            new File(ClientTestModels.class.getResource("client/c2j/s3-test/endpoint-rule-set.json").getFile());
         File endpointTestsModel =
             new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests.json").getFile());
         File endpointBddModel =
