@@ -13,13 +13,18 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.http;
+package software.amazon.awssdk.http.apache5;
 
-import software.amazon.awssdk.core.http.server.MockServer;
+import java.time.Duration;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpClientSslHandshakeTimeoutTestSuite;
 
-public abstract class UnresponsiveMockServerTestBase extends MockServerTestBase {
+public class Apache5HttpClientSslHandshakeTimeoutTest extends SdkHttpClientSslHandshakeTimeoutTestSuite {
+
     @Override
-    protected MockServer buildMockServer() {
-        return MockServer.createMockServer(MockServer.ServerBehavior.UNRESPONSIVE);
+    protected SdkHttpClient createSdkHttpClient(Duration socketTimeout) {
+        return Apache5HttpClient.builder()
+                                .socketTimeout(socketTimeout)
+                                .build();
     }
 }
