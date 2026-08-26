@@ -162,6 +162,10 @@ public final class AuthSchemeSpecUtils {
         return usesSigV4a() || generateEndpointBasedParams();
     }
 
+    public boolean hasPerOperationAuthOverrides() {
+        return AuthSchemeCodegenKnowledgeIndex.of(intermediateModel).hasPerOperationAuthSchemesOverrides();
+    }
+
     private static Set<String> setOf(String val1, String val2) {
         Set<String> result = new HashSet<>();
         result.add(val1);

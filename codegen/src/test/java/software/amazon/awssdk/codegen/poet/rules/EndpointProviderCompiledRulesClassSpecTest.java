@@ -58,4 +58,12 @@ class EndpointProviderCompiledRulesClassSpecTest {
             new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithUnknownEndpointMetricValues());
         assertThat(endpointProviderSpec, generatesTo("endpoint-provider-metric-values-class.java"));
     }
+
+    @Test
+    void endpointProviderClass_regionDeclaredButNeverReferenced_compilesSuccessfully() {
+        // Covers the case where region is declared as a parameter but never referenced in any rule.
+        ClassSpec endpointProviderSpec =
+            new EndpointProviderSpec2(ClientTestModels.queryServiceModelsWithDelegatingRootRule());
+        assertThat(endpointProviderSpec, generatesTo("endpoint-provider-delegating-root-class.java"));
+    }
 }
