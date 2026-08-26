@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS License Manager User Subscriptions",
-    "contributor": "",
-    "description": "Released support for License Expiry field in ListProductSubscriptions API"
-}
