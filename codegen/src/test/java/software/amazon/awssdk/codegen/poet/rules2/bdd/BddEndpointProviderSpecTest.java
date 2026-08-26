@@ -32,80 +32,70 @@ public class BddEndpointProviderSpecTest {
         MatcherAssert.assertThat(spec, generatesTo("endpoint-provider-bdd-class.java"));
     }
 
+    /**
+     * The S3 BDD is the only model that exercises all four peephole rewrites, the dynamic auth scheme
+     * name, and the {@code ite} assign conditions. The simple-BDD fixture above contains none of
+     * those shapes, so this golden file is what makes the pass's effect on generated code reviewable
+     * and pins it against unintended change.
+     */
     @Test
-    void endpointProviderClass_s3Bdd_generatesWithoutError() {
+    void endpointProviderClass_s3Bdd_generatesExpectedCode() {
         BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
             ClientTestModels.queryServiceModelsWithBddEndpoints());
-        assertThat(spec.poetSpec()).isNotNull();
+        MatcherAssert.assertThat(spec, generatesTo("endpoint-provider-bdd-s3-class.java"));
     }
 
     /**
-     * The substring peephole fires on the S3 BDD (the golden-file model has no substring conditions,
-     * so it is not covered there). Each rewrite must emit a single {@code substringEquals} call: the
-     * helper reproduces {@code substring}'s non-ASCII rejection, whereas an inlined
-     * {@code startsWith}/{@code endsWith}/{@code regionMatches} would not, and would silently take a
-     * different branch than the endpoint spec requires for a non-ASCII bucket name.
+     * Correctness invariants that must hold no matter what the golden file above happens to contain.
+     *
+     * <p>These are deliberately not left to the fixture. Regenerating a golden file after changing an
+     * emitter is a one-command operation, and doing it without reading the diff is how a defect gets
+     * blessed into a fixture - this repo has an instance of exactly that. Every assertion here is
+     * phrased negatively and carries the reason, so restoring the faster-but-wrong form means
+     * consciously deleting a stated invariant rather than accepting a regenerated file.
      */
     @Test
-    void substringConditions_emitSpecFaithfulHelperNotInlinedStringOps() {
+    void s3Bdd_neverEmitsSpecViolatingForms() {
         BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
             ClientTestModels.queryServiceModelsWithBddEndpoints());
         String generated = spec.poetSpec().toString();
 
-        assertThat(generated).contains("substringEquals(params.bucket(), 0, 6, true, \"--x-s3\")");
-        assertThat(generated).contains("substringEquals(params.bucket(), 0, 4, false, \"arn:\")");
-        assertThat(generated).contains("substringEquals(params.bucket(), 16, 18, true, \"--\")");
-
-        // No inlined String comparison may remain: those skip the ASCII check.
-        assertThat(generated).doesNotContain(".startsWith(");
-        assertThat(generated).doesNotContain(".endsWith(");
-        assertThat(generated).doesNotContain(".regionMatches(");
-
-        // RulesFunctions.substring calls do legitimately remain, but only for assign conditions that
-        // bind the result to a register for later use in a URL template. Those are not comparisons, so
-        // the peephole must leave them alone.
-        assertThat(generated).contains("accessPointSuffix = ")
-                             .contains("RulesFunctions.substring(params.bucket(), 0, 7, true)");
-    }
-
-    /**
-     * The remaining three peephole rewrites, none of which appear in the simple-BDD golden fixture.
-     * The S3 BDD is the only model exercising them, so without these the PR's headline claim has no
-     * regression guard: a change to the emitters or to PrepareForCodegenVisitor could silently
-     * restore the RulesFunctions dispatches with a green build.
-     */
-    @Test
-    void iteCoalesceAndHostLabel_emitInlineFormsNotRulesFunctionsDispatches() {
-        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
-            ClientTestModels.queryServiceModelsWithBddEndpoints());
-        String generated = spec.poetSpec().toString();
-
-        // ite -> native ternary
-        assertThat(generated).contains("_s3e_ds = (params.useDualStack() ? \".dualstack\" : \"\")");
-        assertThat(generated).contains("_s3e_fips = (params.useFips() ? \"-fips\" : \"\")");
-
-        // coalesce(x, boolLiteral) -> wrapper equality, subject evaluated once
-        assertThat(generated).contains("Boolean.TRUE.equals(params.useS3ExpressControlEndpoint())");
-        assertThat(generated).contains("!Boolean.FALSE.equals(params.useArnRegion())");
+        // Inlined String comparisons skip substring's rejection of non-ASCII input, which would route
+        // a bucket like "mybuck\u00e9t--x-s3" to S3 Express with sigv4-s3express instead of to a
+        // regular S3 endpoint with SigV4. RulesFunctions.substringEquals exists to preserve that.
         assertThat(generated)
-            .as("a ternary would emit the coalesce subject twice")
+            .as("substring comparisons must go through substringEquals, which checks for non-ASCII input")
+            .doesNotContain(".startsWith(")
+            .doesNotContain(".endsWith(")
+            .doesNotContain(".regionMatches(");
+
+        // The spec's stringEquals returns false for a null operand; .equals throws. Only a comparison
+        // with a string constant on the receiver is safe to inline.
+        assertThat(generated)
+            .as("stringEquals with two nullable operands must stay null-safe")
+            .doesNotContain("region.equals(bucketArn.region())")
+            .doesNotContain("bucketArn.partition().equals(")
+            .doesNotContain("bucketPartition.name().equals(");
+
+        // A ternary would emit the coalesce subject twice, running any non-trivial operand twice.
+        assertThat(generated)
+            .as("boolean coalesce must evaluate its subject once")
             .doesNotContain("!= null ?");
 
-        // isValidHostLabel(x, boolLiteral) -> specialized variant, no runtime allowDots branch
-        assertThat(generated).contains("isValidHostLabelSingle(");
-        assertThat(generated).contains("isValidHostLabelMulti(");
-
-        // None of the rewritten shapes may fall back to the generic dispatch.
-        assertThat(generated).doesNotContain("RulesFunctions.ite(");
-        assertThat(generated).doesNotContain("RulesFunctions.coalesce(");
-        assertThat(generated).doesNotContain("RulesFunctions.isValidHostLabel(");
+        // Each rewrite must actually fire; falling back to the generic dispatch is a silent
+        // de-optimization that the fixture alone would absorb without comment.
+        assertThat(generated)
+            .as("no rewritten shape may fall back to a RulesFunctions dispatch")
+            .doesNotContain("RulesFunctions.ite(")
+            .doesNotContain("RulesFunctions.coalesce(")
+            .doesNotContain("RulesFunctions.isValidHostLabel(");
     }
 
     /**
      * The three {@code ite} nodes in the S3 BDD all have string-literal branches, so their assign
      * conditions are provably non-null and keep the elided null check. Paired with
-     * {@code ConditionFnCodeGeneratorVisitorTest}, which pins the nullable-branch case that must
-     * emit the check.
+     * {@code ConditionFnCodeGeneratorVisitorTest}, which pins the nullable-branch case that must emit
+     * the check. Stated here as an invariant because the two halves only make sense together.
      */
     @Test
     void literalBranchIteAssigns_keepElidedNullCheck() {
@@ -115,26 +105,6 @@ public class BddEndpointProviderSpecTest {
 
         assertThat(generated).contains("_s3e_ds = (params.useDualStack() ? \".dualstack\" : \"\");\n      return true;");
         assertThat(generated).contains("_s3e_fips = (params.useFips() ? \"-fips\" : \"\");\n      return true;");
-    }
-
-    /**
-     * A {@code stringEquals} with two nullable operands must stay a {@code RulesFunctions.stringEquals}
-     * call, which returns false for a null operand. An emitted {@code left.equals(right)} would throw
-     * a {@code NullPointerException} out of endpoint resolution instead.
-     */
-    @Test
-    void stringEqualsWithTwoNullableOperands_staysNullSafe() {
-        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
-            ClientTestModels.queryServiceModelsWithBddEndpoints());
-        String generated = spec.poetSpec().toString();
-
-        assertThat(generated).contains("RulesFunctions.stringEquals(region, bucketArn.region())");
-        assertThat(generated).doesNotContain("region.equals(bucketArn.region())");
-        assertThat(generated).doesNotContain("bucketArn.partition().equals(");
-        assertThat(generated).doesNotContain("bucketPartition.name().equals(");
-
-        // Constant-operand comparisons are still rewritten, with the constant as the receiver.
-        assertThat(generated).contains("\"aws-cn\".equals(partitionResult.name())");
     }
 
     /**
