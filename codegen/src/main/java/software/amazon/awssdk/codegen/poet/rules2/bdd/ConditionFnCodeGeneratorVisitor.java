@@ -180,15 +180,29 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
     }
 
     /**
-     * Emits: {@code (expr != null ? expr : defaultValue)}
+     * Emits a single-evaluation equivalent of {@code coalesce(expr, defaultValue)} for a boolean
+     * default. Wrapper equality gives exact coalesce semantics with no branch and no boxing:
+     *
+     * <table border="1">
+     *     <caption>Rewrite table</caption>
+     *     <tr><th>rewrite</th><th>emitted</th><th>null</th><th>TRUE</th><th>FALSE</th></tr>
+     *     <tr><td>{@code coalesce(x, false)}</td><td>{@code Boolean.TRUE.equals(x)}</td>
+     *         <td>false</td><td>true</td><td>false</td></tr>
+     *     <tr><td>{@code coalesce(x, true)}</td><td>{@code !Boolean.FALSE.equals(x)}</td>
+     *         <td>true</td><td>true</td><td>false</td></tr>
+     * </table>
+     *
+     * <p>The subject is emitted once. A ternary would emit it twice, which runs any non-trivial
+     * operand (a nested rules function, for instance) twice per evaluation.
      */
     private RuleType emitCoalesceBoolean(List<RuleExpression> args) {
-        builder.add("(");
+        boolean defaultValue = ((LiteralBooleanExpression) args.get(1)).value();
+        if (defaultValue) {
+            builder.add("!Boolean.FALSE.equals(");
+        } else {
+            builder.add("Boolean.TRUE.equals(");
+        }
         args.get(0).accept(this);
-        builder.add(" != null ? ");
-        args.get(0).accept(this);
-        builder.add(" : ");
-        args.get(1).accept(this);
         builder.add(")");
         return RuleRuntimeTypeMirror.BOOLEAN;
     }
@@ -210,15 +224,7 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
 
     @Override
     public RuleType visitMethodCallExpression(MethodCallExpression e) {
-        // Wrap compound expressions (string concat) in parens to ensure correct binding
-        boolean needsParens = e.source().kind() == RuleExpression.RuleExpressionKind.STRING_CONCAT;
-        if (needsParens) {
-            builder.add("(");
-        }
         e.source().accept(this);
-        if (needsParens) {
-            builder.add(")");
-        }
         builder.add(".$L(", e.name());
         boolean isFirst = true;
         for (RuleExpression arg : e.arguments()) {
@@ -289,8 +295,8 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             builder.add("$L = ", registerName);
             v.accept(this);
             builder.addStatement(""); // end the statement we started
-            // __ite always returns non-null (it's a ternary between two string literals),
-            // so skip the dead null-check and just return true
+            // Assign conditions succeed only when the assigned value is non-null. Skip the check
+            // only where the value is provably non-null, otherwise emit it.
             if (isAlwaysNonNull(v)) {
                 builder.addStatement("return true");
             } else {
@@ -301,15 +307,26 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
     }
 
     /**
-     * Returns true if the expression is guaranteed to produce a non-null value at runtime.
-     * Currently recognizes __ite (inline ternary between two string literals).
+     * Returns true only if the expression is provably non-null at runtime.
+     *
+     * <p>Recognizes {@code __ite} whose two branches are both string literals, which
+     * {@link #emitIte} emits as a ternary between them. {@code BddPeepholeVisitor.simplifyIte} does
+     * not constrain the branches, and {@code RuleRuntimeTypeMirror} types them as {@code STRING}, so
+     * a {@code {"ref": ...}} branch is legal input from the endpoint compiler and can be null. Both
+     * branches are therefore checked here rather than assumed: eliding the register null-check for a
+     * nullable branch would report an assign condition as satisfied with a null register, flipping a
+     * BDD edge and resolving an endpoint the spec does not permit.
      */
     private static boolean isAlwaysNonNull(RuleExpression expr) {
         if (!(expr instanceof FunctionCallExpression)) {
             return false;
         }
         FunctionCallExpression fn = (FunctionCallExpression) expr;
-        return BddPeepholeVisitor.ITE.equals(fn.name());
+        if (!BddPeepholeVisitor.ITE.equals(fn.name()) || fn.arguments().size() != 3) {
+            return false;
+        }
+        return fn.arguments().get(1).kind() == RuleExpression.RuleExpressionKind.STRING_VALUE
+               && fn.arguments().get(2).kind() == RuleExpression.RuleExpressionKind.STRING_VALUE;
     }
 
     @Override

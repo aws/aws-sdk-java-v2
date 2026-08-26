@@ -170,31 +170,7 @@ public class RulesFunctions {
     }
 
     public static boolean isValidHostLabel(String hostLabel, boolean allowDots) {
-        int len = hostLabel == null ? 0 : hostLabel.length();
-        if (len == 0) {
-            return false;
-        }
-
-        // Single-label mode
-        if (!allowDots) {
-            return isValidSingleLabel(hostLabel, 0, len);
-        }
-
-        // Multi-label mode
-        int start = 0;
-        for (int i = 0; i <= len; i++) {
-            if (i == len || hostLabel.charAt(i) == '.') {
-                // chunk is hostLabel[start..i)
-                int chunkLen = i - start;
-                if (chunkLen < 1 || chunkLen > MAX_HOST_LABEL_SIZE) {
-                    return false;
-                } else if (!isValidSingleLabel(hostLabel, start, i)) {
-                    return false;
-                }
-                start = i + 1;
-            }
-        }
-        return true;
+        return allowDots ? isValidHostLabelMulti(hostLabel) : isValidHostLabelSingle(hostLabel);
     }
 
     // Validates a single label in s[start..end): ^[A-Za-z0-9][A-Za-z0-9\-]{0,62}$
@@ -225,20 +201,22 @@ public class RulesFunctions {
     }
 
     /**
-     * Validates a single DNS label (no dots allowed). Equivalent to isValidHostLabel(str, false)
-     * but avoids the allowDots branch — called directly by optimized codegen.
+     * Validates a single DNS label (no dots allowed), the {@code allowDots == false} case of
+     * {@link #isValidHostLabel}. Called directly by optimized codegen when {@code allowDots} is a
+     * compile-time constant, which skips the dispatch.
      */
     public static boolean isValidHostLabelSingle(String hostLabel) {
         int len = hostLabel == null ? 0 : hostLabel.length();
-        if (len == 0 || len > MAX_HOST_LABEL_SIZE) {
+        if (len == 0) {
             return false;
         }
         return isValidSingleLabel(hostLabel, 0, len);
     }
 
     /**
-     * Validates a multi-label DNS name (dots allowed). Equivalent to isValidHostLabel(str, true)
-     * but avoids the allowDots branch — called directly by optimized codegen.
+     * Validates a multi-label DNS name (dots allowed), the {@code allowDots == true} case of
+     * {@link #isValidHostLabel}. Called directly by optimized codegen when {@code allowDots} is a
+     * compile-time constant, which skips the dispatch.
      */
     public static boolean isValidHostLabelMulti(String hostLabel) {
         int len = hostLabel == null ? 0 : hostLabel.length();
@@ -432,27 +410,46 @@ public class RulesFunctions {
 
         // TODO: support custom partitions.json
         Partitions partitions = provider.loadPartitions();
-        PartitionData partitionData = new PartitionData();
 
-        partitions.partitions().forEach(part -> {
+        List<PartitionEntry> entries = new ArrayList<>();
+        Map<String, RulePartition> regionMap = new HashMap<>();
+        RulePartition awsRulePartition = null;
+
+        for (Partition part : partitions.partitions()) {
             RulePartition rulePartition = RulePartition.from(part.id(), part.outputs());
-            partitionData.partitions.add(new PartitionEntry(part, rulePartition));
-            part.regions().forEach((name, override) -> {
-                partitionData.regionMap.put(name, rulePartition);
-            });
-            if ("aws".equalsIgnoreCase(part.id())) {
-                partitionData.awsRulePartition = rulePartition;
+            entries.add(new PartitionEntry(part, rulePartition));
+            for (String regionName : part.regions().keySet()) {
+                regionMap.put(regionName, rulePartition);
             }
-        });
+            if ("aws".equalsIgnoreCase(part.id())) {
+                awsRulePartition = rulePartition;
+            }
+        }
 
-        return partitionData;
+        // awsPartition falls back to the 'aws' partition for any region it cannot match. Fail loudly
+        // here rather than returning null from awsPartition, which generated code null-checks and
+        // would silently treat as "condition not satisfied", taking a different rule branch.
+        if (awsRulePartition == null) {
+            throw SdkClientException.create(
+                "Endpoint partition metadata is missing the 'aws' partition, which is required as the "
+                + "fallback for unmatched regions. This indicates a corrupt or incomplete partitions.json.");
+        }
+
+        return new PartitionData(entries, regionMap, awsRulePartition);
     }
 
-    private static class PartitionData {
-        private final List<PartitionEntry> partitions = new ArrayList<>();
-        private final Map<String, RulePartition> regionMap = new HashMap<>();
+    private static final class PartitionData {
+        private final List<PartitionEntry> partitions;
+        private final Map<String, RulePartition> regionMap;
         // Fallback used when a region matches neither a known region name nor a partition pattern.
-        private RulePartition awsRulePartition;
+        private final RulePartition awsRulePartition;
+
+        private PartitionData(List<PartitionEntry> partitions, Map<String, RulePartition> regionMap,
+                              RulePartition awsRulePartition) {
+            this.partitions = partitions;
+            this.regionMap = regionMap;
+            this.awsRulePartition = awsRulePartition;
+        }
     }
 
     /**

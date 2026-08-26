@@ -69,6 +69,55 @@ public class BddEndpointProviderSpecTest {
     }
 
     /**
+     * The remaining three peephole rewrites, none of which appear in the simple-BDD golden fixture.
+     * The S3 BDD is the only model exercising them, so without these the PR's headline claim has no
+     * regression guard: a change to the emitters or to PrepareForCodegenVisitor could silently
+     * restore the RulesFunctions dispatches with a green build.
+     */
+    @Test
+    void iteCoalesceAndHostLabel_emitInlineFormsNotRulesFunctionsDispatches() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints());
+        String generated = spec.poetSpec().toString();
+
+        // ite -> native ternary
+        assertThat(generated).contains("_s3e_ds = (params.useDualStack() ? \".dualstack\" : \"\")");
+        assertThat(generated).contains("_s3e_fips = (params.useFips() ? \"-fips\" : \"\")");
+
+        // coalesce(x, boolLiteral) -> wrapper equality, subject evaluated once
+        assertThat(generated).contains("Boolean.TRUE.equals(params.useS3ExpressControlEndpoint())");
+        assertThat(generated).contains("!Boolean.FALSE.equals(params.useArnRegion())");
+        assertThat(generated)
+            .as("a ternary would emit the coalesce subject twice")
+            .doesNotContain("!= null ?");
+
+        // isValidHostLabel(x, boolLiteral) -> specialized variant, no runtime allowDots branch
+        assertThat(generated).contains("isValidHostLabelSingle(");
+        assertThat(generated).contains("isValidHostLabelMulti(");
+
+        // None of the rewritten shapes may fall back to the generic dispatch.
+        assertThat(generated).doesNotContain("RulesFunctions.ite(");
+        assertThat(generated).doesNotContain("RulesFunctions.coalesce(");
+        assertThat(generated).doesNotContain("RulesFunctions.isValidHostLabel(");
+    }
+
+    /**
+     * The three {@code ite} nodes in the S3 BDD all have string-literal branches, so their assign
+     * conditions are provably non-null and keep the elided null check. Paired with
+     * {@code ConditionFnCodeGeneratorVisitorTest}, which pins the nullable-branch case that must
+     * emit the check.
+     */
+    @Test
+    void literalBranchIteAssigns_keepElidedNullCheck() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints());
+        String generated = spec.poetSpec().toString();
+
+        assertThat(generated).contains("_s3e_ds = (params.useDualStack() ? \".dualstack\" : \"\");\n      return true;");
+        assertThat(generated).contains("_s3e_fips = (params.useFips() ? \"-fips\" : \"\");\n      return true;");
+    }
+
+    /**
      * A {@code stringEquals} with two nullable operands must stay a {@code RulesFunctions.stringEquals}
      * call, which returns false for a null operand. An emitted {@code left.equals(right)} would throw
      * a {@code NullPointerException} out of endpoint resolution instead.

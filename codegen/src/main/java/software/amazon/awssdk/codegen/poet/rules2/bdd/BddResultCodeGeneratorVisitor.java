@@ -144,7 +144,6 @@ public class BddResultCodeGeneratorVisitor implements RuleExpressionVisitor<Rule
             builder.add(" == null");
             return RuleRuntimeTypeMirror.BOOLEAN;
         }
-
         RuleFunctionMirror func = typeMirror.resolveFunction(e.name());
         builder.add("$T.$L(", func.containingType().type(), func.javaName());
         List<RuleExpression> args = e.arguments();
@@ -160,15 +159,7 @@ public class BddResultCodeGeneratorVisitor implements RuleExpressionVisitor<Rule
 
     @Override
     public RuleType visitMethodCallExpression(MethodCallExpression e) {
-        // Wrap compound expressions (string concat) in parens to ensure correct binding
-        boolean needsParens = e.source().kind() == RuleExpression.RuleExpressionKind.STRING_CONCAT;
-        if (needsParens) {
-            builder.add("(");
-        }
         e.source().accept(this);
-        if (needsParens) {
-            builder.add(")");
-        }
         builder.add(".$L(", e.name());
         boolean isFirst = true;
         for (RuleExpression arg : e.arguments()) {

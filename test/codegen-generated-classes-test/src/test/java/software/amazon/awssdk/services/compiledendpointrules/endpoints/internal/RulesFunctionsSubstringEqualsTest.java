@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.services.s3.endpoints.internal;
+package software.amazon.awssdk.services.compiledendpointrules.endpoints.internal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -34,6 +34,14 @@ import org.junit.jupiter.params.provider.MethodSource;
  * <p>The interesting case is non-ASCII input: the spec's {@code substring} returns null when *any*
  * character in the whole input is outside the 7-bit ASCII range, which makes the comparison false
  * even when the characters at the compared positions match exactly.
+ *
+ * <p><b>Why this lives here.</b> {@code RulesFunctions} is a codegen template copied into every
+ * service module, not a class owned by any one service, so per
+ * {@code docs/guidelines/testing-guidelines.md} it belongs with "generated SDK common
+ * functionalities" in this module rather than under a single service. It is exercised through the
+ * {@code compiledendpointrules} test service, alongside {@code EndpointUrlConformanceTest} and
+ * {@code RuleUrlTest}, which cover other generated classes from the same template set. The
+ * substring windows below are the ones the peephole actually emits for the S3 BDD model.
  */
 class RulesFunctionsSubstringEqualsTest {
 
@@ -49,7 +57,8 @@ class RulesFunctionsSubstringEqualsTest {
 
     @ParameterizedTest(name = "substringEquals({0}, {1}, {2}, {3}, {4})")
     @MethodSource("nonEmptyLiteralCases")
-    void matchesSpecComposition(String value, int startIndex, int stopIndex, boolean reverse, String literal) {
+    void substringEquals_againstSpecComposition_agrees(String value, int startIndex, int stopIndex, boolean reverse,
+                                                       String literal) {
         assertThat(RulesFunctions.substringEquals(value, startIndex, stopIndex, reverse, literal))
             .as("substringEquals must agree with stringEquals(coalesce(substring(..), \"\"), literal)")
             .isEqualTo(reference(value, startIndex, stopIndex, reverse, literal));
@@ -60,14 +69,15 @@ class RulesFunctionsSubstringEqualsTest {
      * {@code coalesce(null, "")} makes the spec composition true whenever {@code substring} returns
      * null. Asserting the direction of every divergence keeps that carve-out honest: if the helper
      * ever diverged for a non-empty literal it would show up in
-     * {@link #matchesSpecComposition}, and if a *new* kind of divergence appeared here it would show
-     * up as a failure rather than as a silently skipped case.
+     * {@link #substringEquals_againstSpecComposition_agrees}, and if a *new* kind of divergence
+     * appeared here it would show up as a failure rather than as a silently skipped case.
      *
      * <p>Codegen never emits this shape - see {@code BddPeepholeVisitorTest.emptyLiteralIsNotRewritten}.
      */
     @ParameterizedTest(name = "substringEquals({0}, {1}, {2}, {3}, \"\")")
     @MethodSource("emptyLiteralCases")
-    void emptyLiteralDivergesOnlyBySpecReturningTrue(String value, int startIndex, int stopIndex, boolean reverse) {
+    void substringEquals_withEmptyLiteral_divergesOnlyBySpecReturningTrue(String value, int startIndex, int stopIndex,
+                                                                          boolean reverse) {
         boolean actual = RulesFunctions.substringEquals(value, startIndex, stopIndex, reverse, "");
         boolean expected = reference(value, startIndex, stopIndex, reverse, "");
 
@@ -94,8 +104,8 @@ class RulesFunctionsSubstringEqualsTest {
     }
 
     private static List<Arguments> cases(boolean emptyLiteralOnly) {
-        // (startIndex, stopIndex, reverse, literal) shapes that codegen actually emits for S3,
-        // plus a forward interior match which the S3 ruleset does not currently use.
+        // (startIndex, stopIndex) windows that codegen actually emits for the S3 BDD, plus a forward
+        // interior match which the S3 ruleset does not currently use, and a degenerate empty window.
         int[][] windows = {
             {0, 4}, {0, 6}, {0, 7}, {16, 18}, {14, 16}, {1, 3}, {3, 3}
         };
@@ -143,7 +153,7 @@ class RulesFunctionsSubstringEqualsTest {
      * differential mismatch somewhere in the matrix above.
      */
     @Test
-    void nonAsciiInputIsRejectedEvenWhenTheComparedWindowMatches() {
+    void substringEquals_withNonAsciiInput_isFalseEvenWhenComparedWindowMatches() {
         // Pure-ASCII directory bucket: this is an S3 Express bucket.
         assertThat(RulesFunctions.substringEquals("mybucket--x-s3", 0, 6, true, "--x-s3")).isTrue();
 
@@ -159,14 +169,14 @@ class RulesFunctionsSubstringEqualsTest {
     }
 
     @Test
-    void nullAndTooShortInputsAreFalse() {
+    void substringEquals_withNullOrTooShortInput_isFalse() {
         assertThat(RulesFunctions.substringEquals(null, 0, 4, false, "arn:")).isFalse();
         assertThat(RulesFunctions.substringEquals("arn", 0, 4, false, "arn:")).isFalse();
         assertThat(RulesFunctions.substringEquals("", 0, 4, false, "arn:")).isFalse();
     }
 
     @Test
-    void literalLengthMustMatchTheWindow() {
+    void substringEquals_withLiteralLengthNotMatchingWindow_isFalse() {
         // Guards against a caller passing a literal that is not stopIndex - startIndex long. A
         // shorter or longer literal can never equal the substring.
         assertThat(RulesFunctions.substringEquals("arn:aws", 0, 4, false, "arn")).isFalse();
@@ -181,11 +191,42 @@ class RulesFunctionsSubstringEqualsTest {
      * {@code BddPeepholeVisitorTest.emptyLiteralIsNotRewritten}, which pins the codegen guard.
      */
     @Test
-    void degenerateEmptyWindowDivergesFromTheSpecAndIsGuardedInCodegen() {
+    void substringEquals_withDegenerateEmptyWindow_divergesFromSpecAndIsGuardedInCodegen() {
         assertThat(reference(null, 3, 3, false, "")).isTrue();
         assertThat(reference("anything", 3, 3, false, "")).isTrue();
 
         assertThat(RulesFunctions.substringEquals(null, 3, 3, false, "")).isFalse();
         assertThat(RulesFunctions.substringEquals("anything", 3, 3, false, "")).isFalse();
+    }
+
+    /**
+     * {@code isValidHostLabel(s, allowDots)} delegates to the two specialized helpers that optimized
+     * codegen calls directly, so the three must stay in agreement. Covers the delegation introduced
+     * to remove a duplicated copy of the multi-label loop.
+     */
+    @Test
+    void isValidHostLabel_agreesWithSpecializedVariants() {
+        List<String> labels = Arrays.asList(
+            null, "", ".", "a", "a.b", "a..b", "-a", "a-", "a-b", "a.b.c", "9a", "a_b",
+            "abc.def.ghi", ".leading", "trailing.",
+            // 63 chars (max) and 64 chars (over)
+            new String(new char[63]).replace('\0', 'a'),
+            new String(new char[64]).replace('\0', 'a'),
+            // over-length single chunk inside a multi-label name
+            "ok." + new String(new char[64]).replace('\0', 'a')
+        );
+
+        for (String label : labels) {
+            assertThat(RulesFunctions.isValidHostLabel(label, false))
+                .as("isValidHostLabel(%s, false) must equal isValidHostLabelSingle", label)
+                .isEqualTo(RulesFunctions.isValidHostLabelSingle(label));
+            assertThat(RulesFunctions.isValidHostLabel(label, true))
+                .as("isValidHostLabel(%s, true) must equal isValidHostLabelMulti", label)
+                .isEqualTo(RulesFunctions.isValidHostLabelMulti(label));
+        }
+
+        // Sanity: the two variants genuinely differ on dots, so the above is not vacuous.
+        assertThat(RulesFunctions.isValidHostLabelSingle("a.b")).isFalse();
+        assertThat(RulesFunctions.isValidHostLabelMulti("a.b")).isTrue();
     }
 }
