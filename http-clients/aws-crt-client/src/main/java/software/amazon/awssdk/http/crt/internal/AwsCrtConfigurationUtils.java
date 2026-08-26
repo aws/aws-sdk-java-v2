@@ -18,11 +18,14 @@ package software.amazon.awssdk.http.crt.internal;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsConnectionOptions;
 import software.amazon.awssdk.crt.io.TlsContext;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.crtcore.CrtConfigurationUtils;
+import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.Logger;
@@ -32,7 +35,56 @@ import software.amazon.awssdk.utils.NumericUtils;
 public final class AwsCrtConfigurationUtils {
     private static final Logger log = Logger.loggerFor(AwsCrtConfigurationUtils.class);
 
+    // CRT rejects a throughput-failure interval below two seconds (HttpMonitoringOptions).
+    private static final int MIN_MONITORING_FAILURE_INTERVAL_SECONDS = 2;
+
+    // The default read/write inactivity timeout applied on the standalone path (a CRT client not built by a service client)
+    // when the rollout gate is on. On the service-client path this default is supplied above the transport, in aws-core.
+    private static final Duration STANDALONE_DEFAULT_READ_WRITE_TIMEOUT = Duration.ofMinutes(5);
+
     private AwsCrtConfigurationUtils() {
+    }
+
+    /**
+     * Resolves the throughput monitor that enforces a connection's read/write inactivity timeout, highest precedence first:
+     * <ol>
+     *   <li>an explicit {@link ConnectionHealthConfiguration} always wins;</li>
+     *   <li>on the service-client path, the {@code fallbackTimeout}, which aws-core has already resolved against the rollout
+     *   gate, so a present value is post-gate: {@link Duration#ZERO} applies nothing, a positive value is mapped;</li>
+     *   <li>on the standalone path ({@code fallbackTimeout} null, no aws-core resolution ran), the rollout gate is read
+     *   directly, applying the default timeout when it is on and nothing otherwise.</li>
+     * </ol>
+     */
+    public static HttpMonitoringOptions resolveMonitoringOptions(ConnectionHealthConfiguration healthConfiguration,
+                                                                 Duration fallbackTimeout) {
+        if (healthConfiguration != null) {
+            return CrtConfigurationUtils.resolveHttpMonitoringOptions(healthConfiguration).orElse(null);
+        }
+
+        if (fallbackTimeout != null) {
+            return fallbackTimeout.isZero() ? null : mapReadWriteTimeout(fallbackTimeout);
+        }
+
+        if (AwsCrtDefaultReadTimeoutSetting.ENABLE_DEFAULT_READ_TIMEOUT_2026.getBooleanValue().orElse(false)) {
+            return mapReadWriteTimeout(STANDALONE_DEFAULT_READ_WRITE_TIMEOUT);
+        }
+        return null;
+    }
+
+    /**
+     * Maps a read/write inactivity timeout onto the CRT throughput monitor that enforces it: a minimum throughput of one byte
+     * per second measured over a failure interval of {@code readWriteTimeout}. Because the threshold is a single byte, any byte
+     * moved while a stream is pending resets the interval, so the connection is shut down only after {@code readWriteTimeout} of
+     * continuous zero-byte progress. The interval has whole-second granularity, and CRT rejects an interval below two seconds, so
+     * a shorter timeout is raised to that floor.
+     */
+    public static HttpMonitoringOptions mapReadWriteTimeout(Duration readWriteTimeout) {
+        HttpMonitoringOptions httpMonitoringOptions = new HttpMonitoringOptions();
+        httpMonitoringOptions.setMinThroughputBytesPerSecond(1);
+        int seconds = Math.max(MIN_MONITORING_FAILURE_INTERVAL_SECONDS,
+                               NumericUtils.saturatedCast(readWriteTimeout.getSeconds()));
+        httpMonitoringOptions.setAllowableThroughputFailureIntervalSeconds(seconds);
+        return httpMonitoringOptions;
     }
 
     public static SocketOptions buildSocketOptions(TcpKeepAliveConfiguration tcpKeepAliveConfiguration,
