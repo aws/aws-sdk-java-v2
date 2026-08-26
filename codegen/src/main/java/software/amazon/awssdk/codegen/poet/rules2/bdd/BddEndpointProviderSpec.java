@@ -64,9 +64,8 @@ import software.amazon.awssdk.utils.Validate;
  * as ternary expressions. Complex conditions that compute and store values are emitted as separate
  * {@code cond<i>()} methods.
  *
- * <p>The evaluator is allocated per call (lightweight — just register fields, no maps).
- * Function-level caches (awsPartition, uriEncode, isVirtualHostable) live on a ThreadLocal
- * in the shared RulesFunctions class and benefit all code paths.
+ * <p>The evaluator is allocated per call (lightweight — just register fields, no maps). The shared
+ * RulesFunctions helpers it calls are stateless.
  */
 public class BddEndpointProviderSpec implements ClassSpec {
     /**
@@ -337,6 +336,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
             synthetic.setConditions(Collections.singletonList(c));
             RuleExpression parsedSynthetic = ExpressionParser
                 .parseRuleSetExpression(synthetic)
+                .accept(new BddPeepholeVisitor())
                 .accept(new PrepareForCodegenVisitor());
             parsedSynthetic.accept(new ConditionFnCodeGeneratorVisitor(codeBuilder, typeMirror, registerInfoMap,
                                                                        endpointRulesSpecUtils));
@@ -356,6 +356,12 @@ public class BddEndpointProviderSpec implements ClassSpec {
         List<MethodSpec> methods = new ArrayList<>();
         for (int rI = 0; rI < endpointBddModel.getResults().size(); rI++) {
             CodeBlock.Builder codeBuilder = CodeBlock.builder();
+            // BddPeepholeVisitor is deliberately not applied here. It rewrites condition-shaped
+            // expressions (stringEquals, coalesce-with-boolean-default, ite, isValidHostLabel), and a
+            // BDD result cannot contain any: the BDD hoists all computation into conditions, so
+            // results only consume already-assigned registers. BddResultCodeGeneratorVisitor enforces
+            // that by rejecting conditions and let-bindings outright. Applying the peephole here
+            // produced identical output while requiring a duplicate copy of every emitter.
             RuleExpression parsedSynthetic = ExpressionParser
                 .parseRuleSetExpression(endpointBddModel.getResults().get(rI))
                 .accept(new PrepareForCodegenVisitor());
@@ -383,8 +389,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
         builder.beginControlFlow("try");
 
         // Allocate evaluator per call — lightweight (just fields, no maps), immediately young-gen collected.
-        // Function caches (awsPartition, uriEncode, isVirtualHostable) live on RulesFunctions' ThreadLocal
-        // and are shared across calls regardless.
         builder.addStatement("$T evaluator = new $T()", evaluatorType, evaluatorType);
 
         // Initialize evaluator from params

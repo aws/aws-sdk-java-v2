@@ -32,11 +32,79 @@ public class BddEndpointProviderSpecTest {
         MatcherAssert.assertThat(spec, generatesTo("endpoint-provider-bdd-class.java"));
     }
 
+    /**
+     * The S3 BDD is the only model that exercises all four peephole rewrites, the dynamic auth scheme
+     * name, and the {@code ite} assign conditions. The simple-BDD fixture above contains none of
+     * those shapes, so this golden file is what makes the pass's effect on generated code reviewable
+     * and pins it against unintended change.
+     */
     @Test
-    void endpointProviderClass_s3Bdd_generatesWithoutError() {
+    void endpointProviderClass_s3Bdd_generatesExpectedCode() {
         BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
             ClientTestModels.queryServiceModelsWithBddEndpoints());
-        assertThat(spec.poetSpec()).isNotNull();
+        MatcherAssert.assertThat(spec, generatesTo("endpoint-provider-bdd-s3-class.java"));
+    }
+
+    /**
+     * Correctness invariants that must hold no matter what the golden file above happens to contain.
+     *
+     * <p>These are deliberately not left to the fixture. Regenerating a golden file after changing an
+     * emitter is a one-command operation, and doing it without reading the diff is how a defect gets
+     * blessed into a fixture - this repo has an instance of exactly that. Every assertion here is
+     * phrased negatively and carries the reason, so restoring the faster-but-wrong form means
+     * consciously deleting a stated invariant rather than accepting a regenerated file.
+     */
+    @Test
+    void s3Bdd_neverEmitsSpecViolatingForms() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints());
+        String generated = spec.poetSpec().toString();
+
+        // Inlined String comparisons skip substring's rejection of non-ASCII input, which would route
+        // a bucket like "mybuck\u00e9t--x-s3" to S3 Express with sigv4-s3express instead of to a
+        // regular S3 endpoint with SigV4. RulesFunctions.substringEquals exists to preserve that.
+        assertThat(generated)
+            .as("substring comparisons must go through substringEquals, which checks for non-ASCII input")
+            .doesNotContain(".startsWith(")
+            .doesNotContain(".endsWith(")
+            .doesNotContain(".regionMatches(");
+
+        // The spec's stringEquals returns false for a null operand; .equals throws. Only a comparison
+        // with a string constant on the receiver is safe to inline.
+        assertThat(generated)
+            .as("stringEquals with two nullable operands must stay null-safe")
+            .doesNotContain("region.equals(bucketArn.region())")
+            .doesNotContain("bucketArn.partition().equals(")
+            .doesNotContain("bucketPartition.name().equals(");
+
+        // A ternary would emit the coalesce subject twice, running any non-trivial operand twice.
+        assertThat(generated)
+            .as("boolean coalesce must evaluate its subject once")
+            .doesNotContain("!= null ?");
+
+        // Each rewrite must actually fire; falling back to the generic dispatch is a silent
+        // de-optimization that the fixture alone would absorb without comment.
+        assertThat(generated)
+            .as("no rewritten shape may fall back to a RulesFunctions dispatch")
+            .doesNotContain("RulesFunctions.ite(")
+            .doesNotContain("RulesFunctions.coalesce(")
+            .doesNotContain("RulesFunctions.isValidHostLabel(");
+    }
+
+    /**
+     * The three {@code ite} nodes in the S3 BDD all have string-literal branches, so their assign
+     * conditions are provably non-null and keep the elided null check. Paired with
+     * {@code ConditionFnCodeGeneratorVisitorTest}, which pins the nullable-branch case that must emit
+     * the check. Stated here as an invariant because the two halves only make sense together.
+     */
+    @Test
+    void literalBranchIteAssigns_keepElidedNullCheck() {
+        BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints());
+        String generated = spec.poetSpec().toString();
+
+        assertThat(generated).contains("_s3e_ds = (params.useDualStack() ? \".dualstack\" : \"\");\n      return true;");
+        assertThat(generated).contains("_s3e_fips = (params.useFips() ? \"-fips\" : \"\");\n      return true;");
     }
 
     /**

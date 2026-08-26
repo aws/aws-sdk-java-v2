@@ -120,6 +120,13 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             builder.add(" == null");
             return RuleRuntimeTypeMirror.BOOLEAN;
         }
+
+        // Synthetic functions that are emitted as inline Java rather than a static call.
+        // __substringEquals is not among them: it is a registered function and falls through below.
+        if (BddPeepholeVisitor.isCustomEmitted(fn)) {
+            return emitPeepholeOptimized(fn, e.arguments());
+        }
+
         RuleFunctionMirror func = typeMirror.resolveFunction(e.name());
         builder.add("$T.$L(", func.containingType().type(), func.javaName());
         List<RuleExpression> args = e.arguments();
@@ -136,6 +143,83 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             return lastArgType;
         }
         return func.returns();
+    }
+
+    /**
+     * Emits inline Java for synthetic function calls that have no static-call equivalent, avoiding
+     * the boxing and varargs allocation of the corresponding RulesFunctions calls.
+     */
+    private RuleType emitPeepholeOptimized(String fn, List<RuleExpression> args) {
+        switch (fn) {
+            case BddPeepholeVisitor.ITE:
+                // __ite(cond, ifTrue, ifFalse) → (cond ? ifTrue : ifFalse)
+                return emitIte(args);
+            case BddPeepholeVisitor.COALESCE_BOOL:
+                // __coalesceBoolean(expr, default) → (expr != null ? expr : default)
+                return emitCoalesceBoolean(args);
+            case BddPeepholeVisitor.IS_VALID_HOST_LABEL:
+                // __isValidHostLabel(str, allowDots) → inline validation
+                return emitIsValidHostLabel(args);
+            default:
+                throw new IllegalStateException("Unknown peephole function: " + fn);
+        }
+    }
+
+    /**
+     * Emits: {@code (cond ? ifTrue : ifFalse)}
+     */
+    private RuleType emitIte(List<RuleExpression> args) {
+        builder.add("(");
+        args.get(0).accept(this);
+        builder.add(" ? ");
+        args.get(1).accept(this);
+        builder.add(" : ");
+        args.get(2).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.STRING;
+    }
+
+    /**
+     * Emits a single-evaluation equivalent of {@code coalesce(expr, defaultValue)} for a boolean
+     * default. Wrapper equality gives exact coalesce semantics with no branch and no boxing:
+     *
+     * <table border="1">
+     *     <caption>Rewrite table</caption>
+     *     <tr><th>rewrite</th><th>emitted</th><th>null</th><th>TRUE</th><th>FALSE</th></tr>
+     *     <tr><td>{@code coalesce(x, false)}</td><td>{@code Boolean.TRUE.equals(x)}</td>
+     *         <td>false</td><td>true</td><td>false</td></tr>
+     *     <tr><td>{@code coalesce(x, true)}</td><td>{@code !Boolean.FALSE.equals(x)}</td>
+     *         <td>true</td><td>true</td><td>false</td></tr>
+     * </table>
+     *
+     * <p>The subject is emitted once. A ternary would emit it twice, which runs any non-trivial
+     * operand (a nested rules function, for instance) twice per evaluation.
+     */
+    private RuleType emitCoalesceBoolean(List<RuleExpression> args) {
+        boolean defaultValue = ((LiteralBooleanExpression) args.get(1)).value();
+        if (defaultValue) {
+            builder.add("!Boolean.FALSE.equals(");
+        } else {
+            builder.add("Boolean.TRUE.equals(");
+        }
+        args.get(0).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Emits: {@code RulesFunctions.isValidHostLabelSingle(str)} or
+     * {@code RulesFunctions.isValidHostLabelMulti(str)} depending on the allowDots constant.
+     * Avoids the boolean parameter dispatch branch at runtime.
+     */
+    private RuleType emitIsValidHostLabel(List<RuleExpression> args) {
+        boolean allowDots = ((LiteralBooleanExpression) args.get(1)).value();
+        RuleFunctionMirror func = typeMirror.resolveFunction("isValidHostLabel");
+        builder.add("$T.$L(", func.containingType().type(),
+                    allowDots ? "isValidHostLabelMulti" : "isValidHostLabelSingle");
+        args.get(0).accept(this);
+        builder.add(")");
+        return RuleRuntimeTypeMirror.BOOLEAN;
     }
 
     @Override
@@ -211,9 +295,38 @@ public class ConditionFnCodeGeneratorVisitor implements RuleExpressionVisitor<Ru
             builder.add("$L = ", registerName);
             v.accept(this);
             builder.addStatement(""); // end the statement we started
-            builder.addStatement("return $L != null", registerName);
+            // Assign conditions succeed only when the assigned value is non-null. Skip the check
+            // only where the value is provably non-null, otherwise emit it.
+            if (isAlwaysNonNull(v)) {
+                builder.addStatement("return true");
+            } else {
+                builder.addStatement("return $L != null", registerName);
+            }
         }
         return RuleRuntimeTypeMirror.BOOLEAN;
+    }
+
+    /**
+     * Returns true only if the expression is provably non-null at runtime.
+     *
+     * <p>Recognizes {@code __ite} whose two branches are both string literals, which
+     * {@link #emitIte} emits as a ternary between them. {@code BddPeepholeVisitor.simplifyIte} does
+     * not constrain the branches, and {@code RuleRuntimeTypeMirror} types them as {@code STRING}, so
+     * a {@code {"ref": ...}} branch is legal input from the endpoint compiler and can be null. Both
+     * branches are therefore checked here rather than assumed: eliding the register null-check for a
+     * nullable branch would report an assign condition as satisfied with a null register, flipping a
+     * BDD edge and resolving an endpoint the spec does not permit.
+     */
+    private static boolean isAlwaysNonNull(RuleExpression expr) {
+        if (!(expr instanceof FunctionCallExpression)) {
+            return false;
+        }
+        FunctionCallExpression fn = (FunctionCallExpression) expr;
+        if (!BddPeepholeVisitor.ITE.equals(fn.name()) || fn.arguments().size() != 3) {
+            return false;
+        }
+        return fn.arguments().get(1).kind() == RuleExpression.RuleExpressionKind.STRING_VALUE
+               && fn.arguments().get(2).kind() == RuleExpression.RuleExpressionKind.STRING_VALUE;
     }
 
     @Override
