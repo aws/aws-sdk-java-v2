@@ -30,6 +30,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ConditionModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
+import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
@@ -80,6 +82,12 @@ public class BddEndpointProviderSpec implements ClassSpec {
      */
     private static final int NO_MATCH_RESULT = 100_000_000;
 
+    /**
+     * A {@code stringArray} cache key parameter longer than this reports a miss without comparing elements, so that the
+     * cost of a cache check stays bounded. Eight covers the list-valued endpoint parameters shipped today.
+     */
+    private static final int MAX_LIST_COMPARISON_SIZE = 8;
+
     private final IntermediateModel intermediateModel;
     private final EndpointBddModel endpointBddModel;
     private final EndpointRulesSpecUtils endpointRulesSpecUtils;
@@ -90,7 +98,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private final ClassName cacheEntryType;
     private final List<EndpointBddModel.BddNode> bddNodes;
     private final List<ConditionType> conditionTypes;
-    private final EndpointProviderCacheIndex cacheIndex;
 
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -104,7 +111,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
         this.cacheEntryType = className().nestedClass("CacheEntry");
         this.bddNodes = endpointBddModel.getDecodedNodes();
         this.conditionTypes = analyzeConditions();
-        this.cacheIndex = EndpointProviderCacheIndex.of(intermediateModel);
     }
 
     @Override
@@ -119,6 +125,9 @@ public class BddEndpointProviderSpec implements ClassSpec {
         builder.addType(cacheEntryClass());
         builder.addMethod(resolveEndpointMethod());
         builder.addMethod(cacheParamsMatchMethod());
+        if (hasListParam()) {
+            builder.addMethod(cacheListsMatchMethod());
+        }
 
         return builder.build();
     }
@@ -165,11 +174,22 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * Generates {@code cacheParamsMatch(a, b)}: true when the two parameter objects are interchangeable as far as
      * endpoint resolution is concerned.
      *
-     * <p>Every parameter the BDD model declares is compared. Parameters are ordered by
-     * {@link EndpointCacheKeyClassification}, cheapest comparison first, and the method returns on the first mismatch.
+     * <p>One uniform {@link Objects#equals} term per parameter, joined with {@code &&} so the chain short-circuits on
+     * the first mismatch. {@code Objects.equals} tries identity before {@code equals}, which is what makes a single
+     * emitter sufficient: a parameter whose reference the SDK keeps stable settles on the identity check, and one that
+     * arrives as a fresh reference falls through to {@code equals} and still matches.
      *
-     * <p>A parameter that {@link EndpointProviderCacheIndex} classified but that the model no longer declares would be
-     * a hole in the key, so that combination fails codegen instead of generating a comparison that quietly skips it.
+     * <p>Parameter order comes from {@link #cacheKeyParameterOrder()}. Order is the only thing that varies between
+     * parameters, and it only affects how quickly a mismatch is found.
+     *
+     * <p>List-valued parameters go through the generated {@code cacheListsMatch} helper rather than
+     * {@code Objects.equals}, so that every term in the chain stays a single boolean expression and so that the
+     * comparison stays bounded. See {@link #cacheListsMatchMethod()}.
+     *
+     * <p>An earlier version of this generated a seven-tier comparison, with the tier of each parameter computed from a
+     * pass over the service's operations, and a different code shape per tier. Benchmarking showed the tiers bought
+     * nothing over this form on the hit path and only ~0.2 ns on the miss path; see
+     * {@code .kiro/reference/endpoint_cache_key_benchmark.md}.
      */
     private MethodSpec cacheParamsMatchMethod() {
         ClassName paramsClass = endpointRulesSpecUtils.parametersClassName();
@@ -181,83 +201,137 @@ public class BddEndpointProviderSpec implements ClassSpec {
                                          .addParameter(paramsClass, "a")
                                          .addParameter(paramsClass, "b");
 
-        int listIndex = 0;
-        for (Map.Entry<String, EndpointCacheKeyClassification> entry : cacheIndex.classifiedParameters().entrySet()) {
-            String paramName = entry.getKey();
-            if (!parameters.containsKey(paramName)) {
-                throw new IllegalStateException(
-                    "Endpoint parameter '" + paramName + "' was classified for the result cache but is not declared by "
-                    + "the BDD model. Leaving it out of the cache key would let the provider return an endpoint "
-                    + "resolved for a different value of it.");
-            }
+        CodeBlock.Builder chain = CodeBlock.builder().add("return ");
+        boolean first = true;
+        for (String paramName : cacheKeyParameterOrder()) {
             String getter = endpointRulesSpecUtils.paramMethodName(paramName) + "()";
-            if (entry.getValue() == EndpointCacheKeyClassification.REQUEST_LIST) {
-                addListParamCheck(b, getter, listIndex++);
-            } else {
-                addScalarParamCheck(b, getter, entry.getValue());
+            if (!first) {
+                chain.add("\n    && ");
             }
+            if (isListParam(parameters.get(paramName))) {
+                chain.add("cacheListsMatch(a.$L, b.$L)", getter, getter);
+            } else {
+                chain.add("$T.equals(a.$L, b.$L)", Objects.class, getter, getter);
+            }
+            first = false;
         }
-
-        b.addStatement("return true");
+        if (first) {
+            // A rule set with no parameters at all resolves to the same endpoint every time.
+            chain.add("true");
+        }
+        b.addStatement(chain.build());
         return b.build();
     }
 
     /**
-     * Emits the comparison for one non-list parameter, returning false on mismatch.
+     * Returns the parameter names in the order the generated cache key compares them: booleans, then strings whose
+     * reference the SDK keeps stable across requests, then everything else. Each group keeps the model's declaration
+     * order, so the result is deterministic across builds.
      *
-     * <p>{@code BOOLEAN}, {@code CLIENT_STATIC_REF} and {@code OPERATION_STATIC} compare references only. For booleans
-     * that is complete, not just fast: autoboxing hands back the {@code Boolean.TRUE}/{@code Boolean.FALSE} singletons.
-     * For the other two the SDK hands the same reference to every request, and if it ever does not, the result is a
-     * miss and a re-resolution rather than a wrong endpoint.
+     * <p>Ordering exists only to reach a mismatch sooner. It cannot change the outcome, because the chain compares
+     * every parameter before returning true. Booleans come first because they can never fall through to a real
+     * {@code equals}; reference-stable strings come next because they normally settle on the identity check; and the
+     * request-derived values that may have to compare characters come last.
      *
-     * <p>The remaining classifications add an {@code equals} fallback so that an equal value arriving as a fresh
-     * reference still hits.
+     * <p>The group of a parameter follows from its own declaration - its declared type, plus whether it is
+     * {@code AWS::Region} or a client context parameter - so this needs no analysis of the service's operations.
      */
-    private static void addScalarParamCheck(MethodSpec.Builder b, String getter, EndpointCacheKeyClassification cat) {
-        switch (cat) {
-            case BOOLEAN:
-            case CLIENT_STATIC_REF:
-            case OPERATION_STATIC:
-                b.addStatement("if (a.$L != b.$L) return false", getter, getter);
-                break;
-            default:
-                b.beginControlFlow("if (a.$L != b.$L)", getter, getter);
-                b.beginControlFlow("if (a.$L == null || !a.$L.equals(b.$L))", getter, getter, getter);
-                b.addStatement("return false");
-                b.endControlFlow();
-                b.endControlFlow();
-                break;
-        }
+    private List<String> cacheKeyParameterOrder() {
+        Map<String, ParameterModel> parameters = endpointBddModel.getParameters();
+        Map<String, ClientContextParam> clientContextParams = intermediateModel.getClientContextParams();
+
+        List<String> booleans = new ArrayList<>();
+        List<String> stableStrings = new ArrayList<>();
+        List<String> rest = new ArrayList<>();
+
+        parameters.forEach((name, model) -> {
+            if (isBooleanParam(model)) {
+                booleans.add(name);
+            } else if (isReferenceStable(name, model, clientContextParams)) {
+                stableStrings.add(name);
+            } else {
+                rest.add(name);
+            }
+        });
+
+        List<String> order = new ArrayList<>(parameters.size());
+        order.addAll(booleans);
+        order.addAll(stableStrings);
+        order.addAll(rest);
+        return order;
     }
 
     /**
-     * Emits the comparison for one {@code stringArray} parameter: identity, then null, then size, then the element
-     * walk. The size cap keeps the check bounded so a request carrying a large list cannot make the cache check itself
-     * a cost worth avoiding.
+     * Returns true for a string parameter the SDK hands to every request as the same reference: {@code AWS::Region},
+     * which {@code Region.of} interns, and {@code clientContextParams}, which are read from the client's
+     * {@code AttributeMap}.
      *
-     * <p>{@code idx} suffixes the local variable names so several list parameters can be compared in one method.
+     * <p>Only used to order the comparison. If one of these ever stops being reference-stable, the
+     * {@code Objects.equals} term still compares it correctly; the check simply costs an extra call.
      */
-    private static void addListParamCheck(MethodSpec.Builder b, String getter, int idx) {
-        String listA = "listA" + idx;
-        String listB = "listB" + idx;
-        String i = "i" + idx;
-        String elementA = "elementA" + idx;
-        String elementB = "elementB" + idx;
-        TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
+    private static boolean isReferenceStable(String paramName,
+                                             ParameterModel model,
+                                             Map<String, ClientContextParam> clientContextParams) {
+        if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+            return true;
+        }
+        if (clientContextParams == null) {
+            return false;
+        }
+        if (clientContextParams.containsKey(paramName)) {
+            return true;
+        }
+        // Endpoint parameter names are unique case-insensitively, so a case-insensitive match is the same parameter.
+        for (String key : clientContextParams.keySet()) {
+            if (key.equalsIgnoreCase(paramName)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-        b.addStatement("$T $L = a.$L", listOfString, listA, getter);
-        b.addStatement("$T $L = b.$L", listOfString, listB, getter);
-        b.beginControlFlow("if ($L != $L)", listA, listB);
-        b.addStatement("if ($L == null || $L == null) return false", listA, listB);
-        b.addStatement("if ($L.size() != $L.size()) return false", listA, listB);
-        b.addStatement("if ($L.size() > $L) return false", listA, EndpointProviderCacheIndex.MAX_LIST_COMPARISON_SIZE);
-        b.beginControlFlow("for (int $L = 0; $L < $L.size(); $L++)", i, i, listA, i);
-        b.addStatement("$T $L = $L.get($L)", String.class, elementA, listA, i);
-        b.addStatement("$T $L = $L.get($L)", String.class, elementB, listB, i);
-        b.addStatement("if ($L != $L && ($L == null || !$L.equals($L))) return false",
-                       elementA, elementB, elementA, elementA, elementB);
-        b.endControlFlow();
-        b.endControlFlow();
+    /**
+     * Generates the {@code cacheListsMatch} helper, emitted only when the model declares a {@code stringArray}
+     * parameter.
+     *
+     * <p>{@code Objects.equals} would be correct here, but {@code List.equals} is unbounded: a request carrying a large
+     * list would walk every element on every cache check. Since resolution itself is typically indifferent to list
+     * length, an unbounded key check can cost more than the resolution it avoids, turning the cache into a
+     * pessimisation for that request shape. Refusing to match above
+     * {@value #MAX_LIST_COMPARISON_SIZE} elements keeps the check bounded; the consequence is that a service handling
+     * longer lists simply misses, and pays resolution, which is what it would have paid anyway.
+     */
+    private MethodSpec cacheListsMatchMethod() {
+        TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
+        return MethodSpec.methodBuilder("cacheListsMatch")
+                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                         .returns(boolean.class)
+                         .addParameter(listOfString, "a")
+                         .addParameter(listOfString, "b")
+                         .addStatement("if (a == b) return true")
+                         .addStatement("if (a == null || b == null) return false")
+                         .addStatement("int size = a.size()")
+                         .addStatement("if (size != b.size()) return false")
+                         .addComment("Bounded so that a long list cannot make the cache check cost more than "
+                                     + "resolving.")
+                         .addStatement("if (size > $L) return false", MAX_LIST_COMPARISON_SIZE)
+                         .beginControlFlow("for (int i = 0; i < size; i++)")
+                         .addStatement("if (!$T.equals(a.get(i), b.get(i))) return false", Objects.class)
+                         .endControlFlow()
+                         .addStatement("return true")
+                         .build();
+    }
+
+    private boolean hasListParam() {
+        return endpointBddModel.getParameters().values().stream().anyMatch(BddEndpointProviderSpec::isListParam);
+    }
+
+    private static boolean isBooleanParam(ParameterModel model) {
+        return "boolean".equalsIgnoreCase(model.getType());
+    }
+
+    private static boolean isListParam(ParameterModel model) {
+        return "stringarray".equalsIgnoreCase(model.getType());
     }
 
     private TypeSpec evaluatorClass() {

@@ -19,9 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 
 public class BddEndpointProviderSpecTest {
 
@@ -144,6 +151,93 @@ public class BddEndpointProviderSpecTest {
         assertThat(generated).contains("nodeN1()");
         // nodeP2's false branch should reference nodeN1 (the complement edge)
         assertThat(generated).contains("Endpoint nodeN1()");
+    }
+
+    /**
+     * The one invariant the result cache depends on: every parameter the BDD declares must appear in the generated key.
+     * A parameter left out is not a slow cache, it is a cache that returns an endpoint resolved for a different value of
+     * that parameter, and nothing else in the test suite would catch it.
+     *
+     * <p>Asserted against the generated source rather than against an intermediate model, so it holds regardless of how
+     * the comparison is built.
+     */
+    @Test
+    void cacheKeyComparesEveryDeclaredParameter() {
+        assertCacheKeyIsComplete(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints());
+        assertCacheKeyIsComplete(ClientTestModels.queryServiceModelsWithBddEndpoints());
+        assertCacheKeyIsComplete(ClientTestModels.queryServiceModelsWithComplementBddEndpoints());
+    }
+
+    private static void assertCacheKeyIsComplete(IntermediateModel model) {
+        EndpointRulesSpecUtils utils = new EndpointRulesSpecUtils(model);
+        List<String> expected = model.getEndpointBddModel().getParameters().keySet().stream()
+                                     .map(utils::paramMethodName)
+                                     .collect(Collectors.toList());
+
+        assertThat(cacheKeyGetterOrder(new BddEndpointProviderSpec(model)))
+            .as("every parameter the BDD declares must be part of the cache key")
+            .containsExactlyInAnyOrderElementsOf(expected);
+    }
+
+    /**
+     * The generated key compares booleans first, then the strings whose reference the SDK keeps stable, then everything
+     * else. Ordering cannot change the result - the chain compares every parameter before returning true - it only
+     * decides how quickly a mismatch is found, so this is a performance property rather than a correctness one. It is
+     * pinned because the ordering is the entire reason the grouping exists; if it silently degraded to declaration
+     * order the code would still be correct and the benefit would be gone.
+     */
+    @Test
+    void cacheKeyOrdersBooleansThenStableStringsThenTheRest() {
+        List<String> order = cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()));
+
+        assertThat(order).containsExactly("useDualStack", "useFips",              // booleans
+                                          "region", "stringContextParam",        // reference-stable strings
+                                          "endpoint", "staticStringParam",       // everything else, declaration order
+                                          "operationContextParam", "arnList");
+    }
+
+    /**
+     * A list parameter needs a bounded comparison, so it routes through the emitted helper rather than
+     * {@code Objects.equals}, whose {@code List.equals} would walk every element however long the list is.
+     */
+    @Test
+    void listParametersUseTheBoundedHelper() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).contains("cacheListsMatch(a.arnList(), b.arnList())");
+        assertThat(generated).contains("if (size > 8) return false");
+    }
+
+    /**
+     * The helper is only useful when the model has a list parameter, and the S3 BDD has none.
+     */
+    @Test
+    void listHelperIsOmittedWhenNoListParameterExists() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).doesNotContain("cacheListsMatch");
+    }
+
+    /**
+     * Returns the parameter getters referenced by the generated {@code cacheParamsMatch}, in the order they are
+     * compared.
+     */
+    private static List<String> cacheKeyGetterOrder(BddEndpointProviderSpec spec) {
+        String generated = spec.poetSpec().toString();
+        int start = generated.indexOf("boolean cacheParamsMatch(");
+        assertThat(start).as("generated provider must contain cacheParamsMatch").isNotNegative();
+        int end = generated.indexOf(";", start);
+        String body = generated.substring(start, end);
+
+        List<String> getters = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\\ba\\.(\\w+)\\(\\)").matcher(body);
+        while (matcher.find()) {
+            getters.add(matcher.group(1));
+        }
+        return getters;
     }
 
     /**

@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -49,44 +50,23 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
   }
 
   private static boolean cacheParamsMatch(QueryEndpointParams a, QueryEndpointParams b) {
-    if (a.accelerate() != b.accelerate()) return false;
-    if (a.disableAccessPoints() != b.disableAccessPoints()) return false;
-    if (a.disableMultiRegionAccessPoints() != b.disableMultiRegionAccessPoints()) return false;
-    if (a.disableS3ExpressSessionAuth() != b.disableS3ExpressSessionAuth()) return false;
-    if (a.forcePathStyle() != b.forcePathStyle()) return false;
-    if (a.useArnRegion() != b.useArnRegion()) return false;
-    if (a.useDualStack() != b.useDualStack()) return false;
-    if (a.useFips() != b.useFips()) return false;
-    if (a.useGlobalEndpoint() != b.useGlobalEndpoint()) return false;
-    if (a.useObjectLambdaEndpoint() != b.useObjectLambdaEndpoint()) return false;
-    if (a.useS3ExpressControlEndpoint() != b.useS3ExpressControlEndpoint()) return false;
-    if (a.region() != b.region()) return false;
-    if (a.endpoint() != b.endpoint()) {
-      if (a.endpoint() == null || !a.endpoint().equals(b.endpoint())) {
-        return false;
-      }
-    }
-    if (a.bucket() != b.bucket()) {
-      if (a.bucket() == null || !a.bucket().equals(b.bucket())) {
-        return false;
-      }
-    }
-    if (a.copySource() != b.copySource()) {
-      if (a.copySource() == null || !a.copySource().equals(b.copySource())) {
-        return false;
-      }
-    }
-    if (a.key() != b.key()) {
-      if (a.key() == null || !a.key().equals(b.key())) {
-        return false;
-      }
-    }
-    if (a.prefix() != b.prefix()) {
-      if (a.prefix() == null || !a.prefix().equals(b.prefix())) {
-        return false;
-      }
-    }
-    return true;
+    return Objects.equals(a.useFips(), b.useFips())
+            && Objects.equals(a.useDualStack(), b.useDualStack())
+            && Objects.equals(a.forcePathStyle(), b.forcePathStyle())
+            && Objects.equals(a.accelerate(), b.accelerate())
+            && Objects.equals(a.useGlobalEndpoint(), b.useGlobalEndpoint())
+            && Objects.equals(a.useObjectLambdaEndpoint(), b.useObjectLambdaEndpoint())
+            && Objects.equals(a.disableAccessPoints(), b.disableAccessPoints())
+            && Objects.equals(a.disableMultiRegionAccessPoints(), b.disableMultiRegionAccessPoints())
+            && Objects.equals(a.useArnRegion(), b.useArnRegion())
+            && Objects.equals(a.useS3ExpressControlEndpoint(), b.useS3ExpressControlEndpoint())
+            && Objects.equals(a.disableS3ExpressSessionAuth(), b.disableS3ExpressSessionAuth())
+            && Objects.equals(a.region(), b.region())
+            && Objects.equals(a.bucket(), b.bucket())
+            && Objects.equals(a.endpoint(), b.endpoint())
+            && Objects.equals(a.key(), b.key())
+            && Objects.equals(a.prefix(), b.prefix())
+            && Objects.equals(a.copySource(), b.copySource());
   }
 
   private static final class Evaluator {

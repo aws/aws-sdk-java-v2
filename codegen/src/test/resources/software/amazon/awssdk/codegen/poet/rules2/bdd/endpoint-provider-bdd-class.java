@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -45,32 +46,25 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
   }
 
   private static boolean cacheParamsMatch(QueryEndpointParams a, QueryEndpointParams b) {
-    if (a.useDualStack() != b.useDualStack()) return false;
-    if (a.useFips() != b.useFips()) return false;
-    if (a.region() != b.region()) return false;
-    if (a.stringContextParam() != b.stringContextParam()) return false;
-    if (a.staticStringParam() != b.staticStringParam()) return false;
-    if (a.endpoint() != b.endpoint()) {
-      if (a.endpoint() == null || !a.endpoint().equals(b.endpoint())) {
-        return false;
-      }
-    }
-    if (a.operationContextParam() != b.operationContextParam()) {
-      if (a.operationContextParam() == null || !a.operationContextParam().equals(b.operationContextParam())) {
-        return false;
-      }
-    }
-    List<String> listA0 = a.arnList();
-    List<String> listB0 = b.arnList();
-    if (listA0 != listB0) {
-      if (listA0 == null || listB0 == null) return false;
-      if (listA0.size() != listB0.size()) return false;
-      if (listA0.size() > 8) return false;
-      for (int i0 = 0; i0 < listA0.size(); i0++) {
-        String elementA0 = listA0.get(i0);
-        String elementB0 = listB0.get(i0);
-        if (elementA0 != elementB0 && (elementA0 == null || !elementA0.equals(elementB0))) return false;
-      }
+    return Objects.equals(a.useDualStack(), b.useDualStack())
+            && Objects.equals(a.useFips(), b.useFips())
+            && Objects.equals(a.region(), b.region())
+            && Objects.equals(a.stringContextParam(), b.stringContextParam())
+            && Objects.equals(a.endpoint(), b.endpoint())
+            && Objects.equals(a.staticStringParam(), b.staticStringParam())
+            && Objects.equals(a.operationContextParam(), b.operationContextParam())
+            && cacheListsMatch(a.arnList(), b.arnList());
+  }
+
+  private static boolean cacheListsMatch(List<String> a, List<String> b) {
+    if (a == b) return true;
+    if (a == null || b == null) return false;
+    int size = a.size();
+    if (size != b.size()) return false;
+    // Bounded so that a long list cannot make the cache check cost more than resolving.
+    if (size > 8) return false;
+    for (int i = 0; i < size; i++) {
+      if (!Objects.equals(a.get(i), b.get(i))) return false;
     }
     return true;
   }
