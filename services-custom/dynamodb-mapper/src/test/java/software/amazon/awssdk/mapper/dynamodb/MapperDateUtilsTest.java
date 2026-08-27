@@ -24,6 +24,7 @@ import java.util.Date;
 import java.util.SimpleTimeZone;
 
 import org.junit.Test;
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperDateUtils;
 
 /**
  * Tests ISO-8601 parsing and formatting in {@link MapperDateUtils}, including fractional seconds,

@@ -71,8 +71,7 @@ import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 import com.amazonaws.services.s3.model.Region;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -229,7 +228,7 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
      */
     static final int BATCH_GET_MAX_RETRY_COUNT_ALL_KEYS = 5;
 
-    private static final Log log = LogFactory.getLog(DynamoDBMapper.class);
+    private static final Logger log = Logger.loggerFor(DynamoDBMapper.class);
 
     /**
      * Fail fast when trying to create a subclass of the DynamoDBMapper that
@@ -1720,11 +1719,11 @@ public class DynamoDBMapper extends AbstractDynamoDBMapper {
             throw new IllegalArgumentException("Parallel scan should have at least one scan segment.");
         }
         if (scanExpression.getExclusiveStartKey() != null) {
-            log.info("The ExclusiveStartKey parameter specified in the DynamoDBScanExpression is ignored,"
+            log.info(() -> "The ExclusiveStartKey parameter specified in the DynamoDBScanExpression is ignored,"
                     + " since the individual parallel scan request on each segment is applied on a separate key scope.");
         }
         if (scanExpression.getSegment() != null || scanExpression.getTotalSegments() != null) {
-            log.info("The Segment and TotalSegments parameters specified in the DynamoDBScanExpression are ignored.");
+            log.info(() -> "The Segment and TotalSegments parameters specified in the DynamoDBScanExpression are ignored.");
         }
 
         List<ScanRequest> parallelScanRequests= new LinkedList<ScanRequest>();

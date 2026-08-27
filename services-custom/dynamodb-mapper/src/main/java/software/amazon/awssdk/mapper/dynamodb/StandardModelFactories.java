@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperBinaryUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
@@ -25,8 +26,7 @@ import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Beans;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
@@ -60,7 +60,7 @@ final class StandardModelFactories {
     private StandardModelFactories() {
     }
 
-    private static final Log LOG = LogFactory.getLog(StandardModelFactories.class);
+    private static final Logger LOG = Logger.loggerFor(StandardModelFactories.class);
 
     /**
      * Creates the standard {@link DynamoDBMapperModelFactory} factory.
@@ -441,7 +441,7 @@ final class StandardModelFactories {
             }
             @Override
             public DynamoDBTypeConverter<AttributeValue,Collection<T>> newConverter(ConvertibleType<Collection<T>> type) {
-                LOG.warn("Marshaling a set of non-String objects to a DynamoDB "
+                LOG.warn(() -> "Marshaling a set of non-String objects to a DynamoDB "
                     + "StringSet. You won't be able to read these objects back "
                     + "out of DynamoDB unless you REALLY know what you're doing: "
                     + "it's probably a bug. If you DO know what you're doing feel"

@@ -29,8 +29,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A wrapper for {@code DynamoDBMapper} which operates only on a specified
@@ -134,7 +133,7 @@ import org.apache.commons.logging.LogFactory;
 @SdkPublicApi
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
 
-    private static final Log LOG = LogFactory.getLog(DynamoDBTableMapper.class);
+    private static final Logger LOG = Logger.loggerFor(DynamoDBTableMapper.class);
 
     private final DynamoDBMapperTableModel<T> model;
     private final DynamoDBMapperFieldModel<T,H> hk;
@@ -494,9 +493,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
         try {
             createTable(throughput);
         } catch (final ResourceInUseException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table already exists, no need to create", e);
-            }
+            LOG.trace(() -> "Table already exists, no need to create", e);
             return false;
         }
         return true;
@@ -523,9 +520,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
         try {
             deleteTable();
         } catch (final ResourceNotFoundException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table does not exist, no need to delete", e);
-            }
+            LOG.trace(() -> "Table does not exist, no need to delete", e);
             return false;
         }
         return true;

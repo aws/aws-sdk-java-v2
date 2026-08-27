@@ -28,70 +28,69 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBA
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardModelFactories.Rule;
 import software.amazon.awssdk.mapper.dynamodb.StandardModelFactories.RuleFactory;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.BooleanSetToNumberSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.BooleanToBooleanMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.BooleanToNumberMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteArraySetToBinarySetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteArrayToBinaryMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteBufferSetToBinarySetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteBufferToBinaryMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CalendarSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CalendarToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CollectionToListMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CustomMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.DateSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.DateToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.MapToMapMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.NumberSetToNumberSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.NumberToNumberMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ObjectSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ObjectToMapMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ObjectToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.S3LinkToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.StringSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.StringToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.UUIDSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigDecimalSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigDecimalUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigIntegerSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigIntegerUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BooleanSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BooleanUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteArraySetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteArrayUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteBufferSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteBufferUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.CalendarSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.CalendarUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.CustomUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DateSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DateUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DoubleSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DoubleUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.FloatSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.FloatUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.IntegerSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.IntegerUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ListUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.LongSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.LongUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.MapUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.NullableUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ObjectSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ObjectUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.S3LinkUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ShortSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ShortUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.StringSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.StringUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.UUIDSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.UUIDUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.BooleanSetToNumberSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.BooleanToBooleanMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.BooleanToNumberMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteArraySetToBinarySetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteArrayToBinaryMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteBufferSetToBinarySetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteBufferToBinaryMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CalendarSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CalendarToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CollectionToListMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CustomMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.DateSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.DateToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.MapToMapMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.NumberSetToNumberSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.NumberToNumberMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToMapMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.S3LinkToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.UUIDSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigDecimalSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigDecimalUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigIntegerSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigIntegerUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BooleanSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BooleanUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteArraySetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteArrayUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteBufferSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteBufferUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CalendarSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CalendarUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CustomUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DateSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DateUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DoubleSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DoubleUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.FloatSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.FloatUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.IntegerSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.IntegerUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ListUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.LongSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.LongUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.MapUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.NullableUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.S3LinkUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.UUIDSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.UUIDUnmarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -115,8 +114,7 @@ import java.util.UUID;
 @SdkPublicApi
 public final class ConversionSchemas {
 
-    private static final Log LOGGER =
-            LogFactory.getLog(ConversionSchemas.class);
+    private static final Logger LOGGER = Logger.loggerFor(ConversionSchemas.class);
 
     /**
      * The V1 schema mapping, which retains strict backwards compatibility with
@@ -1219,7 +1217,7 @@ public final class ConversionSchemas {
 
     private static Class<?> unwrapGenericSetParam(Type setType) {
         if (!(setType instanceof ParameterizedType)) {
-            LOGGER.warn("Set type " + setType + " is not a "
+            LOGGER.warn(() -> "Set type " + setType + " is not a "
                     + "ParameterizedType, using default marshaler and "
                     + "unmarshaler!");
             return Object.class;
@@ -1229,7 +1227,7 @@ public final class ConversionSchemas {
         Type[] arguments = ptype.getActualTypeArguments();
 
         if (arguments.length != 1) {
-            LOGGER.warn("Set type " + setType + " does not have exactly one "
+            LOGGER.warn(() -> "Set type " + setType + " does not have exactly one "
                     + "type argument, using default marshaler and "
                     + "unmarshaler!");
             return Object.class;

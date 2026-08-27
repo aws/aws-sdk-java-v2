@@ -14,6 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperDateUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 

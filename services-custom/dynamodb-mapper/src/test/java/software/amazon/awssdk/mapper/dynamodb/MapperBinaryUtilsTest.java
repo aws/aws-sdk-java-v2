@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperBinaryUtils;
 
 /**
  * Tests {@link MapperBinaryUtils#toWritableByteBuffer(SdkBytes)}, which reproduces the v1 mapper's
