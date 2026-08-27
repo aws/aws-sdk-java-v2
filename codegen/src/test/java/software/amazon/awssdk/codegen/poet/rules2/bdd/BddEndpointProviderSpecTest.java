@@ -236,24 +236,46 @@ public class BddEndpointProviderSpecTest {
     }
 
     /**
-     * When the only read of a list is its first element, the rest of the list cannot reach the endpoint, so the key
-     * compares element 0 alone. This is the DynamoDB shape: it reads {@code ResourceArnList} only through
-     * {@code getAttr(ResourceArnList, "[0]")}, and comparing the whole list costs more than half of a regional
-     * resolution.
+     * When the rules can only see whether a list is present and what its first element is, the rest of the list cannot
+     * reach the endpoint, so the key compares presence and element 0. This is the DynamoDB shape: it reads
+     * {@code ResourceArnList} through {@code isSet} and {@code getAttr(ResourceArnList, "[0]")} and nothing else, and
+     * comparing the whole list costs more than half of a regional resolution.
      *
-     * <p>Also asserts the generated provider really does read only element 0, so the two halves cannot drift apart:
-     * were a second, whole-list read to appear, this comparison would silently become wrong.
+     * <p>The {@code isSet} guard is not incidental. The rules language requires a null check before an indexed access,
+     * so every real model that reads {@code list[0]} also reads {@code isSet(list)}; if the null check disqualified the
+     * parameter this case would never fire in production.
+     *
+     * <p>Also asserts the generated provider really does read only element 0, so the two halves cannot drift apart: were
+     * a read past the head to appear, this comparison would silently become wrong.
      */
     @Test
-    void listReadOnlyAtIndexZeroComparesOnlyTheFirstElement() {
+    void listReadOnlyAtIndexZeroComparesPresenceAndTheFirstElement() {
         String generated = new BddEndpointProviderSpec(
             ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
 
         assertThat(generated).contains("cacheFirstElementsMatch(a.arnList(), b.arnList())");
         assertThat(generated).doesNotContain("cacheListsMatch(a.arnList()");
         assertThat(generated)
-            .as("the first-element comparison is only valid while the provider reads nothing but element 0")
-            .contains("RulesFunctions.listAccess(params.arnList(), 0)");
+            .as("the first-element comparison is only valid while the provider reads nothing past element 0")
+            .contains("RulesFunctions.listAccess(params.arnList(), 0)")
+            .doesNotContain("RulesFunctions.listAccess(params.arnList(), 1)");
+        assertThat(generated)
+            .as("isSet distinguishes an absent list from an empty one, so presence stays part of the key")
+            .contains("if (a == null || b == null) return false");
+    }
+
+    /**
+     * A read past the head disqualifies the first-element comparison, because elements beyond the first can then reach
+     * the endpoint. Pinned because the difference between the two helpers is a correctness boundary, not a preference.
+     */
+    @Test
+    void listReadPastTheHeadIsComparedInFull() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).contains("cacheListsMatch(a.customEndpointArray(), b.customEndpointArray())");
+        assertThat(generated).doesNotContain("cacheFirstElementsMatch(a.customEndpointArray()");
+        assertThat(generated).contains("RulesFunctions.listAccess(params.customEndpointArray(), 1)");
     }
 
     /**

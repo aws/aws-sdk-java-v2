@@ -188,6 +188,24 @@
                 "[0]"
             ],
             "assign": "FirstArn"
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "arnList"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "customEndpointArray"
+                },
+                "[1]"
+            ],
+            "assign": "SecondEndpoint"
         }
     ],
     "results": [
@@ -278,7 +296,7 @@
             "type": "error"
         }
     ],
-    "root": 16,
-    "nodeCount": 20,
-    "nodes": "/////wAAAAH/////AAAABAX14QIF9eEDAAAAAgX14QEAAAACAAAABgX14QQF9eEFAAAABQAAAAQF9eEFAAAABwX14QYF9eEHAAAABQAAAAYF9eEIAAAABAAAAAUAAAAHAAAAAwAAAAgF9eEMAAAABgX14QkF9eEKAAAABAAAAAoF9eELAAAAAwAAAAsF9eEMAAAAAgAAAAkAAAAMAAAAAQAAAA0F9eEMAAAAAAAAAAMAAAAOAAAACAAAABEAAAARAAAACQAAABIAAAASAAAACgAAABMAAAATAAAACwAAABQAAAAUAAAADAAAAA8AAAAP"
+    "root": 22,
+    "nodeCount": 22,
+    "nodes": "/////wAAAAH/////AAAABAX14QIF9eEDAAAAAgX14QEAAAACAAAABgX14QQF9eEFAAAABQAAAAQF9eEFAAAABwX14QYF9eEHAAAABQAAAAYF9eEIAAAABAAAAAUAAAAHAAAAAwAAAAgF9eEMAAAABgX14QkF9eEKAAAABAAAAAoF9eELAAAAAwAAAAsF9eEMAAAAAgAAAAkAAAAMAAAAAQAAAA0F9eEMAAAAAAAAAAMAAAAOAAAACAAAABEAAAARAAAACQAAABIAAAASAAAACgAAABMAAAATAAAACwAAABQAAAAUAAAADAAAAA8AAAAPAAAADQAAABAAAAAQAAAADgAAABUAAAAV"
 }

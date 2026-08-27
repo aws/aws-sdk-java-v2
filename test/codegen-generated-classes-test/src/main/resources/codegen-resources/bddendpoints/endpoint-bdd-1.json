@@ -216,6 +216,24 @@
                     "ref": "wholeArnList"
                 }
             ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "resourceArnList"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "wholeArnList"
+                },
+                "[1]"
+            ],
+            "assign": "SecondArn"
         }
     ],
     "results": [
@@ -306,7 +324,7 @@
             "type": "error"
         }
     ],
-    "root": 21,
-    "nodeCount": 21,
-    "nodes": "/////wAAAAH/////AAAAAAAAAA0AAAADAAAAAQAAAAQF9eEMAAAAAgAAAAUF9eEMAAAAAwAAAAgAAAAGAAAABAAAAAcF9eELAAAABQX14QkF9eEKAAAABAAAAAsAAAAJAAAABgAAAAoF9eEIAAAABwX14QYF9eEHAAAABQAAAAwF9eEFAAAABgX14QQF9eEFAAAAAwX14QEAAAAOAAAABAX14QIF9eEDAAAACAAAABAAAAAQAAAACQAAABEAAAARAAAACgAAABIAAAASAAAACwAAABMAAAATAAAADAAAABQAAAAUAAAADQAAAAIAAAACAAAADgAAAA8AAAAP"
+    "root": 23,
+    "nodeCount": 23,
+    "nodes": "/////wAAAAH/////AAAAAAAAAA0AAAADAAAAAQAAAAQF9eEMAAAAAgAAAAUF9eEMAAAAAwAAAAgAAAAGAAAABAAAAAcF9eELAAAABQX14QkF9eEKAAAABAAAAAsAAAAJAAAABgAAAAoF9eEIAAAABwX14QYF9eEHAAAABQAAAAwF9eEFAAAABgX14QQF9eEFAAAAAwX14QEAAAAOAAAABAX14QIF9eEDAAAACAAAABAAAAAQAAAACQAAABEAAAARAAAACgAAABIAAAASAAAACwAAABMAAAATAAAADAAAABQAAAAUAAAADQAAAAIAAAACAAAADgAAAA8AAAAPAAAADwAAABUAAAAVAAAAEAAAABYAAAAW"
 }

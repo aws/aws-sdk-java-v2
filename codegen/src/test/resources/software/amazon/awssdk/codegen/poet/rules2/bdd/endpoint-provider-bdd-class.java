@@ -28,7 +28,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
       Evaluator evaluator = new Evaluator();
       evaluator.params = endpointParams;
       evaluator.region = endpointParams.region() == null ? null : endpointParams.region().id();
-      Endpoint result = evaluator.nodeP15();
+      Endpoint result = evaluator.nodeP21();
       if (result == null) {
         return CompletableFutureUtils.failedFuture(SdkClientException.create("Rule engine did not reach an error or endpoint result"));
       }
@@ -72,9 +72,11 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
   private static boolean cacheFirstElementsMatch(List<String> a, List<String> b) {
     if (a == b) return true;
-    // Only element 0 reaches the endpoint; absent and empty are both null to the rules engine.
-    String firstA = a == null || a.isEmpty() ? null : a.get(0);
-    String firstB = b == null || b.isEmpty() ? null : b.get(0);
+    // isSet can tell an absent list from an empty one, so presence is part of the key.
+    if (a == null || b == null) return false;
+    // Nothing past element 0 can reach the endpoint.
+    String firstA = a.isEmpty() ? null : a.get(0);
+    String firstB = b.isEmpty() ? null : b.get(0);
     return Objects.equals(firstA, firstB);
   }
 
@@ -86,6 +88,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     RulePartition partitionResult;
 
     String firstArn;
+
+    String secondEndpoint;
 
     private Endpoint nodeP0() {
       return null;
@@ -205,6 +209,18 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
               : nodeP14();
     }
 
+    private Endpoint nodeP20() {
+      return params.arnList() != null
+              ? nodeP15()
+              : nodeP15();
+    }
+
+    private Endpoint nodeP21() {
+      return cond14()
+              ? nodeP20()
+              : nodeP20();
+    }
+
     private boolean cond3() {
       partitionResult = RulesFunctions.awsPartition(region);
       return partitionResult != null;
@@ -225,6 +241,11 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     private boolean cond12() {
       firstArn = RulesFunctions.listAccess(params.arnList(), 0);
       return firstArn != null;
+    }
+
+    private boolean cond14() {
+      secondEndpoint = RulesFunctions.listAccess(params.customEndpointArray(), 1);
+      return secondEndpoint != null;
     }
 
     private Endpoint result0() {

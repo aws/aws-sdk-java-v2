@@ -338,13 +338,16 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * Generates the {@code cacheFirstElementsMatch} helper, emitted only when a {@code stringArray} parameter is read
      * exclusively as {@code param[0]}.
      *
-     * <p>When only the first element can reach the endpoint, comparing the rest is work that cannot change the answer.
-     * DynamoDB is why this exists: it reads {@code ResourceArnList} only through
-     * {@code getAttr(ResourceArnList, "[0]")}, and comparing a freshly built three-element ARN list measured at 15.5 ns
-     * against a 28 ns regional resolution - over half the cost the cache is meant to avoid.
+     * <p>When the rules can only see whether the list is present and what its first element is, comparing the rest is
+     * work that cannot change the answer. DynamoDB is why this exists: it reads {@code ResourceArnList} only through
+     * {@code isSet} and {@code getAttr(ResourceArnList, "[0]")}, and comparing a freshly built three-element ARN list
+     * measured at 15.5 ns against a 28 ns regional resolution - over half the cost the cache is meant to avoid. This
+     * comparison is O(1) instead.
      *
-     * <p>Absent and empty both yield null here, matching the runtime's {@code listAccess}, which returns null for a null
-     * list and for an index past the end. So the two are interchangeable, exactly as they are during resolution.
+     * <p>Presence is compared as well as the first element, because {@code isSet} tells an absent list apart from an
+     * empty one even though {@code listAccess} yields null for both. Collapsing them would be sound only for a BDD whose
+     * branches for absent and empty converge - true of DynamoDB's, but a property of the graph rather than of the
+     * parameter, and not worth depending on for the one extra reference comparison it would save.
      */
     private MethodSpec cacheFirstElementsMatchMethod() {
         TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
@@ -354,10 +357,11 @@ public class BddEndpointProviderSpec implements ClassSpec {
                          .addParameter(listOfString, "a")
                          .addParameter(listOfString, "b")
                          .addStatement("if (a == b) return true")
-                         .addComment("Only element 0 reaches the endpoint; absent and empty are both null to the "
-                                     + "rules engine.")
-                         .addStatement("$T firstA = a == null || a.isEmpty() ? null : a.get(0)", String.class)
-                         .addStatement("$T firstB = b == null || b.isEmpty() ? null : b.get(0)", String.class)
+                         .addComment("isSet can tell an absent list from an empty one, so presence is part of the key.")
+                         .addStatement("if (a == null || b == null) return false")
+                         .addComment("Nothing past element 0 can reach the endpoint.")
+                         .addStatement("$T firstA = a.isEmpty() ? null : a.get(0)", String.class)
+                         .addStatement("$T firstB = b.isEmpty() ? null : b.get(0)", String.class)
                          .addStatement("return $T.equals(firstA, firstB)", Objects.class)
                          .build();
     }

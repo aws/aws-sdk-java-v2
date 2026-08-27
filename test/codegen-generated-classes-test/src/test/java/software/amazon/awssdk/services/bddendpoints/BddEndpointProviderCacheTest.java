@@ -261,12 +261,16 @@ class BddEndpointProviderCacheTest {
     }
 
     /**
-     * The rules engine's {@code listAccess} returns null for a null list and for an index past the end, so an absent
-     * list and an empty one take the same branch and must be treated as the same key.
+     * {@code isSet} can tell an absent list from an empty one, so presence stays part of the key even though
+     * {@code listAccess} yields null for both.
+     *
+     * <p>Collapsing the two would be sound only for a BDD whose branches for absent and empty converge. DynamoDB's do -
+     * both reach the same node - but that is a property of the graph rather than of the parameter, so the generated
+     * comparison does not assume it. The cost is one extra reference check and a miss in this case.
      */
     @Test
-    void firstElementList_emptyAndUnset_areTheSameKey() {
-        assertHits(params(b -> b.resourceArnList(Collections.emptyList())), params(b -> {
+    void firstElementList_emptyAndUnset_areDistinguished() {
+        assertInvalidates(params(b -> b.resourceArnList(Collections.emptyList())), params(b -> {
         }));
     }
 

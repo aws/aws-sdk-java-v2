@@ -26,6 +26,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
 import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.poet.rules2.ExpressionParser;
+import software.amazon.awssdk.codegen.poet.rules2.FunctionCallExpression;
 import software.amazon.awssdk.codegen.poet.rules2.IndexedAccessExpression;
 import software.amazon.awssdk.codegen.poet.rules2.MemberAccessExpression;
 import software.amazon.awssdk.codegen.poet.rules2.RuleExpression;
@@ -63,11 +64,18 @@ final class BddParameterReferences {
         UNREFERENCED,
 
         /**
-         * A {@code stringArray} read only as {@code param[0]}. Comparing the first element is sufficient.
+         * A {@code stringArray} the rules can only observe through {@code isSet(param)} and {@code param[0]}. Whether
+         * the list is present, plus its first element, is therefore the whole of what can reach the endpoint, and
+         * nothing past element 0 can change the answer.
          *
-         * <p>This also makes a null list and an empty list interchangeable, which is correct: the runtime's
-         * {@code listAccess} returns null for both, so both take the same branch. It is strictly more permissive than
-         * comparing whole lists, so it can only turn misses into hits.
+         * <p>{@code isSet} has to be allowed here, not just tolerated: the rules language requires a null check before
+         * an indexed access, so every real model that reads {@code param[0]} also reads {@code isSet(param)}. Treating
+         * the null check as a whole-value read would mean this case never fired.
+         *
+         * <p>Because {@code isSet} distinguishes an absent list from an empty one, the generated comparison keeps a
+         * null check alongside the first-element check. Collapsing the two would only be sound for a BDD whose branches
+         * for absent and empty converge, which is a property of the graph rather than of the parameter, so it is not
+         * assumed here.
          */
         FIRST_ELEMENT_ONLY,
 
@@ -138,6 +146,28 @@ final class BddParameterReferences {
                 return null;
             }
             return super.visitIndexedAccessExpression(e);
+        }
+
+        /**
+         * {@code isSet(param)} observes only whether the parameter is present, so on its own it does not force a
+         * whole-value comparison.
+         *
+         * <p>This matters because the rules language requires a null check before an indexed access: a model that reads
+         * {@code list[0]} always reads {@code isSet(list)} too. Counting the null check as a whole-value read would stop
+         * {@link Usage#FIRST_ELEMENT_ONLY} from ever applying to a real model.
+         *
+         * <p>Presence still has to be part of the cache key, which the generated comparison handles.
+         */
+        @Override
+        public Void visitFunctionCallExpression(FunctionCallExpression e) {
+            if ("isSet".equals(e.name()) && e.arguments().size() == 1) {
+                RuleExpression argument = e.arguments().get(0);
+                if (argument instanceof VariableReferenceExpression) {
+                    referenced.add(((VariableReferenceExpression) argument).variableName());
+                    return null;
+                }
+            }
+            return super.visitFunctionCallExpression(e);
         }
 
         @Override
