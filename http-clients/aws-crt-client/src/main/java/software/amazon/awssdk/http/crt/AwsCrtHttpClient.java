@@ -221,17 +221,19 @@ public final class AwsCrtHttpClient extends AwsCrtHttpClientBase implements SdkH
         AwsCrtHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
 
         /**
-         * Configure the health checks for all connections established by this client.
+         * Configure the health checks for all connections established by this client. This is the CRT client's knob for a
+         * read/write inactivity timeout: a connection whose throughput stays below
+         * {@link ConnectionHealthConfiguration#minimumThroughputInBps()} for
+         * {@link ConnectionHealthConfiguration#minimumThroughputTimeout()} is considered unhealthy and shut down, failing the
+         * in-flight request with a retryable {@code IOException}.
          *
-         * <p>
-         * You can set a throughput threshold for a connection to be considered healthy.
-         * If a connection falls below this threshold ({@link ConnectionHealthConfiguration#minimumThroughputInBps()
-         * }) for the configurable amount
-         * of time ({@link ConnectionHealthConfiguration#minimumThroughputTimeout()}),
-         * then the connection is considered unhealthy and will be shut down.
+         * <p>To set a read/write inactivity timeout, use {@code minimumThroughputInBps(1L)} with
+         * {@code minimumThroughputTimeout(yourDuration)}: any byte moved in either direction resets the window, so the connection
+         * is shut down only after {@code yourDuration} elapses with no bytes transferred. The timeout has whole-second
+         * granularity and must be at least two seconds.
          *
-         * <p>
-         * Disabled by default.
+         * <p>Absent an explicit configuration here, a default read/write inactivity timeout may apply; a configuration set here
+         * always takes precedence over that default.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
