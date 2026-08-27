@@ -50,17 +50,8 @@ public interface ClientEndpointProvider {
     URI clientEndpoint();
 
     /**
-     * Returns the endpoint string to pass to the endpoint rules engine as the {@code SDK::Endpoint} built-in, with the
-     * query and user-info components stripped because the rules engine's {@code ParseURL} rejects a URI carrying query
-     * parameters.
-     * <p>
-     * This is the single definition of that transformation. {@link #create(URI, boolean)} returns an implementation that
-     * calls it once and caches the result, which removes a URI construction and its string conversion from every
-     * request; an implementation that does not override it recomputes per call. Both must produce the same string,
-     * because it is what the rules engine resolves against and what a generated endpoint provider uses as part of its
-     * cache key.
-     * <p>
-     * Returns {@code null} if the endpoint is not overridden.
+     * Returns the client endpoint as a string with the query and user-info components stripped, as the rules engine's
+     * {@code ParseURL} rejects a URI carrying query parameters. Returns {@code null} if the endpoint is not overridden.
      */
     default String sanitizedEndpointString() {
         if (!isEndpointOverridden()) {

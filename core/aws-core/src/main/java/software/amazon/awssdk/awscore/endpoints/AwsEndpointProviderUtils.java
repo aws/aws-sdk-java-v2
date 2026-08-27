@@ -56,8 +56,8 @@ public final class AwsEndpointProviderUtils {
      * {@code ParseURL}) rejects URIs with query parameters, so we strip the query and user-info components.
      * <p>
      * Delegates to {@link ClientEndpointProvider#sanitizedEndpointString()}, which returns a cached reference on
-     * {@link software.amazon.awssdk.core.internal.StaticClientEndpointProvider}, enabling identity ({@code ==})
-     * comparison inside the endpoint-provider result cache.
+     * {@link software.amazon.awssdk.core.internal.StaticClientEndpointProvider} reducing allocations and expensive
+     * URI.create calls.
      */
     public static String endpointBuiltIn(ExecutionAttributes executionAttributes) {
         if (endpointIsOverridden(executionAttributes)) {

@@ -347,8 +347,6 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
                     b.addStatement("params.$N($L)", setterName, ((JrsBoolean) value).booleanValue());
                     break;
                 case START_ARRAY:
-                    // Reference the hoisted static final field instead of constructing a new list.
-                    // This guarantees reference stability for the endpoint-provider cache key check.
                     String fieldName = staticListFieldName(opModel, n);
                     b.addStatement("params.$N($N)", setterName, fieldName);
                     break;
@@ -368,7 +366,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
      * Generates the name of the {@code static final List<String>} field holding the static array value of
      * {@code paramName} for {@code opModel}.
      *
-     * <p>Format: {@code STATIC_LIST_{OPERATION}_{PARAM}}, both parts in screaming snake case.
+     * <p>Format: {@code STATIC_LIST_{OPERATION}_{PARAM}}
      */
     private static String staticListFieldName(OperationModel opModel, String paramName) {
         return "STATIC_LIST_" + screamCase(opModel.getOperationName()) + "_" + screamCase(paramName);
@@ -383,12 +381,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
     /**
      * Generates a {@code private static final List<String>} field for every {@code staticContextParams} entry whose
      * value is an array, so that {@code setStaticContextParams} hands the same list reference to the endpoint params
-     * builder on every call rather than constructing an equal list each time.
-     *
-     * <p>Reference stability is what lets a generated endpoint provider settle a list-valued cache-key check with an
-     * identity comparison instead of walking the elements. It also removes a per-request list allocation on the
-     * request path for every operation that declares a static array parameter, which stands on its own regardless of
-     * whether the provider caches.
+     * builder on every call rather than constructing a new list each time.
      */
     private void addStaticListFields(TypeSpec.Builder classBuilder) {
         ParameterizedTypeName listOfString = ParameterizedTypeName.get(List.class, String.class);

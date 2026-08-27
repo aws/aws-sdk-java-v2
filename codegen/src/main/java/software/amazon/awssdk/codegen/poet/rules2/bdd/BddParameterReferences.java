@@ -48,10 +48,8 @@ import software.amazon.awssdk.codegen.poet.rules2.WalkRuleExpressionVisitor;
  *       it declares {@code Key}, {@code Prefix} and {@code CopySource}, no rule reads any of them, and {@code Key}
  *       changes on essentially every object request - so including it means the cache almost never hits.</li>
  *   <li>{@link Usage#FIRST_ELEMENT_ONLY} - a {@code stringArray} whose every use is an index-0 access. Only the first
- *       element can reach the endpoint, so the generated comparison looks at that element instead of walking the list.
- *       DynamoDB is the motivating case: it reads {@code ResourceArnList} only as
- *       {@code getAttr(ResourceArnList, "[0]")}, and comparing the whole list costs over half of a regional
- *       resolution.</li>
+ *       element can reach the endpoint, so the generated comparison is optimized by comparing only that element instead
+ *       of walking the list.
  * </ul>
  */
 final class BddParameterReferences {
@@ -67,15 +65,6 @@ final class BddParameterReferences {
          * A {@code stringArray} the rules can only observe through {@code isSet(param)} and {@code param[0]}. Whether
          * the list is present, plus its first element, is therefore the whole of what can reach the endpoint, and
          * nothing past element 0 can change the answer.
-         *
-         * <p>{@code isSet} has to be allowed here, not just tolerated: the rules language requires a null check before
-         * an indexed access, so every real model that reads {@code param[0]} also reads {@code isSet(param)}. Treating
-         * the null check as a whole-value read would mean this case never fired.
-         *
-         * <p>Because {@code isSet} distinguishes an absent list from an empty one, the generated comparison keeps a
-         * null check alongside the first-element check. Collapsing the two would only be sound for a BDD whose branches
-         * for absent and empty converge, which is a property of the graph rather than of the parameter, so it is not
-         * assumed here.
          */
         FIRST_ELEMENT_ONLY,
 
@@ -93,8 +82,6 @@ final class BddParameterReferences {
         Collector collector = new Collector();
 
         for (ConditionModel condition : model.getConditions()) {
-            // Wrapped the same way BddEndpointProviderSpec wraps a condition before generating it, so the parse - and
-            // therefore the set of references - is identical to the one the emitted code is built from.
             RuleModel synthetic = new RuleModel();
             synthetic.setType("error");
             synthetic.setError("synthetic");
@@ -151,12 +138,6 @@ final class BddParameterReferences {
         /**
          * {@code isSet(param)} observes only whether the parameter is present, so on its own it does not force a
          * whole-value comparison.
-         *
-         * <p>This matters because the rules language requires a null check before an indexed access: a model that reads
-         * {@code list[0]} always reads {@code isSet(list)} too. Counting the null check as a whole-value read would stop
-         * {@link Usage#FIRST_ELEMENT_ONLY} from ever applying to a real model.
-         *
-         * <p>Presence still has to be part of the cache key, which the generated comparison handles.
          */
         @Override
         public Void visitFunctionCallExpression(FunctionCallExpression e) {

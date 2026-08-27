@@ -192,8 +192,8 @@ public final class EndpointParamsKnowledgeIndex {
                              BusinessMetricsUtils.class, SdkInternalExecutionAttribute.class);
 
         // Use endpointModeValue() rather than name().toLowerCase() so that the returned String is an interned
-        // compile-time literal.  This makes the reference stable across calls, enabling identity (==) comparison
-        // in the endpoint-provider result cache key check.
+        // compile-time literal.  This makes the reference stable across calls and reducing allocations 
+        // and expensive URI.create calls.
         builder.addStatement("return mode.endpointModeValue()");
 
         return builder.build();

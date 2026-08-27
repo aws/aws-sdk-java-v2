@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Remove two per-request allocations from endpoint parameter construction. A client configured with an endpoint override no longer rebuilds and re-stringifies the sanitized override URI on every request; the value is now computed once when the client endpoint is set. Operations that declare a `staticContextParams` array value now pass a shared immutable list instead of constructing an equal list per request."
-}

@@ -71,8 +71,7 @@ public enum AccountIdEndpointMode {
      * {@code AWS::Auth::AccountIdEndpointMode} built-in.
      * <p>
      * Unlike {@code name().toLowerCase()}, this returns the same interned {@link String} reference on every call rather
-     * than a fresh string per request. That removes an allocation from the request path and lets a generated endpoint
-     * provider compare the value by identity.
+     * than a fresh string per request removing an allocation from the request path.
      */
     public String endpointModeValue() {
         return endpointModeValue;

@@ -187,14 +187,8 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * <p>Parameter order comes from {@link #cacheKeyParameterOrder()}. Order is the only thing that varies between
      * parameters, and it only affects how quickly a mismatch is found.
      *
-     * <p>List-valued parameters go through the generated {@code cacheListsMatch} helper rather than
-     * {@code Objects.equals}, so that every term in the chain stays a single boolean expression and so that the
-     * comparison stays bounded. See {@link #cacheListsMatchMethod()}.
-     *
-     * <p>An earlier version of this generated a seven-tier comparison, with the tier of each parameter computed from a
-     * pass over the service's operations, and a different code shape per tier. Benchmarking showed the tiers bought
-     * nothing over this form on the hit path and only ~0.2 ns on the miss path; see
-     * {@code .kiro/reference/endpoint_cache_key_benchmark.md}.
+     * <p>List-valued parameters are special cased to avoid slow comparisons for large lists.
+     * See {@link #cacheListsMatchMethod()}.
      */
     private MethodSpec cacheParamsMatchMethod() {
         ClassName paramsClass = endpointRulesSpecUtils.parametersClassName();
@@ -240,9 +234,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * every parameter before returning true. Booleans come first because they can never fall through to a real
      * {@code equals}; reference-stable strings come next because they normally settle on the identity check; and the
      * request-derived values that may have to compare characters come last.
-     *
-     * <p>The group of a parameter follows from its own declaration - its declared type, plus whether it is
-     * {@code AWS::Region} or a client context parameter - so this needs no analysis of the service's operations.
      */
     private List<String> cacheKeyParameterOrder() {
         Map<String, ParameterModel> parameters = endpointBddModel.getParameters();
@@ -307,11 +298,9 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * parameter.
      *
      * <p>{@code Objects.equals} would be correct here, but {@code List.equals} is unbounded: a request carrying a large
-     * list would walk every element on every cache check. Since resolution itself is typically indifferent to list
-     * length, an unbounded key check can cost more than the resolution it avoids, turning the cache into a
-     * pessimisation for that request shape. Refusing to match above
-     * {@value #MAX_LIST_COMPARISON_SIZE} elements keeps the check bounded; the consequence is that a service handling
-     * longer lists simply misses, and pays resolution, which is what it would have paid anyway.
+     * list would walk every element on every cache check whichi can be longer than resolution itself.  
+     * The consequence is that a service handling longer lists simply misses, and pays resolution,
+     *  which is what it would have paid anyway.
      */
     private MethodSpec cacheListsMatchMethod() {
         TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
@@ -339,15 +328,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * exclusively as {@code param[0]}.
      *
      * <p>When the rules can only see whether the list is present and what its first element is, comparing the rest is
-     * work that cannot change the answer. DynamoDB is why this exists: it reads {@code ResourceArnList} only through
-     * {@code isSet} and {@code getAttr(ResourceArnList, "[0]")}, and comparing a freshly built three-element ARN list
-     * measured at 15.5 ns against a 28 ns regional resolution - over half the cost the cache is meant to avoid. This
-     * comparison is O(1) instead.
-     *
-     * <p>Presence is compared as well as the first element, because {@code isSet} tells an absent list apart from an
-     * empty one even though {@code listAccess} yields null for both. Collapsing them would be sound only for a BDD whose
-     * branches for absent and empty converge - true of DynamoDB's, but a property of the graph rather than of the
-     * parameter, and not worth depending on for the one extra reference comparison it would save.
+     * work that cannot change the answer.
      */
     private MethodSpec cacheFirstElementsMatchMethod() {
         TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
