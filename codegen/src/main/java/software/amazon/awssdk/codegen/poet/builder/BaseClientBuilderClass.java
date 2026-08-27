@@ -31,6 +31,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -842,24 +843,27 @@ public class BaseClientBuilderClass implements ClassSpec {
         String serviceDefaultFqcn = model.getCustomizationConfig().getServiceSpecificHttpConfig();
         boolean supportsH2 = model.getMetadata().supportsH2();
         boolean usePriorKnowledgeForH2 = model.getCustomizationConfig().isUsePriorKnowledgeForH2();
+        Long readWriteTimeoutMillis = model.getMetadata().getDefaultReadWriteTimeoutMillis();
 
-        if (serviceDefaultFqcn != null || supportsH2) {
-            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2));
+        if (serviceDefaultFqcn != null || supportsH2 || readWriteTimeoutMillis != null) {
+            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2,
+                                                              readWriteTimeoutMillis));
         }
     }
 
     private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2,
-                                                       boolean usePriorKnowledgeForH2) {
+                                                       boolean usePriorKnowledgeForH2, Long readWriteTimeoutMillis) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(PROTECTED, FINAL)
                          .returns(AttributeMap.class)
-                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2))
+                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2,
+                                                                      readWriteTimeoutMillis))
                          .build();
     }
 
     private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2,
-                                                          boolean usePriorKnowledgeForH2) {
+                                                          boolean usePriorKnowledgeForH2, Long readWriteTimeoutMillis) {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         if (serviceDefaultFqcn != null) {
@@ -870,14 +874,28 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addStatement("$1T result = $1T.empty()", AttributeMap.class);
         }
 
-        if (supportsH2) {
-            builder.add("return result.merge(AttributeMap.builder()"
-                        + ".put($T.PROTOCOL, $T.HTTP2)",
-                        SdkHttpConfigurationOption.class, Protocol.class);
+        if (supportsH2 || readWriteTimeoutMillis != null) {
+            builder.add("return result.merge(AttributeMap.builder()");
 
-            if (!usePriorKnowledgeForH2) {
-                builder.add(".put($T.PROTOCOL_NEGOTIATION, $T.ALPN)",
-                            SdkHttpConfigurationOption.class, ProtocolNegotiation.class);
+            if (supportsH2) {
+                builder.add(".put($T.PROTOCOL, $T.HTTP2)", SdkHttpConfigurationOption.class, Protocol.class);
+
+                if (!usePriorKnowledgeForH2) {
+                    builder.add(".put($T.PROTOCOL_NEGOTIATION, $T.ALPN)",
+                                SdkHttpConfigurationOption.class, ProtocolNegotiation.class);
+                }
+            }
+
+            if (readWriteTimeoutMillis != null) {
+                // A negative artifact value marks a fully-exempt service: bake Duration.ZERO, which means apply no
+                // read/write timeout. A positive value is the timeout in milliseconds.
+                if (readWriteTimeoutMillis < 0) {
+                    builder.add(".put($T.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, $T.ZERO)",
+                                SdkHttpConfigurationOption.class, Duration.class);
+                } else {
+                    builder.add(".put($T.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, $T.ofMillis($L))",
+                                SdkHttpConfigurationOption.class, Duration.class, readWriteTimeoutMillis + "L");
+                }
             }
 
             builder.addStatement(".build())");
