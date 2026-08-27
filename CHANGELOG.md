@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.6__ __2026-08-27__
+## __AWS CodeDeploy__
+  - ### Features
+    - Added a deploymentMode parameter to CreateDeployment. Set it to RESTART to restart an EC2 and on-premises fleet, using the last successful revision, honoring Deployment Configuration.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added resultCount to QueryStatistics in GetQueryResults. This field returns the total number of output rows in the final result set, helping customers programmatically determine whether a query produced results after all operations including post-aggregation filters.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adds the AdminDeleteSoftwareToken API operation, enabling administrators to remove a user's registered TOTP (software token) MFA configuration from a user pool.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add cascadeDelete to DeleteDomain. When specified, DataZone recursively deletes all projects, environments, subscriptions, and their underlying AWS resources before removing the domain. Deletion progress is reported via deleteProgress and resource failures via failureReasons on GetDomain.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 allows AMI owners to define compatible instance types on their AMIs, blocking RunInstances calls automatically for launches on non-permitted instance types.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Updating SDK and CLI documentation for AttachDataSource API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for the full snapshot size, in bytes, of DB instance snapshots.
+
+## __Lambda MicroVMs__
+  - ### Features
+    - Added InsufficientCapacityException to RunMicrovm for capacity-related failures. Added lifecycle status field (AVAILABLE, DEPRECATED) to ListManagedMicrovmImageVersions. Added ConflictException to CreateMicrovmAuthToken and CreateMicrovmShellAuthToken for unregistered MicroVMs.
+
 # __2.54.5__ __2026-08-26__
 ## __AWS CRT Async HTTP Client__
   - ### Bugfixes

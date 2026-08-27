@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Cognito Identity Provider",
-    "contributor": "",
-    "description": "Adds the AdminDeleteSoftwareToken API operation, enabling administrators to remove a user's registered TOTP (software token) MFA configuration from a user pool."
-}
