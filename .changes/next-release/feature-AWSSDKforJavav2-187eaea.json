@@ -1,5 +1,5 @@
 {
-    "type": "removal",
+    "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
     "description": "Removed the legacy interpreted endpoint rules code generation path. Compiled endpoint rules are now the only supported path. This includes removing the `enableGenerateCompiledEndpointRules` customization flag from all services and deleting the old interpreted runtime resources."
