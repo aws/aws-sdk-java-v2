@@ -63,10 +63,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             && Objects.equals(a.disableS3ExpressSessionAuth(), b.disableS3ExpressSessionAuth())
             && Objects.equals(a.region(), b.region())
             && Objects.equals(a.bucket(), b.bucket())
-            && Objects.equals(a.endpoint(), b.endpoint())
-            && Objects.equals(a.key(), b.key())
-            && Objects.equals(a.prefix(), b.prefix())
-            && Objects.equals(a.copySource(), b.copySource());
+            && Objects.equals(a.endpoint(), b.endpoint());
   }
 
   private static final class Evaluator {

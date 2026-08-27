@@ -28,7 +28,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
       Evaluator evaluator = new Evaluator();
       evaluator.params = endpointParams;
       evaluator.region = endpointParams.region() == null ? null : endpointParams.region().id();
-      Endpoint result = evaluator.nodeP14();
+      Endpoint result = evaluator.nodeP15();
       if (result == null) {
         return CompletableFutureUtils.failedFuture(SdkClientException.create("Rule engine did not reach an error or endpoint result"));
       }
@@ -53,7 +53,8 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
             && Objects.equals(a.endpoint(), b.endpoint())
             && Objects.equals(a.staticStringParam(), b.staticStringParam())
             && Objects.equals(a.operationContextParam(), b.operationContextParam())
-            && cacheListsMatch(a.arnList(), b.arnList());
+            && cacheFirstElementsMatch(a.arnList(), b.arnList())
+            && cacheListsMatch(a.customEndpointArray(), b.customEndpointArray());
   }
 
   private static boolean cacheListsMatch(List<String> a, List<String> b) {
@@ -69,12 +70,22 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     return true;
   }
 
+  private static boolean cacheFirstElementsMatch(List<String> a, List<String> b) {
+    if (a == b) return true;
+    // Only element 0 reaches the endpoint; absent and empty are both null to the rules engine.
+    String firstA = a == null || a.isEmpty() ? null : a.get(0);
+    String firstB = b == null || b.isEmpty() ? null : b.get(0);
+    return Objects.equals(firstA, firstB);
+  }
+
   private static final class Evaluator {
     QueryEndpointParams params;
 
     String region;
 
     RulePartition partitionResult;
+
+    String firstArn;
 
     private Endpoint nodeP0() {
       return null;
@@ -164,6 +175,36 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
               : nodeP13();
     }
 
+    private Endpoint nodeP15() {
+      return params.stringContextParam() != null
+              ? nodeP16()
+              : nodeP16();
+    }
+
+    private Endpoint nodeP16() {
+      return params.staticStringParam() != null
+              ? nodeP17()
+              : nodeP17();
+    }
+
+    private Endpoint nodeP17() {
+      return params.operationContextParam() != null
+              ? nodeP18()
+              : nodeP18();
+    }
+
+    private Endpoint nodeP18() {
+      return params.customEndpointArray() != null
+              ? nodeP19()
+              : nodeP19();
+    }
+
+    private Endpoint nodeP19() {
+      return cond12()
+              ? nodeP14()
+              : nodeP14();
+    }
+
     private boolean cond3() {
       partitionResult = RulesFunctions.awsPartition(region);
       return partitionResult != null;
@@ -179,6 +220,11 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private boolean cond7() {
       return ("aws-us-gov".equals(partitionResult.name()));
+    }
+
+    private boolean cond12() {
+      firstArn = RulesFunctions.listAccess(params.arnList(), 0);
+      return firstArn != null;
     }
 
     private Endpoint result0() {

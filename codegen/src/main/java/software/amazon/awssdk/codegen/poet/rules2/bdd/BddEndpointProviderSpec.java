@@ -98,6 +98,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private final ClassName cacheEntryType;
     private final List<EndpointBddModel.BddNode> bddNodes;
     private final List<ConditionType> conditionTypes;
+    private final Map<String, BddParameterReferences.Usage> paramUsage;
 
     public BddEndpointProviderSpec(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
@@ -111,6 +112,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
         this.cacheEntryType = className().nestedClass("CacheEntry");
         this.bddNodes = endpointBddModel.getDecodedNodes();
         this.conditionTypes = analyzeConditions();
+        this.paramUsage = BddParameterReferences.analyze(endpointBddModel);
     }
 
     @Override
@@ -125,8 +127,11 @@ public class BddEndpointProviderSpec implements ClassSpec {
         builder.addType(cacheEntryClass());
         builder.addMethod(resolveEndpointMethod());
         builder.addMethod(cacheParamsMatchMethod());
-        if (hasListParam()) {
+        if (needsFullListHelper()) {
             builder.addMethod(cacheListsMatchMethod());
+        }
+        if (needsFirstElementHelper()) {
+            builder.addMethod(cacheFirstElementsMatchMethod());
         }
 
         return builder.build();
@@ -208,15 +213,18 @@ public class BddEndpointProviderSpec implements ClassSpec {
             if (!first) {
                 chain.add("\n    && ");
             }
-            if (isListParam(parameters.get(paramName))) {
-                chain.add("cacheListsMatch(a.$L, b.$L)", getter, getter);
-            } else {
+            if (!isListParam(parameters.get(paramName))) {
                 chain.add("$T.equals(a.$L, b.$L)", Objects.class, getter, getter);
+            } else if (paramUsage.get(paramName) == BddParameterReferences.Usage.FIRST_ELEMENT_ONLY) {
+                chain.add("cacheFirstElementsMatch(a.$L, b.$L)", getter, getter);
+            } else {
+                chain.add("cacheListsMatch(a.$L, b.$L)", getter, getter);
             }
             first = false;
         }
         if (first) {
-            // A rule set with no parameters at all resolves to the same endpoint every time.
+            // Either the model declares no parameters, or it reads none of them. Both mean one endpoint for every
+            // request, so any two parameter objects are interchangeable.
             chain.add("true");
         }
         b.addStatement(chain.build());
@@ -245,6 +253,10 @@ public class BddEndpointProviderSpec implements ClassSpec {
         List<String> rest = new ArrayList<>();
 
         parameters.forEach((name, model) -> {
+            if (paramUsage.get(name) == BddParameterReferences.Usage.UNREFERENCED) {
+                // Nothing reads it, so it cannot change the endpoint and must not force a miss.
+                return;
+            }
             if (isBooleanParam(model)) {
                 booleans.add(name);
             } else if (isReferenceStable(name, model, clientContextParams)) {
@@ -254,7 +266,7 @@ public class BddEndpointProviderSpec implements ClassSpec {
             }
         });
 
-        List<String> order = new ArrayList<>(parameters.size());
+        List<String> order = new ArrayList<>(booleans.size() + stableStrings.size() + rest.size());
         order.addAll(booleans);
         order.addAll(stableStrings);
         order.addAll(rest);
@@ -322,8 +334,53 @@ public class BddEndpointProviderSpec implements ClassSpec {
                          .build();
     }
 
-    private boolean hasListParam() {
-        return endpointBddModel.getParameters().values().stream().anyMatch(BddEndpointProviderSpec::isListParam);
+    /**
+     * Generates the {@code cacheFirstElementsMatch} helper, emitted only when a {@code stringArray} parameter is read
+     * exclusively as {@code param[0]}.
+     *
+     * <p>When only the first element can reach the endpoint, comparing the rest is work that cannot change the answer.
+     * DynamoDB is why this exists: it reads {@code ResourceArnList} only through
+     * {@code getAttr(ResourceArnList, "[0]")}, and comparing a freshly built three-element ARN list measured at 15.5 ns
+     * against a 28 ns regional resolution - over half the cost the cache is meant to avoid.
+     *
+     * <p>Absent and empty both yield null here, matching the runtime's {@code listAccess}, which returns null for a null
+     * list and for an index past the end. So the two are interchangeable, exactly as they are during resolution.
+     */
+    private MethodSpec cacheFirstElementsMatchMethod() {
+        TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
+        return MethodSpec.methodBuilder("cacheFirstElementsMatch")
+                         .addModifiers(Modifier.PRIVATE, Modifier.STATIC)
+                         .returns(boolean.class)
+                         .addParameter(listOfString, "a")
+                         .addParameter(listOfString, "b")
+                         .addStatement("if (a == b) return true")
+                         .addComment("Only element 0 reaches the endpoint; absent and empty are both null to the "
+                                     + "rules engine.")
+                         .addStatement("$T firstA = a == null || a.isEmpty() ? null : a.get(0)", String.class)
+                         .addStatement("$T firstB = b == null || b.isEmpty() ? null : b.get(0)", String.class)
+                         .addStatement("return $T.equals(firstA, firstB)", Objects.class)
+                         .build();
+    }
+
+    /**
+     * True when some list parameter in the cache key needs a whole-list comparison.
+     */
+    private boolean needsFullListHelper() {
+        return listParamsInKeyWithUsage(BddParameterReferences.Usage.FULL);
+    }
+
+    /**
+     * True when some list parameter in the cache key is read only at index 0.
+     */
+    private boolean needsFirstElementHelper() {
+        return listParamsInKeyWithUsage(BddParameterReferences.Usage.FIRST_ELEMENT_ONLY);
+    }
+
+    private boolean listParamsInKeyWithUsage(BddParameterReferences.Usage usage) {
+        Map<String, ParameterModel> parameters = endpointBddModel.getParameters();
+        return cacheKeyParameterOrder().stream()
+                                       .filter(name -> isListParam(parameters.get(name)))
+                                       .anyMatch(name -> paramUsage.get(name) == usage);
     }
 
     private static boolean isBooleanParam(ParameterModel model) {

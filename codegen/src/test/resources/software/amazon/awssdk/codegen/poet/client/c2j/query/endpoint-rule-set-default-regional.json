@@ -29,23 +29,33 @@
     },
     "stringContextParam": {
       "required": false,
-      "documentation": "A client context parameter. Covers the CLIENT_STATIC_REF cache tier.",
+      "documentation": "A client context parameter, so the cache key compares it early as reference-stable.",
       "type": "string"
     },
     "staticStringParam": {
       "required": false,
-      "documentation": "Bound to a per-operation static literal. Covers the OPERATION_STATIC cache tier.",
+      "documentation": "Bound to a per-operation static literal.",
       "type": "string"
     },
     "operationContextParam": {
       "required": false,
-      "documentation": "Bound to a request member. Covers the REQUEST_DYNAMIC cache tier.",
+      "documentation": "Bound to a request member, so it can change per request.",
       "type": "string"
     },
     "arnList": {
       "required": false,
-      "documentation": "Extracted from the request by JMESPath. Covers the REQUEST_LIST cache tier.",
+      "documentation": "Read only as arnList[0], so the cache key compares just the first element.",
       "type": "stringArray"
+    },
+    "customEndpointArray": {
+      "required": false,
+      "documentation": "Read as a whole, so the cache key compares every element.",
+      "type": "stringArray"
+    },
+    "unusedParam": {
+      "required": false,
+      "documentation": "Declared but read by no condition and no result, so the cache key must leave it out.",
+      "type": "string"
     }
   },
   "rules": [

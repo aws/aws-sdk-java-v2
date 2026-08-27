@@ -75,6 +75,9 @@
             "operationContextParams": {
                 "resourceArnList": {
                     "path": "Items[*].Arn"
+                },
+                "wholeArnList": {
+                    "path": "Items[*].Arn"
                 }
             },
             "input": {

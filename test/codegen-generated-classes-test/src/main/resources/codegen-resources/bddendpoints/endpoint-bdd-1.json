@@ -30,33 +30,43 @@
         "AccountId": {
             "builtIn": "AWS::Auth::AccountId",
             "required": false,
-            "documentation": "The AWS account ID, read off the resolved identity. Declared to exercise the IDENTITY_DERIVED cache tier; the BDD graph does not read it.",
+            "documentation": "The AWS account ID, read off the resolved identity.",
             "type": "string"
         },
         "AccountIdEndpointMode": {
             "builtIn": "AWS::Auth::AccountIdEndpointMode",
             "required": false,
-            "documentation": "Whether the account ID may be used in the endpoint. Declared to exercise the SEMI_STABLE cache tier; the BDD graph does not read it.",
+            "documentation": "Whether the account ID may be used in the endpoint.",
             "type": "string"
         },
         "clientStringParam": {
             "required": false,
-            "documentation": "A client context parameter. Declared to exercise the CLIENT_STATIC_REF cache tier; the BDD graph does not read it.",
+            "documentation": "A client context parameter, so the cache key compares it early as reference-stable.",
             "type": "string"
         },
         "staticStringParam": {
             "required": false,
-            "documentation": "A parameter bound to a per-operation static literal. Declared to exercise the OPERATION_STATIC cache tier; the BDD graph does not read it.",
+            "documentation": "Bound to a per-operation static literal.",
             "type": "string"
         },
         "requestStringParam": {
             "required": false,
-            "documentation": "A parameter bound to a request member. Declared to exercise the REQUEST_DYNAMIC cache tier; the BDD graph does not read it.",
+            "documentation": "Bound to a request member, so it can change per request.",
             "type": "string"
         },
         "resourceArnList": {
             "required": false,
-            "documentation": "A list extracted from the request by JMESPath. Declared to exercise the REQUEST_LIST cache tier; the BDD graph does not read it.",
+            "documentation": "Read only as resourceArnList[0], so the cache key compares just the first element. This is the DynamoDB shape.",
+            "type": "stringArray"
+        },
+        "unusedStringParam": {
+            "required": false,
+            "documentation": "Declared but read by no condition and no result, so the cache key must leave it out.",
+            "type": "string"
+        },
+        "wholeArnList": {
+            "required": false,
+            "documentation": "Read as a whole, so the cache key compares every element.",
             "type": "stringArray"
         }
     },
@@ -148,6 +158,64 @@
                 },
                 "aws-us-gov"
             ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "AccountId"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "AccountIdEndpointMode"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "clientStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "staticStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "requestStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "resourceArnList"
+                },
+                "[0]"
+            ],
+            "assign": "FirstArn"
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "wholeArnList"
+                }
+            ]
         }
     ],
     "results": [
@@ -238,7 +306,7 @@
             "type": "error"
         }
     ],
-    "root": 2,
-    "nodeCount": 14,
-    "nodes": "/////wAAAAH/////AAAAAAAAAA0AAAADAAAAAQAAAAQF9eEMAAAAAgAAAAUF9eEMAAAAAwAAAAgAAAAGAAAABAAAAAcF9eELAAAABQX14QkF9eEKAAAABAAAAAsAAAAJAAAABgAAAAoF9eEIAAAABwX14QYF9eEHAAAABQAAAAwF9eEFAAAABgX14QQF9eEFAAAAAwX14QEAAAAOAAAABAX14QIF9eED"
+    "root": 21,
+    "nodeCount": 21,
+    "nodes": "/////wAAAAH/////AAAAAAAAAA0AAAADAAAAAQAAAAQF9eEMAAAAAgAAAAUF9eEMAAAAAwAAAAgAAAAGAAAABAAAAAcF9eELAAAABQX14QkF9eEKAAAABAAAAAsAAAAJAAAABgAAAAoF9eEIAAAABwX14QYF9eEHAAAABQAAAAwF9eEFAAAABgX14QQF9eEFAAAAAwX14QEAAAAOAAAABAX14QIF9eEDAAAACAAAABAAAAAQAAAACQAAABEAAAARAAAACgAAABIAAAASAAAACwAAABMAAAATAAAADAAAABQAAAAUAAAADQAAAAIAAAACAAAADgAAAA8AAAAP"
 }

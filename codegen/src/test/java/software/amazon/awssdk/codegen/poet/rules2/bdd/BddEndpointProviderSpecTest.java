@@ -23,12 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
-import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 
 public class BddEndpointProviderSpecTest {
 
@@ -154,29 +151,57 @@ public class BddEndpointProviderSpecTest {
     }
 
     /**
-     * The one invariant the result cache depends on: every parameter the BDD declares must appear in the generated key.
-     * A parameter left out is not a slow cache, it is a cache that returns an endpoint resolved for a different value of
-     * that parameter, and nothing else in the test suite would catch it.
+     * The invariant the result cache depends on: every parameter the BDD <em>reads</em> must appear in the generated
+     * key. A parameter left out is not a slow cache, it is a cache that returns an endpoint resolved for a different
+     * value of that parameter, and nothing else in the test suite would catch it.
      *
-     * <p>Asserted against the generated source rather than against an intermediate model, so it holds regardless of how
-     * the comparison is built.
+     * <p>Asserted against the generated source rather than an intermediate model, so it holds regardless of how the
+     * comparison is built.
      */
     @Test
-    void cacheKeyComparesEveryDeclaredParameter() {
-        assertCacheKeyIsComplete(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints());
-        assertCacheKeyIsComplete(ClientTestModels.queryServiceModelsWithBddEndpoints());
-        assertCacheKeyIsComplete(ClientTestModels.queryServiceModelsWithComplementBddEndpoints());
+    void cacheKeyComparesEveryReferencedParameter() {
+        // The simple BDD declares 10 parameters and reads 9; unusedParam is the one it does not read.
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints())))
+            .containsExactlyInAnyOrder("useDualStack", "useFips", "region", "stringContextParam", "endpoint",
+                                       "staticStringParam", "operationContextParam", "arnList",
+                                       "customEndpointArray");
+
+        // The S3 BDD declares 17 and reads 14; Key, Prefix and CopySource are vestigial declarations.
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints())))
+            .containsExactlyInAnyOrder("useFips", "useDualStack", "forcePathStyle", "accelerate", "useGlobalEndpoint",
+                                       "useObjectLambdaEndpoint", "disableAccessPoints",
+                                       "disableMultiRegionAccessPoints", "useArnRegion",
+                                       "useS3ExpressControlEndpoint", "disableS3ExpressSessionAuth", "region",
+                                       "bucket", "endpoint");
+
+        // The complement BDD declares and reads exactly two.
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithComplementBddEndpoints())))
+            .containsExactlyInAnyOrder("region", "endpoint");
     }
 
-    private static void assertCacheKeyIsComplete(IntermediateModel model) {
-        EndpointRulesSpecUtils utils = new EndpointRulesSpecUtils(model);
-        List<String> expected = model.getEndpointBddModel().getParameters().keySet().stream()
-                                     .map(utils::paramMethodName)
-                                     .collect(Collectors.toList());
+    /**
+     * A parameter no condition and no result reads cannot change the resolved endpoint, so comparing it could only turn
+     * hits into misses that resolve to the endpoint already cached.
+     *
+     * <p>This is what makes the cache worth having for S3, whose rule set declares {@code Key}, {@code Prefix} and
+     * {@code CopySource} and reads none of them. {@code Key} changes on essentially every object request, so including
+     * it would mean the cache almost never hits.
+     */
+    @Test
+    void cacheKeyOmitsParametersTheBddNeverReads() {
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints())))
+            .as("a parameter nothing reads must not force a cache miss")
+            .doesNotContain("unusedParam");
 
-        assertThat(cacheKeyGetterOrder(new BddEndpointProviderSpec(model)))
-            .as("every parameter the BDD declares must be part of the cache key")
-            .containsExactlyInAnyOrderElementsOf(expected);
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints())))
+            .as("S3 declares Key, Prefix and CopySource but reads none of them")
+            .doesNotContain("key", "prefix", "copySource")
+            .contains("bucket");
     }
 
     /**
@@ -191,34 +216,56 @@ public class BddEndpointProviderSpecTest {
         List<String> order = cacheKeyGetterOrder(
             new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()));
 
-        assertThat(order).containsExactly("useDualStack", "useFips",              // booleans
-                                          "region", "stringContextParam",        // reference-stable strings
-                                          "endpoint", "staticStringParam",       // everything else, declaration order
-                                          "operationContextParam", "arnList");
+        assertThat(order).containsExactly("useDualStack", "useFips",           // booleans
+                                          "region", "stringContextParam",     // reference-stable strings
+                                          "endpoint", "staticStringParam",    // everything else, declaration order
+                                          "operationContextParam", "arnList", "customEndpointArray");
     }
 
     /**
-     * A list parameter needs a bounded comparison, so it routes through the emitted helper rather than
+     * A list read as a whole needs a bounded comparison, so it routes through the emitted helper rather than
      * {@code Objects.equals}, whose {@code List.equals} would walk every element however long the list is.
      */
     @Test
-    void listParametersUseTheBoundedHelper() {
+    void listReadAsAWholeUsesTheBoundedHelper() {
         String generated = new BddEndpointProviderSpec(
             ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
 
-        assertThat(generated).contains("cacheListsMatch(a.arnList(), b.arnList())");
+        assertThat(generated).contains("cacheListsMatch(a.customEndpointArray(), b.customEndpointArray())");
         assertThat(generated).contains("if (size > 8) return false");
     }
 
     /**
-     * The helper is only useful when the model has a list parameter, and the S3 BDD has none.
+     * When the only read of a list is its first element, the rest of the list cannot reach the endpoint, so the key
+     * compares element 0 alone. This is the DynamoDB shape: it reads {@code ResourceArnList} only through
+     * {@code getAttr(ResourceArnList, "[0]")}, and comparing the whole list costs more than half of a regional
+     * resolution.
+     *
+     * <p>Also asserts the generated provider really does read only element 0, so the two halves cannot drift apart:
+     * were a second, whole-list read to appear, this comparison would silently become wrong.
      */
     @Test
-    void listHelperIsOmittedWhenNoListParameterExists() {
+    void listReadOnlyAtIndexZeroComparesOnlyTheFirstElement() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).contains("cacheFirstElementsMatch(a.arnList(), b.arnList())");
+        assertThat(generated).doesNotContain("cacheListsMatch(a.arnList()");
+        assertThat(generated)
+            .as("the first-element comparison is only valid while the provider reads nothing but element 0")
+            .contains("RulesFunctions.listAccess(params.arnList(), 0)");
+    }
+
+    /**
+     * Neither helper is worth emitting when nothing needs it, and the S3 BDD keeps no list parameter in its key.
+     */
+    @Test
+    void listHelpersAreOmittedWhenNoListParameterIsInTheKey() {
         String generated = new BddEndpointProviderSpec(
             ClientTestModels.queryServiceModelsWithBddEndpoints()).poetSpec().toString();
 
         assertThat(generated).doesNotContain("cacheListsMatch");
+        assertThat(generated).doesNotContain("cacheFirstElementsMatch");
     }
 
     /**

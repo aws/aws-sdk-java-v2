@@ -210,22 +210,98 @@ class BddEndpointProviderCacheTest {
                           params(b -> b.requestStringParam("second")));
     }
 
+    // ---- lists read as a whole: wholeArnList, reached via isSet, so every element is part of the key ----
+
     @Test
-    void requestListTier_elementChange_invalidates() {
-        assertInvalidates(params(b -> b.resourceArnList(Arrays.asList("a", "b"))),
-                          params(b -> b.resourceArnList(Arrays.asList("a", "c"))));
+    void wholeList_elementChange_invalidates() {
+        assertInvalidates(params(b -> b.wholeArnList(Arrays.asList("a", "b"))),
+                          params(b -> b.wholeArnList(Arrays.asList("a", "c"))));
     }
 
     @Test
-    void requestListTier_lengthChange_invalidates() {
-        assertInvalidates(params(b -> b.resourceArnList(Arrays.asList("a", "b"))),
-                          params(b -> b.resourceArnList(Collections.singletonList("a"))));
+    void wholeList_lengthChange_invalidates() {
+        assertInvalidates(params(b -> b.wholeArnList(Arrays.asList("a", "b"))),
+                          params(b -> b.wholeArnList(Collections.singletonList("a"))));
     }
 
     @Test
-    void requestListTier_orderChange_invalidates() {
+    void wholeList_orderChange_invalidates() {
+        assertInvalidates(params(b -> b.wholeArnList(Arrays.asList("a", "b"))),
+                          params(b -> b.wholeArnList(Arrays.asList("b", "a"))));
+    }
+
+    // ---- lists read only at index 0: resourceArnList, reached via getAttr(list, "[0]") ----
+    //
+    // The BDD's only read of this list is its first element, so nothing past element 0 can reach the endpoint. The key
+    // therefore compares element 0 alone, which turns changes the endpoint cannot see into hits rather than misses.
+    // This is the DynamoDB shape, where comparing the whole list costs more than half a regional resolution.
+
+    @Test
+    void firstElementList_firstElementChange_invalidates() {
+        assertInvalidates(params(b -> b.resourceArnList(Arrays.asList("a", "b"))),
+                          params(b -> b.resourceArnList(Arrays.asList("z", "b"))));
+    }
+
+    @Test
+    void firstElementList_laterElementChange_isAHit() {
+        assertHits(params(b -> b.resourceArnList(Arrays.asList("a", "b"))),
+                   params(b -> b.resourceArnList(Arrays.asList("a", "c"))));
+    }
+
+    @Test
+    void firstElementList_lengthChangeKeepingFirstElement_isAHit() {
+        assertHits(params(b -> b.resourceArnList(Arrays.asList("a", "b", "c"))),
+                   params(b -> b.resourceArnList(Collections.singletonList("a")))); 
+    }
+
+    @Test
+    void firstElementList_orderChangeMovingFirstElement_invalidates() {
         assertInvalidates(params(b -> b.resourceArnList(Arrays.asList("a", "b"))),
                           params(b -> b.resourceArnList(Arrays.asList("b", "a"))));
+    }
+
+    /**
+     * The rules engine's {@code listAccess} returns null for a null list and for an index past the end, so an absent
+     * list and an empty one take the same branch and must be treated as the same key.
+     */
+    @Test
+    void firstElementList_emptyAndUnset_areTheSameKey() {
+        assertHits(params(b -> b.resourceArnList(Collections.emptyList())), params(b -> {
+        }));
+    }
+
+    /**
+     * No size cap applies when only the first element is compared, so a list far past the cap still hits. That is the
+     * point: the comparison is O(1) rather than bounded-but-linear.
+     */
+    @Test
+    void firstElementList_farPastTheSizeCap_stillHits() {
+        List<String> long1 = new ArrayList<>(listOfSize(500));
+        List<String> long2 = new ArrayList<>(listOfSize(500));
+        long2.set(499, "different-tail");
+        assertHits(params(b -> b.resourceArnList(long1)), params(b -> b.resourceArnList(long2)));
+    }
+
+    // ---- parameters the BDD never reads are not part of the key ----
+
+    /**
+     * {@code unusedStringParam} is declared by the model and read by no condition and no result, so it cannot change the
+     * resolved endpoint and must not evict the cached one.
+     *
+     * <p>This is the behaviour that makes the cache worth having for S3, whose rule set declares {@code Key},
+     * {@code Prefix} and {@code CopySource} and reads none of them. {@code Key} changes on essentially every object
+     * request, so treating it as part of the key would mean the cache almost never hits.
+     */
+    @Test
+    void parameterTheBddNeverReads_doesNotInvalidate() {
+        assertHits(params(b -> b.unusedStringParam("first")),
+                   params(b -> b.unusedStringParam("second")));
+    }
+
+    @Test
+    void parameterTheBddNeverReads_settingItDoesNotInvalidate() {
+        assertHits(params(b -> {
+        }), params(b -> b.unusedStringParam("now-set")));
     }
 
     // ---- transitions to and from unset ----
@@ -245,18 +321,18 @@ class BddEndpointProviderCacheTest {
     @Test
     void settingAPreviouslyUnsetList_invalidates() {
         assertInvalidates(params(b -> {
-        }), params(b -> b.resourceArnList(Collections.singletonList("a"))));
+        }), params(b -> b.wholeArnList(Collections.singletonList("a"))));
     }
 
     @Test
     void clearingAPreviouslySetList_invalidates() {
-        assertInvalidates(params(b -> b.resourceArnList(Collections.singletonList("a"))), params(b -> {
+        assertInvalidates(params(b -> b.wholeArnList(Collections.singletonList("a"))), params(b -> {
         }));
     }
 
     @Test
     void emptyListAndUnsetList_areDistinguished() {
-        assertInvalidates(params(b -> b.resourceArnList(Collections.emptyList())), params(b -> {
+        assertInvalidates(params(b -> b.wholeArnList(Collections.emptyList())), params(b -> {
         }));
     }
 
@@ -282,8 +358,8 @@ class BddEndpointProviderCacheTest {
 
     @Test
     void requestList_equalContentsDifferentListInstance_hits() {
-        assertHits(params(b -> b.resourceArnList(new ArrayList<>(Arrays.asList("a", "b")))),
-                   params(b -> b.resourceArnList(new ArrayList<>(Arrays.asList("a", "b")))));
+        assertHits(params(b -> b.wholeArnList(new ArrayList<>(Arrays.asList("a", "b")))),
+                   params(b -> b.wholeArnList(new ArrayList<>(Arrays.asList("a", "b")))));
     }
 
     /**
@@ -291,8 +367,8 @@ class BddEndpointProviderCacheTest {
      */
     @Test
     void requestList_equalElementsDifferentReferences_hits() {
-        assertHits(params(b -> b.resourceArnList(Collections.singletonList("element"))),
-                   params(b -> b.resourceArnList(Collections.singletonList(new String("element")))));
+        assertHits(params(b -> b.wholeArnList(Collections.singletonList("element"))),
+                   params(b -> b.wholeArnList(Collections.singletonList(new String("element")))));
     }
 
     // ---- list size cap ----
@@ -302,7 +378,7 @@ class BddEndpointProviderCacheTest {
      */
     @Test
     void requestList_atSizeCap_stillHits() {
-        assertHits(params(b -> b.resourceArnList(listOfSize(8))), params(b -> b.resourceArnList(listOfSize(8))));
+        assertHits(params(b -> b.wholeArnList(listOfSize(8))), params(b -> b.wholeArnList(listOfSize(8))));
     }
 
     /**
@@ -312,8 +388,8 @@ class BddEndpointProviderCacheTest {
      */
     @Test
     void requestList_pastSizeCap_alwaysMisses() {
-        assertInvalidates(params(b -> b.resourceArnList(listOfSize(9))),
-                          params(b -> b.resourceArnList(listOfSize(9))));
+        assertInvalidates(params(b -> b.wholeArnList(listOfSize(9))),
+                          params(b -> b.wholeArnList(listOfSize(9))));
     }
 
     /**
@@ -321,7 +397,7 @@ class BddEndpointProviderCacheTest {
      */
     @Test
     void requestList_pastSizeCap_stillResolvesCorrectly() {
-        Endpoint endpoint = resolve(provider(), params(b -> b.resourceArnList(listOfSize(50))));
+        Endpoint endpoint = resolve(provider(), params(b -> b.wholeArnList(listOfSize(50))));
         assertThat(endpoint.endpointUrl().host()).isEqualTo("connect.us-east-1.amazonaws.com");
     }
 
