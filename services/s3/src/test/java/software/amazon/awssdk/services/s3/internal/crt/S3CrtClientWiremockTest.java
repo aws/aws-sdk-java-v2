@@ -38,6 +38,10 @@ import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -50,8 +54,11 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
@@ -244,10 +251,58 @@ public class S3CrtClientWiremockTest {
         }
     }
 
+    @Test
+    void getObject_notFound_publishesUnsuccessfulApiCallMetrics(WireMockRuntimeInfo wiremock) throws InterruptedException {
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(404).withBody(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?><Error><Code>NoSuchKey</Code></Error>")));
+
+        CapturingMetricPublisher publisher = new CapturingMetricPublisher();
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder()
+                                                 .region(Region.US_EAST_1)
+                                                 .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                                                 .credentialsProvider(
+                                                     StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                                                 .addMetricPublisher(publisher)
+                                                 .build()) {
+
+            assertThatThrownBy(() -> client.getObject(r -> r.bucket(BUCKET).key(KEY),
+                                                      AsyncResponseTransformer.toBytes()).join())
+                .hasRootCauseInstanceOf(S3Exception.class);
+
+            List<MetricCollection> collections = publisher.awaitAtLeast(1, Duration.ofSeconds(10));
+            assertThat(collections).anySatisfy(c -> {
+                assertThat(c.name()).isEqualTo("ApiCall");
+                assertThat(c.metricValues(CoreMetric.SERVICE_ID)).containsExactly("S3");
+                assertThat(c.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).contains(false);
+            });
+        }
+    }
+
     private static class SpyableExecutor implements Executor {
         @Override
         public void execute(Runnable command) {
             command.run();
+        }
+    }
+
+    private static final class CapturingMetricPublisher implements MetricPublisher {
+        private final List<MetricCollection> collections = new CopyOnWriteArrayList<>();
+
+        @Override
+        public void publish(MetricCollection metricCollection) {
+            collections.add(metricCollection);
+        }
+
+        @Override
+        public void close() {
+        }
+
+        List<MetricCollection> awaitAtLeast(int min, Duration timeout) throws InterruptedException {
+            long deadlineNanos = System.nanoTime() + timeout.toNanos();
+            while (collections.size() < min && System.nanoTime() < deadlineNanos) {
+                Thread.sleep(50);
+            }
+            return new ArrayList<>(collections);
         }
     }
 }

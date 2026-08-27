@@ -31,10 +31,12 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -82,6 +84,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
@@ -93,6 +96,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
     public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
         new ExecutionAttribute<>("responseFileOption");
+    public static final ExecutionAttribute<List<MetricPublisher>> REQUEST_METRIC_PUBLISHERS =
+        new ExecutionAttribute<>("requestMetricPublishers");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -137,7 +142,35 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
     @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
-        return copyObjectHelper.copyObject(copyObjectRequest);
+        // copyObject's sub-requests bypass invokeOperation, so stash once here; CopyObjectHelper propagates the copy's
+        // override (with the stashed attribute) to each sub-request.
+        return copyObjectHelper.copyObject(stashRequestMetricPublishers(copyObjectRequest));
+    }
+
+    /**
+     * All operations funnel through here. If the request carries request-level metric publishers, move them off the
+     * request override (so the inner standard client's resolveMetricPublishers stays empty -> NoOp, no hollow ApiCall)
+     * and stash them in an execution attribute that the CRT transport reads to publish telemetry to them instead of
+     * (overriding) the client-level publishers.
+     */
+    @Override
+    protected <T extends S3Request, ReturnT> CompletableFuture<ReturnT> invokeOperation(
+        T request, Function<T, CompletableFuture<ReturnT>> operation) {
+        return operation.apply(stashRequestMetricPublishers(request));
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T extends S3Request> T stashRequestMetricPublishers(T request) {
+        AwsRequestOverrideConfiguration override = request.overrideConfiguration().orElse(null);
+        if (override == null || CollectionUtils.isNullOrEmpty(override.metricPublishers())) {
+            return request;
+        }
+        AwsRequestOverrideConfiguration newOverride =
+            override.toBuilder()
+                    .metricPublishers(Collections.emptyList())
+                    .putExecutionAttribute(REQUEST_METRIC_PUBLISHERS, override.metricPublishers())
+                    .build();
+        return (T) request.toBuilder().overrideConfiguration(newOverride).build();
     }
 
     private static S3AsyncClient initializeS3AsyncClient(DefaultS3CrtClientBuilder builder) {
@@ -460,7 +493,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                    .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
                         executionAttributes.getAttribute(RESPONSE_FILE_PATH))
                    .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
-                        executionAttributes.getAttribute(RESPONSE_FILE_OPTION));
+                        executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
+                   .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS,
+                        executionAttributes.getAttribute(REQUEST_METRIC_PUBLISHERS));
 
             SdkRequest request = context.request();
             if (request instanceof AwsRequest) {
@@ -515,10 +550,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     (AwsRequestOverrideConfiguration) request.overrideConfiguration().get();
                 if (overrideConfiguration.signer().isPresent()) {
                     throw new UnsupportedOperationException("Request-level signer override is not supported");
-                }
-
-                if (!CollectionUtils.isNullOrEmpty(overrideConfiguration.metricPublishers())) {
-                    throw new UnsupportedOperationException("Request-level Metric Publishers override is not supported");
                 }
 
                 if (overrideConfiguration.apiCallAttemptTimeout().isPresent()) {

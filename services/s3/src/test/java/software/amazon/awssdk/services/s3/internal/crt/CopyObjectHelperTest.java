@@ -54,6 +54,7 @@ import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.CopyPartResult;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectTaggingResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -68,10 +69,13 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.AnnotationDirective;
 import software.amazon.awssdk.services.s3.model.AnnotationEntry;
+import software.amazon.awssdk.services.s3.model.GetObjectAnnotationRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectAnnotationResponse;
 import software.amazon.awssdk.services.s3.model.ListObjectAnnotationsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectAnnotationsResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectAnnotationRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectAnnotationResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectTaggingRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectTaggingResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.paginators.ListObjectAnnotationsPublisher;
@@ -975,6 +979,85 @@ class CopyObjectHelperTest {
         future.cancel(true);
 
         assertThat(createMpuFuture).isCompletedExceptionally();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void multiPartCopy_taggingDirectiveCopy_propagatesOverrideToTaggingSubRequests() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder().putHeader("x-custom", "value").build();
+
+        stubSuccessfulHeadObjectCall(4000L);
+        when(s3AsyncClient.getObjectTagging(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(GetObjectTaggingResponse.builder()
+                .tagSet(Arrays.asList(Tag.builder().key("k").value("v").build())).build()));
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+        when(s3AsyncClient.putObjectTagging(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(PutObjectTaggingResponse.builder().build()));
+
+        copyHelper.copyObject(copyRequestBuilder().taggingDirective(TaggingDirective.COPY)
+                                                  .overrideConfiguration(override)
+                                                  .build()).join();
+
+        ArgumentCaptor<Consumer<GetObjectTaggingRequest.Builder>> getCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(s3AsyncClient).getObjectTagging(getCaptor.capture());
+        GetObjectTaggingRequest.Builder getBuilder = GetObjectTaggingRequest.builder();
+        getCaptor.getValue().accept(getBuilder);
+        assertThat(getBuilder.build().overrideConfiguration()).contains(override);
+
+        ArgumentCaptor<Consumer<PutObjectTaggingRequest.Builder>> putCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(s3AsyncClient).putObjectTagging(putCaptor.capture());
+        PutObjectTaggingRequest.Builder putBuilder = PutObjectTaggingRequest.builder();
+        putCaptor.getValue().accept(putBuilder);
+        assertThat(putBuilder.build().overrideConfiguration()).contains(override);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    void multiPartCopy_annotationDirectiveCopy_propagatesOverrideToAnnotationSubRequests() {
+        AwsRequestOverrideConfiguration override =
+            AwsRequestOverrideConfiguration.builder().putHeader("x-custom", "value").build();
+
+        stubSuccessfulHeadObjectCall(4000L);
+        // one source annotation so getObjectAnnotation (source) and putObjectAnnotation (dest) are actually invoked
+        when(s3AsyncClient.listObjectAnnotations(any(ListObjectAnnotationsRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(ListObjectAnnotationsResponse.builder()
+                .annotations(AnnotationEntry.builder().annotationName("anno1").build()).build()));
+        when(s3AsyncClient.getObjectAnnotation(any(Consumer.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(
+                ResponseBytes.fromByteArray(GetObjectAnnotationResponse.builder().build(), "body".getBytes())));
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+        when(s3AsyncClient.putObjectAnnotation(any(Consumer.class), any(AsyncRequestBody.class)))
+            .thenReturn(CompletableFuture.completedFuture(PutObjectAnnotationResponse.builder().build()));
+
+        copyHelper.copyObject(copyRequestBuilder().annotationDirective(AnnotationDirective.COPY)
+                                                  .overrideConfiguration(override)
+                                                  .build()).join();
+
+        // ListObjectAnnotations (source) carries the copy's override.
+        ArgumentCaptor<Consumer<ListObjectAnnotationsRequest.Builder>> listCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(s3AsyncClient).listObjectAnnotationsPaginator(listCaptor.capture());
+        ListObjectAnnotationsRequest.Builder listBuilder = ListObjectAnnotationsRequest.builder();
+        listCaptor.getValue().accept(listBuilder);
+        assertThat(listBuilder.build().overrideConfiguration()).contains(override);
+
+        // GetObjectAnnotation (source) carries the copy's override.
+        ArgumentCaptor<Consumer<GetObjectAnnotationRequest.Builder>> getCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(s3AsyncClient).getObjectAnnotation(getCaptor.capture(), any(AsyncResponseTransformer.class));
+        GetObjectAnnotationRequest.Builder getBuilder = GetObjectAnnotationRequest.builder();
+        getCaptor.getValue().accept(getBuilder);
+        assertThat(getBuilder.build().overrideConfiguration()).contains(override);
+
+        // PutObjectAnnotation (dest) carries the copy's override.
+        ArgumentCaptor<Consumer<PutObjectAnnotationRequest.Builder>> putCaptor = ArgumentCaptor.forClass(Consumer.class);
+        verify(s3AsyncClient).putObjectAnnotation(putCaptor.capture(), any(AsyncRequestBody.class));
+        PutObjectAnnotationRequest.Builder putBuilder = PutObjectAnnotationRequest.builder();
+        putCaptor.getValue().accept(putBuilder);
+        assertThat(putBuilder.build().overrideConfiguration()).contains(override);
     }
 
     private static CopyObjectRequest.Builder copyRequestBuilder() {
