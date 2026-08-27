@@ -30,10 +30,10 @@ import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointParametersClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderInterfaceSpec;
+import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointResolverUtilsSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
-import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;

@@ -25,9 +25,11 @@ import java.util.Map;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -56,6 +58,9 @@ public class EndpointParametersClassSpec implements ClassSpec {
         parameters().forEach((name, model) -> {
             b.addField(endpointRulesSpecUtils.parameterClassField(name, model));
             b.addMethod(endpointRulesSpecUtils.parameterClassAccessorMethod(name, model));
+            if (model.getBuiltInEnum() == BuiltInParameter.AWS_REGION) {
+                b.addMethod(regionIdAccessorMethod(name));
+            }
         });
 
         b.addMethod(toBuilderMethod());
@@ -154,6 +159,22 @@ public class EndpointParametersClassSpec implements ClassSpec {
 
     private String variableName(String name) {
         return intermediateModel.getNamingStrategy().getVariableName(name);
+    }
+
+    /**
+     * Creates a convenience accessor for Region-typed parameters that returns the region ID as a String.
+     */
+    private MethodSpec regionIdAccessorMethod(String name) {
+        String varName = variableName(name);
+        String methodName = endpointRulesSpecUtils.paramMethodName(name) + "Id";
+        return MethodSpec.methodBuilder(methodName)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addJavadoc("Returns the region ID (the {@link $T#id()} value) as a String,"
+                                     + " or null if region is not set.",
+                                     Region.class)
+                         .returns(String.class)
+                         .addStatement("return $N == null ? null : $N.id()", varName, varName)
+                         .build();
     }
 
     private MethodSpec.Builder toBuilderConstructor() {

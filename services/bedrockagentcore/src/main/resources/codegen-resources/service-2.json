@@ -147,7 +147,9 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"},
-        {"shape":"InternalServerException"}
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"SubscriptionRequiredException"}
       ],
       "documentation":"<p>Create a new payment instrument for a connector.</p>",
       "idempotent":true
@@ -167,7 +169,8 @@
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"SubscriptionRequiredException"}
       ],
       "documentation":"<p>Create a new payment session.</p>",
       "idempotent":true
@@ -1035,8 +1038,10 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ConflictException"},
         {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"},
-        {"shape":"InternalServerException"}
+        {"shape":"InternalServerException"},
+        {"shape":"SubscriptionRequiredException"}
       ],
       "documentation":"<p>Processes a payment using a payment instrument within a payment session.</p>",
       "idempotent":true
@@ -2963,7 +2968,7 @@
         },
         "payload":{
           "shape":"PayloadTypeList",
-          "documentation":"<p>The content payload of the event. This can include conversational data or binary content.</p>"
+          "documentation":"<p>The content payload of the event. This can include conversational data, JSON data, or binary content.</p>"
         },
         "branch":{
           "shape":"Branch",
@@ -2981,6 +2986,10 @@
         "extractionMode":{
           "shape":"ExtractionMode",
           "documentation":"<p>Controls long-term memory extraction for this event. When set to <code>SKIP</code>, the event is stored in short-term memory but is excluded from long-term memory extraction. If not specified, the event is processed for extraction as usual.</p>"
+        },
+        "extractionConfig":{
+          "shape":"ExtractionConfig",
+          "documentation":"<p>The extraction configuration for long-term memory records. Use this parameter to specify namespace variable keys and their values for namespace substitution during extraction.</p>"
         }
       }
     },
@@ -3134,6 +3143,10 @@
         "payload":{
           "shape":"PaymentDocument",
           "documentation":"<p>The X402 payment payload.</p>"
+        },
+        "permit2AllowanceLimit":{
+          "shape":"Permit2AllowanceLimit",
+          "documentation":"<p>The maximum on-chain Permit2 allowance to grant before signing the payment authorization, in the asset's smallest denomination. This field is valid only for the <code>upto</code> (metered) scheme; supplying it for the <code>exact</code> scheme returns a validation error.</p> <p>When set, the service approves an ERC-20 allowance for this amount before processing the payment. The approval sets, rather than adds to, the wallet's allowance. Set this field only when the wallet needs approving, for example on its first <code>upto</code> payment, to avoid a redundant on-chain transaction. Omit the field to skip allowance handling. This is the default, and the only behavior for the <code>exact</code> scheme.</p>"
         }
       },
       "documentation":"<p>The input for a crypto X402 payment.</p>"
@@ -3381,6 +3394,12 @@
           "documentation":"<p>The identifier of the memory record to delete.</p>",
           "location":"uri",
           "locationName":"memoryRecordId"
+        },
+        "namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The namespace of the memory record to delete. This value is used for IAM condition key authorization.</p>",
+          "location":"querystring",
+          "locationName":"namespace"
         }
       }
     },
@@ -3923,11 +3942,13 @@
     },
     "EvaluatorArn":{
       "type":"string",
-      "pattern":"arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:evaluator\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$|^arn:aws[a-zA-Z-]*:bedrock-agentcore:::evaluator/Builtin.[a-zA-Z0-9_-]+"
+      "pattern":"arn:aws[a-zA-Z-]*:bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:evaluator\\/[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}$|^arn:aws[a-zA-Z-]*:bedrock-agentcore:::evaluator/(Builtin|ThirdParty)\\.[a-zA-Z0-9._-]+"
     },
     "EvaluatorId":{
       "type":"string",
-      "pattern":"(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})"
+      "max":111,
+      "min":1,
+      "pattern":"(Builtin\\.[a-zA-Z0-9._-]+|ThirdParty\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10})"
     },
     "EvaluatorList":{
       "type":"list",
@@ -3962,7 +3983,9 @@
     },
     "EvaluatorName":{
       "type":"string",
-      "pattern":"(Builtin.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9_]{0,47})"
+      "max":48,
+      "min":1,
+      "pattern":"(Builtin\\.[a-zA-Z0-9._-]+|ThirdParty\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+|[a-zA-Z][a-zA-Z0-9_]{0,47})"
     },
     "EvaluatorStatistics":{
       "type":"structure",
@@ -4195,6 +4218,16 @@
       "box":true,
       "max":65535,
       "min":1
+    },
+    "ExtractionConfig":{
+      "type":"structure",
+      "members":{
+        "namespaceVariables":{
+          "shape":"NamespaceVariablesMap",
+          "documentation":"<p>A map of <code>namespaceKeys</code> to their values. The service substitutes these values into <code>namespaceTemplates</code> during long-term memory extraction to control namespace hierarchy.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for extraction behavior. Use this structure to specify namespace variable keys and their values for namespace substitution during long-term memory extraction.</p>"
     },
     "ExtractionJob":{
       "type":"structure",
@@ -4919,6 +4952,12 @@
           "documentation":"<p>The identifier of the memory record to retrieve.</p>",
           "location":"uri",
           "locationName":"memoryRecordId"
+        },
+        "namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The namespace of the memory record to retrieve. This value is used for IAM condition key authorization.</p>",
+          "location":"querystring",
+          "locationName":"namespace"
         }
       }
     },
@@ -8137,6 +8176,24 @@
       "min":12,
       "pattern":"(arn:(aws|aws-cn|aws-us-gov):bedrock-agentcore:[a-z0-9-]+:[0-9]{12}:memory/)?[a-zA-Z][a-zA-Z0-9-_]{0,99}-[a-zA-Z0-9]{10}"
     },
+    "MemoryJsonData":{
+      "type":"structure",
+      "required":["content"],
+      "members":{
+        "content":{
+          "shape":"MemoryJsonDataContent",
+          "documentation":"<p>The JSON content of the payload. Accepts any JSON value, including objects, arrays, strings, numbers, booleans, and null. The maximum size is 100 KB.</p>"
+        }
+      },
+      "documentation":"<p>Contains non-conversational, JSON-formatted content for an event payload. JSON payloads are extracted into long-term memory.</p>",
+      "sensitive":true
+    },
+    "MemoryJsonDataContent":{
+      "type":"structure",
+      "members":{},
+      "document":true,
+      "sensitive":true
+    },
     "MemoryMetadataFilterExpression":{
       "type":"structure",
       "required":[
@@ -8245,6 +8302,10 @@
         "memoryRecordId":{
           "shape":"MemoryRecordId",
           "documentation":"<p>The unique ID of the memory record to be deleted.</p>"
+        },
+        "namespace":{
+          "shape":"Namespace",
+          "documentation":"<p>The namespace of the memory record being deleted. This value is used for IAM condition key authorization.</p>"
         }
       },
       "documentation":"<p>Input structure to delete an existing memory record.</p>"
@@ -8426,6 +8487,10 @@
         "namespaces":{
           "shape":"NamespacesList",
           "documentation":"<p>The updated list of namespace identifiers for categorizing the memory record.</p>"
+        },
+        "sourceNamespaces":{
+          "shape":"NamespacesList",
+          "documentation":"<p>The namespaces of the source memory record being updated. This value is used for IAM condition key authorization.</p>"
         },
         "memoryStrategyId":{
           "shape":"MemoryStrategyId",
@@ -8725,6 +8790,63 @@
       },
       "documentation":"<p>The result of a mouse scroll action.</p>"
     },
+    "MppPaymentCredential":{
+      "type":"string",
+      "documentation":"<p>Ready-to-send <code>Authorization: Payment &lt;base64url-token&gt;</code> value. This is a bearer-like payment credential and must not appear in logs, traces, or error messages.</p>",
+      "max":32768,
+      "min":1,
+      "sensitive":true
+    },
+    "MppPaymentInput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "wwwAuthenticateHeaders"
+      ],
+      "members":{
+        "version":{
+          "shape":"Version",
+          "documentation":"<p>The MPP protocol version, for example \"1\" or \"2\".</p>"
+        },
+        "wwwAuthenticateHeaders":{
+          "shape":"WwwAuthenticateHeaderList",
+          "documentation":"<p>The raw <code>WWW-Authenticate: Payment</code> header value from the 402 response, passed verbatim. Provide exactly one entry. The service uses this value to generate the payment credential.</p>"
+        },
+        "buyerPaysGasFees":{
+          "shape":"Boolean",
+          "documentation":"<p>Authorizes the service to sign a payment whose blockchain network (gas) fees are charged to your wallet, on top of the payment amount.</p> <p>The challenge indicates who sponsors the network fees. When the challenge does not sponsor them, the service signs the payment only if this field is <code>true</code>. Otherwise it returns a validation error, so you can decide whether to pay the fees or obtain a challenge that sponsors them.</p> <p>Optional. When omitted or <code>false</code>, you decline to pay network fees. This field has no effect on challenges that already sponsor the fees.</p>"
+        }
+      },
+      "documentation":"<p>Contains the payment challenge from a 402 Payment Required response. Forward the raw <code>WWW-Authenticate: Payment</code> header value verbatim. In response, you receive a payment credential that satisfies the challenge. Provide exactly one challenge per request.</p>"
+    },
+    "MppPaymentOutput":{
+      "type":"structure",
+      "required":[
+        "version",
+        "selectedPaymentId",
+        "paymentCredential"
+      ],
+      "members":{
+        "version":{
+          "shape":"Version",
+          "documentation":"<p>The MPP protocol version, for example \"1\" or \"2\".</p>"
+        },
+        "selectedPaymentId":{
+          "shape":"MppPaymentOutputSelectedPaymentIdString",
+          "documentation":"<p>The id of the challenge that was paid, echoed from the input challenge so you can correlate the result without decoding the credential.</p>"
+        },
+        "paymentCredential":{
+          "shape":"MppPaymentCredential",
+          "documentation":"<p>Ready-to-send value for the <code>Authorization</code> header, in the form \"Payment &lt;base64url-token&gt;\". Attach this header and retry the original request. To inspect the full credential, base64url-decode the token.</p>"
+        }
+      },
+      "documentation":"<p>Contains the payment credential, ready to retry the request.</p>"
+    },
+    "MppPaymentOutputSelectedPaymentIdString":{
+      "type":"string",
+      "max":512,
+      "min":1
+    },
     "Name":{
       "type":"string",
       "max":100,
@@ -8735,6 +8857,28 @@
       "max":1024,
       "min":1,
       "pattern":"[a-zA-Z0-9/*][a-zA-Z0-9-_/*]*(?::[a-zA-Z0-9-_/*]+)*[a-zA-Z0-9-_/*]*"
+    },
+    "NamespaceVariableName":{
+      "type":"string",
+      "documentation":"<p>The name of the namespace variable key. The name cannot be a built-in variable name (<code>actorId</code>, <code>sessionId</code>, or <code>memoryStrategyId</code>).</p>",
+      "max":32,
+      "min":1,
+      "pattern":"(?!memoryStrategyId$|actorId$|sessionId$)[a-z][a-z0-9]*"
+    },
+    "NamespaceVariableValue":{
+      "type":"string",
+      "documentation":"<p>The value of a namespace variable key.</p>",
+      "max":64,
+      "min":1,
+      "pattern":"[a-z0-9][a-z0-9-_]*"
+    },
+    "NamespaceVariablesMap":{
+      "type":"map",
+      "key":{"shape":"NamespaceVariableName"},
+      "value":{"shape":"NamespaceVariableValue"},
+      "documentation":"<p>A map of <code>namespaceKeys</code> to their values for namespace substitution.</p>",
+      "max":5,
+      "min":1
     },
     "NamespacesList":{
       "type":"list",
@@ -8953,6 +9097,10 @@
         "blob":{
           "shape":"MemoryDocument",
           "documentation":"<p>The binary content of the payload.</p>"
+        },
+        "json":{
+          "shape":"MemoryJsonData",
+          "documentation":"<p>The JSON content of the payload. Use this type to store non-conversational, JSON-formatted data, such as behavioral events, activity logs, or system events.</p>"
         }
       },
       "documentation":"<p>Contains the payload content for an event.</p>",
@@ -8999,7 +9147,8 @@
         "cryptoX402":{
           "shape":"CryptoX402PaymentInput",
           "documentation":"<p>Input for a crypto X402 payment.</p>"
-        }
+        },
+        "mpp":{"shape":"MppPaymentInput"}
       },
       "documentation":"<p>The payment input details, which vary by payment type.</p>",
       "union":true
@@ -9081,7 +9230,8 @@
         "INITIATED",
         "ACTIVE",
         "FAILED",
-        "DELETED"
+        "DELETED",
+        "BLOCKED"
       ]
     },
     "PaymentInstrumentSummary":{
@@ -9153,7 +9303,8 @@
         "cryptoX402":{
           "shape":"CryptoX402PaymentOutput",
           "documentation":"<p>Output from a crypto X402 payment.</p>"
-        }
+        },
+        "mpp":{"shape":"MppPaymentOutput"}
       },
       "documentation":"<p>The payment output details, which vary by payment type.</p>",
       "union":true
@@ -9311,7 +9462,10 @@
     "PaymentType":{
       "type":"string",
       "documentation":"<p>Payment type enum.</p>",
-      "enum":["CRYPTO_X402"]
+      "enum":[
+        "CRYPTO_X402",
+        "MPP"
+      ]
     },
     "PerVariantOnlineEvaluationConfig":{
       "type":"structure",
@@ -9336,6 +9490,13 @@
       "member":{"shape":"PerVariantOnlineEvaluationConfig"},
       "max":2,
       "min":2
+    },
+    "Permit2AllowanceLimit":{
+      "type":"string",
+      "documentation":"<p>The maximum on-chain Permit2 allowance to grant, in the asset's smallest denomination. Pass the value as a numeric string. For example, \"1000000\" is 1 USDC at 6 decimals. To grant an unlimited allowance, pass the uint256 maximum, which is a 78-digit number.</p>",
+      "max":78,
+      "min":1,
+      "pattern":"[0-9]+"
     },
     "PhoneNumber":{
       "type":"string",
@@ -10599,7 +10760,7 @@
     "Spans":{
       "type":"list",
       "member":{"shape":"Span"},
-      "max":1000,
+      "max":20000,
       "min":1,
       "sensitive":true
     },
@@ -11383,6 +11544,37 @@
         }
       },
       "documentation":"<p>Stripe Privy token response containing appId, basicAuthToken, and optionally authorizationSignature.</p>"
+    },
+    "SubscriptionRequiredException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{"shape":"String"},
+        "subscriptionUrl":{
+          "shape":"SubscriptionRequiredExceptionSubscriptionUrlString",
+          "documentation":"<p>The URL to the Marketplace listing where you can subscribe.</p>"
+        },
+        "productName":{
+          "shape":"SubscriptionRequiredExceptionProductNameString",
+          "documentation":"<p>The name of the product that requires a Marketplace subscription.</p>"
+        }
+      },
+      "documentation":"<p>Returned when you attempt a wallet operation against a Coinbase Marketplace connector whose account does not hold an active Marketplace subscription and is not within the legacy exception period. Subscribe to the Marketplace listing before you retry the operation.</p>",
+      "error":{
+        "httpStatusCode":403,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "SubscriptionRequiredExceptionProductNameString":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "SubscriptionRequiredExceptionSubscriptionUrlString":{
+      "type":"string",
+      "max":2048,
+      "min":1
     },
     "SyntheticTimestamp_date_time":{
       "type":"timestamp",
@@ -12323,6 +12515,13 @@
       "max":100,
       "min":1
     },
+    "Version":{
+      "type":"string",
+      "documentation":"<p>A protocol version identifier, as a bare numeric string. For example, \"1\" or \"2\".</p>",
+      "max":10,
+      "min":1,
+      "pattern":"[0-9]+"
+    },
     "ViewPort":{
       "type":"structure",
       "required":[
@@ -12364,6 +12563,19 @@
       "max":131072,
       "min":1,
       "sensitive":true
+    },
+    "WwwAuthenticateHeader":{
+      "type":"string",
+      "documentation":"<p>A raw <code>WWW-Authenticate: Payment</code> header value from a 402 response, containing RFC 9110 auth-params such as <code>id</code>, <code>realm</code>, <code>method</code>, <code>intent</code>, and <code>request</code>. Pass this value in the request body, not as an HTTP header.</p>",
+      "max":16384,
+      "min":1
+    },
+    "WwwAuthenticateHeaderList":{
+      "type":"list",
+      "member":{"shape":"WwwAuthenticateHeader"},
+      "documentation":"<p>The raw WWW-Authenticate header value to fulfill. Provide exactly one entry.</p>",
+      "max":1,
+      "min":1
     }
   },
   "documentation":"<p>Welcome to the Amazon Bedrock AgentCore Data Plane API reference. Data Plane actions process and handle data or workloads within Amazon Web Services services. </p>"

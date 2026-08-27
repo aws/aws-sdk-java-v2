@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -30,6 +31,7 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -346,6 +348,122 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         phaser.arriveAndAwaitAdvance();
 
         verify(mockExec).schedule(any(Runnable.class), eq(1L), eq(TimeUnit.MILLISECONDS));
+    }
+
+
+    @Test
+    void execute_isFirstAttempt_scheduleFails_completesExceptionally() throws Exception {
+        RequestExecutionContext ctx = createRequestExecutionContext(true);
+
+        SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder().statusCode(502);
+
+        Response<SdkResponse> response = Response.<SdkResponse>builder()
+                                                 .httpResponse(httpResponse.build())
+                                                 .isSuccess(false)
+                                                 .exception(SdkException.builder().build())
+                                                 .build();
+
+        when(mockDelegatePipeline.execute(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+
+        Duration delay = Duration.ofMillis(1);
+
+        AcquireInitialTokenResponse acquireTokenResponse = AcquireInitialTokenResponse.create(mock(RetryToken.class), delay);
+        when(mockRetryStrategy.acquireInitialTokenAsync(any(AcquireInitialTokenRequest.class))).thenReturn(
+            CompletableFuture.completedFuture(acquireTokenResponse));
+
+        ScheduledExecutorService mockExec = mock(ScheduledExecutorService.class);
+        AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, mockExec);
+
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .build();
+
+        when(mockExec.schedule(any(Runnable.class), eq(1L), eq(TimeUnit.MILLISECONDS)))
+            .thenThrow(new RejectedExecutionException("closed"));
+
+        CompletableFuture<Response<SdkResponse>> future = retryableStage.execute(httpRequest, ctx);
+
+        assertThatThrownBy(future::join).hasRootCauseInstanceOf(RejectedExecutionException.class)
+                                        .hasRootCauseMessage("closed");
+    }
+
+    @Test
+    void execute_isRetryAttempt_scheduleFails_completesExceptionally() throws Exception {
+        ScheduledExecutorService mockExecutor = mock(ScheduledExecutorService.class);
+
+        when(mockExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenThrow(new RejectedExecutionException("closed"));
+        AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, mockExecutor);
+
+        RequestExecutionContext ctx = createRequestExecutionContext(true);
+
+        SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
+                                                                      .statusCode(502);
+
+        Response<SdkResponse> response = Response.<SdkResponse>builder()
+                                                 .httpResponse(httpResponse.build())
+                                                 .isSuccess(false)
+                                                 .exception(SdkException.builder().build())
+                                                 .build();
+
+        when(mockDelegatePipeline.execute(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+            // only retry once, otherwise we'll get into an infinite loop
+            AtomicBoolean first = new AtomicBoolean();
+            when(mockRetryStrategy.refreshRetryTokenAsync(any())).thenAnswer(i -> {
+                if (first.compareAndSet(false, true)) {
+                    return CompletableFuture.completedFuture(RefreshRetryTokenResponse.create(mockRetryToken, Duration.ZERO));
+                }
+                return CompletableFutureUtils.failedFuture(new TokenAcquisitionFailedException("Acquire failed",
+                                                                                               mockRetryToken,
+                                                                                               null,
+                                                                                               Duration.ZERO));
+            });
+
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .build();
+        CompletableFuture<Response<SdkResponse>> execute = retryableStage.execute(httpRequest, ctx);
+        assertThatThrownBy(execute::join).hasRootCauseInstanceOf(RejectedExecutionException.class).hasRootCauseMessage("closed");
+    }
+
+    @Test
+    void execute_retryDisallowed_delayNonZero_scheduleFails_completesExceptionally() throws Exception {
+        ScheduledExecutorService mockExecutor = mock(ScheduledExecutorService.class);
+
+        when(mockExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenThrow(new RejectedExecutionException("closed"));
+        AsyncRetryableStage<SdkResponse> retryableStage = createRetryableStage(mockRetryStrategy, mockExecutor);
+
+        RequestExecutionContext ctx = createRequestExecutionContext(true);
+
+        SdkHttpFullResponse.Builder httpResponse = SdkHttpFullResponse.builder()
+                                                                      .statusCode(502);
+
+        Response<SdkResponse> response = Response.<SdkResponse>builder()
+                                                 .httpResponse(httpResponse.build())
+                                                 .isSuccess(false)
+                                                 .exception(SdkException.builder().build())
+                                                 .build();
+
+        when(mockDelegatePipeline.execute(any(), any())).thenReturn(CompletableFuture.completedFuture(response));
+
+        // only retry once, otherwise we'll get into an infinite loop
+        AtomicBoolean first = new AtomicBoolean();
+        when(mockRetryStrategy.refreshRetryTokenAsync(any()))
+            .thenAnswer(i ->
+                            CompletableFutureUtils.failedFuture(new TokenAcquisitionFailedException("Acquire failed",
+                                                                                                    mockRetryToken,
+                                                                                                    null,
+                                                                                                    Duration.ofSeconds(1))));
+
+        SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .uri(URI.create("https://my-service.amazonaws.com"))
+                                                           .build();
+        CompletableFuture<Response<SdkResponse>> execute = retryableStage.execute(httpRequest, ctx);
+        assertThatThrownBy(execute::join).hasRootCauseInstanceOf(RejectedExecutionException.class).hasRootCauseMessage("closed");
     }
 
     @Test

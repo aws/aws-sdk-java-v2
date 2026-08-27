@@ -253,6 +253,10 @@ public class EndpointRulesSpecUtils {
     }
 
     public List<String> rulesEngineFilesFromDirectory(URL location) {
+        return rulesEngineFilesFromDirectory(location, RULES_ENGINE_RESOURCE_FILES_PREFIX);
+    }
+
+    public List<String> rulesEngineFilesFromDirectory(URL location, String prefix) {
         URI locationUri;
         try {
             locationUri = location.toURI();
@@ -268,7 +272,7 @@ public class EndpointRulesSpecUtils {
             return Files.walk(directory)
                         // Remove the root directory if the classes, paths are expected to be relative to this directory
                         .map(f -> directory.relativize(f).toString())
-                        .filter(f -> f.startsWith(RULES_ENGINE_RESOURCE_FILES_PREFIX))
+                        .filter(f -> f.startsWith(prefix))
                         .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);

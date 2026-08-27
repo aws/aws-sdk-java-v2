@@ -812,8 +812,6 @@ public class CustomizationConfig {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
     }
 
-
-
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
