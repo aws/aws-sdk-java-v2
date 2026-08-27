@@ -19,6 +19,7 @@ import java.net.URI;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.internal.StaticClientEndpointProvider;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.utils.FunctionalUtils;
 
 /**
  * Client endpoint providers are responsible for resolving client-level endpoints. {@link EndpointProvider}s are
@@ -49,10 +50,15 @@ public interface ClientEndpointProvider {
     URI clientEndpoint();
 
     /**
-     * Returns the sanitized endpoint string suitable for passing to the endpoint rules engine as the
-     * {@code SDK::Endpoint} built-in.  The default implementation strips query and user-info components on every call;
-     * implementations backed by a static URI (see {@link #create(URI, boolean)}) override this to return a cached
-     * reference, enabling identity ({@code ==}) comparisons in the endpoint-provider result cache.
+     * Returns the endpoint string to pass to the endpoint rules engine as the {@code SDK::Endpoint} built-in, with the
+     * query and user-info components stripped because the rules engine's {@code ParseURL} rejects a URI carrying query
+     * parameters.
+     * <p>
+     * This is the single definition of that transformation. {@link #create(URI, boolean)} returns an implementation that
+     * calls it once and caches the result, which removes a URI construction and its string conversion from every
+     * request; an implementation that does not override it recomputes per call. Both must produce the same string,
+     * because it is what the rules engine resolves against and what a generated endpoint provider uses as part of its
+     * cache key.
      * <p>
      * Returns {@code null} if the endpoint is not overridden.
      */
@@ -60,7 +66,10 @@ public interface ClientEndpointProvider {
         if (!isEndpointOverridden()) {
             return null;
         }
-        return StaticClientEndpointProvider.sanitizeEndpoint(clientEndpoint());
+        URI endpoint = clientEndpoint();
+        return FunctionalUtils.invokeSafely(
+            () -> new URI(endpoint.getScheme(), null, endpoint.getHost(), endpoint.getPort(),
+                          endpoint.getPath(), null, endpoint.getFragment()).toString());
     }
 
     /**

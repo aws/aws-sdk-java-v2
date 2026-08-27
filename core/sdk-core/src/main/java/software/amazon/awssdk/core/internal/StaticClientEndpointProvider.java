@@ -18,7 +18,6 @@ package software.amazon.awssdk.core.internal;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
-import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -28,15 +27,14 @@ import software.amazon.awssdk.utils.Validate;
  * @see ClientEndpointProvider#create(URI, boolean)
  */
 @SdkInternalApi
-public class StaticClientEndpointProvider implements ClientEndpointProvider {
+public final class StaticClientEndpointProvider implements ClientEndpointProvider {
     private final URI clientEndpoint;
     private final boolean isEndpointOverridden;
 
     /**
      * A sanitized form of {@link #clientEndpoint} with the query and user-info components stripped, formatted as a
      * string.  This is the value that endpoint rules receive via the {@code SDK::Endpoint} built-in.  Computed once at
-     * construction so that every call to {@code endpointBuiltIn()} returns the same {@link String} reference, enabling
-     * identity ({@code ==}) comparison inside the endpoint-provider cache key check.
+     * construction so that every call to {@code endpointBuiltIn()} returns the same {@link String} reference.
      * <p>
      * {@code null} when {@link #isEndpointOverridden} is {@code false}.
      */
@@ -46,31 +44,18 @@ public class StaticClientEndpointProvider implements ClientEndpointProvider {
         this.clientEndpoint = Validate.paramNotNull(clientEndpoint, "clientEndpoint");
         this.isEndpointOverridden = isEndpointOverridden;
         Validate.paramNotNull(clientEndpoint.getScheme(), "The URI scheme of endpointOverride");
-        this.sanitizedEndpointString = isEndpointOverridden ? sanitizeEndpoint(clientEndpoint) : null;
-    }
-
-    /**
-     * Strips the query and user-info components from the given endpoint URI and returns the result as a string.
-     * This matches the transformation performed by the rules engine's {@code ParseURL} function, which rejects
-     * URIs with query parameters.
-     * <p>
-     * This is the single definition of that transformation: {@link ClientEndpointProvider#sanitizedEndpointString()}
-     * delegates here so that a provider which recomputes the value per call and one which caches it at construction
-     * cannot drift apart. If they drifted, the value used as an endpoint cache key would no longer be the value the
-     * rules engine actually resolved against.
-     */
-    public static String sanitizeEndpoint(URI endpoint) {
-        return FunctionalUtils.invokeSafely(
-            () -> new URI(endpoint.getScheme(), null, endpoint.getHost(), endpoint.getPort(),
-                          endpoint.getPath(), null, endpoint.getFragment()).toString());
+        // Calls the interface's implementation rather than repeating the transformation here, so the cached value cannot
+        // drift from what a provider that does not override the method produces. Safe from a constructor: this is a
+        // non-virtual call, the two accessors it reads are assigned above, and the class is final so neither can be
+        // overridden to observe partial construction.
+        this.sanitizedEndpointString = ClientEndpointProvider.super.sanitizedEndpointString();
     }
 
     /**
      * {@inheritDoc}
      * <p>
      * Returns the same {@link String} reference on every call, because the value is computed once at construction.
-     * That lets a generated endpoint provider settle its {@code SDK::Endpoint} cache-key check with an identity
-     * ({@code ==}) comparison instead of falling through to {@code equals}.
+     * Avoids additional allocations and expensive URI creation per request.
      */
     @Override
     public String sanitizedEndpointString() {
