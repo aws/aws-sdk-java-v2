@@ -40,7 +40,6 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
-import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -63,12 +62,12 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
  *     (deprecated) or as a list of strings.</li>
  *     <li><b>StaleTime</b> - The amount of time before credential expiration that defines the mandatory refresh window. When
  *     credentials are within this window, all callers block until a refresh attempt completes. If the refresh fails, an
- *     exception is raised. Default: 1 minute.</li>
+ *     exception is raised. Default: 0, i.e. the mandatory refresh window opens at expiration.</li>
  *     <li><b>PrefetchTime</b> - The amount of time before credential expiration that defines the advisory refresh window. When
  *     credentials are within this window, the provider proactively attempts to refresh them. If the refresh fails during the
  *     advisory window, the existing cached credentials are returned without error. This replaces the deprecated
  *     {@code credentialRefreshThreshold} setting; if that setting was explicitly configured, its value is honored as the
- *     prefetch time for backward compatibility. Default: 5 minutes.</li>
+ *     prefetch time for backward compatibility. Default: 15 seconds.</li>
  *     <li><b>AsyncCredentialUpdateEnabled</b> - Whether to refresh credentials asynchronously in a background thread during
  *     the advisory refresh window, so that callers are less likely to block. Default: disabled.</li>
  *     <li><b>ProcessOutputLimit</b> - The maximum amount of data that can be returned by the external process before an
@@ -87,7 +86,8 @@ public final class ProcessCredentialsProvider
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
-    private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
+    private static final Duration DEFAULT_STALE_TIME = Duration.ZERO;
+    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofSeconds(15);
 
     private final List<String> executableCommand;
     private final long processOutputLimit;
@@ -121,11 +121,9 @@ public final class ProcessCredentialsProvider
             ? PROVIDER_NAME 
             : builder.sourceChain + "," + PROVIDER_NAME;
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = builder.prefetchTime;
-        if (this.prefetchTime != null) {
-            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
-                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
-        }
+        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                        "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString())
@@ -206,11 +204,7 @@ public final class ProcessCredentialsProvider
         if (expiration == null || expiration.equals(Instant.MAX)) {
             return Instant.MAX;
         }
-        Instant now = Instant.now();
-        // Unlike the AWS credential services, the process decides its own expiration and may emit credentials that are
-        // shorter-lived than the smallest standard advisory refresh window, so the window has to adapt to the lifetime.
-        Duration dynamicWindow = CacheRefreshUtils.computePrefetchWindowForArbitraryLifetime(expiration, prefetchTime, now);
-        return expiration.minus(dynamicWindow);
+        return expiration.minus(prefetchTime);
     }
 
     /**
@@ -375,7 +369,7 @@ public final class ProcessCredentialsProvider
          * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
          * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>By default, this is 1 minute.
+         * <p>By default, this is zero, so the mandatory refresh window opens when the credentials expire.
          *
          * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
@@ -398,14 +392,7 @@ public final class ProcessCredentialsProvider
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
-         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
-         * remaining lifetime: half the remaining lifetime (but never less than 1 minute) for credentials with 10 minutes
-         * or less remaining, 5 minutes for 10-20 minutes remaining, 15 minutes for 20-90 minutes remaining, and 60
-         * minutes for 90+ minutes remaining. This dynamic window is recomputed on each successful refresh.
-         *
-         * <p>The halved window for short-lived credentials is specific to this provider. Because the process decides its
-         * own expiration, it may emit credentials that are shorter-lived than the smallest standard window, which would
-         * otherwise place them inside their advisory refresh window as soon as they are produced.
+         * <p>By default, this is 15 seconds.
          *
          * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
