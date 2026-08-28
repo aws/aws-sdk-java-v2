@@ -58,14 +58,15 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
             ))
             .collect(Collectors.toList());
 
-        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration, so it is sufficient to retrieve it from the first request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
-                                                                                            .overrideConfiguration();
+        // Since requests are batched together by queueUrl + overrideConfiguration, all requests in a batch share the
+        // same queueUrl and overrideConfiguration; retrieve them from the first request.
+        DeleteMessageRequest firstRequest = identifiedRequests.get(0).message();
+        String queueUrl = firstRequest.queueUrl();
+        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = firstRequest.overrideConfiguration();
 
         return overrideConfiguration.map(
             overrideConfig -> DeleteMessageBatchRequest.builder()
-                                                       .queueUrl(batchKey)
+                                                       .queueUrl(queueUrl)
                                                        .overrideConfiguration(
                                                            overrideConfig.toBuilder()
                                                                          .applyMutation(USER_AGENT_APPLIER)
@@ -75,7 +76,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
                                                        .build()
         ).orElseGet(
             () -> DeleteMessageBatchRequest.builder()
-                                           .queueUrl(batchKey)
+                                           .queueUrl(queueUrl)
                                            .overrideConfiguration(o ->
                                                                       o.applyMutation(USER_AGENT_APPLIER).build()
                                            )
