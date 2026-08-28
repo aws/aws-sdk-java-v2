@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Bedrock AgentCore",
-    "contributor": "",
-    "description": "AgentCore Memory now supports direct ingestion into long-term memory via IngestData API"
-}

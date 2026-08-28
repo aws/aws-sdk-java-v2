@@ -1,4 +1,33 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.7__ __2026-08-28__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reduce memory allocations for non-streaming requests made with asycn clients.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Adds an optional syncSchedule field to CreateDataSource and UpdateDataSource for Managed Knowledge Bases data source connectors, so a data source can sync automatically on a daily, weekly, or monthly schedule.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - AgentCore Memory now supports direct ingestion into long-term memory via IngestData API
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adds two new operations - GetClientToken which allows M2M auth through the SDK, and DescribeTermsByClient to find which Terms are associated with a user-pool client without knowing the Terms resource id.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon Elastic Container Service - This release adds support for early success criteria on ECS rolling deployments, letting deployment complete once a configurable percentage of tasks are healthy, with configurable BLOCKING (required) or DEFERRED (asynchronous) cleanup of previous service revisions.
+
+## __Amazon HealthLake__
+  - ### Features
+    - New HealthLake API, RestoreFHIRDatastore, providing the capability to restore active datastores to a point in time within the last 30 days or recover a deleted datastore from the delete snapshot.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Releasing PARC, new APN Program that lets sellers add solftware revenue details to aws opportunity summary
+
 # __2.54.6__ __2026-08-27__
 ## __AWS CodeDeploy__
   - ### Features
