@@ -34,7 +34,9 @@ import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.StringInputStream;
 
@@ -100,6 +102,52 @@ public class AuthErrorInvalidationFunctionalTest {
     }
 
     /**
+     * The async client must invalidate on an auth error just as the sync client does. The two client types drive
+     * retries through different helper methods, so this is exercised separately rather than assumed from the sync case.
+     */
+    @Test
+    public void async_expiredToken_invalidatesCredentials_nextCallUsesFreshCredentials() {
+        MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+        InvalidationTrackingCredentialsProvider credentialsProvider =
+            new InvalidationTrackingCredentialsProvider("old-key", "old-secret", "new-key", "new-secret");
+
+        try (ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
+                 .credentialsProvider(credentialsProvider)
+                 .region(Region.US_EAST_1)
+                 .endpointOverride(URI.create("http://localhost"))
+                 .httpClient(mockHttpClient)
+                 .build()) {
+
+            // First API call: ExpiredToken (not retryable — fails immediately)
+            mockHttpClient.stubResponses(expiredTokenResponse());
+
+            assertThatThrownBy(() -> client.allTypes().join())
+                .hasCauseInstanceOf(AwsServiceException.class)
+                .satisfies(e -> assertThat(((AwsServiceException) e.getCause()).awsErrorDetails().errorCode())
+                    .isEqualTo("ExpiredToken"));
+
+            // Verify invalidate was called during the first API call
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
+
+            // Verify first call used "old-key"
+            List<SdkHttpRequest> firstCallRequests = mockHttpClient.getRequests();
+            assertThat(firstCallRequests).hasSize(1);
+            assertRequestUsedAccessKey(firstCallRequests.get(0), "old-key");
+
+            // Now make a second API call — this should resolve fresh credentials
+            mockHttpClient.reset();
+            mockHttpClient.stubResponses(successResponse());
+
+            client.allTypes().join();
+
+            // Second call should use new credentials (provider was invalidated)
+            List<SdkHttpRequest> secondCallRequests = mockHttpClient.getRequests();
+            assertThat(secondCallRequests).hasSize(1);
+            assertRequestUsedAccessKey(secondCallRequests.get(0), "new-key");
+        }
+    }
+
+    /**
      * Verify that AccessDenied does NOT trigger invalidation and the exception propagates.
      */
     @Test
@@ -120,6 +168,31 @@ public class AuthErrorInvalidationFunctionalTest {
             assertThatThrownBy(() -> client.allTypes())
                 .isInstanceOf(AwsServiceException.class)
                 .satisfies(e -> assertThat(((AwsServiceException) e).awsErrorDetails().errorCode())
+                    .isEqualTo("AccessDenied"));
+
+            // Verify invalidate was NOT called
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(0);
+        }
+    }
+
+    @Test
+    public void async_accessDenied_doesNotInvalidateCredentials() {
+        MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+        InvalidationTrackingCredentialsProvider credentialsProvider =
+            new InvalidationTrackingCredentialsProvider("my-key", "my-secret", "new-key", "new-secret");
+
+        try (ProtocolRestJsonAsyncClient client = ProtocolRestJsonAsyncClient.builder()
+                 .credentialsProvider(credentialsProvider)
+                 .region(Region.US_EAST_1)
+                 .endpointOverride(URI.create("http://localhost"))
+                 .httpClient(mockHttpClient)
+                 .build()) {
+
+            mockHttpClient.stubResponses(accessDeniedResponse());
+
+            assertThatThrownBy(() -> client.allTypes().join())
+                .hasCauseInstanceOf(AwsServiceException.class)
+                .satisfies(e -> assertThat(((AwsServiceException) e.getCause()).awsErrorDetails().errorCode())
                     .isEqualTo("AccessDenied"));
 
             // Verify invalidate was NOT called
