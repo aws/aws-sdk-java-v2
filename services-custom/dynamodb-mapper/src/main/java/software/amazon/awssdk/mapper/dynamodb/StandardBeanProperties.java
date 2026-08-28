@@ -14,12 +14,12 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.Reflect;
 import software.amazon.awssdk.mapper.dynamodb.StandardAnnotationMaps.FieldMap;
 import software.amazon.awssdk.mapper.dynamodb.StandardAnnotationMaps.TableMap;
-import com.amazonaws.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collections;

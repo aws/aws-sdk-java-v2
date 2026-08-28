@@ -19,7 +19,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.amazonaws.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 
 /**
  * Represents objects to load using {@link DynamoDBMapper#transactionLoad(TransactionLoadRequest)} operation.

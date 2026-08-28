@@ -15,7 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import com.amazonaws.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
  * Generator interface for auto-generating attribute values.

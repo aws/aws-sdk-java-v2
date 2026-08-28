@@ -14,7 +14,7 @@
  */
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.StandardAnnotationMaps.TypedMap;
 import software.amazon.awssdk.mapper.dynamodb.StandardTypeConverters.Scalar;

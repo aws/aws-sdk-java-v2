@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.zip.Adler32;
 
-import com.amazonaws.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
