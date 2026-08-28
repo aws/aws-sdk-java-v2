@@ -59,27 +59,12 @@
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3ClientCacheIntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkIDTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkTest.java</testExclude>
-                            <!-- DynamoDB Local functional tests + fixtures. -->
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GsiAlwaysUpdateTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/LocalDynamoDB.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/LocalDynamoDBTestBase.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/BatchLoadTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/BatchWriteTest.java</testExclude>
                             <!-- Blocked on Table-admin: calls mapper.generateCreateTableRequest(), which still
                                  returns a v1 CreateTableRequest. Rides with the GenerateCreateTableRequest* PR. -->
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/JsonIntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/GenerateDeleteTableRequestTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequest2Test.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequestTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/HashKeyOnlyTableWithGSITest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/MapperLoadingStrategyConfigTest.java</testExclude>
-                            <!-- Shared test-resource fixtures used by the excluded tests above. -->
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/DynamoDBTableResource.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/ResourceCentricBlockJUnit4ClassRunner.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/TestResourceUtils.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/BasicTempTable.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/TempTableWithBinaryKey.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/TempTableWithSecondaryIndexes.java</testExclude>
                     </testExcludes>
                 </configuration>
             </plugin>

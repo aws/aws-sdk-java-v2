@@ -2,7 +2,7 @@ package software.amazon.awssdk.mapper.dynamodb.mapper;
 
 import static org.junit.Assert.*;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -11,7 +11,6 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperIntegrationTestBase;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
@@ -19,9 +18,14 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoa
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBScanExpression;
 import software.amazon.awssdk.mapper.dynamodb.PaginatedList;
-import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
-import com.amazonaws.services.dynamodbv2.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.ComparisonOperator;
+import software.amazon.awssdk.services.dynamodb.model.Condition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 
 /**
@@ -34,14 +38,21 @@ public class MapperLoadingStrategyConfigTest extends LocalDynamoDBTestBase {
     private static int PARALLEL_SEGMENT = 3;
     private static int OBJECTS_NUM = 50;
     private static int RESULTS_NUM = OBJECTS_NUM - 2; // condition: rangeKey > 1.0
-    private static AmazonDynamoDB dynamo;
+    private static DynamoDbClient dynamo;
 
     @BeforeClass
     public static void setUp() throws Exception {
         dynamo = client();
-        DynamoDBMapper mapper = new DynamoDBMapper(dynamo);
-        dynamo.createTable(mapper.generateCreateTableRequest(RangeKeyClass.class)
-                                 .withProvisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT));
+        dynamo.createTable(CreateTableRequest.builder()
+                                             .tableName("aws-java-sdk-range-test")
+                                             .keySchema(KeySchemaElement.builder().attributeName("key").keyType(KeyType.HASH).build(),
+                                                        KeySchemaElement.builder().attributeName("rangeKey").keyType(KeyType.RANGE).build())
+                                             .attributeDefinitions(AttributeDefinition.builder().attributeName("key")
+                                                                                      .attributeType(ScalarAttributeType.N).build(),
+                                                                   AttributeDefinition.builder().attributeName("rangeKey")
+                                                                                      .attributeType(ScalarAttributeType.N).build())
+                                             .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                             .build());
         createTestData();
     }
 
@@ -138,8 +149,8 @@ public class MapperLoadingStrategyConfigTest extends LocalDynamoDBTestBase {
         keyObject.setKey(hashKey);
         DynamoDBQueryExpression<RangeKeyClass> queryExpression = new DynamoDBQueryExpression<RangeKeyClass>().withHashKeyValues(keyObject);
         queryExpression.withRangeKeyCondition("rangeKey",
-                new Condition().withComparisonOperator(ComparisonOperator.GT.toString()).withAttributeValueList(
-                        new AttributeValue().withN("1.0"))).withLimit(PAGE_SIZE);
+                Condition.builder().comparisonOperator(ComparisonOperator.GT).attributeValueList(
+                        AttributeValue.builder().n("1.0").build()).build()).withLimit(PAGE_SIZE);
         
         return mapper.query(RangeKeyClass.class, queryExpression, new DynamoDBMapperConfig(paginationLoadingStrategy));
     }
@@ -150,12 +161,12 @@ public class MapperLoadingStrategyConfigTest extends LocalDynamoDBTestBase {
         
         // Construct the scan expression with the exact same conditions
         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-        scanExpression.addFilterCondition("key", 
-                new Condition().withComparisonOperator(ComparisonOperator.EQ).withAttributeValueList(
-                        new AttributeValue().withN(Long.toString(hashKey))));
-        scanExpression.addFilterCondition("rangeKey", 
-                new Condition().withComparisonOperator(ComparisonOperator.GT).withAttributeValueList(
-                        new AttributeValue().withN("1.0")));
+        scanExpression.addFilterCondition("key",
+                Condition.builder().comparisonOperator(ComparisonOperator.EQ).attributeValueList(
+                        AttributeValue.builder().n(Long.toString(hashKey)).build()).build());
+        scanExpression.addFilterCondition("rangeKey",
+                Condition.builder().comparisonOperator(ComparisonOperator.GT).attributeValueList(
+                        AttributeValue.builder().n("1.0").build()).build());
         scanExpression.setLimit(PAGE_SIZE);
         
         return mapper.scan(RangeKeyClass.class, scanExpression, new DynamoDBMapperConfig(paginationLoadingStrategy));
@@ -167,12 +178,12 @@ public class MapperLoadingStrategyConfigTest extends LocalDynamoDBTestBase {
         
         // Construct the scan expression with the exact same conditions
         DynamoDBScanExpression scanExpression = new DynamoDBScanExpression();
-        scanExpression.addFilterCondition("key", 
-                new Condition().withComparisonOperator(ComparisonOperator.EQ).withAttributeValueList(
-                        new AttributeValue().withN(Long.toString(hashKey))));
-        scanExpression.addFilterCondition("rangeKey", 
-                new Condition().withComparisonOperator(ComparisonOperator.GT).withAttributeValueList(
-                        new AttributeValue().withN("1.0")));
+        scanExpression.addFilterCondition("key",
+                Condition.builder().comparisonOperator(ComparisonOperator.EQ).attributeValueList(
+                        AttributeValue.builder().n(Long.toString(hashKey)).build()).build());
+        scanExpression.addFilterCondition("rangeKey",
+                Condition.builder().comparisonOperator(ComparisonOperator.GT).attributeValueList(
+                        AttributeValue.builder().n("1.0").build()).build());
         scanExpression.setLimit(PAGE_SIZE);
         
         return mapper.parallelScan(RangeKeyClass.class, scanExpression, PARALLEL_SEGMENT, new DynamoDBMapperConfig(paginationLoadingStrategy));

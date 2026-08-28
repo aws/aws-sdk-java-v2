@@ -25,6 +25,10 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
 import software.amazon.awssdk.mapper.dynamodb.mapper.NumberSetAttributeClass;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -58,14 +62,36 @@ public class BatchLoadTest extends LocalDynamoDBTestBase {
         dynamo = client();
         mapper = new DynamoDBMapper(dynamo, new DynamoDBMapperConfig(SaveBehavior.UPDATE,
                                                                      ConsistentReads.CONSISTENT, null));
-        CreateTableRequest createTableRequest = mapper.generateCreateTableRequest(NumberSetAttributeClass.class)
-                                                      .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build();
-        CreateTableRequest createTableRequest2 = mapper.generateCreateTableRequest(RangeKeyClass.class)
-                                                      .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build();
-        tableName = createTableRequest.tableName();
-        tableName2 = createTableRequest2.tableName();
-        dynamo.createTable(createTableRequest);
-        dynamo.createTable(createTableRequest2);
+        // Table setup is built directly against the v2 client rather than via
+        // mapper.generateCreateTableRequest(), which is part of the deferred table-admin port.
+        // The behavior under test is the data plane (batchSave/batchLoad), not table creation.
+        tableName = "aws-java-sdk-util";
+        tableName2 = "aws-java-sdk-range-test";
+        dynamo.createTable(hashKeyTable(tableName, "key"));
+        dynamo.createTable(hashAndRangeKeyTable(tableName2, "key", "rangeKey"));
+    }
+
+    private static CreateTableRequest hashKeyTable(String tableName, String hashKey) {
+        return CreateTableRequest.builder()
+                                 .tableName(tableName)
+                                 .keySchema(KeySchemaElement.builder().attributeName(hashKey).keyType(KeyType.HASH).build())
+                                 .attributeDefinitions(AttributeDefinition.builder().attributeName(hashKey)
+                                                                          .attributeType(ScalarAttributeType.S).build())
+                                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                 .build();
+    }
+
+    private static CreateTableRequest hashAndRangeKeyTable(String tableName, String hashKey, String rangeKey) {
+        return CreateTableRequest.builder()
+                                 .tableName(tableName)
+                                 .keySchema(KeySchemaElement.builder().attributeName(hashKey).keyType(KeyType.HASH).build(),
+                                            KeySchemaElement.builder().attributeName(rangeKey).keyType(KeyType.RANGE).build())
+                                 .attributeDefinitions(AttributeDefinition.builder().attributeName(hashKey)
+                                                                          .attributeType(ScalarAttributeType.N).build(),
+                                                       AttributeDefinition.builder().attributeName(rangeKey)
+                                                                          .attributeType(ScalarAttributeType.N).build())
+                                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                 .build();
     }
 
     @Test

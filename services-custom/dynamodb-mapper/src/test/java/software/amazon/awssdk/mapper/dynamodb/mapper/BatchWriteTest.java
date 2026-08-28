@@ -22,7 +22,11 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.pojos.BinaryAttributeByteBufferClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import java.math.BigDecimal;
@@ -56,11 +60,31 @@ public class BatchWriteTest extends LocalDynamoDBTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         dynamo = client();
-        DynamoDBMapper mapper = new DynamoDBMapper(dynamo);
-        dynamo.createTable(mapper.generateCreateTableRequest(NumberSetAttributeClass.class)
-                                 .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build());
-        dynamo.createTable(mapper.generateCreateTableRequest(RangeKeyClass.class)
-                                 .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build());
+        dynamo.createTable(hashKeyTable("aws-java-sdk-util", "key"));
+        dynamo.createTable(hashAndRangeKeyTable("aws-java-sdk-range-test", "key", "rangeKey"));
+    }
+
+    private static CreateTableRequest hashKeyTable(String tableName, String hashKey) {
+        return CreateTableRequest.builder()
+                                 .tableName(tableName)
+                                 .keySchema(KeySchemaElement.builder().attributeName(hashKey).keyType(KeyType.HASH).build())
+                                 .attributeDefinitions(AttributeDefinition.builder().attributeName(hashKey)
+                                                                          .attributeType(ScalarAttributeType.S).build())
+                                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                 .build();
+    }
+
+    private static CreateTableRequest hashAndRangeKeyTable(String tableName, String hashKey, String rangeKey) {
+        return CreateTableRequest.builder()
+                                 .tableName(tableName)
+                                 .keySchema(KeySchemaElement.builder().attributeName(hashKey).keyType(KeyType.HASH).build(),
+                                            KeySchemaElement.builder().attributeName(rangeKey).keyType(KeyType.RANGE).build())
+                                 .attributeDefinitions(AttributeDefinition.builder().attributeName(hashKey)
+                                                                          .attributeType(ScalarAttributeType.N).build(),
+                                                       AttributeDefinition.builder().attributeName(rangeKey)
+                                                                          .attributeType(ScalarAttributeType.N).build())
+                                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                 .build();
     }
 
     @Test
