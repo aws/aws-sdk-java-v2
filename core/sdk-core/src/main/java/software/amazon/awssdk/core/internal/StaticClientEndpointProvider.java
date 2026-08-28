@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.internal;
 import java.net.URI;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 
@@ -27,13 +28,13 @@ import software.amazon.awssdk.utils.Validate;
  * @see ClientEndpointProvider#create(URI, boolean)
  */
 @SdkInternalApi
-public final class StaticClientEndpointProvider implements ClientEndpointProvider {
+public class StaticClientEndpointProvider implements ClientEndpointProvider {
     private final URI clientEndpoint;
     private final boolean isEndpointOverridden;
 
     /**
      * A sanitized form of {@link #clientEndpoint} with the query and user-info components stripped, formatted as a
-     * string.  This is the value that endpoint rules receive via the {@code SDK::Endpoint} built-in.  Computed once at
+     * string. This is the value that endpoint rules receive via the {@code SDK::Endpoint} built-in. Computed once at
      * construction so that every call to {@code endpointBuiltIn()} returns the same {@link String} reference.
      * <p>
      * {@code null} when {@link #isEndpointOverridden} is {@code false}.
@@ -44,22 +45,35 @@ public final class StaticClientEndpointProvider implements ClientEndpointProvide
         this.clientEndpoint = Validate.paramNotNull(clientEndpoint, "clientEndpoint");
         this.isEndpointOverridden = isEndpointOverridden;
         Validate.paramNotNull(clientEndpoint.getScheme(), "The URI scheme of endpointOverride");
-        // Calls the interface's implementation rather than repeating the transformation here, so the cached value cannot
-        // drift from what a provider that does not override the method produces. Safe from a constructor: this is a
-        // non-virtual call, the two accessors it reads are assigned above, and the class is final so neither can be
-        // overridden to observe partial construction.
-        this.sanitizedEndpointString = ClientEndpointProvider.super.sanitizedEndpointString();
+        this.sanitizedEndpointString = isEndpointOverridden ? sanitize(clientEndpoint) : null;
     }
 
     /**
      * {@inheritDoc}
      * <p>
-     * Returns the same {@link String} reference on every call, because the value is computed once at construction.
-     * Avoids additional allocations and expensive URI creation per request.
+     * Returns the same {@link String} reference on every call, because the value is computed once at construction. That
+     * removes a URI construction and its string conversion from every request that resolves an endpoint against an
+     * overridden client endpoint.
+     * <p>
+     * {@code final} so that the cached value cannot be shadowed by a subclass whose overridden accessors the constructor
+     * did not see.
      */
     @Override
-    public String sanitizedEndpointString() {
+    public final String sanitizedEndpointString() {
         return sanitizedEndpointString;
+    }
+
+    /**
+     * Repeats {@link ClientEndpointProvider#sanitizedEndpointString()}'s transformation over the constructor's argument,
+     * rather than calling that default from the constructor, so no virtual method runs before this class is fully
+     * initialised. The two must agree, and
+     * {@code ClientEndpointProviderTest.sanitizedEndpointString_cachedFormMatchesRecomputedForm} is what holds them
+     * together.
+     */
+    private static String sanitize(URI endpoint) {
+        return FunctionalUtils.invokeSafely(
+            () -> new URI(endpoint.getScheme(), null, endpoint.getHost(), endpoint.getPort(),
+                          endpoint.getPath(), null, endpoint.getFragment()).toString());
     }
 
     @Override

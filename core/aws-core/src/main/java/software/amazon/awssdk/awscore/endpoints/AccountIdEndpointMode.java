@@ -58,7 +58,9 @@ public enum AccountIdEndpointMode {
         }
 
         for (AccountIdEndpointMode value : values()) {
-            if (value.name().equalsIgnoreCase(s)) {
+            // Matched against endpointModeValue rather than name() so that the wire form has a single definition.
+            // Behaviour is unchanged: the two differ only in case, and the comparison is case-insensitive.
+            if (value.endpointModeValue.equalsIgnoreCase(s)) {
                 return value;
             }
         }
@@ -70,8 +72,9 @@ public enum AccountIdEndpointMode {
      * Returns the canonical lowercase string for this mode, as the endpoint rules engine expects to receive it in the
      * {@code AWS::Auth::AccountIdEndpointMode} built-in.
      * <p>
-     * Unlike {@code name().toLowerCase()}, this returns the same interned {@link String} reference on every call rather
-     * than a fresh string per request removing an allocation from the request path.
+     * Unlike {@code name().toLowerCase()}, this returns the same interned {@link String} reference on every call instead
+     * of a fresh string per request, which removes an allocation from the request path. It is also independent of the
+     * default locale, which {@code name().toLowerCase()} is not.
      */
     public String endpointModeValue() {
         return endpointModeValue;

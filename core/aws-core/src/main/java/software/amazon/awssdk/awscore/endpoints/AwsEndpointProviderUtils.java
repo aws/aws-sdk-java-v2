@@ -52,7 +52,7 @@ public final class AwsEndpointProviderUtils {
     }
 
     /**
-     * Returns the endpoint set on the client, sanitized for the rules engine.  The rules engine (e.g.
+     * Returns the endpoint set on the client, sanitized for the rules engine. The rules engine (e.g.
      * {@code ParseURL}) rejects URIs with query parameters, so we strip the query and user-info components.
      * <p>
      * Delegates to {@link ClientEndpointProvider#sanitizedEndpointString()}, which returns a cached reference on

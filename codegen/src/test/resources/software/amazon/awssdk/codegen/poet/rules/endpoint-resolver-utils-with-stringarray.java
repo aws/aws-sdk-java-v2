@@ -29,7 +29,7 @@ import software.amazon.awssdk.utils.CollectionUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class SampleSvcEndpointResolverUtils {
-  private static final List<String> STATIC_LIST_EMPTY_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.unmodifiableList(Arrays.asList());
+  private static final List<String> STATIC_LIST_EMPTY_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.emptyList();
 
   private static final List<String> STATIC_LIST_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.unmodifiableList(Arrays.asList("staticValue1"));
 

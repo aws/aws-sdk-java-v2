@@ -192,8 +192,9 @@ public final class EndpointParamsKnowledgeIndex {
                              BusinessMetricsUtils.class, SdkInternalExecutionAttribute.class);
 
         // Use endpointModeValue() rather than name().toLowerCase() so that the returned String is an interned
-        // compile-time literal.  This makes the reference stable across calls and reducing allocations 
-        // and expensive URI.create calls.
+        // compile-time literal. That keeps the reference stable across calls and removes a per-request allocation.
+        // It also avoids name().toLowerCase()'s dependence on the default locale, which mangles the value under a
+        // Turkish locale.
         builder.addStatement("return mode.endpointModeValue()");
 
         return builder.build();

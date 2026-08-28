@@ -53,13 +53,24 @@ import software.amazon.awssdk.services.bddendpoints.endpoints.BddEndpointsEndpoi
  *       cache was consulted.</li>
  * </ol>
  *
- * <p>The model declares parameters its BDD graph never reads, so that every classification tier is represented. Those
- * parameters cannot change the resolved URL, which makes them the more interesting cases to test: a stale hit is
+ * <p>The model over-declares parameters on purpose, to cover every {@code BddParameterReferences.Usage} value and every
+ * parameter kind: boolean, string, {@code stringArray}, built-in, client context, static context and request context.
+ * Several of them cannot change the resolved URL, which makes them the more interesting cases to test: a stale hit is
  * detectable only by instance identity, not by comparing hosts.
+ *
+ * <p>The trailing nodes of {@code bddendpoints/endpoint-bdd-1.json} were appended by hand with {@code high == low}, so
+ * that each parameter is read by a condition without altering any resolved endpoint. A future peephole pass that
+ * collapses {@code high == low} nodes would silently make those parameters unreferenced and void the coverage above.
  */
 class BddEndpointProviderCacheTest {
     private static final Region REGION = Region.US_EAST_1;
     private static final Region OTHER_REGION = Region.US_WEST_2;
+
+    /**
+     * Mirrors {@code BddEndpointProviderSpec.MAX_LIST_COMPARISON_SIZE}. Not importable from here, so the cap-related
+     * tests below derive their sizes from this one constant.
+     */
+    private static final int LIST_SIZE_CAP = 4;
 
     /**
      * Returns params that resolve successfully, with every optional parameter left unset.
@@ -90,6 +101,10 @@ class BddEndpointProviderCacheTest {
      *
      * <p>Instance identity rather than URL comparison, so this works for the parameters that do not influence the
      * resolved URL. Those are exactly the parameters where a missing key check would go unnoticed.
+     *
+     * <p>Identity is a valid miss signal only while every resolution constructs a new {@link Endpoint}. If codegen ever
+     * hoists constant endpoint results to {@code static final}, this helper and {@link #cacheIsPerProviderInstance()}
+     * start failing for that reason rather than because the cache regressed.
      */
     private static void assertInvalidates(BddEndpointsEndpointParams first, BddEndpointsEndpointParams second) {
         BddEndpointsEndpointProvider provider = provider();
@@ -157,55 +172,55 @@ class BddEndpointProviderCacheTest {
     // ---- no stale hit, one test per parameter ----
 
     @Test
-    void booleanTier_useFipsChange_invalidates() {
+    void useFipsChange_invalidates() {
         assertInvalidates(params(b -> {
         }), params(b -> b.useFips(true)));
     }
 
     @Test
-    void booleanTier_useDualStackChange_invalidates() {
+    void useDualStackChange_invalidates() {
         assertInvalidates(params(b -> {
         }), params(b -> b.useDualStack(true)));
     }
 
     @Test
-    void clientStaticRefTier_regionChange_invalidates() {
+    void regionChange_invalidates() {
         assertInvalidates(params(b -> {
         }), params(b -> b.region(OTHER_REGION)));
     }
 
     @Test
-    void clientStaticRefTier_clientStringParamChange_invalidates() {
+    void clientStringParamChange_invalidates() {
         assertInvalidates(params(b -> b.clientStringParam("first")),
                           params(b -> b.clientStringParam("second")));
     }
 
     @Test
-    void operationStaticTier_staticStringParamChange_invalidates() {
+    void staticStringParamChange_invalidates() {
         assertInvalidates(params(b -> b.staticStringParam("first")),
                           params(b -> b.staticStringParam("second")));
     }
 
     @Test
-    void semiStableTier_endpointOverrideChange_invalidates() {
+    void endpointOverrideChange_invalidates() {
         assertInvalidates(params(b -> b.endpoint("https://first.example.com")),
                           params(b -> b.endpoint("https://second.example.com")));
     }
 
     @Test
-    void semiStableTier_accountIdEndpointModeChange_invalidates() {
+    void accountIdEndpointModeChange_invalidates() {
         assertInvalidates(params(b -> b.accountIdEndpointMode("preferred")),
                           params(b -> b.accountIdEndpointMode("disabled")));
     }
 
     @Test
-    void identityDerivedTier_accountIdChange_invalidates() {
+    void accountIdChange_invalidates() {
         assertInvalidates(params(b -> b.accountId("111111111111")),
                           params(b -> b.accountId("222222222222")));
     }
 
     @Test
-    void requestDynamicTier_requestStringParamChange_invalidates() {
+    void requestStringParamChange_invalidates() {
         assertInvalidates(params(b -> b.requestStringParam("first")),
                           params(b -> b.requestStringParam("second")));
     }
@@ -251,7 +266,7 @@ class BddEndpointProviderCacheTest {
     @Test
     void firstElementList_lengthChangeKeepingFirstElement_isAHit() {
         assertHits(params(b -> b.resourceArnList(Arrays.asList("a", "b", "c"))),
-                   params(b -> b.resourceArnList(Collections.singletonList("a")))); 
+                   params(b -> b.resourceArnList(Collections.singletonList("a"))));
     }
 
     @Test
@@ -343,12 +358,12 @@ class BddEndpointProviderCacheTest {
     // ---- equals fallback ----
 
     /**
-     * The tiers with an {@code equals} fallback must hit on an equal value arriving as a fresh reference. Without the
-     * fallback, a request-derived string would miss on every call and the cache would never pay off for the services
-     * that need it most.
+     * A parameter compared with {@code Objects.equals} must hit on an equal value arriving as a fresh reference. Without
+     * the {@code equals} fallback, a request-derived string would miss on every call and the cache would never pay off
+     * for the services that need it most.
      */
     @Test
-    void equalsFallbackTiers_equalValueDifferentReference_hits() {
+    void equalValueDifferentReference_hits() {
         String value = "shared-value";
         String copy = new String(value);
         assertThat(value).isNotSameAs(copy);
@@ -382,7 +397,8 @@ class BddEndpointProviderCacheTest {
      */
     @Test
     void requestList_atSizeCap_stillHits() {
-        assertHits(params(b -> b.wholeArnList(listOfSize(8))), params(b -> b.wholeArnList(listOfSize(8))));
+        assertHits(params(b -> b.wholeArnList(listOfSize(LIST_SIZE_CAP))),
+                   params(b -> b.wholeArnList(listOfSize(LIST_SIZE_CAP))));
     }
 
     /**
@@ -392,8 +408,8 @@ class BddEndpointProviderCacheTest {
      */
     @Test
     void requestList_pastSizeCap_alwaysMisses() {
-        assertInvalidates(params(b -> b.wholeArnList(listOfSize(9))),
-                          params(b -> b.wholeArnList(listOfSize(9))));
+        assertInvalidates(params(b -> b.wholeArnList(listOfSize(LIST_SIZE_CAP + 1))),
+                          params(b -> b.wholeArnList(listOfSize(LIST_SIZE_CAP + 1))));
     }
 
     /**

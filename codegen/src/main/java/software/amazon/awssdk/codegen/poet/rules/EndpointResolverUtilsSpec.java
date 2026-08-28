@@ -396,10 +396,17 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
                 if (value.asToken() != JsonToken.START_ARRAY) {
                     return;
                 }
-                CodeBlock arrayCode = endpointRulesSpecUtils.treeNodeToLiteral((JrsArray) value);
+                JrsArray arrayValue = (JrsArray) value;
+                CodeBlock initializer;
+                if (arrayValue.size() == 0) {
+                    initializer = CodeBlock.of("$T.emptyList()", Collections.class);
+                } else {
+                    initializer = CodeBlock.of("$T.unmodifiableList($L)", Collections.class,
+                                               endpointRulesSpecUtils.treeNodeToLiteral(arrayValue));
+                }
                 FieldSpec field = FieldSpec.builder(listOfString, staticListFieldName(opModel, paramName),
                                                     Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
-                                           .initializer("$T.unmodifiableList($L)", Collections.class, arrayCode)
+                                           .initializer(initializer)
                                            .build();
                 classBuilder.addField(field);
             });

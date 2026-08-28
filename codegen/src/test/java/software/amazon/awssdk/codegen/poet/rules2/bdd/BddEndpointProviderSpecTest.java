@@ -29,6 +29,13 @@ import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class BddEndpointProviderSpecTest {
 
+    /**
+     * The trailing nodes of {@code endpoint-bdd-default-regional.json} were appended by hand with {@code high == low},
+     * so that each parameter is read by a condition without altering any resolved endpoint. That is the one shape a
+     * reduced BDD can never contain, which is why it shows up in the golden file as degenerate {@code nodeP} methods
+     * whose branches are identical. A future peephole pass that collapses {@code high == low} nodes would silently make
+     * those parameters unreferenced and void the cache-key coverage the tests below rely on.
+     */
     @Test
     void endpointProviderClass_simpleBdd_generatesExpectedCode() {
         BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
@@ -232,7 +239,7 @@ public class BddEndpointProviderSpecTest {
             ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
 
         assertThat(generated).contains("cacheListsMatch(a.customEndpointArray(), b.customEndpointArray())");
-        assertThat(generated).contains("if (size > 8) return false");
+        assertThat(generated).contains("if (size > 4) return false");
     }
 
     /**

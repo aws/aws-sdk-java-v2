@@ -63,7 +63,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     int size = a.size();
     if (size != b.size()) return false;
     // Bounded so that a long list cannot make the cache check cost more than resolving.
-    if (size > 8) return false;
+    if (size > 4) return false;
     for (int i = 0; i < size; i++) {
       if (!Objects.equals(a.get(i), b.get(i))) return false;
     }

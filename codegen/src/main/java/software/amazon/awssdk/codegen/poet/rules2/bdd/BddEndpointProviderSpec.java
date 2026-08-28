@@ -83,10 +83,18 @@ public class BddEndpointProviderSpec implements ClassSpec {
     private static final int NO_MATCH_RESULT = 100_000_000;
 
     /**
-     * A {@code stringArray} cache key parameter longer than this reports a miss without comparing elements, so that the
-     * cost of a cache check stays bounded. Eight covers the list-valued endpoint parameters shipped today.
+     * A {@code stringArray} cache key parameter longer than this reports a miss without comparing elements, so the cost
+     * of a cache check cannot grow with the size of the caller's list.
+     *
+     * <p>The cap is a cost bound, not a coverage target. Above it the provider resolves, which is what it would have
+     * done anyway, so the value trades hit rate against a bounded worst case and can never affect correctness. Four is
+     * arbitrary but deliberately conservative.
+     *
+     * <p>No shipped service needs this path today. DynamoDB's {@code ResourceArnList} is the only {@code stringArray}
+     * any shipped rule set declares, and it is read only at index 0, so it is compared by
+     * {@link #cacheFirstElementsMatchMethod()} with no cap at all.
      */
-    private static final int MAX_LIST_COMPARISON_SIZE = 8;
+    private static final int MAX_LIST_COMPARISON_SIZE = 4;
 
     private final IntermediateModel intermediateModel;
     private final EndpointBddModel endpointBddModel;
@@ -159,6 +167,18 @@ public class BddEndpointProviderSpec implements ClassSpec {
 
     /**
      * Generates the immutable {@code CacheEntry} holding one {@code (params, endpoint)} snapshot.
+     *
+     * <p>The entry keeps the caller's params object rather than copying it, so it relies on that object and any
+     * collections it holds being effectively immutable after {@code build()}. Generated params do not copy list values
+     * ({@code this.resourceArnList = builder.resourceArnList;}), so the assumption is load-bearing rather than
+     * enforced.
+     *
+     * <p>It holds on every SDK path, because request objects are immutable and the params for a request are built and
+     * discarded within the call. It is an assumption only for a caller that invokes
+     * {@code EndpointProvider#resolveEndpoint} directly, retains a list it passed in, and mutates it afterwards: the
+     * mutation reaches the stored key, and a later call carrying the post-mutation contents can then hit an entry that
+     * was resolved for the pre-mutation contents. Snapshotting list parameters here would close that off, at the cost
+     * of an allocation on every miss.
      */
     private TypeSpec cacheEntryClass() {
         ClassName paramsClass = endpointRulesSpecUtils.parametersClassName();
@@ -281,9 +301,6 @@ public class BddEndpointProviderSpec implements ClassSpec {
         if (clientContextParams == null) {
             return false;
         }
-        if (clientContextParams.containsKey(paramName)) {
-            return true;
-        }
         // Endpoint parameter names are unique case-insensitively, so a case-insensitive match is the same parameter.
         for (String key : clientContextParams.keySet()) {
             if (key.equalsIgnoreCase(paramName)) {
@@ -298,9 +315,9 @@ public class BddEndpointProviderSpec implements ClassSpec {
      * parameter.
      *
      * <p>{@code Objects.equals} would be correct here, but {@code List.equals} is unbounded: a request carrying a large
-     * list would walk every element on every cache check whichi can be longer than resolution itself.  
-     * The consequence is that a service handling longer lists simply misses, and pays resolution,
-     *  which is what it would have paid anyway.
+     * list would walk every element on every cache check, which can cost more than the resolution the cache exists to
+     * avoid. The comparison is therefore capped at {@value #MAX_LIST_COMPARISON_SIZE} elements. A service handling
+     * longer lists simply misses and pays resolution, which is what it would have paid anyway.
      */
     private MethodSpec cacheListsMatchMethod() {
         TypeName listOfString = RuleRuntimeTypeMirror.LIST_OF_STRING.type();
@@ -372,7 +389,11 @@ public class BddEndpointProviderSpec implements ClassSpec {
         return "boolean".equalsIgnoreCase(model.getType());
     }
 
-    private static boolean isListParam(ParameterModel model) {
+    /**
+     * Shared with {@link BddParameterReferences}, which must agree with this class on what a list is: the usage it
+     * derives selects which comparison helper gets emitted for the parameter.
+     */
+    static boolean isListParam(ParameterModel model) {
         return "stringarray".equalsIgnoreCase(model.getType());
     }
 

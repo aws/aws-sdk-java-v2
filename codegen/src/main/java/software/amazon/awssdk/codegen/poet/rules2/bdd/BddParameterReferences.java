@@ -18,7 +18,6 @@ package software.amazon.awssdk.codegen.poet.rules2.bdd;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ConditionModel;
@@ -49,7 +48,7 @@ import software.amazon.awssdk.codegen.poet.rules2.WalkRuleExpressionVisitor;
  *       changes on essentially every object request - so including it means the cache almost never hits.</li>
  *   <li>{@link Usage#FIRST_ELEMENT_ONLY} - a {@code stringArray} whose every use is an index-0 access. Only the first
  *       element can reach the endpoint, so the generated comparison is optimized by comparing only that element instead
- *       of walking the list.
+ *       of walking the list.</li>
  * </ul>
  */
 final class BddParameterReferences {
@@ -106,11 +105,7 @@ final class BddParameterReferences {
         }
         // Only lists benefit, and only lists can be read element-wise. Anything else that somehow reached here is
         // compared in full rather than guessed at.
-        return isList(parameter) ? Usage.FIRST_ELEMENT_ONLY : Usage.FULL;
-    }
-
-    private static boolean isList(ParameterModel parameter) {
-        return "stringarray".equals(parameter.getType().toLowerCase(Locale.ENGLISH));
+        return BddEndpointProviderSpec.isListParam(parameter) ? Usage.FIRST_ELEMENT_ONLY : Usage.FULL;
     }
 
     /**
