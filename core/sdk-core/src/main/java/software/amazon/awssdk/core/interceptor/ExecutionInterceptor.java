@@ -19,6 +19,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import org.reactivestreams.Publisher;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -173,6 +175,10 @@ public interface ExecutionInterceptor {
     /**
      * Modify the {@link SdkHttpFullRequest} before it is sent to the service.
      *
+     * <p><b>Note:</b> The HTTP request URL at this point may not reflect the final resolved endpoint. Endpoint
+     * resolution happens after all interceptors complete. To read the fully resolved endpoint URL, use
+     * {@link #beforeTransmission} instead.
+     *
      * @param context The current state of the execution, including the SDK and current HTTP request.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      * give data to future lifecycle methods.
@@ -183,11 +189,32 @@ public interface ExecutionInterceptor {
         return context.httpRequest();
     }
 
+    @SdkAdvancedApi(
+        cautionWhen = Usage.OVERRIDDEN,
+        guidance = "Replacing the request body from an interceptor is discouraged: the returned RequestBody becomes the "
+              + "content the SDK sends, and the request's Content-Length and content hash or checksum are derived from "
+              + "it, so a body whose content or length does not match what the operation expects corrupts the request "
+              + "or is rejected by the service. Return the body reported by context.requestBody() unless you have a "
+              + "specific reason to replace it.",
+        saferAlternative = "Return context.requestBody() unchanged. If you must supply a different body, build it with "
+              + "the RequestBody factories rather than a hand-written ContentStreamProvider.")
     default Optional<RequestBody> modifyHttpContent(Context.ModifyHttpRequest context,
                                           ExecutionAttributes executionAttributes) {
         return context.requestBody();
     }
 
+    @SdkAdvancedApi(
+        cautionWhen = Usage.OVERRIDDEN,
+        guidance = "Replacing the async request body from an interceptor is discouraged: the returned AsyncRequestBody "
+              + "becomes the content the SDK sends, and the request's Content-Length and content hash or checksum are "
+              + "derived from it, so a body whose content or length does not match what the operation expects corrupts "
+              + "the request or is rejected by the service. It must also comply with the reactive-streams "
+              + "specification; the SDK re-subscribes to it "
+              + "on each retry attempt, so to support retries it must reproduce the full content on every subscribe. "
+              + "Return the body reported by context.asyncRequestBody() unless you have a specific reason to replace "
+              + "it.",
+        saferAlternative = "Return context.asyncRequestBody() unchanged. If you must supply a different body, build it "
+              + "with the AsyncRequestBody factories or an established reactive-streams library.")
     default Optional<AsyncRequestBody> modifyAsyncHttpContent(Context.ModifyHttpRequest context,
                                                     ExecutionAttributes executionAttributes) {
         return context.asyncRequestBody();

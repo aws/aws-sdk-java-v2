@@ -19,6 +19,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.http.ProxyAuthScheme;
+import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
 import software.amazon.awssdk.utils.ProxyEnvironmentSetting;
 import software.amazon.awssdk.utils.ProxySystemSetting;
@@ -34,6 +36,8 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  */
 @SdkPublicApi
 public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfiguration.Builder, ProxyConfiguration> {
+    private static final NettyClientLogger log = NettyClientLogger.getLogger(ProxyConfiguration.class);
+
     private final Boolean useSystemPropertyValues;
     private final Boolean useEnvironmentVariablesValues;
     private final String scheme;
@@ -41,6 +45,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
     private final int port;
     private final String username;
     private final String password;
+    private final ProxyAuthScheme proxyAuthScheme;
     private final Set<String> nonProxyHosts;
 
     private ProxyConfiguration(BuilderImpl builder) {
@@ -56,7 +61,32 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         this.port = resolvePort(builder, proxyConfigProvider);
         this.username = resolveUserName(builder, proxyConfigProvider);
         this.password = resolvePassword(builder, proxyConfigProvider);
+        this.proxyAuthScheme = builder.proxyAuthScheme;
         this.nonProxyHosts = resolveNonProxyHosts(builder, proxyConfigProvider);
+        validateProxyAuthConfig(proxyAuthScheme, username, password);
+        warnOnIgnoredCredentials(builder);
+    }
+
+    private static void validateProxyAuthConfig(ProxyAuthScheme proxyAuthScheme, String username, String password) {
+        if (proxyAuthScheme == ProxyAuthScheme.BASIC
+            && (StringUtils.isEmpty(username) || StringUtils.isEmpty(password))) {
+            throw new IllegalArgumentException("username and password must be configured when using BASIC proxy auth");
+        }
+    }
+
+    /**
+     * NEGOTIATE reads its credentials from the Kerberos ticket cache, so a username and password are dead configuration. Warn
+     * rather than fail, and only when they were set directly on this builder: values resolved from system properties or
+     * environment variables may not be under the caller's control, and warning about those would be noise.
+     */
+    private static void warnOnIgnoredCredentials(BuilderImpl builder) {
+        if (builder.proxyAuthScheme == ProxyAuthScheme.NEGOTIATE
+            && (builder.username != null || builder.password != null)) {
+            log.warn(null, () -> "A proxy username and/or password was configured alongside the "
+                                 + ProxyAuthScheme.NEGOTIATE + " proxy auth scheme, and will be ignored. " +
+                                 ProxyAuthScheme.NEGOTIATE + " authenticates using the Kerberos ticket cache. Configure "
+                                 + ProxyAuthScheme.BASIC + " to authenticate with a username and password instead.");
+        }
     }
 
     private static Set<String> resolveNonProxyHosts(BuilderImpl builder, ProxyConfigProvider proxyConfigProvider) {
@@ -151,6 +181,13 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         return Collections.unmodifiableSet(nonProxyHosts != null ? nonProxyHosts : Collections.emptySet());
     }
 
+    /**
+     * @return The auth scheme to use to authenticate with the proxy.
+     */
+    public ProxyAuthScheme proxyAuthScheme() {
+        return proxyAuthScheme;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -183,6 +220,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             return false;
         }
 
+        if (proxyAuthScheme != null ? !proxyAuthScheme.equals(that.proxyAuthScheme) : that.proxyAuthScheme != null) {
+            return false;
+        }
+
         return nonProxyHosts.equals(that.nonProxyHosts);
 
     }
@@ -195,6 +236,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         result = 31 * result + nonProxyHosts.hashCode();
         result = 31 * result + (username != null ? username.hashCode() : 0);
         result = 31 * result + (password != null ? password.hashCode() : 0);
+        result = 31 * result + (proxyAuthScheme != null ? proxyAuthScheme.hashCode() : 0);
         return result;
     }
 
@@ -235,13 +277,36 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         Builder scheme(String scheme);
 
         /**
-         * Set the set of hosts that should not be proxied. Any request whose host portion matches any of the patterns
-         * given in the set will be sent to the remote host directly instead of through the proxy.
+         * Set the set of hosts that should not be proxied. Any request whose host portion matches one of these entries will be
+         * sent to the remote host directly instead of through the proxy.
+         * <p>Entries supplied here are treated as exact host names (e.g. {@code example.com}) or CIDR ranges for IP addresses
+         * (e.g. {@code 10.0.0.0/8}). Wildcard patterns such as {@code *.example.com} or a bare {@code *} are not supported for
+         * entries supplied here; to use wildcards, configure them through the {@code http.nonProxyHosts} system property or the
+         * {@code NO_PROXY} environment variable instead.
          *
          * @param nonProxyHosts The set of hosts that should not be proxied.
          * @return This object for method chaining.
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
+
+        /**
+         * Configure the auth scheme to use to authenticate with the proxy.
+         * <p>
+         * If unset and {@link #username(String)} and {@link #password(String)} are set, the client will
+         * assume {@link ProxyAuthScheme#BASIC} auth.
+         * <p>
+         * If set to {@link ProxyAuthScheme#BASIC}, {@link #username(String)} and {@link #password(String)} must also be
+         * configured (directly, or resolved from system properties or environment variables), otherwise
+         * {@link Builder#build()} throws {@link IllegalArgumentException}.
+         * <p>
+         * If set to {@link ProxyAuthScheme#NEGOTIATE}, credentials come from the Kerberos ticket cache rather than from this
+         * configuration, and any configured username and password are ignored. See {@link ProxyAuthScheme#NEGOTIATE} for the
+         * environment it requires and for how a missing or expired ticket surfaces.
+         *
+         * @param proxyAuthScheme The auth scheme.
+         * @return This object for method chaining.
+         */
+        Builder proxyAuthScheme(ProxyAuthScheme proxyAuthScheme);
 
         /**
          * Set the username used to authenticate with the proxy username.
@@ -265,6 +330,11 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * options are not provided during building the {@link ProxyConfiguration} object. To disable this behaviour, set this
          * value to false.It is important to note that when this property is set to "true," all proxy settings will exclusively
          * be obtained from System Property Values, and no partial settings will be obtained from Environment Variable Values.
+         * <p>Pipe-separated host names in the {@code http.nonProxyHosts} system property indicate multiple hosts to exclude
+         * from proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com|b.com"} and
+         * {@code "a.com | b.com"} are accepted. Each entry may be an exact host name (e.g. {@code example.com}), a
+         * leading-wildcard suffix (e.g. {@code *.example.com}, which matches {@code example.com} and its subdomains),
+         * a single {@code *} (which matches all hosts), or a CIDR range for IP addresses (e.g. {@code 10.0.0.0/8}).
          *
          * @param useSystemPropertyValues The option whether to use system property values
          * @return This object for method chaining.
@@ -280,7 +350,10 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * proxy settings will exclusively originate from Environment Variable Values, and no partial settings will be obtained
          * from System Property Values.
          * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
-         * proxy settings.
+         * proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com,b.com"} and
+         * {@code "a.com, b.com"} are accepted. Each entry may be an exact host name (e.g. {@code example.com}), a
+         * leading-wildcard suffix (e.g. {@code *.example.com}, which matches {@code example.com} and its subdomains),
+         * a single {@code *} (which matches all hosts), or a CIDR range for IP addresses (e.g. {@code 10.0.0.0/8}).
          *
          * @param useEnvironmentVariablesValues The option whether to use environment variable values
          * @return This object for method chaining.
@@ -293,6 +366,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
         private String scheme = "http";
         private String host;
         private int port = 0;
+        private ProxyAuthScheme proxyAuthScheme;
         private String username;
         private String password;
         private Set<String> nonProxyHosts;
@@ -310,6 +384,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             this.port = proxyConfiguration.port;
             this.nonProxyHosts = proxyConfiguration.nonProxyHosts != null ?
                                  new HashSet<>(proxyConfiguration.nonProxyHosts) : null;
+            this.proxyAuthScheme = proxyConfiguration.proxyAuthScheme;
             this.username = proxyConfiguration.username;
             this.password = proxyConfiguration.password;
         }
@@ -339,6 +414,12 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
             } else {
                 this.nonProxyHosts = Collections.emptySet();
             }
+            return this;
+        }
+
+        @Override
+        public Builder proxyAuthScheme(ProxyAuthScheme proxyAuthScheme) {
+            this.proxyAuthScheme = proxyAuthScheme;
             return this;
         }
 

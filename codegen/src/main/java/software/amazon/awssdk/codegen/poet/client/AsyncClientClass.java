@@ -25,6 +25,7 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.resolveMetricPublishersMethod;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.updateSdkClientConfigurationMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
@@ -41,7 +42,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -75,7 +75,6 @@ import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -119,24 +118,24 @@ public final class AsyncClientClass extends AsyncClientInterface {
     }
 
     @Override
-    protected TypeSpec.Builder createTypeSpec() {
+    protected Builder createTypeSpec() {
         return PoetUtils.createClassBuilder(className);
     }
 
     @Override
-    protected void addInterfaceClass(TypeSpec.Builder type) {
+    protected void addInterfaceClass(Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
         type.addSuperinterface(interfaceClass)
             .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()", interfaceClass);
     }
 
     @Override
-    protected void addAnnotations(TypeSpec.Builder type) {
+    protected void addAnnotations(Builder type) {
         type.addAnnotation(SdkInternalApi.class);
     }
 
     @Override
-    protected void addModifiers(TypeSpec.Builder type) {
+    protected void addModifiers(Builder type) {
         type.addModifiers(FINAL);
     }
 
@@ -152,6 +151,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
 
+        protocolSpec.errorResponseMapperField().ifPresent(type::addField);
+
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
             type.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", PRIVATE, FINAL);
@@ -163,6 +164,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+
+        ClientClassUtils.authSchemeCacheField(authSchemeSpecUtils).ifPresent(type::addField);
     }
 
     @Override
@@ -172,6 +175,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
             .addMethod(resolveMetricPublishersMethod())
+            .addMethod(ClientClassUtils.publishMetricsMethod())
+            .addMethod(ClientClassUtils.publishMetricsWhenCompleteMethod())
             .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
             .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
@@ -446,7 +451,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        builder.addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+        builder.addStatement("publishMetrics(metricPublishers, apiCallMetricCollector)")
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 
@@ -565,41 +570,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                                   .build();
         
         type.addMethod(presignedUrlExtension);
-    }
-
-    private MethodSpec resolveMetricPublishersMethod() {
-        String clientConfigName = "clientConfiguration";
-        String requestOverrideConfigName = "requestOverrideConfiguration";
-
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("resolveMetricPublishers")
-                .addModifiers(PRIVATE, STATIC)
-                .returns(ParameterizedTypeName.get(List.class, MetricPublisher.class))
-                .addParameter(SdkClientConfiguration.class, clientConfigName)
-                .addParameter(RequestOverrideConfiguration.class, requestOverrideConfigName);
-
-        String publishersName = "publishers";
-
-        methodBuilder.addStatement("$T $N = null", ParameterizedTypeName.get(List.class, MetricPublisher.class), publishersName);
-
-        methodBuilder.beginControlFlow("if ($N != null)", requestOverrideConfigName)
-                .addStatement("$N = $N.metricPublishers()", publishersName, requestOverrideConfigName)
-                .endControlFlow();
-
-        methodBuilder.beginControlFlow("if ($1N == null || $1N.isEmpty())", publishersName)
-                .addStatement("$N = $N.option($T.$N)",
-                              publishersName,
-                              clientConfigName,
-                              SdkClientOption.class,
-                              "METRIC_PUBLISHERS")
-                .endControlFlow();
-
-        methodBuilder.beginControlFlow("if ($1N == null)", publishersName)
-                .addStatement("$N = $T.emptyList()", publishersName, Collections.class)
-                .endControlFlow();
-
-        methodBuilder.addStatement("return $N", publishersName);
-
-        return methodBuilder.build();
     }
 
     private void addScheduledExecutorIfNeeded(Builder classBuilder) {

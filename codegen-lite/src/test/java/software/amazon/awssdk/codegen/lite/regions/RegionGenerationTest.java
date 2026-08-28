@@ -17,8 +17,14 @@ package software.amazon.awssdk.codegen.lite.regions;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static software.amazon.awssdk.codegen.lite.PoetMatchers.generatesTo;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.lite.regions.model.Partitions;
@@ -96,9 +102,10 @@ public class RegionGenerationTest {
 
     @Test
     public void serviceMetadataProviderClass() {
-        ServiceMetadataProviderGenerator serviceMetadataProviderGenerator = new ServiceMetadataProviderGenerator(partitions,
-                                                                                                                 SERVICE_METADATA_BASE,
-                                                                                                                 REGION_BASE);
+        Set<String> allowedServices = loadTestAllowlist();
+        ServiceMetadataProviderGenerator serviceMetadataProviderGenerator = new ServiceMetadataProviderGenerator(SERVICE_METADATA_BASE,
+                                                                                                                 REGION_BASE,
+                                                                                                                 allowedServices);
 
         assertThat(serviceMetadataProviderGenerator, generatesTo("service-metadata-provider.java"));
     }
@@ -125,5 +132,18 @@ public class RegionGenerationTest {
             new PartitionMetadataProviderGenerator(partitionsRegions, PARTITION_METADATA_BASE, REGION_BASE);
 
         assertThat(partitionMetadataProviderGenerator, generatesTo("partition-metadata-provider.java"));
+    }
+
+    private Set<String> loadTestAllowlist() {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(
+            Objects.requireNonNull(getClass().getResourceAsStream("/software/amazon/awssdk/codegen/lite/regions/test-service-metadata-allowlist.txt")),
+                StandardCharsets.UTF_8))) {
+            return reader.lines()
+                         .map(String::trim)
+                         .filter(line -> !line.isEmpty() && !line.startsWith("#"))
+                         .collect(Collectors.toSet());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load test allowlist", e);
+        }
     }
 }

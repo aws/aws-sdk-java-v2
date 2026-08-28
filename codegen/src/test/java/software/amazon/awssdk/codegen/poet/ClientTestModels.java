@@ -248,6 +248,32 @@ public class ClientTestModels {
         return new IntermediateModelBuilder(models).build();
     }
 
+    /**
+     * Returns a model where the root endpoint rule delegates to child rules without directly using the region parameter.
+     * This exercises the scenario where ComputeScopeTree does not include region in the root method's signature.
+     */
+    public static IntermediateModel queryServiceModelsWithDelegatingRootRule() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query-delegating-root/service-2.json").getFile());
+        File customizationModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query-delegating-root/customization.config").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query-delegating-root/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query-delegating-root/endpoint-rule-set.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query-delegating-root/endpoint-tests.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .waitersModel(getWaiters(waitersModel))
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
+    }
+
     public static IntermediateModel queryServiceModelsEndpointAuthParamsWithAllowList() {
         File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
         File customizationModel =
@@ -620,6 +646,27 @@ public class ClientTestModels {
 
     private static ServiceModel getServiceModel(File file) {
         return ModelLoaderUtils.loadModel(ServiceModel.class, file);
+    }
+
+    public static IntermediateModel queryServiceModelsNoRegionEndpointRules() {
+        File serviceModel = new File(ClientTestModels.class.getResource("client/c2j/query/service-2.json").getFile());
+        File customizationModel = new File(ClientTestModels.class.getResource("client/c2j/query/customization.config").getFile());
+        File waitersModel = new File(ClientTestModels.class.getResource("client/c2j/query/waiters-2.json").getFile());
+        File endpointRuleSetModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-rule-set-no-region.json").getFile());
+        File endpointTestsModel =
+            new File(ClientTestModels.class.getResource("client/c2j/query/endpoint-tests-no-region.json").getFile());
+
+        C2jModels models = C2jModels
+            .builder()
+            .serviceModel(getServiceModel(serviceModel))
+            .customizationConfig(getCustomizationConfig(customizationModel))
+            .waitersModel(getWaiters(waitersModel))
+            .endpointRuleSetModel(getEndpointRuleSet(endpointRuleSetModel))
+            .endpointTestSuiteModel(getEndpointTestSuite(endpointTestsModel))
+            .build();
+
+        return new IntermediateModelBuilder(models).build();
     }
 
     private static CustomizationConfig getCustomizationConfig(File file) {

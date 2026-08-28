@@ -2154,6 +2154,23 @@
       ],
       "documentation":"<p>Retrieves the security configuration for a specified catalog.</p>"
     },
+    "GetDataCatalogExportConfiguration":{
+      "name":"GetDataCatalogExportConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetDataCatalogExportConfigurationInput"},
+      "output":{"shape":"GetDataCatalogExportConfigurationOutput"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Retrieves the current export configuration for the Glue Data Catalog. The export configuration controls whether catalog metadata is exported to S3 Tables.</p>",
+      "readonly":true
+    },
     "GetDataQualityModel":{
       "name":"GetDataQualityModel",
       "http":{
@@ -3790,6 +3807,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"InternalServiceException"},
         {"shape":"InvalidInputException"},
+        {"shape":"EntityNotFoundException"},
         {"shape":"ConcurrentModificationException"},
         {"shape":"ThrottlingException"}
       ],
@@ -3827,6 +3845,23 @@
         {"shape":"OperationTimeoutException"}
       ],
       "documentation":"<p>Sets the security configuration for a specified catalog. After the configuration has been set, the specified encryption is applied to every catalog write thereafter.</p>"
+    },
+    "PutDataCatalogExportConfiguration":{
+      "name":"PutDataCatalogExportConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"PutDataCatalogExportConfigurationInput"},
+      "output":{"shape":"PutDataCatalogExportConfigurationOutput"},
+      "errors":[
+        {"shape":"InvalidInputException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Creates or updates the export configuration for the Glue Data Catalog. Use this operation to enable or disable the export of catalog metadata to S3 Tables.</p>"
     },
     "PutDataQualityProfileAnnotation":{
       "name":"PutDataQualityProfileAnnotation",
@@ -4287,7 +4322,7 @@
         {"shape":"ResourceNumberLimitExceededException"},
         {"shape":"InvalidInputException"}
       ],
-      "documentation":"<p>Starts a materialized view refresh task run, for a specified table and columns.</p>"
+      "documentation":"<p>Starts a materialized view refresh task run for a specified materialized view.</p>"
     },
     "StartTrigger":{
       "name":"StartTrigger",
@@ -4403,7 +4438,7 @@
         {"shape":"InvalidInputException"},
         {"shape":"OperationTimeoutException"}
       ],
-      "documentation":"<p>Stops a materialized view refresh task run, for a specified table and columns.</p>"
+      "documentation":"<p>Stops a materialized view refresh task run for a specified materialized view.</p>"
     },
     "StopSession":{
       "name":"StopSession",
@@ -5595,6 +5630,14 @@
           "shape":"AssetId",
           "documentation":"<p>The unique identifier of the asset to associate glossary terms with.</p>"
         },
+        "IterableFormName":{
+          "shape":"IterableFormName",
+          "documentation":"<p>The name of the iterable form. When specified along with <code>itemIdentifier</code>, the glossary terms are associated with an item within the iterable form rather than the asset itself.</p>"
+        },
+        "ItemIdentifier":{
+          "shape":"ItemIdentifier",
+          "documentation":"<p>The identifier of the item within the iterable form. Required when <code>iterableFormName</code> is specified.</p>"
+        },
         "GlossaryTermIdentifiers":{
           "shape":"GlossaryTermIdList",
           "documentation":"<p>The list of glossary term identifiers to associate with the asset.</p>"
@@ -5612,6 +5655,14 @@
         "AssetIdentifier":{
           "shape":"AssetId",
           "documentation":"<p>The unique identifier of the asset.</p>"
+        },
+        "IterableFormName":{
+          "shape":"IterableFormName",
+          "documentation":"<p>The name of the iterable form, if the association targets an item.</p>"
+        },
+        "ItemIdentifier":{
+          "shape":"ItemIdentifier",
+          "documentation":"<p>The identifier of the item within the iterable form, if applicable.</p>"
         },
         "GlossaryTerms":{
           "shape":"GlossaryTermIdList",
@@ -13019,6 +13070,14 @@
         "AssetIdentifier":{
           "shape":"AssetId",
           "documentation":"<p>The unique identifier of the asset.</p>"
+        },
+        "IterableFormName":{
+          "shape":"IterableFormName",
+          "documentation":"<p>The name of the iterable form, if the deletion targets an item.</p>"
+        },
+        "ItemIdentifier":{
+          "shape":"ItemIdentifier",
+          "documentation":"<p>The identifier of the item within the iterable form, if applicable.</p>"
         }
       }
     },
@@ -14326,6 +14385,14 @@
           "shape":"AssetId",
           "documentation":"<p>The unique identifier of the asset to disassociate glossary terms from.</p>"
         },
+        "IterableFormName":{
+          "shape":"IterableFormName",
+          "documentation":"<p>The name of the iterable form. When specified along with <code>itemIdentifier</code>, the glossary terms are disassociated from an item within the iterable form rather than the asset itself.</p>"
+        },
+        "ItemIdentifier":{
+          "shape":"ItemIdentifier",
+          "documentation":"<p>The identifier of the item within the iterable form. Required when <code>iterableFormName</code> is specified.</p>"
+        },
         "GlossaryTermIdentifiers":{
           "shape":"GlossaryTermIdList",
           "documentation":"<p>The list of glossary term identifiers to disassociate from the asset.</p>"
@@ -14343,6 +14410,14 @@
         "AssetIdentifier":{
           "shape":"AssetId",
           "documentation":"<p>The unique identifier of the asset.</p>"
+        },
+        "IterableFormName":{
+          "shape":"IterableFormName",
+          "documentation":"<p>The name of the iterable form, if the disassociation targets an item.</p>"
+        },
+        "ItemIdentifier":{
+          "shape":"ItemIdentifier",
+          "documentation":"<p>The identifier of the item within the iterable form, if applicable.</p>"
         },
         "GlossaryTerms":{
           "shape":"GlossaryTermIdList",
@@ -14987,6 +15062,20 @@
         "NONE"
       ]
     },
+    "ExportEncryptionConfiguration":{
+      "type":"structure",
+      "members":{
+        "SseAlgorithm":{
+          "shape":"SseAlgorithm",
+          "documentation":"<p>The server-side encryption algorithm used for the exported data. Valid values are <code>AES256</code> and <code>aws:kms</code>.</p>"
+        },
+        "KmsKeyArn":{
+          "shape":"KmsKeyArnString",
+          "documentation":"<p>The ARN of the KMS key used to encrypt the exported data.</p>"
+        }
+      },
+      "documentation":"<p>The encryption configuration for exported data catalog metadata.</p>"
+    },
     "ExportLabelsTaskRunProperties":{
       "type":"structure",
       "members":{
@@ -14996,6 +15085,25 @@
         }
       },
       "documentation":"<p>Specifies configuration properties for an exporting labels task run.</p>"
+    },
+    "ExportSetting":{
+      "type":"string",
+      "documentation":"<p>The export setting for the data catalog.</p>",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
+    },
+    "ExportStatus":{
+      "type":"string",
+      "documentation":"<p>The current status of the data catalog export.</p>",
+      "enum":[
+        "ENABLING",
+        "ENABLED",
+        "DISABLING",
+        "DISABLED",
+        "FAILED"
+      ]
     },
     "ExtendedString":{
       "type":"string",
@@ -15758,7 +15866,8 @@
           "shape":"IterableFormMap",
           "documentation":"<p>The iterable forms available on the asset, keyed by form name (for example, <code>columns</code>). Use the form name with <code>ListIterableForms</code> or <code>BatchGetIterableForms</code> to retrieve the form's items.</p>"
         }
-      }
+      },
+      "documentation":"<p>The asset metadata returned by the <code>GetAsset</code> operation.</p>"
     },
     "GetAssetTypeRequest":{
       "type":"structure",
@@ -16405,6 +16514,40 @@
           "documentation":"<p>The requested security configuration.</p>"
         }
       }
+    },
+    "GetDataCatalogExportConfigurationInput":{
+      "type":"structure",
+      "members":{}
+    },
+    "GetDataCatalogExportConfigurationOutput":{
+      "type":"structure",
+      "members":{
+        "ExportSetting":{
+          "shape":"ExportSetting",
+          "documentation":"<p>The export setting for the data catalog. Valid values are <code>ENABLED</code> and <code>DISABLED</code>.</p>"
+        },
+        "Status":{
+          "shape":"ExportStatus",
+          "documentation":"<p>The current status of the export. Valid values are <code>ENABLING</code>, <code>ENABLED</code>, <code>DISABLING</code>, <code>DISABLED</code>, and <code>FAILED</code>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"ExportEncryptionConfiguration",
+          "documentation":"<p>The encryption configuration for the exported data.</p>"
+        },
+        "S3TableBucketArn":{
+          "shape":"S3TableBucketArn",
+          "documentation":"<p>The ARN of the S3 Tables bucket where catalog metadata is exported.</p>"
+        },
+        "CreatedAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp at which the export configuration was created.</p>"
+        },
+        "UpdatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp at which the export configuration was last updated.</p>"
+        }
+      },
+      "documentation":"<p>The export configuration returned by the <code>GetDataCatalogExportConfiguration</code> operation.</p>"
     },
     "GetDataQualityModelRequest":{
       "type":"structure",
@@ -21556,6 +21699,10 @@
       "type":"string",
       "pattern":"^$|arn:aws[a-z0-9-]*:kms:.*"
     },
+    "KmsKeyArnString":{
+      "type":"string",
+      "pattern":"arn:aws[-a-z0-9]*:kms:[-a-z0-9]*:[0-9]{12}:key/.+"
+    },
     "LabelCount":{"type":"integer"},
     "LabelingSetGenerationTaskRunProperties":{
       "type":"structure",
@@ -22400,7 +22547,7 @@
         },
         "TableName":{
           "shape":"NameString",
-          "documentation":"<p>The name of the table for which statistics is generated.</p>"
+          "documentation":"<p>The name of the materialized view.</p>"
         },
         "MaxResults":{
           "shape":"PageSize",
@@ -23044,7 +23191,10 @@
     "MaterializedViewRefreshTaskNotRunningException":{
       "type":"structure",
       "members":{
-        "Message":{"shape":"MessageString"}
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
       },
       "documentation":"<p>Exception thrown when stopping a task that is not in running state.</p>",
       "exception":true
@@ -23066,7 +23216,7 @@
         },
         "TableName":{
           "shape":"TableName",
-          "documentation":"<p>The name of the table for which statistics is generated.</p>"
+          "documentation":"<p>The name of the materialized view.</p>"
         },
         "CatalogId":{
           "shape":"CatalogIdString",
@@ -23074,7 +23224,7 @@
         },
         "Role":{
           "shape":"Role",
-          "documentation":"<p>The IAM role that the service assumes to generate statistics.</p>"
+          "documentation":"<p>The IAM role that the service assumes to run the materialized view refresh task.</p>"
         },
         "Status":{
           "shape":"MaterializedViewRefreshState",
@@ -23118,7 +23268,10 @@
     "MaterializedViewRefreshTaskRunningException":{
       "type":"structure",
       "members":{
-        "Message":{"shape":"MessageString"}
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
       },
       "documentation":"<p>Exception thrown when a task is already in running state.</p>",
       "exception":true
@@ -23130,7 +23283,10 @@
     "MaterializedViewRefreshTaskStoppingException":{
       "type":"structure",
       "members":{
-        "Message":{"shape":"MessageString"}
+        "Message":{
+          "shape":"MessageString",
+          "documentation":"<p>A message describing the problem.</p>"
+        }
       },
       "documentation":"<p>Exception thrown when a task is already in stopping state.</p>",
       "exception":true
@@ -24974,6 +25130,39 @@
     "PutDataCatalogEncryptionSettingsResponse":{
       "type":"structure",
       "members":{}
+    },
+    "PutDataCatalogExportConfigurationInput":{
+      "type":"structure",
+      "required":["ExportSetting"],
+      "members":{
+        "ExportSetting":{
+          "shape":"ExportSetting",
+          "documentation":"<p>The export setting for the data catalog. Specify <code>ENABLED</code> to start exporting catalog metadata to S3 Tables, or <code>DISABLED</code> to stop exporting. This field is required.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"ExportEncryptionConfiguration",
+          "documentation":"<p>The encryption configuration for the exported data. If not specified, the default encryption settings are used.</p>"
+        },
+        "ClientToken":{
+          "shape":"HashString",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "PutDataCatalogExportConfigurationOutput":{
+      "type":"structure",
+      "members":{
+        "ExportSetting":{
+          "shape":"ExportSetting",
+          "documentation":"<p>The export setting for the data catalog.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"ExportEncryptionConfiguration",
+          "documentation":"<p>The encryption configuration for the exported data.</p>"
+        }
+      },
+      "documentation":"<p>The export configuration returned by the <code>PutDataCatalogExportConfiguration</code> operation.</p>"
     },
     "PutDataQualityProfileAnnotationRequest":{
       "type":"structure",
@@ -27051,6 +27240,7 @@
       },
       "documentation":"<p>Specifies additional connection options for the Amazon S3 data store.</p>"
     },
+    "S3TableBucketArn":{"type":"string"},
     "S3Target":{
       "type":"structure",
       "members":{
@@ -27415,7 +27605,8 @@
           "shape":"SearchNextToken",
           "documentation":"<p>A continuation token, present if the current segment is not the last.</p>"
         }
-      }
+      },
+      "documentation":"<p>The search results returned by the <code>SearchAssets</code> operation.</p>"
     },
     "SearchAttribute":{
       "type":"string",
@@ -28474,6 +28665,7 @@
       "type":"string",
       "pattern":"([\\u0020-\\uD7FF\\uE000-\\uFFFD\\uD800\\uDC00-\\uDBFF\\uDFFF\\s])*"
     },
+    "SseAlgorithm":{"type":"string"},
     "StartBlueprintRunRequest":{
       "type":"structure",
       "required":[
@@ -28890,7 +29082,7 @@
         },
         "TableName":{
           "shape":"NameString",
-          "documentation":"<p>The name of the table to generate run the materialized view refresh task.</p>"
+          "documentation":"<p>The name of the materialized view to run the refresh task for.</p>"
         },
         "FullRefresh":{
           "shape":"NullableBoolean",
@@ -29298,7 +29490,7 @@
         },
         "TableName":{
           "shape":"NameString",
-          "documentation":"<p>The name of the table to generate statistics.</p>"
+          "documentation":"<p>The name of the materialized view.</p>"
         }
       }
     },
