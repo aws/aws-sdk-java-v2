@@ -120,7 +120,7 @@ public class HttpClientApiCallTimeoutTest {
         ExecutionInterceptorChain interceptors =
             new ExecutionInterceptorChain(Arrays.asList(requestHandlers));
 
-        InterceptorContext incerceptorContext =
+        InterceptorContext interceptorContext =
             InterceptorContext.builder()
                               .request(NoopTestRequest.builder().build())
                               .httpRequest(generateRequest())
@@ -129,7 +129,7 @@ public class HttpClientApiCallTimeoutTest {
                                .signer(new NoOpSigner())
                                .interceptorChain(interceptors)
                                .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(incerceptorContext)
+                               .interceptorContext(interceptorContext)
                                .metricCollector(MetricCollector.create("ApiCall"))
                                .build();
     }

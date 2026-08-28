@@ -92,7 +92,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
                 Collections.singletonList(new SlowExecutionInterceptor().onExecutionFailureWaitInSeconds(SLOW_REQUEST_HANDLER_TIMEOUT)));
 
         SdkHttpFullRequest request = generateRequest();
-        InterceptorContext incerceptorContext =
+        InterceptorContext interceptorContext =
             InterceptorContext.builder()
                               .request(NoopTestRequest.builder().build())
                               .httpRequest(request)
@@ -102,7 +102,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                                             .signer(new NoOpSigner())
                                                             .interceptorChain(interceptors)
                                                             .executionAttributes(new ExecutionAttributes())
-                                                            .interceptorContext(incerceptorContext)
+                                                            .interceptorContext(interceptorContext)
                                                             .metricCollector(MetricCollector.create("ApiCall"))
                                                             .build();
 
@@ -151,7 +151,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
         ExecutionInterceptorChain interceptors =
             new ExecutionInterceptorChain(Arrays.asList(requestHandlers));
 
-        InterceptorContext incerceptorContext =
+        InterceptorContext interceptorContext =
             InterceptorContext.builder()
                               .request(NoopTestRequest.builder().build())
                               .httpRequest(generateRequest())
@@ -160,7 +160,7 @@ public class AsyncHttpClientApiCallTimeoutTests {
                                .signer(new NoOpSigner())
                                .interceptorChain(interceptors)
                                .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(incerceptorContext)
+                               .interceptorContext(interceptorContext)
                                .metricCollector(MetricCollector.create("ApiCall"))
                                .build();
     }

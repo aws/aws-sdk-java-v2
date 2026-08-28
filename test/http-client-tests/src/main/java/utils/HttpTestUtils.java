@@ -70,7 +70,7 @@ public class HttpTestUtils {
      * directly.
      */
     public static ExecutionContext executionContext(SdkHttpFullRequest request) {
-        InterceptorContext incerceptorContext =
+        InterceptorContext interceptorContext =
             InterceptorContext.builder()
                               .request(NoopTestRequest.builder().build())
                               .httpRequest(request)
@@ -79,7 +79,7 @@ public class HttpTestUtils {
                                .signer(new NoOpSigner())
                                .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
                                .executionAttributes(new ExecutionAttributes())
-                               .interceptorContext(incerceptorContext)
+                               .interceptorContext(interceptorContext)
                                .metricCollector(MetricCollector.create("ApiCall"))
                                .build();
     }
