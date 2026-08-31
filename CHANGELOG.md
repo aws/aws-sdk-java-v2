@@ -1,4 +1,9 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.9__ __2026-08-31__
+## __Agent Registry__
+  - ### Features
+    - Release HTTP and AGUI descriptors to the dataplane model
+
 # __2.54.8__ __2026-08-31__
 ## __AWS Control Tower__
   - ### Features
