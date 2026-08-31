@@ -176,8 +176,10 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * is shut down only after {@code yourDuration} elapses with no bytes transferred. The timeout has whole-second
          * granularity and must be at least two seconds.
          *
-         * <p>Absent an explicit configuration here, a default read/write inactivity timeout may apply; a configuration set here
-         * always takes precedence over that default.
+         * <p>When this client is created and managed by an AWS SDK service client, a default read/write inactivity timeout
+         * may be applied automatically, resolved per service by the SDK. When this client is built directly and supplied to a
+         * service client, or used standalone, no automatic default is applied; monitoring is enabled only by an explicit
+         * configuration set here, which always takes precedence over any SDK-applied default.
          *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
