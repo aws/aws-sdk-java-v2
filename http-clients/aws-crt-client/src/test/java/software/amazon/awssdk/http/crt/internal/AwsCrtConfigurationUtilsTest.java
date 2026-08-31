@@ -21,8 +21,6 @@ import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTE
 
 import java.time.Duration;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -38,14 +36,6 @@ import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.AttributeMap;
 
 class AwsCrtConfigurationUtilsTest {
-
-    private static final String GATE_PROPERTY = "aws.enableDefaultReadTimeout2026";
-
-    @BeforeEach
-    @AfterEach
-    void clearGateProperty() {
-        System.clearProperty(GATE_PROPERTY);
-    }
 
     @ParameterizedTest
     @MethodSource("cipherPreferences")
@@ -161,58 +151,27 @@ class AwsCrtConfigurationUtilsTest {
     }
 
     @Test
-    void resolveMonitoringOptions_serviceFallbackZero_appliesNothing() {
-        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ZERO)).isNull();
-    }
-
-    @Test
-    void resolveMonitoringOptions_serviceFallbackZeroWithGateOn_appliesNothing() {
-        System.setProperty(GATE_PROPERTY, "true");
-        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ZERO)).isNull();
-    }
-
-    @Test
-    void resolveMonitoringOptions_serviceFallbackPositive_mapped() {
-        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ofMinutes(15));
-        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
-        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(900);
-    }
-
-    @Test
-    void resolveMonitoringOptions_serviceFallbackPositive_ignoresGate() {
-        System.setProperty(GATE_PROPERTY, "false");
-        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ofMinutes(15));
-        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
-        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(900);
-    }
-
-    @Test
-    void resolveMonitoringOptions_standaloneGateOn_appliesDefault() {
-        System.setProperty(GATE_PROPERTY, "true");
-        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(null, null);
-        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
-        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(300);
-    }
-
-    @Test
-    void resolveMonitoringOptions_standaloneGateOff_appliesNothing() {
-        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, null)).isNull();
-    }
-
-    @Test
-    void resolveMonitoringOptions_standaloneGateOnWithExplicitConfig_usesExplicitConfig() {
-        System.setProperty(GATE_PROPERTY, "true");
+    void resolveMonitoringOptions_explicitConnectionHealthConfigurationWithoutFallback_usesExplicitConfig() {
         HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(healthConfiguration(), null);
         assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(500L);
         assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(10);
     }
 
     @Test
-    void standaloneGateSetting_matchesRolloutGateNames() {
-        assertThat(AwsCrtDefaultReadTimeoutSetting.ENABLE_DEFAULT_READ_TIMEOUT_2026.environmentVariable())
-            .isEqualTo("AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026");
-        assertThat(AwsCrtDefaultReadTimeoutSetting.ENABLE_DEFAULT_READ_TIMEOUT_2026.property())
-            .isEqualTo("aws.enableDefaultReadTimeout2026");
+    void resolveMonitoringOptions_fallbackZero_appliesNothing() {
+        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ZERO)).isNull();
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackPositive_mapped() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ofMinutes(15));
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(900);
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackAbsent_appliesNothing() {
+        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, null)).isNull();
     }
 
     private static ConnectionHealthConfiguration healthConfiguration() {

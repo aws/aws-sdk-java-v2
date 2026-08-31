@@ -38,10 +38,6 @@ public final class AwsCrtConfigurationUtils {
     // CRT rejects a throughput-failure interval below two seconds (HttpMonitoringOptions).
     private static final int MIN_MONITORING_FAILURE_INTERVAL_SECONDS = 2;
 
-    // The default read/write inactivity timeout applied on the standalone path (a CRT client not built by a service client)
-    // when the rollout gate is on. On the service-client path this default is supplied above the transport, in aws-core.
-    private static final Duration STANDALONE_DEFAULT_READ_WRITE_TIMEOUT = Duration.ofMinutes(5);
-
     private AwsCrtConfigurationUtils() {
     }
 
@@ -49,11 +45,10 @@ public final class AwsCrtConfigurationUtils {
      * Resolves the throughput monitor that enforces a connection's read/write inactivity timeout, highest precedence first:
      * <ol>
      *   <li>an explicit {@link ConnectionHealthConfiguration} always wins;</li>
-     *   <li>on the service-client path, the {@code fallbackTimeout}, which aws-core has already resolved against the rollout
-     *   gate, so a present value is post-gate: {@link Duration#ZERO} applies nothing, a positive value is mapped;</li>
-     *   <li>on the standalone path ({@code fallbackTimeout} null, no aws-core resolution ran), the rollout gate is read
-     *   directly, applying the default timeout when it is on and nothing otherwise.</li>
+     *   <li>otherwise the SDK-resolved {@code fallbackTimeout}: {@link Duration#ZERO} applies nothing, a positive value is
+     *   mapped.</li>
      * </ol>
+     * The fallback is only ever supplied to an SDK-managed client.
      */
     public static HttpMonitoringOptions resolveMonitoringOptions(ConnectionHealthConfiguration healthConfiguration,
                                                                  Duration fallbackTimeout) {
@@ -61,14 +56,10 @@ public final class AwsCrtConfigurationUtils {
             return CrtConfigurationUtils.resolveHttpMonitoringOptions(healthConfiguration).orElse(null);
         }
 
-        if (fallbackTimeout != null) {
-            return fallbackTimeout.isZero() ? null : mapReadWriteTimeout(fallbackTimeout);
+        if (fallbackTimeout == null || fallbackTimeout.isZero()) {
+            return null;
         }
-
-        if (AwsCrtDefaultReadTimeoutSetting.ENABLE_DEFAULT_READ_TIMEOUT_2026.getBooleanValue().orElse(false)) {
-            return mapReadWriteTimeout(STANDALONE_DEFAULT_READ_WRITE_TIMEOUT);
-        }
-        return null;
+        return mapReadWriteTimeout(fallbackTimeout);
     }
 
     /**
