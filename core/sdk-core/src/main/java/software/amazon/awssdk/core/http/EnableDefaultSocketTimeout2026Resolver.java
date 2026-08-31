@@ -20,21 +20,21 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkSystemSetting;
 
 /**
- * Resolver for the {@link SdkSystemSetting#AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026} that supports setting a fallback value if not
+ * Resolver for the {@link SdkSystemSetting#AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} that supports setting a fallback value if not
  * defined in the environment or system properties.
  */
 @SdkProtectedApi
-public final class EnableDefaultReadTimeout2026Resolver {
-    private Boolean defaultEnableReadTimeout2026;
+public final class EnableDefaultSocketTimeout2026Resolver {
+    private Boolean defaultEnableSocketTimeout2026;
 
     /**
-     * The default value for {@code AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026} if not configured via
-     * {@link SdkSystemSetting#AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026}.
+     * The default value for {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} if not configured via
+     * {@link SdkSystemSetting#AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026}.
      *
      * @return This resolver for method chaining.
      */
-    public EnableDefaultReadTimeout2026Resolver defaultEnableReadTimeout2026(Boolean defaultEnableReadTimeout2026) {
-        this.defaultEnableReadTimeout2026 = defaultEnableReadTimeout2026;
+    public EnableDefaultSocketTimeout2026Resolver defaultEnableSocketTimeout2026(Boolean defaultEnableSocketTimeout2026) {
+        this.defaultEnableSocketTimeout2026 = defaultEnableSocketTimeout2026;
         return this;
     }
 
@@ -42,14 +42,14 @@ public final class EnableDefaultReadTimeout2026Resolver {
      * Resolve whether a default read/write timeout is applied.
      */
     public boolean resolve() {
-        Optional<Boolean> envConfig = SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.getBooleanValue();
+        Optional<Boolean> envConfig = SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.getBooleanValue();
 
         if (envConfig.isPresent()) {
             return envConfig.get();
         }
 
-        if (defaultEnableReadTimeout2026 != null) {
-            return defaultEnableReadTimeout2026;
+        if (defaultEnableSocketTimeout2026 != null) {
+            return defaultEnableSocketTimeout2026;
         }
 
         return false;

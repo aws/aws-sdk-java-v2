@@ -77,7 +77,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
             c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar");
             c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD);
             c.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026, true);
-            c.option(SdkClientOption.DEFAULT_ENABLE_READ_TIMEOUT_2026, true);
+            c.option(SdkClientOption.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026, true);
         });
     }
 

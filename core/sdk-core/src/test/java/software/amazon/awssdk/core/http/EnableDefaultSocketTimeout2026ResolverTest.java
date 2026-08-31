@@ -27,35 +27,35 @@ import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
-public class EnableDefaultReadTimeout2026ResolverTest {
-    private static String enableDefaultReadTimeout2026Save;
+public class EnableDefaultSocketTimeout2026ResolverTest {
+    private static String enableDefaultSocketTimeout2026Save;
 
     @BeforeAll
     static void setup() {
-        enableDefaultReadTimeout2026Save = System.getProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property());
+        enableDefaultSocketTimeout2026Save = System.getProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property());
     }
 
     @AfterAll
     static void teardown() {
-        if (enableDefaultReadTimeout2026Save != null) {
-            System.setProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property(),
-                               enableDefaultReadTimeout2026Save);
+        if (enableDefaultSocketTimeout2026Save != null) {
+            System.setProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property(),
+                               enableDefaultSocketTimeout2026Save);
         } else {
-            System.clearProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property());
+            System.clearProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property());
         }
     }
 
     @BeforeEach
     void methodSetup() {
-        System.clearProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property());
+        System.clearProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property());
     }
 
     @Test
     void systemSetting_usesExpectedEnvironmentVariableAndSystemPropertyNames() {
-        assertThat(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.environmentVariable())
-            .isEqualTo("AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026");
-        assertThat(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property())
-            .isEqualTo("aws.enableDefaultReadTimeout2026");
+        assertThat(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.environmentVariable())
+            .isEqualTo("AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026");
+        assertThat(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property())
+            .isEqualTo("aws.enableDefaultSocketTimeout2026");
     }
 
     @ParameterizedTest
@@ -63,15 +63,15 @@ public class EnableDefaultReadTimeout2026ResolverTest {
     void resolve_behavesCorrectly(TestParams params) {
         EnvironmentVariableHelper.run((env) -> {
             if (params.systemProperty != null) {
-                System.setProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property(), params.systemProperty);
+                System.setProperty(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property(), params.systemProperty);
             }
 
             if (params.envVar != null) {
-                env.set(SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.environmentVariable(), params.envVar);
+                env.set(SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.environmentVariable(), params.envVar);
             }
 
-            EnableDefaultReadTimeout2026Resolver resolver =
-                new EnableDefaultReadTimeout2026Resolver().defaultEnableReadTimeout2026(params.defaultEnableReadTimeout2026);
+            EnableDefaultSocketTimeout2026Resolver resolver =
+                new EnableDefaultSocketTimeout2026Resolver().defaultEnableSocketTimeout2026(params.defaultEnableSocketTimeout2026);
 
             assertThat(resolver.resolve()).isEqualTo(params.expected);
         });
@@ -83,19 +83,19 @@ public class EnableDefaultReadTimeout2026ResolverTest {
             new TestParams().expected(false),
 
             // precedence testing
-            new TestParams().systemProperty("true").defaultEnableReadTimeout2026(true).expected(true),
-            new TestParams().systemProperty("false").defaultEnableReadTimeout2026(true).expected(false),
-            new TestParams().envVar("true").defaultEnableReadTimeout2026(true).expected(true),
-            new TestParams().envVar("false").defaultEnableReadTimeout2026(true).expected(false),
-            new TestParams().defaultEnableReadTimeout2026(true).expected(true),
-            new TestParams().defaultEnableReadTimeout2026(false).expected(false)
+            new TestParams().systemProperty("true").defaultEnableSocketTimeout2026(true).expected(true),
+            new TestParams().systemProperty("false").defaultEnableSocketTimeout2026(true).expected(false),
+            new TestParams().envVar("true").defaultEnableSocketTimeout2026(true).expected(true),
+            new TestParams().envVar("false").defaultEnableSocketTimeout2026(true).expected(false),
+            new TestParams().defaultEnableSocketTimeout2026(true).expected(true),
+            new TestParams().defaultEnableSocketTimeout2026(false).expected(false)
         );
     }
 
     private static class TestParams {
         private String systemProperty;
         private String envVar;
-        private Boolean defaultEnableReadTimeout2026;
+        private Boolean defaultEnableSocketTimeout2026;
         private boolean expected;
 
         public TestParams systemProperty(String systemProperty) {
@@ -108,8 +108,8 @@ public class EnableDefaultReadTimeout2026ResolverTest {
             return this;
         }
 
-        public TestParams defaultEnableReadTimeout2026(Boolean defaultEnableReadTimeout2026) {
-            this.defaultEnableReadTimeout2026 = defaultEnableReadTimeout2026;
+        public TestParams defaultEnableSocketTimeout2026(Boolean defaultEnableSocketTimeout2026) {
+            this.defaultEnableSocketTimeout2026 = defaultEnableSocketTimeout2026;
             return this;
         }
 

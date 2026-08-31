@@ -51,7 +51,7 @@ import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.http.EnableDefaultReadTimeout2026Resolver;
+import software.amazon.awssdk.core.http.EnableDefaultSocketTimeout2026Resolver;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
@@ -263,10 +263,10 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     }
 
     /**
-     * Applies the {@code AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026} rollout gate to the codegen-baked
+     * Applies the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} rollout gate to the codegen-baked
      * {@link SdkHttpConfigurationOption#SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT} contributed by {@link #serviceHttpConfig()}.
-     * The gate resolves from the {@code AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026} environment variable/system property, else the
-     * codegen-baked {@link SdkClientOption#DEFAULT_ENABLE_READ_TIMEOUT_2026} default, else off.
+     * The gate resolves from the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} environment variable/system property, else the
+     * codegen-baked {@link SdkClientOption#DEFAULT_ENABLE_SOCKET_TIMEOUT_2026} default, else off.
      *
      * <p>When the gate is on, an unlisted service (nothing baked) gets the flat 5-minute default and a baked tier is kept as-is
      * ({@link Duration#ZERO} for fully-exempt, 15 minutes for partial). When the gate is off, a baked positive tier (partial)
@@ -275,8 +275,8 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * not truthy, so the HTTP client's option-absent path applies nothing either way.
      */
     private AttributeMap applyDefaultReadWriteTimeout(LazyValueSource config, AttributeMap serviceHttpConfig) {
-        boolean gateEnabled = new EnableDefaultReadTimeout2026Resolver()
-            .defaultEnableReadTimeout2026(config.get(SdkClientOption.DEFAULT_ENABLE_READ_TIMEOUT_2026))
+        boolean gateEnabled = new EnableDefaultSocketTimeout2026Resolver()
+            .defaultEnableSocketTimeout2026(config.get(SdkClientOption.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026))
             .resolve();
 
         Duration bakedTier = serviceHttpConfig.get(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT);
