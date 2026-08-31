@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS DevOps Agent Service",
-    "contributor": "",
-    "description": "Adds support for Slack bidirectional communication configuration in AWS DevOps Agent agent spaces."
-}
