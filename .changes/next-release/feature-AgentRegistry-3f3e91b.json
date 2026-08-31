@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Agent Registry",
+    "contributor": "",
+    "description": "Release HTTP and AGUI descriptors to the dataplane model"
+}
