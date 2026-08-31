@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.mock;
 
 import java.io.IOException;
@@ -24,6 +23,10 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Stream;
@@ -109,21 +112,22 @@ public class AuthErrorInvalidationHelperTest {
         );
     }
 
+    // --- Returned future contract ---
+    // Both request paths rely on the future never failing, and the async path additionally on it never blocking.
+
     @Test
-    void invalidateIfAuthError_whenSelectedAuthSchemeIsNull_doesNotThrow() {
+    void invalidateIfAuthError_whenSelectedAuthSchemeIsNull_completesNormally() {
         RequestExecutionContext context = contextWithNoAuthScheme();
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
 
-        assertThatNoException().isThrownBy(() ->
-            AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context)
-        );
+        assertThat(AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context))
+            .isCompletedWithValue(null);
     }
 
     @Test
-    void invalidateIfAuthError_whenIdentityProviderIsNull_doesNotThrow() {
-        TestIdentity identity = new TestIdentity();
+    void invalidateIfAuthError_whenIdentityProviderIsNull_completesNormally() {
         SelectedAuthScheme<TestIdentity> selectedAuthScheme = new SelectedAuthScheme<>(
-            CompletableFuture.completedFuture(identity),
+            CompletableFuture.completedFuture(new TestIdentity()),
             mockSigner(),
             AuthSchemeOption.builder().schemeId("test").build()
         );
@@ -131,35 +135,93 @@ public class AuthErrorInvalidationHelperTest {
         RequestExecutionContext context = contextWithSelectedAuthScheme(selectedAuthScheme);
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
 
-        assertThatNoException().isThrownBy(() ->
-            AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context)
-        );
+        assertThat(AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context))
+            .isCompletedWithValue(null);
+    }
+
+    /**
+     * A provider that throws synchronously from invalidate() must not fail the returned future, since callers on the
+     * async path do not handle it.
+     */
+    @Test
+    void invalidateIfAuthError_whenInvalidateThrows_completesNormally() {
+        RequestExecutionContext context = contextWithProvider(new ThrowingIdentityProvider(), new TestIdentity());
+        Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
+
+        CompletableFuture<Void> invalidation = AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
+
+        assertThat(invalidation).isCompletedWithValue(null);
     }
 
     @Test
-    void invalidateIfAuthError_whenInvalidateThrowsException_doesNotPropagate() {
-        ThrowingIdentityProvider provider = new ThrowingIdentityProvider();
-        TestIdentity identity = new TestIdentity();
-        SelectedAuthScheme<TestIdentity> selectedAuthScheme = SelectedAuthScheme.<TestIdentity>builder()
-            .identity(CompletableFuture.completedFuture(identity))
-            .signer(mockSigner())
-            .authSchemeOption(AuthSchemeOption.builder().schemeId("test").build())
-            .identityProvider(provider)
-            .build();
-
-        RequestExecutionContext context = contextWithSelectedAuthScheme(selectedAuthScheme);
+    void invalidateIfAuthError_whenInvalidateReturnsFailedFuture_completesNormally() {
+        RequestExecutionContext context = contextWithProvider(new FailedFutureIdentityProvider(), new TestIdentity());
         Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
 
-        assertThatNoException().isThrownBy(() ->
-            AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context)
-        );
+        CompletableFuture<Void> invalidation = AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
+
+        assertThat(invalidation).isCompletedWithValue(null);
+    }
+
+    @Test
+    void invalidateIfAuthError_whenIdentityFutureFailed_completesNormallyWithoutInvalidating() {
+        TrackingIdentityProvider provider = new TrackingIdentityProvider();
+        CompletableFuture<TestIdentity> identityFuture = new CompletableFuture<>();
+        identityFuture.completeExceptionally(new RuntimeException("identity resolution failed"));
+        RequestExecutionContext context = contextWithProvider(provider, identityFuture);
+        Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
+
+        CompletableFuture<Void> invalidation = AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
+
+        assertThat(invalidation).isCompletedWithValue(null);
+        assertThat(provider.invalidateCalled()).isFalse();
+    }
+
+    /**
+     * The async request path calls this from an I/O thread, so it must never block waiting on the identity. The call is
+     * made on a separate thread with a bounded get() so that a blocking implementation fails the test rather than
+     * hanging it.
+     */
+    @Test
+    void invalidateIfAuthError_whenIdentityNotYetResolved_doesNotBlock() throws Exception {
+        TrackingIdentityProvider provider = new TrackingIdentityProvider();
+        CompletableFuture<TestIdentity> identityFuture = new CompletableFuture<>();
+        RequestExecutionContext context = contextWithProvider(provider, identityFuture);
+        Throwable exception = serviceExceptionWithErrorCode("ExpiredToken");
+
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            Future<CompletableFuture<Void>> call =
+                executor.submit(() -> AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context));
+
+            CompletableFuture<Void> invalidation = call.get(5, TimeUnit.SECONDS);
+
+            // Returned without waiting on the identity, so nothing has been invalidated yet.
+            assertThat(invalidation).isNotDone();
+            assertThat(provider.invalidateCalled()).isFalse();
+
+            // Resolving the identity drives the invalidation to completion.
+            TestIdentity identity = new TestIdentity();
+            identityFuture.complete(identity);
+
+            invalidation.get(5, TimeUnit.SECONDS);
+            assertThat(provider.invalidateCalled()).isTrue();
+            assertThat(provider.lastInvalidatedIdentity()).isSameAs(identity);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     // --- Helper methods ---
 
-    private RequestExecutionContext contextWithProvider(TrackingIdentityProvider provider, TestIdentity identity) {
+    private RequestExecutionContext contextWithProvider(IdentityProvider<TestIdentity> provider, TestIdentity identity) {
+        return contextWithProvider(provider, CompletableFuture.completedFuture(identity));
+    }
+
+    private RequestExecutionContext contextWithProvider(IdentityProvider<TestIdentity> provider,
+                                                        CompletableFuture<TestIdentity> identityFuture) {
         SelectedAuthScheme<TestIdentity> selectedAuthScheme = SelectedAuthScheme.<TestIdentity>builder()
-            .identity(CompletableFuture.completedFuture(identity))
+            .identity(identityFuture)
             .signer(mockSigner())
             .authSchemeOption(AuthSchemeOption.builder().schemeId("test").build())
             .identityProvider(provider)
@@ -266,6 +328,28 @@ public class AuthErrorInvalidationHelperTest {
         @Override
         public CompletableFuture<Void> invalidate(TestIdentity identity) {
             throw new RuntimeException("Simulated invalidation failure");
+        }
+    }
+
+    /**
+     * An identity provider whose invalidate() returns a failed future rather than throwing.
+     */
+    private static class FailedFutureIdentityProvider implements IdentityProvider<TestIdentity> {
+        @Override
+        public Class<TestIdentity> identityType() {
+            return TestIdentity.class;
+        }
+
+        @Override
+        public CompletableFuture<TestIdentity> resolveIdentity(ResolveIdentityRequest request) {
+            return CompletableFuture.completedFuture(new TestIdentity());
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(TestIdentity identity) {
+            CompletableFuture<Void> failed = new CompletableFuture<>();
+            failed.completeExceptionally(new RuntimeException("Simulated invalidation failure"));
+            return failed;
         }
     }
 

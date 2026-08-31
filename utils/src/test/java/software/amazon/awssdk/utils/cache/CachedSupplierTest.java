@@ -62,11 +62,22 @@ public class CachedSupplierTest {
     /** Maximum static stability backoff duration in seconds (10 minutes). */
     private static final long BACKOFF_MAX_SECONDS = 600;
 
+    /** Minimum duration (seconds) that a non-recoverable error stays cached. */
+    private static final long NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS = 1;
+
     /** Maximum duration (seconds) that a non-recoverable error stays cached. */
     private static final long NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS = 5;
 
     /** A duration safely past the non-recoverable error cache max, guaranteeing the cache has expired. */
     private static final long PAST_NON_RECOVERABLE_ERROR_CACHE = NON_RECOVERABLE_ERROR_CACHE_MAX_SECONDS + 1;
+
+    /**
+     * A duration guaranteed to fall strictly inside the non-recoverable error cache window, whichever duration the
+     * jitter picked. This must stay below the cache minimum: the cache expires exactly at its expiry instant, so
+     * advancing by the minimum itself lands on an already-expired cache whenever the jitter picks that minimum.
+     */
+    private static final long WITHIN_NON_RECOVERABLE_ERROR_CACHE_MILLIS =
+        NON_RECOVERABLE_ERROR_CACHE_MIN_SECONDS * 1000 - 100;
 
     /** A duration safely past the maximum backoff, guaranteeing the backoff has elapsed. */
     private static final long PAST_MAX_BACKOFF = BACKOFF_MAX_SECONDS + 1;
@@ -1233,8 +1244,8 @@ public class CachedSupplierTest {
             assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
             assertThat(supplierCallCount.get()).isEqualTo(1);
 
-            // Second call within the cache window (< 5 seconds) — should re-raise without calling source
-            clock.time = now.plusSeconds(1);
+            // Second call within the cache window — should re-raise without calling source
+            clock.time = now.plusMillis(WITHIN_NON_RECOVERABLE_ERROR_CACHE_MILLIS);
             assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
             assertThat(supplierCallCount.get()).isEqualTo(1); // Still 1 — source was NOT contacted
         }
@@ -1345,7 +1356,7 @@ public class CachedSupplierTest {
             assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
 
             // Immediately retry (within cache window) — should re-raise the same error without calling source
-            clock.time = now.plusSeconds(62);
+            clock.time = now.plusSeconds(61).plusMillis(WITHIN_NON_RECOVERABLE_ERROR_CACHE_MILLIS);
             // Swap supplier to something that would succeed — if called, we'd get "new-creds" not an exception
             supplier.set(RefreshResult.builder("new-creds")
                                       .staleTime(Instant.MAX)
@@ -1385,7 +1396,7 @@ public class CachedSupplierTest {
             assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
 
             // Immediately retry (within cache window) — should re-raise without calling source
-            clock.time = now.plusSeconds(62);
+            clock.time = now.plusSeconds(61).plusMillis(WITHIN_NON_RECOVERABLE_ERROR_CACHE_MILLIS);
             supplier.set(RefreshResult.builder("new-creds")
                                       .staleTime(Instant.MAX)
                                       .prefetchTime(Instant.MAX)
@@ -1419,8 +1430,8 @@ public class CachedSupplierTest {
                 assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
                 assertThat(callCount.get()).isEqualTo(1);
 
-                // At 0.9s — should still be cached (cache min is 1s)
-                clock.time = now.plusMillis(900);
+                // Just under the cache minimum — should still be cached whatever the jitter picked
+                clock.time = now.plusMillis(WITHIN_NON_RECOVERABLE_ERROR_CACHE_MILLIS);
                 assertThatThrownBy(cachedSupplier::get).isEqualTo(error);
                 assertThat(callCount.get()).isEqualTo(1);
 
