@@ -340,6 +340,7 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                                                String checksumCrc32CValue,
                                                                                String expectedHeader,
                                                                                String description) {
+        interceptor.reset();
         try (S3AsyncClient s3 = createS3AsyncClient(requestChecksumCalculation)) {
             LifecycleRule lifecycleRule = LifecycleRule.builder()
                                                        .status(ExpirationStatus.ENABLED)
@@ -362,6 +363,7 @@ public class AsyncHttpChecksumIntegrationTest extends S3IntegrationTestBase {
             if (checksumCrc32CValue != null) {
                 assertThat(interceptor.requestHeaders().get(CHECKSUM_CRC32C_HEADER));
             }
+            interceptor.reset();
         }
     }
 

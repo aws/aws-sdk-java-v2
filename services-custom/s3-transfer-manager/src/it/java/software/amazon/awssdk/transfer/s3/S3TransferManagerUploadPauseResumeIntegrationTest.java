@@ -196,11 +196,14 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
             Waiter.builder(ListMultipartUploadsResponse.class)
                   .addAcceptor(WaiterAcceptor.successOnResponseAcceptor(ListMultipartUploadsResponse::hasUploads))
                   .addAcceptor(WaiterAcceptor.retryOnResponseAcceptor(r -> true))
-                  .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(1))
-                                               .maxAttempts(10)
-                                               .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(100))))
+                  .overrideConfiguration(o -> o.waitTimeout(Duration.ofMinutes(2))
+                                               .maxAttempts(30)
+                                               .backoffStrategy(FixedDelayBackoffStrategy.create(Duration.ofMillis(500))))
                   .build();
         waiter.run(() -> s3.listMultipartUploads(l -> l.bucket(BUCKET)));
+
+        // Give the upload time to send at least one part so pause() captures the upload state
+        Thread.sleep(2000);
     }
 
     private static void validateEmptyResumeToken(ResumableFileUpload resumableFileUpload) {

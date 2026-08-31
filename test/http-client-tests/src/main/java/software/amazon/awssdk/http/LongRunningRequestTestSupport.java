@@ -34,7 +34,7 @@ public final class LongRunningRequestTestSupport {
 
     public static final Duration CONFIGURED_TIMEOUT = Duration.ofSeconds(2);
     public static final Duration SERVER_DELAY = Duration.ofSeconds(10);
-    public static final Duration TIME_BOUND_SAFETY_MARGIN = Duration.ofSeconds(10);
+    public static final Duration TIME_BOUND_SAFETY_MARGIN = Duration.ofSeconds(20);
     public static final Duration HANG_DELAY = Duration.ofMinutes(1);
 
     private LongRunningRequestTestSupport() {

@@ -479,6 +479,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                               String checksumCrc32CValue,
                                               String expectedTrailer,
                                               String description) {
+        interceptor.reset();
         try (S3Client s3 = createS3Client(requestChecksumCalculation)) {
             s3.putObject(PutObjectRequest.builder()
                                          .bucket(BUCKET)
@@ -505,6 +506,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
                                                                                String checksumCrc32CValue,
                                                                                String expectedHeader,
                                                                                String description) {
+        interceptor.reset();
         try (S3Client s3 = createS3Client(requestChecksumCalculation)) {
             LifecycleRule lifecycleRule = LifecycleRule.builder()
                                                        .status(ExpirationStatus.ENABLED)
@@ -527,6 +529,7 @@ public class HttpChecksumIntegrationTest extends S3IntegrationTestBase {
             if (checksumCrc32CValue != null) {
                 assertThat(interceptor.requestHeaders().get(CHECKSUM_CRC32C_HEADER));
             }
+            interceptor.reset();
         }
     }
 

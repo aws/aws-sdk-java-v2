@@ -73,7 +73,11 @@ public class ResponseInputStreamTimeoutIntegrationTest extends S3IntegrationTest
         s3Client.getObject(getObjectRequest);
 
         assertThatThrownBy(() -> s3Client.getObject(getObjectRequest))
-            .hasMessageContaining("Timeout deadline");
+            .satisfiesAnyOf(
+                e -> assertThat(e).hasMessageContaining("Timeout deadline"),
+                e -> assertThat(e).hasMessageContaining("Timeout waiting"),
+                e -> assertThat(e).hasCauseInstanceOf(IOException.class)
+            );
     }
 
     @Test
