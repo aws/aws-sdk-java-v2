@@ -40,10 +40,10 @@ public enum AccountIdEndpointMode {
      */
     REQUIRED("required");
 
-    private final String endpointModeValue;
+    private final String value;
 
-    AccountIdEndpointMode(String endpointModeValue) {
-        this.endpointModeValue = endpointModeValue;
+    AccountIdEndpointMode(String value) {
+        this.value = value;
     }
 
     /**
@@ -57,11 +57,11 @@ public enum AccountIdEndpointMode {
             return null;
         }
 
-        for (AccountIdEndpointMode value : values()) {
-            // Matched against endpointModeValue rather than name() so that the wire form has a single definition.
-            // Behaviour is unchanged: the two differ only in case, and the comparison is case-insensitive.
-            if (value.endpointModeValue.equalsIgnoreCase(s)) {
-                return value;
+        for (AccountIdEndpointMode mode : values()) {
+            // Matched against value rather than name() so that the wire form has a single definition. Behaviour is
+            // unchanged: the two differ only in case, and the comparison is case-insensitive.
+            if (mode.value.equalsIgnoreCase(s)) {
+                return mode;
             }
         }
 
@@ -76,7 +76,7 @@ public enum AccountIdEndpointMode {
      * of a fresh string per request, which removes an allocation from the request path. It is also independent of the
      * default locale, which {@code name().toLowerCase()} is not.
      */
-    public String endpointModeValue() {
-        return endpointModeValue;
+    public String value() {
+        return value;
     }
 }

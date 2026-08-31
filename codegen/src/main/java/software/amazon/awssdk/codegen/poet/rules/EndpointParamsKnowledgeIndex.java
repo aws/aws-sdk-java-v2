@@ -191,11 +191,11 @@ public final class EndpointParamsKnowledgeIndex {
                              + ".ifPresent(m -> executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric(m))",
                              BusinessMetricsUtils.class, SdkInternalExecutionAttribute.class);
 
-        // Use endpointModeValue() rather than name().toLowerCase() so that the returned String is an interned
-        // compile-time literal. That keeps the reference stable across calls and removes a per-request allocation.
-        // It also avoids name().toLowerCase()'s dependence on the default locale, which mangles the value under a
+        // Use value() rather than name().toLowerCase() so that the returned String is an interned compile-time
+        // literal. That keeps the reference stable across calls and removes a per-request allocation. It also
+        // avoids name().toLowerCase()'s dependence on the default locale, which mangles the value under a
         // Turkish locale.
-        builder.addStatement("return mode.endpointModeValue()");
+        builder.addStatement("return mode.value()");
 
         return builder.build();
     }

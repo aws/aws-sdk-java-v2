@@ -25,7 +25,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
 /**
- * {@link AccountIdEndpointMode#endpointModeValue()} is what generated endpoint resolvers pass to the rules engine as the
+ * {@link AccountIdEndpointMode#value()} is what generated endpoint resolvers pass to the rules engine as the
  * {@code AWS::Auth::AccountIdEndpointMode} built-in, so these tests pin the wire form itself rather than any caller.
  */
 class AccountIdEndpointModeTest {
@@ -37,10 +37,10 @@ class AccountIdEndpointModeTest {
     }
 
     @Test
-    void endpointModeValue_returnsTheLowercaseWireForm() {
-        assertThat(AccountIdEndpointMode.PREFERRED.endpointModeValue()).isEqualTo("preferred");
-        assertThat(AccountIdEndpointMode.DISABLED.endpointModeValue()).isEqualTo("disabled");
-        assertThat(AccountIdEndpointMode.REQUIRED.endpointModeValue()).isEqualTo("required");
+    void value_returnsTheLowercaseWireForm() {
+        assertThat(AccountIdEndpointMode.PREFERRED.value()).isEqualTo("preferred");
+        assertThat(AccountIdEndpointMode.DISABLED.value()).isEqualTo("disabled");
+        assertThat(AccountIdEndpointMode.REQUIRED.value()).isEqualTo("required");
     }
 
     /**
@@ -49,18 +49,18 @@ class AccountIdEndpointModeTest {
      */
     @ParameterizedTest
     @EnumSource(AccountIdEndpointMode.class)
-    void endpointModeValue_returnsTheSameReferenceEachCall(AccountIdEndpointMode mode) {
-        assertThat(mode.endpointModeValue()).isSameAs(mode.endpointModeValue());
+    void value_returnsTheSameReferenceEachCall(AccountIdEndpointMode mode) {
+        assertThat(mode.value()).isSameAs(mode.value());
     }
 
     /**
-     * {@code fromValue} and {@code endpointModeValue} must describe the same mapping in both directions, otherwise a
+     * {@code fromValue} and {@code value} must describe the same mapping in both directions, otherwise a
      * value the SDK emits is one it cannot read back.
      */
     @ParameterizedTest
     @EnumSource(AccountIdEndpointMode.class)
-    void fromValue_roundTripsEndpointModeValue(AccountIdEndpointMode mode) {
-        assertThat(AccountIdEndpointMode.fromValue(mode.endpointModeValue())).isSameAs(mode);
+    void fromValue_roundTripsValue(AccountIdEndpointMode mode) {
+        assertThat(AccountIdEndpointMode.fromValue(mode.value())).isSameAs(mode);
     }
 
     /**
@@ -70,13 +70,13 @@ class AccountIdEndpointModeTest {
      */
     @ParameterizedTest
     @EnumSource(AccountIdEndpointMode.class)
-    void endpointModeValue_isIndependentOfTheDefaultLocale(AccountIdEndpointMode mode) {
-        String underDefaultLocale = mode.endpointModeValue();
+    void value_isIndependentOfTheDefaultLocale(AccountIdEndpointMode mode) {
+        String underDefaultLocale = mode.value();
 
         Locale.setDefault(new Locale("tr", "TR"));
 
-        assertThat(mode.endpointModeValue()).isEqualTo(underDefaultLocale);
-        assertThat(mode.endpointModeValue()).doesNotContain("\u0131");
+        assertThat(mode.value()).isEqualTo(underDefaultLocale);
+        assertThat(mode.value()).doesNotContain("\u0131");
     }
 
     @Test
