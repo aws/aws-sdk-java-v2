@@ -32,7 +32,9 @@ public enum DynamoDbAutoGenerateStrategy {
 
     /**
      * Generate a value only when the current value is missing.
-     * Missing means the value is absent from the write item map or is DynamoDB {@code NULL}.
+     * For values present in the write item map, DynamoDB {@code NULL} is missing and an empty string is present. For a
+     * non-primary-key value omitted from an update item map, DynamoDB evaluates stored attribute existence using
+     * {@code if_not_exists}; a stored DynamoDB {@code NULL} therefore counts as present.
      */
     CREATE
 }
