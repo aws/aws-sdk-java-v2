@@ -96,25 +96,33 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
         }
 
         public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy) {
-            return new VersionAttribute(startAt, incrementBy);
+            return new VersionAttribute(startAt, incrementBy, false);
+        }
+
+        public static StaticAttributeTag versionAttribute(Long startAt, Long incrementBy, Boolean useVersionOnDelete) {
+            return new VersionAttribute(startAt, incrementBy, useVersionOnDelete);
         }
     }
 
     private static final class VersionAttribute implements StaticAttributeTag {
         private static final String START_AT_METADATA_KEY = "VersionedRecordExtension:StartAt";
         private static final String INCREMENT_BY_METADATA_KEY = "VersionedRecordExtension:IncrementBy";
+        private static final String USE_VERSION_ON_DELETE_METADATA_KEY = "VersionedRecordExtension:UseVersionOnDelete";
 
         private final Long startAt;
         private final Long incrementBy;
+        private final Boolean useVersionOnDelete;
 
         private VersionAttribute() {
             this.startAt = null;
             this.incrementBy = null;
+            this.useVersionOnDelete = null;
         }
 
-        private VersionAttribute(Long startAt, Long incrementBy) {
+        private VersionAttribute(Long startAt, Long incrementBy, Boolean useVersionOnDelete) {
             this.startAt = startAt;
             this.incrementBy = incrementBy;
+            this.useVersionOnDelete = useVersionOnDelete;
         }
 
         @Override
@@ -137,6 +145,7 @@ public final class VersionedRecordExtension implements DynamoDbEnhancedClientExt
             return metadata -> metadata.addCustomMetadataObject(CUSTOM_METADATA_KEY, attributeName)
                                        .addCustomMetadataObject(START_AT_METADATA_KEY, startAt)
                                        .addCustomMetadataObject(INCREMENT_BY_METADATA_KEY, incrementBy)
+                                       .addCustomMetadataObject(USE_VERSION_ON_DELETE_METADATA_KEY, useVersionOnDelete)
                                        .markAttributeAsKey(attributeName, attributeValueType);
         }
     }
