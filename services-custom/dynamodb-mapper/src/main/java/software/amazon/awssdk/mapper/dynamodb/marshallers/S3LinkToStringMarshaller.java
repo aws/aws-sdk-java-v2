@@ -44,6 +44,6 @@ public class S3LinkToStringMarshaller implements StringAttributeMarshaller {
             return null;
         }
 
-        return AttributeValue.builder().s(s3link.toJson()).build();
+        return AttributeValue.createS(s3link.toJson());
     }
 }

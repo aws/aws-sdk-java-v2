@@ -51,6 +51,6 @@ public class DateSetToStringSetMarshaller
             timestamps.add(MapperDateUtils.formatISO8601Date(date));
         }
 
-        return AttributeValue.builder().ss(timestamps).build();
+        return AttributeValue.createSs(timestamps);
     }
 }

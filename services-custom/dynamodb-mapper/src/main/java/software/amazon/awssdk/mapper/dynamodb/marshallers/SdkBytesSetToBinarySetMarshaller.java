@@ -14,7 +14,6 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -24,32 +23,27 @@ import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * A marshaller that marshals sets of Java {@code byte[]}s into DynamoDB
+ * A marshaller that marshals sets of immutable {@code SdkBytes} values into DynamoDB
  * BinarySet attributes.
  */
-public class ByteArraySetToBinarySetMarshaller
+public class SdkBytesSetToBinarySetMarshaller
         implements BinarySetAttributeMarshaller {
 
-    private static final ByteArraySetToBinarySetMarshaller INSTANCE =
-            new ByteArraySetToBinarySetMarshaller();
+    private static final SdkBytesSetToBinarySetMarshaller INSTANCE =
+            new SdkBytesSetToBinarySetMarshaller();
 
-    public static ByteArraySetToBinarySetMarshaller instance() {
+    public static SdkBytesSetToBinarySetMarshaller instance() {
         return INSTANCE;
     }
 
-    private ByteArraySetToBinarySetMarshaller() {
+    private SdkBytesSetToBinarySetMarshaller() {
     }
 
     @Override
     public AttributeValue marshall(Object obj) {
         @SuppressWarnings("unchecked")
-        Set<byte[]> buffers = (Set<byte[]>) obj;
-        List<SdkBytes> attributes = new ArrayList<SdkBytes>(buffers.size());
-
-        for (byte[] b : buffers) {
-            attributes.add(SdkBytes.fromByteArray(b));
-        }
-
+        Set<SdkBytes> sdkBytes = (Set<SdkBytes>) obj;
+        List<SdkBytes> attributes = new ArrayList<SdkBytes>(sdkBytes);
         return AttributeValue.createBs(attributes);
     }
 }

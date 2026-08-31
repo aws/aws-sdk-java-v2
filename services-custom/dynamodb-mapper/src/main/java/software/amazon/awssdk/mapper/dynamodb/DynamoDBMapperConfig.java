@@ -63,6 +63,7 @@ public class DynamoDBMapperConfig {
         .withBatchWriteRetryStrategy(DefaultBatchWriteRetryStrategy.INSTANCE)
         .withBatchLoadRetryStrategy(DefaultBatchLoadRetryStrategy.INSTANCE)
         .withTypeConverterFactory(DynamoDBTypeConverterFactory.standard())
+        .withByteBufferReadBehavior(ByteBufferReadBehavior.MUTABLE_COPY)
         .withConversionSchema(ConversionSchemas.DEFAULT)
         .build();
 
@@ -86,6 +87,7 @@ public class DynamoDBMapperConfig {
         private PaginationLoadingStrategy paginationLoadingStrategy;
         private RequestMetricCollector requestMetricCollector;
         private ConversionSchema conversionSchema;
+        private ByteBufferReadBehavior byteBufferReadBehavior;
         private BatchWriteRetryStrategy batchWriteRetryStrategy;
         private BatchLoadRetryStrategy batchLoadRetryStrategy;
         private DynamoDBTypeConverterFactory typeConverterFactory;
@@ -106,6 +108,7 @@ public class DynamoDBMapperConfig {
                 consistentReads = DEFAULT.getConsistentReads();
                 paginationLoadingStrategy = DEFAULT.getPaginationLoadingStrategy();
                 conversionSchema = DEFAULT.getConversionSchema();
+                byteBufferReadBehavior = DEFAULT.getByteBufferReadBehavior();
                 batchWriteRetryStrategy = DEFAULT.getBatchWriteRetryStrategy();
                 batchLoadRetryStrategy = DEFAULT.getBatchLoadRetryStrategy();
             }
@@ -124,6 +127,7 @@ public class DynamoDBMapperConfig {
             if (o.paginationLoadingStrategy != null) paginationLoadingStrategy = o.paginationLoadingStrategy;
             if (o.requestMetricCollector != null) requestMetricCollector = o.requestMetricCollector;
             if (o.conversionSchema != null) conversionSchema = o.conversionSchema;
+            if (o.byteBufferReadBehavior != null) byteBufferReadBehavior = o.byteBufferReadBehavior;
             if (o.batchWriteRetryStrategy != null) batchWriteRetryStrategy = o.batchWriteRetryStrategy;
             if (o.batchLoadRetryStrategy != null) batchLoadRetryStrategy = o.batchLoadRetryStrategy;
             if (o.typeConverterFactory != null) typeConverterFactory = o.typeConverterFactory;
@@ -335,6 +339,31 @@ public class DynamoDBMapperConfig {
         }
 
         /**
+         * @return the behavior used when reading {@link java.nio.ByteBuffer} attributes
+         */
+        public ByteBufferReadBehavior getByteBufferReadBehavior() {
+            return byteBufferReadBehavior;
+        }
+
+        /**
+         * @param value the behavior used when reading {@link java.nio.ByteBuffer} attributes
+         */
+        public void setByteBufferReadBehavior(ByteBufferReadBehavior value) {
+            byteBufferReadBehavior = value;
+        }
+
+        /**
+         * Configures whether binary attributes are returned as writable copies or read-only views.
+         *
+         * @param value the behavior used when reading {@link java.nio.ByteBuffer} attributes
+         * @return this builder
+         */
+        public Builder withByteBufferReadBehavior(ByteBufferReadBehavior value) {
+            setByteBufferReadBehavior(value);
+            return this;
+        }
+
+        /**
          * @return the current BatchWriteRetryStrategy
          */
         public BatchWriteRetryStrategy getBatchWriteRetryStrategy() {
@@ -430,6 +459,17 @@ public class DynamoDBMapperConfig {
         public DynamoDBMapperConfig build() {
             return new DynamoDBMapperConfig(this);
         }
+    }
+
+    /**
+     * Controls whether binary values are returned as writable copies or read-only views.
+     */
+    public enum ByteBufferReadBehavior {
+        /** Return a writable defensive copy, preserving v1 mapper behavior. */
+        MUTABLE_COPY,
+
+        /** Return a read-only view without copying the binary data. */
+        READ_ONLY
     }
 
     /**
@@ -893,6 +933,7 @@ public class DynamoDBMapperConfig {
     private final PaginationLoadingStrategy paginationLoadingStrategy;
     private final RequestMetricCollector requestMetricCollector;
     private final ConversionSchema conversionSchema;
+    private final ByteBufferReadBehavior byteBufferReadBehavior;
     private final BatchWriteRetryStrategy batchWriteRetryStrategy;
     private final BatchLoadRetryStrategy batchLoadRetryStrategy;
     private final DynamoDBTypeConverterFactory typeConverterFactory;
@@ -909,6 +950,7 @@ public class DynamoDBMapperConfig {
         this.paginationLoadingStrategy = builder.paginationLoadingStrategy;
         this.requestMetricCollector = builder.requestMetricCollector;
         this.conversionSchema = builder.conversionSchema;
+        this.byteBufferReadBehavior = builder.byteBufferReadBehavior;
         this.batchWriteRetryStrategy = builder.batchWriteRetryStrategy;
         this.batchLoadRetryStrategy = builder.batchLoadRetryStrategy;
         this.typeConverterFactory = builder.typeConverterFactory;
@@ -1020,6 +1062,7 @@ public class DynamoDBMapperConfig {
         this.paginationLoadingStrategy = paginationLoadingStrategy;
         this.requestMetricCollector = requestMetricCollector;
         this.conversionSchema = conversionSchema;
+        this.byteBufferReadBehavior = ByteBufferReadBehavior.MUTABLE_COPY;
         this.batchWriteRetryStrategy = batchWriteRetryStrategy;
         this.batchLoadRetryStrategy = batchLoadRetryStrategy;
         this.typeConverterFactory = null;
@@ -1205,6 +1248,13 @@ public class DynamoDBMapperConfig {
      */
     public ConversionSchema getConversionSchema() {
         return conversionSchema;
+    }
+
+    /**
+     * @return the behavior used when reading {@link java.nio.ByteBuffer} attributes
+     */
+    public ByteBufferReadBehavior getByteBufferReadBehavior() {
+        return byteBufferReadBehavior;
     }
 
     /**

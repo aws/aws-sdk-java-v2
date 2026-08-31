@@ -14,27 +14,28 @@
  */
 package software.amazon.awssdk.mapper.dynamodb.marshallers;
 
-import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BooleanAttributeMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * A marshaller that marshals Java {@code Boolean} objects to Dynamodb-native
- * {@code BOOL} attribute values.
+ * A marshaller that marshals immutable {@code SdkBytes} values into DynamoDB Binary
+ * attributes.
  */
-public class BooleanToBooleanMarshaller implements BooleanAttributeMarshaller {
+public class SdkBytesToBinaryMarshaller implements BinaryAttributeMarshaller {
 
-    private static final BooleanToBooleanMarshaller INSTANCE =
-            new BooleanToBooleanMarshaller();
+    private static final SdkBytesToBinaryMarshaller INSTANCE =
+            new SdkBytesToBinaryMarshaller();
 
-    public static BooleanToBooleanMarshaller instance() {
+    public static SdkBytesToBinaryMarshaller instance() {
         return INSTANCE;
     }
 
-    private BooleanToBooleanMarshaller() {
+    private SdkBytesToBinaryMarshaller() {
     }
 
     @Override
     public AttributeValue marshall(Object obj) {
-        return AttributeValue.createBool((Boolean) obj);
+        return AttributeValue.createB((SdkBytes) obj);
     }
 }

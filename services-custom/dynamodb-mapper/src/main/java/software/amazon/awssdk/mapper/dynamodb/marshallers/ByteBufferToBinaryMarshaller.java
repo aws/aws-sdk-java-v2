@@ -38,6 +38,6 @@ public class ByteBufferToBinaryMarshaller implements BinaryAttributeMarshaller {
 
     @Override
     public AttributeValue marshall(Object obj) {
-        return AttributeValue.builder().b(SdkBytes.fromByteBuffer((ByteBuffer) obj)).build();
+        return AttributeValue.createB(SdkBytes.fromByteBuffer((ByteBuffer) obj));
     }
 }

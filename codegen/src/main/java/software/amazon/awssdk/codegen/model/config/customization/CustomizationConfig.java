@@ -369,6 +369,16 @@ public class CustomizationConfig {
     private List<String> generateDirectUnionConstructors = Collections.emptyList();
 
     /**
+     * Map of union shape names to collection members for which to generate trusted, no-copy direct factories.
+     */
+    private Map<String, List<String>> generateTrustedUnionCollectionConstructors = Collections.emptyMap();
+
+    /**
+     * Map of structure shape names to collection members for which to generate trusted builder factories.
+     */
+    private Map<String, List<String>> generateTrustedStructureCollectionBuilders = Collections.emptyMap();
+
+    /**
      * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
      */
     private boolean enableEndpointProviderUriCaching;
@@ -989,5 +999,23 @@ public class CustomizationConfig {
 
     public void setGenerateDirectUnionConstructors(List<String> generateDirectUnionConstructors) {
         this.generateDirectUnionConstructors = generateDirectUnionConstructors;
+    }
+
+    public Map<String, List<String>> getGenerateTrustedUnionCollectionConstructors() {
+        return generateTrustedUnionCollectionConstructors;
+    }
+
+    public void setGenerateTrustedUnionCollectionConstructors(
+        Map<String, List<String>> generateTrustedUnionCollectionConstructors) {
+        this.generateTrustedUnionCollectionConstructors = generateTrustedUnionCollectionConstructors;
+    }
+
+    public Map<String, List<String>> getGenerateTrustedStructureCollectionBuilders() {
+        return generateTrustedStructureCollectionBuilders;
+    }
+
+    public void setGenerateTrustedStructureCollectionBuilders(
+        Map<String, List<String>> generateTrustedStructureCollectionBuilders) {
+        this.generateTrustedStructureCollectionBuilders = generateTrustedStructureCollectionBuilders;
     }
 }

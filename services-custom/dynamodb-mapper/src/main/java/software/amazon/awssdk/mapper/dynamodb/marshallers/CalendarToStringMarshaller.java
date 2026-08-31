@@ -39,7 +39,7 @@ public class CalendarToStringMarshaller implements StringAttributeMarshaller {
 
     @Override
     public AttributeValue marshall(Object obj) {
-        return AttributeValue.builder().s(
-                MapperDateUtils.formatISO8601Date(((Calendar) obj).getTime())).build();
+        return AttributeValue.createS(
+                MapperDateUtils.formatISO8601Date(((Calendar) obj).getTime()));
     }
 }

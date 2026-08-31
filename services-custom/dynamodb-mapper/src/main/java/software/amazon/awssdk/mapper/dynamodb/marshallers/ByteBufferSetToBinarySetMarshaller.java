@@ -50,6 +50,6 @@ public class ByteBufferSetToBinarySetMarshaller
             attributes.add(SdkBytes.fromByteBuffer(b));
         }
 
-        return AttributeValue.builder().bs(attributes).build();
+        return AttributeValue.createBs(attributes);
     }
 }

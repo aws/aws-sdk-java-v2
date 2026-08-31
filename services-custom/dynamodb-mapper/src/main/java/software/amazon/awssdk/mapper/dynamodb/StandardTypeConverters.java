@@ -15,6 +15,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.math.BigDecimal;
@@ -128,6 +129,11 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
             .with(String.class, ToByteBuffer.FromByteArray.join(ToByteArray.FromString))
             .with(java.util.UUID.class, ToByteBuffer.FromUuid)
         ),
+
+        /**
+         * {@link SdkBytes}
+         */
+        SDK_BYTES(ScalarAttributeType.B, new ConverterMap(SdkBytes.class, null)),
 
         /**
          * {@link Calendar}

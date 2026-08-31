@@ -368,6 +368,25 @@ public class StandardModelFactoriesV2UnconvertTest {
     }
 
     @Test
+    public void unconvert_objectListWithExplicitEmptyValue_returnsEmptyList() {
+        AttributeValue value = AttributeValue.builder().l(Collections.emptyList()).build();
+
+        assertEquals(AttributeValue.Type.L, value.type());
+        assertEquals(Collections.emptyList(), unconvert("getObjectList", "setObjectList", value));
+    }
+
+    @Test
+    public void unconvert_objectListWithMultipleUnionMembers_preservesListValue() {
+        AttributeValue value = AttributeValue.builder()
+                .l(AttributeValue.builder().nul(true).build())
+                .s("also-set")
+                .build();
+
+        Assert.assertNull(value.type());
+        assertEquals(Collections.singletonList(null), unconvert("getObjectList", "setObjectList", value));
+    }
+
+    @Test
     public void testSetList() {
         Assert.assertNull(unconvert("getSetList", "setSetList",
                 AttributeValue.builder().nul(true).build()));
@@ -403,6 +422,44 @@ public class StandardModelFactoriesV2UnconvertTest {
                     new HashMap<String, AttributeValue>() {{
                         put("a", AttributeValue.builder().nul(true).build());
                     }}).build()));
+    }
+
+    @Test
+    public void unconvert_objectMapWithExplicitEmptyValue_returnsEmptyMap() {
+        AttributeValue value = AttributeValue.builder().m(Collections.emptyMap()).build();
+
+        assertEquals(AttributeValue.Type.M, value.type());
+        assertEquals(Collections.emptyMap(), unconvert("getMap", "setMap", value));
+    }
+
+    @Test
+    public void unconvert_objectMapWithMultipleUnionMembers_preservesMapValue() {
+        AttributeValue value = AttributeValue.builder()
+                .m(Collections.singletonMap("a", AttributeValue.builder().s("b").build()))
+                .s("also-set")
+                .build();
+
+        Assert.assertNull(value.type());
+        assertEquals(Collections.singletonMap("a", "b"), unconvert("getMap", "setMap", value));
+    }
+
+    @Test
+    public void unconvert_objectCollectionsWithUnsetValue_throwsMappingException() {
+        AttributeValue value = AttributeValue.builder().build();
+
+        assertEquals(AttributeValue.Type.UNKNOWN_TO_SDK_VERSION, value.type());
+        try {
+            unconvert("getObjectList", "setObjectList", value);
+            Assert.fail("Expected DynamoDBMappingException for unset list value");
+        } catch (DynamoDBMappingException expected) {
+            // Expected: unset is different from an explicitly empty list.
+        }
+        try {
+            unconvert("getMap", "setMap", value);
+            Assert.fail("Expected DynamoDBMappingException for unset map value");
+        } catch (DynamoDBMappingException expected) {
+            // Expected: unset is different from an explicitly empty map.
+        }
     }
 
     @Test

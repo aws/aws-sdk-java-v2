@@ -12,29 +12,31 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package software.amazon.awssdk.mapper.dynamodb.marshallers;
+package software.amazon.awssdk.mapper.dynamodb.unmarshallers;
 
-import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BooleanAttributeMarshaller;
+import java.util.HashSet;
+import java.util.Set;
+
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * A marshaller that marshals Java {@code Boolean} objects to Dynamodb-native
- * {@code BOOL} attribute values.
+ * An unmarshaller that unmarshals BinarySet values as sets of immutable {@code SdkBytes} values.
  */
-public class BooleanToBooleanMarshaller implements BooleanAttributeMarshaller {
+public class SdkBytesSetUnmarshaller extends BSUnmarshaller {
 
-    private static final BooleanToBooleanMarshaller INSTANCE =
-            new BooleanToBooleanMarshaller();
+    private static final SdkBytesSetUnmarshaller INSTANCE =
+            new SdkBytesSetUnmarshaller();
 
-    public static BooleanToBooleanMarshaller instance() {
+    public static SdkBytesSetUnmarshaller instance() {
         return INSTANCE;
     }
 
-    private BooleanToBooleanMarshaller() {
+    private SdkBytesSetUnmarshaller() {
     }
 
     @Override
-    public AttributeValue marshall(Object obj) {
-        return AttributeValue.createBool((Boolean) obj);
+    public Object unmarshall(AttributeValue value) {
+        return new HashSet<SdkBytes>(value.bs());
     }
 }

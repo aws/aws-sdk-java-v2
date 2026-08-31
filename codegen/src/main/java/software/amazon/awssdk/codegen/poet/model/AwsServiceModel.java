@@ -46,6 +46,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.codegen.docs.DocumentationBuilder;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -469,6 +470,7 @@ public class AwsServiceModel implements ClassSpec {
                 methodSpecs.add(addModifier(modelMethodOverrides.toStringMethod(shapeModel), FINAL));
                 methodSpecs.add(getValueForField());
                 methodSpecs.addAll(unionMembers());
+                methodSpecs.addAll(trustedStructureCollectionBuilders());
                 break;
         }
 
@@ -511,6 +513,63 @@ public class AwsServiceModel implements ClassSpec {
         return FieldSpec.builder(unionTypeClassName(), "type", PRIVATE, FINAL).build();
     }
 
+    private Collection<MethodSpec> trustedStructureCollectionBuilders() {
+        Map<String, List<String>> trustedMembersByShape =
+            intermediateModel.getCustomizationConfig().getGenerateTrustedStructureCollectionBuilders();
+        trustedMembersByShape.forEach((shapeName, trustedMembers) ->
+            Validate.isTrue(intermediateModel.getShapes().containsKey(shapeName),
+                            "generateTrustedStructureCollectionBuilders references shape '%s' which does not exist "
+                            + "in the model.", shapeName));
+
+        List<String> trustedMembers = trustedMembersByShape.getOrDefault(shapeModel.getShapeName(), emptyList());
+        if (trustedMembers.isEmpty()) {
+            return emptyList();
+        }
+
+        List<MemberModel> members = shapeModel.getMembers();
+        List<MethodSpec> methods = new ArrayList<>();
+        for (String trustedMember : trustedMembers) {
+            Optional<MemberModel> member = members.stream()
+                                                  .filter(m -> m.getC2jName().equals(trustedMember))
+                                                  .findFirst();
+            Validate.isTrue(member.isPresent(),
+                            "Trusted structure collection builder references missing member '%s' on shape '%s'.",
+                            trustedMember, shapeModel.getShapeName());
+            Validate.isTrue(member.get().isList() || member.get().isMap(),
+                            "Trusted structure collection builder references non-collection member '%s' on shape '%s'.",
+                            trustedMember, shapeModel.getShapeName());
+            methods.add(trustedStructureCollectionBuilder(member.get()));
+        }
+        return methods;
+    }
+
+    private MethodSpec trustedStructureCollectionBuilder(MemberModel member) {
+        String memberName = member.getVariable().getVariableName();
+        String factoryName = "builderWith" + capitalize(member.getFluentSetterMethodName()) + "Trusted";
+        TypeName paramType = typeProvider.typeName(member, new TypeNameOptions().useEnumTypes(false));
+        ClassName autoConstruct = member.isMap()
+            ? ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructMap")
+            : ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructList");
+
+        MethodSpec.Builder factory = MethodSpec.methodBuilder(factoryName)
+                                               .addJavadoc("Creates a builder with $N set without defensively copying "
+                                                           + "the collection. The caller must provide an immutable or "
+                                                           + "exclusively owned collection.\n", member.getC2jName())
+                                               .addAnnotation(SdkInternalApi.class)
+                                               .addModifiers(PUBLIC, STATIC)
+                                               .returns(modelBuilderSpecs.builderInterfaceName())
+                                               .addParameter(paramType, memberName)
+                                               .addStatement("$T builder = new $T()",
+                                                             modelBuilderSpecs.builderImplName(),
+                                                             modelBuilderSpecs.builderImplName());
+        factory.beginControlFlow("if ($N == null || $N instanceof $T)", memberName, memberName, autoConstruct);
+        factory.addStatement("return builder");
+        factory.endControlFlow();
+        factory.addStatement("builder.$N = $N", memberName, memberName);
+        factory.addStatement("return builder");
+        return factory.build();
+    }
+
     private Collection<MethodSpec> unionMembers() {
         if (!shapeModel.isUnion()) {
             return emptyList();
@@ -540,6 +599,23 @@ public class AwsServiceModel implements ClassSpec {
                         "Direct union constructors are only supported on Model shapes, not %s (%s)",
                         shapeModel.getShapeType(), shapeModel.getShapeName());
         List<MemberModel> members = shapeModel.getMembers();
+        Map<String, List<String>> trustedMembersByShape =
+            intermediateModel.getCustomizationConfig().getGenerateTrustedUnionCollectionConstructors();
+        trustedMembersByShape.forEach((shapeName, trustedMembers) -> {
+            Validate.isTrue(intermediateModel.getShapes().containsKey(shapeName),
+                            "generateTrustedUnionCollectionConstructors references shape '%s' which does not exist "
+                            + "in the model.", shapeName);
+            Validate.isTrue(intermediateModel.getCustomizationConfig().getGenerateDirectUnionConstructors()
+                                             .contains(shapeName),
+                            "Trusted union collection constructors require direct union constructors for shape '%s'.",
+                            shapeName);
+        });
+        List<String> trustedMembers = trustedMembersByShape.getOrDefault(shapeModel.getShapeName(), emptyList());
+        trustedMembers.forEach(trustedMember ->
+            Validate.isTrue(members.stream().anyMatch(member -> member.getC2jName().equals(trustedMember)
+                                                       && (member.isList() || member.isMap())),
+                            "Trusted union collection constructor references non-collection member '%s' on shape '%s'.",
+                            trustedMember, shapeModel.getShapeName()));
         List<MethodSpec> methods = new ArrayList<>();
 
         MethodSpec.Builder ctor = MethodSpec.constructorBuilder()
@@ -592,8 +668,38 @@ public class AwsServiceModel implements ClassSpec {
             factory.addStatement("$L", directCtorCall(members, member, slotValue));
 
             methods.add(factory.build());
+            if (trustedMembers.contains(member.getC2jName())) {
+                methods.add(trustedDirectUnionCollectionConstructor(members, member, paramType));
+            }
         }
         return methods;
+    }
+
+    private MethodSpec trustedDirectUnionCollectionConstructor(List<MemberModel> members,
+                                                               MemberModel member,
+                                                               TypeName paramType) {
+        String memberName = member.getVariable().getVariableName();
+        String factoryName = "create" + capitalize(member.getFluentSetterMethodName()) + "Trusted";
+        ClassName autoConstruct = member.isMap()
+            ? ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructMap")
+            : ClassName.get("software.amazon.awssdk.core.util", "SdkAutoConstructList");
+        String unmodifiableMethod = member.isMap() ? "unmodifiableMap" : "unmodifiableList";
+
+        MethodSpec.Builder factory = MethodSpec.methodBuilder(factoryName)
+                                               .addJavadoc("Creates the $N union member without defensively copying the "
+                                                           + "collection. The caller must provide an exclusively owned "
+                                                           + "collection and relinquish all mutable references to it.\n",
+                                                           member.getC2jName())
+                                               .addAnnotation(SdkInternalApi.class)
+                                               .addModifiers(PUBLIC, STATIC)
+                                               .returns(className())
+                                               .addParameter(paramType, memberName);
+        factory.beginControlFlow("if ($N == null || $N instanceof $T)", memberName, memberName, autoConstruct);
+        factory.addStatement("return UNSET_INSTANCE");
+        factory.endControlFlow();
+        factory.addStatement("$T trusted = $T.$N($N)", paramType, Collections.class, unmodifiableMethod, memberName);
+        factory.addStatement("$L", directCtorCall(members, member, "trusted"));
+        return factory.build();
     }
 
     private FieldSpec directUnionUnsetConstant() {

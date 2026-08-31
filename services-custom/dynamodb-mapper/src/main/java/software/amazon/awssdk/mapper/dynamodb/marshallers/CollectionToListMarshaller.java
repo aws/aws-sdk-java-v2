@@ -56,7 +56,7 @@ public class CollectionToListMarshaller implements ListAttributeMarshaller {
         for (Object o : objects) {
             AttributeValue value;
             if (o == null) {
-                value = AttributeValue.builder().nul(true).build();
+                value = AttributeValue.createNul(true);
             } else {
                 value = memberMarshaller.marshall(o);
             }
@@ -64,7 +64,7 @@ public class CollectionToListMarshaller implements ListAttributeMarshaller {
             values.add(value);
         }
 
-        return AttributeValue.builder().l(values).build();
+        return AttributeValue.createLTrusted(values);
     }
 
     public ArgumentMarshaller getMemberMarshaller() {
