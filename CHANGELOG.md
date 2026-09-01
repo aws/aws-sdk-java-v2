@@ -1,4 +1,124 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.9__ __2026-08-31__
+## __Agent Registry__
+  - ### Features
+    - Release HTTP and AGUI descriptors to the dataplane model
+
+# __2.54.8__ __2026-08-31__
+## __AWS Control Tower__
+  - ### Features
+    - Updated the descriptions for the AWS Control Tower ListEnabledControls API parameters to make them more accurate and intuitive.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds support for Slack bidirectional communication configuration in AWS DevOps Agent agent spaces.
+
+## __AWS Support__
+  - ### Features
+    - AWS Support now allows up to 10 attachments (150 MB each) per case correspondence, up from 3 at 5 MB. Customers can share large diagnostic logs, heap dumps, and packet captures directly in cases to reduce back-and-forth and speed up resolution. Available in US East, US West, and Europe (Ireland).
+
+## __Agent Registry__
+  - ### Features
+    - AWS Agent Registry becomes Generally Available
+
+## __Agent Registry Control__
+  - ### Features
+    - AWS Agent Registry becomes Generally Available
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces new APIs for segment membership events allowing segment definition membership events to be exported to a kinesis stream for downstream processing. Additionally, includes new calculated attribute statistic and 2 new segment dimension types.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for global routing on Amazon Connect Global Resiliency instances. New APIs GetCrossRegionRouting and UpdateCrossRegionRouting allow you to view and control cross-region contact routing between linked instances, so both Regions are active at all times.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Adds support for data delivery to Amazon S3 Tables (Apache Iceberg) and general purpose Amazon S3 buckets with new CreateChannel, UpdateChannel, DeleteChannel, DescribeChannel, and ListChannels APIs for Amazon Kinesis Data Streams.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging SMS now returns ConditionalBehavior on DescribeRegistrationFieldDefinitions, allowing you to programmatically discover which registration fields are required, optional, or disallowed based on the values of other fields in the same form.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds support for managing apps in Amazon QuickSight with ListApps, SearchApps, DescribeApp, DescribeAppPermissions, UpdateAppPermissions, and DeleteApp
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Batch Transform now supports G6e instances, powered by NVIDIA L40S Tensor Core GPUs. G6e instances are the most cost-efficient GPU instances for deploying generative AI models and the highest-performance GPU instances for spatial computing workloads.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Amazon WorkSpaces Core managed instances now support nested virtualization. Customers can enable nested virtualization with supported instance types at launch via CpuOptions.NestedVirtualization in CreateWorkspaceInstance to run hypervisors and virtual machines inside their WorkSpaces Instance.
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Amazon MSK Connect now supports restarting newly created connectors via the asynchronous RestartConnector API. Restart all tasks or only failed tasks, while preserving configuration and committed offsets. This returns a connector operation ARN that you can track with DescribeConnectorOperation.
+
+# __2.54.7__ __2026-08-28__
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Reduce memory allocations for non-streaming requests made with asycn clients.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Adds an optional syncSchedule field to CreateDataSource and UpdateDataSource for Managed Knowledge Bases data source connectors, so a data source can sync automatically on a daily, weekly, or monthly schedule.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - AgentCore Memory now supports direct ingestion into long-term memory via IngestData API
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adds two new operations - GetClientToken which allows M2M auth through the SDK, and DescribeTermsByClient to find which Terms are associated with a user-pool client without knowing the Terms resource id.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Amazon Elastic Container Service - This release adds support for early success criteria on ECS rolling deployments, letting deployment complete once a configurable percentage of tasks are healthy, with configurable BLOCKING (required) or DEFERRED (asynchronous) cleanup of previous service revisions.
+
+## __Amazon HealthLake__
+  - ### Features
+    - New HealthLake API, RestoreFHIRDatastore, providing the capability to restore active datastores to a point in time within the last 30 days or recover a deleted datastore from the delete snapshot.
+
+## __Partner Central Selling API__
+  - ### Features
+    - Releasing PARC, new APN Program that lets sellers add solftware revenue details to aws opportunity summary
+
+# __2.54.6__ __2026-08-27__
+## __AWS CodeDeploy__
+  - ### Features
+    - Added a deploymentMode parameter to CreateDeployment. Set it to RESTART to restart an EC2 and on-premises fleet, using the last successful revision, honoring Deployment Configuration.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Added resultCount to QueryStatistics in GetQueryResults. This field returns the total number of output rows in the final result set, helping customers programmatically determine whether a query produced results after all operations including post-aggregation filters.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Adds the AdminDeleteSoftwareToken API operation, enabling administrators to remove a user's registered TOTP (software token) MFA configuration from a user pool.
+
+## __Amazon DataZone__
+  - ### Features
+    - Add cascadeDelete to DeleteDomain. When specified, DataZone recursively deletes all projects, environments, subscriptions, and their underlying AWS resources before removing the domain. Deletion progress is reported via deleteProgress and resource failures via failureReasons on GetDomain.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 allows AMI owners to define compatible instance types on their AMIs, blocking RunInstances calls automatically for launches on non-permitted instance types.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Updating SDK and CLI documentation for AttachDataSource API.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adding support for the full snapshot size, in bytes, of DB instance snapshots.
+
+## __Lambda MicroVMs__
+  - ### Features
+    - Added InsufficientCapacityException to RunMicrovm for capacity-related failures. Added lifecycle status field (AVAILABLE, DEPRECATED) to ListManagedMicrovmImageVersions. Added ConflictException to CreateMicrovmAuthToken and CreateMicrovmShellAuthToken for unregistered MicroVMs.
+
 # __2.54.5__ __2026-08-26__
 ## __AWS CRT Async HTTP Client__
   - ### Bugfixes
