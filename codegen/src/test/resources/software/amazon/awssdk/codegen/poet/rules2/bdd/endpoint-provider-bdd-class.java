@@ -1,5 +1,7 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -13,16 +15,24 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class DefaultQueryEndpointProvider implements QueryEndpointProvider {
+  private volatile CacheEntry cache;
+
   @Override
   public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams endpointParams) {
+    // Single-entry result cache: reuse the last endpoint when the params still match.
+    CacheEntry cached = this.cache;
+    if (cached != null && cacheParamsMatch(endpointParams, cached.params)) {
+      return CompletableFuture.completedFuture(cached.endpoint);
+    }
     try {
       Evaluator evaluator = new Evaluator();
       evaluator.params = endpointParams;
       evaluator.region = endpointParams.region() == null ? null : endpointParams.region().id();
-      Endpoint result = evaluator.nodeP14();
+      Endpoint result = evaluator.nodeP21();
       if (result == null) {
         return CompletableFutureUtils.failedFuture(SdkClientException.create("Rule engine did not reach an error or endpoint result"));
       }
+      this.cache = new CacheEntry(endpointParams, result);
       return CompletableFuture.completedFuture(result);
     } catch (SdkClientException e) {
       String errorMsg = e.getMessage();
@@ -35,12 +45,51 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     }
   }
 
+  private static boolean cacheParamsMatch(QueryEndpointParams a, QueryEndpointParams b) {
+    return Objects.equals(a.useDualStack(), b.useDualStack())
+            && Objects.equals(a.useFips(), b.useFips())
+            && Objects.equals(a.region(), b.region())
+            && Objects.equals(a.stringContextParam(), b.stringContextParam())
+            && Objects.equals(a.endpoint(), b.endpoint())
+            && Objects.equals(a.staticStringParam(), b.staticStringParam())
+            && Objects.equals(a.operationContextParam(), b.operationContextParam())
+            && cacheFirstElementsMatch(a.arnList(), b.arnList())
+            && cacheListsMatch(a.customEndpointArray(), b.customEndpointArray());
+  }
+
+  private static boolean cacheListsMatch(List<String> a, List<String> b) {
+    if (a == b) return true;
+    if (a == null || b == null) return false;
+    int size = a.size();
+    if (size != b.size()) return false;
+    // Bounded so that a long list cannot make the cache check cost more than resolving.
+    if (size > 4) return false;
+    for (int i = 0; i < size; i++) {
+      if (!Objects.equals(a.get(i), b.get(i))) return false;
+    }
+    return true;
+  }
+
+  private static boolean cacheFirstElementsMatch(List<String> a, List<String> b) {
+    if (a == b) return true;
+    // isSet can tell an absent list from an empty one, so presence is part of the key.
+    if (a == null || b == null) return false;
+    // Nothing past element 0 can reach the endpoint.
+    String firstA = a.isEmpty() ? null : a.get(0);
+    String firstB = b.isEmpty() ? null : b.get(0);
+    return Objects.equals(firstA, firstB);
+  }
+
   private static final class Evaluator {
     QueryEndpointParams params;
 
     String region;
 
     RulePartition partitionResult;
+
+    String firstArn;
+
+    String secondEndpoint;
 
     private Endpoint nodeP0() {
       return null;
@@ -130,6 +179,48 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
               : nodeP13();
     }
 
+    private Endpoint nodeP15() {
+      return params.stringContextParam() != null
+              ? nodeP16()
+              : nodeP16();
+    }
+
+    private Endpoint nodeP16() {
+      return params.staticStringParam() != null
+              ? nodeP17()
+              : nodeP17();
+    }
+
+    private Endpoint nodeP17() {
+      return params.operationContextParam() != null
+              ? nodeP18()
+              : nodeP18();
+    }
+
+    private Endpoint nodeP18() {
+      return params.customEndpointArray() != null
+              ? nodeP19()
+              : nodeP19();
+    }
+
+    private Endpoint nodeP19() {
+      return cond12()
+              ? nodeP14()
+              : nodeP14();
+    }
+
+    private Endpoint nodeP20() {
+      return params.arnList() != null
+              ? nodeP15()
+              : nodeP15();
+    }
+
+    private Endpoint nodeP21() {
+      return cond14()
+              ? nodeP20()
+              : nodeP20();
+    }
+
     private boolean cond3() {
       partitionResult = RulesFunctions.awsPartition(region);
       return partitionResult != null;
@@ -145,6 +236,16 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private boolean cond7() {
       return ("aws-us-gov".equals(partitionResult.name()));
+    }
+
+    private boolean cond12() {
+      firstArn = RulesFunctions.listAccess(params.arnList(), 0);
+      return firstArn != null;
+    }
+
+    private boolean cond14() {
+      secondEndpoint = RulesFunctions.listAccess(params.customEndpointArray(), 1);
+      return secondEndpoint != null;
     }
 
     private Endpoint result0() {
@@ -193,6 +294,17 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private Endpoint result11() {
       throw SdkClientException.create("Invalid Configuration: Missing Region");
+    }
+  }
+
+  private static final class CacheEntry {
+    final QueryEndpointParams params;
+
+    final Endpoint endpoint;
+
+    CacheEntry(QueryEndpointParams params, Endpoint endpoint) {
+      this.params = params;
+      this.endpoint = endpoint;
     }
   }
 }

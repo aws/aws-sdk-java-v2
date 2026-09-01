@@ -19,12 +19,23 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.codegen.poet.PoetMatchers.generatesTo;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.hamcrest.MatcherAssert;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 
 public class BddEndpointProviderSpecTest {
 
+    /**
+     * The trailing nodes of {@code endpoint-bdd-default-regional.json} were appended by hand with {@code high == low},
+     * so that each parameter is read by a condition without altering any resolved endpoint. That is the one shape a
+     * reduced BDD can never contain, which is why it shows up in the golden file as degenerate {@code nodeP} methods
+     * whose branches are identical. A future peephole pass that collapses {@code high == low} nodes would silently make
+     * those parameters unreferenced and void the cache-key coverage the tests below rely on.
+     */
     @Test
     void endpointProviderClass_simpleBdd_generatesExpectedCode() {
         BddEndpointProviderSpec spec = new BddEndpointProviderSpec(
@@ -144,6 +155,165 @@ public class BddEndpointProviderSpecTest {
         assertThat(generated).contains("nodeN1()");
         // nodeP2's false branch should reference nodeN1 (the complement edge)
         assertThat(generated).contains("Endpoint nodeN1()");
+    }
+
+    /**
+     * The invariant the result cache depends on: every parameter the BDD <em>reads</em> must appear in the generated
+     * key. A parameter left out is not a slow cache, it is a cache that returns an endpoint resolved for a different
+     * value of that parameter, and nothing else in the test suite would catch it.
+     *
+     * <p>Asserted against the generated source rather than an intermediate model, so it holds regardless of how the
+     * comparison is built.
+     */
+    @Test
+    void cacheKeyComparesEveryReferencedParameter() {
+        // The simple BDD declares 10 parameters and reads 9; unusedParam is the one it does not read.
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints())))
+            .containsExactlyInAnyOrder("useDualStack", "useFips", "region", "stringContextParam", "endpoint",
+                                       "staticStringParam", "operationContextParam", "arnList",
+                                       "customEndpointArray");
+
+        // The S3 BDD declares 17 and reads 14; Key, Prefix and CopySource are vestigial declarations.
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints())))
+            .containsExactlyInAnyOrder("useFips", "useDualStack", "forcePathStyle", "accelerate", "useGlobalEndpoint",
+                                       "useObjectLambdaEndpoint", "disableAccessPoints",
+                                       "disableMultiRegionAccessPoints", "useArnRegion",
+                                       "useS3ExpressControlEndpoint", "disableS3ExpressSessionAuth", "region",
+                                       "bucket", "endpoint");
+
+        // The complement BDD declares and reads exactly two.
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithComplementBddEndpoints())))
+            .containsExactlyInAnyOrder("region", "endpoint");
+    }
+
+    /**
+     * A parameter no condition and no result reads cannot change the resolved endpoint, so comparing it could only turn
+     * hits into misses that resolve to the endpoint already cached.
+     *
+     * <p>This is what makes the cache worth having for S3, whose rule set declares {@code Key}, {@code Prefix} and
+     * {@code CopySource} and reads none of them. {@code Key} changes on essentially every object request, so including
+     * it would mean the cache almost never hits.
+     */
+    @Test
+    void cacheKeyOmitsParametersTheBddNeverReads() {
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints())))
+            .as("a parameter nothing reads must not force a cache miss")
+            .doesNotContain("unusedParam");
+
+        assertThat(cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithBddEndpoints())))
+            .as("S3 declares Key, Prefix and CopySource but reads none of them")
+            .doesNotContain("key", "prefix", "copySource")
+            .contains("bucket");
+    }
+
+    /**
+     * The generated key compares booleans first, then the strings whose reference the SDK keeps stable, then everything
+     * else. Ordering cannot change the result - the chain compares every parameter before returning true - it only
+     * decides how quickly a mismatch is found, so this is a performance property rather than a correctness one. It is
+     * pinned because the ordering is the entire reason the grouping exists; if it silently degraded to declaration
+     * order the code would still be correct and the benefit would be gone.
+     */
+    @Test
+    void cacheKeyOrdersBooleansThenStableStringsThenTheRest() {
+        List<String> order = cacheKeyGetterOrder(
+            new BddEndpointProviderSpec(ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()));
+
+        assertThat(order).containsExactly("useDualStack", "useFips",           // booleans
+                                          "region", "stringContextParam",     // reference-stable strings
+                                          "endpoint", "staticStringParam",    // everything else, declaration order
+                                          "operationContextParam", "arnList", "customEndpointArray");
+    }
+
+    /**
+     * A list read as a whole needs a bounded comparison, so it routes through the emitted helper rather than
+     * {@code Objects.equals}, whose {@code List.equals} would walk every element however long the list is.
+     */
+    @Test
+    void listReadAsAWholeUsesTheBoundedHelper() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).contains("cacheListsMatch(a.customEndpointArray(), b.customEndpointArray())");
+        assertThat(generated).contains("if (size > 4) return false");
+    }
+
+    /**
+     * When the rules can only see whether a list is present and what its first element is, the rest of the list cannot
+     * reach the endpoint, so the key compares presence and element 0. This is the DynamoDB shape: it reads
+     * {@code ResourceArnList} through {@code isSet} and {@code getAttr(ResourceArnList, "[0]")} and nothing else, and
+     * comparing the whole list costs more than half of a regional resolution.
+     *
+     * <p>The {@code isSet} guard is not incidental. The rules language requires a null check before an indexed access,
+     * so every real model that reads {@code list[0]} also reads {@code isSet(list)}; if the null check disqualified the
+     * parameter this case would never fire in production.
+     *
+     * <p>Also asserts the generated provider really does read only element 0, so the two halves cannot drift apart: were
+     * a read past the head to appear, this comparison would silently become wrong.
+     */
+    @Test
+    void listReadOnlyAtIndexZeroComparesPresenceAndTheFirstElement() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).contains("cacheFirstElementsMatch(a.arnList(), b.arnList())");
+        assertThat(generated).doesNotContain("cacheListsMatch(a.arnList()");
+        assertThat(generated)
+            .as("the first-element comparison is only valid while the provider reads nothing past element 0")
+            .contains("RulesFunctions.listAccess(params.arnList(), 0)")
+            .doesNotContain("RulesFunctions.listAccess(params.arnList(), 1)");
+        assertThat(generated)
+            .as("isSet distinguishes an absent list from an empty one, so presence stays part of the key")
+            .contains("if (a == null || b == null) return false");
+    }
+
+    /**
+     * A read past the head disqualifies the first-element comparison, because elements beyond the first can then reach
+     * the endpoint. Pinned because the difference between the two helpers is a correctness boundary, not a preference.
+     */
+    @Test
+    void listReadPastTheHeadIsComparedInFull() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithSimpleBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).contains("cacheListsMatch(a.customEndpointArray(), b.customEndpointArray())");
+        assertThat(generated).doesNotContain("cacheFirstElementsMatch(a.customEndpointArray()");
+        assertThat(generated).contains("RulesFunctions.listAccess(params.customEndpointArray(), 1)");
+    }
+
+    /**
+     * Neither helper is worth emitting when nothing needs it, and the S3 BDD keeps no list parameter in its key.
+     */
+    @Test
+    void listHelpersAreOmittedWhenNoListParameterIsInTheKey() {
+        String generated = new BddEndpointProviderSpec(
+            ClientTestModels.queryServiceModelsWithBddEndpoints()).poetSpec().toString();
+
+        assertThat(generated).doesNotContain("cacheListsMatch");
+        assertThat(generated).doesNotContain("cacheFirstElementsMatch");
+    }
+
+    /**
+     * Returns the parameter getters referenced by the generated {@code cacheParamsMatch}, in the order they are
+     * compared.
+     */
+    private static List<String> cacheKeyGetterOrder(BddEndpointProviderSpec spec) {
+        String generated = spec.poetSpec().toString();
+        int start = generated.indexOf("boolean cacheParamsMatch(");
+        assertThat(start).as("generated provider must contain cacheParamsMatch").isNotNegative();
+        int end = generated.indexOf(";", start);
+        String body = generated.substring(start, end);
+
+        List<String> getters = new ArrayList<>();
+        Matcher matcher = Pattern.compile("\\ba\\.(\\w+)\\(\\)").matcher(body);
+        while (matcher.find()) {
+            getters.add(matcher.group(1));
+        }
+        return getters;
     }
 
     /**

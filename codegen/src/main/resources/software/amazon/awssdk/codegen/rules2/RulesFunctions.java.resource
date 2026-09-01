@@ -48,7 +48,44 @@ public class RulesFunctions {
         return args[args.length - 1];
     }
 
+    /**
+     * Splits {@code value} around {@code delimiter} into at most {@code limit} parts, or into as many parts
+     * as there are when {@code limit} is 0.
+     *
+     * <p>None of the three arguments is optional. The rules language types {@code value} as a plain string,
+     * which its type checker only permits once the value is known to be set, and the specification requires a
+     * delimiter that is neither null nor empty and a limit that is not negative. A violation therefore means
+     * the rule set, or the code generated from it, is wrong - not that the request was unusual - so each is
+     * raised as an {@link SdkClientException} naming the offending argument. Generated providers surface that
+     * as a failed resolution rather than letting it escape as an unchecked exception.
+     *
+     * <p>The checks precede the {@code limit == 1} shortcut deliberately. That shortcut returns before either
+     * string is dereferenced, so validating after it would let {@code split(null, ",", 1)} return a list
+     * holding null, which reads downstream as an unset value and quietly redirects the rule rather than
+     * failing.
+     *
+     * @throws SdkClientException if {@code value} is null, if {@code delimiter} is null or empty, or if
+     *         {@code limit} is negative.
+     */
     public static List<String> split(String value, String delimiter, int limit) {
+        if (value == null) {
+            throw SdkClientException.create(
+                "Cannot split a null value. The endpoint rules language requires a value to be set before it "
+                + "is split, so this is a defect in the rule set or in the provider generated from it.");
+        }
+        if (delimiter == null || delimiter.isEmpty()) {
+            // An empty delimiter is the dangerous one: indexOf("") matches at the current position forever, so
+            // an unlimited split would accumulate empty strings until the heap is gone.
+            throw SdkClientException.create(
+                "Cannot split on " + (delimiter == null ? "a null" : "an empty") + " delimiter. The endpoint "
+                + "rules specification requires a delimiter that is neither null nor empty.");
+        }
+        if (limit < 0) {
+            throw SdkClientException.create(
+                "Cannot split with a negative limit (" + limit + "). The endpoint rules specification requires "
+                + "a limit of 0, meaning unlimited, or greater.");
+        }
+
         if (limit == 1) {
             return Collections.singletonList(value);
         }
@@ -58,7 +95,9 @@ public class RulesFunctions {
         final int delimLen = delimiter.length();
         // Unlimited split if limit == 0
         final int maxSplits = (limit == 0) ? Integer.MAX_VALUE : limit - 1;
-        List<String> result = new ArrayList<>(Math.min(limit, 8));
+        // limit 0 means unlimited, so it carries no size hint; Math.min would turn it into a capacity of zero
+        // and make the list regrow from empty on the most common call shape.
+        List<String> result = new ArrayList<>(limit == 0 ? 8 : Math.min(limit, 8));
         int fromIndex = 0;
         int splits = 0;
         while (splits < maxSplits) {
@@ -249,8 +288,11 @@ public class RulesFunctions {
      *
      * <p>{@link RulePartition} is immutable and is a pure function of the matched {@link Partition},
      * of which there are only a handful, loaded once. The instances are therefore built up front in
-     * {@link #loadPartitionData()} and shared, so this method allocates nothing and holds no
-     * per-call state.
+     * {@link #loadPartitionData()} and shared, so this method allocates nothing on any path that
+     * resolves, and holds no per-call state.
+     *
+     * @throws SdkClientException if the region matches no partition and the loaded metadata declares no
+     *         'aws' partition to fall back to.
      */
     public static RulePartition awsPartition(String regionName) {
         PartitionData data = PARTITION_DATA.value();
@@ -271,6 +313,19 @@ public class RulesFunctions {
         }
 
         // Couldn't find the region by name or pattern matching. Fallback to 'aws' partition.
+        //
+        // Only this path needs 'aws', so it is also the only path that can reject partition metadata for
+        // lacking it. Validating at load instead would refuse every region, including the ones the
+        // metadata does describe. Returning null is not an option either: generated code null-checks the
+        // result and would read null as "condition not satisfied", quietly taking a different rule branch.
+        if (data.awsRulePartition == null) {
+            throw SdkClientException.create(
+                "Region '" + regionName + "' matched no partition by name or by region pattern, and the "
+                + "partition metadata in use does not declare the 'aws' partition that is the fallback for "
+                + "an unmatched region. Check the partitions file supplied through the aws.partitionsFile "
+                + "system property, the AWS_PARTITIONS_FILE environment variable, or a "
+                + "software/amazon/awssdk/global/partitions.json resource on the classpath.");
+        }
         return data.awsRulePartition;
     }
 
@@ -426,22 +481,17 @@ public class RulesFunctions {
             }
         }
 
-        // awsPartition falls back to the 'aws' partition for any region it cannot match. Fail loudly
-        // here rather than returning null from awsPartition, which generated code null-checks and
-        // would silently treat as "condition not satisfied", taking a different rule branch.
-        if (awsRulePartition == null) {
-            throw SdkClientException.create(
-                "Endpoint partition metadata is missing the 'aws' partition, which is required as the "
-                + "fallback for unmatched regions. This indicates a corrupt or incomplete partitions.json.");
-        }
-
+        // Stays null when the metadata declares no 'aws' partition. That only matters for a region this
+        // data cannot match, so awsPartition raises it there rather than failing the load and taking the
+        // regions the metadata does describe down with it.
         return new PartitionData(entries, regionMap, awsRulePartition);
     }
 
     private static final class PartitionData {
         private final List<PartitionEntry> partitions;
         private final Map<String, RulePartition> regionMap;
-        // Fallback used when a region matches neither a known region name nor a partition pattern.
+        // Fallback used when a region matches neither a known region name nor a partition pattern. Null if
+        // the loaded metadata declares no 'aws' partition, which only fails the requests that need it.
         private final RulePartition awsRulePartition;
 
         private PartitionData(List<PartitionEntry> partitions, Map<String, RulePartition> regionMap,

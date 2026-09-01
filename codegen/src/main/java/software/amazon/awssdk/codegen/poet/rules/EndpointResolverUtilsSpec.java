@@ -22,11 +22,13 @@ import com.fasterxml.jackson.jr.stree.JrsBoolean;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
+import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -34,6 +36,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.lang.model.element.Modifier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
@@ -119,6 +123,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
 
         b.addMethod(setStaticContextParamsMethod());
         addStaticContextParamMethods(b);
+        addStaticListFields(b);
 
         b.addMethod(authSchemeWithEndpointSignerPropertiesMethod());
 
@@ -342,9 +347,8 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
                     b.addStatement("params.$N($L)", setterName, ((JrsBoolean) value).booleanValue());
                     break;
                 case START_ARRAY:
-                    JrsArray arrayValue = (JrsArray) value;
-                    CodeBlock arrayCode = endpointRulesSpecUtils.treeNodeToLiteral(arrayValue);
-                    b.addStatement("params.$N($L)", setterName, arrayCode);
+                    String fieldName = staticListFieldName(opModel, n);
+                    b.addStatement("params.$N($N)", setterName, fieldName);
                     break;
                 default:
                     throw new RuntimeException("Don't know how to set parameter of type " + value.asToken());
@@ -356,6 +360,57 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
 
     private String staticContextParamsMethodName(OperationModel opModel) {
         return opModel.getMethodName() + "StaticContextParams";
+    }
+
+    /**
+     * Generates the name of the {@code static final List<String>} field holding the static array value of
+     * {@code paramName} for {@code opModel}.
+     *
+     * <p>Format: {@code STATIC_LIST_{OPERATION}_{PARAM}}
+     */
+    private static String staticListFieldName(OperationModel opModel, String paramName) {
+        return "STATIC_LIST_" + screamCase(opModel.getOperationName()) + "_" + screamCase(paramName);
+    }
+
+    private static String screamCase(String word) {
+        return Stream.of(CodegenNamingUtils.splitOnWordBoundaries(word))
+                     .map(s -> s.toUpperCase(Locale.US))
+                     .collect(Collectors.joining("_"));
+    }
+
+    /**
+     * Generates a {@code private static final List<String>} field for every {@code staticContextParams} entry whose
+     * value is an array, so that {@code setStaticContextParams} hands the same list reference to the endpoint params
+     * builder on every call rather than constructing a new list each time.
+     */
+    private void addStaticListFields(TypeSpec.Builder classBuilder) {
+        ParameterizedTypeName listOfString = ParameterizedTypeName.get(List.class, String.class);
+
+        model.getOperations().forEach((opName, opModel) -> {
+            Map<String, StaticContextParam> statics = opModel.getStaticContextParams();
+            if (CollectionUtils.isNullOrEmpty(statics)) {
+                return;
+            }
+            statics.forEach((paramName, scp) -> {
+                TreeNode value = scp.getValue();
+                if (value.asToken() != JsonToken.START_ARRAY) {
+                    return;
+                }
+                JrsArray arrayValue = (JrsArray) value;
+                CodeBlock initializer;
+                if (arrayValue.size() == 0) {
+                    initializer = CodeBlock.of("$T.emptyList()", Collections.class);
+                } else {
+                    initializer = CodeBlock.of("$T.unmodifiableList($L)", Collections.class,
+                                               endpointRulesSpecUtils.treeNodeToLiteral(arrayValue));
+                }
+                FieldSpec field = FieldSpec.builder(listOfString, staticListFieldName(opModel, paramName),
+                                                    Modifier.PRIVATE, Modifier.STATIC, Modifier.FINAL)
+                                           .initializer(initializer)
+                                           .build();
+                classBuilder.addField(field);
+            });
+        });
     }
 
     private boolean hasStaticContextParams(OperationModel opModel) {

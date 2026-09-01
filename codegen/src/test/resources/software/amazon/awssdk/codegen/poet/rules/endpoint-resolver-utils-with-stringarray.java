@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.samplesvc.endpoints.internal;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
@@ -28,6 +29,10 @@ import software.amazon.awssdk.utils.CollectionUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class SampleSvcEndpointResolverUtils {
+  private static final List<String> STATIC_LIST_EMPTY_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.emptyList();
+
+  private static final List<String> STATIC_LIST_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.unmodifiableList(Arrays.asList("staticValue1"));
+
   private SampleSvcEndpointResolverUtils() {
   }
 
@@ -57,12 +62,12 @@ public final class SampleSvcEndpointResolverUtils {
 
   private static void emptyStaticContextOperationStaticContextParams(
       SampleSvcEndpointParams.Builder params) {
-    params.stringArrayParam(Arrays.asList());
+    params.stringArrayParam(STATIC_LIST_EMPTY_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM);
   }
 
   private static void staticContextOperationStaticContextParams(
       SampleSvcEndpointParams.Builder params) {
-    params.stringArrayParam(Arrays.asList("staticValue1"));
+    params.stringArrayParam(STATIC_LIST_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM);
   }
 
   public static <T extends Identity> SelectedAuthScheme<T> authSchemeWithEndpointSignerProperties(

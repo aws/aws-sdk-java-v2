@@ -26,6 +26,36 @@
             "required": false,
             "documentation": "Override the endpoint used to send this request",
             "type": "string"
+        },
+        "stringContextParam": {
+            "required": false,
+            "documentation": "A client context parameter, so the cache key compares it early as reference-stable.",
+            "type": "string"
+        },
+        "staticStringParam": {
+            "required": false,
+            "documentation": "Bound to a per-operation static literal.",
+            "type": "string"
+        },
+        "operationContextParam": {
+            "required": false,
+            "documentation": "Bound to a request member, so it can change per request.",
+            "type": "string"
+        },
+        "arnList": {
+            "required": false,
+            "documentation": "Read only as arnList[0], so the cache key compares just the first element.",
+            "type": "stringArray"
+        },
+        "customEndpointArray": {
+            "required": false,
+            "documentation": "Read as a whole, so the cache key compares every element.",
+            "type": "stringArray"
+        },
+        "unusedParam": {
+            "required": false,
+            "documentation": "Declared but read by no condition and no result, so the cache key must leave it out.",
+            "type": "string"
         }
     },
     "conditions": [
@@ -116,6 +146,66 @@
                     ]
                 }
             ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "stringContextParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "staticStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "operationContextParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "customEndpointArray"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "arnList"
+                },
+                "[0]"
+            ],
+            "assign": "FirstArn"
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "arnList"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "customEndpointArray"
+                },
+                "[1]"
+            ],
+            "assign": "SecondEndpoint"
         }
     ],
     "results": [
@@ -206,7 +296,7 @@
             "type": "error"
         }
     ],
-    "root": 15,
-    "nodeCount": 15,
-    "nodes": "/////wAAAAH/////AAAABAX14QIF9eEDAAAAAgX14QEAAAACAAAABgX14QQF9eEFAAAABQAAAAQF9eEFAAAABwX14QYF9eEHAAAABQAAAAYF9eEIAAAABAAAAAUAAAAHAAAAAwAAAAgF9eEMAAAABgX14QkF9eEKAAAABAAAAAoF9eELAAAAAwAAAAsF9eEMAAAAAgAAAAkAAAAMAAAAAQAAAA0F9eEMAAAAAAAAAAMAAAAO"
+    "root": 22,
+    "nodeCount": 22,
+    "nodes": "/////wAAAAH/////AAAABAX14QIF9eEDAAAAAgX14QEAAAACAAAABgX14QQF9eEFAAAABQAAAAQF9eEFAAAABwX14QYF9eEHAAAABQAAAAYF9eEIAAAABAAAAAUAAAAHAAAAAwAAAAgF9eEMAAAABgX14QkF9eEKAAAABAAAAAoF9eELAAAAAwAAAAsF9eEMAAAAAgAAAAkAAAAMAAAAAQAAAA0F9eEMAAAAAAAAAAMAAAAOAAAACAAAABEAAAARAAAACQAAABIAAAASAAAACgAAABMAAAATAAAACwAAABQAAAAUAAAADAAAAA8AAAAPAAAADQAAABAAAAAQAAAADgAAABUAAAAV"
 }

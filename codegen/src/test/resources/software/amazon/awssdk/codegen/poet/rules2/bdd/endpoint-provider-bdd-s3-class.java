@@ -1,6 +1,7 @@
 package software.amazon.awssdk.services.query.endpoints.internal;
 
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -18,8 +19,15 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class DefaultQueryEndpointProvider implements QueryEndpointProvider {
+  private volatile CacheEntry cache;
+
   @Override
   public CompletableFuture<Endpoint> resolveEndpoint(QueryEndpointParams endpointParams) {
+    // Single-entry result cache: reuse the last endpoint when the params still match.
+    CacheEntry cached = this.cache;
+    if (cached != null && cacheParamsMatch(endpointParams, cached.params)) {
+      return CompletableFuture.completedFuture(cached.endpoint);
+    }
     try {
       Evaluator evaluator = new Evaluator();
       evaluator.params = endpointParams;
@@ -28,6 +36,7 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
       if (result == null) {
         return CompletableFutureUtils.failedFuture(SdkClientException.create("Rule engine did not reach an error or endpoint result"));
       }
+      this.cache = new CacheEntry(endpointParams, result);
       return CompletableFuture.completedFuture(result);
     } catch (SdkClientException e) {
       String errorMsg = e.getMessage();
@@ -38,6 +47,23 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
     } catch (Exception error) {
       return CompletableFutureUtils.failedFuture(error);
     }
+  }
+
+  private static boolean cacheParamsMatch(QueryEndpointParams a, QueryEndpointParams b) {
+    return Objects.equals(a.useFips(), b.useFips())
+            && Objects.equals(a.useDualStack(), b.useDualStack())
+            && Objects.equals(a.forcePathStyle(), b.forcePathStyle())
+            && Objects.equals(a.accelerate(), b.accelerate())
+            && Objects.equals(a.useGlobalEndpoint(), b.useGlobalEndpoint())
+            && Objects.equals(a.useObjectLambdaEndpoint(), b.useObjectLambdaEndpoint())
+            && Objects.equals(a.disableAccessPoints(), b.disableAccessPoints())
+            && Objects.equals(a.disableMultiRegionAccessPoints(), b.disableMultiRegionAccessPoints())
+            && Objects.equals(a.useArnRegion(), b.useArnRegion())
+            && Objects.equals(a.useS3ExpressControlEndpoint(), b.useS3ExpressControlEndpoint())
+            && Objects.equals(a.disableS3ExpressSessionAuth(), b.disableS3ExpressSessionAuth())
+            && Objects.equals(a.region(), b.region())
+            && Objects.equals(a.bucket(), b.bucket())
+            && Objects.equals(a.endpoint(), b.endpoint());
   }
 
   private static final class Evaluator {
@@ -4097,6 +4123,17 @@ public final class DefaultQueryEndpointProvider implements QueryEndpointProvider
 
     private Endpoint result114() {
       throw SdkClientException.create("A region must be set when sending requests to S3.");
+    }
+  }
+
+  private static final class CacheEntry {
+    final QueryEndpointParams params;
+
+    final Endpoint endpoint;
+
+    CacheEntry(QueryEndpointParams params, Endpoint endpoint) {
+      this.params = params;
+      this.endpoint = endpoint;
     }
   }
 }
