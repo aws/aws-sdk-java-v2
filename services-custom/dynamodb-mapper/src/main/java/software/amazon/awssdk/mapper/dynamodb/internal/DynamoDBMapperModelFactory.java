@@ -12,9 +12,12 @@
  * License for the specific language governing permissions and
  * limitations under the License.
  */
-package software.amazon.awssdk.mapper.dynamodb;
+package software.amazon.awssdk.mapper.dynamodb.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperTableModel;
 
 /**
  * {@link DynamoDBMapper} table model factory.

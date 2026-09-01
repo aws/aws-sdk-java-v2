@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package software.amazon.awssdk.mapper.dynamodb;
+import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 

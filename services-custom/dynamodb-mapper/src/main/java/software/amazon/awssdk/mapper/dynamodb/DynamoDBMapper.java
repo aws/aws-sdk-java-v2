@@ -15,6 +15,9 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
+import software.amazon.awssdk.mapper.dynamodb.internal.UpdateExpressionGenerator;
+import software.amazon.awssdk.mapper.dynamodb.internal.VersionAttributeConditionExpressionGenerator;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;

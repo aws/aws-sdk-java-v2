@@ -13,7 +13,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.mapper.dynamodb;
+package software.amazon.awssdk.mapper.dynamodb.internal;
 
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.zip.Adler32;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMappingException;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**

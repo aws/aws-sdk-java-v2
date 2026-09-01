@@ -13,12 +13,14 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.mapper.dynamodb;
+package software.amazon.awssdk.mapper.dynamodb.internal;
 
 import java.util.HashMap;
 import java.util.Map;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTransactionWriteExpression;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**

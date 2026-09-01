@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 package software.amazon.awssdk.mapper.dynamodb;
+import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
