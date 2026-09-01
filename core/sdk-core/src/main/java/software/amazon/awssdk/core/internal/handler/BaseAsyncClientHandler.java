@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.internal.handler;
 
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 
@@ -70,7 +72,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
     public <InputT extends SdkRequest, OutputT extends SdkResponse> CompletableFuture<OutputT> execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
-        return measureApiCallSuccess(executionParams, () -> {
+        return measureApiCall(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
             ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
@@ -86,7 +88,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
         ClientExecutionParams<InputT, OutputT> executionParams,
         AsyncResponseTransformer<OutputT, ReturnT> asyncResponseTransformer) {
 
-        return measureApiCallSuccess(executionParams, () -> {
+        return measureApiCall(executionParams, () -> {
             if (executionParams.getCombinedResponseHandler() != null) {
                 // There is no support for catching errors in a body for streaming responses. Our codegen must never
                 // attempt to do this.
@@ -232,7 +234,9 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                        new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(asyncResponseHandler,
                                                                                      executionContext));
 
+            SdkHttpFullRequest requestForMetrics = marshalled;
             CompletableFuture<ReturnT> exceptionTranslatedFuture = invokeFuture.handle((resp, err) -> {
+                reportServiceEndpointMetric(executionContext, requestForMetrics);
                 if (err != null) {
                     throw ThrowableUtils.failure(err);
                 }
@@ -288,27 +292,46 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                      .execute(responseHandler);
     }
 
-    private <T> CompletableFuture<T> measureApiCallSuccess(ClientExecutionParams<?, ?> executionParams,
-                                                           Supplier<CompletableFuture<T>> apiCall) {
+    /**
+     * Measure {@link CoreMetric#API_CALL_DURATION} and report {@link CoreMetric#API_CALL_SUCCESSFUL} for the whole API
+     * call.
+     *
+     * <p>The window deliberately encloses everything the SDK does for the call, marshalling included, and closes when
+     * the returned future completes. Measuring inside the request pipeline is not an option: the pipeline's input is the
+     * already-marshalled request, so no arrangement of pipeline stages can enclose marshalling. Measuring here also
+     * keeps the window identical to the synchronous client's.
+     */
+    private <T> CompletableFuture<T> measureApiCall(ClientExecutionParams<?, ?> executionParams,
+                                                    Supplier<CompletableFuture<T>> apiCall) {
+        MetricCollector metricCollector = executionParams.getMetricCollector();
+        if (metricCollector == null || metricCollector instanceof NoOpMetricCollector) {
+            // Nothing will consume these metrics, so don't pay for the clock reads or the extra future.
+            try {
+                return apiCall.get();
+            } catch (Exception e) {
+                return CompletableFutureUtils.failedFuture(e);
+            }
+        }
+
+        long callStart = System.nanoTime();
         try {
             CompletableFuture<T> apiCallResult = apiCall.get();
             CompletableFuture<T> outputFuture =
-                apiCallResult.whenComplete((r, t) -> reportApiCallSuccess(executionParams, t == null));
+                apiCallResult.whenComplete((r, t) -> reportApiCallMetrics(metricCollector, callStart, t == null));
 
             // Preserve cancellations on the output future, by passing cancellations of the output future to the api call future.
             CompletableFutureUtils.forwardExceptionTo(outputFuture, apiCallResult);
 
             return outputFuture;
         } catch (Exception e) {
-            reportApiCallSuccess(executionParams, false);
+            reportApiCallMetrics(metricCollector, callStart, false);
             return CompletableFutureUtils.failedFuture(e);
         }
     }
 
-    private void reportApiCallSuccess(ClientExecutionParams<?, ?> executionParams, boolean value) {
-        MetricCollector metricCollector = executionParams.getMetricCollector();
-        if (metricCollector != null) {
-            metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, value);
-        }
+    private void reportApiCallMetrics(MetricCollector metricCollector, long callStartNanoTime, boolean successful) {
+        long durationNanos = System.nanoTime() - callStartNanoTime;
+        metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, successful);
+        metricCollector.reportMetric(CoreMetric.API_CALL_DURATION, Duration.ofNanos(durationNanos));
     }
 }

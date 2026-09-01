@@ -30,7 +30,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionI
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
@@ -206,7 +205,8 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(RetryableStage::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
-                               .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))
+                    // Note: API_CALL_DURATION is measured by BaseSyncClientHandler, not here. The pipeline's input is
+                    // the already-marshalled request, so a stage here cannot enclose marshalling.
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)

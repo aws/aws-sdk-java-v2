@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix `ApiCallDuration` so that it measures the whole API call. It previously started after marshalling had already completed, and on asynchronous clients it also started after endpoint resolution, auth scheme resolution, request compression and checksum computation, and so understated the reported duration. The metric is now measured identically for synchronous and asynchronous clients and matches the documented formula. Reported `ApiCallDuration` values will increase but do not reflect changes in actual round-trip latency."
+}

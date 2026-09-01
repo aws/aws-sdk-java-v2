@@ -267,8 +267,15 @@
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
                     <parameter>
+                        <!-- Note: this list replaces, rather than appends to, the <excludes> in the root pom, so the
+                             root pom's *.internal.* exclusion does not apply here. Internal classes removed from
+                             sdk-core therefore have to be listed individually. -->
                         <excludes>
                             <exclude>software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver#resolve(software.amazon.awssdk.core.SdkRequest)</exclude>
+                            <!-- API_CALL_DURATION moved out of the request pipeline into the client handlers, so that
+                                 the measured window can enclose marshalling. -->
+                            <exclude>software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage</exclude>
+                            <exclude>software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMetricCollectionStage</exclude>
                         </excludes>
                     </parameter>
                 </configuration>

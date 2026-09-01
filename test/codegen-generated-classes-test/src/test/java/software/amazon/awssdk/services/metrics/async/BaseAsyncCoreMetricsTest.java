@@ -44,6 +44,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.services.metrics.ApiCallDurationAssertions;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -268,6 +269,9 @@ public abstract class BaseAsyncCoreMetricsTest {
         verifyApiCallCollection(capturedCollection);
         assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
+        // A successful call here has exactly one attempt, so the phases do not overlap and the javadoc additivity
+        // formula can be checked as a whole.
+        ApiCallDurationAssertions.assertEnclosesComponentSum(capturedCollection);
     }
 
     private void verifyApiCallCollection(MetricCollection capturedCollection) {
@@ -284,6 +288,9 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThan(FIXED_DELAY);
         assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0)).toString()
             .startsWith("http://localhost");
+        // The async client used to measure ApiCallDuration from the signing stage onwards, which excluded marshalling
+        // and endpoint resolution. Guard against that regression, and against the two clients diverging again.
+        ApiCallDurationAssertions.assertEnclosesComponents(capturedCollection);
     }
 
     void stubSuccessfulResponse() {
