@@ -1,4 +1,58 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.10__ __2026-09-01__
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds support for AAC passthrough. Adds ManifestCues option to support HLS manifest Cue marker passthrough. Adds playback device compatibility mode for DASH H.265 outputs. Adds TTML caption styling options. Adds interlace mode support for XAVC HD Intra CBG profile.
+
+## __AWS IoT SiteWise__
+  - ### Features
+    - AWS IoT SiteWise Scenario Discovery now supports mounting Amazon S3 data directly into pipeline task containers via S3 Access Points, and configuring additional ephemeral storage per task. Mount configurations can be overridden at execution time. See the API guide for details.
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now provides configurable control over S3 direct access, allowing you to explicitly enable or disable how functions stream file reads directly from S3 buckets. This gives you flexibility to tune data access behavior based on your workload requirements, independent of memory size.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - This release adds renewal support for AWS Marketplace private offers. Agreements report whether they renew and, if not, why. Renewal terms add price increases, renewal limits, renewal decision deadlines, and payment schedule templates. SearchAgreements adds filters.
+
+## __AWS Marketplace Discovery__
+  - ### Features
+    - GetOfferTerms now returns renewalTerm for offers with pre-authorized renewals, exposing maxRenewals, lockoutPeriod, adjustmentDeadline, priceIncrease (fixed percentage or percentage range), and termTemplates (renewal payment schedules). Enables buyers to view renewal pricing and terms.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Removed the legacy interpreted endpoint rules code generation path. Compiled endpoint rules are now the only supported path. This includes removing the `enableGenerateCompiledEndpointRules` customization flag from all services and deleting the old interpreted runtime resources.
+    - Updated endpoint and partition metadata.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Online evaluation configurations now support up to 25 evaluators. CloudWatch Logs data sources for online evaluation now support up to 10 log groups.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Update UserData and UploadPolicy shapes to use SecureBlob
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Amazon GuardDuty now supports custom detection rules, including APIs to manage rule associations and organization-level configurations.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon Kinesis Data Streams now supports a dry run feature for data-plane APIs to validate the permissions and request parameters. If all checks complete successfully, the API returns a 'DryRunOperationException', confirming the request would have succeeded without the 'DryRun' parameter.
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for the Amazon Lightsail GetProfile API, which returns the profile for the specified account.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added support for managing SMIME signing certificates for email identities, including associating, listing, and disassociating certificates. Added the UpdateConfigurationSet operation to configure message security options such as signing scheme.
+
+## __Tax Settings__
+  - ### Features
+    - France and Monaco Additional Info changes
+
 # __2.54.9__ __2026-08-31__
 ## __Agent Registry__
   - ### Features
