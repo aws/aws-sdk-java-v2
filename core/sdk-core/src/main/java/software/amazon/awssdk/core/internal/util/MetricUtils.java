@@ -107,15 +107,8 @@ public final class MetricUtils {
     /**
      * Collect the SERVICE_ENDPOINT metric for this request.
      *
-     * <p>Only the scheme, host and non-default port are wanted, so the endpoint string is assembled from the request's
-     * components directly. Going via {@link SdkHttpRequest#getUri()} instead would encode and flatten the query
-     * parameters, concatenate the full request URI, and parse it into a {@code URI}, only for the path and query to be
-     * discarded here and a second {@code URI} built from what remains.
-     *
-     * <p>Building the short form also keeps the {@link SdkUri} cache key at one entry per endpoint. Keying on the full
-     * request URI, as {@code getUri()} does, makes the key vary with the path and query, which for account-id based
-     * endpoints turns a cache that exists precisely to avoid repeated parsing of those hosts into one that misses on
-     * most requests.
+     * <p>Only the scheme, host and non-default port are used, so the endpoint string is assembled from the request's
+     * components directly reducing un-cached URI creations.
      */
     public static void collectServiceEndpointMetrics(MetricCollector metricCollector, SdkHttpFullRequest httpRequest) {
         if (metricCollector != null && !(metricCollector instanceof NoOpMetricCollector) && httpRequest != null) {
