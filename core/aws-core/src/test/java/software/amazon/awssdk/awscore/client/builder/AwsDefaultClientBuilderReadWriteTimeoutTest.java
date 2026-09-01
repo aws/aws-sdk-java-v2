@@ -47,14 +47,14 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.utils.AttributeMap;
 
 /**
- * Verifies the {@code AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026} rollout gate applied in
+ * Verifies the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} rollout gate applied in
  * {@link AwsDefaultClientBuilder#resolveHttpClientConfig} to the codegen-baked
  * {@link SdkHttpConfigurationOption#SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT}.
  */
 @ExtendWith(MockitoExtension.class)
 class AwsDefaultClientBuilderReadWriteTimeoutTest {
 
-    private static final String GATE_PROPERTY = SdkSystemSetting.AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026.property();
+    private static final String GATE_PROPERTY = SdkSystemSetting.AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026.property();
     private static final Duration PARTIAL_TIER = Duration.ofMinutes(15);
     private static final Duration FLAT_DEFAULT = Duration.ofMinutes(5);
 
@@ -168,7 +168,7 @@ class AwsDefaultClientBuilderReadWriteTimeoutTest {
             if (!codegenGateDefault) {
                 return config;
             }
-            return config.merge(c -> c.option(SdkClientOption.DEFAULT_ENABLE_READ_TIMEOUT_2026, true));
+            return config.merge(c -> c.option(SdkClientOption.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026, true));
         }
 
         @Override

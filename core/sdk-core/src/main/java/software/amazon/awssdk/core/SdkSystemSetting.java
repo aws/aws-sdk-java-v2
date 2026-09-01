@@ -286,7 +286,7 @@ public enum SdkSystemSetting implements SystemSetting {
      * <p>This setting is not intended to be used by end users. It gates an interim rollout and is subject to removal in a
      * future release.
      */
-    AWS_ENABLE_DEFAULT_READ_TIMEOUT_2026("aws.enableDefaultReadTimeout2026", null);
+    AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026("aws.enableDefaultSocketTimeout2026", null);
 
     private final String systemProperty;
     private final String defaultValue;
