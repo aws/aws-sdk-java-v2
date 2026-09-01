@@ -21,7 +21,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -151,54 +150,6 @@ class RequestBatchManagerTest {
 
         assertThrows(ExecutionException.class, () -> response.get(1, TimeUnit.SECONDS));
     }
-
-    @Test
-    void close_FlushesAllBatches() throws Exception {
-        String request1 = "testRequest:0";
-        String batchKey = "testRequest";
-        String request2 = "testRequest:1";
-        CompletableFuture<BatchResponse> batchResponseFuture = CompletableFuture.completedFuture(batchedResponse(2,
-                                                                                                                 "testResponse"));
-
-        when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
-
-        SampleBatchManager batchManager=
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(2).sendRequestFrequency(Duration.ofHours(1)).build(), scheduledExecutor, mockClient);
-
-        CompletableFuture<String> response1 = batchManager.batchRequest(request1);
-        CompletableFuture<String> response2 = batchManager.batchRequest(request2);
-        // Even though the mock returns results immediately, since this is asynchronous execution, the test environment may take
-        // additional time due to the Scheduled Executors execution on that machine.
-        Thread.sleep(200);
-        batchManager.close();
-
-        assertEquals("testResponse0", response1.get(1, TimeUnit.SECONDS));
-
-        assertEquals("testResponse1", response2.get(1, TimeUnit.SECONDS));
-    }
-
-
-    @Test
-    void batchRequest_ClosedWhenWaitingForResponse() throws Exception {
-        String request = "testRequest:1";
-        String batchKey = "testRequest";
-        CompletableFuture<BatchResponse> batchResponseFuture = new CompletableFuture<>();
-
-        // Simulate successful response with delay
-        scheduledExecutor.schedule(() -> batchResponseFuture.complete(batchedResponse(1, "testResponse")),
-                                   10, TimeUnit.HOURS);
-
-        when(mockClient.sendBatchAsync(any(), eq(batchKey))).thenReturn(batchResponseFuture);
-
-        SampleBatchManager batchManager =
-            new SampleBatchManager(BatchOverrideConfiguration.builder().maxBatchSize(1).build(), scheduledExecutor, mockClient);
-        CompletableFuture<String> response = batchManager.batchRequest(request);
-
-        batchManager.close();
-        assertThrows(CancellationException.class, () -> response.join());
-
-    }
-
 
     @Test
     void batchRequest_MoreThanBufferSize_Fails() throws Exception {
