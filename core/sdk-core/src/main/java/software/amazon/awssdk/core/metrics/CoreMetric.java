@@ -60,12 +60,8 @@ public final class CoreMetric {
         metric("ServiceEndpoint", URI.class, MetricLevel.ERROR);
 
     /**
-     * The duration of the API call. This includes all call attempts made.
-     *
-     * <p>This spans the entire API call as the SDK performs it: the {@code beforeExecution} and {@code modifyRequest}
-     * interceptors, marshalling, endpoint and auth scheme resolution, every call attempt including retries and backoff,
-     * unmarshalling, and the {@code afterExecution} interceptors. It is measured identically for synchronous and
-     * asynchronous clients. For an asynchronous client the measurement ends when the returned
+     * The duration of the API call. This includes all call attempts made and all interceptors.
+     * For an asynchronous client the measurement ends when the returned
      * {@link java.util.concurrent.CompletableFuture} completes, which for a streaming operation is when the response
      * transformer completes.
      *
@@ -73,9 +69,8 @@ public final class CoreMetric {
      * SUM_ALL(BACKOFF_DELAY_DURATION) + SUM_ALL(SIGNING_DURATION) + SUM_ALL(SERVICE_CALL_DURATION) +
      * SUM_ALL(UNMARSHALLING_DURATION)}
      *
-     * <p>The relation is approximate because several steps inside the window have no metric of their own, among them
-     * request compression, checksum computation, header and query parameter merging, and the interceptor hooks. Those
-     * steps make the left side larger than the right side; they never make it smaller.
+     * <p>The relation is approximate because several steps inside the window have no metric of their own including
+     * request compression and checksum computation.
      */
     public static final SdkMetric<Duration> API_CALL_DURATION =
         metric("ApiCallDuration", Duration.class, MetricLevel.INFO);

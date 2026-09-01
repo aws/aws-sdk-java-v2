@@ -205,8 +205,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(RetryableStage::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
-                    // Note: API_CALL_DURATION is measured by BaseSyncClientHandler, not here. The pipeline's input is
-                    // the already-marshalled request, so a stage here cannot enclose marshalling.
+                    // Note: API_CALL_DURATION is measured by BaseSyncClientHandler
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)

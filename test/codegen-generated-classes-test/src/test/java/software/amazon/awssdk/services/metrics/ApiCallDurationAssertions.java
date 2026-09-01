@@ -25,13 +25,6 @@ import software.amazon.awssdk.metrics.SdkMetric;
 
 /**
  * Assertions on the window that {@link CoreMetric#API_CALL_DURATION} is supposed to cover.
- *
- * <p>{@code ApiCallDuration} is documented as the duration of the whole API call, and its javadoc gives an additivity
- * formula relating it to the other duration metrics. Both properties were violated at one point: the measurement used to
- * begin inside the request pipeline, which starts after marshalling has already produced the request, and the
- * asynchronous client nested its measurement one level deeper again, which additionally excluded endpoint resolution and
- * the rest of the request-mutation stages. These assertions exist so that either regression fails a test rather than
- * silently understating reported latency.
  */
 public final class ApiCallDurationAssertions {
 
@@ -80,7 +73,7 @@ public final class ApiCallDurationAssertions {
         }
 
         assertThat(apiCallDuration)
-            .as("ApiCallDuration must be at least the sum of the components in its javadoc additivity formula")
+            .as("ApiCallDuration must be at least the sum of the components")
             .isGreaterThanOrEqualTo(componentSum);
     }
 

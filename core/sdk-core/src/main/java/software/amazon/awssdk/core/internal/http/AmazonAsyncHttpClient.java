@@ -213,9 +213,7 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
-                                        // Note: API_CALL_DURATION is measured by BaseAsyncClientHandler, not here. A
-                                        // stage here could not enclose marshalling, and nesting it on this inner
-                                        // builder previously also excluded the request-mutation stages above.
+                                        // Note: API_CALL_DURATION is measured by BaseAsyncClientHandler
                                         .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)::build)::build)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());

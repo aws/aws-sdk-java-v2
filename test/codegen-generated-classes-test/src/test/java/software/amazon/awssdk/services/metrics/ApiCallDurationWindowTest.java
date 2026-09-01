@@ -59,17 +59,6 @@ import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
  * contributes nothing to it, so the assertion fails outright rather than by a margin. This is deliberately stronger than
  * checking the additivity formula: the phases at issue normally cost microseconds against a call that costs
  * milliseconds, so an inequality over real timings passes whether or not they are included.
- *
- * <p>Three phases are covered, corresponding to three ways the window has been wrong:
- *
- * <ul>
- *   <li>Work before marshalling. The measurement used to start inside the request pipeline, whose input is the
- *       already-marshalled request, so marshalling and everything before it was excluded on both clients.</li>
- *   <li>Endpoint resolution. The asynchronous client nested its measurement below the request-mutation stages, so
- *       endpoint resolution, auth scheme resolution, compression and checksums were excluded there.</li>
- *   <li>The {@code afterExecution} interceptors. These were inside the window on the asynchronous client and outside it
- *       on the synchronous one.</li>
- * </ul>
  */
 public class ApiCallDurationWindowTest {
 
