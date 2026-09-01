@@ -19,23 +19,33 @@ package software.amazon.awssdk.core.internal.http.loader;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
-import static software.amazon.awssdk.core.internal.http.loader.ClasspathSdkHttpServiceProvider.ASYNC_HTTP_SERVICES_PRIORITY;
-import static software.amazon.awssdk.core.internal.http.loader.ClasspathSdkHttpServiceProvider.SYNC_HTTP_SERVICES_PRIORITY;
 
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpService;
-import software.amazon.awssdk.http.apache.ApacheSdkHttpService;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpService;
-import software.amazon.awssdk.http.nio.netty.NettySdkAsyncHttpService;
+import software.amazon.awssdk.utils.ImmutableMap;
 
 @RunWith(MockitoJUnitRunner.class)
 public class ClasspathSdkHttpServiceProviderTest {
+
+    private static final Map<String, Integer> TEST_SYNC_PRIORITY =
+        ImmutableMap.<String, Integer>builder()
+                    .put(HighPrioritySyncHttpService.class.getName(), 1)
+                    .build();
+
+    private static final Map<String, Integer> TEST_ASYNC_PRIORITY =
+        ImmutableMap.<String, Integer>builder()
+                    .put(HighPriorityAsyncHttpService.class.getName(), 1)
+                    .build();
 
     @Mock
     private SdkServiceLoader serviceLoader;
@@ -48,11 +58,11 @@ public class ClasspathSdkHttpServiceProviderTest {
     public void setup() {
         provider = new ClasspathSdkHttpServiceProvider<>(serviceLoader,
                                                          SdkHttpService.class,
-                                                         SYNC_HTTP_SERVICES_PRIORITY);
+                                                         TEST_SYNC_PRIORITY);
 
         asyncProvider = new ClasspathSdkHttpServiceProvider<>(serviceLoader,
                                                               SdkAsyncHttpService.class,
-                                                              ASYNC_HTTP_SERVICES_PRIORITY);
+                                                              TEST_ASYNC_PRIORITY);
     }
 
     @Test
@@ -71,12 +81,12 @@ public class ClasspathSdkHttpServiceProviderTest {
 
     @Test
     public void multipleSyncImplementationsFound_ReturnHighestPriority() {
-        ApacheSdkHttpService apacheSdkHttpService = new ApacheSdkHttpService();
+        HighPrioritySyncHttpService highPrioritySyncHttpService = new HighPrioritySyncHttpService();
         SdkHttpService mock = mock(SdkHttpService.class);
 
         when(serviceLoader.loadServices(SdkHttpService.class))
-                .thenReturn(iteratorOf(mock, apacheSdkHttpService));
-        assertThat(provider.loadService()).contains(apacheSdkHttpService);
+                .thenReturn(iteratorOf(mock, highPrioritySyncHttpService));
+        assertThat(provider.loadService()).contains(highPrioritySyncHttpService);
 
         SdkHttpService mock1 = mock(SdkHttpService.class);
         SdkHttpService mock2 = mock(SdkHttpService.class);
@@ -87,12 +97,12 @@ public class ClasspathSdkHttpServiceProviderTest {
 
     @Test
     public void multipleAsyncImplementationsFound_ReturnHighestPriority() {
-        NettySdkAsyncHttpService netty = new NettySdkAsyncHttpService();
+        HighPriorityAsyncHttpService highPriorityAsyncHttpService = new HighPriorityAsyncHttpService();
         SdkAsyncHttpService mock = mock(SdkAsyncHttpService.class);
 
         when(serviceLoader.loadServices(SdkAsyncHttpService.class))
-            .thenReturn(iteratorOf(mock, netty));
-        assertThat(asyncProvider.loadService()).contains(netty);
+            .thenReturn(iteratorOf(mock, highPriorityAsyncHttpService));
+        assertThat(asyncProvider.loadService()).contains(highPriorityAsyncHttpService);
 
         SdkAsyncHttpService mock1 = mock(SdkAsyncHttpService.class);
         SdkAsyncHttpService mock2 = mock(SdkAsyncHttpService.class);
@@ -104,5 +114,27 @@ public class ClasspathSdkHttpServiceProviderTest {
     @SafeVarargs
     private final <T> Iterator<T> iteratorOf(T... items) {
         return Arrays.asList(items).iterator();
+    }
+
+    /**
+     * Test-local sync HTTP service whose class name is registered in {@link #TEST_SYNC_PRIORITY}. The provider only ever
+     * inspects the class name, so the factory method is never invoked.
+     */
+    private static final class HighPrioritySyncHttpService implements SdkHttpService {
+        @Override
+        public SdkHttpClient.Builder createHttpClientBuilder() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    /**
+     * Test-local async HTTP service whose class name is registered in {@link #TEST_ASYNC_PRIORITY}. The provider only ever
+     * inspects the class name, so the factory method is never invoked.
+     */
+    private static final class HighPriorityAsyncHttpService implements SdkAsyncHttpService {
+        @Override
+        public SdkAsyncHttpClient.Builder createAsyncHttpClientFactory() {
+            throw new UnsupportedOperationException();
+        }
     }
 }
