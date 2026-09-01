@@ -267,10 +267,11 @@
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
                     <parameter>
-                        <excludes>
+                        <!-- combine.children="append" keeps the root pom's excludes, notably the *.internal.* wildcard.
+                             Without it Maven replaces the parent's list with this one, and deleting any internal
+                             sdk-core class fails the japicmp gate. -->
+                        <excludes combine.children="append">
                             <exclude>software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver#resolve(software.amazon.awssdk.core.SdkRequest)</exclude>
-                            <exclude>software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage</exclude>
-                            <exclude>software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMetricCollectionStage</exclude>
                         </excludes>
                     </parameter>
                 </configuration>

@@ -101,9 +101,9 @@ public abstract class BaseClientHandler {
     static void reportServiceEndpointMetric(ExecutionContext executionContext, SdkHttpFullRequest fallbackRequest) {
         SdkHttpRequest finalRequest = executionContext.interceptorContext().httpRequest();
         MetricUtils.collectServiceEndpointMetrics(executionContext.metricCollector(),
-                                                 finalRequest instanceof SdkHttpFullRequest
-                                                 ? (SdkHttpFullRequest) finalRequest
-                                                 : fallbackRequest);
+                                                  finalRequest instanceof SdkHttpFullRequest
+                                                  ? (SdkHttpFullRequest) finalRequest
+                                                  : fallbackRequest);
     }
 
     private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {

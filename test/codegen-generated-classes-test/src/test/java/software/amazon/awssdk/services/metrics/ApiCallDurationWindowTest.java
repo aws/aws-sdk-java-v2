@@ -25,19 +25,27 @@ import static org.mockito.Mockito.verify;
 
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.metrics.CoreMetric;
-import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
@@ -48,6 +56,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBuilder;
 import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJsonEndpointParams;
 import software.amazon.awssdk.services.protocolrestjson.endpoints.ProtocolRestJsonEndpointProvider;
+import software.amazon.awssdk.services.protocolrestjson.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
 
 /**
@@ -59,6 +68,10 @@ import software.amazon.awssdk.services.testutil.MockIdentityProviderUtil;
  * contributes nothing to it, so the assertion fails outright rather than by a margin. This is deliberately stronger than
  * checking the additivity formula: the phases at issue normally cost microseconds against a call that costs
  * milliseconds, so an inequality over real timings passes whether or not they are included.
+ *
+ * <p>The phases covered are work before marshalling, endpoint resolution, the {@code afterExecution} interceptors, and
+ * completion of an {@link AsyncResponseTransformer}. The first three are places the window has been wrong, on one or both
+ * clients. The last is not a past defect but is the documented end of the asynchronous window for streaming operations.
  */
 public class ApiCallDurationWindowTest {
 
@@ -71,13 +84,20 @@ public class ApiCallDurationWindowTest {
     public WireMockRule wireMock = new WireMockRule(0);
 
     private MetricPublisher publisher;
+    private ScheduledExecutorService scheduler;
 
     @Before
     public void setup() {
         publisher = mock(MetricPublisher.class);
+        scheduler = Executors.newSingleThreadScheduledExecutor();
         stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200)
                                                      .withHeader("x-amz-request-id", "req-id")
                                                      .withBody("{}")));
+    }
+
+    @After
+    public void teardown() {
+        scheduler.shutdownNow();
     }
 
     @Test
@@ -118,20 +138,21 @@ public class ApiCallDurationWindowTest {
         assertDelayIsMeasured();
     }
 
+    /**
+     * The async window closes when the future returned to the caller completes, which for a streaming operation is when
+     * the {@link AsyncResponseTransformer} completes. This delays only that completion — the transformer schedules it
+     * rather than blocking, so no pipeline stage and no event loop thread is held up. Anything the delay shows up in must
+     * therefore be measuring as far as the transformer.
+     */
     @Test
-    public void syncAndAsyncClients_measureTheSameWindow() {
-        // Endpoint resolution is the phase the two clients used to disagree on, so compare them there.
-        callSync(b -> {
-        }, slowEndpointProvider());
-        Duration syncDuration = capturedApiCallDuration();
+    public void asyncClient_apiCallDuration_includesResponseTransformerCompletion() {
+        try (ProtocolRestJsonAsyncClient client = asyncClientBuilder(b -> {
+        }, null).build()) {
+            client.streamingOutputOperation(r -> {
+            }, new DelayedCompletionTransformer()).join();
+        }
 
-        publisher = mock(MetricPublisher.class);
-        callAsync(b -> {
-        }, slowEndpointProvider());
-        Duration asyncDuration = capturedApiCallDuration();
-
-        assertThat(syncDuration).isGreaterThanOrEqualTo(INJECTED_DELAY);
-        assertThat(asyncDuration).isGreaterThanOrEqualTo(INJECTED_DELAY);
+        assertDelayIsMeasured();
     }
 
     private void assertDelayIsMeasured() {
@@ -156,7 +177,7 @@ public class ApiCallDurationWindowTest {
                                   .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                                   .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                   .overrideConfiguration(c -> {
-                                      c.addMetricPublisher(publisher).retryPolicy(RetryPolicy.none());
+                                      c.addMetricPublisher(publisher).retryStrategy(b -> b.maxAttempts(1));
                                       overrides.accept(c);
                                   });
         if (endpointProvider != null) {
@@ -169,21 +190,28 @@ public class ApiCallDurationWindowTest {
 
     private void callAsync(Consumer<ClientOverrideConfiguration.Builder> overrides,
                            ProtocolRestJsonEndpointProvider endpointProvider) {
+        try (ProtocolRestJsonAsyncClient client = asyncClientBuilder(overrides, endpointProvider).build()) {
+            client.allTypes().join();
+        }
+    }
+
+    private ProtocolRestJsonAsyncClientBuilder asyncClientBuilder(
+        Consumer<ClientOverrideConfiguration.Builder> overrides,
+        ProtocolRestJsonEndpointProvider endpointProvider) {
+
         ProtocolRestJsonAsyncClientBuilder builder =
             ProtocolRestJsonAsyncClient.builder()
                                        .region(Region.US_WEST_2)
                                        .credentialsProvider(MockIdentityProviderUtil.mockIdentityProvider())
                                        .endpointOverride(URI.create("http://localhost:" + wireMock.port()))
                                        .overrideConfiguration(c -> {
-                                           c.addMetricPublisher(publisher).retryPolicy(RetryPolicy.none());
+                                           c.addMetricPublisher(publisher).retryStrategy(b -> b.maxAttempts(1));
                                            overrides.accept(c);
                                        });
         if (endpointProvider != null) {
             builder.endpointProvider(endpointProvider);
         }
-        try (ProtocolRestJsonAsyncClient client = builder.build()) {
-            client.allTypes().join();
-        }
+        return builder;
     }
 
     private ProtocolRestJsonEndpointProvider slowEndpointProvider() {
@@ -209,6 +237,55 @@ public class ApiCallDurationWindowTest {
     private enum Phase {
         BEFORE_MARSHALLING,
         AFTER_EXECUTION
+    }
+
+    /**
+     * Drains the response body, then completes its future {@link #INJECTED_DELAY} later via the scheduler rather than by
+     * sleeping, so the delay is purely in the transformer's completion and not in any thread the SDK owns.
+     */
+    private final class DelayedCompletionTransformer
+        implements AsyncResponseTransformer<StreamingOutputOperationResponse, Void> {
+
+        private volatile CompletableFuture<Void> result;
+
+        @Override
+        public CompletableFuture<Void> prepare() {
+            result = new CompletableFuture<>();
+            return result;
+        }
+
+        @Override
+        public void onResponse(StreamingOutputOperationResponse response) {
+        }
+
+        @Override
+        public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            publisher.subscribe(new Subscriber<ByteBuffer>() {
+                @Override
+                public void onSubscribe(Subscription subscription) {
+                    subscription.request(Long.MAX_VALUE);
+                }
+
+                @Override
+                public void onNext(ByteBuffer byteBuffer) {
+                }
+
+                @Override
+                public void onError(Throwable throwable) {
+                    result.completeExceptionally(throwable);
+                }
+
+                @Override
+                public void onComplete() {
+                    scheduler.schedule(() -> result.complete(null), INJECTED_DELAY.toMillis(), TimeUnit.MILLISECONDS);
+                }
+            });
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable error) {
+            result.completeExceptionally(error);
+        }
     }
 
     private static final class DelayingInterceptor implements ExecutionInterceptor {

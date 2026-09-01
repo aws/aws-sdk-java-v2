@@ -61,7 +61,8 @@ public final class CoreMetric {
 
     /**
      * The duration of the API call. This includes all call attempts made and all interceptors.
-     * For an asynchronous client the measurement ends when the returned
+     *
+     * <p>For an asynchronous client the measurement ends when the returned
      * {@link java.util.concurrent.CompletableFuture} completes, which for a streaming operation is when the response
      * transformer completes.
      *

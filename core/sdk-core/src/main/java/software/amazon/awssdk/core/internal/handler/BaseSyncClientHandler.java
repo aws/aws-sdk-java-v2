@@ -194,7 +194,9 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     private <T> T measureApiCall(ClientExecutionParams<?, ?> executionParams, Supplier<T> apiCall) {
         MetricCollector metricCollector = executionParams.getMetricCollector();
         if (metricCollector == null || metricCollector instanceof NoOpMetricCollector) {
-            // Nothing will consume these metrics, so don't pay for the clock reads.
+            // Nothing will consume these metrics, so don't pay for the clock reads. A null collector is treated the same
+            // as NoOp: when the params carry none, the collector that AwsExecutionContextBuilder substitutes into the
+            // ExecutionContext is never handed to a publisher, so anything reported to it is discarded.
             return apiCall.get();
         }
 

@@ -234,6 +234,7 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                        new AsyncAfterTransmissionInterceptorCallingResponseHandler<>(asyncResponseHandler,
                                                                                      executionContext));
 
+            // Captured because the requestBody branch above may reassign 'marshalled', leaving it not effectively final.
             SdkHttpFullRequest requestForMetrics = marshalled;
             CompletableFuture<ReturnT> exceptionTranslatedFuture = invokeFuture.handle((resp, err) -> {
                 reportServiceEndpointMetric(executionContext, requestForMetrics);
@@ -305,7 +306,10 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
                                                     Supplier<CompletableFuture<T>> apiCall) {
         MetricCollector metricCollector = executionParams.getMetricCollector();
         if (metricCollector == null || metricCollector instanceof NoOpMetricCollector) {
-            // Nothing will consume these metrics, so don't pay for the clock reads or the extra future.
+            // Nothing will consume these metrics, so don't pay for the clock reads or the extra future. A null collector
+            // is treated the same as NoOp: when the params carry none, the collector that AwsExecutionContextBuilder
+            // substitutes into the ExecutionContext is never handed to a publisher, so anything reported to it is
+            // discarded.
             try {
                 return apiCall.get();
             } catch (Exception e) {

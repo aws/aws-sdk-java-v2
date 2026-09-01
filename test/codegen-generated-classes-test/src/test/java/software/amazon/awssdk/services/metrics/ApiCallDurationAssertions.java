@@ -36,18 +36,27 @@ public final class ApiCallDurationAssertions {
      *
      * <p>Every one of these is a necessary condition on its own, so this is safe to apply to any API call, including
      * calls that failed or were retried.
+     *
+     * <p>{@code MARSHALLING_DURATION} and {@code ENDPOINT_RESOLVE_DURATION} are additionally required to be present. An
+     * enclosure check over an absent metric passes vacuously, which would let a regression that stopped reporting one of
+     * them through unnoticed — and those two are exactly the ones this PR's defect hid.
      */
     public static void assertEnclosesComponents(MetricCollection apiCall) {
         Duration apiCallDuration = single(apiCall, CoreMetric.API_CALL_DURATION);
 
-        assertEncloses(apiCallDuration, apiCall, CoreMetric.MARSHALLING_DURATION);
-        assertEncloses(apiCallDuration, apiCall, CoreMetric.ENDPOINT_RESOLVE_DURATION);
-        assertEncloses(apiCallDuration, apiCall, CoreMetric.CREDENTIALS_FETCH_DURATION);
+        // Required: every API call marshals a request and resolves an endpoint before it can be sent, so a regression
+        // that stops reporting either of these must fail rather than pass vacuously.
+        assertRequiredAndEnclosed(apiCallDuration, apiCall, CoreMetric.MARSHALLING_DURATION);
+        assertRequiredAndEnclosed(apiCallDuration, apiCall, CoreMetric.ENDPOINT_RESOLVE_DURATION);
+
+        // Optional: absent when the endpoint is not signed, when an identity is already cached in a form that reports no
+        // duration, or when the call failed before the phase ran.
+        assertEnclosedIfPresent(apiCallDuration, apiCall, CoreMetric.CREDENTIALS_FETCH_DURATION);
 
         for (MetricCollection attempt : apiCall.children()) {
-            assertEncloses(apiCallDuration, attempt, CoreMetric.SIGNING_DURATION);
-            assertEncloses(apiCallDuration, attempt, CoreMetric.SERVICE_CALL_DURATION);
-            assertEncloses(apiCallDuration, attempt, CoreMetric.UNMARSHALLING_DURATION);
+            assertEnclosedIfPresent(apiCallDuration, attempt, CoreMetric.SIGNING_DURATION);
+            assertEnclosedIfPresent(apiCallDuration, attempt, CoreMetric.SERVICE_CALL_DURATION);
+            assertEnclosedIfPresent(apiCallDuration, attempt, CoreMetric.UNMARSHALLING_DURATION);
         }
     }
 
@@ -55,8 +64,13 @@ public final class ApiCallDurationAssertions {
      * Assert the javadoc additivity formula: {@code ApiCallDuration} is at least the sum of the components it is
      * documented to be composed of.
      *
-     * <p>Only meaningful for a call whose phases do not overlap, so apply it to single-attempt calls. The relation is an
-     * inequality rather than an equality because several steps inside the window have no metric of their own.
+     * <p>The relation is an inequality rather than an equality because several steps inside the window have no metric of
+     * its own.
+     *
+     * <p>Only apply this where the phases are genuinely disjoint: a single-attempt call on a synchronous client. It does
+     * not hold on asynchronous clients, where {@code SERVICE_CALL_DURATION} does not stop at time to first byte (see
+     * {@code CoreMetric.TIME_TO_FIRST_BYTE}) and so overlaps {@code UNMARSHALLING_DURATION} for streaming operations.
+     * Use {@link #assertEnclosesComponents(MetricCollection)} there, which holds unconditionally.
      */
     public static void assertEnclosesComponentSum(MetricCollection apiCall) {
         Duration apiCallDuration = single(apiCall, CoreMetric.API_CALL_DURATION);
@@ -77,7 +91,18 @@ public final class ApiCallDurationAssertions {
             .isGreaterThanOrEqualTo(componentSum);
     }
 
-    private static void assertEncloses(Duration apiCallDuration, MetricCollection collection, SdkMetric<Duration> metric) {
+    private static void assertRequiredAndEnclosed(Duration apiCallDuration,
+                                                  MetricCollection collection,
+                                                  SdkMetric<Duration> metric) {
+        assertThat(collection.metricValues(metric))
+            .as("%s must be reported for every API call", metric.name())
+            .isNotEmpty();
+        assertEnclosedIfPresent(apiCallDuration, collection, metric);
+    }
+
+    private static void assertEnclosedIfPresent(Duration apiCallDuration,
+                                                MetricCollection collection,
+                                                SdkMetric<Duration> metric) {
         for (Duration value : collection.metricValues(metric)) {
             assertThat(apiCallDuration)
                 .as("ApiCallDuration must enclose %s", metric.name())
