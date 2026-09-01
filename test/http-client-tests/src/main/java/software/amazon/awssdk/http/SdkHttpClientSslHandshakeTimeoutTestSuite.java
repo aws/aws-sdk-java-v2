@@ -13,48 +13,66 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.core.http;
+package software.amazon.awssdk.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.fail;
-import static software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils.executionContext;
+import static org.junit.jupiter.api.Assertions.fail;
 import static software.amazon.awssdk.core.internal.util.ResponseHandlerTestUtils.combinedSyncResponseHandler;
+import static utils.HttpTestUtils.executionContext;
 
 import java.io.IOException;
 import java.time.Duration;
-
-import org.junit.Test;
-
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.response.NullErrorResponseHandler;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.server.MockServer;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 
 /**
- * This test is to verify that the apache-httpclient library has fixed the bug where socket timeout configuration is
- * incorrectly ignored during SSL handshake. This test is expected to hang (and fail after the junit timeout) if run
- * against the problematic httpclient version (e.g. 4.3).
+ * Verifies that a client honors its configured socket timeout during the SSL handshake. The client is pointed at a server that
+ * accepts the connection and then sends nothing, so a client that ignores the socket timeout hangs until the test times out.
+ *
+ * <p>This suite applies to sync clients that expose a socket timeout, which today means {@code apache-client},
+ * {@code apache5-client} and {@code url-connection-client}. It started as a regression test for a bug in Apache HttpClient
+ * 4.3, where the socket timeout was ignored during the SSL handshake.</p>
  *
  * @link https://issues.apache.org/jira/browse/HTTPCLIENT-1478
  */
-public class AmazonHttpClientSslHandshakeTimeoutTest extends UnresponsiveMockServerTestBase {
+public abstract class SdkHttpClientSslHandshakeTimeoutTestSuite {
 
     private static final Duration CLIENT_SOCKET_TO = Duration.ofSeconds(1);
 
-    @Test(timeout = 60 * 1000)
+    private MockServer server;
+
+    /**
+     * Returns a client that waits no longer than {@code socketTimeout} for data from the server.
+     */
+    protected abstract SdkHttpClient createSdkHttpClient(Duration socketTimeout);
+
+    @BeforeEach
+    public void setupBaseFixture() {
+        server = MockServer.createMockServer(MockServer.ServerBehavior.UNRESPONSIVE);
+        server.startServer();
+    }
+
+    @AfterEach
+    public void tearDownBaseFixture() {
+        server.stopServer();
+    }
+
+    @Test
+    @Timeout(60)
     public void testSslHandshakeTimeout() {
         AmazonSyncHttpClient httpClient = HttpTestUtils.testClientBuilder()
                                                        .retryStrategy(DefaultRetryStrategy.doNotRetry())
-                                                       .httpClient(ApacheHttpClient.builder()
-                                                                               .socketTimeout(CLIENT_SOCKET_TO)
-                                                                               .build())
+                                                       .httpClient(createSdkHttpClient(CLIENT_SOCKET_TO))
                                                        .build();
-
-        System.out.println("Sending request to localhost...");
 
         try {
             SdkHttpFullRequest request = server.configureHttpsEndpoint(SdkHttpFullRequest.builder())
