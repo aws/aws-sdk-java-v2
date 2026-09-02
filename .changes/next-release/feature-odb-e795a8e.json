@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "odb",
+    "contributor": "",
+    "description": "Adds the ListFlexComponents API for listing the flex components available for a given DB system shape."
+}
