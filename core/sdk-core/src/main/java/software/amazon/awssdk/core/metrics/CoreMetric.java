@@ -72,6 +72,10 @@ public final class CoreMetric {
      *
      * <p>The relation is approximate because several steps inside the window have no metric of their own including
      * request compression and checksum computation.
+     *
+     * <p>This is not bounded by a configured
+     * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration.Builder#apiCallTimeout(Duration)
+     * apiCallTimeout}, which covers a narrower window that excludes marshalling and the interceptors.
      */
     public static final SdkMetric<Duration> API_CALL_DURATION =
         metric("ApiCallDuration", Duration.class, MetricLevel.INFO);
