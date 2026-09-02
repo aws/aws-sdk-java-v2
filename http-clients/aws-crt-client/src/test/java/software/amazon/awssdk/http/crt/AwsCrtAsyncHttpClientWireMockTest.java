@@ -32,8 +32,11 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.waitForEven
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeAll;
@@ -42,14 +45,19 @@ import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.RecordingResponseHandler;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -188,6 +196,55 @@ public class AwsCrtAsyncHttpClientWireMockTest {
                     assertThat(event.getMessage().getFormattedMessage()).contains("numEventLoopThreads"));
             }
         }
+    }
+
+    @Test
+    public void requestBodyPublisherError_completesFutureWithOriginalError(WireMockRuntimeInfo wm) {
+        mockServer.stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withStatus(200)));
+        IllegalArgumentException bodyError = new IllegalArgumentException("test error");
+
+        try (SdkAsyncHttpClient client = AwsCrtAsyncHttpClient.create()) {
+            SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                          .uri(URI.create("http://localhost:" + wm.getHttpPort()))
+                                                          .method(SdkHttpMethod.PUT)
+                                                          .encodedPath("/")
+                                                          .putHeader("Host", "localhost")
+                                                          .putHeader("Content-Length", "16")
+                                                          .build();
+
+            CompletableFuture<Void> executeFuture =
+                client.execute(AsyncExecuteRequest.builder()
+                                                  .request(request)
+                                                  .requestContentPublisher(erroringPublisher(bodyError, 16))
+                                                  .responseHandler(new RecordingResponseHandler())
+                                                  .build());
+
+            assertThatThrownBy(() -> executeFuture.get(5, TimeUnit.SECONDS))
+                .hasCauseReference(bodyError);
+        }
+    }
+
+    private static SdkHttpContentPublisher erroringPublisher(Throwable error, long contentLength) {
+        return new SdkHttpContentPublisher() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of(contentLength);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        subscriber.onError(error);
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
     }
 
     private void warmUpStaticDefaultEventLoopGroup() {

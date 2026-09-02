@@ -1,0 +1,221 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package utils;
+
+import java.net.URI;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
+import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
+import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.http.ExecutionContext;
+import software.amazon.awssdk.core.http.NoopTestRequest;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
+import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
+import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
+import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
+import software.amazon.awssdk.core.signer.NoOpSigner;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.utils.Validate;
+
+/**
+ * Test helpers for building {@link AmazonSyncHttpClient} / {@link AmazonAsyncHttpClient} around a caller-supplied
+ * {@link SdkHttpClient} / {@link SdkAsyncHttpClient}. Unlike the sdk-core copy of this class, the builders here require an
+ * explicit transport (there is no ServiceLoader-based default), so that per-client test suites can drive the sdk-core
+ * execution pipeline over each real HTTP client.
+ */
+public class HttpTestUtils {
+
+    private HttpTestUtils() {
+    }
+
+    public static TestClientBuilder testClientBuilder() {
+        return new TestClientBuilder();
+    }
+
+    public static TestAsyncClientBuilder testAsyncClientBuilder() {
+        return new TestAsyncClientBuilder();
+    }
+
+    /**
+     * Builds a minimal {@link ExecutionContext} for driving {@link AmazonSyncHttpClient} / {@link AmazonAsyncHttpClient}
+     * directly.
+     */
+    public static ExecutionContext executionContext(SdkHttpFullRequest request) {
+        InterceptorContext interceptorContext =
+            InterceptorContext.builder()
+                              .request(NoopTestRequest.builder().build())
+                              .httpRequest(request)
+                              .build();
+        return ExecutionContext.builder()
+                               .signer(new NoOpSigner())
+                               .interceptorChain(new ExecutionInterceptorChain(Collections.emptyList()))
+                               .executionAttributes(new ExecutionAttributes())
+                               .interceptorContext(interceptorContext)
+                               .metricCollector(MetricCollector.create("ApiCall"))
+                               .build();
+    }
+
+    public static SdkClientConfiguration testClientConfiguration() {
+        return SdkClientConfiguration.builder()
+                                     .option(SdkClientOption.EXECUTION_INTERCEPTORS, new ArrayList<>())
+                                     .option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                                             ClientEndpointProvider.forEndpointOverride(URI.create("http://localhost:8080")))
+                                     .option(SdkClientOption.RETRY_STRATEGY,
+                                             SdkDefaultRetryStrategy.defaultRetryStrategy())
+                                     .option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, new HashMap<>())
+                                     .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+                                     .option(SdkAdvancedClientOption.SIGNER, new NoOpSigner())
+                                     .option(SdkAdvancedClientOption.USER_AGENT_PREFIX, "")
+                                     .option(SdkAdvancedClientOption.USER_AGENT_SUFFIX, "")
+                                     .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, Executors.newScheduledThreadPool(1))
+                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                                     .build();
+    }
+
+    public static class TestClientBuilder {
+        private RetryStrategy retryStrategy;
+        private SdkHttpClient httpClient;
+        private Map<String, String> additionalHeaders = new HashMap<>();
+        private Duration apiCallTimeout;
+        private Duration apiCallAttemptTimeout;
+
+        public TestClientBuilder retryStrategy(RetryStrategy retryStrategy) {
+            this.retryStrategy = retryStrategy;
+            return this;
+        }
+
+        public TestClientBuilder httpClient(SdkHttpClient sdkHttpClient) {
+            this.httpClient = sdkHttpClient;
+            return this;
+        }
+
+        public TestClientBuilder additionalHeader(String key, String value) {
+            this.additionalHeaders.put(key, value);
+            return this;
+        }
+
+        public TestClientBuilder apiCallTimeout(Duration duration) {
+            this.apiCallTimeout = duration;
+            return this;
+        }
+
+        public TestClientBuilder apiCallAttemptTimeout(Duration timeout) {
+            this.apiCallAttemptTimeout = timeout;
+            return this;
+        }
+
+        public AmazonSyncHttpClient build() {
+            SdkHttpClient sdkHttpClient = Validate.paramNotNull(this.httpClient, "httpClient");
+            return new AmazonSyncHttpClient(testClientConfiguration().toBuilder()
+                                                                     .option(SdkClientOption.SYNC_HTTP_CLIENT, sdkHttpClient)
+                                                                     .applyMutation(this::configureRetryStrategy)
+                                                                     .applyMutation(this::configureAdditionalHeaders)
+                                                                     .option(SdkClientOption.API_CALL_TIMEOUT, apiCallTimeout)
+                                                                     .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT,
+                                                                             apiCallAttemptTimeout)
+                                                                     .build());
+        }
+
+        private void configureAdditionalHeaders(SdkClientConfiguration.Builder builder) {
+            Map<String, List<String>> headers =
+                this.additionalHeaders.entrySet().stream()
+                                      .collect(Collectors.toMap(Map.Entry::getKey, e -> Arrays.asList(e.getValue())));
+
+            builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, headers);
+        }
+
+        private void configureRetryStrategy(SdkClientConfiguration.Builder builder) {
+            if (retryStrategy != null) {
+                builder.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
+            }
+        }
+    }
+
+    public static class TestAsyncClientBuilder {
+        private RetryStrategy retryStrategy;
+        private SdkAsyncHttpClient asyncHttpClient;
+        private Duration apiCallTimeout;
+        private Duration apiCallAttemptTimeout;
+        private Map<String, String> additionalHeaders = new HashMap<>();
+
+        public TestAsyncClientBuilder retryStrategy(RetryStrategy retryStrategy) {
+            this.retryStrategy = retryStrategy;
+            return this;
+        }
+
+        public TestAsyncClientBuilder asyncHttpClient(SdkAsyncHttpClient asyncHttpClient) {
+            this.asyncHttpClient = asyncHttpClient;
+            return this;
+        }
+
+        public TestAsyncClientBuilder additionalHeader(String key, String value) {
+            this.additionalHeaders.put(key, value);
+            return this;
+        }
+
+        public TestAsyncClientBuilder apiCallTimeout(Duration duration) {
+            this.apiCallTimeout = duration;
+            return this;
+        }
+
+        public TestAsyncClientBuilder apiCallAttemptTimeout(Duration timeout) {
+            this.apiCallAttemptTimeout = timeout;
+            return this;
+        }
+
+        public AmazonAsyncHttpClient build() {
+            SdkAsyncHttpClient asyncHttpClient = Validate.paramNotNull(this.asyncHttpClient, "asyncHttpClient");
+            return new AmazonAsyncHttpClient(testClientConfiguration().toBuilder()
+                                                                      .option(SdkClientOption.ASYNC_HTTP_CLIENT, asyncHttpClient)
+                                                                      .option(SdkClientOption.API_CALL_TIMEOUT, apiCallTimeout)
+                                                                      .option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT,
+                                                                              apiCallAttemptTimeout)
+                                                                      .applyMutation(this::configureRetryStrategy)
+                                                                      .applyMutation(this::configureAdditionalHeaders)
+                                                                      .build());
+        }
+
+        private void configureAdditionalHeaders(SdkClientConfiguration.Builder builder) {
+            Map<String, List<String>> headers =
+                this.additionalHeaders.entrySet().stream()
+                                      .collect(Collectors.toMap(Map.Entry::getKey, e -> Arrays.asList(e.getValue())));
+
+            builder.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS, headers);
+        }
+
+        private void configureRetryStrategy(SdkClientConfiguration.Builder builder) {
+            if (retryStrategy != null) {
+                builder.option(SdkClientOption.RETRY_STRATEGY, retryStrategy);
+            }
+        }
+    }
+}
