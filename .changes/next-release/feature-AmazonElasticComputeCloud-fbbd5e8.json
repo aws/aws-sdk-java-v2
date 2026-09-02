@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Elastic Compute Cloud",
+    "contributor": "",
+    "description": "This release adds support to retain interruptible Capacity Reservations in an active state when all capacity is reclaimed."
+}
