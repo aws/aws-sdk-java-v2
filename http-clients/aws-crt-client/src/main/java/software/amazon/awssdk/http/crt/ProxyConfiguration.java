@@ -126,7 +126,7 @@ public final class ProxyConfiguration extends CrtProxyConfiguration
          * proxy settings will exclusively originate from Environment Variable Values, and no partial settings will be obtained
          * from System Property Values.
          * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
-         * proxy settings.
+         * proxy settings. A leading-dot suffix such as {@code .example.com} is equivalent to {@code *.example.com}.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values
          * @return This object for method chaining.

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.apache.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.Collections;
 import org.apache.http.HttpException;
@@ -29,6 +30,7 @@ import org.junit.jupiter.api.Test;
  */
 public class SdkProxyRoutePlannerTest {
     private static final HttpHost S3_HOST = new HttpHost("s3.us-west-2.amazonaws.com", 443, "https");
+    private static final HttpHost INTERNAL_HOST = new HttpHost("s3.storage.company.internal", 443, "https");
     private static final HttpGet S3_REQUEST = new HttpGet("/my-bucket/my-object");
     private static final HttpClientContext CONTEXT = new HttpClientContext();
 
@@ -48,5 +50,13 @@ public class SdkProxyRoutePlannerTest {
         HttpHost proxyHost = planner.determineRoute(S3_HOST, S3_REQUEST, CONTEXT).getProxyHost();
         assertEquals("localhost", proxyHost.getHostName());
         assertEquals("http", proxyHost.getSchemeName());
+    }
+
+    @Test
+    public void leadingDotSuffixPatternBypassesProxy() throws HttpException {
+        SdkProxyRoutePlanner planner = new SdkProxyRoutePlanner("localhost", 1234, "https",
+                                                                 Collections.singleton(".*?.company.internal"));
+
+        assertNull(planner.determineRoute(INTERNAL_HOST, S3_REQUEST, CONTEXT).getProxyHost());
     }
 }

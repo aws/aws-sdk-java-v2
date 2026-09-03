@@ -276,7 +276,8 @@ public abstract class CrtProxyConfiguration {
          * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
          * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
          * proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com,b.com"} and
-         * {@code "a.com, b.com"} are accepted.
+         * {@code "a.com, b.com"} are accepted. A leading-dot suffix such as {@code .example.com} is equivalent to
+         * {@code *.example.com}.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values
          * @return This object for method chaining.
