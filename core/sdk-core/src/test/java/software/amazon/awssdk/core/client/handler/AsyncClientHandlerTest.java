@@ -18,10 +18,13 @@ package software.amazon.awssdk.core.client.handler;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -43,6 +46,7 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
@@ -51,6 +55,7 @@ import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
@@ -108,6 +113,36 @@ public class AsyncClientHandlerTest {
         verifyNoMoreInteractions(errorResponseHandler); // No error handler calls
         assertThat(actualResponse.sdkHttpResponse().statusCode()).isEqualTo(200);
         assertThat(actualResponse.sdkHttpResponse().headers()).isEqualTo(headers);
+    }
+
+    /**
+     * The handler reports {@code API_CALL_DURATION} and {@code API_CALL_SUCCESSFUL} from a {@code whenComplete} action on
+     * the future it returns, so a collector that throws must fail that future rather than be swallowed.
+     *
+     * <p>Only assertable on the success path. When the source future has already failed and the {@code whenComplete}
+     * action throws, {@link CompletableFuture} keeps the source exception and discards the action's. The pipeline stage
+     * this reporting replaced behaved the same way, so that is a pre-existing limitation rather than a new one.
+     */
+    @Test
+    public void metricCollectorThrowsOnSuccessfulExecution_exceptionReportedInFuture() throws Exception {
+        MetricCollector metricCollector = mock(MetricCollector.class);
+        when(metricCollector.createChild(any())).thenReturn(metricCollector);
+        RuntimeException exception = new RuntimeException("metric collector boom");
+        doThrow(exception).when(metricCollector).reportMetric(eq(CoreMetric.API_CALL_DURATION), any(Duration.class));
+
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+
+        expectRetrievalFromMocks();
+        when(httpClient.execute(executeRequest.capture())).thenReturn(httpClientFuture);
+        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
+
+        CompletableFuture<SdkResponse> responseFuture =
+            asyncClientHandler.execute(clientExecutionParams().withMetricCollector(metricCollector));
+        SdkAsyncHttpResponseHandler capturedHandler = executeRequest.getValue().responseHandler();
+        capturedHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
+        capturedHandler.onStream(new EmptyPublisher<>());
+
+        assertThatThrownBy(() -> responseFuture.get(1, TimeUnit.SECONDS)).hasRootCause(exception);
     }
 
     @Test
