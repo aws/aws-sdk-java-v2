@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.11__ __2026-09-02__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports AB forensic video watermarking
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds a force parameter to DeleteApplication and a ConflictException to UpdateApplication, letting customers delete applications with existing associations in one call and get a clear error when an update conflicts with the application's current state.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Batch evaluation now supports up to 10 CloudWatch log groups per CloudWatchLogsSource
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to retain interruptible Capacity Reservations in an active state when all capacity is reclaimed.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Amazon SageMaker Feature Store now supports the UpdateRecord API, enabling partial updates to individual feature values in an existing Online Store record without rewriting the entire record. This reduces write payloads and latency for high-frequency feature-level writes .
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Feature Store now supports the Standard V2 online store type, which enables feature-level writes to feature groups. You can select Standard V2 when creating a feature group, and update the storage type of an existing feature group via UpdateFeatureGroup.
+
+## __AmazonMWAA__
+  - ### Features
+    - Enabled customers to clear optional S3 paths (plugins, requirements, and startup script) for their Amazon MWAA environments by accepting empty strings for the associated fields in UpdateEnvironment requests.
+
+## __Application Migration Service__
+  - ### Features
+    - AWS Transform for migrations adds a second network migration option - apply your source security posture to existing VPCs. Upload a source network file with firewall rules, tag the in-scope VPCs, and AWS Transform matches source subnets to them by CIDR and generates the security groups.
+
+## __odb__
+  - ### Features
+    - Adds the ListFlexComponents API for listing the flex components available for a given DB system shape.
+
 # __2.54.10__ __2026-09-01__
 ## __AWS Elemental MediaConvert__
   - ### Features
