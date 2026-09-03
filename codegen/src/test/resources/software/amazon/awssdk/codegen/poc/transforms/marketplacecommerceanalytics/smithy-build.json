@@ -1,0 +1,17 @@
+{
+    "version": "1.0",
+    "projections": {
+        "sdk": {
+            "transforms": [
+                {
+                    "name": "renameShapes",
+                    "args": {
+                        "renamed": {
+                            "com.amazonaws.marketplacecommerceanalytics#MarketplaceCommerceAnalyticsException": "com.amazonaws.marketplacecommerceanalytics#MarketplaceCommerceAnalyticsServiceException"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

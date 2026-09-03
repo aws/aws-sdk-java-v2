@@ -48,6 +48,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
 import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
 import software.amazon.awssdk.codegen.smithy.SmithyModels;
+import software.amazon.awssdk.codegen.smithy.SmithyTransformChain;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
@@ -172,11 +173,16 @@ public class GenerationMojo extends AbstractMojo {
         // The plugin's own classloader carries the Smithy trait jars; Maven's thread context
         // classloader does not reliably point at the plugin realm.
         ClassLoader classLoader = GenerationMojo.class.getClassLoader();
-        Model model = Model.assembler(classLoader)
-                           .discoverModels(classLoader)
-                           .addImport(modelRootPath.resolve(SMITHY_MODEL_FILE))
-                           .assemble()
-                           .unwrap();
+        Model assembled = Model.assembler(classLoader)
+                               .discoverModels(classLoader)
+                               .addImport(modelRootPath.resolve(SMITHY_MODEL_FILE))
+                               .assemble()
+                               .unwrap();
+        // Customizations are applied here, strictly before the builder is constructed. The builder
+        // derives its naming strategy, indexes, protocol and shape processors from the model it is
+        // handed, so a model customized any later would leave all of those reading the uncustomized
+        // model and the customization would silently do nothing.
+        Model model = SmithyTransformChain.applyIfPresent(assembled, modelRootPath, classLoader);
         SmithyModels smithyModels = SmithyModels.builder()
                                                 .model(model)
                                                 .customizationConfig(r.customizationConfig)

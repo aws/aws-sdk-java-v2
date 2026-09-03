@@ -1,0 +1,20 @@
+{
+    "version": "1.0",
+    "projections": {
+        "sdk": {
+            "transforms": [
+                {
+                    "name": "renameShapes",
+                    "args": {
+                        "renamed": {
+                            "com.amazonaws.elasticloadbalancing#AccessPointNotFoundException": "com.amazonaws.elasticloadbalancing#LoadBalancerNotFoundException",
+                            "com.amazonaws.elasticloadbalancing#DuplicateAccessPointNameException": "com.amazonaws.elasticloadbalancing#DuplicateLoadBalancerNameException",
+                            "com.amazonaws.elasticloadbalancing#TooManyAccessPointsException": "com.amazonaws.elasticloadbalancing#TooManyLoadBalancersException",
+                            "com.amazonaws.elasticloadbalancing#InvalidEndPointException": "com.amazonaws.elasticloadbalancing#InvalidInstanceException"
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

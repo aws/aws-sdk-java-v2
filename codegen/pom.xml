@@ -188,6 +188,38 @@
             <artifactId>smithy-rules-engine</artifactId>
             <version>${smithy.version}</version>
         </dependency>
+        <!-- Declarative model transforms (ProjectionTransformer SPI) applied before Smithy translation. -->
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-build</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+
+        <!-- Peripheral trait jars needed only to assemble real AWS model.json fixtures in tests. -->
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-aws-endpoints</artifactId>
+            <version>${smithy.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-waiters</artifactId>
+            <version>${smithy.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-protocol-traits</artifactId>
+            <version>${smithy.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-smoke-test-traits</artifactId>
+            <version>${smithy.version}</version>
+            <scope>test</scope>
+        </dependency>
 
         <dependency>
             <artifactId>org.eclipse.jdt.core</artifactId>
