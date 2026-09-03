@@ -136,8 +136,8 @@ public class UrlConnectionHttpClientRetryTest {
     }
 
     private void verifyFailureIsRetried(SdkHttpClient transport,
-                                         SdkHttpFullRequest request,
-                                         AtomicInteger attempts) {
+                                        SdkHttpFullRequest request,
+                                        AtomicInteger attempts) {
         RetryPolicy retryPolicy = RetryPolicy.builder()
                                              .numRetries(1)
                                              .backoffStrategy(BackoffStrategy.none())

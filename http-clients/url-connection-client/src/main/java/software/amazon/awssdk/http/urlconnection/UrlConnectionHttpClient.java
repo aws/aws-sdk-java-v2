@@ -318,11 +318,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
 
             return HttpExecuteResponse.builder()
                                       .response(SdkHttpResponse.builder()
-                                                           .statusCode(responseCode)
-                                                           .statusText(connection.getResponseMessage())
-                                                           // TODO: Don't ignore abort?
-                                                           .headers(extractHeaders(connection))
-                                                           .build())
+                                                               .statusCode(responseCode)
+                                                               .statusText(connection.getResponseMessage())
+                                                               // TODO: Don't ignore abort?
+                                                               .headers(extractHeaders(connection))
+                                                               .build())
                                       .responseBody(responseBody)
                                       .build();
         }
@@ -445,13 +445,9 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
         }
 
         /**
-         * {@link sun.net.www.protocol.http.HttpURLConnection#getInputStream0()} has been observed to intermittently throw
-         * {@link NullPointerException}s for reasons that still require further investigation, but are assumed to be due to a
-         * bug in the JDK. Propagating such NPEs is confusing for users and are not subject to being retried on by the default 
-         * retry policy configuration, so instead we bias towards propagating these as {@link IOException}s.
-         * <p>
-         * TODO: Determine precise root cause of intermittent NPEs, submit JDK bug report if applicable, and consider applying
-         * this behavior only on unpatched JVM runtime versions.
+         * Converts NPEs from {@link HttpURLConnection#getResponseCode()} to checked {@link IOException}s so the retry
+         * policy can evaluate them. These NPEs can occur when
+         * {@link HttpURLConnection#disconnect()} races with response access.
          */
         private static int getResponseCodeSafely(HttpURLConnection connection) throws IOException {
             Validate.paramNotNull(connection, "connection");
