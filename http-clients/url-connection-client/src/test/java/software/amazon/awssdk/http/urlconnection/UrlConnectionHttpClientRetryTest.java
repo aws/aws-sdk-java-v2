@@ -64,6 +64,56 @@ public class UrlConnectionHttpClientRetryTest {
         });
     }
 
+    @Test
+    void execute_whenInputStreamThrowsBareNpe_retriesRequest() {
+        AtomicInteger attempts = new AtomicInteger();
+        SdkHttpClient transport = UrlConnectionHttpClient.create(uri -> new StubHttpURLConnection(toUrl(uri)) {
+            @Override
+            public InputStream getInputStream() {
+                if (attempts.incrementAndGet() == 1) {
+                    throw new NullPointerException("this.http is null");
+                }
+                return new ByteArrayInputStream(new byte[0]);
+            }
+
+            // Ensure responseHasNoContent() proceeds to getInputStream().
+            @Override
+            public String getHeaderField(String name) {
+                return null;
+            }
+        });
+
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .uri(URI.create("http://localhost/test"))
+                                                       .method(SdkHttpMethod.GET)
+                                                       .build();
+        verifyFailureIsRetried(transport, request, attempts);
+    }
+
+    @Test
+    void execute_whenResponseCodeCheckBeforeInputStreamThrowsIOException_retriesRequest() {
+        AtomicInteger attempts = new AtomicInteger();
+        AtomicInteger responseCodeCalls = new AtomicInteger();
+        SdkHttpClient transport = UrlConnectionHttpClient.create(uri -> {
+            attempts.incrementAndGet();
+            return new StubHttpURLConnection(toUrl(uri)) {
+                @Override
+                public int getResponseCode() throws IOException {
+                    if (responseCodeCalls.incrementAndGet() == 2) {
+                        throw new IOException("connection closed");
+                    }
+                    return HTTP_OK;
+                }
+            };
+        });
+
+        SdkHttpFullRequest request = SdkHttpFullRequest.builder()
+                                                       .uri(URI.create("http://localhost/test"))
+                                                       .method(SdkHttpMethod.GET)
+                                                       .build();
+        verifyFailureIsRetried(transport, request, attempts);
+    }
+
     private void verifyOutputStreamFailureIsRetried(IoRunnable firstAttemptFailure) {
         AtomicInteger attempts = new AtomicInteger();
         SdkHttpClient transport = UrlConnectionHttpClient.create(uri -> new StubHttpURLConnection(toUrl(uri)) {
@@ -82,6 +132,12 @@ public class UrlConnectionHttpClientRetryTest {
                                                        .putHeader("Content-Length", "1")
                                                        .contentStreamProvider(() -> new ByteArrayInputStream(new byte[1]))
                                                        .build();
+        verifyFailureIsRetried(transport, request, attempts);
+    }
+
+    private void verifyFailureIsRetried(SdkHttpClient transport,
+                                         SdkHttpFullRequest request,
+                                         AtomicInteger attempts) {
         RetryPolicy retryPolicy = RetryPolicy.builder()
                                              .numRetries(1)
                                              .backoffStrategy(BackoffStrategy.none())
@@ -149,7 +205,7 @@ public class UrlConnectionHttpClientRetryTest {
         }
 
         @Override
-        public int getResponseCode() {
+        public int getResponseCode() throws IOException {
             return HTTP_OK;
         }
 

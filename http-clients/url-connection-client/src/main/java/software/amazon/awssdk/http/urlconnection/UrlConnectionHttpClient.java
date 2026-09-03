@@ -361,7 +361,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          *     non-failure cases (2xx, 3xx) or log and return the response without the payload for failure cases (4xx or 5xx)
          *     .</li>
          * </ol>
-         *
+         * <p>
          * Convert stream-accessor NPEs to checked {@link IOException}s so the retry policy can evaluate them.
          */
         private <T> Optional<T> getAndHandle100Bug(IoSupplier<T> supplier, boolean failOn100Bug) throws IOException {
@@ -382,7 +382,7 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                     return Optional.empty();
                 }
 
-                int responseCode = invokeSafely(connection::getResponseCode);
+                int responseCode = getResponseCodeSafely(connection);
                 String message = "Unable to read response payload, because service returned response code "
                                  + responseCode + " to an Expect: 100-continue request. Using another HTTP client "
                                  + "implementation (e.g. Apache) removes this limitation.";
@@ -429,11 +429,11 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                           .orElse(false);
         }
 
-        private boolean responseHasNoContent() {
+        private boolean responseHasNoContent() throws IOException {
             // We cannot account for chunked encoded responses, because we only have access to headers and response code here,
             // so we assume chunked encoded responses DO have content.
             if (responseHasNoContent == null) {
-                responseHasNoContent = responseNeverHasPayload(invokeSafely(connection::getResponseCode)) ||
+                responseHasNoContent = responseNeverHasPayload(getResponseCodeSafely(connection)) ||
                                        Objects.equals(connection.getHeaderField("Content-Length"), "0") ||
                                        Objects.equals(connection.getRequestMethod(), "HEAD");
             }
