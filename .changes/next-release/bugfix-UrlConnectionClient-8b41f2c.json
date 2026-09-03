@@ -1,6 +1,6 @@
 {
     "type": "bugfix",
-    "category": "Url Connection Client",
+    "category": "URL Connection HTTP Client",
     "contributor": "",
     "description": "Allow retries when the URL Connection HTTP Client encounters an IOException or NullPointerException while accessing request or response body streams."
 }

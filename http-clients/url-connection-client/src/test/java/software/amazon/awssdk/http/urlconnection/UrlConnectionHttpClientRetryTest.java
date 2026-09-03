@@ -31,7 +31,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
@@ -44,21 +44,21 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 
 public class UrlConnectionHttpClientRetryTest {
     @Test
-    public void bareOutputStreamNpeIsRetried() {
+    void execute_whenOutputStreamThrowsBareNpe_retriesRequest() {
         verifyOutputStreamFailureIsRetried(() -> {
             throw new NullPointerException("this.http is null");
         });
     }
 
     @Test
-    public void wrappedOutputStreamNpeIsRetried() {
+    void execute_whenOutputStreamThrowsWrappedNpe_retriesRequest() {
         verifyOutputStreamFailureIsRetried(() -> {
             throw new RuntimeException(new NullPointerException("this.http is null"));
         });
     }
 
     @Test
-    public void outputStreamIOExceptionIsRetried() {
+    void execute_whenOutputStreamThrowsIOException_retriesRequest() {
         verifyOutputStreamFailureIsRetried(() -> {
             throw new IOException("connection closed");
         });
