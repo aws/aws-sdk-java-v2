@@ -28,6 +28,7 @@ import java.io.OutputStream;
 import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.ProtocolException;
 import java.net.Proxy;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +43,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -327,14 +327,14 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                       .build();
         }
 
-        private Optional<OutputStream> tryGetOutputStream() {
-            return getAndHandle100Bug(() -> invokeSafely(connection::getOutputStream), false);
+        private Optional<OutputStream> tryGetOutputStream() throws IOException {
+            return getAndHandle100Bug(connection::getOutputStream, false);
         }
 
-        private Optional<InputStream> tryGetInputStream() {
+        private Optional<InputStream> tryGetInputStream() throws IOException {
             return responseHasNoContent()
                    ? Optional.empty()
-                   : getAndHandle100Bug(() -> invokeSafely(connection::getInputStream), true);
+                   : getAndHandle100Bug(connection::getInputStream, true);
         }
 
         private Optional<InputStream> tryGetErrorStream() {
@@ -361,16 +361,13 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
          *     non-failure cases (2xx, 3xx) or log and return the response without the payload for failure cases (4xx or 5xx)
          *     .</li>
          * </ol>
+         *
+         * Convert stream-accessor NPEs to checked {@link IOException}s so the retry policy can evaluate them.
          */
-        private <T> Optional<T> getAndHandle100Bug(Supplier<T> supplier, boolean failOn100Bug) {
+        private <T> Optional<T> getAndHandle100Bug(IoSupplier<T> supplier, boolean failOn100Bug) throws IOException {
             try {
                 return Optional.ofNullable(supplier.get());
-            } catch (RuntimeException e) {
-                if (e.getCause() instanceof NullPointerException) {
-                    throw new UncheckedIOException(new IOException(
-                        "Unexpected NullPointerException when calling HttpURLConnection", e));
-                }
-
+            } catch (ProtocolException e) {
                 if (!exceptionCausedBy100HandlingBug(e)) {
                     throw e;
                 }
@@ -390,13 +387,39 @@ public final class UrlConnectionHttpClient implements SdkHttpClient {
                                  + responseCode + " to an Expect: 100-continue request. Using another HTTP client "
                                  + "implementation (e.g. Apache) removes this limitation.";
                 throw new UncheckedIOException(new IOException(message, e));
+            } catch (RuntimeException e) {
+                if (isNpeOrDirectlyWrapsNpe(e)) {
+                    throw logAndConvertNpe(e);
+                }
+                throw e;
             }
         }
 
-        private boolean exceptionCausedBy100HandlingBug(RuntimeException e) {
+        /**
+         * Matches the bare and directly wrapped NPE forms emitted by HttpURLConnection stream accessors.
+         */
+        private static boolean isNpeOrDirectlyWrapsNpe(RuntimeException e) {
+            return e instanceof NullPointerException || e.getCause() instanceof NullPointerException;
+        }
+
+        private IOException logAndConvertNpe(RuntimeException e) {
+            log.debug(() -> "Converting NPE from HttpURLConnection implementation "
+                            + connection.getClass().getName() + " to IOException for retry evaluation", e);
+            return new IOException("Unexpected NullPointerException when calling HttpURLConnection", e);
+        }
+
+        private boolean exceptionCausedBy100HandlingBug(ProtocolException e) {
             return requestWasExpect100Continue() &&
                    e.getMessage() != null &&
-                   e.getMessage().startsWith("java.net.ProtocolException: Server rejected operation");
+                   e.getMessage().startsWith("Server rejected operation");
+        }
+
+        /**
+         * Supplies a value without converting checked {@link IOException}s to runtime exceptions.
+         */
+        @FunctionalInterface
+        private interface IoSupplier<T> {
+            T get() throws IOException;
         }
 
         private Boolean requestWasExpect100Continue() {
