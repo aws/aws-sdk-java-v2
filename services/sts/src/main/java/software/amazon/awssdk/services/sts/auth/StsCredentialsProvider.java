@@ -17,7 +17,12 @@ package software.amazon.awssdk.services.sts.auth;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -25,6 +30,8 @@ import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -32,6 +39,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -50,10 +58,24 @@ import software.amazon.awssdk.utils.cache.RefreshResult;
 @ThreadSafe
 @SdkPublicApi
 public abstract class StsCredentialsProvider implements AwsCredentialsProvider, SdkAutoCloseable {
+
+    /**
+     * STS error codes that indicate a non-recoverable failure. When a credential refresh fails with one of these codes,
+     * the error bypasses static stability and is surfaced to the caller immediately, because retrying cannot fix the
+     * underlying problem.
+     */
+    static final Set<String> NON_RECOVERABLE_ERROR_CODES = Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
+        "AccessDenied",
+        "IDPRejectedClaim",
+        "InvalidIdentityToken",
+        "MalformedPolicyDocument",
+        "PackedPolicyTooLarge",
+        "RegionDisabledException"
+    )));
+
     private static final Logger log = Logger.loggerFor(StsCredentialsProvider.class);
 
     private static final Duration DEFAULT_STALE_TIME = Duration.ofMinutes(1);
-    private static final Duration DEFAULT_PREFETCH_TIME = Duration.ofMinutes(5);
 
     /**
      * The STS client that should be used for periodically updating the session credentials.
@@ -73,12 +95,19 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         this.stsClient = Validate.notNull(builder.stsClient, "STS client must not be null.");
 
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
-        this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        this.prefetchTime = builder.prefetchTime;
+        if (this.prefetchTime != null) {
+            Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
+                            "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
+        }
 
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         CachedSupplier.Builder<AwsSessionCredentials> cacheBuilder =
             CachedSupplier.builder(this::updateSessionCredentials)
-                          .cachedValueName(toString());
+                          .cachedValueName(toString())
+                          .staleValueBehavior(CachedSupplier.StaleValueBehavior.ALLOW)
+                          .prefetchJitterEnabled(false)
+                          .nonRecoverableErrorPredicate(StsCredentialsProvider::isNonRecoverableError);
         if (builder.asyncCredentialUpdateEnabled) {
             cacheBuilder.prefetchStrategy(new NonBlocking(asyncThreadName));
         }
@@ -95,9 +124,12 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
             credentials.expirationTime()
                        .orElseThrow(() -> new IllegalStateException("Sourced credentials have no expiration value"));
 
+        Instant now = Instant.now();
+        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(actualTokenExpiration, prefetchTime, now);
+
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))
-                            .prefetchTime(actualTokenExpiration.minus(prefetchTime))
+                            .prefetchTime(actualTokenExpiration.minus(effectivePrefetchWindow))
                             .build();
     }
 
@@ -115,17 +147,24 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         sessionCache.close();
     }
 
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        String rejectedAccessKeyId = identity.accessKeyId();
+        sessionCache.invalidate(cachedCreds -> rejectedAccessKeyId.equals(cachedCreds.accessKeyId()));
+        return CompletableFuture.completedFuture(null);
+    }
+
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered stale and
-     * should no longer be used. All threads will block until the value is updated.
+     * The amount of time, relative to credential expiration, that defines the mandatory refresh window. When credentials are
+     * within this window, all threads will block until the credentials are updated.
      */
     public Duration staleTime() {
         return staleTime;
     }
 
     /**
-     * The amount of time, relative to STS token expiration, that the cached credentials are considered close to stale
-     * and should be updated.
+     * The amount of time, relative to credential expiration, that defines the advisory refresh window. When credentials are
+     * within this window, the provider proactively attempts to refresh them.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -134,6 +173,25 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
     @Override
     public String toString() {
         return ToString.create(providerName());
+    }
+    
+    static boolean isNonRecoverableError(RuntimeException e) {
+        AwsServiceException serviceException = extractServiceException(e);
+        if (serviceException == null || serviceException.awsErrorDetails() == null) {
+            return false;
+        }
+        String errorCode = serviceException.awsErrorDetails().errorCode();
+        return errorCode != null && NON_RECOVERABLE_ERROR_CODES.contains(errorCode);
+    }
+
+    private static AwsServiceException extractServiceException(RuntimeException e) {
+        if (e instanceof AwsServiceException) {
+            return (AwsServiceException) e;
+        }
+        if (e.getCause() instanceof AwsServiceException) {
+            return (AwsServiceException) e.getCause();
+        }
+        return null;
     }
 
     /**
@@ -183,9 +241,13 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure whether the provider should fetch credentials asynchronously in the background. If this is true,
-         * threads are less likely to block when credentials are loaded, but additional resources are used to maintain
-         * the provider.
+         * Configure whether the provider should fetch credentials asynchronously in the background. When enabled, a
+         * dedicated thread performs credential refreshes during the advisory refresh window (defined by
+         * {@link #prefetchTime(Duration)}), so that callers are less likely to block waiting for credentials. Additional
+         * resources (a thread) are used to maintain the provider.
+         *
+         * <p>Regardless of this setting, callers will block if credentials enter the mandatory refresh window (defined by
+         * {@link #staleTime(Duration)}).
          *
          * <p>By default, this is disabled.</p>
          */
@@ -196,10 +258,17 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * stale and must be updated. All threads will block until the value is updated.
+         * Configure the amount of time, relative to credential expiration, that defines the mandatory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
+         * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
+         *
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>By default, this is 1 minute.</p>
+         *
+         * @param staleTime the duration before expiration that triggers mandatory (blocking) refresh
          */
         @SuppressWarnings("unchecked")
         public B staleTime(Duration staleTime) {
@@ -208,13 +277,24 @@ public abstract class StsCredentialsProvider implements AwsCredentialsProvider, 
         }
 
         /**
-         * Configure the amount of time, relative to STS token expiration, that the cached credentials are considered
-         * close to stale and should be updated.
+         * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
+         * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
+         * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
          *
-         * Prefetch updates will occur between the specified time and the stale time of the provider. Prefetch updates may be
-         * asynchronous. See {@link #asyncCredentialUpdateEnabled}.
+         * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
+         * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform
+         * the refresh while other callers receive the current cached credentials.
          *
-         * <p>By default, this is 5 minutes.</p>
+         * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         *
+         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
+         * remaining lifetime: 5 minutes for credentials with 20 minutes or less remaining, 15 minutes for 20-90
+         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
+         * successful refresh.</p>
+         *
+         * @param prefetchTime the duration before expiration that triggers advisory (proactive) refresh
          */
         @SuppressWarnings("unchecked")
         public B prefetchTime(Duration prefetchTime) {
