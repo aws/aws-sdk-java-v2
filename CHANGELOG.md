@@ -1,4 +1,61 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.12__ __2026-09-03__
+## __AWS End User Messaging Social__
+  - ### Features
+    - Adding support for WhatsApp Flows with endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix `ApiCallDuration` so that it measures the whole API call. It previously started after marshalling had already completed, and on asynchronous clients it also started after endpoint resolution, auth scheme resolution, request compression and checksum computation, and so understated the reported duration. The metric is now measured identically for synchronous and asynchronous clients and matches the documented formula. Reported `ApiCallDuration` values will increase but do not reflect changes in actual round-trip latency.
+
+## __AWS Step Functions__
+  - ### Features
+    - Updates Step Functions API documentation around CloudTrail, Execution name reuse and sort order of ListExecutions API
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family SFTP Connectors now support specifying an ordered list of AWS Secrets Manager version stages for secret retrieval. This enables seamless credential rotation workflows where external partners may take time to update their systems with new credentials.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds log group name prefix trace source selection, custom or source log group result destinations, and metrics namespace customization
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Identity adds Consent Portal APIs to manage portals that let end users grant OAuth authorization for agents to access resources. AgentCore Evaluation adds trace source selection by log group prefix, custom or source log group result destinations, and metrics namespace customization.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release enables TagOnCreate for Rule resource on CreateRule API. It also introduces a new field called PreEvaluationFilters to Rule resource, thereby impacting all Create, Update, Describe and Search APIs for Rules
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adds a critical parameter to the Amazon ECS managed daemon APIs that controls whether a daemon task failure drains the container instance. Non-critical daemon failures no longer drain the instance or block instance registration.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Deprecate EncryptionConfig resources field. Amazon EKS encrypts all Kubernetes API data with envelope encryption by default for clusters running Kubernetes version 1.28 or higher, so this field no longer affects which resources are encrypted.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS now allows users to set, update, and retrieve values for parameters that apply across all EVS Environments in their account at a regional level, such as the VCF License portability core count.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for Sequence Activities in GuardDuty Findings
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports specifying up to 29 PII entity types in the ContentRedaction configuration of a StartTranscriptionJob request, allowing all supported entity types to be redacted in a single batch transcription job.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - AWS Elastic Disaster Recovery now includes source server architecture in SourceProperties to identify x86 and ARM64 systems.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for sending TCP resets for Gateway Load Balancer when a flow's idle timeout expires, or when a target becomes unhealthy or is deregistered. This adds updates the CLI documentation.
+
 # __2.54.11__ __2026-09-02__
 ## __AWS Elemental MediaLive__
   - ### Features
