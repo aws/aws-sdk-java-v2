@@ -1,6 +1,7 @@
-package software.amazon.awssdk.services.json;
+package software.amazon.awssdk.services.h2;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -28,6 +29,9 @@ import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.Protocol;
+import software.amazon.awssdk.http.ProtocolNegotiation;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -36,48 +40,39 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.RetryStrategy;
-import software.amazon.awssdk.services.json.auth.scheme.JsonAuthSchemeProvider;
-import software.amazon.awssdk.services.json.endpoints.JsonEndpointParams;
-import software.amazon.awssdk.services.json.endpoints.JsonEndpointProvider;
-import software.amazon.awssdk.services.json.internal.JsonServiceClientConfigurationBuilder;
+import software.amazon.awssdk.services.h2.auth.scheme.H2AuthSchemeProvider;
+import software.amazon.awssdk.services.h2.endpoints.H2EndpointParams;
+import software.amazon.awssdk.services.h2.endpoints.H2EndpointProvider;
+import software.amazon.awssdk.services.h2.internal.H2ServiceClientConfigurationBuilder;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
 /**
- * Internal base class for {@link DefaultJsonClientBuilder} and {@link DefaultJsonAsyncClientBuilder}.
+ * Internal base class for {@link DefaultH2ClientBuilder} and {@link DefaultH2AsyncClientBuilder}.
  */
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
-abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
+abstract class DefaultH2BaseClientBuilder<B extends H2BaseClientBuilder<B, C>, C> extends AwsDefaultClientBuilder<B, C> {
     private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
 
     @Override
     protected final String serviceEndpointPrefix() {
-        return "json-service-endpoint";
+        return "h2-service";
     }
 
     @Override
     protected final String serviceName() {
-        return "Json";
+        return "H2";
     }
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
         return config.merge(c -> {
             c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-             .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
-             .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
-             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false);
-        });
-    }
-
-    @Override
-    protected final SdkClientConfiguration mergeInternalDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> {
-            c.option(SdkClientOption.INTERNAL_USER_AGENT, "md/foobar");
-            c.option(SdkClientOption.DEFAULT_RETRY_MODE, RetryMode.STANDARD);
-            c.option(SdkClientOption.DEFAULT_NEW_RETRIES_2026, true);
-            c.option(SdkClientOption.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026, true);
+                    .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+                    .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+                    .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false);
         });
     }
 
@@ -86,7 +81,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
-            .getInterceptors("software/amazon/awssdk/services/json/execution.interceptors");
+                .getInterceptors("software/amazon/awssdk/services/h2/execution.interceptors");
         List<ExecutionInterceptor> additionalInterceptors = new ArrayList<>();
         interceptors = CollectionUtils.mergeLists(endpointInterceptors, interceptors);
         interceptors = CollectionUtils.mergeLists(interceptors, additionalInterceptors);
@@ -102,84 +97,84 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         });
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.lazyOptionIfAbsent(
-            SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-            c -> {
-                Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
-                                                                          .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_JSON_SERVICE")
-                                                                          .serviceEndpointOverrideSystemProperty("aws.endpointUrlJson").serviceProfileProperty("json_service")
-                                                                          .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                                                          .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
-                if (overrideEndpoint.isPresent()) {
-                    return ClientEndpointProvider.create(overrideEndpoint.get(), true);
-                }
-                URI clientEndpointUri = null;
-                Region region = c.get(AwsClientOption.AWS_REGION);
-                try {
-                    JsonEndpointParams endpointParams = JsonEndpointParams.builder().region(region).build();
-                    Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
-                        endpointParams));
-                    clientEndpointUri = endpoint.url();
-                } catch (Exception e) {
-                    // Endpoint resolution failed. This is expected for services with required parameters
-                    // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
-                    return ClientEndpointProvider.create(URI.create("https://localhost"), false);
-                }
-                if (clientEndpointUri.getHost() == null) {
-                    throw SdkClientException.create("Configured region (" + region + ") resulted in an invalid URI: "
-                                                    + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
-                }
-                return ClientEndpointProvider.create(clientEndpointUri, false);
-            });
+                SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
+                c -> {
+                    Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                            .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_H2_SERVICE")
+                            .serviceEndpointOverrideSystemProperty("aws.endpointUrlH2").serviceProfileProperty("h2_service")
+                            .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                            .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+                    if (overrideEndpoint.isPresent()) {
+                        return ClientEndpointProvider.create(overrideEndpoint.get(), true);
+                    }
+                    URI clientEndpointUri = null;
+                    Region region = c.get(AwsClientOption.AWS_REGION);
+                    try {
+                        H2EndpointParams endpointParams = H2EndpointParams.builder().region(region).build();
+                        Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                                endpointParams));
+                        clientEndpointUri = endpoint.url();
+                    } catch (Exception e) {
+                        // Endpoint resolution failed. This is expected for services with required parameters
+                        // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
+                        return ClientEndpointProvider.create(URI.create("https://localhost"), false);
+                    }
+                    if (clientEndpointUri.getHost() == null) {
+                        throw SdkClientException.create("Configured region (" + region + ") resulted in an invalid URI: "
+                                + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
+                    }
+                    return ClientEndpointProvider.create(clientEndpointUri, false);
+                });
         builder.lazyOptionIfAbsent(
-            AwsClientOption.SIGNING_REGION,
-            c -> {
-                Region region = c.get(AwsClientOption.AWS_REGION);
-                try {
-                    JsonEndpointParams endpointParams = JsonEndpointParams.builder().region(region).build();
-                    Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
-                        endpointParams));
-                    List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
-                    if (authSchemes != null && !authSchemes.isEmpty()) {
-                        EndpointAuthScheme firstScheme = authSchemes.get(0);
-                        if (firstScheme instanceof SigV4AuthScheme) {
-                            String signingRegion = ((SigV4AuthScheme) firstScheme).signingRegion();
-                            if (signingRegion != null) {
-                                return Region.of(signingRegion);
+                AwsClientOption.SIGNING_REGION,
+                c -> {
+                    Region region = c.get(AwsClientOption.AWS_REGION);
+                    try {
+                        H2EndpointParams endpointParams = H2EndpointParams.builder().region(region).build();
+                        Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                                endpointParams));
+                        List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+                        if (authSchemes != null && !authSchemes.isEmpty()) {
+                            EndpointAuthScheme firstScheme = authSchemes.get(0);
+                            if (firstScheme instanceof SigV4AuthScheme) {
+                                String signingRegion = ((SigV4AuthScheme) firstScheme).signingRegion();
+                                if (signingRegion != null) {
+                                    return Region.of(signingRegion);
+                                }
                             }
                         }
+                    } catch (Exception e) {
+                        // Endpoint resolution failed. Fall back to using the client region as signing region.
                     }
-                } catch (Exception e) {
-                    // Endpoint resolution failed. Fall back to using the client region as signing region.
-                }
-                return region;
-            });
+                    return region;
+                });
         builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         return builder.build();
     }
 
     @Override
     protected final String signingName() {
-        return "json-service";
+        return "h2-service";
     }
 
-    private JsonEndpointProvider defaultEndpointProvider() {
-        return JsonEndpointProvider.defaultProvider();
+    private H2EndpointProvider defaultEndpointProvider() {
+        return H2EndpointProvider.defaultProvider();
     }
 
-    public B authSchemeProvider(JsonAuthSchemeProvider authSchemeProvider) {
+    public B authSchemeProvider(H2AuthSchemeProvider authSchemeProvider) {
         clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
         return thisBuilder();
     }
 
-    private JsonAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+    private H2AuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
         AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
-                                                                                                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                                                                                                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
         List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
         if (!preferences.isEmpty()) {
-            return JsonAuthSchemeProvider.defaultProvider(preferences);
+            return H2AuthSchemeProvider.defaultProvider(preferences);
         }
-        return JsonAuthSchemeProvider.defaultProvider();
+        return H2AuthSchemeProvider.defaultProvider();
     }
 
     @Override
@@ -199,6 +194,14 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
     }
 
     @Override
+    protected final AttributeMap serviceHttpConfig() {
+        AttributeMap result = AttributeMap.empty();
+        return result.merge(AttributeMap.builder().put(SdkHttpConfigurationOption.PROTOCOL, Protocol.HTTP2)
+                .put(SdkHttpConfigurationOption.PROTOCOL_NEGOTIATION, ProtocolNegotiation.ALPN)
+                .put(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, Duration.ofMillis(900000L)).build());
+    }
+
+    @Override
     protected SdkClientConfiguration invokePlugins(SdkClientConfiguration config) {
         List<SdkPlugin> internalPlugins = internalPlugins(config);
         List<SdkPlugin> externalPlugins = plugins();
@@ -207,7 +210,7 @@ abstract class DefaultJsonBaseClientBuilder<B extends JsonBaseClientBuilder<B, C
         }
         List<SdkPlugin> plugins = CollectionUtils.mergeLists(internalPlugins, externalPlugins);
         SdkClientConfiguration.Builder configuration = config.toBuilder();
-        JsonServiceClientConfigurationBuilder serviceConfigBuilder = new JsonServiceClientConfigurationBuilder(configuration);
+        H2ServiceClientConfigurationBuilder serviceConfigBuilder = new H2ServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
