@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.handler;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -41,6 +42,7 @@ import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.metrics.MetricCollector;
+import software.amazon.awssdk.metrics.NoOpMetricCollector;
 
 @SdkInternalApi
 public abstract class BaseSyncClientHandler extends BaseClientHandler implements SyncClientHandler {
@@ -57,7 +59,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ClientExecutionParams<InputT, OutputT> executionParams,
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
 
-        return measureApiCallSuccess(executionParams, () -> {
+        return measureApiCall(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
             ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
@@ -71,7 +73,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
     public <InputT extends SdkRequest, OutputT extends SdkResponse> OutputT execute(
         ClientExecutionParams<InputT, OutputT> executionParams) {
 
-        return measureApiCallSuccess(executionParams, () -> {
+        return measureApiCall(executionParams, () -> {
             // Running beforeExecution interceptors and modifyRequest interceptors.
             ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
@@ -170,28 +172,44 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         }
 
         SdkClientConfiguration clientConfiguration = resolveRequestConfiguration(executionParams);
-        return invoke(clientConfiguration,
-                      marshalled,
-                      inputT,
-                      executionContext,
-                      responseHandler);
-    }
-
-    private <T> T measureApiCallSuccess(ClientExecutionParams<?, ?> executionParams, Supplier<T> thingToMeasureSuccessOf) {
         try {
-            T result = thingToMeasureSuccessOf.get();
-            reportApiCallSuccess(executionParams, true);
-            return result;
-        } catch (Exception e) {
-            reportApiCallSuccess(executionParams, false);
-            throw e;
+            return invoke(clientConfiguration,
+                          marshalled,
+                          inputT,
+                          executionContext,
+                          responseHandler);
+        } finally {
+            reportServiceEndpointMetric(executionContext, marshalled);
         }
     }
 
-    private void reportApiCallSuccess(ClientExecutionParams<?, ?> executionParams, boolean value) {
+    /**
+     * Measure {@link CoreMetric#API_CALL_DURATION} and report {@link CoreMetric#API_CALL_SUCCESSFUL} for the whole API
+     * call.
+     *
+     * <p>The window deliberately encloses everything the SDK does for the call, marshalling included. Measuring inside
+     * the request pipeline is not an option: the pipeline's input is the already-marshalled request, so no arrangement
+     * of pipeline stages can enclose marshalling.
+     */
+    private <T> T measureApiCall(ClientExecutionParams<?, ?> executionParams, Supplier<T> apiCall) {
         MetricCollector metricCollector = executionParams.getMetricCollector();
-        if (metricCollector != null) {
-            metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, value);
+        if (metricCollector == null || metricCollector instanceof NoOpMetricCollector) {
+            // Nothing will consume these metrics, so don't pay for the clock reads. A null collector is treated the same
+            // as NoOp: when the params carry none, the collector that AwsExecutionContextBuilder substitutes into the
+            // ExecutionContext is never handed to a publisher, so anything reported to it is discarded.
+            return apiCall.get();
+        }
+
+        long callStart = System.nanoTime();
+        try {
+            T result = apiCall.get();
+            metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, true);
+            return result;
+        } catch (Exception e) {
+            metricCollector.reportMetric(CoreMetric.API_CALL_SUCCESSFUL, false);
+            throw e;
+        } finally {
+            metricCollector.reportMetric(CoreMetric.API_CALL_DURATION, Duration.ofNanos(System.nanoTime() - callStart));
         }
     }
 

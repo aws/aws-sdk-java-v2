@@ -21,7 +21,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>core</artifactId>
-        <version>2.54.5-SNAPSHOT</version>
+        <version>2.54.13-SNAPSHOT</version>
     </parent>
     <artifactId>sdk-core</artifactId>
     <name>AWS Java SDK :: SDK Core</name>
@@ -106,12 +106,6 @@
             <artifactId>reactive-streams</artifactId>
         </dependency>
 
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>apache-client</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
@@ -214,12 +208,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>netty-nio-client</artifactId>
-            <version>${awsjavasdk.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
             <groupId>io.reactivex.rxjava2</groupId>
             <artifactId>rxjava</artifactId>
             <scope>test</scope>
@@ -267,7 +255,10 @@
                 <artifactId>japicmp-maven-plugin</artifactId>
                 <configuration>
                     <parameter>
-                        <excludes>
+                        <!-- combine.children="append" keeps the root pom's excludes, notably the *.internal.* wildcard.
+                             Without it Maven replaces the parent's list with this one, and deleting any internal
+                             sdk-core class fails the japicmp gate. -->
+                        <excludes combine.children="append">
                             <exclude>software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver#resolve(software.amazon.awssdk.core.SdkRequest)</exclude>
                         </excludes>
                     </parameter>
