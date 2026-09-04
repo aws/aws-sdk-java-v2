@@ -47,6 +47,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
     static final long DEFAULT_PART_SIZE_IN_BYTES = 8L * 1024 * 1024;
     private static final Logger log = Logger.loggerFor(S3NativeClientConfiguration.class);
     private static final long DEFAULT_TARGET_THROUGHPUT_IN_GBPS = 10;
+    private static final String HTTP_SCHEME = "http";
 
     private final String signingRegion;
     private final StandardRetryOptions standardRetryOptions;
@@ -106,6 +107,7 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
 
         if (builder.httpConfiguration != null) {
             this.proxyOptions = resolveProxy(builder.httpConfiguration.proxyConfiguration(), tlsContext).orElse(null);
+            applyPlaintextEndpointProxyConnectionType(this.proxyOptions, this.endpointOverride);
             this.connectionTimeout = builder.httpConfiguration.connectionTimeout();
             this.httpMonitoringOptions =
                 resolveHttpMonitoringOptions(builder.httpConfiguration.healthConfiguration()).orElse(null);
@@ -133,6 +135,24 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             return builder.thresholdInBytes;
         }
         return this.partSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES : this.partSizeInBytes;
+    }
+
+    /**
+     * Pins the proxy connection type to forwarding when the endpoint is plaintext.
+     *
+     * <p>The CRT derives the proxy connection type from whether TLS options were supplied for the main connection,
+     * not from the scheme actually in use. Because this client is always constructed with a {@link TlsContext}, a
+     * plaintext {@code http://} endpoint would otherwise be reached through a {@code CONNECT} tunnel, which
+     * forwarding-only proxies reject. This mirrors the scheme check that the CRT's own
+     * {@code HttpClientConnectionManager} performs before handing a TLS context to the native layer.
+     */
+    private static void applyPlaintextEndpointProxyConnectionType(HttpProxyOptions proxyOptions, URI endpointOverride) {
+        if (proxyOptions == null || endpointOverride == null) {
+            return;
+        }
+        if (HTTP_SCHEME.equalsIgnoreCase(endpointOverride.getScheme())) {
+            proxyOptions.setConnectionType(HttpProxyOptions.HttpProxyConnectionType.Forwarding);
+        }
     }
 
     private static Boolean resolveUseEnvironmentVariableValues(Builder builder) {
