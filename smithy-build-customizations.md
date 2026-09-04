@@ -121,6 +121,13 @@ generation inside the Maven lifecycle.
     "projections": {
         "client": {
             "transforms": [
+                { "name": "renameShapes",
+                  "args": { "renamed": {
+                      "com.amazonaws.account#Region": "com.amazonaws.account#AccountRegion" } } },
+                { "name": "renameMembers",
+                  "args": { "renamed": {
+                      "com.amazonaws.account#GetAccountInformationResponse$AccountName":
+                          "com.amazonaws.account#GetAccountInformationResponse$Name" } } },
                 { "name": "addAccountCustomOperation",
                   "args": { "service": "com.amazonaws.account#Account" } }
             ],
@@ -149,6 +156,67 @@ Four things worth knowing about this file:
   so only use placeholders the mojo guarantees.
 - **`customizationConfig` is still supported**, so a migration does not have to move all
   customizations at once.
+
+## Standard transforms need no code
+
+Smithy's built-in transforms work as-is; they are named in `transforms` and require no
+Java. `account` uses `renameShapes` to rename the modeled `Region` shape, which
+otherwise collides with `software.amazon.awssdk.regions.Region` — the same motivation
+behind S3's existing `Error` → `S3Error` and `Object` → `S3Object` renames:
+
+```json
+{ "name": "renameShapes",
+  "args": { "renamed": { "com.amazonaws.account#Region": "com.amazonaws.account#AccountRegion" } } }
+```
+
+The generated model class becomes `AccountRegion`, and references update
+automatically — `ListRegionsResponse` picks up `List<AccountRegion>` without anything
+else being configured.
+
+Transforms in a projection are applied **in order**, and standard and custom transforms
+mix freely in the same list.
+
+### `renameShapes` does not rename members
+
+Worth knowing before planning a migration: `renameShapes` renames shapes only. Passing
+it a member ID such as `com.amazonaws.account#Region$RegionName` is **silently
+ignored** — no error, no warning, and the build reports success. That matches its
+documented contract, but the silence is a trap.
+
+Member renames therefore need a custom transform, which is what
+`RenameMembersTransformer` (`renameMembers`) in the customization module does. It maps
+directly onto the SDK's existing `shapeModifiers` / `emitPropertyName` customization,
+used by 27 services today.
+
+There is a subtlety that makes this more than a name swap. For `restJson1` the member
+name *is* the JSON key, so renaming a member changes the wire format as well as the
+Java API — which is not what `emitPropertyName` means. The transform therefore attaches
+`@jsonName` carrying the original name:
+
+```java
+MemberShape.Builder renamed = member.toBuilder();
+renamed.id(containerId.withMember(newName));
+
+// Keep the serialized name stable; without this the rename would also change the wire format.
+if (!member.hasTrait(JsonNameTrait.class)) {
+    renamed.addTrait(new JsonNameTrait(oldName));
+}
+```
+
+The generated field then splits the two names, which is exactly the intended behaviour:
+
+```java
+SdkField.<String>builder(MarshallingType.STRING)
+        .memberName("Name")                                  // Java: name()
+        .traits(LocationTrait.builder()
+                             .locationName("AccountName")    // wire: unchanged
+                             ...
+```
+
+Making that work required a one-line gap-fill in the shared Smithy translation:
+`AddSmithyShapes.generateHttpMapping` did not read `@jsonName`, so body members always
+serialized under their member name. Only JSON protocols are handled; `restXml` would
+need the equivalent `@xmlName` treatment.
 
 ## A customization as a transform
 
@@ -277,8 +345,8 @@ model, and there is no reason to express them as transforms:
 
 | Key | Services | Notes |
 |---|---|---|
-| `shapeModifiers` | 27 | member excludes, injects, type changes |
-| `renameShapes` | 8 | Smithy has an identically named built-in transform |
+| `shapeModifiers` | 27 | member excludes, injects, type changes; member renames need `renameMembers` |
+| `renameShapes` | 8 | built-in `renameShapes`, verified on `account` |
 | `deprecatedOperations` | 8 | apply `@deprecated` |
 | `deprecatedShapes` | 4 | apply `@deprecated` |
 | `operationModifiers` | 2 | |
@@ -287,7 +355,7 @@ model, and there is no reason to express them as transforms:
 | `attachPayloadTraitToMember` | 1 | apply `@httpPayload` |
 
 Some need no code at all, because Smithy ships the transform. S3's rename is the
-clearest case:
+clearest case, and is the same mechanism demonstrated on `account` above:
 
 ```jsonc
 // today, in customization.config

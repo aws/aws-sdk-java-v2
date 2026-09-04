@@ -615,3 +615,75 @@ dependency. Use `--am`, or a prior full build, when the customization has change
 - `mvn clean install -pl :bom-internal,:codegen,:codegen-maven-plugin,:account-codegen-customization`
   passes with checkstyle, spotbugs, dependency analysis, and 567 tests.
 - `pinpointsmsvoice` still takes the C2J path and creates no `smithyprojections`.
+
+## 13. Standard transforms, and the member-rename gap
+
+`services/account` now applies a built-in Smithy transform alongside the custom ones,
+confirming that nothing about the integration is specific to our own transforms.
+Transforms in a projection run in order, and built-in and custom ones mix freely:
+
+```json
+"transforms": [
+    { "name": "renameShapes",  "args": { "renamed": { ... } } },   // built into Smithy
+    { "name": "renameMembers", "args": { "renamed": { ... } } },   // customization module
+    { "name": "addAccountCustomOperation", "args": { ... } }       // customization module
+]
+```
+
+The `renameShapes` entry renames the modeled `Region` shape to `AccountRegion`, which
+avoids a collision with `software.amazon.awssdk.regions.Region` and mirrors S3's
+existing `Error` → `S3Error` and `Object` → `S3Object` customizations. References update
+automatically: `ListRegionsResponse` becomes `List<AccountRegion>` with nothing else
+configured.
+
+### 13.1 `renameShapes` silently ignores members
+
+`renameShapes` renames shapes only. Passing it a member ID such as
+`com.amazonaws.account#Region$RegionName` is a **silent no-op** — the build succeeds,
+emits no warning, and the member keeps its name. Verified both combined with a shape
+rename and in isolation. This matches the documented contract but is an easy trap when
+mapping `shapeModifiers` entries across.
+
+Member renames therefore need a custom transform. `RenameMembersTransformer`
+(`renameMembers`) in the account customization module does this, and is the Smithy
+equivalent of `shapeModifiers` / `emitPropertyName`, which 27 services use today.
+
+### 13.2 Renaming a member changes the wire format unless told otherwise
+
+The first working version of the member rename was subtly wrong, and it is worth
+recording why. For `restJson1` the member name *is* the serialized key, so renaming
+`GetAccountInformationResponse$AccountName` to `Name` produced:
+
+```java
+.memberName("Name")
+.traits(LocationTrait.builder().locationName("Name")...)   // wire format changed
+```
+
+That is a breaking protocol change, whereas `emitPropertyName` only affects generated
+Java. The transform now attaches `@jsonName` carrying the original member name when the
+member does not already declare one, which yields the intended split:
+
+```java
+.memberName("Name")                                        // Java: name()
+.traits(LocationTrait.builder().locationName("AccountName")...)   // wire: unchanged
+```
+
+Getting there needed a gap-fill in the shared Smithy translation.
+`AddSmithyShapes.generateHttpMapping` did not read `@jsonName` at all, so body members
+always serialized under their member name; the trait was present in the projected model
+and simply ignored. Only the default body-member branch consults it, since headers, query
+parameters, and URI labels carry their own binding traits. Only JSON protocols are
+covered — `restXml` would need equivalent `@xmlName` handling, which is another item on
+the list alongside protocol translation.
+
+### 13.3 Verified
+
+- `mvn install -pl :account` produces `AccountRegion.java` with no `Region.java`, and
+  `ListRegionsResponse` referencing `List<AccountRegion>`.
+- `GetAccountInformationResponse` exposes `name()` and a `name(String)` builder setter,
+  while the generated `SdkField` keeps `locationName("AccountName")`.
+- The Smithy CLI produces output identical to Maven's with all three transforms applied.
+- `pinpointsmsvoice` is unaffected, which matters here because the `@jsonName` fix
+  touches shared codegen rather than Smithy-only code.
+- `mvn clean install -pl :codegen,:codegen-maven-plugin,:account-codegen-customization`
+  passes with checkstyle, spotbugs, dependency analysis, and 567 tests.

@@ -10,7 +10,26 @@
     },
     "projections": {
         "client": {
+            "//": "Transforms are applied in order. renameShapes is built into Smithy; the other two come from the customization module.",
             "transforms": [
+                {
+                    "//": "Standard Smithy transform. Region collides with software.amazon.awssdk.regions.Region, so give the modeled shape a distinct name. References to it are updated automatically.",
+                    "name": "renameShapes",
+                    "args": {
+                        "renamed": {
+                            "com.amazonaws.account#Region": "com.amazonaws.account#AccountRegion"
+                        }
+                    }
+                },
+                {
+                    "//": "Custom transform. renameShapes only renames shapes, so member renames need this.",
+                    "name": "renameMembers",
+                    "args": {
+                        "renamed": {
+                            "com.amazonaws.account#GetAccountInformationResponse$AccountName": "com.amazonaws.account#GetAccountInformationResponse$Name"
+                        }
+                    }
+                },
                 {
                     "name": "addAccountCustomOperation",
                     "args": {

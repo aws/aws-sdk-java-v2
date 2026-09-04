@@ -58,6 +58,7 @@ import software.amazon.smithy.model.traits.HttpPayloadTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.IdempotencyTokenTrait;
+import software.amazon.smithy.model.traits.JsonNameTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.model.traits.RetryableTrait;
 import software.amazon.smithy.model.traits.SensitiveTrait;
@@ -515,9 +516,13 @@ final class AddSmithyShapes {
                    .withUnmarshallLocationName(memberName)
                    .withMarshallLocationName(memberName);
         } else {
-            // Default: body member with member name as location name
-            mapping.withUnmarshallLocationName(memberName)
-                   .withMarshallLocationName(memberName);
+            // Default: body member. @jsonName overrides the serialized name, which lets a member be renamed in
+            // generated Java without changing the wire format.
+            String serializedName = memberShape.getTrait(JsonNameTrait.class)
+                                               .map(JsonNameTrait::getValue)
+                                               .orElse(memberName);
+            mapping.withUnmarshallLocationName(serializedName)
+                   .withMarshallLocationName(serializedName);
         }
 
         return mapping;

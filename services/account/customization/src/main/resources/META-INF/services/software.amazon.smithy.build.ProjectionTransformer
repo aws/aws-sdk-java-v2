@@ -1,1 +1,2 @@
 software.amazon.awssdk.services.account.customization.AddCustomOperationTransformer
+software.amazon.awssdk.services.account.customization.RenameMembersTransformer
