@@ -15,27 +15,39 @@
 
 package software.amazon.awssdk.services.s3.crt;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.io.TempDir;
+import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 @WireMockTest
@@ -44,6 +56,8 @@ public class CrtDownloadErrorTest {
     private static final String BUCKET = "my-bucket";
     private static final String KEY = "my-key";
     private S3AsyncClient s3;
+    @TempDir
+    private Path tempDir;
 
     @BeforeAll
     public static void setUpBeforeAll() {
@@ -121,6 +135,60 @@ public class CrtDownloadErrorTest {
     }
 
     @Test
+    public void getObjectToPath_success_writesFile() throws Exception {
+        byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
+        stubSuccessfulDownload(content);
+        Path destination = tempDir.resolve("download");
+
+        s3.getObject(r -> r.bucket(BUCKET).key(KEY), destination).join();
+
+        assertThat(Files.readAllBytes(destination)).isEqualTo(content);
+    }
+
+    @Test
+    public void getObjectWithReplaceTransformer_existingFile_replacesFile() throws Exception {
+        byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
+        stubSuccessfulDownload(content);
+        Path destination = tempDir.resolve("download");
+        Files.write(destination, "original".getBytes(StandardCharsets.UTF_8));
+
+        s3.getObject(r -> r.bucket(BUCKET).key(KEY),
+                     AsyncResponseTransformer.toFile(
+                         destination, FileTransformerConfiguration.defaultCreateOrReplaceExisting())).join();
+
+        assertThat(Files.readAllBytes(destination)).isEqualTo(content);
+    }
+
+    @Test
+    public void getObjectToPath_existingFile_failsAsynchronouslyAndPreservesFile() throws Exception {
+        byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
+        stubSuccessfulDownload(content);
+        Path destination = tempDir.resolve("download");
+        byte[] originalContent = "original".getBytes(StandardCharsets.UTF_8);
+        Files.write(destination, originalContent);
+
+        CompletableFuture<GetObjectResponse> future =
+            assertDoesNotThrow(() -> s3.getObject(r -> r.bucket(BUCKET).key(KEY), destination));
+
+        assertThatThrownBy(future::join)
+            .hasRootCauseInstanceOf(FileAlreadyExistsException.class)
+            .hasRootCauseMessage(destination.toString());
+        assertThat(Files.readAllBytes(destination)).isEqualTo(originalContent);
+        verify(exactly(0), anyRequestedFor(anyUrl()));
+    }
+
+    @Test
+    public void getObjectToPath_failedDownload_deletesFile() {
+        String requestPath = String.format("/%s/%s", BUCKET, KEY);
+        stubFor(head(urlPathEqualTo(requestPath)).willReturn(WireMock.aResponse().withStatus(404)));
+        Path destination = tempDir.resolve("download");
+
+        assertThatThrownBy(s3.getObject(r -> r.bucket(BUCKET).key(KEY), destination)::join)
+            .hasCauseInstanceOf(S3Exception.class);
+        assertThat(destination).doesNotExist();
+    }
+
+    @Test
     public void getObject_headObjectThrows_operationThrows() {
         String path = String.format("/%s/%s", BUCKET, KEY);
 
@@ -131,5 +199,16 @@ public class CrtDownloadErrorTest {
         assertThatThrownBy(s3.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes())::join)
             .hasCauseInstanceOf(S3Exception.class)
             .hasMessageContaining("Status Code: 403");
+    }
+
+    private void stubSuccessfulDownload(byte[] content) {
+        String path = String.format("/%s/%s", BUCKET, KEY);
+        stubFor(head(urlPathEqualTo(path))
+                    .willReturn(WireMock.aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", "etag")
+                                        .withHeader("Content-Length", Integer.toString(content.length))));
+        stubFor(get(urlPathEqualTo(path))
+                    .willReturn(WireMock.aResponse().withStatus(200).withBody(content)));
     }
 }
