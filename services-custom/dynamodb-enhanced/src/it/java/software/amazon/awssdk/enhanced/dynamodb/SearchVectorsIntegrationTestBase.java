@@ -89,7 +89,6 @@ public abstract class SearchVectorsIntegrationTestBase extends DynamoDbEnhancedI
         "JavaTests-SearchVectors-FilterOnly";
 
     private static final int DEFAULT_SEARCH_RETRY_ATTEMPTS = 15;
-    protected static final int POST_MUTATION_SEARCH_RETRY_ATTEMPTS = 8;
     private static final int QUICK_SEARCH_RETRY_ATTEMPTS = 3;
     private static final int TABLE_WARMUP_SEARCH_RETRY_ATTEMPTS = 20;
     private static final int VECTOR_INDEX_ACTIVE_WAIT_ATTEMPTS = 30;
@@ -1053,7 +1052,7 @@ public abstract class SearchVectorsIntegrationTestBase extends DynamoDbEnhancedI
         String expectedSortKey) {
         List<SearchResultItem<VectorRecord>> results =
             executeSearch(indexName, request);
-        for (int attempt = 0; attempt < POST_MUTATION_SEARCH_RETRY_ATTEMPTS; attempt++) {
+        for (int attempt = 0; attempt < DEFAULT_SEARCH_RETRY_ATTEMPTS; attempt++) {
             boolean found = results.stream()
                                    .anyMatch(r -> r.item() != null
                                                   && expectedSortKey.equals(
@@ -1073,7 +1072,7 @@ public abstract class SearchVectorsIntegrationTestBase extends DynamoDbEnhancedI
         String absentSortKey) {
         List<SearchResultItem<VectorRecord>> results =
             executeSearch(indexName, request);
-        for (int attempt = 0; attempt < POST_MUTATION_SEARCH_RETRY_ATTEMPTS; attempt++) {
+        for (int attempt = 0; attempt < DEFAULT_SEARCH_RETRY_ATTEMPTS; attempt++) {
             boolean found = results.stream()
                                    .anyMatch(r -> r.item() != null
                                                   && absentSortKey.equals(
@@ -1894,15 +1893,22 @@ public abstract class SearchVectorsIntegrationTestBase extends DynamoDbEnhancedI
                 record.setDescription("Updated description only");
                 executePut(record);
 
-                List<SearchResultItem<VectorRecord>> results =
-                    searchVectorsUntilContains(
-                        COSINE_INDEX, request, "metadata-update-item");
-                SearchResultItem<VectorRecord> result = results.stream()
-                                                               .filter(r -> "metadata-update-item".equals(
-                                                                   r.item().getSk()))
-                                                               .findFirst()
-                                                               .orElseThrow(() -> new AssertionError(
-                                                                   "Expected metadata-update-item in search results"));
+                // Retry until the updated description is visible in search results,
+                // not just until the item exists (it may return stale data).
+                SearchResultItem<VectorRecord> result = null;
+                for (int attempt = 0; attempt < DEFAULT_SEARCH_RETRY_ATTEMPTS; attempt++) {
+                    List<SearchResultItem<VectorRecord>> results =
+                        executeSearch(COSINE_INDEX, request);
+                    result = results.stream()
+                                    .filter(r -> "metadata-update-item".equals(r.item().getSk()))
+                                    .findFirst()
+                                    .orElse(null);
+                    if (result != null && "Updated description only".equals(result.item().getDescription())) {
+                        break;
+                    }
+                    sleepBetweenRetries(attempt);
+                }
+                assertThat(result).isNotNull();
                 assertThat(result.item().getDescription())
                     .isEqualTo("Updated description only");
             } finally {
