@@ -37,7 +37,7 @@ import com.amazonaws.services.s3.transfer.TransferManager;
  * {@link #useClient(AmazonS3)}.
  */
 @SdkPublicApi
-public class S3ClientCache {
+public final class S3ClientCache {
     private final ConcurrentMap<String, AmazonS3> clientsByRegion = new ConcurrentHashMap<String, AmazonS3>();
     private final Map<String, TransferManager> transferManagersByRegion = new ConcurrentHashMap<String, TransferManager>();
 

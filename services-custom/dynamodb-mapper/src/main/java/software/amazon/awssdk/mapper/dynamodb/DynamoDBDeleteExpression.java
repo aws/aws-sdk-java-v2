@@ -31,7 +31,7 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
  * @see DynamoDBMapper#delete(Object, DynamoDBDeleteExpression)
  */
 @SdkPublicApi
-public class DynamoDBDeleteExpression {
+public final class DynamoDBDeleteExpression {
 
     /** Optional expected attributes */
     private Map<String, ExpectedAttributeValue> expectedAttributes;

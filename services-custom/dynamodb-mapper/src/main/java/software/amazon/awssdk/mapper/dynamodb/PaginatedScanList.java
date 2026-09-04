@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
  * @see PaginatedList
  */
 @SdkPublicApi
-public class PaginatedScanList<T> extends PaginatedList<T> {
+public final class PaginatedScanList<T> extends PaginatedList<T> {
 
     /** The current scan request */
     private ScanRequest scanRequest;

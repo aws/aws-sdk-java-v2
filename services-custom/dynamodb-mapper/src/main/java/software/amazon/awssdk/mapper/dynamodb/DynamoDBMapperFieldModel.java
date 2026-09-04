@@ -52,7 +52,7 @@ import java.util.Map;
  * @param <V> The field model type.
  */
 @SdkPublicApi
-public class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, DynamoDBTypeConverter<AttributeValue,V> {
+public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerator<V>, DynamoDBTypeConverter<AttributeValue,V> {
 
     public static enum DynamoDBAttributeType { B, N, S, BS, NS, SS, BOOL, NULL, L, M; };
 

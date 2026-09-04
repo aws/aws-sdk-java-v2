@@ -39,7 +39,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
  * @see PaginatedList
  */
 @SdkPublicApi
-public class PaginatedQueryList<T> extends PaginatedList<T> {
+public final class PaginatedQueryList<T> extends PaginatedList<T> {
 
     /** The current query request */
     private QueryRequest queryRequest;

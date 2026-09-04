@@ -209,7 +209,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * @see DynamoDBMapperConfig
  */
 @SdkPublicApi
-public class DynamoDBMapper extends AbstractDynamoDBMapper {
+public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
     private final DynamoDbClient db;
     private final DynamoDBMapperModelFactory models;

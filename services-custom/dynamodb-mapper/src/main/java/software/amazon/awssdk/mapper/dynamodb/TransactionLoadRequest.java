@@ -26,7 +26,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
  */
 @SdkPublicApi
 @NotThreadSafe
-public class TransactionLoadRequest {
+public final class TransactionLoadRequest {
     /**
      * Key objects, corresponding to the classes to load, with their primary key values set.
      */

@@ -34,7 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 @SdkPublicApi
-public class ParallelScanTask {
+public final class ParallelScanTask {
 
     /**
      * The list of hard copies of ScanRequest with different segment number.

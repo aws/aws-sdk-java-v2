@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * {@code AttributeTransformer} instances.
  */
 @SdkPublicApi
-public class AttributeTransformerChain implements AttributeTransformer {
+public final class AttributeTransformerChain implements AttributeTransformer {
 
     private final List<AttributeTransformer> transformers;
 

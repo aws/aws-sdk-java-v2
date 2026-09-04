@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
  * Container for a page of scan results.
  */
 @SdkPublicApi
-public class ScanResultPage<T> {
+public final class ScanResultPage<T> {
 
     private List<T> results;
     private Map<String,AttributeValue> lastEvaluatedKey;

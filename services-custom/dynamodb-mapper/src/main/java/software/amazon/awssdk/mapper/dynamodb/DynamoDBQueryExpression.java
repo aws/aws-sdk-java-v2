@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
  * A query expression.
  */
 @SdkPublicApi
-public class DynamoDBQueryExpression <T> {
+public final class DynamoDBQueryExpression <T> {
 
     private boolean consistentRead = true;
     private boolean scanIndexForward = true;

@@ -104,7 +104,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * </pre>
  */
 @SdkPublicApi
-public class S3Link {
+public final class S3Link {
     private final S3ClientCache s3cc;
     private final ID id;
 

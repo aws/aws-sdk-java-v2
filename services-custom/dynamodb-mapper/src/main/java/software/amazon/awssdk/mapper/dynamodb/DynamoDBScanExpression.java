@@ -36,7 +36,7 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
  * @see DynamoDBMapper#scan(Class, DynamoDBScanExpression)
  */
 @SdkPublicApi
-public class DynamoDBScanExpression {
+public final class DynamoDBScanExpression {
 
     /** Optional filter to limit the results of the scan. */
     private Map<String, Condition> scanFilter;

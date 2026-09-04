@@ -29,7 +29,7 @@ import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
  * @see DynamoDBMapper#save(Object, DynamoDBSaveExpression)
  */
 @SdkPublicApi
-public class DynamoDBSaveExpression {
+public final class DynamoDBSaveExpression {
 
     /** Optional expected attributes */
     private Map<String, ExpectedAttributeValue> expectedAttributes;

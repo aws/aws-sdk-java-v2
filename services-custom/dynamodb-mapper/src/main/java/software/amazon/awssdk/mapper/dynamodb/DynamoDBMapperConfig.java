@@ -42,7 +42,7 @@ import java.util.Random;
  * </pre>
  */
 @SdkPublicApi
-public class DynamoDBMapperConfig {
+public final class DynamoDBMapperConfig {
 
     /**
      * Default configuration; these defaults are also applied by the mapper

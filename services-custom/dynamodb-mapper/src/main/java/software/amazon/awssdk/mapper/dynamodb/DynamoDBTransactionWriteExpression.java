@@ -27,7 +27,7 @@ import java.util.Map;
  * @see DynamoDBMapper#transactionWrite(TransactionWriteRequest)
  */
 @SdkPublicApi
-public class DynamoDBTransactionWriteExpression {
+public final class DynamoDBTransactionWriteExpression {
     /**
      * A condition that must be satisfied in order for a conditional write to succeed.
      */

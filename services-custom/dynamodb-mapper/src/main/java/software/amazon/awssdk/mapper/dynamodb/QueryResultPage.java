@@ -26,7 +26,7 @@ import software.amazon.awssdk.services.dynamodb.model.ConsumedCapacity;
  * Container for a page of query results
  */
 @SdkPublicApi
-public class QueryResultPage<T> {
+public final class QueryResultPage<T> {
 
     private List<T> results;
     private Map<String,AttributeValue> lastEvaluatedKey;

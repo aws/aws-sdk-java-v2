@@ -25,7 +25,7 @@ import java.util.Map;
  * @see DynamoDBMapper#transactionLoad(TransactionLoadRequest)
  */
 @SdkPublicApi
-public class DynamoDBTransactionLoadExpression {
+public final class DynamoDBTransactionLoadExpression {
 
     /**
      * A string that identifies one or more attributes of the specified item to retrieve from the table. The attributes

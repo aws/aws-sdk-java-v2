@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
  * @author avinam
  */
 @SdkPublicApi
-public class BatchLoadContext {
+public final class BatchLoadContext {
     /**
      * The BatchGetItemResponse returned by the DynamoDB client.
      */

@@ -27,7 +27,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
  */
 @SdkPublicApi
 @NotThreadSafe
-public class TransactionWriteRequest {
+public final class TransactionWriteRequest {
 
     /**
      * List of TransactionWriteOperations where each TransactionWriteOperation represents a write operation to be executed on an object as part of
