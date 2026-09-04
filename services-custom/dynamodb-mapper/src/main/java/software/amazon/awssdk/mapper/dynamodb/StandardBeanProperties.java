@@ -1,25 +1,26 @@
 /*
- * Copyright 2016-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.annotation.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.Reflect;
 import software.amazon.awssdk.mapper.dynamodb.StandardAnnotationMaps.FieldMap;
 import software.amazon.awssdk.mapper.dynamodb.StandardAnnotationMaps.TableMap;
-import com.amazonaws.util.StringUtils;
+import software.amazon.awssdk.utils.StringUtils;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -33,6 +34,9 @@ import java.util.concurrent.ConcurrentMap;
  */
 @SdkInternalApi
 final class StandardBeanProperties {
+
+    private StandardBeanProperties() {
+    }
 
     /**
      * Returns the bean mappings for a given class (caches the results).
@@ -51,8 +55,8 @@ final class StandardBeanProperties {
 
         private final Beans<T> getBeans(Class<T> clazz) {
             if (!cache.containsKey(clazz)) {
-                final TableMap<T> annotations = StandardAnnotationMaps.<T>of(clazz);
-                final BeanMap<T,Object> map = new BeanMap<T,Object>(clazz, false);
+                TableMap<T> annotations = StandardAnnotationMaps.<T>of(clazz);
+                BeanMap<T,Object> map = new BeanMap<T,Object>(clazz, false);
                 cache.putIfAbsent(clazz, new Beans<T>(annotations, map));
             }
             return cache.get(clazz);
@@ -139,7 +143,7 @@ final class StandardBeanProperties {
 
         static Method setterOf(Method getter) {
             try {
-                final String name = "set" + getter.getName().replaceFirst("^(get|is)","");
+                String name = "set" + getter.getName().replaceFirst("^(get|is)","");
                 return getter.getDeclaringClass().getMethod(name, getter.getReturnType());
             } catch (final Exception no) {}
             return null;
@@ -162,7 +166,7 @@ final class StandardBeanProperties {
 
         @Override
         public V get(T object) {
-            final T declaringObject = declaring.get(object);
+            T declaringObject = declaring.get(object);
             if (declaringObject == null) {
                 return null;
             }
@@ -199,11 +203,11 @@ final class StandardBeanProperties {
         }
 
         private void putAll(Class<T> clazz, boolean inherited) {
-            for (final Method method : clazz.getMethods()) {
+            for (Method method : clazz.getMethods()) {
                 if (canMap(method, inherited)) {
-                    final FieldMap<V> annotations = StandardAnnotationMaps.<V>of(method, null);
+                    FieldMap<V> annotations = StandardAnnotationMaps.<V>of(method, null);
                     if (!annotations.ignored()) {
-                        final Reflect<T,V> reflect = new MethodReflect<T,V>(method);
+                        Reflect<T,V> reflect = new MethodReflect<T,V>(method);
                         putOrFlatten(annotations, reflect, method);
                     }
                 }
@@ -214,7 +218,7 @@ final class StandardBeanProperties {
             if (annotations.flattened()) {
                 flatten((Class<T>)annotations.targetType(), annotations.attributes(), (Reflect<T,T>)reflect);
             } else {
-                final Bean<T,V> bean = new Bean<T,V>(annotations, reflect, getter);
+                Bean<T,V> bean = new Bean<T,V>(annotations, reflect, getter);
                 if (put(bean.properties().attributeName(), bean) != null) {
                     throw new DynamoDBMappingException("duplicate attribute name " + bean.properties().attributeName());
                 }
@@ -222,15 +226,15 @@ final class StandardBeanProperties {
         }
 
         private void flatten(Class<T> targetType, Map<String,String> attributes, Reflect<T,T> declaring) {
-            for (final Method method : targetType.getMethods()) {
+            for (Method method : targetType.getMethods()) {
                 if (canMap(method, true)) {
                     String name = fieldNameOf(method);
                     if ((name = attributes.remove(name)) == null) {
                         continue;
                     }
-                    final FieldMap<V> annotations = StandardAnnotationMaps.<V>of(method, name);
+                    FieldMap<V> annotations = StandardAnnotationMaps.<V>of(method, name);
                     if (!annotations.ignored()) {
-                        final Reflect<T,V> reflect = new DeclaringReflect<T,V>(method, declaring, targetType);
+                        Reflect<T,V> reflect = new DeclaringReflect<T,V>(method, declaring, targetType);
                         putOrFlatten(annotations, reflect, method);
                     }
                 }
@@ -262,7 +266,7 @@ final class StandardBeanProperties {
      * Gets the field name given the getter method.
      */
     static final String fieldNameOf(Method getter) {
-        final String name = getter.getName().replaceFirst("^(get|is)","");
+        String name = getter.getName().replaceFirst("^(get|is)","");
         return StringUtils.lowerCase(name.substring(0, 1)) + name.substring(1);
     }
 

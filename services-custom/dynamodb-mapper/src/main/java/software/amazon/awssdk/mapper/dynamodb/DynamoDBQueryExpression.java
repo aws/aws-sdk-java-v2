@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -12,8 +12,10 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,7 +29,8 @@ import software.amazon.awssdk.services.dynamodb.model.Select;
 /**
  * A query expression.
  */
-public class DynamoDBQueryExpression <T> {
+@SdkPublicApi
+public final class DynamoDBQueryExpression <T> {
 
     private boolean consistentRead = true;
     private boolean scanIndexForward = true;

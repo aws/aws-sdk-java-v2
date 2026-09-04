@@ -1,6 +1,5 @@
 /*
- * Copyright 2010-2025 Amazon.com, Inc. or its affiliates. All Rights
- * Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -14,8 +13,10 @@
  * permissions and limitations under the License.
  */
 
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.Objects;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
@@ -26,7 +27,8 @@ import software.amazon.awssdk.services.dynamodb.model.BatchGetItemResponse;
  *
  * @author avinam
  */
-public class BatchLoadContext {
+@SdkPublicApi
+public final class BatchLoadContext {
     /**
      * The BatchGetItemResponse returned by the DynamoDB client.
      */

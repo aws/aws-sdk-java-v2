@@ -1,19 +1,21 @@
 /*
- * Copyright 2016-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperDateUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
@@ -61,9 +63,9 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
      */
     @Override
     public <S,T> DynamoDBTypeConverter<S,T> getConverter(Class<S> sourceType, Class<T> targetType) {
-        final Scalar source = Scalar.of(sourceType), target = Scalar.of(targetType);
-        final Converter<S,T> toSource = source.getConverter(sourceType, target.<T>type());
-        final Converter<T,S> toTarget = target.getConverter(targetType, source.<S>type());
+        Scalar source = Scalar.of(sourceType), target = Scalar.of(targetType);
+        Converter<S,T> toSource = source.getConverter(sourceType, target.<T>type());
+        Converter<T,S> toTarget = target.getConverter(targetType, source.<S>type());
         return new DynamoDBTypeConverter<S,T>() {
             @Override
             public final S convert(final T o) {
@@ -347,7 +349,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
          * supertype of the specified target class.
          */
         static Scalar of(Class<?> type) {
-            for (final Scalar scalar : Scalar.values()) {
+            for (Scalar scalar : Scalar.values()) {
                 if (scalar.is(type)) {
                     return scalar;
                 }
@@ -379,16 +381,16 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
             }
 
             <S,T> List<S> convert(Collection<T> o, DynamoDBTypeConverter<S,T> scalar) {
-                final List<S> vector = new ArrayList<S>(o.size());
-                for (final T t : o) {
+                List<S> vector = new ArrayList<S>(o.size());
+                for (T t : o) {
                     vector.add(scalar.convert(t));
                 }
                 return vector;
             }
 
             <S,T> List<T> unconvert(Collection<S> o, DynamoDBTypeConverter<S,T> scalar) {
-                final List<T> vector = new ArrayList<T>(o.size());
-                for (final S s : o) {
+                List<T> vector = new ArrayList<T>(o.size());
+                for (S s : o) {
                     vector.add(scalar.unconvert(s));
                 }
                 return vector;
@@ -419,16 +421,16 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
             }
 
             <K,S,T> Map<K,S> convert(Map<K,T> o, DynamoDBTypeConverter<S,T> scalar) {
-                final Map<K,S> vector = new LinkedHashMap<K,S>();
-                for (final Map.Entry<K,T> t : o.entrySet()) {
+                Map<K,S> vector = new LinkedHashMap<K,S>();
+                for (Map.Entry<K,T> t : o.entrySet()) {
                     vector.put(t.getKey(), scalar.convert(t.getValue()));
                 }
                 return vector;
             }
 
             <K,S,T> Map<K,T> unconvert(Map<K,S> o, DynamoDBTypeConverter<S,T> scalar) {
-                final Map<K,T> vector = new LinkedHashMap<K,T>();
-                for (final Map.Entry<K,S> s : o.entrySet()) {
+                Map<K,T> vector = new LinkedHashMap<K,T>();
+                for (Map.Entry<K,S> s : o.entrySet()) {
                     vector.put(s.getKey(), scalar.unconvert(s.getValue()));
                 }
                 return vector;
@@ -458,8 +460,8 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
             }
 
             <S,T> Set<T> unconvert(Collection<S> o, DynamoDBTypeConverter<S,T> scalar) {
-                final Set<T> vector = new LinkedHashSet<T>();
-                for (final S s : o) {
+                Set<T> vector = new LinkedHashSet<T>();
+                for (S s : o) {
                     if (vector.add(scalar.unconvert(s)) == false) {
                         throw new DynamoDBMappingException("duplicate value (" + s + ")");
                     }
@@ -502,7 +504,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
 
         @SuppressWarnings("unchecked")
         private <S,T> Converter<S,T> getConverter(Class<T> targetType) {
-            for (final Map.Entry<Class<?>,Converter<?,?>> entry : entrySet()) {
+            for (Map.Entry<Class<?>,Converter<?,?>> entry : entrySet()) {
                 if (entry.getKey().isAssignableFrom(targetType)) {
                     return (Converter<S,T>)entry.getValue();
                 }
@@ -583,7 +585,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
                 if (o.hasArray()) {
                     return o.array();
                 }
-                final byte[] value = new byte[o.remaining()];
+                byte[] value = new byte[o.remaining()];
                 o.get(value);
                 return value;
             }
@@ -611,7 +613,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         private static final ToByteBuffer<java.util.UUID> FromUuid = new ToByteBuffer<java.util.UUID>() {
             @Override
             public final ByteBuffer convert(final java.util.UUID o) {
-                final ByteBuffer value = ByteBuffer.allocate(16);
+                ByteBuffer value = ByteBuffer.allocate(16);
                 value.putLong(o.getMostSignificantBits()).putLong(o.getLeastSignificantBits());
                 value.position(0);
                 return value;
@@ -626,7 +628,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         private static final ToCalendar<Date> FromDate = new ToCalendar<Date>() {
             @Override
             public final Calendar convert(final Date o) {
-                final Calendar value = Calendar.getInstance();
+                Calendar value = Calendar.getInstance();
                 value.setTime(o);
                 return value;
             }
@@ -781,7 +783,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         private static final ToLocale<String> FromString = new ToLocale<String>() {
             @Override
             public final Locale convert(final String o) {
-                final String[] value = o.split("-", 3);
+                String[] value = o.split("-", 3);
                 if (value.length == 3) return new Locale(value[0], value[1], value[2]);
                 if (value.length == 2) return new Locale(value[0], value[1]);
                 return new Locale(value[0]); //JDK7+: return Locale.forLanguageTag(o);
@@ -869,7 +871,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
         private static final ToString<Locale> FromLocale = new ToString<Locale>() {
             @Override
             public final String convert(final Locale o) {
-                final StringBuilder value = new StringBuilder(o.getLanguage());
+                StringBuilder value = new StringBuilder(o.getLanguage());
                 if (!o.getCountry().isEmpty() || !o.getVariant().isEmpty()) {
                     value.append("-").append(o.getCountry());
                 }
@@ -982,7 +984,7 @@ final class StandardTypeConverters extends DynamoDBTypeConverterFactory {
      */
     static abstract class Converter<S,T> {
         final <U> Converter<S,U> join(final Converter<T,U> target) {
-            final Converter<S,T> source = this;
+            Converter<S,T> source = this;
             return new Converter<S,U>() {
                 @Override
                 public S convert(final U o) {

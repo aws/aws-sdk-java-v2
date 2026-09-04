@@ -12,6 +12,7 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -24,6 +25,7 @@ import java.nio.ByteBuffer;
 import org.junit.Test;
 
 import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperBinaryUtils;
 
 /**
  * Tests {@link MapperBinaryUtils#toWritableByteBuffer(SdkBytes)}, which reproduces the v1 mapper's

@@ -1,32 +1,34 @@
 /*
- * Copyright 2016-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.mapper.dynamodb.internal.MapperBinaryUtils;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.Reflect;
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperModelFactory.TableFactory;
+import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
+import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory.TableFactory;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter.AbstractConverter;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter.DelegateConverter;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Beans;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 import org.joda.time.DateTime;
 
 import java.nio.ByteBuffer;
@@ -57,7 +59,10 @@ import static software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType
 @SdkInternalApi
 final class StandardModelFactories {
 
-    private static final Log LOG = LogFactory.getLog(StandardModelFactories.class);
+    private StandardModelFactories() {
+    }
+
+    private static final Logger LOG = Logger.loggerFor(StandardModelFactories.class);
 
     /**
      * Creates the standard {@link DynamoDBMapperModelFactory} factory.
@@ -80,7 +85,7 @@ final class StandardModelFactories {
 
         @Override
         public TableFactory getTableFactory(DynamoDBMapperConfig config) {
-            final ConversionSchema schema = config.getConversionSchema();
+            ConversionSchema schema = config.getConversionSchema();
             if (!cache.containsKey(schema)) {
                 RuleFactory<Object> rules = rulesOf(config, s3Links, this);
                 rules = new ConversionSchemas.ItemConverterRuleFactory<Object>(config, s3Links, rules);
@@ -118,7 +123,7 @@ final class StandardModelFactories {
     private static final class TableBuilder<T> extends DynamoDBMapperTableModel.Builder<T> {
         private TableBuilder(Class<T> clazz, Beans<T> beans, RuleFactory<Object> rules) {
             super(clazz, beans.properties());
-            for (final Bean<T,Object> bean : beans.map().values()) {
+            for (Bean<T,Object> bean : beans.map().values()) {
                 try {
                     with(new FieldBuilder<T,Object>(clazz, bean, rules.getRule(bean.type())).build());
                 } catch (final RuntimeException e) {
@@ -155,14 +160,14 @@ final class StandardModelFactories {
      * Creates a new set of conversion rules based on the configuration.
      */
     private static final <T> RuleFactory<T> rulesOf(DynamoDBMapperConfig config, S3Link.Factory s3Links, DynamoDBMapperModelFactory models) {
-        final boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
-        final boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
-        final boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
+        boolean ver1 = (config.getConversionSchema() == ConversionSchemas.V1);
+        boolean ver2 = (config.getConversionSchema() == ConversionSchemas.V2);
+        boolean v2Compatible = (config.getConversionSchema() == ConversionSchemas.V2_COMPATIBLE);
 
-        final DynamoDBTypeConverterFactory.Builder scalars = config.getTypeConverterFactory().override();
+        DynamoDBTypeConverterFactory.Builder scalars = config.getTypeConverterFactory().override();
         scalars.with(String.class, S3Link.class, s3Links);
 
-        final Rules<T> factory = new Rules<T>(scalars.build());
+        Rules<T> factory = new Rules<T>(scalars.build());
         factory.add(factory.new NativeType(!ver1));
         factory.add(factory.new V2CompatibleBool(v2Compatible));
         factory.add(factory.new NativeBool(ver2));
@@ -200,7 +205,7 @@ final class StandardModelFactories {
 
         @Override
         public Rule<T> getRule(ConvertibleType<T> type) {
-            for (final Rule<T> rule : rules) {
+            for (Rule<T> rule : rules) {
                 if (rule.isAssignableFrom(type)) {
                     return rule;
                 }
@@ -408,7 +413,7 @@ final class StandardModelFactories {
                 if (!value.hasBs()) {
                     return null;
                 }
-                final List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
+                List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
                 for (SdkBytes sb : value.bs()) {
                     result.add(MapperBinaryUtils.toWritableByteBuffer(sb));
                 }
@@ -416,7 +421,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<ByteBuffer> o) {
-                final List<SdkBytes> sdkBytes =
+                List<SdkBytes> sdkBytes =
                     new ArrayList<SdkBytes>(o.size());
                 for (ByteBuffer bb : o) {
                     sdkBytes.add(SdkBytes.fromByteBuffer(bb));
@@ -438,7 +443,7 @@ final class StandardModelFactories {
             }
             @Override
             public DynamoDBTypeConverter<AttributeValue,Collection<T>> newConverter(ConvertibleType<Collection<T>> type) {
-                LOG.warn("Marshaling a set of non-String objects to a DynamoDB "
+                LOG.warn(() -> "Marshaling a set of non-String objects to a DynamoDB "
                     + "StringSet. You won't be able to read these objects back "
                     + "out of DynamoDB unless you REALLY know what you're doing: "
                     + "it's probably a bug. If you DO know what you're doing feel"
@@ -728,7 +733,7 @@ final class StandardModelFactories {
         public abstract S get(AttributeValue o);
         @Override
         public S unconvert(final AttributeValue o) {
-            final S value = get(o);
+            S value = get(o);
             if (value == null && o.nul() == null) {
                 throw new DynamoDBMappingException("expected " + attributeType  + " in value " + o);
             }

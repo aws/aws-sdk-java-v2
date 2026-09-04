@@ -1,17 +1,18 @@
 /*
- * Copyright 2013 Amazon Technologies, Inc.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
 import static org.junit.Assert.assertEquals;
@@ -22,7 +23,11 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.LocalDynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.pojos.BinaryAttributeByteBufferClass;
 import software.amazon.awssdk.mapper.dynamodb.pojos.RangeKeyClass;
 import java.math.BigDecimal;
@@ -56,11 +61,31 @@ public class BatchWriteTest extends LocalDynamoDBTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         dynamo = client();
-        DynamoDBMapper mapper = new DynamoDBMapper(dynamo);
-        dynamo.createTable(mapper.generateCreateTableRequest(NumberSetAttributeClass.class)
-                                 .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build());
-        dynamo.createTable(mapper.generateCreateTableRequest(RangeKeyClass.class)
-                                 .toBuilder().provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT).build());
+        dynamo.createTable(hashKeyTable("aws-java-sdk-util", "key"));
+        dynamo.createTable(hashAndRangeKeyTable("aws-java-sdk-range-test", "key", "rangeKey"));
+    }
+
+    private static CreateTableRequest hashKeyTable(String tableName, String hashKey) {
+        return CreateTableRequest.builder()
+                                 .tableName(tableName)
+                                 .keySchema(KeySchemaElement.builder().attributeName(hashKey).keyType(KeyType.HASH).build())
+                                 .attributeDefinitions(AttributeDefinition.builder().attributeName(hashKey)
+                                                                          .attributeType(ScalarAttributeType.S).build())
+                                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                 .build();
+    }
+
+    private static CreateTableRequest hashAndRangeKeyTable(String tableName, String hashKey, String rangeKey) {
+        return CreateTableRequest.builder()
+                                 .tableName(tableName)
+                                 .keySchema(KeySchemaElement.builder().attributeName(hashKey).keyType(KeyType.HASH).build(),
+                                            KeySchemaElement.builder().attributeName(rangeKey).keyType(KeyType.RANGE).build())
+                                 .attributeDefinitions(AttributeDefinition.builder().attributeName(hashKey)
+                                                                          .attributeType(ScalarAttributeType.N).build(),
+                                                       AttributeDefinition.builder().attributeName(rangeKey)
+                                                                          .attributeType(ScalarAttributeType.N).build())
+                                 .provisionedThroughput(DEFAULT_PROVISIONED_THROUGHPUT)
+                                 .build();
     }
 
     @Test
