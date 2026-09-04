@@ -46,6 +46,17 @@
     </build>
 
     <dependencies>
+        <!--
+        Build-time only. Carries the Smithy ProjectionTransformer that smithy-build.json applies during code
+        generation. Provided scope keeps it off the published dependency graph while still making it visible to the
+        codegen plugin, which puts provided-scope artifacts on the smithy-build classpath.
+        -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>account-codegen-customization</artifactId>
+            <version>${awsjavasdk.version}</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>protocol-core</artifactId>

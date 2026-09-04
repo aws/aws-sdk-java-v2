@@ -453,3 +453,135 @@ Debug `System.out.println` statements were removed, and the `model.json` sniffin
   verified end-to-end by build and output diffing, not by unit tests. Worth adding
   before this becomes a real CR: settings parsing, service resolution failure modes,
   and the `baseDir` injection.
+
+## 11. Building with the Smithy CLI
+
+`services/account` builds with the Smithy CLI from the same `smithy-build.json` that
+Maven uses, producing byte-for-byte identical output. This confirms in practice the
+external-consumer path described in §8.
+
+The CLI resolves the codegen plugin itself from the `maven` block, then discovers it
+over SPI. That block is now **ignored with an informational message** by the Maven
+path rather than rejected as §7 originally proposed, which is what allows a single
+config file to serve both drivers:
+
+```json
+"maven": {
+    "dependencies": [
+        "software.amazon.awssdk:codegen:2.41.29-SNAPSHOT",
+        "software.amazon.awssdk:account-codegen-customization:2.41.29-SNAPSHOT"
+    ]
+}
+```
+
+Run it from the module directory, so that relative paths in plugin settings resolve
+correctly (there is no mojo to inject `baseDir`):
+
+```
+cd services/account
+smithy build
+```
+
+### 11.1 The packaged `smithy` launcher cannot run this plugin
+
+That command fails, and the reason is worth recording because it constrains the §8
+story more than the plugin design does:
+
+```
+NoClassDefFoundError: javax/lang/model/type/TypeVisitor
+    at software.amazon.awssdk.codegen.CodeGenerator.<clinit>
+```
+
+The Homebrew `smithy-cli` launcher hardcodes `JAVA_HOME="$APP_HOME"` and ships a
+jlink-trimmed Corretto 25 runtime containing only six modules: `java.base`,
+`java.logging`, `java.naming`, `java.security.sasl`, `java.xml`, and `jdk.crypto.ec`.
+`java.compiler`, which provides `javax.lang.model`, is absent. SDK code generation is
+built on JavaPoet, which requires it.
+
+This is not something the plugin can work around; it is a property of how the CLI is
+packaged. The same CLI code works when run on a full JDK:
+
+```
+cd services/account
+"$JAVA_HOME/bin/java" -cp "/opt/homebrew/Cellar/smithy-cli/1.73.0/libexec/lib/*" \
+    software.amazon.smithy.cli.SmithyCli build --output /tmp/cli-out
+```
+
+That produces `Validated 663 shapes`, two projections, and output identical to Maven's.
+Any decision to support external consumers (§8.3) therefore has to include telling
+them to run the CLI on a JDK rather than via the packaged launcher, or to use the
+Smithy Gradle plugin, which runs inside Gradle's own JVM.
+
+## 12. Customizations as Smithy transforms
+
+`services/account/customization` is a small Maven module holding a real
+`ProjectionTransformer`, demonstrating a service customization written as Java code
+rather than as `customization.config` entries.
+`AddCustomOperationTransformer` (`addAccountCustomOperation`) synthesizes a
+`MyCustomOperation` with single-string-member input and output, attaches an `@http`
+binding, and adds the operation to the target service. It takes an optional `service`
+argument, which also serves to show how transform arguments are passed.
+
+### 12.1 How it wires together
+
+```
+services/account/
+├── smithy-build.json          projection "client" applies the transform, then codegen
+├── pom.xml                    provided-scope dependency on the customization
+└── customization/
+    ├── pom.xml                separate module, built before account
+    └── src/main/
+        ├── java/...           AddCustomOperationTransformer
+        └── resources/META-INF/services/software.amazon.smithy.build.ProjectionTransformer
+```
+
+Three details make `mvn install -pl :account` work:
+
+**The transformer reaches the build via `provided` scope, not plugin dependencies.**
+The obvious approach is to list the customization under the codegen plugin's
+`<dependencies>`. That cannot work: Maven resolves plugin dependencies from
+repositories only, never from the reactor, so a customization module living beside
+the service could never be built and consumed in the same invocation. Instead
+`account` declares it as a normal `provided`-scope dependency, and the mojo layers
+all `provided`-scope artifacts onto the `smithy-build` class loader with the plugin's
+own loader as parent. This is the Maven counterpart to the Smithy Gradle plugin's
+dedicated `smithyBuild` configuration.
+
+`provided` is the right scope because it is build-time only: it is visible to the
+codegen plugin but is not transitive to consumers of the published `account`
+artifact, and `dependency:analyze` already ignores non-compile scopes
+(`ignoreNonCompile` is set in the root POM), so no extra suppression is needed. The
+mojo declares `requiresDependencyResolution = COMPILE`, without which
+`project.getArtifacts()` is empty.
+
+**Codegen moved into the named projection.** The plugin is configured inside the
+`client` projection rather than at the top level. Top-level plugins run for *every*
+projection, so codegen would have run for both `source` and `client` and generated
+two copies of the client into different directories. With it scoped to `client`, the
+`source` projection produces only the default `model`, `build-info`, and `sources`
+artifacts. The mojo already registers roots only for projections that ran the codegen
+plugin, so this needed no mojo change.
+
+**Reactor ordering is automatic.** Because it is a normal dependency, Maven orders
+`account-codegen-customization` immediately before `account`. Note the one caveat:
+plain `mvn install -pl :account` does not rebuild the customization, it resolves the
+installed artifact — exactly as it already does for `aws-core` and every other SDK
+dependency. Use `--am`, or a prior full build, when the customization has changed.
+
+### 12.2 Verified
+
+- `mvn install -pl :account` logs the customization jar being added to the Smithy
+  build classpath and generates 117 sources instead of 114. The three additions are
+  `MyCustomOperationRequest`, `MyCustomOperationResponse`, and
+  `MyCustomOperationRequestMarshaller`; `myCustomOperation` methods appear on both
+  the sync and async client interfaces, and nine `MyCustomOperation` classes compile
+  into the published jar.
+- The transformer is **not** bundled into the `account` jar, and the installed
+  `account` POM records the dependency as `provided`.
+- The Smithy CLI applies the same transform: `source` reports 663 shapes and `client`
+  reports 668, and the `client` output is identical to Maven's.
+- `mvn validate -pl :account --am` shows the customization ordered directly before
+  `account` in the reactor.
+- `mvn clean install -pl :bom-internal,:codegen,:codegen-maven-plugin,:account-codegen-customization`
+  passes with checkstyle, spotbugs, dependency analysis, and 567 tests.
+- `pinpointsmsvoice` still takes the C2J path and creates no `smithyprojections`.

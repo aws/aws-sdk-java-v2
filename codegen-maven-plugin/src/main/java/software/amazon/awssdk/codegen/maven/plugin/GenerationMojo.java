@@ -33,6 +33,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
@@ -54,7 +55,9 @@ import software.amazon.awssdk.utils.StringUtils;
 /**
  * The Maven mojo to generate Java client code using software.amazon.awssdk:codegen module.
  */
-@Mojo(name = "generate")
+// Dependency resolution is required so that provided-scope artifacts, which may carry Smithy transforms used during
+// the build, can be placed on the smithy-build classpath.
+@Mojo(name = "generate", requiresDependencyResolution = ResolutionScope.COMPILE)
 public class GenerationMojo extends AbstractMojo {
     private static final String MODEL_FILE = "service-2.json";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";

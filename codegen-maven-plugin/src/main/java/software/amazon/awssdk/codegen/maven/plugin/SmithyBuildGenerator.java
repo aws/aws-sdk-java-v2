@@ -17,6 +17,9 @@ package software.amazon.awssdk.codegen.maven.plugin;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,8 +27,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.logging.Log;
@@ -74,10 +79,11 @@ final class SmithyBuildGenerator {
         SmithyBuildConfig config = SmithyBuildConfig.load(configFile);
 
         if (config.getMaven().isPresent()) {
-            throw new MojoExecutionException(
-                "The 'maven' block in " + configFile + " is not supported. Dependency resolution for that block is a "
-                + "Smithy CLI feature, and this build embeds smithy-build directly. Declare any additional Smithy "
-                + "dependencies on the codegen module instead.");
+            // Resolving this block is a Smithy CLI feature. It is retained in the config so that the same
+            // smithy-build.json can be built with the CLI, but Maven supplies the classpath itself.
+            log.info("Ignoring the 'maven' block in " + configFile + "; it applies to the Smithy CLI only. Under Maven, "
+                     + "the Smithy build classpath comes from the codegen module plus any provided-scope dependencies "
+                     + "of this module.");
         }
 
         config = injectBaseDir(config, project.getBasedir().toPath());
@@ -89,11 +95,12 @@ final class SmithyBuildGenerator {
                 "No 'sources' or 'imports' are declared in " + configFile + ", so there is no model to generate from.");
         }
 
-        Model model = assembleModel(configFile, sources, imports);
+        ClassLoader classLoader = buildClassLoader();
+        Model model = assembleModel(configFile, sources, imports, classLoader);
 
         SmithyBuildResult result;
         try {
-            result = SmithyBuild.create(AwsSdkJavaCodegenPlugin.class.getClassLoader())
+            result = SmithyBuild.create(classLoader)
                                 .config(config)
                                 .model(model)
                                 .registerSources(sources.toArray(new Path[0]))
@@ -118,8 +125,8 @@ final class SmithyBuildGenerator {
      * the responsibility of whatever drives it, which is normally the Smithy CLI. Validation is left enabled so that
      * model problems surface here rather than as confusing code generation failures later.
      */
-    private Model assembleModel(Path configFile, List<Path> sources, List<Path> imports) throws MojoExecutionException {
-        ClassLoader classLoader = AwsSdkJavaCodegenPlugin.class.getClassLoader();
+    private Model assembleModel(Path configFile, List<Path> sources, List<Path> imports, ClassLoader classLoader)
+            throws MojoExecutionException {
         ModelAssembler assembler = Model.assembler(classLoader).discoverModels(classLoader);
 
         for (Path source : sources) {
@@ -160,6 +167,49 @@ final class SmithyBuildGenerator {
                      .filter(e -> e.getSeverity() == Severity.ERROR || e.getSeverity() == Severity.DANGER)
                      .map(e -> String.format("  %s: %s", e.getSeverity(), e.getMessage()))
                      .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Builds the class loader that {@code smithy-build} uses to discover plugins, transforms, and trait definitions.
+     *
+     * <p>The parent is this Maven plugin's own class loader, which supplies the codegen plugin and the Smithy
+     * libraries. Layered on top are the module's {@code provided}-scope dependencies, which is how a service declares
+     * build-time-only code such as a custom {@link software.amazon.smithy.build.ProjectionTransformer}. This is the
+     * Maven counterpart to the Smithy Gradle plugin's {@code smithyBuild} configuration.
+     *
+     * <p>{@code provided} is used rather than the Maven plugin's own {@code <dependencies>} because plugin
+     * dependencies are resolved from repositories only, never from the reactor, so a customization module living
+     * beside the service could not be built and consumed in the same invocation.
+     */
+    private ClassLoader buildClassLoader() throws MojoExecutionException {
+        ClassLoader parent = AwsSdkJavaCodegenPlugin.class.getClassLoader();
+        List<URL> urls = new ArrayList<>();
+
+        for (Artifact artifact : resolvedArtifacts()) {
+            if (!Artifact.SCOPE_PROVIDED.equals(artifact.getScope()) || artifact.getFile() == null) {
+                continue;
+            }
+            try {
+                urls.add(artifact.getFile().toURI().toURL());
+                log.info("Adding to Smithy build classpath: " + artifact.getFile());
+            } catch (MalformedURLException e) {
+                throw new MojoExecutionException("Could not add " + artifact.getFile()
+                                                 + " to the Smithy build classpath", e);
+            }
+        }
+
+        if (urls.isEmpty()) {
+            return parent;
+        }
+        return new URLClassLoader(urls.toArray(new URL[0]), parent);
+    }
+
+    /**
+     * {@code MavenProject#getArtifacts} is untyped in the Maven 2 project API this plugin compiles against.
+     */
+    @SuppressWarnings("unchecked")
+    private Set<Artifact> resolvedArtifacts() {
+        return project.getArtifacts();
     }
 
     /**

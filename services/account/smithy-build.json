@@ -1,10 +1,29 @@
 {
     "version": "1.0",
     "sources": ["src/main/resources/codegen-resources/model.json"],
-    "plugins": {
-        "aws-sdk-java-v2-codegen": {
-            "service": "com.amazonaws.account#Account",
-            "customizationConfig": "src/main/resources/codegen-resources/customization.config"
+    "maven": {
+        "//": "Used only by the Smithy CLI. Under Maven these come from the codegen module and this module's provided-scope dependencies.",
+        "dependencies": [
+            "software.amazon.awssdk:codegen:2.41.29-SNAPSHOT",
+            "software.amazon.awssdk:account-codegen-customization:2.41.29-SNAPSHOT"
+        ]
+    },
+    "projections": {
+        "client": {
+            "transforms": [
+                {
+                    "name": "addAccountCustomOperation",
+                    "args": {
+                        "service": "com.amazonaws.account#Account"
+                    }
+                }
+            ],
+            "plugins": {
+                "aws-sdk-java-v2-codegen": {
+                    "service": "com.amazonaws.account#Account",
+                    "customizationConfig": "src/main/resources/codegen-resources/customization.config"
+                }
+            }
         }
     }
 }

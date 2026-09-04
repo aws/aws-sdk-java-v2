@@ -282,6 +282,8 @@
         <module>wisdom</module>
         <module>voiceid</module>
         <module>account</module>
+        <!-- Build-time Smithy transforms for the account client. Built before account, which consumes it. -->
+        <module>account/customization</module>
         <module>cloudcontrol</module>
         <module>grafana</module>
         <module>panorama</module>
