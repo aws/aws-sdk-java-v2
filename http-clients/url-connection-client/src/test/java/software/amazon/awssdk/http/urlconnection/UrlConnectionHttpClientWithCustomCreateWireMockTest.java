@@ -14,14 +14,14 @@
  */
 package software.amazon.awssdk.http.urlconnection;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.FunctionalUtils.safeFunction;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.ProtocolException;
 import java.net.URL;
@@ -29,10 +29,12 @@ import java.security.Permission;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import org.apache.logging.log4j.Level;
 import org.junit.Ignore;
 import org.junit.Test;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpClientTestSuite;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends SdkHttpClientTestSuite {
 
@@ -100,7 +102,9 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
         });
 
         assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
-            .isInstanceOf(UncheckedIOException.class);
+            .isInstanceOf(IOException.class)
+            .hasMessage("Unexpected NullPointerException when calling HttpURLConnection")
+            .hasCauseInstanceOf(RuntimeException.class);
     }
 
     @Test
@@ -113,7 +117,118 @@ public final class UrlConnectionHttpClientWithCustomCreateWireMockTest extends S
         });
 
         assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
-            .isInstanceOf(UncheckedIOException.class);
+            .isInstanceOf(IOException.class)
+            .hasMessage("Unexpected NullPointerException when calling HttpURLConnection")
+            .hasCauseInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    public void testGetOutputStreamBareNpeIsWrappedAsIo() throws Exception {
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public OutputStream getOutputStream() {
+                throw new NullPointerException("this.http is null");
+            }
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Unexpected NullPointerException when calling HttpURLConnection")
+            .hasCauseInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void testGetInputStreamBareNpeIsWrappedAsIo() throws Exception {
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public InputStream getInputStream() {
+                throw new NullPointerException("this.http is null");
+            }
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
+            .isInstanceOf(IOException.class)
+            .hasMessage("Unexpected NullPointerException when calling HttpURLConnection")
+            .hasCauseInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void testGetOutputStreamStacklessNpeIsWrappedAsIo() throws Exception {
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public OutputStream getOutputStream() {
+                throw stacklessNpe();
+            }
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
+            .isInstanceOf(IOException.class)
+            .hasCauseInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void testGetOutputStreamUnrelatedNpeIsWrappedAsIo() throws Exception {
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public OutputStream getOutputStream() {
+                throw new NullPointerException("custom connection failure");
+            }
+        });
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.DEBUG)) {
+            assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK))
+                .isInstanceOf(IOException.class)
+                .hasCauseInstanceOf(NullPointerException.class);
+            assertThat(logCaptor.loggedEvents()).anySatisfy(logEvent ->
+                assertThat(logEvent.getMessage().getFormattedMessage())
+                    .contains("Converting NPE from HttpURLConnection implementation")
+                    .contains("to IOException for retry evaluation"));
+        }
+    }
+
+    @Test
+    public void testGetOutputStreamNonNpeRuntimeExceptionIsNotWrapped() throws Exception {
+        RuntimeException expected = new IllegalStateException("custom connection failure");
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public OutputStream getOutputStream() {
+                throw expected;
+            }
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK)).isSameAs(expected);
+    }
+
+    @Test
+    public void testGetOutputStreamIOExceptionRemainsChecked() throws Exception {
+        IOException expected = new IOException("connection closed");
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public OutputStream getOutputStream() throws IOException {
+                throw expected;
+            }
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK)).isSameAs(expected);
+    }
+
+    @Test
+    public void testGetInputStreamIOExceptionRemainsChecked() throws Exception {
+        IOException expected = new IOException("connection closed");
+        connectionInterceptor = safeFunction(connection -> new DelegateHttpURLConnection(connection) {
+            @Override
+            public InputStream getInputStream() throws IOException {
+                throw expected;
+            }
+        });
+
+        assertThatThrownBy(() -> testForResponseCode(HttpURLConnection.HTTP_OK)).isSameAs(expected);
+    }
+
+    private static NullPointerException stacklessNpe() {
+        NullPointerException result = new NullPointerException();
+        result.setStackTrace(new StackTraceElement[0]);
+        return result;
     }
 
     private class DelegateHttpURLConnection extends HttpURLConnection {
