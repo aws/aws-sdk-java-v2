@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Prevent `AsyncResponseTransformer.toFile` from deleting a pre-existing destination when a request fails before the SDK opens the file. Calls using `CREATE_NEW` now preserve the existing file and surface `FileAlreadyExistsException` instead of allowing a retry to overwrite it."
+}
