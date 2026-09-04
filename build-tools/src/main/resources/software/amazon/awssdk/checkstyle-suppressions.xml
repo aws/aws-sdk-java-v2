@@ -72,6 +72,6 @@
     <!-- ResponseHandlerHelper has helper method closeConnection() which handles safe closing of connection -->
     <suppress id="NoCrtStreamCancel"
               files=".*ResponseHandlerHelper\.java$"/>
-    <suppress checks="^((?!UnnecessaryFinalOnLocalVariable|HideUtilityClassConstructor|MissingSdkAnnotation).)*$"
+    <suppress checks="^((?!UnnecessaryFinalOnLocalVariable|HideUtilityClassConstructor|MissingSdkAnnotation|Header).)*$"
               files=".*[\\/]software[\\/]amazon[\\/]awssdk[\\/]mapper[\\/]dynamodb[\\/].+\.java$"/>
 </suppressions>
