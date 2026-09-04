@@ -24,6 +24,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
@@ -32,6 +33,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -43,6 +45,7 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpHeader;
@@ -70,6 +73,7 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
+    private static final String CRT_RESPONSE_FILE_ALREADY_EXISTS = "AWS_ERROR_S3_RECV_FILE_ALREADY_EXISTS";
 
     private final S3Client crtS3Client;
 
@@ -159,6 +163,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
+        Boolean responseFileDeleteOnFailure = httpExecutionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE);
 
         S3CrtResponseHandlerAdapter responseHandler =
             new S3CrtResponseHandlerAdapter(
@@ -186,6 +191,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         if (responseFileOption != null) {
             requestOptions = requestOptions.withResponseFileOption(responseFileOption);
         }
+        if (responseFileDeleteOnFailure != null) {
+            requestOptions = requestOptions.withResponseFileDeleteOnFailure(responseFileDeleteOnFailure);
+        }
 
         CrtCredentialsProviderAdapter requestCredentialsAdapter =
             httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
@@ -204,6 +212,16 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             if (requestCredentialsAdapter != null) {
                 requestCredentialsAdapter.close();
             }
+            if (isResponseFileAlreadyExistsError(t, responseFilePath)) {
+                FileAlreadyExistsException fileAlreadyExistsException =
+                    new FileAlreadyExistsException(responseFilePath.toString());
+                fileAlreadyExistsException.addSuppressed(t);
+                // Native initialization failed before creating a meta-request. Complete its placeholder first because
+                // completing executeFuture invokes the response adapter synchronously, which otherwise waits for a timeout.
+                s3MetaRequestFuture.complete(null);
+                executeFuture.completeExceptionally(fileAlreadyExistsException);
+                return executeFuture;
+            }
             throw t;
         } finally {
             signingConfig.close();
@@ -214,6 +232,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return executeFuture;
+    }
+
+    private static boolean isResponseFileAlreadyExistsError(Throwable throwable, Path responseFilePath) {
+        return responseFilePath != null
+               && throwable instanceof CrtRuntimeException
+               && CRT_RESPONSE_FILE_ALREADY_EXISTS.equals(((CrtRuntimeException) throwable).errorName);
     }
 
     private AwsSigningConfig awsSigningConfig(Region signingRegion, SdkHttpExecutionAttributes httpExecutionAttributes) {
