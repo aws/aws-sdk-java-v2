@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add support for code generating Endpoint Resolvers based on BDD rather than rules. Adds single element endpoint cache to generated BDD based resolvers. BDD based Endpoint Resolvers are generated only when the BDD model is present on a service."
+}

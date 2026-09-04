@@ -198,7 +198,7 @@ public final class QueryEndpointResolverUtils {
     AccountIdEndpointMode mode = executionAttributes.getAttribute(AwsExecutionAttribute.AWS_AUTH_ACCOUNT_ID_ENDPOINT_MODE);
     BusinessMetricsUtils.resolveAccountIdEndpointModeMetric(mode).ifPresent(
         m -> executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(m));
-    return mode.name().toLowerCase();
+    return mode.value();
   }
 
   public static void setMetricValues(Endpoint endpoint, ExecutionAttributes executionAttributes) {

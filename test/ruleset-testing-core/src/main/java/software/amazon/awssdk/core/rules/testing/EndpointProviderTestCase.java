@@ -22,8 +22,15 @@ import software.amazon.awssdk.endpoints.Endpoint;
 public final class EndpointProviderTestCase {
     private Supplier<Endpoint> testMethod;
     private Expect expect;
+    private String name;
 
     public EndpointProviderTestCase(Supplier<Endpoint> testMethod, Expect expect) {
+        this.testMethod = testMethod;
+        this.expect = expect;
+    }
+
+    public EndpointProviderTestCase(String name, Supplier<Endpoint> testMethod, Expect expect) {
+        this.name = name;
         this.testMethod = testMethod;
         this.expect = expect;
     }
@@ -42,5 +49,14 @@ public final class EndpointProviderTestCase {
 
     public void setExpect(Expect expect) {
         this.expect = expect;
+    }
+
+    @Override
+    public String toString() {
+        if (name != null) {
+            return name;
+        } else {
+            return super.toString();
+        }
     }
 }

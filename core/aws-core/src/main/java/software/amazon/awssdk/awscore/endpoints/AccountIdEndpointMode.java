@@ -26,19 +26,25 @@ public enum AccountIdEndpointMode {
     /**
      * Default value that indicates account ID values will be used in endpoint rules if available.
      */
-    PREFERRED,
+    PREFERRED("preferred"),
 
     /**
      * When mode is disabled, any resolved account ID will not be used in endpoint construction and rules that
      * reference them will be bypassed.
      */
-    DISABLED,
+    DISABLED("disabled"),
 
     /**
      * Required mode would be used in scenarios where endpoint resolution should return an error if no account ID is
      * available.
      */
-    REQUIRED;
+    REQUIRED("required");
+
+    private final String value;
+
+    AccountIdEndpointMode(String value) {
+        this.value = value;
+    }
 
     /**
      * Returns the appropriate AccountIdEndpointMode value after parsing the parameter.
@@ -51,12 +57,26 @@ public enum AccountIdEndpointMode {
             return null;
         }
 
-        for (AccountIdEndpointMode value : values()) {
-            if (value.name().equalsIgnoreCase(s)) {
-                return value;
+        for (AccountIdEndpointMode mode : values()) {
+            // Matched against value rather than name() so that the wire form has a single definition. Behaviour is
+            // unchanged: the two differ only in case, and the comparison is case-insensitive.
+            if (mode.value.equalsIgnoreCase(s)) {
+                return mode;
             }
         }
 
         throw new IllegalArgumentException("Unrecognized value for account id endpoint mode: " + s);
+    }
+
+    /**
+     * Returns the canonical lowercase string for this mode, as the endpoint rules engine expects to receive it in the
+     * {@code AWS::Auth::AccountIdEndpointMode} built-in.
+     * <p>
+     * Unlike {@code name().toLowerCase()}, this returns the same interned {@link String} reference on every call instead
+     * of a fresh string per request, which removes an allocation from the request path. It is also independent of the
+     * default locale, which {@code name().toLowerCase()} is not.
+     */
+    public String value() {
+        return value;
     }
 }

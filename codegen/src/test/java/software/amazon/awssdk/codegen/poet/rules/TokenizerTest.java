@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.poet.rules;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
@@ -57,6 +58,57 @@ class TokenizerTest {
             assertEquals("url", reference);
             assertEquals("authority", name);
         });
+        assertTrue(tokenizer.atEof());
+    }
+
+    @Test
+    public void recognizesDirectNegativeIndexedExpression() {
+        Tokenizer tokenizer = new Tokenizer("[-2]");
+        assertTrue(tokenizer.isDirectNegativeIndexedAccess());
+        tokenizer.consumeDirectNegativeIndexed(i -> assertEquals(-2, i));
+        assertTrue(tokenizer.atEof());
+    }
+
+    @Test
+    public void recognizesNegativeIndexedExpression() {
+        Tokenizer tokenizer = new Tokenizer("resourceId[-1]");
+        assertTrue(tokenizer.isNegativeIndexedAccess());
+        tokenizer.consumeNegativeIndexed((name, index) -> {
+            assertEquals("resourceId", name);
+            assertEquals(-1, index);
+        });
+        assertTrue(tokenizer.atEof());
+    }
+
+    @Test
+    public void negativeIndexIsNotConfusedWithPositiveIndex() {
+        assertTrue(new Tokenizer("[2]").isDirectIndexedAccess());
+        assertFalse(new Tokenizer("[2]").isDirectNegativeIndexedAccess());
+        assertTrue(new Tokenizer("[-2]").isDirectNegativeIndexedAccess());
+        assertFalse(new Tokenizer("[-2]").isDirectIndexedAccess());
+    }
+
+    /**
+     * A hyphen is only a distinct token when it opens a negative index. Everywhere else it is an ordinary string
+     * character, otherwise literals such as "s3-fips" would be split into extra concatenation terms by
+     * {@code ExpressionParser.parseStringConcat}.
+     */
+    @Test
+    public void hyphenOutsideIndexRemainsPartOfString() {
+        // Hyphen followed by a digit, but not inside an index - must stay in the string.
+        Tokenizer tokenizer = new Tokenizer("{Region}-1a");
+        assertTrue(tokenizer.isReference());
+        tokenizer.consumeReferenceAccess(n -> assertEquals("Region", n));
+        assertEquals("-1a", tokenizer.next().value());
+        assertTrue(tokenizer.atEof());
+    }
+
+    @Test
+    public void hyphenatedHostLabelIsSingleToken() {
+        Tokenizer tokenizer = new Tokenizer("{Region}s3-fips-2.example");
+        assertTrue(tokenizer.isReference());
+        tokenizer.consumeReferenceAccess(n -> assertEquals("Region", n));
+        assertEquals("s3-fips-2.example", tokenizer.next().value());
         assertTrue(tokenizer.atEof());
     }
 }

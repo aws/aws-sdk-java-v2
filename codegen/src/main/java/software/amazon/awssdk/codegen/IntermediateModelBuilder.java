@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -65,6 +66,7 @@ public class IntermediateModelBuilder {
     private final Waiters waiters;
     private final EndpointRuleSetModel endpointRuleSet;
     private final EndpointTestSuiteModel endpointTestSuiteModel;
+    private final EndpointBddModel endpointBddModel;
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
@@ -76,6 +78,7 @@ public class IntermediateModelBuilder {
         this.waiters = models.waitersModel();
         this.endpointRuleSet = models.endpointRuleSetModel();
         this.endpointTestSuiteModel = models.endpointTestSuiteModel();
+        this.endpointBddModel = models.endpointBddModel();
     }
 
 
@@ -138,7 +141,8 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel, service.getClientContextParams());
+            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel, endpointBddModel,
+            service.getClientContextParams());
 
         customization.postprocess(fullModel);
 
@@ -160,6 +164,7 @@ public class IntermediateModelBuilder {
                                                                fullModel.getWaiters(),
                                                                fullModel.getEndpointRuleSetModel(),
                                                                endpointTestSuiteModel,
+                                                               fullModel.getEndpointBddModel(),
                                                                service.getClientContextParams());
 
         linkMembersToShapes(trimmedModel);
