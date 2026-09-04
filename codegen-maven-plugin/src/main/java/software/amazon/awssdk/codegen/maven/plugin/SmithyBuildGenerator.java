@@ -65,6 +65,11 @@ final class SmithyBuildGenerator {
     private static final String RESOURCES_DIR = "resources";
     private static final String TESTS_DIR = "tests";
 
+    /**
+     * Placeholder name that {@code smithy-build.json} can use to refer to the version of the module being built.
+     */
+    private static final String SDK_VERSION_PROPERTY = "AWS_SDK_JAVA_VERSION";
+
     private final MavenProject project;
     private final Log log;
 
@@ -76,15 +81,16 @@ final class SmithyBuildGenerator {
     void generate(Path configFile, Path outputDirectory) throws MojoExecutionException {
         log.info("Generating from " + configFile);
 
-        SmithyBuildConfig config = SmithyBuildConfig.load(configFile);
+        SmithyBuildConfig config = loadConfig(configFile);
 
-        if (config.getMaven().isPresent()) {
+        config.getMaven().ifPresent(maven -> {
             // Resolving this block is a Smithy CLI feature. It is retained in the config so that the same
-            // smithy-build.json can be built with the CLI, but Maven supplies the classpath itself.
+            // smithy-build.json can be built with the CLI, but Maven supplies the classpath itself. The coordinates
+            // are logged with placeholders already expanded, which makes the resolved version visible.
             log.info("Ignoring the 'maven' block in " + configFile + "; it applies to the Smithy CLI only. Under Maven, "
                      + "the Smithy build classpath comes from the codegen module plus any provided-scope dependencies "
-                     + "of this module.");
-        }
+                     + "of this module. Declared coordinates: " + maven.getDependencies());
+        });
 
         config = injectBaseDir(config, project.getBasedir().toPath());
 
@@ -167,6 +173,31 @@ final class SmithyBuildGenerator {
                      .filter(e -> e.getSeverity() == Severity.ERROR || e.getSeverity() == Severity.DANGER)
                      .map(e -> String.format("  %s: %s", e.getSeverity(), e.getMessage()))
                      .collect(Collectors.joining("\n"));
+    }
+
+    /**
+     * Loads the config, exposing the project version to {@code ${...}} placeholders in {@code smithy-build.json}.
+     *
+     * <p>Smithy expands placeholders from system properties and environment variables when the config is loaded, and
+     * fails the load if one cannot be resolved. Publishing the version here lets a service declare Maven coordinates
+     * without hard-coding a version that would go stale on the next release, which matters for the {@code maven}
+     * block that the Smithy CLI resolves.
+     *
+     * <p>Under Maven the module's own version is authoritative, so it takes precedence over any inherited value. The
+     * property is scoped to the load and the previous value is restored afterwards.
+     */
+    private SmithyBuildConfig loadConfig(Path configFile) {
+        // setProperty returns the previous value, which avoids having to read it back separately.
+        String previous = System.setProperty(SDK_VERSION_PROPERTY, project.getVersion());
+        try {
+            return SmithyBuildConfig.load(configFile);
+        } finally {
+            if (previous == null) {
+                System.clearProperty(SDK_VERSION_PROPERTY);
+            } else {
+                System.setProperty(SDK_VERSION_PROPERTY, previous);
+            }
+        }
     }
 
     /**

@@ -468,11 +468,41 @@ config file to serve both drivers:
 ```json
 "maven": {
     "dependencies": [
-        "software.amazon.awssdk:codegen:2.41.29-SNAPSHOT",
-        "software.amazon.awssdk:account-codegen-customization:2.41.29-SNAPSHOT"
+        "software.amazon.awssdk:codegen:${AWS_SDK_JAVA_VERSION}",
+        "software.amazon.awssdk:account-codegen-customization:${AWS_SDK_JAVA_VERSION}"
     ]
 }
 ```
+
+### 11.2 Keeping the version out of the config
+
+`smithy-build.json` expands `${...}` placeholders from system properties and
+environment variables at load time, and fails the load outright if one cannot be
+resolved. That gives a way to avoid a hard-coded version that would go stale on the
+next release.
+
+`codegen-maven-plugin` sets `AWS_SDK_JAVA_VERSION` from `project.getVersion()` around
+the config load, so under Maven the module's own version is always used and nothing
+needs to be passed on the command line. The build logs the coordinates with
+placeholders already expanded, which makes the resolved version visible:
+
+```
+Declared coordinates: [software.amazon.awssdk:codegen:2.41.29-SNAPSHOT,
+                       software.amazon.awssdk:account-codegen-customization:2.41.29-SNAPSHOT]
+```
+
+For the Smithy CLI there is no Maven project to read, so the variable has to be
+supplied. Either form works:
+
+```
+AWS_SDK_JAVA_VERSION=2.41.29-SNAPSHOT smithy build
+smithy build -DAWS_SDK_JAVA_VERSION=2.41.29-SNAPSHOT   # via JAVA_OPTS/-D
+```
+
+Note that this only removes the literal from the file; it does not make the CLI
+discover the version by itself. Note also that the version in this block has no
+effect on the Maven build at all, since the block is ignored there — its only
+consumers are the CLI and anyone reading the file.
 
 Run it from the module directory, so that relative paths in plugin settings resolve
 correctly (there is no mojo to inject `baseDir`):

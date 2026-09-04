@@ -2,10 +2,10 @@
     "version": "1.0",
     "sources": ["src/main/resources/codegen-resources/model.json"],
     "maven": {
-        "//": "Used only by the Smithy CLI. Under Maven these come from the codegen module and this module's provided-scope dependencies.",
+        "//": "Used only by the Smithy CLI; under Maven the classpath comes from the codegen module and this module's provided-scope dependencies. AWS_SDK_JAVA_VERSION is set automatically by codegen-maven-plugin; for the Smithy CLI, export it or pass -DAWS_SDK_JAVA_VERSION=<version>.",
         "dependencies": [
-            "software.amazon.awssdk:codegen:2.41.29-SNAPSHOT",
-            "software.amazon.awssdk:account-codegen-customization:2.41.29-SNAPSHOT"
+            "software.amazon.awssdk:codegen:${AWS_SDK_JAVA_VERSION}",
+            "software.amazon.awssdk:account-codegen-customization:${AWS_SDK_JAVA_VERSION}"
         ]
     },
     "projections": {
