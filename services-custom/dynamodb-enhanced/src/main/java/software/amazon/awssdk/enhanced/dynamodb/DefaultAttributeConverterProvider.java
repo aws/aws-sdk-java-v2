@@ -72,6 +72,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Uui
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneIdAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneOffsetAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZonedDateTimeAsStringAttributeConverter;
+import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -157,17 +158,21 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
             return Optional.of(converter);
         }
 
-        if (type.rawClass().isAssignableFrom(Map.class)) {
-            converter = createMapConverter(type);
-        } else if (type.rawClass().isAssignableFrom(Set.class)) {
-            converter = createSetConverter(type);
-        } else if (type.rawClass().isAssignableFrom(List.class)) {
-            EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
-            AttributeConverter<?> innerConverter = findConverter(innerType)
-                .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
-            return Optional.of((AttributeConverter<T>) ListAttributeConverter.create(innerConverter));
-        } else if (type.rawClass().isEnum()) {
-            return Optional.of(EnumAttributeConverter.create(((EnhancedType<? extends Enum>) type).rawClass()));
+        if (!Object.class.equals(type.rawClass())) {
+            if (type.rawClass().isAssignableFrom(Map.class)) {
+                requireTypeParameters(type);
+                converter = createMapConverter(type);
+            } else if (type.rawClass().isAssignableFrom(Set.class)) {
+                requireTypeParameters(type);
+                converter = createSetConverter(type);
+            } else if (type.rawClass().isAssignableFrom(List.class)) {
+                requireTypeParameters(type);
+                EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
+                AttributeConverter<?> innerConverter = converterFor(innerType);
+                return Optional.of((AttributeConverter<T>) ListAttributeConverter.create(innerConverter));
+            } else if (type.rawClass().isEnum()) {
+                return Optional.of(EnumAttributeConverter.create(((EnhancedType<? extends Enum>) type).rawClass()));
+            }
         }
 
         if (type.tableSchema().isPresent()) {
@@ -186,14 +191,19 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
         return !type.isAnonymousClass();
     }
 
+    private static void requireTypeParameters(EnhancedType<?> type) {
+        if (CollectionUtils.isNullOrEmpty(type.rawClassParameters())) {
+            throw new IllegalStateException("Converter not found for " + type + ". Type parameters are required for this type.");
+        }
+    }
+
     @SuppressWarnings("unchecked")
     private <T> AttributeConverter<T> createMapConverter(EnhancedType<T> type) {
         EnhancedType<?> keyType = type.rawClassParameters().get(0);
         EnhancedType<T> valueType = (EnhancedType<T>) type.rawClassParameters().get(1);
 
         StringConverter<?> keyConverter = StringConverterProvider.defaultProvider().converterFor(keyType);
-        AttributeConverter<?> valueConverter = findConverter(valueType)
-            .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
+        AttributeConverter<?> valueConverter = converterFor(valueType);
 
         return (AttributeConverter<T>) MapAttributeConverter.mapConverter(keyConverter, valueConverter);
     }
@@ -201,8 +211,7 @@ public final class DefaultAttributeConverterProvider implements AttributeConvert
     @SuppressWarnings("unchecked")
     private <T> AttributeConverter<T> createSetConverter(EnhancedType<T> type) {
         EnhancedType<T> innerType = (EnhancedType<T>) type.rawClassParameters().get(0);
-        AttributeConverter<?> innerConverter = findConverter(innerType)
-            .orElseThrow(() -> new IllegalStateException("Converter not found for " + type));
+        AttributeConverter<?> innerConverter = converterFor(innerType);
 
         return (AttributeConverter<T>) SetAttributeConverter.setConverter(innerConverter);
     }
