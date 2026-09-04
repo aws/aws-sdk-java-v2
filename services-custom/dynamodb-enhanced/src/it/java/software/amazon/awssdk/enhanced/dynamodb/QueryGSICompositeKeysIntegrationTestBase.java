@@ -85,11 +85,23 @@ abstract class QueryGSICompositeKeysIntegrationTestBase extends DynamoDbEnhanced
     }
 
     protected static void waitForGsiConsistency() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        int expectedCount = COMPOSITE_RECORDS.size();
+        for (int attempt = 0; attempt < 20; attempt++) {
+            int count = dynamoDbClient.scan(r -> r.tableName(mappedTable.tableName())
+                                                  .indexName("gsi1")
+                                                  .limit(expectedCount + 1))
+                                      .items().size();
+            if (count >= expectedCount) {
+                return;
+            }
+            try {
+                Thread.sleep(Math.min(500L << Math.min(attempt, 3), 2_000L));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
         }
+        throw new AssertionError("GSI propagation timed out after retries");
     }
 
     private static CompositeKeyRecord createRecord(String id, String sort, String pk1, Integer pk2, String pk3,
