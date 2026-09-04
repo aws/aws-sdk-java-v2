@@ -73,7 +73,21 @@
             <scope>compile</scope>
         </dependency>
         <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-model</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-build</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+        <dependency>
             <artifactId>maven-plugin-api</artifactId>
+            <groupId>org.apache.maven</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>maven-model</artifactId>
             <groupId>org.apache.maven</groupId>
         </dependency>
         <dependency>

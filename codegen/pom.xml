@@ -180,6 +180,11 @@
         </dependency>
         <dependency>
             <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-build</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
             <artifactId>smithy-rules-engine</artifactId>
             <version>${smithy.version}</version>
         </dependency>
@@ -266,4 +271,22 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <configuration>
+                    <!-- Appended to the list inherited from the parent POM rather than replacing it. -->
+                    <ignoredUnusedDeclaredDependencies combine.children="append">
+                        <!-- No Java code references smithy-aws-endpoints, but it must be on the classpath so that
+                        Smithy model assembly can resolve aws.endpoints traits (for example
+                        aws.endpoints#standardPartitionalEndpoints) via model discovery. -->
+                        <ignoredUnusedDeclaredDependency>software.amazon.smithy:smithy-aws-endpoints:*</ignoredUnusedDeclaredDependency>
+                    </ignoredUnusedDeclaredDependencies>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

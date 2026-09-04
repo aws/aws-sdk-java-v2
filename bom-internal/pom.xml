@@ -190,6 +190,11 @@
                 <version>3.5.0</version>
             </dependency>
             <dependency>
+                <artifactId>maven-model</artifactId>
+                <groupId>org.apache.maven</groupId>
+                <version>3.5.0</version>
+            </dependency>
+            <dependency>
                 <artifactId>maven-plugin-annotations</artifactId>
                 <groupId>org.apache.maven.plugin-tools</groupId>
                 <version>3.5</version>

@@ -39,7 +39,6 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
-import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;

@@ -24,15 +24,18 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.shapes.ShapeId;
 
 public class SmithyModelWithCustomizations {
     private final Model smithyModel;
     private final CustomizationConfig customizationConfig;
+    private final ShapeId service;
 
     private SmithyModelWithCustomizations(Builder builder) {
         this.smithyModel = builder.smithyModel;
         this.customizationConfig = builder.customizationConfig == null ?
                                    CustomizationConfig.create() : builder.customizationConfig;
+        this.service = builder.service;
         Validate.notNull(this.smithyModel, "Smithy Model is required");
     }
 
@@ -48,10 +51,19 @@ public class SmithyModelWithCustomizations {
         return customizationConfig;
     }
 
+    /**
+     * The shape ID of the service to generate, or {@code null} to infer it from the model. Inference only
+     * succeeds when the model contains exactly one service shape.
+     */
+    public ShapeId getService() {
+        return service;
+    }
+
     public static class Builder implements SdkBuilder<Builder, SmithyModelWithCustomizations> {
         private Model smithyModel;
         private Path modelLocation;
         private CustomizationConfig customizationConfig;
+        private ShapeId service;
 
         public Builder smithyModel(Model smithyModel) {
             this.smithyModel = smithyModel;
@@ -65,6 +77,15 @@ public class SmithyModelWithCustomizations {
 
         public Builder customizationConfig(CustomizationConfig customizationConfig) {
             this.customizationConfig = customizationConfig;
+            return this;
+        }
+
+        /**
+         * Sets the service to generate. Required when the model contains more than one service shape, which is
+         * common for models that have been through a {@code smithy-build} projection.
+         */
+        public Builder service(ShapeId service) {
+            this.service = service;
             return this;
         }
 

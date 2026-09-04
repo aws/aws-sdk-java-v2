@@ -46,8 +46,6 @@ import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
-import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
-import software.amazon.awssdk.codegen.smithy.SmithyModelWithCustomizations;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
@@ -64,8 +62,8 @@ public class GenerationMojo extends AbstractMojo {
     private static final String PAGINATORS_FILE = "paginators-1.json";
     private static final String ENDPOINT_RULE_SET_FILE = "endpoint-rule-set.json";
     private static final String ENDPOINT_TESTS_FILE = "endpoint-tests.json";
-    private static final String SMITHY_MODEL_FILE = "model.json";
-
+    private static final String SMITHY_BUILD_FILE = "smithy-build.json";
+    private static final String SMITHY_PROJECTIONS_DIR = "smithyprojections";
 
     @Parameter(property = "codeGenResources", defaultValue = "${basedir}/src/main/resources/codegen-resources/")
     private File codeGenResources;
@@ -92,11 +90,21 @@ public class GenerationMojo extends AbstractMojo {
         this.resourcesDirectory = Paths.get(outputDirectory).resolve("generated-resources").resolve("sdk-resources");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
+        Path smithyBuildConfig = project.getBasedir().toPath().resolve(SMITHY_BUILD_FILE);
+        if (Files.exists(smithyBuildConfig)) {
+            new SmithyBuildGenerator(project, getLog()).generate(smithyBuildConfig,
+                                                                 Paths.get(outputDirectory)
+                                                                      .resolve(SMITHY_PROJECTIONS_DIR));
+            return;
+        }
+
+        generateFromC2jModels();
+    }
+
+    private void generateFromC2jModels() throws MojoExecutionException {
         List<GenerationParams> generationParams;
         try {
-            System.out.println("WARBLEGARBLE creating gen params....");
             generationParams = initGenerationParams();
-            System.out.println("WARBLEGARBLE created params...");
         } catch (ModelInvalidException e) {
             if (writeValidationReport) {
                 ModelValidationReport report = new ModelValidationReport();
@@ -112,7 +120,6 @@ public class GenerationMojo extends AbstractMojo {
             params -> {
                 IntermediateModel model = params.intermediateModel;
                 String lowercaseServiceName = StringUtils.lowerCase(model.getMetadata().getServiceName());
-                System.out.println("WARBLEGARBLE intermediate model for: " + lowercaseServiceName);
 
                 IntermediateModel previous = serviceNameToModelMap.put(lowercaseServiceName, model);
                 if (previous != null) {
@@ -144,22 +151,6 @@ public class GenerationMojo extends AbstractMojo {
         return modelRoots.stream().map(r -> {
             Path modelRootPath = r.modelRoot;
             getLog().info("Loading from: " + modelRootPath.toString());
-            Path smithyModelFile = modelRootPath.resolve(SMITHY_MODEL_FILE);
-            if (Files.exists(smithyModelFile)) {
-                getLog().info("Detected Smithy model, using Smithy for codegen.");
-                System.out.println("\n--------------------------------\nWARBLEGARBLE\nSMITHY\n");
-
-                SmithyModelWithCustomizations smithyModel = SmithyModelWithCustomizations
-                    .builder().smithyModel(smithyModelFile).customizationConfig(r.customizationConfig).build();
-                IntermediateModel intermediateModel = new SmithyIntermediateModelBuilder(smithyModel).build();
-                String intermediateModelFileNamePrefix = intermediateModelFileNamePrefix(intermediateModel);
-                return new GenerationParams().withIntermediateModel(intermediateModel)
-                                             .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
-
-            }
-
-            getLog().info("No smithy model found (model.json), falling back to C2J");
-            System.out.println("\n--------------------------------\nWARBLEGARBLE\nc2J\n");
 
             C2jModels c2jModels = C2jModels.builder()
                                            .customizationConfig(r.customizationConfig)
@@ -175,8 +166,6 @@ public class GenerationMojo extends AbstractMojo {
                                          .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
         }).collect(Collectors.toList());
     }
-
-
 
     private Stream<ModelRoot> findModelRoots() throws MojoExecutionException {
         try {
@@ -194,7 +183,7 @@ public class GenerationMojo extends AbstractMojo {
     }
 
     private boolean isModelFile(Path p, BasicFileAttributes a) {
-        return p.toString().endsWith(MODEL_FILE) || p.toString().endsWith(SMITHY_MODEL_FILE);
+        return p.toString().endsWith(MODEL_FILE);
     }
 
     private void generateCode(GenerationParams params) {
@@ -212,10 +201,6 @@ public class GenerationMojo extends AbstractMojo {
 
     private String intermediateModelFileNamePrefix(C2jModels models) {
         return writeIntermediateModel ? Utils.getFileNamePrefix(models.serviceModel()) : null;
-    }
-
-    private String intermediateModelFileNamePrefix(IntermediateModel intermediateModel) {
-        return writeIntermediateModel ? Utils.getFileNamePrefix(intermediateModel) : null;
     }
 
     private CustomizationConfig loadCustomizationConfig(Path root) {

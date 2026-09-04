@@ -72,7 +72,7 @@ public class CodeGeneratorTest {
                                               .intermediateModel(new IntermediateModel())
                                               .build())
             .isInstanceOf(IllegalArgumentException.class)
-            .hasMessageContaining("Only one of");
+            .hasMessageContaining("Exactly one of");
     }
 
     @Test

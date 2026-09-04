@@ -62,7 +62,6 @@ import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.model.traits.RetryableTrait;
 import software.amazon.smithy.model.traits.SensitiveTrait;
 import software.amazon.smithy.model.traits.TimestampFormatTrait;
-import software.amazon.smithy.model.traits.UniqueItemsTrait;
 
 /**
  * Processes Smithy shapes and converts them to intermediate ShapeModels.

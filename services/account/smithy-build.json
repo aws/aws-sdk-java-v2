@@ -1,0 +1,10 @@
+{
+    "version": "1.0",
+    "sources": ["src/main/resources/codegen-resources/model.json"],
+    "plugins": {
+        "aws-sdk-java-v2-codegen": {
+            "service": "com.amazonaws.account#Account",
+            "customizationConfig": "src/main/resources/codegen-resources/customization.config"
+        }
+    }
+}

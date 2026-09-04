@@ -36,12 +36,11 @@ import software.amazon.awssdk.codegen.model.config.customization.CustomizationCo
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
-import software.amazon.awssdk.codegen.utils.ProtocolUtils;
+import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.smithy.aws.traits.ServiceTrait;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.ServiceShape;
-import software.amazon.awssdk.utils.Logger;
-import software.amazon.awssdk.utils.StringUtils;
 
 public class DefaultSmithyNamingStrategy implements NamingStrategy {
     private static final Logger log = Logger.loggerFor(DefaultSmithyNamingStrategy.class);
@@ -446,7 +445,10 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
     private String serviceId() {
         return service.getTrait(ServiceTrait.class)
                       .map(t -> t.getSdkId())
-                      .orElseThrow(() -> new IllegalStateException("ServiceId is missing in the Smithy model."));
+                      .orElseThrow(() -> new IllegalStateException(String.format(
+                          "The service '%s' is missing the @aws.api#service trait, which supplies the sdkId that "
+                          + "AWS SDK for Java v2 code generation uses to derive client and package names. Only "
+                          + "AWS services are supported.", service.getId())));
     }
 
     private static String removeRedundantPrefixesAndSuffixes(String baseName) {

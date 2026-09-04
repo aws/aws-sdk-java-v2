@@ -17,11 +17,12 @@ package software.amazon.awssdk.codegen.smithy;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.internal.Jackson;
@@ -67,18 +68,46 @@ public class SmithyIntermediateModelBuilder {
 
     public SmithyIntermediateModelBuilder(SmithyModelWithCustomizations modelWithCustomizations) {
         this.smithyModel = modelWithCustomizations.getSmithyModel();
-        this.service = getServiceShape(this.smithyModel);
+        this.service = resolveServiceShape(this.smithyModel, modelWithCustomizations.getService());
         this.customizationConfig = modelWithCustomizations.getCustomizationConfig();
         this.namingStrategy = new DefaultSmithyNamingStrategy(smithyModel, service, customizationConfig);
         this.typeUtils = new TypeUtils(namingStrategy);
         this.serviceIndex = ServiceIndex.of(smithyModel);
     }
 
-    private ServiceShape getServiceShape(Model model) {
-        if (model.getServiceShapes().size() != 1) {
-            throw new IllegalArgumentException("Smithy model must have exactly one service shape");
+    /**
+     * Resolves the service to generate. When an explicit shape ID is supplied it is looked up directly; otherwise
+     * the service is inferred, which only works when the model contains exactly one service shape.
+     */
+    private static ServiceShape resolveServiceShape(Model model, ShapeId requestedService) {
+        Set<ServiceShape> serviceShapes = model.getServiceShapes();
+
+        if (requestedService != null) {
+            return model.getShape(requestedService)
+                        .flatMap(shape -> shape.asServiceShape())
+                        .orElseThrow(() -> new IllegalArgumentException(String.format(
+                            "The configured service '%s' is not a service shape in the model. Services found: %s",
+                            requestedService, sortedServiceIds(serviceShapes))));
         }
-        return model.getServiceShapes().iterator().next();
+
+        if (serviceShapes.isEmpty()) {
+            throw new IllegalArgumentException("The Smithy model does not contain a service shape.");
+        }
+
+        if (serviceShapes.size() > 1) {
+            throw new IllegalArgumentException(String.format(
+                "The Smithy model contains %d service shapes, so the service to generate must be configured "
+                + "explicitly. Services found: %s", serviceShapes.size(), sortedServiceIds(serviceShapes)));
+        }
+
+        return serviceShapes.iterator().next();
+    }
+
+    private static List<String> sortedServiceIds(Set<ServiceShape> serviceShapes) {
+        return serviceShapes.stream()
+                            .map(s -> s.getId().toString())
+                            .sorted()
+                            .collect(Collectors.toList());
     }
 
 
@@ -155,7 +184,7 @@ public class SmithyIntermediateModelBuilder {
                     .withEndpointPrefix(serviceTrait.getArnNamespace());
 
             // Derive uid from sdkId and version: "Account" + "2021-02-01" -> "account-2021-02-01"
-            String uid = sdkId.toLowerCase().replace(' ', '-') + "-" + service.getVersion();
+            String uid = sdkId.toLowerCase(Locale.US).replace(' ', '-') + "-" + service.getVersion();
             metadata.withUid(uid);
         });
 

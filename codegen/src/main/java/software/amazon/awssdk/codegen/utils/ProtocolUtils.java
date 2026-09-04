@@ -18,14 +18,11 @@ package software.amazon.awssdk.codegen.utils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.Set;
 import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.shapes.ServiceShape;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.Trait;
 
 /**
  * Resolves the protocol from the service model {@code protocol} and {@code protocols} fields.
@@ -37,7 +34,6 @@ public final class ProtocolUtils {
      */
     private static final List<String> SUPPORTED_PROTOCOLS = Arrays.asList(
         "smithy-rpc-v2-cbor", "json", "rest-json", "rest-xml", "query", "ec2");
-    private static final Logger log = LoggerFactory.getLogger(ProtocolUtils.class);
 
     private ProtocolUtils() {
     }
@@ -71,17 +67,22 @@ public final class ProtocolUtils {
     }
 
     public static String resolveProtocol(ServiceIndex serviceIndex, ServiceShape service) {
+        Set<ShapeId> protocolTraits = serviceIndex.getProtocols(service).keySet();
         List<String> protocols = new ArrayList<>();
-        for (Map.Entry<ShapeId, Trait> entry : serviceIndex.getProtocols(service).entrySet()) {
+        List<String> untranslatable = new ArrayList<>();
+
+        for (ShapeId protocolTrait : protocolTraits) {
             // TODO: Map traits for all protocols
             // "smithy-rpc-v2-cbor", "json", "rest-json", "rest-xml", "query", "ec2"
-            switch (entry.getKey().getName()) {
+            switch (protocolTrait.getName()) {
                 case "restJson1":
                     protocols.add("rest-json");
                     break;
                 default:
-                    // TODO: Should this be a debug log?
-                    throw new IllegalArgumentException("Unable to translate protocol trait");
+                    // Collected rather than thrown immediately, so that a service declaring both a supported and an
+                    // unsupported protocol still resolves.
+                    untranslatable.add(protocolTrait.toString());
+                    break;
             }
         }
 
@@ -91,6 +92,15 @@ public final class ProtocolUtils {
             }
         }
 
-        throw new IllegalArgumentException("The SDK does not support any of provided protocols: " + protocols);
+        if (protocolTraits.isEmpty()) {
+            throw new IllegalArgumentException(String.format(
+                "The service '%s' does not declare a protocol trait, which is required to generate a client.",
+                service.getId()));
+        }
+
+        throw new IllegalArgumentException(String.format(
+            "Smithy code generation cannot yet translate any of the protocols declared by service '%s': %s. "
+            + "Currently translatable protocol traits: [aws.protocols#restJson1].",
+            service.getId(), untranslatable));
     }
 }
