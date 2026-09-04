@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an intermittent NullPointerException when downloading a single-part object with a multipart-enabled async S3 client. A race between the emit loop and subscription cancellation could dereference a cleared subscriber reference; the reference is now stable and reads are null-safe."
+}
