@@ -73,7 +73,6 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
  */
 @SdkInternalApi
 public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
-    private static final String CRT_RESPONSE_FILE_ALREADY_EXISTS = "AWS_ERROR_S3_RECV_FILE_ALREADY_EXISTS";
 
     private final S3Client crtS3Client;
 
@@ -237,7 +236,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private static boolean isResponseFileAlreadyExistsError(Throwable throwable, Path responseFilePath) {
         return responseFilePath != null
                && throwable instanceof CrtRuntimeException
-               && CRT_RESPONSE_FILE_ALREADY_EXISTS.equals(((CrtRuntimeException) throwable).errorName);
+               && "AWS_ERROR_S3_RECV_FILE_ALREADY_EXISTS".equals(((CrtRuntimeException) throwable).errorName);
     }
 
     private AwsSigningConfig awsSigningConfig(Region signingRegion, SdkHttpExecutionAttributes httpExecutionAttributes) {
