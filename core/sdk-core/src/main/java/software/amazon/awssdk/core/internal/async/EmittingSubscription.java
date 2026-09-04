@@ -28,6 +28,10 @@ import software.amazon.awssdk.utils.Logger;
  * Subscription which can emit {@link Subscriber#onNext(T)} signals to a subscriber, based on the demand received with the
  * {@link Subscription#request(long)}. It tracks the outstandingDemand that has not yet been fulfilled and used a Supplier
  * passed to it to create the object it needs to emit.
+ * <p>
+ * Thread safe: {@link #request(long)} and {@link #cancel()} may run concurrently. The subscriber reference is
+ * {@code final} and never cleared, and {@link #cancel()} only sets the {@code isCancelled} flag that the emit loop
+ * checks before each signal. Per Reactive Streams rule 2.8, one {@code onNext} may still arrive after {@link #cancel()}.
  * @param <T> the type of object to emit to the subscriber.
  */
 @SdkInternalApi
@@ -35,7 +39,7 @@ import software.amazon.awssdk.utils.Logger;
 public final class EmittingSubscription<T> implements Subscription {
     private static final Logger log = Logger.loggerFor(EmittingSubscription.class);
 
-    private Subscriber<? super T> downstreamSubscriber;
+    private final Subscriber<? super T> downstreamSubscriber;
     private final AtomicBoolean emitting;
     private final AtomicLong outstandingDemand;
     private final Runnable onCancel;
@@ -74,7 +78,6 @@ public final class EmittingSubscription<T> implements Subscription {
     @Override
     public void cancel() {
         isCancelled.set(true);
-        downstreamSubscriber = null;
         onCancel.run();
     }
 
