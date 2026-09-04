@@ -65,9 +65,8 @@ public class DynamoDbJavaClientRetryOnTimeoutIntegrationTest extends AwsTestBase
     public void testRetryAttemptsOnTimeOut() throws Exception {
         AtomicInteger atomicInteger = new AtomicInteger(0);
         Boolean apiTimeOutExceptionOccurred = Boolean.FALSE;
-        setupWithRetryPolicy(createRetryPolicyWithCounter(atomicInteger, RETRY_ATTEMPTS), 2);
+        setupWithRetryPolicy(createRetryPolicyWithCounter(atomicInteger, RETRY_ATTEMPTS), 5);
         try {
-
             ddb.listTables();
         } catch (ApiCallAttemptTimeoutException e) {
             apiTimeOutExceptionOccurred = true;
