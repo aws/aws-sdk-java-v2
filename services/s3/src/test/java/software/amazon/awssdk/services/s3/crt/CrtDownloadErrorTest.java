@@ -136,15 +136,8 @@ public class CrtDownloadErrorTest {
 
     @Test
     public void getObjectToPath_success_writesFile() throws Exception {
-        String requestPath = String.format("/%s/%s", BUCKET, KEY);
         byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
-        stubFor(head(urlPathEqualTo(requestPath))
-                    .willReturn(WireMock.aResponse()
-                                        .withStatus(200)
-                                        .withHeader("ETag", "etag")
-                                        .withHeader("Content-Length", Integer.toString(content.length))));
-        stubFor(get(urlPathEqualTo(requestPath))
-                    .willReturn(WireMock.aResponse().withStatus(200).withBody(content)));
+        stubSuccessfulDownload(content);
         Path destination = tempDir.resolve("download");
 
         s3.getObject(r -> r.bucket(BUCKET).key(KEY), destination).join();
@@ -154,15 +147,8 @@ public class CrtDownloadErrorTest {
 
     @Test
     public void getObjectWithReplaceTransformer_existingFile_replacesFile() throws Exception {
-        String requestPath = String.format("/%s/%s", BUCKET, KEY);
         byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
-        stubFor(head(urlPathEqualTo(requestPath))
-                    .willReturn(WireMock.aResponse()
-                                        .withStatus(200)
-                                        .withHeader("ETag", "etag")
-                                        .withHeader("Content-Length", Integer.toString(content.length))));
-        stubFor(get(urlPathEqualTo(requestPath))
-                    .willReturn(WireMock.aResponse().withStatus(200).withBody(content)));
+        stubSuccessfulDownload(content);
         Path destination = tempDir.resolve("download");
         Files.write(destination, "original".getBytes(StandardCharsets.UTF_8));
 
@@ -175,15 +161,8 @@ public class CrtDownloadErrorTest {
 
     @Test
     public void getObjectToPath_existingFile_failsAsynchronouslyAndPreservesFile() throws Exception {
-        String requestPath = String.format("/%s/%s", BUCKET, KEY);
-        byte[] objectContent = "hello".getBytes(StandardCharsets.UTF_8);
-        stubFor(head(urlPathEqualTo(requestPath))
-                    .willReturn(WireMock.aResponse()
-                                        .withStatus(200)
-                                        .withHeader("ETag", "etag")
-                                        .withHeader("Content-Length", Integer.toString(objectContent.length))));
-        stubFor(get(urlPathEqualTo(requestPath))
-                    .willReturn(WireMock.aResponse().withStatus(200).withBody(objectContent)));
+        byte[] content = "hello".getBytes(StandardCharsets.UTF_8);
+        stubSuccessfulDownload(content);
         Path destination = tempDir.resolve("download");
         byte[] originalContent = "original".getBytes(StandardCharsets.UTF_8);
         Files.write(destination, originalContent);
@@ -220,5 +199,16 @@ public class CrtDownloadErrorTest {
         assertThatThrownBy(s3.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBytes())::join)
             .hasCauseInstanceOf(S3Exception.class)
             .hasMessageContaining("Status Code: 403");
+    }
+
+    private void stubSuccessfulDownload(byte[] content) {
+        String path = String.format("/%s/%s", BUCKET, KEY);
+        stubFor(head(urlPathEqualTo(path))
+                    .willReturn(WireMock.aResponse()
+                                        .withStatus(200)
+                                        .withHeader("ETag", "etag")
+                                        .withHeader("Content-Length", Integer.toString(content.length))));
+        stubFor(get(urlPathEqualTo(path))
+                    .willReturn(WireMock.aResponse().withStatus(200).withBody(content)));
     }
 }

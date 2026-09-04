@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "Amazon S3",
     "contributor": "",
-    "description": "Prevent the CRT-based S3 async client from replacing a pre-existing destination or leaving behind a file when `getObject(request, Path)` fails or is cancelled. Existing destinations now surface `FileAlreadyExistsException`; callers that require replacement can use `AsyncResponseTransformer.toFile` with `FileTransformerConfiguration.defaultCreateOrReplaceExisting()`."
+    "description": "Prevent the CRT-based S3 async client from replacing a pre-existing destination when using `getObject(request, Path)`. Failed or cancelled downloads now delete files they create. Existing destinations surface `FileAlreadyExistsException`; callers that require replacement can use `AsyncResponseTransformer.toFile` with `FileTransformerConfiguration.defaultCreateOrReplaceExisting()`."
 }
