@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.13__ __2026-09-04__
+## __AWS MediaTailor__
+  - ### Features
+    - Elemental MediaTailor now supports two new Monetization Functions lifecycle hooks, Post Ads Response and Pre Manifest Insertion, and a VAST Request function type that calls a VAST or VMAP ad server. This release also adds Yield Optimization with demand from Amazon Publisher Services.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for code generating Endpoint Resolvers based on BDD rather than rules. Adds single element endpoint cache to generated BDD based resolvers. BDD based Endpoint Resolvers are generated only when the BDD model is present on a service.
+
+## __Amazon Bedrock__
+  - ### Features
+    - New AWS REVIEW mode as supported data retention mode for Bedrock models
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for ValidateSecurityGroupQuotasForInterface, an API that specifically authorized AWS services use to validate security group rule quotas before creating an elastic network interface.
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas adds the AdjustableAtLevel property to QuotaContext, indicating whether a quota is adjustable at the account or resource level.
+
 # __2.54.12__ __2026-09-03__
 ## __AWS End User Messaging Social__
   - ### Features
