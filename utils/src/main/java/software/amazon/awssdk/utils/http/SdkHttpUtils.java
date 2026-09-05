@@ -436,10 +436,15 @@ public final class SdkHttpUtils {
     }
 
     private static Set<String> extractNonProxyHosts(String nonProxyHosts) {
+        return extractNonProxyHosts(nonProxyHosts, UnaryOperator.identity());
+    }
+
+    private static Set<String> extractNonProxyHosts(String nonProxyHosts, UnaryOperator<String> tokenMapper) {
         if (nonProxyHosts != null && !isEmpty(nonProxyHosts)) {
             return Arrays.stream(nonProxyHosts.split("\\|"))
                          .map(String::trim)
                          .map(String::toLowerCase)
+                         .map(tokenMapper)
                          .map(s -> StringUtils.replace(s, "*", ".*?"))
                          .collect(Collectors.toSet());
         }
@@ -450,6 +455,6 @@ public final class SdkHttpUtils {
         String hosts = ProxyEnvironmentSetting.NO_PROXY.getStringValue()
                                                        .map(noProxyHost -> noProxyHost.replace(",", "|"))
                                                        .orElse(null);
-        return extractNonProxyHosts(hosts);
+        return extractNonProxyHosts(hosts, host -> host.startsWith(".") ? "*" + host : host);
     }
 }
