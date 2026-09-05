@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fixed a NullPointerException in EmittingSubscription when a subscription is cancelled while the emitting thread is signalling the downstream subscriber. This surfaced as an intermittent failure of parallel multipart downloads of single-part objects, for example S3TransferManager.downloadFile against an S3AsyncClient built with multipartEnabled(true).",
+    "contributor": "cthiebault"
+}

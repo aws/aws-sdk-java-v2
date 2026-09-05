@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Logger;
 public final class EmittingSubscription<T> implements Subscription {
     private static final Logger log = Logger.loggerFor(EmittingSubscription.class);
 
-    private Subscriber<? super T> downstreamSubscriber;
+    private volatile Subscriber<? super T> downstreamSubscriber;
     private final AtomicBoolean emitting;
     private final AtomicLong outstandingDemand;
     private final Runnable onCancel;
@@ -58,7 +58,10 @@ public final class EmittingSubscription<T> implements Subscription {
     @Override
     public void request(long n) {
         if (n <= 0) {
-            downstreamSubscriber.onError(new IllegalArgumentException("Amount requested must be positive"));
+            Subscriber<? super T> subscriber = downstreamSubscriber;
+            if (subscriber != null) {
+                subscriber.onError(new IllegalArgumentException("Amount requested must be positive"));
+            }
             return;
         }
         long newDemand = outstandingDemand.updateAndGet(current -> {
@@ -97,7 +100,10 @@ public final class EmittingSubscription<T> implements Subscription {
         long demand = outstandingDemand.get();
 
         while (demand > 0) {
-            if (isCancelled.get()) {
+            // Read the subscriber once per iteration: cancel() nulls the field from another thread. Signalling a
+            // subscriber that cancelled mid-emit is permitted by the spec (rule 2.8); throwing an NPE is not.
+            Subscriber<? super T> subscriber = downstreamSubscriber;
+            if (isCancelled.get() || subscriber == null) {
                 return true;
             }
             if (outstandingDemand.get() > 0) {
@@ -106,10 +112,10 @@ public final class EmittingSubscription<T> implements Subscription {
                 try {
                     value = supplier.get();
                 } catch (Exception e) {
-                    downstreamSubscriber.onError(e);
+                    subscriber.onError(e);
                     return true;
                 }
-                downstreamSubscriber.onNext(value);
+                subscriber.onNext(value);
             }
         }
         return false;
