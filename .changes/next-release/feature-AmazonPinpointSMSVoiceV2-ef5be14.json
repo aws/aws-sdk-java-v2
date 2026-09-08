@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Pinpoint SMS Voice V2",
+    "contributor": "",
+    "description": "This feature will allow customers to specify an area-code when requesting a 10DLC number. Why it matters- Customers can now select a number that matches where their business is located."
+}
