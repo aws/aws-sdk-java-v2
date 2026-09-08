@@ -1,0 +1,6 @@
+{
+    "type": "deprecation",
+    "category": "Apache HTTP Client",
+    "contributor": "",
+    "description": "`apache-client` is now deprecated in favor of `apache5-client`. [Apache HttpClient 4.x](https://hc.apache.org/status.html) is in maintenance mode, receiving fixes only for major defects and security issues."
+}
