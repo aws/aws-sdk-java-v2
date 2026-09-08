@@ -6,7 +6,7 @@
 [![All Contributors](https://img.shields.io/badge/all_contributors-129-orange.svg?style=flat-square)](#contributors-)
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 
-The **AWS SDK for Java 2.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
+The **AWS SDK for Java 3.0** is a rewrite of 1.0 with some great new features. As with version 1.0,
 it enables you to easily work with [Amazon Web Services][aws] but also includes features like
 non-blocking IO and pluggable HTTP implementation to further customize your applications. You can
 get started in minutes using ***Maven*** or any build system that supports MavenCentral as an
