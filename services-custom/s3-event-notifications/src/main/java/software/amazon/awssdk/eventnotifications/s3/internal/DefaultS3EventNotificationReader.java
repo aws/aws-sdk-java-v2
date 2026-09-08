@@ -25,9 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.eventnotifications.s3.model.EventHoldDuration;
 import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.ObjectRetentionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.RequestParameters;
 import software.amazon.awssdk.eventnotifications.s3.model.ResponseElements;
@@ -131,7 +133,36 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         ReplicationEventData replicationEventData = readReplicationEventData(recordNode.get("replicationEventData"));
         eventNotificationRecord.setReplicationEventData(replicationEventData);
 
+        ObjectRetentionEventData objectRetentionEventData =
+            readObjectRetentionEventData(recordNode.get("objectRetentionEventData"));
+        eventNotificationRecord.setObjectRetentionEventData(objectRetentionEventData);
+
         return eventNotificationRecord;
+    }
+
+    private ObjectRetentionEventData readObjectRetentionEventData(JsonNode jsonNode) {
+        Map<String, JsonNode> retentionNode = expectObjectOrNull(jsonNode, "objectRetentionEventData");
+        if (retentionNode == null) {
+            return null;
+        }
+        String mode = expectStringOrNull(retentionNode, "mode");
+        String retainUntilDate = expectStringOrNull(retentionNode, "retainUntilDate");
+        String eventHold = expectStringOrNull(retentionNode, "eventHold");
+        EventHoldDuration eventHoldDuration = readEventHoldDuration(retentionNode.get("eventHoldDuration"));
+        return new ObjectRetentionEventData(mode, retainUntilDate, eventHold, eventHoldDuration);
+    }
+
+    private EventHoldDuration readEventHoldDuration(JsonNode jsonNode) {
+        Map<String, JsonNode> durationNode = expectObjectOrNull(jsonNode, "eventHoldDuration");
+        if (durationNode == null || durationNode.isEmpty()) {
+            return null;
+        }
+        // The duration is a single {unit: value} pair (e.g. {"days": 90} or {"years": 1}). Read whichever
+        // unit the service emits, so a new unit does not require an SDK change.
+        Map.Entry<String, JsonNode> entry = durationNode.entrySet().iterator().next();
+        String unit = entry.getKey();
+        Long value = expectLong(entry.getValue(), unit);
+        return new EventHoldDuration(unit, value);
     }
 
     private ReplicationEventData readReplicationEventData(JsonNode jsonNode) {
