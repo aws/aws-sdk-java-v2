@@ -150,7 +150,7 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                 initialConfig.fileWriteOption() != FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION) {
                 // On the first request we need to maintain the same config so
                 // that the file is actually created on disk if it doesn't exist (for CREATE_NEW or CREATE_OR_REPLACE_EXISTING)
-                return AsyncResponseTransformer.toFile(path, initialConfig);
+                return FileAsyncResponseTransformer.forSplitPart(path, initialConfig);
             }
             switch (initialConfig.fileWriteOption()) {
                 case CREATE_NEW:
@@ -158,14 +158,14 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
                     FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
                         .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
                         .position(startAt));
-                    return AsyncResponseTransformer.toFile(path, newConfig);
+                    return FileAsyncResponseTransformer.forSplitPart(path, newConfig);
                 }
                 case WRITE_TO_POSITION: {
                     long initialOffset = initialConfig.position();
                     FileTransformerConfiguration newConfig = initialConfig.copy(c -> c
                         .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
                         .position(initialOffset + startAt));
-                    return AsyncResponseTransformer.toFile(path, newConfig);
+                    return FileAsyncResponseTransformer.forSplitPart(path, newConfig);
                 }
                 // As per design specification, APPEND mode is not supported for non-serial operations
                 case CREATE_OR_APPEND_TO_EXISTING:

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_NEW;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -45,6 +46,9 @@ import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.internal.util.FileDestinationPreflight;
+import software.amazon.awssdk.core.internal.util.NoopSubscription;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -62,19 +66,37 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
     private volatile ResponseT response;
     private final long position;
     private final FileTransformerConfiguration configuration;
+    private final boolean destinationPreflightEnabled;
+    /**
+     * Once split, the destination may exist because the parts put it there, so {@link #prepare()} stops validating it. A caller
+     * re-using this transformer for a follow-up request after a split relies on that.
+     */
+    private volatile boolean splitInvoked;
 
     public FileAsyncResponseTransformer(Path path) {
-        this(path, FileTransformerConfiguration.defaultCreateNew(), 0L);
+        this(path, FileTransformerConfiguration.defaultCreateNew(), 0L, true);
     }
 
     public FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileConfiguration) {
-        this(path, fileConfiguration, determineFilePositionToWrite(path, fileConfiguration));
+        this(path, fileConfiguration, determineFilePositionToWrite(path, fileConfiguration), true);
     }
 
-    private FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileTransformerConfiguration, long position) {
+    private FileAsyncResponseTransformer(Path path, FileTransformerConfiguration fileTransformerConfiguration, long position,
+                                         boolean destinationPreflightEnabled) {
         this.path = path;
         this.configuration = fileTransformerConfiguration;
         this.position = position;
+        this.destinationPreflightEnabled = destinationPreflightEnabled;
+    }
+
+    /**
+     * Creates a transformer for one part of a split download. It never validates the destination: the parts legitimately create
+     * and share the file, and rejecting one after its response arrived would leave that part's future uncompleted.
+     */
+    static <ResponseT> FileAsyncResponseTransformer<ResponseT> forSplitPart(Path path,
+                                                                           FileTransformerConfiguration configuration) {
+        return new FileAsyncResponseTransformer<>(path, configuration,
+                                                  determineFilePositionToWrite(path, configuration), false);
     }
 
     FileTransformerConfiguration config() {
@@ -137,6 +159,35 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
     }
 
+    /**
+     * @return the exception {@link #createChannel} would eventually throw for this destination, or null if it is usable.
+     */
+    private SdkClientException destinationRejection() {
+        if (!destinationPreflightEnabled || configuration.fileWriteOption() != CREATE_NEW) {
+            return null;
+        }
+        try {
+            FileDestinationPreflight.validateCreateNew(path);
+            return null;
+        } catch (IOException | SecurityException e) {
+            // SecurityException included so split() has one exception type to convert and cannot throw at an async caller.
+            return SdkClientException.create("Cannot write the response to " + path, e);
+        }
+    }
+
+    private SplitResult<ResponseT, ResponseT> failedSplitResult(SdkClientException rejection) {
+        // Both channels carry the rejection, because a caller may observe only one of them.
+        SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> publisher = subscriber -> {
+            subscriber.onSubscribe(new NoopSubscription(subscriber));
+            subscriber.onError(rejection);
+        };
+        return SplitResult.<ResponseT, ResponseT>builder()
+                          .publisher(publisher)
+                          .resultFuture(CompletableFutureUtils.failedFuture(rejection))
+                          .parallelSplitSupported(true)
+                          .build();
+    }
+
     @Override
     public CompletableFuture<ResponseT> prepare() {
         fileChannel = null;
@@ -148,6 +199,13 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                                () -> fileChannel.close());
             }
         });
+        // After cf is assigned, so that a rejection here still has a future for exceptionOccurred to complete.
+        if (!splitInvoked) {
+            SdkClientException rejection = destinationRejection();
+            if (rejection != null) {
+                throw rejection;
+            }
+        }
         return cf.thenApply(ignored -> response);
     }
 
@@ -313,6 +371,13 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public SplitResult<ResponseT, ResponseT> split(SplittingTransformerConfiguration splitConfig) {
+        // Unconditionally: the parallel path never prepares this transformer, and a caller may split it more than once, for
+        // instance to probe parallelSplitSupported() before splitting for real.
+        SdkClientException rejection = destinationRejection();
+        if (rejection != null) {
+            return failedSplitResult(rejection);
+        }
+        splitInvoked = true;
         if (configuration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
             return AsyncResponseTransformer.super.split(splitConfig);
         }

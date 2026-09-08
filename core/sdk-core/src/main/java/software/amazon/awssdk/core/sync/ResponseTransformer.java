@@ -23,7 +23,6 @@ import java.nio.ByteBuffer;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -36,10 +35,10 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.sync.FileResponseTransformer;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
-import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
@@ -119,44 +118,7 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return ResponseTransformer instance.
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
-        return new ResponseTransformer<ResponseT, ResponseT>() {
-            @Override
-            public ResponseT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
-                try {
-                    InterruptMonitor.checkInterrupted();
-                    Files.copy(inputStream, path);
-                    return response;
-                } catch (IOException copyException) {
-                    String copyError = copyErrorMessage(path, copyException);
-
-                    if (shouldThrowIOException(copyException)) {
-                        throw new IOException(copyError, copyException);
-                    }
-
-                    // Try to clean up the file so that we can retry the request. If we can't delete it, don't retry the request.
-                    try {
-                        Files.deleteIfExists(path);
-                    } catch (IOException deletionException) {
-                        Logger.loggerFor(ResponseTransformer.class)
-                              .error(() -> "Failed to delete destination file '" + path +
-                                           "' after reading the service response " +
-                                           "failed.", deletionException);
-
-                        throw new IOException(copyError + ". Additionally, the file could not be cleaned up (" +
-                                              deletionException.getMessage() + "), so the request will not be retried.",
-                                              copyException);
-                    }
-
-                    // Retry the request
-                    throw RetryableException.builder().message(copyError).cause(copyException).build();
-                }
-            }
-
-            @Override
-            public String name() {
-                return TransformerType.FILE.getName();
-            }
-        };
+        return new FileResponseTransformer<>(path);
     }
 
     /**

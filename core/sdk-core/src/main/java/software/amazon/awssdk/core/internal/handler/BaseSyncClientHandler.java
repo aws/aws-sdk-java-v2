@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.CombinedResponseHandler;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.sync.FileResponseTransformer;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -60,6 +61,10 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
 
         return measureApiCall(executionParams, () -> {
+            // Before the lifecycle starts: once beforeExecution has run, a failure owes the interceptors an
+            // onExecutionFailure callback.
+            validateResponseTransformer(responseTransformer);
+
             // Running beforeExecution interceptors and modifyRequest interceptors.
             ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 
@@ -81,6 +86,21 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
                 createCombinedResponseHandler(executionParams, executionContext);
             return doExecute(executionParams, executionContext, combinedResponseHandler);
         });
+    }
+
+    /**
+     * Wraps the rejection the same way {@code transformResponse} wraps a failure from
+     * {@link ResponseTransformer#transform}, so a caller sees the same exception wherever the rejection happens.
+     */
+    private void validateResponseTransformer(ResponseTransformer<?, ?> responseTransformer) {
+        if (!(responseTransformer instanceof FileResponseTransformer)) {
+            return;
+        }
+        try {
+            ((FileResponseTransformer<?>) responseTransformer).validateBeforeRequest();
+        } catch (Exception e) {
+            throw NonRetryableException.builder().cause(e).build();
+        }
     }
 
     @Override

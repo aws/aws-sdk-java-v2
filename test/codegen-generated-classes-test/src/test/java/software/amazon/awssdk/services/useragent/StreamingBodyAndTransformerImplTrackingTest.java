@@ -21,6 +21,8 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +96,7 @@ public class StreamingBodyAndTransformerImplTrackingTest {
 
     @Test
     public void streamingOutputOperation_syncClient_file_recordsMetadata() throws IOException {
-        callStreamingOutputOperation(syncClient(), ResponseTransformer.toFile(new RandomTempFile(0)));
+        callStreamingOutputOperation(syncClient(), ResponseTransformer.toFile(nonExistentFile()));
         assertThat(interceptor.userAgent()).contains("md/rt#f");
     }
 
@@ -117,7 +119,7 @@ public class StreamingBodyAndTransformerImplTrackingTest {
 
     @Test
     public void streamingOutputOperation_asyncClient_file_recordsMetadata() throws IOException {
-        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toFile(new RandomTempFile(0)));
+        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toFile(nonExistentFile()));
         assertThat(interceptor.userAgent()).contains("md/rt#f");
     }
 
@@ -128,6 +130,14 @@ public class StreamingBodyAndTransformerImplTrackingTest {
     }
 
 
+
+    /**
+     * A destination that does not exist yet: {@code toFile} rejects an existing one before the request is built, which would
+     * stop these tests before the user agent is recorded.
+     */
+    private static Path nonExistentFile() throws IOException {
+        return Files.createTempDirectory("transformer-tracking").resolve("destination.bin");
+    }
 
     private ProtocolRestJsonWithConfigClient syncClient() {
         return ProtocolRestJsonWithConfigClient

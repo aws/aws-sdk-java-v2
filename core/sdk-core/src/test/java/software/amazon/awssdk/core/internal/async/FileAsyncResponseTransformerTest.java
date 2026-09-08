@@ -17,6 +17,8 @@ package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.DELETE;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.LEAVE;
 
@@ -41,6 +43,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,9 +54,12 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
-import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
+import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 
 /**
@@ -125,13 +131,9 @@ class FileAsyncResponseTransformerTest {
         Files.write(testPath, existingContent.getBytes(StandardCharsets.UTF_8));
         assertThat(testPath).exists();
 
-        String content = RandomStringUtils.randomAlphanumeric(30000);
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
 
-        CompletableFuture<String> future = transformer.prepare();
-        transformer.onResponse("foobar");
-        transformer.onStream(testPublisher(content));
-        assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        assertThatThrownBy(transformer::prepare).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
         assertThat(testPath).hasContent(existingContent);
     }
 
@@ -193,11 +195,13 @@ class FileAsyncResponseTransformerTest {
     void exceptionOccurred_beforeFileOpened_shouldPreserveExistingFile(FileTransformerConfiguration configuration)
         throws Exception {
         Path testPath = testFs.getPath("test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath, configuration);
+        CompletableFuture<String> future = transformer.prepare();
+
+        // Written after preparing, so the file is present when the failure arrives but was never opened by the transformer.
         String existingContent = RandomStringUtils.randomAlphanumeric(1000);
         Files.write(testPath, existingContent.getBytes(StandardCharsets.UTF_8));
 
-        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath, configuration);
-        CompletableFuture<String> future = transformer.prepare();
         RuntimeException exception = new RuntimeException("oops");
         transformer.exceptionOccurred(exception);
 
@@ -217,13 +221,11 @@ class FileAsyncResponseTransformerTest {
 
         String existingContent = RandomStringUtils.randomAlphanumeric(1000);
         Files.write(testPath, existingContent.getBytes(StandardCharsets.UTF_8));
-        CompletableFuture<String> future = transformer.prepare();
-        RuntimeException exception = new RuntimeException("oops");
-        transformer.exceptionOccurred(exception);
 
-        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
-                          .withThrowableOfType(ExecutionException.class)
-                          .withCause(exception);
+        // A retry revalidates, and the stale channel of the failed first attempt must still not delete the file.
+        assertThatThrownBy(transformer::prepare).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        transformer.exceptionOccurred(new RuntimeException("oops"));
+
         assertThat(testPath).hasContent(existingContent);
     }
 
@@ -270,6 +272,89 @@ class FileAsyncResponseTransformerTest {
         } else {
             assertThat(testPath).doesNotExist();
         }
+    }
+
+    @Test
+    void split_existingDestination_reportsRejectionThroughFutureAndPublisher() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        Files.write(testPath, "existing".getBytes(StandardCharsets.UTF_8));
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+
+        AsyncResponseTransformer.SplitResult<String, String> split =
+            assertDoesNotThrow(() -> transformer.split(SplittingTransformerConfiguration.builder()
+                                                                                        .bufferSizeInBytes(1024L)
+                                                                                        .build()));
+
+        assertThat(split.parallelSplitSupported()).isTrue();
+        Throwable fromFuture = catchThrowable(() -> split.resultFuture().join());
+        assertThat(fromFuture).hasCauseInstanceOf(SdkClientException.class)
+                              .hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+
+        List<AsyncResponseTransformer<String, String>> emitted = new ArrayList<>();
+        AtomicReference<Throwable> fromPublisher = new AtomicReference<>();
+        split.publisher().subscribe(new Subscriber<AsyncResponseTransformer<String, String>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<String, String> t) {
+                emitted.add(t);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                fromPublisher.set(t);
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+        assertThat(emitted).isEmpty();
+        // The same instance, so a caller cannot see two different explanations for one rejection.
+        assertThat(fromPublisher.get()).isSameAs(fromFuture.getCause());
+    }
+
+    @Test
+    void split_rejected_doesNotSuppressLaterPrepareValidation() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        Files.write(testPath, "existing".getBytes(StandardCharsets.UTF_8));
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+
+        transformer.split(SplittingTransformerConfiguration.builder().bufferSizeInBytes(1024L).build());
+
+        assertThatThrownBy(transformer::prepare).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+    }
+
+    @Test
+    void split_repeated_validatesEveryTime() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+        SplittingTransformerConfiguration splitConfig =
+            SplittingTransformerConfiguration.builder().bufferSizeInBytes(1024L).build();
+
+        // A capability probe against an absent destination.
+        assertThat(transformer.split(splitConfig).resultFuture()).isNotCompleted();
+
+        Files.write(testPath, "appeared after the probe".getBytes(StandardCharsets.UTF_8));
+
+        assertThat(catchThrowable(() -> transformer.split(splitConfig).resultFuture().join()))
+            .hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+    }
+
+    @Test
+    void split_succeeded_suppressesLaterPrepareValidation() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+
+        transformer.split(SplittingTransformerConfiguration.builder().bufferSizeInBytes(1024L).build());
+        Files.write(testPath, "written by a part".getBytes(StandardCharsets.UTF_8));
+
+        // A destination the parts created must not make a follow-up request on the same transformer fail locally.
+        assertDoesNotThrow(transformer::prepare);
     }
 
     private static List<FileTransformerConfiguration> deleteConfigurations() {

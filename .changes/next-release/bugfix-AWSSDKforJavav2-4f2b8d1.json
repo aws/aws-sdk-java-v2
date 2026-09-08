@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Check the destination file of a streaming-output-to-file download before sending the request when the file already exists, instead of sending the request and rejecting it once the response arrives. This applies to the standard generated synchronous and asynchronous clients, covering `getObject(request, Path)` and equivalent overloads as well as `ResponseTransformer.toFile` and `AsyncResponseTransformer.toFile`, and includes S3 multipart and presigned URL downloads and Transfer Manager downloads that use those transformers. The CRT-based S3 async client writes its destination inside CRT and is not affected. Because the call now fails before the execution lifecycle starts, no execution interceptor callbacks run for it. A missing destination under `FileWriteOption.WRITE_TO_POSITION` is still only detected once the response arrives."
+}

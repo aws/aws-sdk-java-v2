@@ -24,6 +24,8 @@ import static org.mockito.Mockito.when;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -34,6 +36,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -48,6 +51,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -227,6 +231,56 @@ class FileAsyncResponseTransformerPublisherTest {
             byte[] actualData = Arrays.copyOfRange(fileContent, startPos + offset, startPos + offset + 10);
             assertThat(actualData).isEqualTo(expectedData);
         }
+    }
+
+    /**
+     * A destination appearing after the parent validated it is caught by the part's own exclusive open. The part's future must
+     * complete rather than hang, which it only does because the part skips the destination check.
+     */
+    @Test
+    void destinationAppearsAfterParentValidated_partFutureCompletesExceptionally() throws Exception {
+        AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer = AsyncResponseTransformer.toFile(testFile);
+
+        // The parent validates while the destination is still absent.
+        SdkPublisher<AsyncResponseTransformer<SdkResponse, SdkResponse>> publisher =
+            initialTransformer.split(SplittingTransformerConfiguration.builder().bufferSizeInBytes(1024L).build())
+                              .publisher();
+
+        Files.write(testFile, "appeared after validation".getBytes(StandardCharsets.UTF_8));
+
+        AtomicReference<CompletableFuture<SdkResponse>> partFuture = new AtomicReference<>();
+        CountDownLatch latch = new CountDownLatch(1);
+        publisher.subscribe(new Subscriber<AsyncResponseTransformer<SdkResponse, SdkResponse>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(1);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> transformer) {
+                partFuture.set(transformer.prepare());
+                transformer.onResponse(createMockResponseWithRange("bytes 0-9/10"));
+                transformer.onStream(createMockPublisher());
+                latch.countDown();
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                latch.countDown();
+            }
+
+            @Override
+            public void onComplete() {
+                latch.countDown();
+            }
+        });
+
+        assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(partFuture.get()).isNotNull();
+        assertThat(partFuture.get()).failsWithin(5, TimeUnit.SECONDS)
+                                    .withThrowableOfType(ExecutionException.class)
+                                    .withCauseInstanceOf(FileAlreadyExistsException.class);
+        assertThat(testFile).hasContent("appeared after validation");
     }
 
     private SdkResponse createMockResponseWithRange(String contentRange) {
