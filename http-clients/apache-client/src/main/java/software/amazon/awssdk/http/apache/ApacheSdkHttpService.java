@@ -21,8 +21,13 @@ import software.amazon.awssdk.http.SdkHttpService;
 
 /**
  * Service binding for the Apache implementation.
+ *
+ * @deprecated Apache 4.x is in maintenance mode. Users are encouraged to switch to the
+ * <a href="https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/http/apache5/Apache5HttpClient.html">Apache 5 HTTP Client</a>
+ * which is feature compatible with this client.
  */
 @SdkPublicApi
+@Deprecated
 public class ApacheSdkHttpService implements SdkHttpService {
     @Override
     public SdkHttpClient.Builder createHttpClientBuilder() {
