@@ -1,4 +1,175 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.14__ __2026-09-08__
+## __AWS CloudTrail__
+  - ### Features
+    - Adds support for the RecursiveLogging trail setting, which suppresses recursive events generated when CloudTrail delivers logs to a trail's destinations.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for Amazon S3 Object Lock variable retention.  Existing S3 APIs that support S3 Object Lock parameters now support two new parameters EventHold and EventHoldDuration at the object level, and DefaultEventHoldDuration at the bucket level.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Prevent `AsyncResponseTransformer.toFile` from deleting a pre-existing destination when a request fails before the SDK opens the file. Calls using `CREATE_NEW` now preserve the existing file and surface `FileAlreadyExistsException` instead of allowing a retry to overwrite it.
+
+## __Amazon Appflow__
+  - ### Features
+    - Amazon AppFlow now supports key pair (RSA private key) authentication for the Snowflake connector. You can provide a privateKey in SnowflakeConnectorProfileCredentials, and password is no longer required. This is a non-breaking, additive change available via the AWS SDK and CLI.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Releasing workload types feature. A proper launch announcement or details will follow up.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds the InterfaceTypes field to NetworkCardInfo in the DescribeInstanceTypes response. This field identifies the network interface types supported by each network card.
+
+## __Amazon Omics__
+  - ### Features
+    - Added support for session policies in AWS HealthOmics Workflows, allowing customers to scope down IAM permissions for individual workflow runs without modifying the service role.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This feature will allow customers to specify an area-code when requesting a 10DLC number. Why it matters- Customers can now select a number that matches where their business is located.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for InstancePreferences list for multiple instance type input support on SageMaker Training and Processing
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for Amazon S3 Object Lock variable retention.  Existing S3 APIs that support S3 Object Lock parameters now support two new parameters EventHold and EventHoldDuration at the object level, and DefaultEventHoldDuration at the bucket level.
+
+## __Application Migration Service__
+  - ### Features
+    - This release adds support for configuring the EBS volume initialization rate and delete on termination behavior in launch configuration template
+
+## __S3 Event Notification__
+  - ### Features
+    - Add support for ObjectRetention to S3EventNotifications.
+
+## __URL Connection HTTP Client__
+  - ### Bugfixes
+    - Allow retries when the URL Connection HTTP Client encounters an IOException or NullPointerException while accessing request or response body streams.
+
+# __2.54.13__ __2026-09-04__
+## __AWS MediaTailor__
+  - ### Features
+    - Elemental MediaTailor now supports two new Monetization Functions lifecycle hooks, Post Ads Response and Pre Manifest Insertion, and a VAST Request function type that calls a VAST or VMAP ad server. This release also adds Yield Optimization with demand from Amazon Publisher Services.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Add support for code generating Endpoint Resolvers based on BDD rather than rules. Adds single element endpoint cache to generated BDD based resolvers. BDD based Endpoint Resolvers are generated only when the BDD model is present on a service.
+
+## __Amazon Bedrock__
+  - ### Features
+    - New AWS REVIEW mode as supported data retention mode for Bedrock models
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds support for ValidateSecurityGroupQuotasForInterface, an API that specifically authorized AWS services use to validate security group rule quotas before creating an elastic network interface.
+
+## __Service Quotas__
+  - ### Features
+    - Service Quotas adds the AdjustableAtLevel property to QuotaContext, indicating whether a quota is adjustable at the account or resource level.
+
+# __2.54.12__ __2026-09-03__
+## __AWS End User Messaging Social__
+  - ### Features
+    - Adding support for WhatsApp Flows with endpoints.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix `ApiCallDuration` so that it measures the whole API call. It previously started after marshalling had already completed, and on asynchronous clients it also started after endpoint resolution, auth scheme resolution, request compression and checksum computation, and so understated the reported duration. The metric is now measured identically for synchronous and asynchronous clients and matches the documented formula. Reported `ApiCallDuration` values will increase but do not reflect changes in actual round-trip latency.
+
+## __AWS Step Functions__
+  - ### Features
+    - Updates Step Functions API documentation around CloudTrail, Execution name reuse and sort order of ListExecutions API
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family SFTP Connectors now support specifying an ordered list of AWS Secrets Manager version stages for secret retrieval. This enables seamless credential rotation workflows where external partners may take time to update their systems with new credentials.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds log group name prefix trace source selection, custom or source log group result destinations, and metrics namespace customization
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Identity adds Consent Portal APIs to manage portals that let end users grant OAuth authorization for agents to access resources. AgentCore Evaluation adds trace source selection by log group prefix, custom or source log group result destinations, and metrics namespace customization.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release enables TagOnCreate for Rule resource on CreateRule API. It also introduces a new field called PreEvaluationFilters to Rule resource, thereby impacting all Create, Update, Describe and Search APIs for Rules
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Adds a critical parameter to the Amazon ECS managed daemon APIs that controls whether a daemon task failure drains the container instance. Non-critical daemon failures no longer drain the instance or block instance registration.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Deprecate EncryptionConfig resources field. Amazon EKS encrypts all Kubernetes API data with envelope encryption by default for clusters running Kubernetes version 1.28 or higher, so this field no longer affects which resources are encrypted.
+
+## __Amazon Elastic VMware Service__
+  - ### Features
+    - Amazon EVS now allows users to set, update, and retrieve values for parameters that apply across all EVS Environments in their account at a regional level, such as the VCF License portability core count.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Adding support for Sequence Activities in GuardDuty Findings
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now supports specifying up to 29 PII entity types in the ContentRedaction configuration of a StartTranscriptionJob request, allowing all supported entity types to be redacted in a single batch transcription job.
+
+## __Elastic Disaster Recovery Service__
+  - ### Features
+    - AWS Elastic Disaster Recovery now includes source server architecture in SourceProperties to identify x86 and ARM64 systems.
+
+## __Elastic Load Balancing__
+  - ### Features
+    - This release adds support for sending TCP resets for Gateway Load Balancer when a flow's idle timeout expires, or when a target becomes unhealthy or is deregistered. This adds updates the CLI documentation.
+
+# __2.54.11__ __2026-09-02__
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive now supports AB forensic video watermarking
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds a force parameter to DeleteApplication and a ConflictException to UpdateApplication, letting customers delete applications with existing associations in one call and get a clear error when an update conflicts with the application's current state.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Batch evaluation now supports up to 10 CloudWatch log groups per CloudWatchLogsSource
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support to retain interruptible Capacity Reservations in an active state when all capacity is reclaimed.
+
+## __Amazon SageMaker Feature Store Runtime__
+  - ### Features
+    - Amazon SageMaker Feature Store now supports the UpdateRecord API, enabling partial updates to individual feature values in an existing Online Store record without rewriting the entire record. This reduces write payloads and latency for high-frequency feature-level writes .
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Feature Store now supports the Standard V2 online store type, which enables feature-level writes to feature groups. You can select Standard V2 when creating a feature group, and update the storage type of an existing feature group via UpdateFeatureGroup.
+
+## __AmazonMWAA__
+  - ### Features
+    - Enabled customers to clear optional S3 paths (plugins, requirements, and startup script) for their Amazon MWAA environments by accepting empty strings for the associated fields in UpdateEnvironment requests.
+
+## __Application Migration Service__
+  - ### Features
+    - AWS Transform for migrations adds a second network migration option - apply your source security posture to existing VPCs. Upload a source network file with firewall rules, tag the in-scope VPCs, and AWS Transform matches source subnets to them by CIDR and generates the security groups.
+
+## __odb__
+  - ### Features
+    - Adds the ListFlexComponents API for listing the flex components available for a given DB system shape.
+
 # __2.54.10__ __2026-09-01__
 ## __AWS Elemental MediaConvert__
   - ### Features

@@ -36,7 +36,8 @@ import software.amazon.awssdk.utils.Validate;
                    --service-module-name service-module-name
                    --service-json /path/to/service-2.json
                    [--paginators-json /path/to/paginators-1.json
-                    --waiters-json /path/to/waiters-2.json]"
+                    --waiters-json /path/to/waiters-2.json
+                    --endpoint-bdd-json /path/to/endpoint-bdd-1.json]"
  * </pre>
  */
 public class UpdateServiceMain extends Cli {
@@ -50,7 +51,10 @@ public class UpdateServiceMain extends Cli {
               optionalOption("paginators-json", "The paginators-1.json file for the service."),
               optionalOption("waiters-json", "The waiters-2.json file for the service."),
               optionalOption("endpoint-rule-set-json", "The endpoint-rule-set.json file for the service."),
-              optionalOption("endpoint-tests-json", "The endpoint-tests.json file for the service."));
+              optionalOption("endpoint-tests-json", "The endpoint-tests.json file for the service."),
+              optionalOption("endpoint-bdd-json", "The endpoint-bdd-1.json file for the service. Only copied for a "
+                                                  + "service that already has one, so that BDD endpoint resolution "
+                                                  + "stays opt-in per service."));
     }
 
     public static void main(String[] args) {
@@ -71,6 +75,7 @@ public class UpdateServiceMain extends Cli {
         private final Path waitersJson;
         private final Path endpointRuleSetJson;
         private final Path endpointTestsJson;
+        private final Path endpointBddJson;
 
         private ServiceUpdater(CommandLine commandLine) {
             this.mavenProjectRoot = Paths.get(commandLine.getOptionValue("maven-project-root").trim());
@@ -81,6 +86,7 @@ public class UpdateServiceMain extends Cli {
             this.waitersJson = optionalPath(commandLine.getOptionValue("waiters-json"));
             this.endpointRuleSetJson = optionalPath(commandLine.getOptionValue("endpoint-rule-set-json"));
             this.endpointTestsJson = optionalPath(commandLine.getOptionValue("endpoint-tests-json"));
+            this.endpointBddJson = optionalPath(commandLine.getOptionValue("endpoint-bdd-json"));
         }
 
         private Path optionalPath(String path) {
@@ -101,6 +107,7 @@ public class UpdateServiceMain extends Cli {
             copyFile(waitersJson, codegenFileLocation.resolve("waiters-2.json"));
             copyFile(endpointRuleSetJson, codegenFileLocation.resolve("endpoint-rule-set.json"));
             copyFile(endpointTestsJson, codegenFileLocation.resolve("endpoint-tests.json"));
+            copyFileIfAlreadyPresent(endpointBddJson, codegenFileLocation.resolve("endpoint-bdd-1.json"));
         }
 
         private Path codegenFileLocation(String serviceModuleName, String serviceId) {
@@ -131,6 +138,23 @@ public class UpdateServiceMain extends Cli {
                 log.info(() -> "Copying " + source + " to " + destination);
                 FileUtils.copyFile(source.toFile(), destination.toFile());
             }
+        }
+
+        /**
+         * Updates {@code destination} from {@code source} only when {@code destination} already exists, leaving a
+         * service that does not have the file without one.
+         */
+        private void copyFileIfAlreadyPresent(Path source, Path destination) throws IOException {
+            if (source == null || !Files.isRegularFile(source)) {
+                return;
+            }
+            if (!Files.isRegularFile(destination)) {
+                log.info(() -> "Skipping " + source + " because " + destination + " does not exist. Add the file to opt "
+                               + "this service in.");
+                return;
+            }
+            log.info(() -> "Copying " + source + " to " + destination);
+            FileUtils.copyFile(source.toFile(), destination.toFile());
         }
     }
 }

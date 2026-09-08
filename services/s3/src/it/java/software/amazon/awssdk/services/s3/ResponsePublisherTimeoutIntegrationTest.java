@@ -43,7 +43,9 @@ public class ResponsePublisherTimeoutIntegrationTest extends S3IntegrationTestBa
 
     private static final String BUCKET = temporaryBucketName(GetObjectIntegrationTest.class);
     private static final String KEY = "TestKey";
-    private static final String CONTENT = "Hello";
+    // Large enough to trigger StreamedHttpResponse instead of FullHttpResponse in Netty.
+    // FullHttpResponse releases the connection immediately, defeating pool-exhaustion tests.
+    private static final int CONTENT_LENGTH = 2 * 1024 * 1024;
     private static final GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                                              .bucket(BUCKET)
                                                                              .key(KEY)
@@ -61,7 +63,7 @@ public class ResponsePublisherTimeoutIntegrationTest extends S3IntegrationTestBa
         s3.putObject(PutObjectRequest.builder()
                                      .bucket(BUCKET)
                                      .key(KEY)
-                                     .build(), RequestBody.fromString(CONTENT));
+                                     .build(), RequestBody.fromBytes(new byte[CONTENT_LENGTH]));
     }
 
     @AfterClass
@@ -87,7 +89,7 @@ public class ResponsePublisherTimeoutIntegrationTest extends S3IntegrationTestBa
         CompletableFuture<ResponsePublisher<GetObjectResponse>> get2 = getObjectWithDefaultTimeoutPublisher();
 
         GetObjectResponse getObjectResponse = get2.join().response();
-        assertThat(getObjectResponse.contentLength()).isEqualTo(CONTENT.length());
+        assertThat(getObjectResponse.contentLength()).isEqualTo(CONTENT_LENGTH);
     }
 
     @Test
@@ -97,7 +99,7 @@ public class ResponsePublisherTimeoutIntegrationTest extends S3IntegrationTestBa
         CompletableFuture<ResponsePublisher<GetObjectResponse>> get2 = getObjectWithDefaultTimeoutPublisher();
 
         GetObjectResponse getObjectResponse = get2.join().response();
-        assertThat(getObjectResponse.contentLength()).isEqualTo(CONTENT.length());
+        assertThat(getObjectResponse.contentLength()).isEqualTo(CONTENT_LENGTH);
     }
 
     @Test
@@ -107,7 +109,7 @@ public class ResponsePublisherTimeoutIntegrationTest extends S3IntegrationTestBa
         CompletableFuture<ResponsePublisher<GetObjectResponse>> get2 = getObjectWithDefaultTimeoutPublisher();
 
         GetObjectResponse getObjectResponse = get2.join().response();
-        assertThat(getObjectResponse.contentLength()).isEqualTo(CONTENT.length());
+        assertThat(getObjectResponse.contentLength()).isEqualTo(CONTENT_LENGTH);
     }
 
     private CompletableFuture<ResponsePublisher<GetObjectResponse>> getObjectWithDefaultTimeoutPublisher() {

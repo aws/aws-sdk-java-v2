@@ -301,7 +301,7 @@ public final class ExpressionParser {
         }
         TreeNode argv0 = argv.get(0);
         TreeNode argv1 = argv.get(1);
-        RuleExpression variable = getReference(argv0);
+        RuleExpression variable = parseExpressionFrom(argv0);
         TreeNode nameNode = argv1;
         if (!(nameNode instanceof JrsString)) {
             throw new IllegalArgumentException("expecting node to be string, got instead starting token: " + nameNode.asToken());
@@ -325,6 +325,22 @@ public final class ExpressionParser {
             tokenizer.expectAtEof("indexed access");
             return indexedAccessBuilder.build();
         }
+        if (tokenizer.isDirectNegativeIndexedAccess()) {
+            IndexedAccessExpression.Builder indexedAccessBuilder = IndexedAccessExpression.builder();
+            tokenizer.consumeDirectNegativeIndexed(i -> indexedAccessBuilder
+                .source(memberAccessBuilder.directIndex(true).build())
+                .index(i)
+                .build());
+            tokenizer.expectAtEof("negative indexed access");
+            return indexedAccessBuilder.build();
+        }
+        if (tokenizer.isNegativeIndexedAccess()) {
+            IndexedAccessExpression.Builder indexedAccessBuilder = IndexedAccessExpression.builder();
+            tokenizer.consumeNegativeIndexed((n, i) -> indexedAccessBuilder.source(memberAccessBuilder.name(n).build())
+                                                                           .index(i));
+            tokenizer.expectAtEof("negative indexed access");
+            return indexedAccessBuilder.build();
+        }
         if (tokenizer.isIdentifier()) {
             tokenizer.consumeIdentifier(memberAccessBuilder::name);
             tokenizer.expectAtEof("member access");
@@ -333,15 +349,6 @@ public final class ExpressionParser {
         throw new IllegalArgumentException(
             String.format("Unexpected token parsing the second argument of getAttr expression: %s",
                           tokenizer.peek()));
-    }
-
-    private static RuleExpression getReference(TreeNode node) {
-        if (!node.isObject()) {
-            throw new IllegalArgumentException("expecting reference object, got instead: " + node);
-        }
-        JrsObject obj = (JrsObject) node;
-        String reference = obj.get("ref").asText();
-        return new VariableReferenceExpression(reference);
     }
 
     public static PropertiesExpression parsePropertiesExpression(JrsObject object) {

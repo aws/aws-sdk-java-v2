@@ -90,6 +90,22 @@ public abstract class BaseClientHandler {
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }
 
+    /**
+     * Report the {@link CoreMetric#SERVICE_ENDPOINT} metric for a completed request execution.
+     *
+     * <p>This must run after the request pipeline, so that {@code EndpointResolutionStage} and the signer have applied
+     * their changes to the HTTP request held by the interceptor context. {@code fallbackRequest} is used only when the
+     * interceptor context does not hold a full request, which can happen when the execution failed before the pipeline
+     * updated it.
+     */
+    static void reportServiceEndpointMetric(ExecutionContext executionContext, SdkHttpFullRequest fallbackRequest) {
+        SdkHttpRequest finalRequest = executionContext.interceptorContext().httpRequest();
+        MetricUtils.collectServiceEndpointMetrics(executionContext.metricCollector(),
+                                                  finalRequest instanceof SdkHttpFullRequest
+                                                  ? (SdkHttpFullRequest) finalRequest
+                                                  : fallbackRequest);
+    }
+
     private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
         executionContext.interceptorChain().beforeMarshalling(executionContext.interceptorContext(),
                                                               executionContext.executionAttributes());
