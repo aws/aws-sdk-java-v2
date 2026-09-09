@@ -1,4 +1,60 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.14__ __2026-09-08__
+## __AWS CloudTrail__
+  - ### Features
+    - Adds support for the RecursiveLogging trail setting, which suppresses recursive events generated when CloudTrail delivers logs to a trail's destinations.
+
+## __AWS S3 Control__
+  - ### Features
+    - Adds support for Amazon S3 Object Lock variable retention.  Existing S3 APIs that support S3 Object Lock parameters now support two new parameters EventHold and EventHoldDuration at the object level, and DefaultEventHoldDuration at the bucket level.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Bugfixes
+    - Prevent `AsyncResponseTransformer.toFile` from deleting a pre-existing destination when a request fails before the SDK opens the file. Calls using `CREATE_NEW` now preserve the existing file and surface `FileAlreadyExistsException` instead of allowing a retry to overwrite it.
+
+## __Amazon Appflow__
+  - ### Features
+    - Amazon AppFlow now supports key pair (RSA private key) authentication for the Snowflake connector. You can provide a privateKey in SnowflakeConnectorProfileCredentials, and password is no longer required. This is a non-breaking, additive change available via the AWS SDK and CLI.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Releasing workload types feature. A proper launch announcement or details will follow up.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds the InterfaceTypes field to NetworkCardInfo in the DescribeInstanceTypes response. This field identifies the network interface types supported by each network card.
+
+## __Amazon Omics__
+  - ### Features
+    - Added support for session policies in AWS HealthOmics Workflows, allowing customers to scope down IAM permissions for individual workflow runs without modifying the service role.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - This feature will allow customers to specify an area-code when requesting a 10DLC number. Why it matters- Customers can now select a number that matches where their business is located.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for InstancePreferences list for multiple instance type input support on SageMaker Training and Processing
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Adds support for Amazon S3 Object Lock variable retention.  Existing S3 APIs that support S3 Object Lock parameters now support two new parameters EventHold and EventHoldDuration at the object level, and DefaultEventHoldDuration at the bucket level.
+
+## __Application Migration Service__
+  - ### Features
+    - This release adds support for configuring the EBS volume initialization rate and delete on termination behavior in launch configuration template
+
+## __S3 Event Notification__
+  - ### Features
+    - Add support for ObjectRetention to S3EventNotifications.
+
+## __URL Connection HTTP Client__
+  - ### Bugfixes
+    - Allow retries when the URL Connection HTTP Client encounters an IOException or NullPointerException while accessing request or response body streams.
+
 # __2.54.13__ __2026-09-04__
 ## __AWS MediaTailor__
   - ### Features
