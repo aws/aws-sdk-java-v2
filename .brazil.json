@@ -319,7 +319,7 @@
       "skipImport": true
     },
     "dynamodb-mapper": {
-      "packageName": "AwsJavaSdk-DynamoDbMapper"
+      "skipImport": true
     }
   },
   "dependencies": {

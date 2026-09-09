@@ -1,6 +1,5 @@
 /*
- * Copyright 2010-2025 Amazon.com, Inc. or its affiliates. All Rights
- * Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -13,19 +12,22 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.amazonaws.annotation.NotThreadSafe;
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
  * Represents objects to write using {@link DynamoDBMapper#transactionWrite(TransactionWriteRequest)} operation.
  */
+@SdkPublicApi
 @NotThreadSafe
-public class TransactionWriteRequest {
+public final class TransactionWriteRequest {
 
     /**
      * List of TransactionWriteOperations where each TransactionWriteOperation represents a write operation to be executed on an object as part of

@@ -60,7 +60,12 @@ public class CodingConventionWithSuppressionTest {
                       ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
                       ArchUtils.classNameToPattern(KnownContentLengthAsyncRequestBodySubscriber.class),
                       ArchUtils.classNameToPattern(UnknownContentLengthAsyncRequestBodySubscriber.class),
-                      ArchUtils.classNameToPattern(CopyObjectHelper.class)));
+                      ArchUtils.classNameToPattern(CopyObjectHelper.class),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.mapper.dynamodb.ConversionSchemas"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectSetToStringSetMarshaller"),
+                      ArchUtils.classWithInnerClassesToPattern(
+                          "software.amazon.awssdk.mapper.dynamodb.StandardModelFactories")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(

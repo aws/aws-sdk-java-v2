@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License").
  * You may not use this file except in compliance with the License.
@@ -12,30 +12,34 @@
  * express or implied. See the License for the specific language governing
  * permissions and limitations under the License.
  */
-package software.amazon.awssdk.mapper.dynamodb;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
+package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.junit.Assert.assertNotEquals;
 
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig;
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBTableMapper;
-import com.amazonaws.services.dynamodbv2.model.DescribeTableRequest;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import software.amazon.awssdk.mapper.dynamodb.pojos.GsiWithAlwaysUpdateTimestamp;
-import com.amazonaws.waiters.WaiterParameters;
 import java.util.UUID;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import software.amazon.awssdk.mapper.dynamodb.pojos.GsiWithAlwaysUpdateTimestamp;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.Projection;
+import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 public class GsiAlwaysUpdateTest extends LocalDynamoDBTestBase {
 
     private static final String TABLE_NAME =
         GsiAlwaysUpdateTest.class.getSimpleName() + "-" + System.currentTimeMillis();
 
-    private AmazonDynamoDB ddb;
+    private DynamoDbClient ddb;
     private DynamoDBTableMapper<GsiWithAlwaysUpdateTimestamp, String, String> mapper;
 
     @Before
@@ -44,16 +48,34 @@ public class GsiAlwaysUpdateTest extends LocalDynamoDBTestBase {
         mapper = new DynamoDBMapper(ddb, DynamoDBMapperConfig.builder()
                 .withTableNameOverride(new DynamoDBMapperConfig.TableNameOverride(TABLE_NAME))
                 .build()).newTableMapper(GsiWithAlwaysUpdateTimestamp.class);
-        mapper.createTable(new ProvisionedThroughput(5L, 5L));
-        ddb.waiters().tableExists()
-                .run(new WaiterParameters<DescribeTableRequest>(new DescribeTableRequest(TABLE_NAME)));
+        // Table setup is built directly against the v2 client rather than via the mapper's
+        // createTable(), which is part of the deferred table-admin port. Against DynamoDB Local
+        // the table is active immediately, so no waiter is needed. The behavior under test is that
+        // an ALWAYS auto-generated timestamp indexed by a GSI is regenerated on every save.
+        ProvisionedThroughput throughput = ProvisionedThroughput.builder()
+                                                                .readCapacityUnits(5L).writeCapacityUnits(5L).build();
+        ddb.createTable(CreateTableRequest.builder()
+                .tableName(TABLE_NAME)
+                .keySchema(KeySchemaElement.builder().attributeName("hashKey").keyType(KeyType.HASH).build(),
+                           KeySchemaElement.builder().attributeName("rangeKey").keyType(KeyType.RANGE).build())
+                .attributeDefinitions(
+                        AttributeDefinition.builder().attributeName("hashKey").attributeType(ScalarAttributeType.S).build(),
+                        AttributeDefinition.builder().attributeName("rangeKey").attributeType(ScalarAttributeType.S).build(),
+                        AttributeDefinition.builder().attributeName("lastModifiedDate")
+                                           .attributeType(ScalarAttributeType.N).build())
+                .globalSecondaryIndexes(GlobalSecondaryIndex.builder()
+                        .indexName("last-mod-date")
+                        .keySchema(KeySchemaElement.builder().attributeName("lastModifiedDate").keyType(KeyType.HASH).build())
+                        .projection(Projection.builder().projectionType(ProjectionType.ALL).build())
+                        .provisionedThroughput(throughput)
+                        .build())
+                .provisionedThroughput(throughput)
+                .build());
     }
 
     @After
     public void tearDown() {
-        mapper.deleteTableIfExists();
-        ddb.waiters().tableNotExists()
-                .run(new WaiterParameters<DescribeTableRequest>(new DescribeTableRequest(TABLE_NAME)));
+        ddb.deleteTable(DeleteTableRequest.builder().tableName(TABLE_NAME).build());
     }
 
     @Test

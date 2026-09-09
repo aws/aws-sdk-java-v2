@@ -1,19 +1,21 @@
 /*
- * Copyright 2014-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinarySetAttributeMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BooleanAttributeMarshaller;
@@ -27,70 +29,69 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBA
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardModelFactories.Rule;
 import software.amazon.awssdk.mapper.dynamodb.StandardModelFactories.RuleFactory;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.BooleanSetToNumberSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.BooleanToBooleanMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.BooleanToNumberMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteArraySetToBinarySetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteArrayToBinaryMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteBufferSetToBinarySetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ByteBufferToBinaryMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CalendarSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CalendarToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CollectionToListMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.CustomMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.DateSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.DateToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.MapToMapMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.NumberSetToNumberSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.NumberToNumberMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ObjectSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ObjectToMapMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.ObjectToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.S3LinkToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.StringSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.StringToStringMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.marshallers.UUIDSetToStringSetMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigDecimalSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigDecimalUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigIntegerSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BigIntegerUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BooleanSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.BooleanUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteArraySetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteArrayUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteBufferSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteBufferUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ByteUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.CalendarSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.CalendarUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.CustomUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DateSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DateUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DoubleSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.DoubleUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.FloatSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.FloatUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.IntegerSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.IntegerUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ListUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.LongSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.LongUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.MapUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.NullableUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ObjectSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ObjectUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.S3LinkUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ShortSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.ShortUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.StringSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.StringUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.UUIDSetUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.unmarshallers.UUIDUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.BooleanSetToNumberSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.BooleanToBooleanMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.BooleanToNumberMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteArraySetToBinarySetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteArrayToBinaryMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteBufferSetToBinarySetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteBufferToBinaryMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CalendarSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CalendarToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CollectionToListMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CustomMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.DateSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.DateToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.MapToMapMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.NumberSetToNumberSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.NumberToNumberMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToMapMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.S3LinkToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.UUIDSetToStringSetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigDecimalSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigDecimalUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigIntegerSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BigIntegerUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BooleanSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.BooleanUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteArraySetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteArrayUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteBufferSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteBufferUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CalendarSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CalendarUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CustomUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DateSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DateUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DoubleSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DoubleUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.FloatSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.FloatUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.IntegerSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.IntegerUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ListUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.LongSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.LongUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.MapUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.NullableUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.S3LinkUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.UUIDSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.UUIDUnmarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
@@ -111,10 +112,10 @@ import java.util.UUID;
 /**
  * Pre-defined strategies for mapping between Java types and DynamoDB types.
  */
+@SdkPublicApi
 public final class ConversionSchemas {
 
-    private static final Log LOGGER =
-            LogFactory.getLog(ConversionSchemas.class);
+    private static final Logger LOGGER = Logger.loggerFor(ConversionSchemas.class);
 
     /**
      * The V1 schema mapping, which retains strict backwards compatibility with
@@ -282,9 +283,9 @@ public final class ConversionSchemas {
 
         @Override
         public DynamoDBMapperFieldModel getFieldModel(Method getter) {
-            final ArgumentMarshaller marshaller = getMarshaller(getter);
+            ArgumentMarshaller marshaller = getMarshaller(getter);
 
-            final DynamoDBAttributeType attributeType;
+            DynamoDBAttributeType attributeType;
             if (marshaller instanceof StringAttributeMarshaller) {
                 attributeType = DynamoDBAttributeType.S;
             } else if (marshaller instanceof NumberAttributeMarshaller) {
@@ -313,8 +314,8 @@ public final class ConversionSchemas {
             // actually correct for @DynamoDBFlattened attributes, however,
             // its the best that can be done given only the method. The
             // proper way to get this information is using the model factory.
-            final StandardAnnotationMaps.FieldMap annotations = StandardAnnotationMaps.of(getter, null);
-            final DynamoDBMapperFieldModel.Builder builder = new DynamoDBMapperFieldModel.Builder(void.class, annotations);
+            StandardAnnotationMaps.FieldMap annotations = StandardAnnotationMaps.of(getter, null);
+            DynamoDBMapperFieldModel.Builder builder = new DynamoDBMapperFieldModel.Builder(void.class, annotations);
             builder.with(attributeType);
             return builder.build();
         }
@@ -339,7 +340,7 @@ public final class ConversionSchemas {
             Map<String, AttributeValue> result =
                     new HashMap<String, AttributeValue>();
 
-            for (final Bean<Object,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
+            for (Bean<Object,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
                 Object getterResult = bean.reflect().get(object);
                 if (getterResult != null) {
                     AttributeValue value = convert(bean.type().getter(), getterResult);
@@ -482,7 +483,7 @@ public final class ConversionSchemas {
                 return result;
             }
 
-            for (final Bean<T,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
+            for (Bean<T,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
                 AttributeValue av = value.get(bean.properties().attributeName());
                 if (av != null) {
                     ArgumentUnmarshaller unmarshaller = getUnmarshaller(bean.type().getter(), bean.type().setter());
@@ -1217,7 +1218,7 @@ public final class ConversionSchemas {
 
     private static Class<?> unwrapGenericSetParam(Type setType) {
         if (!(setType instanceof ParameterizedType)) {
-            LOGGER.warn("Set type " + setType + " is not a "
+            LOGGER.warn(() -> "Set type " + setType + " is not a "
                     + "ParameterizedType, using default marshaler and "
                     + "unmarshaler!");
             return Object.class;
@@ -1227,7 +1228,7 @@ public final class ConversionSchemas {
         Type[] arguments = ptype.getActualTypeArguments();
 
         if (arguments.length != 1) {
-            LOGGER.warn("Set type " + setType + " does not have exactly one "
+            LOGGER.warn(() -> "Set type " + setType + " does not have exactly one "
                     + "type argument, using default marshaler and "
                     + "unmarshaler!");
             return Object.class;
@@ -1297,8 +1298,8 @@ public final class ConversionSchemas {
 
         @Override
         public ArgumentMarshaller getMarshaller(Method getter) {
-            final StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            final DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
+            StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
+            DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
             if (marshalling != null) {
                 return new CustomMarshaller(marshalling.marshallerClass());
             } else if (annotations.actualOf(DynamoDBNativeBoolean.class) != null) {
@@ -1326,8 +1327,8 @@ public final class ConversionSchemas {
         public ArgumentUnmarshaller getUnmarshaller(
                 Method getter,
                 Method setter) {
-            final StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            final DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
+            StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
+            DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
             if (marshalling != null) {
                 return new CustomUnmarshaller(getter.getReturnType(), marshalling.marshallerClass());
             }
@@ -1438,8 +1439,8 @@ public final class ConversionSchemas {
         private final boolean customSchema;
 
         ItemConverterRuleFactory(DynamoDBMapperConfig config, S3Link.Factory s3Links, RuleFactory<V> typeConverters) {
-            final ConversionSchema.Dependencies depends = new ConversionSchema.Dependencies().with(S3ClientCache.class, s3Links.getS3ClientCache());
-            final ConversionSchema schema = config.getConversionSchema();
+            ConversionSchema.Dependencies depends = new ConversionSchema.Dependencies().with(S3ClientCache.class, s3Links.getS3ClientCache());
+            ConversionSchema schema = config.getConversionSchema();
 
             this.customSchema = (schema != V1 && schema != V2_COMPATIBLE && schema != V2);
             this.converter = schema.getConverter(depends);
@@ -1486,7 +1487,7 @@ public final class ConversionSchemas {
         }
     }
 
-    ConversionSchemas() {
+    private ConversionSchemas() {
         throw new UnsupportedOperationException();
     }
 }

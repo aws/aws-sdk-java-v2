@@ -1,17 +1,18 @@
 /*
- * Copyright 2016-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
@@ -118,9 +119,9 @@ public @interface DynamoDBDelimited {
         private final String delimiter;
 
         public Converter(Class<T> targetType, DynamoDBDelimited annotation) {
-            final BeanMap<T,Object> beans = new BeanMap<T,Object>(targetType, true);
+            BeanMap<T,Object> beans = new BeanMap<T,Object>(targetType, true);
 
-            final String[] names = annotation.attributeNames();
+            String[] names = annotation.attributeNames();
             if (names.length <= 1) {
                 throw new DynamoDBMappingException(targetType +
                     " missing attributeNames in @DynamoDBDelimited; must specify two or more attribute names");
@@ -140,12 +141,12 @@ public @interface DynamoDBDelimited {
 
         @Override
         public final String convert(final T object) {
-            final StringBuilder string = new StringBuilder();
+            StringBuilder string = new StringBuilder();
             for (int i = 0; i < fields.length; i++) {
                 if (i > 0) {
                     string.append(delimiter);
                 }
-                final String value = fields[i].get(object);
+                String value = fields[i].get(object);
                 if (value != null) {
                     if (value.contains(delimiter)) {
                         throw new DynamoDBMappingException(String.format(
@@ -161,8 +162,8 @@ public @interface DynamoDBDelimited {
 
         @Override
         public final T unconvert(final String string) {
-            final T object = StandardBeanProperties.DeclaringReflect.<T>newInstance(targetType);
-            final String[] values = string.split(Pattern.quote(delimiter));
+            T object = StandardBeanProperties.DeclaringReflect.<T>newInstance(targetType);
+            String[] values = string.split(Pattern.quote(delimiter));
             for (int i = 0, its = Math.min(fields.length, values.length); i < its; i++) {
                 fields[i].set(object, values[i]);
             }
@@ -181,7 +182,7 @@ public @interface DynamoDBDelimited {
                 this.bean = bean;
             }
             private final String get(final T object) {
-                final V value = bean.reflect().get(object);
+                V value = bean.reflect().get(object);
                 if (value == null) {
                     return null;
                 }
@@ -189,7 +190,7 @@ public @interface DynamoDBDelimited {
             }
             private final void set(final T object, final String string) {
                 if (!string.isEmpty()) {
-                    final V value = converter.unconvert(string);
+                    V value = converter.unconvert(string);
                     if (value != null) {
                         bean.reflect().set(object, value);
                     }

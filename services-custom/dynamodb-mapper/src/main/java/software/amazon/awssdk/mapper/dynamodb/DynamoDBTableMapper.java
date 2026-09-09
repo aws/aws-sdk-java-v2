@@ -1,19 +1,21 @@
 /*
- * Copyright 2016-2025 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at:
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
  *
- *    http://aws.amazon.com/apache2.0
+ *  http://aws.amazon.com/apache2.0
  *
- * This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, either express or implied. See the
- * License for the specific language governing permissions and
- * limitations under the License.
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
  */
+
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
@@ -28,8 +30,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * A wrapper for {@code DynamoDBMapper} which operates only on a specified
@@ -130,9 +131,10 @@ import org.apache.commons.logging.LogFactory;
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper
  * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB
  */
+@SdkPublicApi
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
 
-    private static final Log LOG = LogFactory.getLog(DynamoDBTableMapper.class);
+    private static final Logger LOG = Logger.loggerFor(DynamoDBTableMapper.class);
 
     private final DynamoDBMapperTableModel<T> model;
     private final DynamoDBMapperFieldModel<T,H> hk;
@@ -193,7 +195,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#batchLoad
      */
     public List<T> batchLoad(Iterable<T> itemsToGet) {
-        final Map<String,List<Object>> results = mapper.batchLoad(itemsToGet);
+        Map<String,List<Object>> results = mapper.batchLoad(itemsToGet);
         if (results.isEmpty()) {
             return Collections.<T>emptyList();
         }
@@ -314,8 +316,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
      */
     public void saveIfNotExists(T object) throws ConditionalCheckFailedException {
-        final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
-        for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
+        DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
+        for (DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
             saveExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
                 .exists(false).build());
         }
@@ -332,8 +334,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
      */
     public void saveIfExists(T object) throws ConditionalCheckFailedException {
-        final DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
-        for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
+        DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
+        for (DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
             saveExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
                 .exists(true).value(key.convert(key.get(object))).build());
         }
@@ -370,8 +372,8 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
      */
     public void deleteIfExists(T object) throws ConditionalCheckFailedException {
-        final DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
-        for (final DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
+        DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
+        for (DynamoDBMapperFieldModel<T,Object> key : model.keys()) {
             deleteExpression.withExpectedEntry(key.name(), ExpectedAttributeValue.builder()
                 .exists(true).value(key.convert(key.get(object))).build());
         }
@@ -492,9 +494,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
         try {
             createTable(throughput);
         } catch (final ResourceInUseException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table already exists, no need to create", e);
-            }
+            LOG.trace(() -> "Table already exists, no need to create", e);
             return false;
         }
         return true;
@@ -521,9 +521,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
         try {
             deleteTable();
         } catch (final ResourceNotFoundException e) {
-            if (LOG.isTraceEnabled()) {
-                LOG.trace("Table does not exist, no need to delete", e);
-            }
+            LOG.trace(() -> "Table does not exist, no need to delete", e);
             return false;
         }
         return true;

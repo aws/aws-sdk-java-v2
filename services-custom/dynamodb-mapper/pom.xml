@@ -43,33 +43,28 @@
                 <configuration>
                     <!-- v1-coupled tests not yet ported to the v2 client/model; tracked for a dedicated
                          follow-up port PR. The golden-master ShapeRequestTest/ShapeResponseTest suite
-                         proves the ported data-plane paths are behavior-preserving in the meantime. -->
+                         proves the ported data-plane paths are behavior-preserving in the meantime.
+                         The three tests that make real AWS calls (extend the AWS credentialed base
+                         chain) now live under src/it/java per the v2 layout convention; the DynamoDB
+                         Local functional tests and their fixtures stay under src/test/java (they run
+                         against an embedded server, like dynamodb-enhanced's functionaltests). Either
+                         way these excludes keep the v1-coupled files out of compilation until the
+                         S3Link and Table-admin ports land; the paths are package-relative and match
+                         under both source roots. -->
                     <testExcludes>
+                            <!-- S3Link tests + fixtures (blocked on the S3Link port). -->
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/ConfigureS3LinksTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/DynamoDBS3IntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/DynamoDBS3IntegrationTestBase.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GenerateDeleteTableRequestTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GsiAlwaysUpdateTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/LocalDynamoDB.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/LocalDynamoDBTestBase.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3ClientCacheIntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkIDTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/BatchLoadTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/BatchWriteTest.java</testExclude>
                             <!-- Blocked on Table-admin: calls mapper.generateCreateTableRequest(), which still
                                  returns a v1 CreateTableRequest. Rides with the GenerateCreateTableRequest* PR. -->
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/JsonIntegrationTest.java</testExclude>
+                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GenerateDeleteTableRequestTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequest2Test.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequestTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/HashKeyOnlyTableWithGSITest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/MapperLoadingStrategyConfigTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/DynamoDBTableResource.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/ResourceCentricBlockJUnit4ClassRunner.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/TestResourceUtils.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/BasicTempTable.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/TempTableWithBinaryKey.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/test/resources/tables/TempTableWithSecondaryIndexes.java</testExclude>
                     </testExcludes>
                 </configuration>
             </plugin>
@@ -127,6 +122,41 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>sdk-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-core</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-client-spi</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>auth</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>regions</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>annotations</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-dynamodb</artifactId>
             <version>${sdk-v1.version}</version>
@@ -140,11 +170,6 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-core</artifactId>
             <version>${sdk-v1.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.1.3</version>
         </dependency>
         <dependency>
             <groupId>joda-time</groupId>
@@ -164,9 +189,18 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.17</version>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-slf4j-impl</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
