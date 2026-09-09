@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionCo
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -112,22 +113,33 @@ public class ExecutionInterceptorChain {
     public InterceptorContext modifyHttpResponse(InterceptorContext context,
                                                  ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
+        InputStream response = context.responseBody().orElse(null);
+        boolean completed = false;
 
-        for (int i = interceptors.size() - 1; i >= 0; i--) {
-            SdkHttpResponse interceptorResult =
-                interceptors.get(i).modifyHttpResponse(result, executionAttributes);
-            InputStream response = interceptors.get(i).modifyHttpResponseContent(result, executionAttributes).orElse(null);
+        try {
+            for (int i = interceptors.size() - 1; i >= 0; i--) {
+                SdkHttpResponse interceptorResult =
+                    interceptors.get(i).modifyHttpResponse(result, executionAttributes);
+                response = interceptors.get(i)
+                                        .modifyHttpResponseContent(result, executionAttributes)
+                                        .orElse(null);
 
-            if (interceptorResult != result.httpResponse() || response != result.responseBody().orElse(null)) {
-                validateInterceptorResult(result.httpResponse(), interceptorResult, interceptors.get(i), "modifyHttpResponse");
-                result = result.copy(r -> r.httpResponse(interceptorResult)
-                                           .responseBody(response));
+                if (interceptorResult != result.httpResponse() || response != result.responseBody().orElse(null)) {
+                    validateInterceptorResult(result.httpResponse(), interceptorResult, interceptors.get(i),
+                                              "modifyHttpResponse");
+                    InputStream currentResponse = response;
+                    result = result.copy(r -> r.httpResponse(interceptorResult)
+                                               .responseBody(currentResponse));
+                }
             }
 
-
+            completed = true;
+            return result;
+        } finally {
+            if (!completed) {
+                IoUtils.closeQuietlyV2(response, LOG);
+            }
         }
-
-        return result;
     }
 
     public InterceptorContext modifyAsyncHttpResponse(InterceptorContext context,
