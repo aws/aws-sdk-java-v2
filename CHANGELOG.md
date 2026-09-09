@@ -1,4 +1,50 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.15__ __2026-09-09__
+## __AWS Elemental Inference__
+  - ### Features
+    - This release adds contextual metadata, a feed output type that generates a descriptive summary of your media content along with IAB taxonomy and GARM suitability classifications. It also adds feed resource policies for granting cross-account access to a feed.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports Manual Style Control for vertical caption positioning in TTML, WebVTT, and Embedded captions, Contextual Metadata Enrichment via Elemental Inference, and an Output Usage field on MediaPackage v2 for Dynamic Multiview validation.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Dynamic Multiview enables viewers to watch multiple live video streams in a single combined output. Viewers can select from 6 preset tiled layouts. Create MediaPackage channels with Input Type MULTIVIEW and configure Available Layouts and Available Sources. See the API Documentation for details.
+
+## __AWS Lambda__
+  - ### Features
+    - Updates documentation for lambda function timeout.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added the AWS Service Request function type for MediaTailor Functions, enabling authenticated requests to AWS Elemental Inference for contextual ad targeting during ad insertion.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for custom Gres.conf configuration and Slurm version 26.05 in AWS PCS. Customers can now specify generic resource (GRES) settings to control how GPUs and other resources are configured and shared on their compute node groups.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an intermittent NullPointerException when downloading a single-part object with a multipart-enabled async S3 client. A race between the emit loop and subscription cancellation could dereference a cleared subscriber reference; the reference is now stable and reads are null-safe.
+        - Contributed by: [@cthiebault](https://github.com/cthiebault)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Add metric configuration field to evaluation forms and ListEvaluationFormAIVersions API for retrieving AI-generated evaluation form versions
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for sharing Amazon EBS volumes across AWS accounts using AWS Resource Access Manager (RAM). Consuming accounts can view shared volume metadata and create copies of shared volumes within the same Availability Zone, with optional re-encryption using their own KMS key.
+
+## __Apache HTTP Client__
+  - ### Deprecations
+    - `apache-client` is now deprecated in favor of `apache5-client`. [Apache HttpClient 4.x](https://hc.apache.org/status.html) is in maintenance mode, receiving fixes only for major defects and security issues.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@cthiebault](https://github.com/cthiebault)
 # __2.54.14__ __2026-09-08__
 ## __AWS CloudTrail__
   - ### Features
