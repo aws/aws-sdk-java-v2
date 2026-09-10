@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix request-side perfromance regression that scaled with payload size for `query` and `ec2` protocol services where the the request endpoint was re-parsed as a URI."
+}

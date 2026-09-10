@@ -110,20 +110,26 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
     }
 
     /**
-     * Detects if an interceptor modified the HTTP request URL in modifyHttpRequest().
-     * Compares the current request's host and scheme against the snapshot taken before interceptors ran.
+     * Detects if an interceptor modified the HTTP request endpoint in modifyHttpRequest().
+     * Compares the current request's host, scheme and port against the snapshot taken before interceptors ran.
      */
     private static boolean interceptorModifiedEndpoint(SdkHttpFullRequest.Builder request, ExecutionAttributes attrs) {
-        URI preModifyUri = attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY);
-        if (preModifyUri == null) {
+        EndpointUrl preModifyEndpoint =
+            attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY);
+        if (preModifyEndpoint == null) {
             return false;
         }
         String requestHost = request.host();
+        if (requestHost == null) {
+            return false;
+        }
+        // The snapshot's port is always resolved, since SdkHttpRequest#port() substitutes the protocol's standard
+        // port when the endpoint did not specify one. The builder's port is the raw value and is null in that case,
+        // which is not a modification.
         Integer requestPort = request.port();
-        return requestHost != null
-            && (!requestHost.equals(preModifyUri.getHost())
-                || !String.valueOf(request.protocol()).equals(preModifyUri.getScheme())
-                || (requestPort != null && requestPort != preModifyUri.getPort()));
+        return !requestHost.equals(preModifyEndpoint.host())
+               || !String.valueOf(request.protocol()).equals(preModifyEndpoint.scheme())
+               || (requestPort != null && requestPort != preModifyEndpoint.port());
     }
 
     /**
