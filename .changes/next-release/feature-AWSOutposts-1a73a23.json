@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Outposts",
-    "contributor": "",
-    "description": "Added fields to identify Outpost generation and rack scaling configuration on Outpost and CatalogItem resources."
-}

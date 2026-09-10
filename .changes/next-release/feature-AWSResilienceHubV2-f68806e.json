@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Resilience Hub V2",
-    "contributor": "",
-    "description": "This release adds the ListTestRunSourceEvents and ListTestRunDependencies APIs, which return the alarm state changes during a test run and the dependencies the run blocked."
-}
