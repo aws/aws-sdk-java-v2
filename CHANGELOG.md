@@ -1,4 +1,34 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.16__ __2026-09-10__
+## __AWS Outposts__
+  - ### Features
+    - Added fields to identify Outpost generation and rack scaling configuration on Outpost and CatalogItem resources.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - This release adds the ListTestRunSourceEvents and ListTestRunDependencies APIs, which return the alarm state changes during a test run and the dependencies the run blocked.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Enable BDD Endpoints for a small subset of services.
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - TwelveLabs Marengo 3.0 is now an embedding model option in Amazon Bedrock Managed Knowledge Base. Create multimodal embeddings for video, audio, and image content that capture visual scenes, speech, and video cues, not just transcribed text.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The CreateImage API now supports a BootModeOverride parameter to explicitly set UEFI boot mode on a new AMI, overriding the source instance's inherited boot mode.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the ability for customers to attach customer owned Elastic Network Interfaces (ENIs) to HyperPod cluster nodes.
+
+## __RTBFabric__
+  - ### Features
+    - AWS RTB Fabric now lets you control how traffic is routed to your responder gateway across Availability Zones. Set the new clientRoutingPolicy parameter  to keep traffic within the same Availability Zone or distribute traffic across all Availability Zones.
+
 # __2.54.15__ __2026-09-09__
 ## __AWS Elemental Inference__
   - ### Features
