@@ -1,4 +1,38 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.17__ __2026-09-11__
+## __AWS Batch__
+  - ### Features
+    - Added new bulk job APIs (CancelJobs, TerminateJobs, TerminateServiceJobs) and new fields on ListJobs and ListServiceJobs responses. This allows customers to cancel or terminate multiple jobs in a single request. ListJobs and ListServiceJobs responses now include isCancelled and isTerminated fields.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds Dolby Vision metadata to Probe results, including profile, level, and presence of the RPU, base layer, and enhancement layer. Adds video sample and display aspect ratios. Adds the UnprocessableEntityException (HTTP 422) error to Probe for recognized but malformed or corrupt inputs.
+
+## __AWS Invoicing__
+  - ### Features
+    - Add ListProcurementPortals and ListProcurementPortalSuppliers APIs to retrieve AWS-supported 3rd party procurement portals and their suppliers for e-invoice delivery and purchase order retrieval.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade Netty to 4.1.138
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This feature adds support for setting the cpu architecture type that should be used to launch tasks for an Express Gateway Service.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Amazon Lightsail now lets you serve website content from a private Lightsail bucket through a Lightsail distribution. This release adds enablePrivateOriginAccess to the CreateDistribution and UpdateDistribution actions, plus new defaultRootObject and customErrorResponses options.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Prevent the CRT-based S3 async client from replacing a pre-existing destination when using `getObject(request, Path)`. Failed or cancelled downloads now delete files they create. Existing destinations surface `FileAlreadyExistsException`; callers that require replacement can use `AsyncResponseTransformer.toFile` with `FileTransformerConfiguration.defaultCreateOrReplaceExisting()`. This fixes an inconsistency introduced in 2.32.11.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updated S3 Object Lock Default Retention documentation.
+
 # __2.54.16__ __2026-09-10__
 ## __AWS Outposts__
   - ### Features
