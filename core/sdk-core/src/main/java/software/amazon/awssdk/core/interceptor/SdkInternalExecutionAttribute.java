@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
@@ -213,36 +214,37 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("EndpointResolver");
 
     /**
-     * The marshalled HTTP request captured before modifyHttpRequest interceptors run.
+     * The HTTP request endpoint (scheme, host, port and path) captured before modifyHttpRequest interceptors run.
      * Used by EndpointResolutionStage to detect if a customer interceptor modified the endpoint.
      *
-     * <p>The request is stored as-is rather than reduced to a URI, so that reading the endpoint costs nothing but
-     * field access. {@link SdkHttpRequest#getUri()} percent-encodes the request's query parameters and re-parses the
-     * resulting string, and for the {@code query} and {@code ec2} protocols those query parameters still hold the
-     * entire request payload at this point in the execution.
+     * <p>Only the endpoint components are captured, never a {@link URI} and never the request itself.
+     * {@link SdkHttpRequest#getUri()} percent-encodes the request's query parameters and re-parses the resulting
+     * string, and for the {@code query} and {@code ec2} protocols those query parameters still hold the entire request
+     * payload at this point in the execution. Capturing components keeps this cheap to record and stops the snapshot
+     * from holding the payload alive for the rest of the API call.
      */
-    public static final ExecutionAttribute<SdkHttpRequest> HTTP_REQUEST_BEFORE_MODIFY =
-        new ExecutionAttribute<>("HttpRequestBeforeModify");
+    public static final ExecutionAttribute<EndpointUrl> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY =
+        new ExecutionAttribute<>("HttpRequestEndpointBeforeModify");
 
     /**
      * The HTTP request URI captured before modifyHttpRequest interceptors run. Read-only; setting it throws
      * {@link UnsupportedOperationException}.
      *
-     * @deprecated Use {@link #HTTP_REQUEST_BEFORE_MODIFY} instead. Reading this attribute builds a {@link URI} from
-     * the snapshotted request on every read, which percent-encodes the request's query parameters and parses the
-     * result. For the {@code query} and {@code ec2} protocols those query parameters still hold the entire request
-     * payload at this point, making each read cost two passes over the whole payload.
+     * @deprecated Use {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} instead. This is a view over that attribute, so it
+     * carries only the scheme, host, port and path: the query string is always absent, and the port is always present
+     * even when it is the protocol's default. Reading it builds a {@link URI}, which
+     * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} lets you avoid.
      */
     @Deprecated
     public static final ExecutionAttribute<URI> HTTP_REQUEST_URI_BEFORE_MODIFY =
         ExecutionAttribute.derivedBuilder("HttpRequestUriBeforeModify",
                                           URI.class,
-                                          () -> HTTP_REQUEST_BEFORE_MODIFY)
-                          .readMapping(request -> request != null ? request.getUri() : null)
-                          .writeMapping((request, uri) -> {
+                                          () -> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY)
+                          .readMapping(endpoint -> endpoint != null ? endpoint.toUri() : null)
+                          .writeMapping((endpoint, uri) -> {
                               throw new UnsupportedOperationException(
-                                  "HttpRequestUriBeforeModify is a read-only view of HttpRequestBeforeModify and "
-                                  + "cannot be set.");
+                                  "HttpRequestUriBeforeModify is a read-only view of HttpRequestEndpointBeforeModify "
+                                  + "and cannot be set.");
                           })
                           .build();
 

@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -81,17 +82,22 @@ public abstract class BaseClientHandler {
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
 
-        // Snapshot the marshalled HTTP request before modifyHttpRequest interceptors run.
+        // Snapshot the HTTP request endpoint before modifyHttpRequest interceptors run.
         // EndpointResolutionStage uses this to detect if a customer interceptor modified the endpoint.
         //
-        // The request is stored as-is, never reduced to a URI. Building a URI here would call
-        // SdkHttpRequest#getUri(), which percent-encodes the request's query parameters and then re-parses the
-        // resulting string. For the query and ec2 protocols those query parameters still hold the entire request
-        // payload at this point -- QueryParametersToBodyStage only moves them into the body later, inside the
-        // request pipeline -- so that would cost two extra passes over the whole payload on every API call.
+        // Only the endpoint components are captured, never a URI and never the request itself. Building a URI here
+        // would call SdkHttpRequest#getUri(), which percent-encodes the request's query parameters and then re-parses
+        // the resulting string; retaining the request would instead keep those query parameters alive until the end of
+        // the API call. For the query and ec2 protocols they hold the entire request payload at this point --
+        // QueryParametersToBodyStage only moves them into the body later, inside the request pipeline -- so either
+        // approach would cost the payload twice over, in time or in memory.
+        SdkHttpRequest marshalledRequest = executionContext.interceptorContext().httpRequest();
         executionContext.executionAttributes().putAttribute(
-            SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY,
-            executionContext.interceptorContext().httpRequest());
+            SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+            EndpointUrl.fromComponents(marshalledRequest.protocol(),
+                                       marshalledRequest.host(),
+                                       marshalledRequest.port(),
+                                       marshalledRequest.encodedPath()));
 
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }

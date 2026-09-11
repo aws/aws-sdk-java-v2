@@ -17,23 +17,21 @@ package software.amazon.awssdk.core.interceptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.http.SdkHttpFullRequest;
-import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 
 /**
- * Tests for the deprecated {@link SdkInternalExecutionAttribute#HTTP_REQUEST_URI_BEFORE_MODIFY}, which is a derived
- * view over {@link SdkInternalExecutionAttribute#HTTP_REQUEST_BEFORE_MODIFY}.
+ * Tests for the deprecated {@link SdkInternalExecutionAttribute#HTTP_REQUEST_URI_BEFORE_MODIFY}, which is a read-only
+ * derived view over {@link SdkInternalExecutionAttribute#HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY}.
  */
 class SdkInternalExecutionAttributeTest {
+
+    private static final EndpointUrl ENDPOINT =
+        EndpointUrl.fromComponents("https", "lambda.us-east-1.amazonaws.com", 443,
+                                   "/2015-03-31/functions/my-function/invocations");
 
     private ExecutionAttributes attributes;
 
@@ -48,75 +46,58 @@ class SdkInternalExecutionAttributeTest {
     }
 
     @Test
-    void httpRequestUriBeforeModify_readsUriOfSnapshottedRequest() {
-        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY,
-                                requestWithQueryParams());
+    void httpRequestUriBeforeModify_rendersSnapshottedEndpoint() {
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
 
         assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY))
-            .isEqualTo(URI.create("https://monitoring.us-east-1.amazonaws.com/"
-                                  + "?Action=PutMetricData&Namespace=My%2FNamespace"));
+            .isEqualTo(URI.create("https://lambda.us-east-1.amazonaws.com:443"
+                                  + "/2015-03-31/functions/my-function/invocations"));
     }
 
     @Test
-    void httpRequestUriBeforeModify_isNotComputedUntilRead() {
-        URI uri = URI.create("https://monitoring.us-east-1.amazonaws.com/");
-        SdkHttpRequest snapshot = mock(SdkHttpRequest.class);
-        when(snapshot.host()).thenReturn("monitoring.us-east-1.amazonaws.com");
-        when(snapshot.getUri()).thenReturn(uri);
+    void httpRequestUriBeforeModify_neverCarriesQueryString() {
+        // The snapshot holds components only, so the query string is always absent. This is what keeps the query and
+        // ec2 protocols cheap: for those the raw query parameters are the entire request payload at this point.
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
 
-        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, snapshot);
-        verify(snapshot, never()).getUri();
+        URI uri = attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY);
 
-        // Reading the endpoint components must not build the URI either.
-        SdkHttpRequest read = attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY);
-        assertThat(read.host()).isEqualTo("monitoring.us-east-1.amazonaws.com");
-        verify(snapshot, never()).getUri();
+        assertThat(uri.getQuery()).isNull();
+        assertThat(uri.getRawPath()).isEqualTo("/2015-03-31/functions/my-function/invocations");
+    }
+
+    @Test
+    void httpRequestUriBeforeModify_repeatedReadsShareTheSameUri() {
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
 
         assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY))
-            .isSameAs(uri);
-        verify(snapshot).getUri();
+            .isSameAs(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY));
     }
 
     @Test
     void httpRequestUriBeforeModify_writeIsUnsupported() {
-        SdkHttpRequest snapshot = requestWithQueryParams();
-        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, snapshot);
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
         URI uri = URI.create("https://custom.example.com:8443/");
 
         assertThatThrownBy(() -> attributes.putAttribute(
             SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY, uri))
             .isInstanceOf(UnsupportedOperationException.class);
 
-        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY))
-            .isSameAs(snapshot);
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY))
+            .isSameAs(ENDPOINT);
     }
 
     @Test
-    void httpRequestBeforeModify_survivesCopy() {
-        SdkHttpRequest snapshot = requestWithQueryParams();
-        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, snapshot);
+    void httpRequestEndpointBeforeModify_survivesCopy() {
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
 
-        // Copies duplicate the backing map rather than re-setting each attribute, so the read-only derived view
-        // must still resolve against the copy.
+        // Copies duplicate the backing map rather than re-setting each attribute, so the read-only derived view must
+        // still resolve against the copy.
         ExecutionAttributes copy = attributes.copy();
 
-        assertThat(copy.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY)).isSameAs(snapshot);
+        assertThat(copy.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY))
+            .isSameAs(ENDPOINT);
         assertThat(copy.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY))
-            .isEqualTo(snapshot.getUri());
-    }
-
-    /**
-     * Shaped like a marshalled query-protocol request: the payload lives in the raw query parameters until
-     * {@code QueryParametersToBodyStage} moves it into the body.
-     */
-    private static SdkHttpRequest requestWithQueryParams() {
-        return SdkHttpFullRequest.builder()
-                                 .method(SdkHttpMethod.POST)
-                                 .protocol("https")
-                                 .host("monitoring.us-east-1.amazonaws.com")
-                                 .encodedPath("/")
-                                 .putRawQueryParameter("Action", "PutMetricData")
-                                 .putRawQueryParameter("Namespace", "My/Namespace")
-                                 .build();
+            .isEqualTo(ENDPOINT.toUri());
     }
 }
