@@ -1,5 +1,5 @@
 {
-    "type": "bugfix",
+    "type": "perf-improvement",
     "category": "AWS SDK for Java v2",
     "contributor": "",
     "description": "Fix request-side performance regression that scaled with payload size for `query` and `ec2` protocol services where the request endpoint was re-parsed as a URI. The internal `HTTP_REQUEST_URI_BEFORE_MODIFY` execution attribute is now deprecated and computed on read; use `HTTP_REQUEST_BEFORE_MODIFY` instead."
