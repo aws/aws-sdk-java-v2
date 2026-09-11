@@ -225,7 +225,8 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("HttpRequestBeforeModify");
 
     /**
-     * The HTTP request URI captured before modifyHttpRequest interceptors run.
+     * The HTTP request URI captured before modifyHttpRequest interceptors run. Read-only; setting it throws
+     * {@link UnsupportedOperationException}.
      *
      * @deprecated Use {@link #HTTP_REQUEST_BEFORE_MODIFY} instead. Reading this attribute builds a {@link URI} from
      * the snapshotted request on every read, which percent-encodes the request's query parameters and parses the
@@ -238,9 +239,11 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
                                           URI.class,
                                           () -> HTTP_REQUEST_BEFORE_MODIFY)
                           .readMapping(request -> request != null ? request.getUri() : null)
-                          .writeMapping((request, uri) -> request != null && uri != null
-                                                          ? request.toBuilder().uri(uri).build()
-                                                          : request)
+                          .writeMapping((request, uri) -> {
+                              throw new UnsupportedOperationException(
+                                  "HttpRequestUriBeforeModify is a read-only view of HttpRequestBeforeModify and "
+                                  + "cannot be set.");
+                          })
                           .build();
 
     /**

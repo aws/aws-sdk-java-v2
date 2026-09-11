@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.interceptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -77,15 +78,31 @@ class SdkInternalExecutionAttributeTest {
     }
 
     @Test
-    void httpRequestUriBeforeModify_writeIsVisibleOnSnapshottedRequest() {
-        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, requestWithQueryParams());
+    void httpRequestUriBeforeModify_writeIsUnsupported() {
+        SdkHttpRequest snapshot = requestWithQueryParams();
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, snapshot);
+        URI uri = URI.create("https://custom.example.com:8443/");
 
-        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
-                                URI.create("https://custom.example.com:8443/"));
+        assertThatThrownBy(() -> attributes.putAttribute(
+            SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY, uri))
+            .isInstanceOf(UnsupportedOperationException.class);
 
-        SdkHttpRequest snapshot = attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY);
-        assertThat(snapshot.host()).isEqualTo("custom.example.com");
-        assertThat(snapshot.port()).isEqualTo(8443);
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY))
+            .isSameAs(snapshot);
+    }
+
+    @Test
+    void httpRequestBeforeModify_survivesCopy() {
+        SdkHttpRequest snapshot = requestWithQueryParams();
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, snapshot);
+
+        // Copies duplicate the backing map rather than re-setting each attribute, so the read-only derived view
+        // must still resolve against the copy.
+        ExecutionAttributes copy = attributes.copy();
+
+        assertThat(copy.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY)).isSameAs(snapshot);
+        assertThat(copy.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY))
+            .isEqualTo(snapshot.getUri());
     }
 
     /**
