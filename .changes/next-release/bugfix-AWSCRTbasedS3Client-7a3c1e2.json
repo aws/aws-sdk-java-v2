@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "MingWangSong",
+    "description": "Fixed an issue where the CRT-based S3 client always established proxy connections through a `CONNECT` tunnel, even when `endpointOverride` used the plaintext `http://` scheme. Proxies that only support forwarding mode rejected these requests. The proxy connection type is now pinned to forwarding for plaintext endpoints, matching the behavior of `ApacheHttpClient`. See [#7320](https://github.com/aws/aws-sdk-java-v2/issues/7320)."
+}
