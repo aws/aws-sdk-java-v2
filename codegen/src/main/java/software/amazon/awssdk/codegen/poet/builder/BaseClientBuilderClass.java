@@ -31,6 +31,7 @@ import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
 import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.codegen.internal.Utils;
+import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
@@ -330,9 +332,10 @@ public class BaseClientBuilderClass implements ClassSpec {
         String userAgent = model.getCustomizationConfig().getUserAgent();
         RetryMode defaultRetryMode = model.getCustomizationConfig().getDefaultRetryMode();
         Boolean defaultNewRetries2026 = model.getCustomizationConfig().getDefaultNewRetries2026();
+        Boolean defaultEnableSocketTimeout2026 = model.getCustomizationConfig().getDefaultEnableSocketTimeout2026();
 
         // If none of the options are customized, then we do not need to bother overriding the method
-        if (userAgent == null && defaultRetryMode == null && defaultNewRetries2026 == null) {
+        if (!hasInternalDefaults()) {
             return Optional.empty();
         }
 
@@ -354,8 +357,20 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addCode("c.option($T.DEFAULT_NEW_RETRIES_2026, $L);\n",
                             SdkClientOption.class, defaultNewRetries2026);
         }
+        if (defaultEnableSocketTimeout2026 != null) {
+            builder.addCode("c.option($T.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026, $L);\n",
+                            SdkClientOption.class, defaultEnableSocketTimeout2026);
+        }
         builder.addCode("});\n");
         return Optional.of(builder.build());
+    }
+
+    private boolean hasInternalDefaults() {
+        CustomizationConfig customizationConfig = model.getCustomizationConfig();
+        return customizationConfig.getUserAgent() != null
+               || customizationConfig.getDefaultRetryMode() != null
+               || customizationConfig.getDefaultNewRetries2026() != null
+               || customizationConfig.getDefaultEnableSocketTimeout2026() != null;
     }
 
     private MethodSpec finalizeServiceConfigurationMethod() {
@@ -828,24 +843,27 @@ public class BaseClientBuilderClass implements ClassSpec {
         String serviceDefaultFqcn = model.getCustomizationConfig().getServiceSpecificHttpConfig();
         boolean supportsH2 = model.getMetadata().supportsH2();
         boolean usePriorKnowledgeForH2 = model.getCustomizationConfig().isUsePriorKnowledgeForH2();
+        Long readWriteTimeoutMillis = model.getMetadata().getDefaultReadWriteTimeoutMillis();
 
-        if (serviceDefaultFqcn != null || supportsH2) {
-            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2));
+        if (serviceDefaultFqcn != null || supportsH2 || readWriteTimeoutMillis != null) {
+            builder.addMethod(serviceSpecificHttpConfigMethod(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2,
+                                                              readWriteTimeoutMillis));
         }
     }
 
     private MethodSpec serviceSpecificHttpConfigMethod(String serviceDefaultFqcn, boolean supportsH2,
-                                                       boolean usePriorKnowledgeForH2) {
+                                                       boolean usePriorKnowledgeForH2, Long readWriteTimeoutMillis) {
         return MethodSpec.methodBuilder("serviceHttpConfig")
                          .addAnnotation(Override.class)
                          .addModifiers(PROTECTED, FINAL)
                          .returns(AttributeMap.class)
-                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2))
+                         .addCode(serviceSpecificHttpConfigMethodBody(serviceDefaultFqcn, supportsH2, usePriorKnowledgeForH2,
+                                                                      readWriteTimeoutMillis))
                          .build();
     }
 
     private CodeBlock serviceSpecificHttpConfigMethodBody(String serviceDefaultFqcn, boolean supportsH2,
-                                                          boolean usePriorKnowledgeForH2) {
+                                                          boolean usePriorKnowledgeForH2, Long readWriteTimeoutMillis) {
         CodeBlock.Builder builder = CodeBlock.builder();
 
         if (serviceDefaultFqcn != null) {
@@ -856,14 +874,28 @@ public class BaseClientBuilderClass implements ClassSpec {
             builder.addStatement("$1T result = $1T.empty()", AttributeMap.class);
         }
 
-        if (supportsH2) {
-            builder.add("return result.merge(AttributeMap.builder()"
-                        + ".put($T.PROTOCOL, $T.HTTP2)",
-                        SdkHttpConfigurationOption.class, Protocol.class);
+        if (supportsH2 || readWriteTimeoutMillis != null) {
+            builder.add("return result.merge(AttributeMap.builder()");
 
-            if (!usePriorKnowledgeForH2) {
-                builder.add(".put($T.PROTOCOL_NEGOTIATION, $T.ALPN)",
-                            SdkHttpConfigurationOption.class, ProtocolNegotiation.class);
+            if (supportsH2) {
+                builder.add(".put($T.PROTOCOL, $T.HTTP2)", SdkHttpConfigurationOption.class, Protocol.class);
+
+                if (!usePriorKnowledgeForH2) {
+                    builder.add(".put($T.PROTOCOL_NEGOTIATION, $T.ALPN)",
+                                SdkHttpConfigurationOption.class, ProtocolNegotiation.class);
+                }
+            }
+
+            if (readWriteTimeoutMillis != null) {
+                // A negative artifact value marks a fully-exempt service: bake Duration.ZERO, which means apply no
+                // read/write timeout. A positive value is the timeout in milliseconds.
+                if (readWriteTimeoutMillis < 0) {
+                    builder.add(".put($T.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, $T.ZERO)",
+                                SdkHttpConfigurationOption.class, Duration.class);
+                } else {
+                    builder.add(".put($T.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, $T.ofMillis($L))",
+                                SdkHttpConfigurationOption.class, Duration.class, readWriteTimeoutMillis + "L");
+                }
             }
 
             builder.addStatement(".build())");
