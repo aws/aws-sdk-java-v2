@@ -18,6 +18,8 @@ package software.amazon.awssdk.http.auth.aws.internal.signer.chunkedencoding;
 import static java.util.Arrays.copyOf;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.V4CanonicalRequest.getCanonicalHeadersString;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.deriveSigningKey;
 import static software.amazon.awssdk.http.auth.aws.internal.signer.util.SignerUtils.hash;
@@ -27,6 +29,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Arrays;
@@ -73,6 +76,73 @@ public class ChunkedEncodedInputStreamTest {
 
         assertEquals(expectedBytesRead, bytesRead);
         assertArrayEquals(expected, actual);
+    }
+
+    @Test
+    void read_withSmallCallerBuffersAcrossChunkBoundaries_preservesEncodedData() throws IOException {
+        byte[] data = "abcdefghijkl".getBytes(StandardCharsets.UTF_8);
+        ChunkedEncodedInputStream inputStream =
+            ChunkedEncodedInputStream.builder()
+                                     .inputStream(new ByteArrayInputStream(data))
+                                     .chunkSize(3)
+                                     .build();
+
+        ByteArrayOutputStream actual = new ByteArrayOutputStream();
+        byte[] callerBuffer = new byte[2];
+        int read;
+        while ((read = inputStream.read(callerBuffer, 0, callerBuffer.length)) != -1) {
+            actual.write(callerBuffer, 0, read);
+        }
+
+        assertArrayEquals("3\r\nabc\r\n3\r\ndef\r\n3\r\nghi\r\n3\r\njkl\r\n0\r\n\r\n"
+                              .getBytes(StandardCharsets.UTF_8),
+                          actual.toByteArray());
+    }
+
+    @Test
+    void chunkBuffer_isAllocatedLazily() throws IOException {
+        ChunkedEncodedInputStream inputStream =
+            ChunkedEncodedInputStream.builder()
+                                     .inputStream(new ByteArrayInputStream("abcdef".getBytes(StandardCharsets.UTF_8)))
+                                     .chunkSize(3)
+                                     .build();
+
+        assertNull(chunkData(inputStream));
+        inputStream.read();
+        assertNotNull(chunkData(inputStream));
+    }
+
+    @Test
+    void chunkBuffer_isReleasedAtEofAndRecreatedAfterReset() throws IOException {
+        ChunkedEncodedInputStream inputStream =
+            ChunkedEncodedInputStream.builder()
+                                     .inputStream(new ByteArrayInputStream("abcdef".getBytes(StandardCharsets.UTF_8)))
+                                     .chunkSize(3)
+                                     .build();
+
+        readAll(inputStream, new byte[64]);
+        assertNull(chunkData(inputStream));
+
+        inputStream.reset();
+        inputStream.read();
+        assertNotNull(chunkData(inputStream));
+        readAll(inputStream, new byte[64]);
+        assertNull(chunkData(inputStream));
+    }
+
+    @Test
+    void close_releasesCurrentChunkAndChunkBuffer() throws IOException {
+        ChunkedEncodedInputStream inputStream =
+            ChunkedEncodedInputStream.builder()
+                                     .inputStream(new ByteArrayInputStream("abcdef".getBytes(StandardCharsets.UTF_8)))
+                                     .chunkSize(3)
+                                     .build();
+
+        inputStream.read();
+        inputStream.close();
+
+        assertNull(currentChunk(inputStream));
+        assertNull(chunkData(inputStream));
     }
 
     @Test
@@ -322,5 +392,23 @@ public class ChunkedEncodedInputStreamTest {
             }
         }
         return offset;
+    }
+
+    private byte[] chunkData(ChunkedEncodedInputStream stream) {
+        return (byte[]) fieldValue(stream, "chunkData");
+    }
+
+    private Chunk currentChunk(ChunkedEncodedInputStream stream) {
+        return (Chunk) fieldValue(stream, "currentChunk");
+    }
+
+    private Object fieldValue(ChunkedEncodedInputStream stream, String name) {
+        try {
+            Field field = ChunkedEncodedInputStream.class.getDeclaredField(name);
+            field.setAccessible(true);
+            return field.get(stream);
+        } catch (ReflectiveOperationException e) {
+            throw new AssertionError(e);
+        }
     }
 }
