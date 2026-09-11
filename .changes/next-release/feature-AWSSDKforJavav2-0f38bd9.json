@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Endpoint parameters derived from JMESPath expressions (operationContextParams) are now bound using typed getters generated at build time instead of a reflective runtime, reducing per-request allocation and latency during endpoint resolution for operations that use them (e.g. DynamoDB batch/transaction and Amazon S3 DeleteObjects). Behavior is unchanged."
+}

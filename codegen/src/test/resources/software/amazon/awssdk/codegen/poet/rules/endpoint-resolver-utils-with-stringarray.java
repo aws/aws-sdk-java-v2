@@ -1,8 +1,11 @@
 package software.amazon.awssdk.services.samplesvc.endpoints.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -22,8 +25,14 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.services.samplesvc.endpoints.SampleSvcEndpointParams;
-import software.amazon.awssdk.services.samplesvc.jmespath.internal.JmesPathRuntime;
+import software.amazon.awssdk.services.samplesvc.model.Delete;
 import software.amazon.awssdk.services.samplesvc.model.ListOfObjectsOperationRequest;
+import software.amazon.awssdk.services.samplesvc.model.MapKeysOperationRequest;
+import software.amazon.awssdk.services.samplesvc.model.Nested;
+import software.amazon.awssdk.services.samplesvc.model.ObjectMember;
+import software.amazon.awssdk.services.samplesvc.model.Put;
+import software.amazon.awssdk.services.samplesvc.model.TransactItem;
+import software.amazon.awssdk.services.samplesvc.model.TransactionOperationRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 @Generated("software.amazon.awssdk:codegen")
@@ -114,14 +123,68 @@ public final class SampleSvcEndpointResolverUtils {
     switch (operationName) {
       case "ListOfObjectsOperation":setOperationContextParams(params, (ListOfObjectsOperationRequest) request);
       break;
+      case "MapKeysOperation":setOperationContextParams(params, (MapKeysOperationRequest) request);
+      break;
+      case "TransactionOperation":setOperationContextParams(params, (TransactionOperationRequest) request);
+      break;
       default:break;
     }
   }
 
   private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
       ListOfObjectsOperationRequest request) {
-    JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-    params.stringArrayParam(input.field("nested").field("listOfObjects").wildcard().field("key").stringValues());
+    List<String> stringArrayParam = Collections.emptyList();
+    Nested nested = request.nested();
+    if (nested != null) {
+      stringArrayParam = new ArrayList<>();
+      for (ObjectMember objectMember : nested.listOfObjects()) {
+        if (objectMember != null) {
+          String key = objectMember.key();
+          if (key != null) {
+            stringArrayParam.add(key);
+          }
+        }
+      }
+    }
+    params.stringArrayParam(stringArrayParam);
+  }
+
+  private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
+      MapKeysOperationRequest request) {
+    Map<String, String> requestItems = request.requestItems();
+    List<String> stringArrayParam = new ArrayList<>();
+    if (requestItems != null) {
+      for (String key : new HashMap<>(requestItems).keySet()) {
+        if (key != null) {
+          stringArrayParam.add(key);
+        }
+      }
+    }
+    params.stringArrayParam(stringArrayParam);
+  }
+
+  private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
+      TransactionOperationRequest request) {
+    List<String> stringArrayParam = new ArrayList<>();
+    for (TransactItem transactItem : request.transactItems()) {
+      if (transactItem != null) {
+        Put put = transactItem.put();
+        if (put != null) {
+          String tableName = put.tableName();
+          if (tableName != null) {
+            stringArrayParam.add(tableName);
+          }
+        }
+        Delete delete = transactItem.delete();
+        if (delete != null) {
+          String tableName_ = delete.tableName();
+          if (tableName_ != null) {
+            stringArrayParam.add(tableName_);
+          }
+        }
+      }
+    }
+    params.stringArrayParam(stringArrayParam);
   }
 
   public static Optional<String> hostPrefix(String operationName, SdkRequest request) {

@@ -50,6 +50,30 @@
         "method": "POST",
         "requestUri": "/"
       }
+    },
+    "MapKeysOperation": {
+      "input": { "shape": "MapKeysOperationRequest" },
+      "operationContextParams": {
+        "stringArrayParam": {
+          "path": "keys(RequestItems)"
+        }
+      },
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      }
+    },
+    "TransactionOperation": {
+      "input": { "shape": "TransactionOperationRequest" },
+      "operationContextParams": {
+        "stringArrayParam": {
+          "path": "TransactItems[*].[Put.TableName, Delete.TableName][]"
+        }
+      },
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      }
     }
   },
   "shapes": {
@@ -60,13 +84,16 @@
     "ListOfObjectsOperationRequest": {
       "type": "structure",
       "members": {
-        "nested":{"shape":"Nested"}
+        "nested":{"shape":"Nested"},
+        "Request":{"shape":"Nested"}
       }
     },
     "Nested": {
       "type": "structure",
       "members": {
-        "listOfObjects":{"shape":"ListOfObjects"}
+        "listOfObjects":{"shape":"ListOfObjects"},
+        "Value":{"shape":"String"},
+        "Token":{"shape":"String", "idempotencyToken":true}
       }
     },
     "ListOfObjects": {
@@ -76,7 +103,52 @@
     "ObjectMember": {
       "type": "structure",
       "members": {
-        "key":{"shape":"String"}
+        "key":{"shape":"String"},
+        "aliases":{"shape":"StringList"}
+      }
+    },
+    "StringList": {
+      "type": "list",
+      "member":{"shape":"String"}
+    },
+    "MapKeysOperationRequest": {
+      "type": "structure",
+      "members": {
+        "RequestItems":{"shape":"StringMap"}
+      }
+    },
+    "StringMap": {
+      "type": "map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
+    "TransactionOperationRequest": {
+      "type": "structure",
+      "members": {
+        "TransactItems":{"shape":"TransactItemList"}
+      }
+    },
+    "TransactItemList": {
+      "type": "list",
+      "member":{"shape":"TransactItem"}
+    },
+    "TransactItem": {
+      "type": "structure",
+      "members": {
+        "Put":{"shape":"Put"},
+        "Delete":{"shape":"Delete"}
+      }
+    },
+    "Put": {
+      "type": "structure",
+      "members": {
+        "TableName":{"shape":"String"}
+      }
+    },
+    "Delete": {
+      "type": "structure",
+      "members": {
+        "TableName":{"shape":"String"}
       }
     },
     "String":{

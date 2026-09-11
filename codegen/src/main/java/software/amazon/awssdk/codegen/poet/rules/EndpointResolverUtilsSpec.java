@@ -24,10 +24,12 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.FieldSpec;
 import com.squareup.javapoet.MethodSpec;
+import com.squareup.javapoet.NameAllocator;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeVariableName;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +55,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.ContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointTrait;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
+import software.amazon.awssdk.codegen.model.service.OperationContextParam;
 import software.amazon.awssdk.codegen.model.service.StaticContextParam;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
@@ -90,6 +93,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
     private final EndpointParamsKnowledgeIndex endpointParamsKnowledgeIndex;
     private final PoetExtension poetExtension;
     private final JmesPathAcceptorGenerator jmesPathGenerator;
+    private final JmesPathTypedGetterGenerator jmesPathTypedGetterGenerator;
     private final boolean dependsOnHttpAuthAws;
     private final boolean multiAuthSigv4a;
     private final boolean legacyAuthFromEndpointRulesService;
@@ -100,6 +104,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
         this.endpointParamsKnowledgeIndex = EndpointParamsKnowledgeIndex.of(model);
         this.poetExtension = new PoetExtension(model);
         this.jmesPathGenerator = new JmesPathAcceptorGenerator(poetExtension.jmesPathRuntimeClass());
+        this.jmesPathTypedGetterGenerator = new JmesPathTypedGetterGenerator(model);
 
         Set<Class<?>> supportedAuthSchemes =
             ModelAuthSchemeClassesKnowledgeIndex.of(model).serviceConcreteAuthSchemeClasses();
@@ -467,26 +472,62 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
                                          .addParameter(requestClass, "request")
                                          .returns(void.class);
 
-        b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
+        Map<String, OperationContextParam> operationContextParams = opModel.getOperationContextParams();
 
-        opModel.getOperationContextParams().forEach((key, value) -> {
-            if (Objects.requireNonNull(value.getPath().asToken()) == JsonToken.VALUE_STRING) {
-                String setterName = endpointRulesSpecUtils.paramMethodName(key);
-                String jmesPathString = ((JrsString) value.getPath()).getValue();
-                CodeBlock addParam = CodeBlock.builder()
-                                              .add("params.$N(", setterName)
-                                              .add(jmesPathGenerator.interpret(jmesPathString, "input"))
-                                              .add(matchToParameterType(key))
-                                              .add(")")
-                                              .build();
-                b.addStatement(addParam);
-            } else {
+        // Validated up front rather than while lowering, so a malformed path is reported even when an earlier binding
+        // sends the operation down the reflective path.
+        for (OperationContextParam value : operationContextParams.values()) {
+            JsonToken token = Objects.requireNonNull(value.getPath().asToken());
+            if (token != JsonToken.VALUE_STRING) {
                 throw new RuntimeException("Invalid operation context parameter path for " + opModel.getOperationName() +
-                                           ". Expected VALUE_STRING, but got " + value.getPath().asToken());
+                                           ". Expected VALUE_STRING, but got " + token);
             }
-        });
+        }
 
+        List<CodeBlock> loweredBindings = new ArrayList<>();
+        NameAllocator names = jmesPathTypedGetterGenerator.newNameAllocator();
+        boolean allBindingsLowered = true;
+        for (Map.Entry<String, OperationContextParam> entry : operationContextParams.entrySet()) {
+            String key = entry.getKey();
+            OperationContextParam value = entry.getValue();
+            String jmesPathString = ((JrsString) value.getPath()).getValue();
+            String setterName = endpointRulesSpecUtils.paramMethodName(key);
+            try {
+                loweredBindings.add(jmesPathTypedGetterGenerator.lower(opModel.getInputShape(), jmesPathString,
+                                                                       operationContextParamType(key), setterName, names));
+            } catch (UnsupportedOperationException e) {
+                allBindingsLowered = false;
+                break;
+            }
+        }
+
+        if (allBindingsLowered) {
+            loweredBindings.forEach(b::addCode);
+            return b.build();
+        }
+
+        b.addStatement("$1T input = new $1T(request)", poetExtension.jmesPathRuntimeClass().nestedClass("Value"));
+        operationContextParams.forEach((key, value) -> {
+            String setterName = endpointRulesSpecUtils.paramMethodName(key);
+            String jmesPathString = ((JrsString) value.getPath()).getValue();
+            CodeBlock addParam = CodeBlock.builder()
+                                          .add("params.$N(", setterName)
+                                          .add(jmesPathGenerator.interpret(jmesPathString, "input"))
+                                          .add(matchToParameterType(key))
+                                          .add(")")
+                                          .build();
+            b.addStatement(addParam);
+        });
         return b.build();
+    }
+
+    private String operationContextParamType(String paramName) {
+        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        return parameters.entrySet().stream()
+                         .filter(e -> e.getKey().toLowerCase(Locale.US).equals(paramName.toLowerCase(Locale.US)))
+                         .map(e -> e.getValue().getType())
+                         .findFirst()
+                         .orElse(null);
     }
 
     private boolean hasOperationContextParams(OperationModel opModel) {
