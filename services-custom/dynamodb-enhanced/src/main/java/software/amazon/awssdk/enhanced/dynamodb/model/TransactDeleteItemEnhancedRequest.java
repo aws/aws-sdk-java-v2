@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.model;
 
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.createVersionCondition;
+import static software.amazon.awssdk.enhanced.dynamodb.internal.OptimisticLockingHelper.mergeConditions;
+
 import java.util.Objects;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -24,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
 
 /**
@@ -215,6 +219,22 @@ public final class TransactDeleteItemEnhancedRequest {
             return this;
         }
 
+        /**
+         * Adds optimistic locking to this transactional delete request.
+         * <p>
+         * If a {@link #conditionExpression(Expression)} was already set, this will combine it with the optimistic locking
+         * condition using {@code AND}. If either expression has conflicting name/value tokens, {@link Expression#join} will throw
+         * {@link IllegalArgumentException}.
+         *
+         * @param versionValue         the expected version value that must match for the deletion to succeed
+         * @param versionAttributeName the name of the version attribute in the DynamoDB table
+         * @return a builder of this type with optimistic locking condition applied (and merged if needed)
+         */
+        public Builder optimisticLocking(AttributeValue versionValue, String versionAttributeName) {
+            Expression optimisticLockingCondition = createVersionCondition(versionValue, versionAttributeName);
+            this.conditionExpression = mergeConditions(this.conditionExpression, optimisticLockingCondition);
+            return this;
+        }
 
         public TransactDeleteItemEnhancedRequest build() {
             return new TransactDeleteItemEnhancedRequest(this);
