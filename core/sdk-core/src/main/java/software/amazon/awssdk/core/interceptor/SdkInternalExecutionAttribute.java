@@ -40,7 +40,6 @@ import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
 import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
-import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
