@@ -2,5 +2,5 @@
     "type": "perf-improvement",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fix request-side performance regression that scaled with payload size for `query` and `ec2` protocol services where the request endpoint was re-parsed as a URI. The internal `HTTP_REQUEST_URI_BEFORE_MODIFY` execution attribute is now deprecated, read-only and computed on demand from `HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY`; it carries the scheme, host, port and path but no query string."
+    "description": "Fix request-side performance regression that scaled with payload size for `query` and `ec2` protocol services where the request endpoint was re-parsed as a URI. The internal `HTTP_REQUEST_URI_BEFORE_MODIFY` execution attribute is now deprecated and computed on demand from `HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY`; the value the SDK records carries the scheme, host, port and path but no query string."
 }

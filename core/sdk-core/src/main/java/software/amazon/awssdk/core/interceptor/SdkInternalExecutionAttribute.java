@@ -220,12 +220,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("HttpRequestEndpointBeforeModify");
 
     /**
-     * The HTTP request URI captured before modifyHttpRequest interceptors run. Read-only; setting it throws
-     * {@link UnsupportedOperationException}.
+     * The HTTP request URI captured before modifyHttpRequest interceptors run. Writing this replaces
+     * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} with the written URI's components.
      *
-     * @deprecated Use {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} instead. This is a view over that attribute, so it
-     * carries only the scheme, host, port and path: the query string is always absent, and the port is always present
-     * even when it is the protocol's default. Reading it builds a {@link URI}, which
+     * @deprecated Use {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} instead. This is a view over that attribute, so the
+     * value recorded by the SDK carries only the scheme, host, port and path: the query string is absent, and the port
+     * is present even when it is the protocol's default. Reading it builds a {@link URI}, which
      * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} lets you avoid.
      */
     @Deprecated
@@ -234,11 +234,7 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
                                           URI.class,
                                           () -> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY)
                           .readMapping(endpoint -> endpoint != null ? endpoint.toUri() : null)
-                          .writeMapping((endpoint, uri) -> {
-                              throw new UnsupportedOperationException(
-                                  "HttpRequestUriBeforeModify is a read-only view of HttpRequestEndpointBeforeModify "
-                                  + "and cannot be set.");
-                          })
+                          .writeMapping((endpoint, uri) -> uri != null ? EndpointUrl.fromUri(uri) : null)
                           .build();
 
     /**

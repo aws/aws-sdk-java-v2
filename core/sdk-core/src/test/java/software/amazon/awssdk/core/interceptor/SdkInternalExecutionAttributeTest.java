@@ -16,7 +16,6 @@
 package software.amazon.awssdk.core.interceptor;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import org.junit.jupiter.api.BeforeEach;
@@ -24,8 +23,8 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.endpoints.EndpointUrl;
 
 /**
- * Tests for the deprecated {@link SdkInternalExecutionAttribute#HTTP_REQUEST_URI_BEFORE_MODIFY}, which is a read-only
- * derived view over {@link SdkInternalExecutionAttribute#HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY}.
+ * Tests for the deprecated {@link SdkInternalExecutionAttribute#HTTP_REQUEST_URI_BEFORE_MODIFY}, which is a derived
+ * view over {@link SdkInternalExecutionAttribute#HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY}.
  */
 class SdkInternalExecutionAttributeTest {
 
@@ -75,16 +74,40 @@ class SdkInternalExecutionAttributeTest {
     }
 
     @Test
-    void httpRequestUriBeforeModify_writeIsUnsupported() {
+    void httpRequestUriBeforeModify_writeReplacesTheEndpoint() {
         attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
-        URI uri = URI.create("https://custom.example.com:8443/");
 
-        assertThatThrownBy(() -> attributes.putAttribute(
-            SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY, uri))
-            .isInstanceOf(UnsupportedOperationException.class);
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
+                                URI.create("http://custom.example.com:8443/my-path"));
 
-        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY))
-            .isSameAs(ENDPOINT);
+        EndpointUrl endpoint =
+            attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY);
+        assertThat(endpoint.scheme()).isEqualTo("http");
+        assertThat(endpoint.host()).isEqualTo("custom.example.com");
+        assertThat(endpoint.port()).isEqualTo(8443);
+        assertThat(endpoint.encodedPath()).isEqualTo("/my-path");
+    }
+
+    @Test
+    void httpRequestUriBeforeModify_writeRoundTripsExactly() {
+        // A written URI reads back unchanged, query string included, so a caller that sets this attribute sees
+        // precisely what it set.
+        URI written = URI.create("https://custom.example.com/my-path?Qualifier=prod");
+
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY, written);
+
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY))
+            .isEqualTo(written);
+    }
+
+    @Test
+    void httpRequestUriBeforeModify_writeNull_clearsTheEndpoint() {
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY, ENDPOINT);
+
+        attributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY, null);
+
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY)).isNull();
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY)).isNull();
     }
 
     @Test
