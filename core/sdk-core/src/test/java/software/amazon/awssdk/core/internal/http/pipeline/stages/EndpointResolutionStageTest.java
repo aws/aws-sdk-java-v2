@@ -17,7 +17,9 @@ package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.time.Duration;
@@ -34,9 +36,9 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.Endpoint;
-import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 class EndpointResolutionStageTest {
@@ -197,9 +199,8 @@ class EndpointResolutionStageTest {
                                                                 .host("custom.example.com")
                                                                 .port(8080)
                                                                 .encodedPath("/my-operation");
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
-                                         EndpointUrl.fromComponents("https", "myservice.amazonaws.com", 443,
-                                                                    "/my-operation"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY,
+                                         preModifyRequest("https", "myservice.amazonaws.com", null, "/my-operation"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                                          ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
@@ -224,9 +225,8 @@ class EndpointResolutionStageTest {
                                                                 .host("example.com")
                                                                 .encodedPath("/my-key");
 
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
-                                         EndpointUrl.fromComponents("https", "s3.us-west-2.amazonaws.com", 443,
-                                                                    "/my-key"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY,
+                                         preModifyRequest("https", "s3.us-west-2.amazonaws.com", null, "/my-key"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                                          ClientEndpointProvider.forEndpointOverride(clientEndpoint));
@@ -249,8 +249,8 @@ class EndpointResolutionStageTest {
                                                               .port(443)
                                                               .encodedPath("/");
         Endpoint endpoint = Endpoint.builder().url(RESOLVED_ENDPOINT).build();
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
-                                         EndpointUrl.fromComponents("https", CLIENT_ENDPOINT.getHost(), 443, "/"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY,
+                                         preModifyRequest("https", CLIENT_ENDPOINT.getHost(), null, "/"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                                          ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
@@ -270,8 +270,8 @@ class EndpointResolutionStageTest {
                                                               .port(8443)
                                                               .encodedPath("/");
         Endpoint endpoint = Endpoint.builder().url(RESOLVED_ENDPOINT).build();
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
-                                         EndpointUrl.fromComponents("https", CLIENT_ENDPOINT.getHost(), 443, "/"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY,
+                                         preModifyRequest("https", CLIENT_ENDPOINT.getHost(), null, "/"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                                          ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
@@ -281,6 +281,37 @@ class EndpointResolutionStageTest {
 
         assertThat(result.host()).isEqualTo(CLIENT_ENDPOINT.getHost());
         assertThat(result.port()).isEqualTo(8443);
+    }
+
+    @Test
+    void execute_neverBuildsUriFromSnapshottedRequest() throws Exception {
+        // Guards the query/ec2 protocol performance regression: for those protocols the snapshotted request still
+        // holds the entire payload in its raw query parameters, so getUri() would encode and re-parse the whole
+        // payload on every API call. The stage must only read the endpoint components.
+        SdkHttpRequest snapshot = mock(SdkHttpRequest.class);
+        when(snapshot.protocol()).thenReturn("https");
+        when(snapshot.host()).thenReturn(CLIENT_ENDPOINT.getHost());
+        when(snapshot.port()).thenReturn(443);
+        Endpoint endpoint = Endpoint.builder().url(RESOLVED_ENDPOINT).build();
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY, snapshot);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
+        RequestExecutionContext context = createContext();
+
+        stage.execute(defaultRequest(), context);
+
+        verify(snapshot, never()).getUri();
+    }
+
+    private static SdkHttpRequest preModifyRequest(String protocol, String host, Integer port, String encodedPath) {
+        return SdkHttpFullRequest.builder()
+                                 .method(SdkHttpMethod.GET)
+                                 .protocol(protocol)
+                                 .host(host)
+                                 .port(port)
+                                 .encodedPath(encodedPath)
+                                 .build();
     }
 
     private SdkHttpFullRequest.Builder defaultRequest() {

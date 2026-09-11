@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -114,9 +115,8 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
      * Compares the current request's host, scheme and port against the snapshot taken before interceptors ran.
      */
     private static boolean interceptorModifiedEndpoint(SdkHttpFullRequest.Builder request, ExecutionAttributes attrs) {
-        EndpointUrl preModifyEndpoint =
-            attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY);
-        if (preModifyEndpoint == null) {
+        SdkHttpRequest preModifyRequest = attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_BEFORE_MODIFY);
+        if (preModifyRequest == null) {
             return false;
         }
         String requestHost = request.host();
@@ -127,9 +127,9 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         // port when the endpoint did not specify one. The builder's port is the raw value and is null in that case,
         // which is not a modification.
         Integer requestPort = request.port();
-        return !requestHost.equals(preModifyEndpoint.host())
-               || !String.valueOf(request.protocol()).equals(preModifyEndpoint.scheme())
-               || (requestPort != null && requestPort != preModifyEndpoint.port());
+        return !requestHost.equals(preModifyRequest.host())
+               || !String.valueOf(request.protocol()).equals(preModifyRequest.protocol())
+               || (requestPort != null && requestPort != preModifyRequest.port());
     }
 
     /**

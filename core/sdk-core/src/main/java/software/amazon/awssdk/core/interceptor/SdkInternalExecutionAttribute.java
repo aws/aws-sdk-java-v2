@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
@@ -37,8 +38,8 @@ import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
-import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
+import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
@@ -212,16 +213,35 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("EndpointResolver");
 
     /**
-     * The HTTP request endpoint (scheme, host and port) captured before modifyHttpRequest interceptors run.
+     * The marshalled HTTP request captured before modifyHttpRequest interceptors run.
      * Used by EndpointResolutionStage to detect if a customer interceptor modified the endpoint.
      *
-     * <p>This is deliberately an {@link EndpointUrl} of pre-parsed components rather than a {@link java.net.URI}:
-     * {@link software.amazon.awssdk.http.SdkHttpRequest#getUri()} percent-encodes the request's query parameters and
-     * re-parses the resulting string, and for the {@code query} and {@code ec2} protocols those query parameters still
-     * hold the entire request payload at this point in the execution.
+     * <p>The request is stored as-is rather than reduced to a URI, so that reading the endpoint costs nothing but
+     * field access. {@link SdkHttpRequest#getUri()} percent-encodes the request's query parameters and re-parses the
+     * resulting string, and for the {@code query} and {@code ec2} protocols those query parameters still hold the
+     * entire request payload at this point in the execution.
      */
-    public static final ExecutionAttribute<EndpointUrl> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY =
-        new ExecutionAttribute<>("HttpRequestEndpointBeforeModify");
+    public static final ExecutionAttribute<SdkHttpRequest> HTTP_REQUEST_BEFORE_MODIFY =
+        new ExecutionAttribute<>("HttpRequestBeforeModify");
+
+    /**
+     * The HTTP request URI captured before modifyHttpRequest interceptors run.
+     *
+     * @deprecated Use {@link #HTTP_REQUEST_BEFORE_MODIFY} instead. Reading this attribute builds a {@link URI} from
+     * the snapshotted request on every read, which percent-encodes the request's query parameters and parses the
+     * result. For the {@code query} and {@code ec2} protocols those query parameters still hold the entire request
+     * payload at this point, making each read cost two passes over the whole payload.
+     */
+    @Deprecated
+    public static final ExecutionAttribute<URI> HTTP_REQUEST_URI_BEFORE_MODIFY =
+        ExecutionAttribute.derivedBuilder("HttpRequestUriBeforeModify",
+                                          URI.class,
+                                          () -> HTTP_REQUEST_BEFORE_MODIFY)
+                          .readMapping(request -> request != null ? request.getUri() : null)
+                          .writeMapping((request, uri) -> request != null && uri != null
+                                                          ? request.toBuilder().uri(uri).build()
+                                                          : request)
+                          .build();
 
     /**
      * The selected auth scheme for a request.
