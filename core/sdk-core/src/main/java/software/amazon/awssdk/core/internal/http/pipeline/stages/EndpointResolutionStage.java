@@ -123,9 +123,6 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         if (requestHost == null) {
             return false;
         }
-        // The snapshot's port is always resolved, since SdkHttpRequest#port() substitutes the protocol's standard
-        // port when the endpoint did not specify one. The builder's port is the raw value and is null in that case,
-        // which is not a modification.
         Integer requestPort = request.port();
         return !requestHost.equals(preModifyEndpoint.host())
                || !String.valueOf(request.protocol()).equals(preModifyEndpoint.scheme())

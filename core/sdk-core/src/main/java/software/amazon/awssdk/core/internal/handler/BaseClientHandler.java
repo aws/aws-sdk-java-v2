@@ -85,12 +85,9 @@ public abstract class BaseClientHandler {
         // Snapshot the HTTP request endpoint before modifyHttpRequest interceptors run.
         // EndpointResolutionStage uses this to detect if a customer interceptor modified the endpoint.
         //
-        // Only the endpoint components are captured, never a URI and never the request itself. Building a URI here
-        // would call SdkHttpRequest#getUri(), which percent-encodes the request's query parameters and then re-parses
-        // the resulting string; retaining the request would instead keep those query parameters alive until the end of
-        // the API call. For the query and ec2 protocols they hold the entire request payload at this point --
-        // QueryParametersToBodyStage only moves them into the body later, inside the request pipeline -- so either
-        // approach would cost the payload twice over, in time or in memory.
+        // Use the optimized EndpointUrl instead of an expensive URI to avoid the cost of parsing/re-parsing it.
+        // Query/EC2 protocols have the entire request payload in query params at this point which increases the time
+        // to build the URI in proportion to the size of the request.
         SdkHttpRequest marshalledRequest = executionContext.interceptorContext().httpRequest();
         executionContext.executionAttributes().putAttribute(
             SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,

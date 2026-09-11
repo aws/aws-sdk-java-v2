@@ -216,12 +216,6 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     /**
      * The HTTP request endpoint (scheme, host, port and path) captured before modifyHttpRequest interceptors run.
      * Used by EndpointResolutionStage to detect if a customer interceptor modified the endpoint.
-     *
-     * <p>Only the endpoint components are captured, never a {@link URI} and never the request itself.
-     * {@link SdkHttpRequest#getUri()} percent-encodes the request's query parameters and re-parses the resulting
-     * string, and for the {@code query} and {@code ec2} protocols those query parameters still hold the entire request
-     * payload at this point in the execution. Capturing components keeps this cheap to record and stops the snapshot
-     * from holding the payload alive for the rest of the API call.
      */
     public static final ExecutionAttribute<EndpointUrl> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY =
         new ExecutionAttribute<>("HttpRequestEndpointBeforeModify");
