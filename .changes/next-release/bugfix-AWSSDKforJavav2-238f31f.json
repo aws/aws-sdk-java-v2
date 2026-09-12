@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "Techno3d",
+    "description": "Fix a bug where an SDK Client that has a plugin which supplies a region would throw an SdkClientException stating that no region was set."
+}
