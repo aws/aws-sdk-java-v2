@@ -41,6 +41,7 @@ import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -81,11 +82,19 @@ public abstract class BaseClientHandler {
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
 
-        // Snapshot the HTTP request URI before modifyHttpRequest interceptors run.
-        // EndpointResolutionStage uses this to detect if a customer interceptor modified the URL.
+        // Snapshot the HTTP request endpoint before modifyHttpRequest interceptors run.
+        // EndpointResolutionStage uses this to detect if a customer interceptor modified the endpoint.
+        //
+        // Use the optimized EndpointUrl instead of an expensive URI to avoid the cost of parsing/re-parsing it.
+        // Query/EC2 protocols have the entire request payload in query params at this point which increases the time
+        // to build the URI in proportion to the size of the request.
+        SdkHttpRequest marshalledRequest = executionContext.interceptorContext().httpRequest();
         executionContext.executionAttributes().putAttribute(
-            SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
-            executionContext.interceptorContext().httpRequest().getUri());
+            SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+            EndpointUrl.fromComponents(marshalledRequest.protocol(),
+                                       marshalledRequest.host(),
+                                       marshalledRequest.port(),
+                                       marshalledRequest.encodedPath()));
 
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
     }
