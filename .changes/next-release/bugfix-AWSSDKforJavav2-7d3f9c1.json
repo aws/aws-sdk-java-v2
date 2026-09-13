@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "`getObject(request, path)` and other streaming-to-file downloads now validate the destination file client-side, on both sync and async clients, before sending a request. A destination that can never be written - an existing file with the default `CREATE_NEW`, or a missing file with `WRITE_TO_POSITION` - now fails immediately with an `SdkClientException` (caused by `FileAlreadyExistsException` or `NoSuchFileException`) instead of after a wasted request."
+}

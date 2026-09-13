@@ -33,6 +33,7 @@ import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
@@ -325,8 +326,15 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                          .presignedUrl(presignedUrl)
                                                                          .build();
-        assertThatThrownBy(() -> executeDownload(request, transformerType).join())
-            .hasRootCauseInstanceOf(S3Exception.class);
+        if ("toFile".equals(transformerType)) {
+            // Part 1 created the file. The 416 triggers a retry with the same CREATE_NEW file transformer, which now
+            // fails before sending a request because the destination already exists.
+            assertThatThrownBy(() -> executeDownload(request, transformerType).join())
+                .hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        } else {
+            assertThatThrownBy(() -> executeDownload(request, transformerType).join())
+                .hasRootCauseInstanceOf(S3Exception.class);
+        }
     }
 
     @ParameterizedTest(name = "presignedUrlDownload_withRangeHeader_emptyObject_shouldThrow416 [{0}]")
