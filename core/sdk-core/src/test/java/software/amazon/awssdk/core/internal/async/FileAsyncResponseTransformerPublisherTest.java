@@ -24,6 +24,7 @@ import static org.mockito.Mockito.when;
 import com.google.common.jimfs.Jimfs;
 import io.reactivex.Flowable;
 import java.nio.ByteBuffer;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -380,6 +381,48 @@ class FileAsyncResponseTransformerPublisherTest {
 
         assertThat(latch.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(exception.get()).hasMessageContaining("Content range header is missing");
+    }
+
+    @Test
+    void createNewDestinationExists_partFailsFastAndDoesNotHang() throws Exception {
+        Files.write(testFile, "already here".getBytes());
+
+        AsyncResponseTransformer<SdkResponse, SdkResponse> initialTransformer = AsyncResponseTransformer.toFile(testFile);
+        FileAsyncResponseTransformerPublisher<SdkResponse> publisher =
+            new FileAsyncResponseTransformerPublisher<>((FileAsyncResponseTransformer<SdkResponse>) initialTransformer);
+
+        CompletableFuture<SdkResponse> future = new CompletableFuture<>();
+
+        publisher.subscribe(new Subscriber<AsyncResponseTransformer<SdkResponse, SdkResponse>>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(1);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> transformer) {
+                CompletableFuture<SdkResponse> prepareFuture = transformer.prepare();
+                CompletableFutureUtils.forwardResultTo(prepareFuture, future);
+                // onResponse triggers the delegate prepare(), which fails fast because the CREATE_NEW destination
+                // already exists. The part future must complete exceptionally rather than the throw escaping the
+                // reactive callback and hanging the part.
+                transformer.onResponse(createMockResponseWithRange("bytes 0-9/10"));
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                future.completeExceptionally(t);
+            }
+
+            @Override
+            public void onComplete() {
+                // unused for test
+            }
+        });
+
+        assertThatThrownBy(() -> future.get(5, TimeUnit.SECONDS))
+            .hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        assertThat(testFile).hasContent("already here");
     }
 
 }

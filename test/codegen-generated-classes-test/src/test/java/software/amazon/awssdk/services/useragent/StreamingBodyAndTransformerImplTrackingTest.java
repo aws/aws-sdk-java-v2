@@ -19,8 +19,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.file.Files;
 import java.util.concurrent.Executors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -94,7 +96,7 @@ public class StreamingBodyAndTransformerImplTrackingTest {
 
     @Test
     public void streamingOutputOperation_syncClient_file_recordsMetadata() throws IOException {
-        callStreamingOutputOperation(syncClient(), ResponseTransformer.toFile(new RandomTempFile(0)));
+        callStreamingOutputOperation(syncClient(), ResponseTransformer.toFile(nonExistentTempFile()));
         assertThat(interceptor.userAgent()).contains("md/rt#f");
     }
 
@@ -117,8 +119,18 @@ public class StreamingBodyAndTransformerImplTrackingTest {
 
     @Test
     public void streamingOutputOperation_asyncClient_file_recordsMetadata() throws IOException {
-        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toFile(new RandomTempFile(0)));
+        callStreamingOutputOperation(asyncClient(), AsyncResponseTransformer.toFile(nonExistentTempFile()));
         assertThat(interceptor.userAgent()).contains("md/rt#f");
+    }
+
+    /**
+     * The default CREATE_NEW write option rejects a destination that already exists before sending the request, so
+     * these tests must name a file that does not exist yet.
+     */
+    private static File nonExistentTempFile() throws IOException {
+        File file = new RandomTempFile(0);
+        Files.delete(file.toPath());
+        return file;
     }
 
     @Test

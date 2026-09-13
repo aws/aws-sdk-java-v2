@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.DELETE;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior.LEAVE;
@@ -54,6 +55,7 @@ import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 
 /**
@@ -119,19 +121,19 @@ class FileAsyncResponseTransformerTest {
     }
 
     @Test
-    void noConfiguration_fileAlreadyExists_shouldThrowException() throws Exception {
+    void prepare_createNew_fileAlreadyExists_shouldThrowSynchronously() throws Exception {
         Path testPath = testFs.getPath("test_file.txt");
         String existingContent = RandomStringUtils.randomAlphanumeric(1000);
         Files.write(testPath, existingContent.getBytes(StandardCharsets.UTF_8));
         assertThat(testPath).exists();
 
-        String content = RandomStringUtils.randomAlphanumeric(30000);
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
 
-        CompletableFuture<String> future = transformer.prepare();
-        transformer.onResponse("foobar");
-        transformer.onStream(testPublisher(content));
-        assertThatThrownBy(() -> future.join()).hasRootCauseInstanceOf(FileAlreadyExistsException.class);
+        // CREATE_NEW cannot succeed against an existing destination, so prepare() fails fast, synchronously,
+        // before any request is dispatched. The pre-existing file is left untouched.
+        assertThatThrownBy(transformer::prepare)
+            .isInstanceOf(SdkClientException.class)
+            .hasRootCauseInstanceOf(FileAlreadyExistsException.class);
         assertThat(testPath).hasContent(existingContent);
     }
 
@@ -188,8 +190,10 @@ class FileAsyncResponseTransformerTest {
         assertThat(testPath).hasContent(existingString + content);
     }
 
+    // CREATE_NEW is intentionally excluded: an existing destination now fails fast in prepare() before onStream,
+    // covered by prepare_createNew_fileAlreadyExists_shouldThrowSynchronously.
     @ParameterizedTest
-    @MethodSource("deleteConfigurations")
+    @MethodSource("deleteConfigurationsExcludingCreateNew")
     void exceptionOccurred_beforeFileOpened_shouldPreserveExistingFile(FileTransformerConfiguration configuration)
         throws Exception {
         Path testPath = testFs.getPath("test_file.txt");
@@ -217,6 +221,9 @@ class FileAsyncResponseTransformerTest {
 
         String existingContent = RandomStringUtils.randomAlphanumeric(1000);
         Files.write(testPath, existingContent.getBytes(StandardCharsets.UTF_8));
+
+        // The destination is validated on the first attempt, so this retry's prepare() does not throw even though the
+        // file now exists.
         CompletableFuture<String> future = transformer.prepare();
         RuntimeException exception = new RuntimeException("oops");
         transformer.exceptionOccurred(exception);
@@ -225,6 +232,22 @@ class FileAsyncResponseTransformerTest {
                           .withThrowableOfType(ExecutionException.class)
                           .withCause(exception);
         assertThat(testPath).hasContent(existingContent);
+    }
+
+    @Test
+    void prepare_onRetryWhilePreviousAttemptFileStillExists_shouldNotThrow() throws Exception {
+        Path testPath = testFs.getPath("test_file.txt");
+        FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath);
+
+        // Attempt 1 opens the channel, which creates the file, then fails before cleanup runs (for example, an attempt
+        // timeout still cancelling in flight).
+        transformer.prepare();
+        transformer.onResponse("foobar");
+        transformer.onStream(s -> s.onSubscribe(new NoopSubscription(s)));
+        assertThat(testPath).exists();
+
+        // Attempt 2: the retry's prepare() must not reject the file created by attempt 1.
+        assertThatCode(transformer::prepare).doesNotThrowAnyException();
     }
 
     @Test
@@ -272,9 +295,12 @@ class FileAsyncResponseTransformerTest {
         }
     }
 
-    private static List<FileTransformerConfiguration> deleteConfigurations() {
+    private static List<FileTransformerConfiguration> deleteConfigurationsExcludingCreateNew() {
         List<FileTransformerConfiguration> conf = new ArrayList<>();
         for (FileWriteOption fileWriteOption : FileWriteOption.values()) {
+            if (fileWriteOption == FileWriteOption.CREATE_NEW) {
+                continue;
+            }
             conf.add(FileTransformerConfiguration.builder()
                                                  .fileWriteOption(fileWriteOption)
                                                  .failureBehavior(DELETE)
@@ -351,7 +377,7 @@ class FileAsyncResponseTransformerTest {
     }
 
     @Test
-    void writeToPosition_fileDoesNotExists_shouldThrowException() throws Exception {
+    void prepare_writeToPosition_fileDoesNotExist_shouldThrowSynchronously() throws Exception {
         Path path = testFs.getPath("this/file/does/not/exists");
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(
             path,
@@ -360,12 +386,12 @@ class FileAsyncResponseTransformerTest {
                                         .failureBehavior(DELETE)
                                         .fileWriteOption(FileWriteOption.WRITE_TO_POSITION)
                                         .build());
-        CompletableFuture<?> future = transformer.prepare();
-        transformer.onResponse("foobar");
-        assertThatThrownBy(() -> {
-            transformer.onStream(testPublisher("foo-bar-content"));
-            future.get(10, TimeUnit.SECONDS);
-        }).hasRootCauseInstanceOf(NoSuchFileException.class);
+
+        // WRITE_TO_POSITION requires the destination to already exist, so prepare() fails fast, synchronously,
+        // before any request is dispatched.
+        assertThatThrownBy(transformer::prepare)
+            .isInstanceOf(SdkClientException.class)
+            .hasRootCauseInstanceOf(NoSuchFileException.class);
     }
 
     @Test
@@ -424,7 +450,7 @@ class FileAsyncResponseTransformerTest {
     }
 
     @Test
-    void writeToPosition_fileDoesNotExist_throwsWithHelpfulMessage() {
+    void prepare_writeToPosition_fileDoesNotExistInExistingDirectory_shouldThrowSynchronously() {
         Path testPath = testFs.getPath("nonexistent_file.txt");
         FileAsyncResponseTransformer<String> transformer = new FileAsyncResponseTransformer<>(testPath,
             FileTransformerConfiguration.builder()
@@ -432,13 +458,9 @@ class FileAsyncResponseTransformerTest {
                                         .fileWriteOption(FileWriteOption.WRITE_TO_POSITION)
                                         .build());
 
-        CompletableFuture<String> future = transformer.prepare();
-        transformer.onResponse("foobar");
-        transformer.onStream(testPublisher("content"));
-
-        assertThat(future).failsWithin(1, TimeUnit.SECONDS)
-                          .withThrowableOfType(ExecutionException.class)
-                          .withCauseInstanceOf(NoSuchFileException.class);
+        assertThatThrownBy(transformer::prepare)
+            .isInstanceOf(SdkClientException.class)
+            .hasRootCauseInstanceOf(NoSuchFileException.class);
     }
 
     private static void stubSuccessfulStreaming(String newContent, FileAsyncResponseTransformer<String> transformer) throws Exception {

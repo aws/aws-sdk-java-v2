@@ -35,6 +35,7 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.CombinedResponseHandler;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.sync.ValidatingResponseTransformer;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -60,6 +61,11 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         ResponseTransformer<OutputT, ReturnT> responseTransformer) {
 
         return measureApiCall(executionParams, () -> {
+            // Let the transformer reject the call before it costs a request. Async does this in prepare().
+            if (responseTransformer instanceof ValidatingResponseTransformer) {
+                ((ValidatingResponseTransformer<?>) responseTransformer).validate();
+            }
+
             // Running beforeExecution interceptors and modifyRequest interceptors.
             ExecutionContext executionContext = invokeInterceptorsAndCreateExecutionContext(executionParams);
 

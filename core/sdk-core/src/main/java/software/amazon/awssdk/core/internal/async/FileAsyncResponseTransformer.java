@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_NEW;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.CREATE_OR_APPEND_TO_EXISTING;
 import static software.amazon.awssdk.core.FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
@@ -24,6 +25,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousFileChannel;
 import java.nio.channels.CompletionHandler;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.OpenOption;
@@ -139,6 +141,12 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public CompletableFuture<ResponseT> prepare() {
+        // Validate on the first attempt only. Opening the channel in attempt 1 creates the file, so on a retry the
+        // file already exists and validating again would wrongly reject it.
+        // Throw synchronously instead of failing the future: the pipeline dispatches regardless of the future's state.
+        if (cf == null) {
+            validateDestination();
+        }
         fileChannel = null;
         cf = new CompletableFuture<>();
         cf.whenComplete((r, t) -> {
@@ -149,6 +157,21 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
             }
         });
         return cf.thenApply(ignored -> response);
+    }
+
+    /**
+     * Throws if the destination cannot be written: it already exists for CREATE_NEW, or is missing for
+     * WRITE_TO_POSITION.
+     */
+    private void validateDestination() {
+        if (configuration.fileWriteOption() == CREATE_NEW && Files.exists(path)) {
+            throw SdkClientException.create("Cannot write to the existing file " + path + " with file write option "
+                                            + CREATE_NEW, new FileAlreadyExistsException(path.toString()));
+        }
+        if (configuration.fileWriteOption() == WRITE_TO_POSITION && Files.notExists(path)) {
+            throw SdkClientException.create("Cannot write to the missing file " + path + " with file write option "
+                                            + WRITE_TO_POSITION, new NoSuchFileException(path.toString()));
+        }
     }
 
     @Override
