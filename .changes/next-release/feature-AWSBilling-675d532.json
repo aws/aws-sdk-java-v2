@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Billing",
+    "contributor": "",
+    "description": "Increased the maximum number of services returned in the supportEligibleSpendByService field of ListEnterpriseSupportLinkedAccountCharges"
+}
