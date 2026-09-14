@@ -340,6 +340,14 @@ number tag a numeric attribute in the TableSchema:
     public Integer getVersion() {...};
     public void setVersion(Integer version) {...};
 ```
+
+To enable optimistic locking on delete operations, set `useVersionOnDelete = true`:
+```java
+    @DynamoDbVersionAttribute(useVersionOnDelete = true)
+    public Integer getVersion() {...};
+    public void setVersion(Integer version) {...};
+```
+
 Or using a StaticTableSchema:
 ```java
     .addAttribute(Integer.class, a -> a.name("version")
@@ -347,6 +355,15 @@ Or using a StaticTableSchema:
                                        .setter(Customer::setVersion)
                                         // Apply the 'version' tag to the attribute
                                        .tags(versionAttribute())                         
+```
+
+For delete optimistic locking with StaticTableSchema:
+```java
+    .addAttribute(Integer.class, a -> a.name("version")
+                                       .getter(Customer::getVersion)
+                                       .setter(Customer::setVersion)
+                                        // Apply the 'version' tag with delete locking enabled
+                                       .tags(versionAttribute(0L, 1L, true))                         
 ```
 
 ### AtomicCounterExtension
