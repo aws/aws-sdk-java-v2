@@ -1,4 +1,36 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.18__ __2026-09-14__
+## __AWS Billing__
+  - ### Features
+    - Increased the maximum number of services returned in the supportEligibleSpendByService field of ListEnterpriseSupportLinkedAccountCharges
+
+## __AWS CodeDeploy__
+  - ### Features
+    - AWS CodeDeploy now returns the deployment mode on GetDeployment and BatchGetDeployments. The new deploymentMode field on DeploymentInfo indicates whether a deployment used the standard deployment process or restarted the application using a previously installed revision (RESTART mode).
+
+## __AWS Glue__
+  - ### Features
+    - Amazon Glue releasing the new API ListIntegrationTableProperties and adding IntegrationArn to TargetTableConfig
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Performance Improvements
+    - Fix request-side performance regression that scaled with payload size for `query` and `ec2` protocol services where the request endpoint was re-parsed as a URI. The internal `HTTP_REQUEST_URI_BEFORE_MODIFY` execution attribute is now deprecated and computed on demand from `HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY`; the value the SDK records carries the scheme, host, port and path but no query string.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Increases the maximum session token size to 4,096 bytes and removes the packed policy size limit. Adds SessionTokenSize and SessionTokenUtilization fields and a new MinimumSessionTokenSize parameter. PackedPolicySize is deprecated.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds support for custom volume tiering. You can now define custom tiers on a pricing rule's tiering configuration, where each tier specifies a usage range and the rate applied to usage in that range.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds a dryRun option to Image Builder create APIs (except CreateImage), structured failure context on failed images including component and distribution failure details, and step retry attempt tracking.
+
 # __2.54.17__ __2026-09-11__
 ## __AWS Batch__
   - ### Features
