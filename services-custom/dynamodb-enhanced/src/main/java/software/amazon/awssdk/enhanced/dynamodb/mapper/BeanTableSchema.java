@@ -192,8 +192,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         return newTableSchema;
     }
 
-    // Called when creating an immutable TableSchema recursively. Utilizes the MetaTableSchema cache to stop infinite
-    // recursion
+    // Called when creating a bean TableSchema recursively. Utilizes the MetaTableSchema cache to stop infinite
+    // recursion for self-referencing and mutually recursive schemas.
     static <T> TableSchema<T> recursiveCreate(Class<T> beanClass, MethodHandles.Lookup lookup,
                                               MetaTableSchemaCache metaTableSchemaCache) {
         Optional<MetaTableSchema<T>> metaTableSchema = metaTableSchemaCache.get(beanClass);
@@ -211,7 +211,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         }
 
         // Otherwise: cache doesn't know about this class; create a new one from scratch
-        return create(BeanTableSchemaParams.builder(beanClass).lookup(lookup).build());
+        return create(BeanTableSchemaParams.builder(beanClass).lookup(lookup).build(), metaTableSchemaCache,
+                      ExecutionContext.ROOT);
 
     }
 
@@ -603,4 +604,3 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
         BEAN_TABLE_SCHEMA_CACHE.clear();
     }
 }
-
