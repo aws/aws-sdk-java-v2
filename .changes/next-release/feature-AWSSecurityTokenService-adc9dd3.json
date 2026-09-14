@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Token Service",
+    "contributor": "",
+    "description": "Increases the maximum session token size to 4,096 bytes and removes the packed policy size limit. Adds SessionTokenSize and SessionTokenUtilization fields and a new MinimumSessionTokenSize parameter. PackedPolicySize is deprecated."
+}
