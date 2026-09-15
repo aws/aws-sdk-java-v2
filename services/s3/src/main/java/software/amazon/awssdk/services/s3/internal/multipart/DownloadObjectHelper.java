@@ -25,6 +25,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public class DownloadObjectHelper {
@@ -89,8 +90,10 @@ public class DownloadObjectHelper {
         log.debug(() -> {
             String reason = "";
             if (getObjectRequest.range() != null) {
+                // The range is caller-controlled free text, so percent-encode it. That way it cannot inject
+                // line breaks or control characters into this log record.
                 reason = " because getObjectRequest range is included in the request."
-                         + " range = " + getObjectRequest.range();
+                         + " range (percent-encoded) = '" + SdkHttpUtils.urlEncode(getObjectRequest.range()) + "'";
             } else if (getObjectRequest.partNumber() != null) {
                 reason = " because getObjectRequest part number is included in the request."
                          + " part number = " + getObjectRequest.partNumber();

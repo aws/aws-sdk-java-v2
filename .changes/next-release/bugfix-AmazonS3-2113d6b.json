@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Percent-encode the caller-supplied `Range` value that the multipart S3 async client and the presigned-URL download helper write to their DEBUG log message."
+}

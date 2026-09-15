@@ -29,6 +29,7 @@ import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtensio
 import software.amazon.awssdk.services.s3.presignedurl.model.PresignedUrlDownloadRequest;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.http.SdkHttpUtils;
 
 @SdkInternalApi
 public class PresignedUrlDownloadHelper {
@@ -58,8 +59,9 @@ public class PresignedUrlDownloadHelper {
         Validate.paramNotNull(asyncResponseTransformer, "asyncResponseTransformer");
 
         if (presignedRequest.range() != null) {
-            log.debug(() -> "Using single part download because presigned URL request range is included in the request. range = "
-                            + presignedRequest.range());
+            // Percent-encoded for the same reason as DownloadObjectHelper: caller-controlled value in a log record.
+            log.debug(() -> "Using single part download because presigned URL request range is included in the request."
+                            + " range (percent-encoded) = '" + SdkHttpUtils.urlEncode(presignedRequest.range()) + "'");
             return asyncPresignedUrlExtension.getObject(presignedRequest, asyncResponseTransformer);
         }
 
