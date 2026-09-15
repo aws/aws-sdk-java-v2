@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 import org.junit.Test;
@@ -42,5 +43,19 @@ public class DynamoDBMapperConfigTest {
         assertNotNull(DynamoDBMapperConfig.DEFAULT.getBatchLoadRetryStrategy());
         assertNotNull(DynamoDBMapperConfig.DEFAULT.getTypeConverterFactory());
         assertNotNull(DynamoDBMapperConfig.DEFAULT.getConversionSchema());
+        assertEquals(DynamoDBMapperConfig.ByteBufferReadBehavior.MUTABLE_COPY,
+                     DynamoDBMapperConfig.DEFAULT.getByteBufferReadBehavior());
+    }
+
+    @Test
+    public void byteBufferReadBehaviorCanBeConfiguredAndMerged() {
+        DynamoDBMapperConfig readOnly = DynamoDBMapperConfig.builder()
+            .withByteBufferReadBehavior(DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY)
+            .build();
+
+        assertEquals(DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY,
+                     readOnly.getByteBufferReadBehavior());
+        assertEquals(DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY,
+                     DynamoDBMapperConfig.DEFAULT.merge(readOnly).getByteBufferReadBehavior());
     }
 }

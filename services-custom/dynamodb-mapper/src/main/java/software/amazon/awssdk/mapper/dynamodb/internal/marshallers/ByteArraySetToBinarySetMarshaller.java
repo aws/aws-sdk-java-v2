@@ -53,6 +53,6 @@ public class ByteArraySetToBinarySetMarshaller
             attributes.add(SdkBytes.fromByteArray(b));
         }
 
-        return AttributeValue.builder().bs(attributes).build();
+        return AttributeValue.createBs(attributes);
     }
 }

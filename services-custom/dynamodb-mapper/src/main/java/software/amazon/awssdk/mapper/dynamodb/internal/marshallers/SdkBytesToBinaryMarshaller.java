@@ -16,35 +16,27 @@
 package software.amazon.awssdk.mapper.dynamodb.internal.marshallers;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.NumberAttributeMarshaller;
+import software.amazon.awssdk.core.SdkBytes;
+import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * A legacy marshaller that marshals Java {@code Booleans} into DynamoDB
- * Numbers, representing {@code true} as '1' and {@code false} as '0'. Retained
- * for backwards compatibility with older versions of the mapper which don't
- * know about the DynamoDB BOOL type.
+ * Marshals immutable {@link SdkBytes} values into DynamoDB binary attributes.
  */
 @SdkInternalApi
-public class BooleanToNumberMarshaller implements NumberAttributeMarshaller {
+public final class SdkBytesToBinaryMarshaller implements BinaryAttributeMarshaller {
 
-    private static final BooleanToNumberMarshaller INSTANCE =
-            new BooleanToNumberMarshaller();
+    private static final SdkBytesToBinaryMarshaller INSTANCE = new SdkBytesToBinaryMarshaller();
 
-    public static BooleanToNumberMarshaller instance() {
+    public static SdkBytesToBinaryMarshaller instance() {
         return INSTANCE;
     }
 
-    private BooleanToNumberMarshaller() {
+    private SdkBytesToBinaryMarshaller() {
     }
 
     @Override
     public AttributeValue marshall(Object obj) {
-        Boolean bool = (Boolean) obj;
-        if (bool == null || bool == false) {
-            return AttributeValue.createN("0");
-        } else {
-            return AttributeValue.createN("1");
-        }
+        return AttributeValue.createB((SdkBytes) obj);
     }
 }

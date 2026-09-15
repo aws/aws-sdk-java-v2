@@ -51,7 +51,7 @@ public class CustomMarshaller implements StringAttributeMarshaller {
         if (stringValue == null) {
             return null;
         } else {
-            return AttributeValue.builder().s(stringValue).build();
+            return AttributeValue.createS(stringValue);
         }
     }
 

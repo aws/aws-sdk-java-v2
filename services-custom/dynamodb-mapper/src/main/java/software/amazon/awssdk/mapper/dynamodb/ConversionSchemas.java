@@ -48,6 +48,8 @@ import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.NumberToNumbe
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectSetToStringSetMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToMapMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ObjectToStringMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.SdkBytesSetToBinarySetMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.SdkBytesToBinaryMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.S3LinkToStringMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringSetToStringSetMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.StringToStringMarshaller;
@@ -85,10 +87,13 @@ import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ObjectUnmar
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.S3LinkUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ShortUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.SdkBytesSetUnmarshaller;
+import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.SdkBytesUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.StringUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.UUIDSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.UUIDUnmarshaller;
+import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 import software.amazon.awssdk.utils.Logger;
@@ -875,6 +880,8 @@ public final class ConversionSchemas {
     private static void addStandardBinaryMarshallers(
             List<Pair<ArgumentMarshaller>> list) {
 
+        list.add(Pair.of(SdkBytes.class,
+                SdkBytesToBinaryMarshaller.instance()));
         list.add(Pair.of(ByteBuffer.class,
                 ByteBufferToBinaryMarshaller.instance()));
         list.add(Pair.of(byte[].class,
@@ -929,6 +936,8 @@ public final class ConversionSchemas {
     private static void addStandardBinarySetMarshallers(
             List<Pair<ArgumentMarshaller>> list) {
 
+        list.add(Pair.of(SdkBytes.class,
+                SdkBytesSetToBinarySetMarshaller.instance()));
         list.add(Pair.of(ByteBuffer.class,
                 ByteBufferSetToBinarySetMarshaller.instance()));
         list.add(Pair.of(byte[].class,
@@ -1073,6 +1082,7 @@ public final class ConversionSchemas {
             list.add(Pair.of(Date.class, DateUnmarshaller.instance()));
             list.add(Pair.of(Calendar.class, CalendarUnmarshaller.instance()));
 
+            list.add(Pair.of(SdkBytes.class, SdkBytesUnmarshaller.instance()));
             list.add(Pair.of(ByteBuffer.class,
                     ByteBufferUnmarshaller.instance()));
             list.add(Pair.of(byte[].class,
@@ -1125,6 +1135,7 @@ public final class ConversionSchemas {
             list.add(Pair.of(Calendar.class,
                     CalendarSetUnmarshaller.instance()));
 
+            list.add(Pair.of(SdkBytes.class, SdkBytesSetUnmarshaller.instance()));
             list.add(Pair.of(ByteBuffer.class,
                     ByteBufferSetUnmarshaller.instance()));
             list.add(Pair.of(byte[].class,
