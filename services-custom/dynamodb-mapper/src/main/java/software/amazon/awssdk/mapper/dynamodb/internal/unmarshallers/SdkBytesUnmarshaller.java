@@ -13,34 +13,28 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.mapper.dynamodb.internal.marshallers;
+package software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import java.nio.ByteBuffer;
-
-import software.amazon.awssdk.mapper.dynamodb.ArgumentMarshaller.BinaryAttributeMarshaller;
-import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
- * A marshaller that marshals Java {@code byte[]}s into DynamoDB Binary
- * attributes.
+ * Unmarshals DynamoDB binary values as immutable {@code SdkBytes} values.
  */
 @SdkInternalApi
-public class ByteArrayToBinaryMarshaller implements BinaryAttributeMarshaller {
+public final class SdkBytesUnmarshaller extends BUnmarshaller {
 
-    private static final ByteArrayToBinaryMarshaller INSTANCE =
-            new ByteArrayToBinaryMarshaller();
+    private static final SdkBytesUnmarshaller INSTANCE = new SdkBytesUnmarshaller();
 
-    public static ByteArrayToBinaryMarshaller instance() {
+    public static SdkBytesUnmarshaller instance() {
         return INSTANCE;
     }
 
-    private ByteArrayToBinaryMarshaller() {
+    private SdkBytesUnmarshaller() {
     }
 
     @Override
-    public AttributeValue marshall(Object obj) {
-        return AttributeValue.createB(SdkBytes.fromByteArray((byte[]) obj));
+    public Object unmarshall(AttributeValue value) {
+        return value.b();
     }
 }

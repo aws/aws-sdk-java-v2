@@ -43,6 +43,6 @@ public class StringToStringMarshaller implements StringAttributeMarshaller {
             return null;
         }
 
-        return AttributeValue.builder().s(string).build();
+        return AttributeValue.createS(string);
     }
 }
