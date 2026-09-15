@@ -8,6 +8,13 @@ JMH configurations tailored to SDK's build job and you might need to
 adjust them based on your test environment such as increasing warmup iterations
 or measurement time in order to get more reliable data.
 
+## DynamoDB suite (manual)
+
+New DynamoDB Tier C (mocked pipeline) and Tier D (live) benchmarks live under
+`software.amazon.awssdk.benchmark.dynamodb`. They are **manual-only** and are not
+selected by `BenchmarkRunner` / CI. See **[DYNAMODB.md](DYNAMODB.md)** for tiers,
+inventory, commands, live opt-in, and interpretation notes.
+
 There are three ways to run benchmarks.
 
 - Using the executable JAR (Preferred usage per JMH site)
