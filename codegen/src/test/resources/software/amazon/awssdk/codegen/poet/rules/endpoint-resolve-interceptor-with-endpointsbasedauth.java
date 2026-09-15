@@ -81,8 +81,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                     AuthSchemeOption.Builder optionBuilder = selectedAuthScheme.authSchemeOption().toBuilder();
                     RegionSet regionSet = RegionSet.create(endpointParams.region().id());
                     optionBuilder.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet);
-                    selectedAuthScheme = new SelectedAuthScheme(selectedAuthScheme.identity(), selectedAuthScheme.signer(),
-                                                                optionBuilder.build());
+                    selectedAuthScheme = selectedAuthScheme.toBuilder().authSchemeOption(optionBuilder.build()).build();
                 }
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
@@ -172,7 +171,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 if (v4AuthScheme.signingName() != null) {
                     option.putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, v4AuthScheme.signingName());
                 }
-                return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build());
+                return SelectedAuthScheme.<T>builder().identity(selectedAuthScheme.identity()).signer(selectedAuthScheme.signer()).authSchemeOption(option.build()).identityProvider(selectedAuthScheme.identityProvider()).build();
             }
             if (endpointAuthScheme instanceof SigV4aAuthScheme) {
                 SigV4aAuthScheme v4aAuthScheme = (SigV4aAuthScheme) endpointAuthScheme;
@@ -188,7 +187,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 if (v4aAuthScheme.signingName() != null) {
                     option.putSignerProperty(AwsV4aHttpSigner.SERVICE_SIGNING_NAME, v4aAuthScheme.signingName());
                 }
-                return new SelectedAuthScheme<>(selectedAuthScheme.identity(), selectedAuthScheme.signer(), option.build());
+                return SelectedAuthScheme.<T>builder().identity(selectedAuthScheme.identity()).signer(selectedAuthScheme.signer()).authSchemeOption(option.build()).identityProvider(selectedAuthScheme.identityProvider()).build();
             }
             throw new IllegalArgumentException("Endpoint auth scheme '" + endpointAuthScheme.name()
                                                + "' cannot be mapped to the SDK auth scheme. Was it declared in the service's model?");

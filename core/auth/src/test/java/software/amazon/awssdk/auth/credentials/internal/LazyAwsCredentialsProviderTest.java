@@ -15,11 +15,13 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 public class LazyAwsCredentialsProviderTest {
@@ -75,4 +77,27 @@ public class LazyAwsCredentialsProviderTest {
 
     private interface CloseableSupplier extends Supplier<AwsCredentialsProvider>, SdkAutoCloseable {}
     private interface CloseableCredentialsProvider extends SdkAutoCloseable, AwsCredentialsProvider {}
+
+    @Test
+    public void invalidate_whenInitialized_delegatesToInner() {
+        LazyAwsCredentialsProvider credentialsProvider = LazyAwsCredentialsProvider.create(credentialsConstructor);
+        credentialsProvider.resolveCredentials();
+
+        AwsCredentialsIdentity identity = Mockito.mock(AwsCredentialsIdentity.class);
+        Mockito.when(credentials.invalidate(identity)).thenReturn(CompletableFuture.completedFuture(null));
+
+        credentialsProvider.invalidate(identity);
+
+        Mockito.verify(credentials).invalidate(identity);
+    }
+
+    @Test
+    public void invalidate_whenNotInitialized_doesNotInvokeSupplier() {
+        LazyAwsCredentialsProvider credentialsProvider = LazyAwsCredentialsProvider.create(credentialsConstructor);
+
+        AwsCredentialsIdentity identity = Mockito.mock(AwsCredentialsIdentity.class);
+        credentialsProvider.invalidate(identity);
+
+        Mockito.verifyNoMoreInteractions(credentialsConstructor);
+    }
 }
