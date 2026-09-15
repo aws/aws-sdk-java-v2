@@ -43,11 +43,18 @@ import software.amazon.awssdk.services.dynamodb.model.UpdateItemResponse;
 @State(Scope.Benchmark)
 public class EnhancedClientUpdateV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
+    private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
+    private static final V2MapperSdkBytesItemFactory V2_MAPPER_SDK_BYTES_ITEM_FACTORY =
+            new V2MapperSdkBytesItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
     private static final DynamoDBMapperConfig MAPPER_CONFIG =
         DynamoDBMapperConfig.builder()
                             .withSaveBehavior(DynamoDBMapperConfig.SaveBehavior.UPDATE)
                             .build();
+    private static final software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig V2_MAPPER_CONFIG =
+        software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.builder()
+            .withSaveBehavior(software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior.UPDATE)
+            .build();
 
     @Benchmark
     public void v2Update(TestState s) {
@@ -57,6 +64,16 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
     @Benchmark
     public void v1Update(TestState s) {
         s.v1DdbMapper.save(s.testItem.v1Bean);
+    }
+
+    @Benchmark
+    public void v2MapperUpdate(TestState s) {
+        s.v2DdbMapper.save(s.testItem.v2MapperBean);
+    }
+
+    @Benchmark
+    public void v2MapperUpdateSdkBytes(TestState s) {
+        s.v2DdbMapper.save(s.testItem.v2MapperSdkBytesBean);
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh, UpdateItemResponse updateItemResponse) {
@@ -74,15 +91,17 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
 
         private DynamoDbTable v2Table;
         private DynamoDBMapper v1DdbMapper;
-
+        private software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper v2DdbMapper;
 
         @Setup
         public void setup(Blackhole bh) {
+            DynamoDbClient v2Client = getV2Client(bh, testItem.v2UpdateItemResponse);
             DynamoDbEnhancedClient v2DdbEnh = DynamoDbEnhancedClient.builder()
-                    .dynamoDbClient(getV2Client(bh, testItem.v2UpdateItemResponse))
+                    .dynamoDbClient(v2Client)
                     .build();
 
             v2Table = v2DdbEnh.table(testItem.name(), testItem.schema);
+            v2DdbMapper = new software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper(v2Client, V2_MAPPER_CONFIG);
 
             v1DdbMapper = new DynamoDBMapper(getV1Client(bh, testItem.v1UpdateItemResult), MAPPER_CONFIG);
         }
@@ -92,6 +111,8 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
                     V2ItemFactory.TINY_BEAN_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.tinyBean(),
                     UpdateItemResponse.builder().attributes(V2_ITEM_FACTORY.tiny()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperTinyBean(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperTinyBean(),
 
                     V1_ITEM_FACTORY.v1TinyBean(),
                     new UpdateItemResult().withAttributes(V1_ITEM_FACTORY.tiny())
@@ -101,6 +122,8 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
                     V2ItemFactory.SMALL_BEAN_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.smallBean(),
                     UpdateItemResponse.builder().attributes(V2_ITEM_FACTORY.small()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperSmallBean(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperSmallBean(),
 
                     V1_ITEM_FACTORY.v1SmallBean(),
                     new UpdateItemResult().withAttributes(V1_ITEM_FACTORY.small())
@@ -110,6 +133,8 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
                     V2ItemFactory.HUGE_BEAN_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.hugeBean(),
                     UpdateItemResponse.builder().attributes(V2_ITEM_FACTORY.huge()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperHugeBean(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBean(),
 
                     V1_ITEM_FACTORY.v1hugeBean(),
                     new UpdateItemResult().withAttributes(V1_ITEM_FACTORY.huge())
@@ -119,6 +144,8 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
                     V2ItemFactory.HUGE_BEAN_FLAT_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.hugeBeanFlat(),
                     UpdateItemResponse.builder().attributes(V2_ITEM_FACTORY.hugeFlat()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperHugeBeanFlat(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBeanFlat(),
 
                     V1_ITEM_FACTORY.v1HugeBeanFlat(),
                     new UpdateItemResult().withAttributes(V1_ITEM_FACTORY.hugeFlat())
@@ -129,20 +156,26 @@ public class EnhancedClientUpdateV1MapperComparisonBenchmark {
             private TableSchema schema;
             private Object v2Bean;
             private UpdateItemResponse v2UpdateItemResponse;
+            private Object v2MapperBean;
+            private Object v2MapperSdkBytesBean;
 
             // V1
             private Object v1Bean;
             private UpdateItemResult v1UpdateItemResult;
 
             TestItem(TableSchema<?> schema,
-                             Object v2Bean,
-                             UpdateItemResponse v2UpdateItemResponse,
+                     Object v2Bean,
+                     UpdateItemResponse v2UpdateItemResponse,
+                     Object v2MapperBean,
+                     Object v2MapperSdkBytesBean,
 
-                             Object v1Bean,
+                     Object v1Bean,
                              UpdateItemResult v1UpdateItemResult) {
                 this.schema = schema;
                 this.v2Bean = v2Bean;
                 this.v2UpdateItemResponse = v2UpdateItemResponse;
+                this.v2MapperBean = v2MapperBean;
+                this.v2MapperSdkBytesBean = v2MapperSdkBytesBean;
 
                 this.v1Bean = v1Bean;
                 this.v1UpdateItemResult = v1UpdateItemResult;

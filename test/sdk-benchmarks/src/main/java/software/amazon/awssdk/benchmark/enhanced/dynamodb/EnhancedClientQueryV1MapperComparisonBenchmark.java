@@ -47,6 +47,8 @@ import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 public class EnhancedClientQueryV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
     private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
+    private static final V2MapperSdkBytesItemFactory V2_MAPPER_SDK_BYTES_ITEM_FACTORY =
+            new V2MapperSdkBytesItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
 
     @Benchmark
@@ -60,7 +62,7 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
     }
 
     @Benchmark
-    public Object v2MapperQueryDefaultByteBuffer(TestState s) {
+    public Object v2MapperQuery(TestState s) {
         return s.v2DdbMapper.query(s.testItem.getV2MapperBeanClass(), s.v2MapperQueryExpression).iterator().next();
     }
 
@@ -68,6 +70,12 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
     public Object v2MapperQueryReadOnlyByteBuffer(TestState s) {
         return s.v2ReadOnlyDdbMapper.query(
                 s.testItem.getV2MapperBeanClass(), s.v2MapperQueryExpression).iterator().next();
+    }
+
+    @Benchmark
+    public Object v2MapperQuerySdkBytes(TestState s) {
+        return s.v2DdbMapper.query(
+                s.testItem.getV2MapperSdkBytesBeanClass(), s.v2MapperSdkBytesQueryExpression).iterator().next();
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh, QueryResponse queryResponse) {
@@ -88,6 +96,7 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
         private software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper v2DdbMapper;
         private software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper v2ReadOnlyDdbMapper;
         private software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression v2MapperQueryExpression;
+        private software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression v2MapperSdkBytesQueryExpression;
 
         private final Key key = Key.builder().partitionValue("key").build();
 
@@ -109,6 +118,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                             .build());
             v2MapperQueryExpression = new software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression()
                     .withHashKeyValues(testItem.v2MapperKey);
+            v2MapperSdkBytesQueryExpression = new software.amazon.awssdk.mapper.dynamodb.DynamoDBQueryExpression()
+                    .withHashKeyValues(testItem.v2MapperSdkBytesKey);
 
             v1DdbMapper = new DynamoDBMapper(getV1Client(bh, testItem.v1Response));
         }
@@ -123,6 +134,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                                 .build(),
                     V2MapperItemFactory.V2MapperTinyBean.class,
                     V2_MAPPER_ITEM_FACTORY.v2MapperTinyBean(),
+                    V2MapperSdkBytesItemFactory.V2MapperTinyBean.class,
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperTinyBean(),
 
                     V1ItemFactory.V1TinyBean.class,
                     new DynamoDBQueryExpression().withHashKeyValues(new V1ItemFactory.V1TinyBean("hashKey")),
@@ -138,6 +151,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                                 .build(),
                     V2MapperItemFactory.V2MapperSmallBean.class,
                     V2_MAPPER_ITEM_FACTORY.v2MapperSmallBean(),
+                    V2MapperSdkBytesItemFactory.V2MapperSmallBean.class,
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperSmallBean(),
 
                     V1ItemFactory.V1SmallBean.class,
                     new DynamoDBQueryExpression().withHashKeyValues(new V1ItemFactory.V1SmallBean("hashKey")),
@@ -154,6 +169,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                                 .build(),
                     V2MapperItemFactory.V2MapperHugeBean.class,
                     V2_MAPPER_ITEM_FACTORY.v2MapperHugeBean(),
+                    V2MapperSdkBytesItemFactory.V2MapperHugeBean.class,
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBean(),
 
                     V1ItemFactory.V1HugeBean.class,
                     new DynamoDBQueryExpression().withHashKeyValues(new V1ItemFactory.V1HugeBean("hashKey")),
@@ -170,6 +187,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                                 .build(),
                     V2MapperItemFactory.V2MapperHugeBeanFlat.class,
                     V2_MAPPER_ITEM_FACTORY.v2MapperHugeBeanFlat(),
+                    V2MapperSdkBytesItemFactory.V2MapperHugeBeanFlat.class,
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBeanFlat(),
 
                     V1ItemFactory.V1HugeBeanFlat.class,
                     new DynamoDBQueryExpression().withHashKeyValues(new V1ItemFactory.V1HugeBeanFlat("hashKey")),
@@ -183,6 +202,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
             private QueryResponse v2Response;
             private Class<?> v2MapperBeanClass;
             private Object v2MapperKey;
+            private Class<?> v2MapperSdkBytesBeanClass;
+            private Object v2MapperSdkBytesKey;
 
             // V1
             private Class<?> v1BeanClass;
@@ -193,6 +214,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                      QueryResponse v2Response,
                      Class<?> v2MapperBeanClass,
                      Object v2MapperKey,
+                     Class<?> v2MapperSdkBytesBeanClass,
+                     Object v2MapperSdkBytesKey,
 
                      Class<?> v1BeanClass,
                      DynamoDBQueryExpression v1QueryExpression,
@@ -201,6 +224,8 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
                 this.v2Response = v2Response;
                 this.v2MapperBeanClass = v2MapperBeanClass;
                 this.v2MapperKey = v2MapperKey;
+                this.v2MapperSdkBytesBeanClass = v2MapperSdkBytesBeanClass;
+                this.v2MapperSdkBytesKey = v2MapperSdkBytesKey;
 
                 this.v1BeanClass = v1BeanClass;
                 this.v1QueryExpression = v1QueryExpression;
@@ -213,6 +238,10 @@ public class EnhancedClientQueryV1MapperComparisonBenchmark {
 
             public Class<?> getV2MapperBeanClass() {
                 return v2MapperBeanClass;
+            }
+
+            public Class<?> getV2MapperSdkBytesBeanClass() {
+                return v2MapperSdkBytesBeanClass;
             }
         }
     }

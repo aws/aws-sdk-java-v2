@@ -45,6 +45,8 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 public class EnhancedClientScanV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
     private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
+    private static final V2MapperSdkBytesItemFactory V2_MAPPER_SDK_BYTES_ITEM_FACTORY =
+            new V2MapperSdkBytesItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
     private static final DynamoDBScanExpression V1_SCAN_EXPRESSION = new DynamoDBScanExpression();
     private static final software.amazon.awssdk.mapper.dynamodb.DynamoDBScanExpression V2_MAPPER_SCAN_EXPRESSION =
@@ -61,7 +63,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
     }
 
     @Benchmark
-    public Object v2MapperScanDefaultByteBuffer(TestState s) {
+    public Object v2MapperScan(TestState s) {
         return s.v2DdbMapper.scan(s.testItem.getV2MapperBeanClass(), V2_MAPPER_SCAN_EXPRESSION).iterator().next();
     }
 
@@ -69,6 +71,12 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
     public Object v2MapperScanReadOnlyByteBuffer(TestState s) {
         return s.v2ReadOnlyDdbMapper.scan(
                 s.testItem.getV2MapperBeanClass(), V2_MAPPER_SCAN_EXPRESSION).iterator().next();
+    }
+
+    @Benchmark
+    public Object v2MapperScanSdkBytes(TestState s) {
+        return s.v2DdbMapper.scan(
+                s.testItem.getV2MapperSdkBytesBeanClass(), V2_MAPPER_SCAN_EXPRESSION).iterator().next();
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh, ScanResponse scanResponse) {
@@ -118,6 +126,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.tiny()))
                                 .build(),
                     V2MapperItemFactory.V2MapperTinyBean.class,
+                    V2MapperSdkBytesItemFactory.V2MapperTinyBean.class,
 
                     V1ItemFactory.V1TinyBean.class,
                     new ScanResult().withItems(
@@ -131,6 +140,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.small()))
                                 .build(),
                     V2MapperItemFactory.V2MapperSmallBean.class,
+                    V2MapperSdkBytesItemFactory.V2MapperSmallBean.class,
 
                     V1ItemFactory.V1SmallBean.class,
                     new ScanResult().withItems(
@@ -145,6 +155,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.huge()))
                                 .build(),
                     V2MapperItemFactory.V2MapperHugeBean.class,
+                    V2MapperSdkBytesItemFactory.V2MapperHugeBean.class,
 
                     V1ItemFactory.V1HugeBean.class,
                     new ScanResult().withItems(
@@ -159,6 +170,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.hugeFlat()))
                                 .build(),
                     V2MapperItemFactory.V2MapperHugeBeanFlat.class,
+                    V2MapperSdkBytesItemFactory.V2MapperHugeBeanFlat.class,
 
                     V1ItemFactory.V1HugeBeanFlat.class,
                     new ScanResult().withItems(
@@ -170,6 +182,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
             private TableSchema<?> schema;
             private ScanResponse v2Response;
             private Class<?> v2MapperBeanClass;
+            private Class<?> v2MapperSdkBytesBeanClass;
 
             // V1
             private Class<?> v1BeanClass;
@@ -178,12 +191,14 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
             TestItem(TableSchema<?> schema,
                      ScanResponse v2Response,
                      Class<?> v2MapperBeanClass,
+                     Class<?> v2MapperSdkBytesBeanClass,
 
                      Class<?> v1BeanClass,
                      ScanResult v1Response) {
                 this.schema = schema;
                 this.v2Response = v2Response;
                 this.v2MapperBeanClass = v2MapperBeanClass;
+                this.v2MapperSdkBytesBeanClass = v2MapperSdkBytesBeanClass;
 
                 this.v1BeanClass = v1BeanClass;
                 this.v1Response = v1Response;
@@ -195,6 +210,10 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
 
             public Class<?> getV2MapperBeanClass() {
                 return v2MapperBeanClass;
+            }
+
+            public Class<?> getV2MapperSdkBytesBeanClass() {
+                return v2MapperSdkBytesBeanClass;
             }
         }
     }

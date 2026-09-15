@@ -44,6 +44,8 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 public class EnhancedClientGetV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
     private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
+    private static final V2MapperSdkBytesItemFactory V2_MAPPER_SDK_BYTES_ITEM_FACTORY =
+            new V2MapperSdkBytesItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
 
     @Benchmark
@@ -57,13 +59,18 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
     }
 
     @Benchmark
-    public Object v2MapperGetDefaultByteBuffer(TestState s) {
+    public Object v2MapperGet(TestState s) {
         return s.v2DdbMapper.load(s.testItem.v2MapperKey.getClass(), "hashKey");
     }
 
     @Benchmark
     public Object v2MapperGetReadOnlyByteBuffer(TestState s) {
         return s.v2ReadOnlyDdbMapper.load(s.testItem.v2MapperKey.getClass(), "hashKey");
+    }
+
+    @Benchmark
+    public Object v2MapperGetSdkBytes(TestState s) {
+        return s.v2DdbMapper.load(s.testItem.v2MapperSdkBytesKey.getClass(), "hashKey");
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh, GetItemResponse getItemResponse) {
@@ -111,6 +118,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
                     V2ItemFactory.TINY_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.tiny()).build(),
                     V2_MAPPER_ITEM_FACTORY.v2MapperTinyBean(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperTinyBean(),
 
                     new V1ItemFactory.V1TinyBean("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.tiny())
@@ -120,6 +128,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
                     V2ItemFactory.SMALL_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.small()).build(),
                     V2_MAPPER_ITEM_FACTORY.v2MapperSmallBean(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperSmallBean(),
 
                     new V1ItemFactory.V1SmallBean("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.small())
@@ -129,6 +138,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
                     V2ItemFactory.HUGE_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.huge()).build(),
                     V2_MAPPER_ITEM_FACTORY.v2MapperHugeBean(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBean(),
 
                     new V1ItemFactory.V1HugeBean("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.huge())
@@ -138,6 +148,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
                     V2ItemFactory.HUGE_BEAN_FLAT_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.hugeFlat()).build(),
                     V2_MAPPER_ITEM_FACTORY.v2MapperHugeBeanFlat(),
+                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBeanFlat(),
 
                     new V1ItemFactory.V1HugeBeanFlat("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.hugeFlat())
@@ -148,6 +159,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
             private TableSchema<?> schema;
             private GetItemResponse v2Response;
             private Object v2MapperKey;
+            private Object v2MapperSdkBytesKey;
 
             // V1
             private Object v1Key;
@@ -156,12 +168,14 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
             TestItem(TableSchema<?> schema,
                      GetItemResponse v2Response,
                      Object v2MapperKey,
+                     Object v2MapperSdkBytesKey,
 
                      Object v1Key,
                      GetItemResult v1Response) {
                 this.schema = schema;
                 this.v2Response = v2Response;
                 this.v2MapperKey = v2MapperKey;
+                this.v2MapperSdkBytesKey = v2MapperSdkBytesKey;
 
                 this.v1Key = v1Key;
                 this.v1Response = v1Response;
