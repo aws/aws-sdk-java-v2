@@ -143,7 +143,15 @@ public class FileAsyncResponseTransformerPublisher<T extends SdkResponse>
             }
 
             this.delegate = getDelegateTransformer(contentRangePair.get().left());
-            CompletableFuture<T> delegateFuture = delegate.prepare();
+            CompletableFuture<T> delegateFuture;
+            try {
+                delegateFuture = delegate.prepare();
+            } catch (RuntimeException e) {
+                // prepare() validates the destination and can throw. Complete the part future here instead of letting
+                // the throw escape this callback, which would leave the part hanging.
+                handleError(e);
+                return;
+            }
             CompletableFutureUtils.forwardResultTo(delegateFuture, future);
             CompletableFutureUtils.forwardExceptionTo(future, delegateFuture);
             transformerCount.incrementAndGet();
