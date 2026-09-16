@@ -1135,7 +1135,7 @@ public class BaseClientBuilderClass implements ClassSpec {
     }
 
     private boolean hasBuiltIn(BuiltInParameter builtIn) {
-        return model.getEndpointRuleSetModel().getParameters().values().stream()
+        return model.getEndpointParameters().values().stream()
                     .anyMatch(p -> builtIn.equals(p.getBuiltInEnum()));
     }
 
