@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @State(Scope.Benchmark)
 public class EnhancedClientDeleteV1MapperComparisonBenchmark {
     private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
+
     @Benchmark
     public void v2Delete(TestState s) {
         s.v2Table.deleteItem(s.key);
