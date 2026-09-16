@@ -41,8 +41,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @State(Scope.Benchmark)
 public class EnhancedClientDeleteV1MapperComparisonBenchmark {
     private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
-    private static final V2MapperSdkBytesItemFactory V2_MAPPER_SDK_BYTES_ITEM_FACTORY =
-            new V2MapperSdkBytesItemFactory();
     @Benchmark
     public void v2Delete(TestState s) {
         s.v2Table.deleteItem(s.key);
@@ -56,11 +54,6 @@ public class EnhancedClientDeleteV1MapperComparisonBenchmark {
     @Benchmark
     public void v2MapperDelete(TestState s) {
         s.v2DdbMapper.delete(s.testItem.v2MapperKey);
-    }
-
-    @Benchmark
-    public void v2MapperDeleteSdkBytes(TestState s) {
-        s.v2DdbMapper.delete(s.testItem.v2MapperSdkBytesKey);
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh) {
@@ -99,21 +92,18 @@ public class EnhancedClientDeleteV1MapperComparisonBenchmark {
             TINY(
                     V2ItemFactory.TINY_BEAN_TABLE_SCHEMA,
                     V2_MAPPER_ITEM_FACTORY.v2MapperTinyBean(),
-                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperTinyBean(),
                     new V1ItemFactory.V1TinyBean("hashKey")
             ),
 
             SMALL(
                     V2ItemFactory.SMALL_BEAN_TABLE_SCHEMA,
                     V2_MAPPER_ITEM_FACTORY.v2MapperSmallBean(),
-                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperSmallBean(),
                     new V1ItemFactory.V1SmallBean("hashKey")
             ),
 
             HUGE(
                     V2ItemFactory.HUGE_BEAN_TABLE_SCHEMA,
                     V2_MAPPER_ITEM_FACTORY.v2MapperHugeBean(),
-                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBean(),
                     new V1ItemFactory.V1HugeBean("hashKey")
 
             ),
@@ -121,7 +111,6 @@ public class EnhancedClientDeleteV1MapperComparisonBenchmark {
             HUGE_FLAT(
                     V2ItemFactory.HUGE_BEAN_FLAT_TABLE_SCHEMA,
                     V2_MAPPER_ITEM_FACTORY.v2MapperHugeBeanFlat(),
-                    V2_MAPPER_SDK_BYTES_ITEM_FACTORY.v2MapperHugeBeanFlat(),
                     new V1ItemFactory.V1HugeBeanFlat("hashKey")
             ),
             ;
@@ -129,18 +118,15 @@ public class EnhancedClientDeleteV1MapperComparisonBenchmark {
             // V2
             private TableSchema schema;
             private Object v2MapperKey;
-            private Object v2MapperSdkBytesKey;
 
             // V1
             private Object v1Key;
 
             TestItem(TableSchema<?> schema,
                      Object v2MapperKey,
-                     Object v2MapperSdkBytesKey,
                      Object v1Key) {
                 this.schema = schema;
                 this.v2MapperKey = v2MapperKey;
-                this.v2MapperSdkBytesKey = v2MapperSdkBytesKey;
 
                 this.v1Key = v1Key;
             }
