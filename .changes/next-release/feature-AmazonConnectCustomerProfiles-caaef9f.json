@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Connect Customer Profiles",
-    "contributor": "",
-    "description": "This release introduces the SearchRecommendations API, which retrieves recommendations for a profile identified by a search key."
-}
