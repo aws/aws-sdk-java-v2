@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Added an opt-in default read/write (socket) inactivity timeout for the CRT-based HTTP clients (`AwsCrtHttpClient` and `AwsCrtAsyncHttpClient`). The timeout is off by default and can be enabled by setting the `AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026` environment variable or the `aws.enableDefaultSocketTimeout2026` system property. When enabled, a connection that makes no read or write progress within a resolved per-service window is closed and the in-flight request fails with a retryable `IOException`."
+}
