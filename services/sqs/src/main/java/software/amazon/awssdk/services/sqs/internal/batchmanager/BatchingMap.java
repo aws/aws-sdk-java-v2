@@ -24,7 +24,7 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 /**
- * Outer map maps a batchKey (ex. queueUrl, overrideConfig etc.) to a {@link RequestBatchBuffer}
+ * Outer map maps a {@link BatchKey} (queue URL + request override configuration) to a {@link RequestBatchBuffer}
  *
  * @param <RequestT> the type of an outgoing response
  */
@@ -35,7 +35,7 @@ public final class BatchingMap<RequestT, ResponseT> {
     private final int maxBatchBytesSize;
     private final int maxBatchSize;
     private final int maxBufferSize;
-    private final Map<String, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
+    private final Map<BatchKey, RequestBatchBuffer<RequestT, ResponseT>> batchContextMap;
 
     public BatchingMap(RequestBatchConfiguration overrideConfiguration) {
         this.batchContextMap = new ConcurrentHashMap<>();
@@ -45,7 +45,7 @@ public final class BatchingMap<RequestT, ResponseT> {
         this.maxBufferSize = overrideConfiguration.maxBufferSize();
     }
 
-    public void put(String batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
+    public void put(BatchKey batchKey, Supplier<ScheduledFuture<?>> scheduleFlush, RequestT request,
                     CompletableFuture<ResponseT> response) throws IllegalStateException {
         batchContextMap.computeIfAbsent(batchKey, k -> {
             if (batchContextMap.size() == maxBatchKeys) {
@@ -55,39 +55,39 @@ public final class BatchingMap<RequestT, ResponseT> {
         }).put(request, response);
     }
 
-    public boolean contains(String batchKey) {
+    public boolean contains(BatchKey batchKey) {
         return batchContextMap.containsKey(batchKey);
     }
 
-    public void cancelAndReplaceScheduledFlush(String batchKey, ScheduledFuture<?> scheduledFlush) {
+    public void cancelAndReplaceScheduledFlush(BatchKey batchKey, ScheduledFuture<?> scheduledFlush) {
         batchContextMap.get(batchKey).cancelAndReplaceScheduledFlush(scheduledFlush);
     }
 
-    public void forEach(BiConsumer<String, RequestBatchBuffer<RequestT, ResponseT>> action) {
+    public void forEach(BiConsumer<BatchKey, RequestBatchBuffer<RequestT, ResponseT>> action) {
         batchContextMap.forEach(action);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfReady(String batchKey) {
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfReady(BatchKey batchKey) {
         return batchContextMap.get(batchKey).extractBatchIfReady();
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfSizeExceeded(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractBatchIfSizeExceeded(BatchKey batchKey,
                                                                                                             RequestT request) {
         return batchContextMap.get(batchKey).extractBatchIfSizeExceeded(request);
     }
 
-    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntriesForScheduledFlush(String batchKey,
+    public Map<String, BatchingExecutionContext<RequestT, ResponseT>> extractEntriesForScheduledFlush(BatchKey batchKey,
                                                                                                  int maxBatchItems) {
         return batchContextMap.get(batchKey).extractEntriesForScheduledFlush(maxBatchItems);
     }
 
-    public void cancelScheduledFlush(String batchKey) {
+    public void cancelScheduledFlush(BatchKey batchKey) {
         batchContextMap.get(batchKey).cancelScheduledFlush();
     }
 
     public void clear() {
-        for (Map.Entry<String, RequestBatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
-            String key = entry.getKey();
+        for (Map.Entry<BatchKey, RequestBatchBuffer<RequestT, ResponseT>> entry : batchContextMap.entrySet()) {
+            BatchKey key = entry.getKey();
             entry.getValue().clear();
             batchContextMap.remove(key);
         }

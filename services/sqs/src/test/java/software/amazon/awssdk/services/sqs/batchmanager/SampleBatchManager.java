@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import software.amazon.awssdk.services.sqs.internal.batchmanager.BatchKey;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.IdentifiableMessage;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchConfiguration;
 import software.amazon.awssdk.services.sqs.internal.batchmanager.RequestBatchManager;
@@ -38,13 +39,14 @@ public class SampleBatchManager extends RequestBatchManager<String, String, Batc
     }
 
     @Override
-    protected CompletableFuture<BatchResponse> batchAndSend(List<IdentifiableMessage<String>> identifiedRequests, String batchKey) {
-        return client.sendBatchAsync(identifiedRequests, batchKey);
+    protected CompletableFuture<BatchResponse> batchAndSend(List<IdentifiableMessage<String>> identifiedRequests,
+                                                            BatchKey batchKey) {
+        return client.sendBatchAsync(identifiedRequests, batchKey.queueUrl());
     }
 
     @Override
-    protected String getBatchKey(String request) {
-        return request.substring(0, request.indexOf(':'));
+    protected BatchKey getBatchKey(String request) {
+        return BatchKey.create(request.substring(0, request.indexOf(':')), null);
     }
 
     @Override

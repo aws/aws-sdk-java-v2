@@ -17,12 +17,10 @@ package software.amazon.awssdk.services.sqs.internal.batchmanager;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.services.sqs.SqsAsyncClient;
 import software.amazon.awssdk.services.sqs.model.BatchResultErrorEntry;
@@ -49,7 +47,7 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
     }
 
     private static DeleteMessageBatchRequest createDeleteMessageBatchRequest(
-        List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
+        List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, BatchKey batchKey) {
 
         List<DeleteMessageBatchRequestEntry> entries = identifiedRequests
             .stream()
@@ -58,30 +56,11 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
             ))
             .collect(Collectors.toList());
 
-        // Since requests are batched together according to a combination of their queueUrl and overrideConfiguration,
-        // all requests must have the same overrideConfiguration, so it is sufficient to retrieve it from the first request.
-        Optional<AwsRequestOverrideConfiguration> overrideConfiguration = identifiedRequests.get(0).message()
-                                                                                            .overrideConfiguration();
-
-        return overrideConfiguration.map(
-            overrideConfig -> DeleteMessageBatchRequest.builder()
-                                                       .queueUrl(batchKey)
-                                                       .overrideConfiguration(
-                                                           overrideConfig.toBuilder()
-                                                                         .applyMutation(USER_AGENT_APPLIER)
-                                                                         .build()
-                                                       )
-                                                       .entries(entries)
-                                                       .build()
-        ).orElseGet(
-            () -> DeleteMessageBatchRequest.builder()
-                                           .queueUrl(batchKey)
-                                           .overrideConfiguration(o ->
-                                                                      o.applyMutation(USER_AGENT_APPLIER).build()
-                                           )
-                                           .entries(entries)
-                                           .build()
-        );
+        return DeleteMessageBatchRequest.builder()
+                                        .queueUrl(batchKey.queueUrl())
+                                        .overrideConfiguration(batchOverrideConfiguration(batchKey))
+                                        .entries(entries)
+                                        .build();
     }
 
     private static DeleteMessageBatchRequestEntry createDeleteMessageBatchRequestEntry(String id, DeleteMessageRequest request) {
@@ -113,15 +92,14 @@ public class DeleteMessageBatchManager extends RequestBatchManager<DeleteMessage
 
     @Override
     protected CompletableFuture<DeleteMessageBatchResponse> batchAndSend(
-        List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, String batchKey) {
+        List<IdentifiableMessage<DeleteMessageRequest>> identifiedRequests, BatchKey batchKey) {
         DeleteMessageBatchRequest batchRequest = createDeleteMessageBatchRequest(identifiedRequests, batchKey);
         return sqsAsyncClient.deleteMessageBatch(batchRequest);
     }
 
     @Override
-    protected String getBatchKey(DeleteMessageRequest request) {
-        return request.overrideConfiguration().map(overrideConfig -> request.queueUrl() + overrideConfig.hashCode())
-                      .orElse(request.queueUrl());
+    protected BatchKey getBatchKey(DeleteMessageRequest request) {
+        return BatchKey.create(request.queueUrl(), request.overrideConfiguration().orElse(null));
     }
 
     @Override

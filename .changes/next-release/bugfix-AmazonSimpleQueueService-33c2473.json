@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Simple Queue Service",
+    "contributor": "",
+    "description": "`SqsAsyncBatchManager` now groups buffered requests by queue URL and request override configuration equality instead of a 32-bit hash of the configuration, so requests carrying different credentials providers (or any other non-equal override configuration) are never batched - and therefore never signed - together. Batch calls for requests that carry a request override configuration are now also addressed to the real queue URL instead of the queue URL concatenated with the configuration's hash code."
+}
