@@ -1,4 +1,57 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.20__ __2026-09-16__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Adds support to create and manage Elastic Beanstalk Cluster Environments.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support issuerAccountId and SourceAuthorization filter for ResaleAuthorization entity.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - Next Gen Resilience Hub now supports dependency insights (LLM-based insights about customer's service dependencies) and organization-level policy sharing (provision to share policy with member accounts for an organization)
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for a new DELETE FAILED status for Bedrock AgentCore Runtimes and Bedrock AgentCore Runtime Endpoints.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces the SearchRecommendations API, which retrieves recommendations for a profile identified by a search key.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for ContactAnalysis via ListContactReferences.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Releasing new EC2 R9g and R9gd memory-optimized instances powered by AWS Graviton5 processors, with up to 25 percent better compute performance than R8g instances, faster DDR5 memory, and up to 100 Gbps network and 72 Gbps EBS bandwidth. R9gd instances additionally provide local NVMe SSD storage.
+
+## __Amazon S3__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved
+
+## __Amazon S3 Control__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Files__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Outposts__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Tables__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Vectors__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
 # __2.54.19__ __2026-09-15__
 ## __AWS Direct Connect__
   - ### Features
