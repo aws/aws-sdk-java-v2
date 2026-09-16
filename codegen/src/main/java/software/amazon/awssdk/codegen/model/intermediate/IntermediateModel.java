@@ -185,13 +185,6 @@ public final class IntermediateModel {
     /**
      * The endpoint parameters this service declares.
      *
-     * <p>A service ships one of two endpoint models, and both declare the same {@code parameters} map: the BDD model
-     * ({@code endpoint-bdd-1.json}) or the rule set ({@code endpoint-rule-set.json}). This is the only place codegen
-     * should read parameters from, so that a generated params class always agrees with the generated provider
-     * regardless of which model the service ships. Reading them off the rule set specifically used to leave a
-     * BDD-only service with the two parameters of the default rule set, which fails as a compile error in the
-     * generated provider rather than as anything legible.
-     *
      * <p>Unmodifiable, because parameters are assembled once: {@link
      * software.amazon.awssdk.codegen.IntermediateModelBuilder} merges in any that {@code customizationConfig}
      * declares, and nothing else may add to the set.
@@ -233,8 +226,7 @@ public final class IntermediateModel {
     }
 
     /**
-     * Falls back to a generic regional rule set for a service that ships neither endpoint model, which is otherwise
-     * only the case for codegen test fixtures.
+     * Falls back to a generic regional rule set for a service that ships neither endpoint model.
      */
     private EndpointRuleSetModel endpointRuleSetOrDefault() {
         if (endpointRuleSetModel == null) {

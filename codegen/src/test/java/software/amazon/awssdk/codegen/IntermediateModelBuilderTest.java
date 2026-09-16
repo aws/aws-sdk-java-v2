@@ -131,7 +131,7 @@ public class IntermediateModelBuilderTest {
     }
 
     /**
-     * The BDD model wins when a service ships both, so that deleting a service's rule set cannot change the parameters
+     * The BDD model is preferred when a service ships both, so deleting a service's rule set should not change the parameters
      * codegen sees. The two fixtures declare different parameters only so that the winner is observable.
      */
     @Test
