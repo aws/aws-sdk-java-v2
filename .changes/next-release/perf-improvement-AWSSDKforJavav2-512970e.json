@@ -1,0 +1,6 @@
+{
+    "type": "perf-improvement",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Migrate all services to BDD based endpoints. Endpoint resolution behavior is unchanged but performance is improved."
+}
