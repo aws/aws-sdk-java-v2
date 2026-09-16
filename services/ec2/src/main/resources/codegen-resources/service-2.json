@@ -12369,6 +12369,10 @@
       "documentation":"<p>The state of VPC Block Public Access (BPA).</p>"
     },
     "Boolean":{"type":"boolean"},
+    "BootModeOverrideValues":{
+      "type":"string",
+      "enum":["uefi"]
+    },
     "BootModeType":{
       "type":"string",
       "enum":[
@@ -16207,6 +16211,14 @@
           "shape":"String",
           "documentation":"<p>Unique, case-sensitive identifier that you provide to ensure the idempotency of the request. For more information, see <a href=\"https://docs.aws.amazon.com/ec2/latest/devguide/ec2-api-idempotency.html\"> Ensure Idempotency</a>.</p>",
           "idempotencyToken":true
+        },
+        "Encrypted":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether to encrypt the volume copy. If the source volume is encrypted, the service always encrypts the copy regardless of this value. Set to <code>true</code> to encrypt a copy of an unencrypted source volume during the copy operation. If you set <code>Encrypted</code> to <code>true</code> but do not specify <code>KmsKeyId</code>, the service uses the default KMS key for EBS encryption in your account.</p>"
+        },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The identifier of the KMS key to use for encryption of the volume copy. Specify a symmetric encryption KMS key. You can specify a KMS key using the key ID, key ARN, alias name, or alias ARN. If you set <code>Encrypted</code> to <code>true</code> but do not specify this parameter, the service uses the default KMS key for EBS encryption in your account. For cross-account volume copies, this must be a KMS key in the calling account.</p>"
         }
       }
     },
@@ -17556,6 +17568,10 @@
         "SnapshotLocation":{
           "shape":"SnapshotLocationEnum",
           "documentation":"<note> <p>Only supported for instances in Local Zones and for instances on Outposts that support local snapshots. If the source instance is not in one of these locations, omit this parameter.</p> </note> <p>The Amazon S3 location where the snapshots will be stored.</p> <ul> <li> <p>To create local snapshots in the same Local Zone or on the same Outpost as the source instance, specify <code>local</code>.</p> </li> <li> <p>To create regional snapshots in the parent Region of the Local Zone or Outpost, specify <code>regional</code>.</p> </li> </ul> <p>If the source instance is in a Local Zone and you omit this parameter, regional snapshots are created in the parent Region of the Local Zone.</p> <p>If the source instance is on an Outpost that supports local snapshots, this parameter is required. If you omit it, the request fails with an <code>InvalidParameterValue</code> error.</p> <p>Default: <code>regional</code> (for instances in Local Zones only)</p>"
+        },
+        "BootModeOverride":{
+          "shape":"BootModeOverrideValues",
+          "documentation":"<p>The boot mode of the new image, which overrides the default boot mode. By default, if you do not specify this parameter, the new image inherits the <code>boot-mode</code> from the source instance.</p> <p>A value of <code>uefi</code> indicates that the image only supports UEFI boot mode. You can specify this parameter only if the <code>current-instance-boot-mode</code> of the source instance is <code>uefi</code>. To find the <code>boot-mode</code> or <code>current-instance-boot-mode</code> of an instance, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_DescribeInstances.html\">DescribeInstances</a>.</p> <note> <p>The operating system contained in the AMI must be configured to support the specified boot mode.</p> </note> <p>For more information, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ami-boot.html\">Instance launch behavior with Amazon EC2 boot modes</a> in the <i>Amazon EC2 User Guide</i>.</p>"
         },
         "DryRun":{
           "shape":"Boolean",
@@ -50096,7 +50112,30 @@
         "c9gd.16xlarge",
         "c9gd.24xlarge",
         "c9gd.48xlarge",
-        "c9gd.metal-48xl"
+        "c9gd.metal-48xl",
+        "r9g.medium",
+        "r9g.large",
+        "r9g.xlarge",
+        "r9g.2xlarge",
+        "r9g.4xlarge",
+        "r9g.8xlarge",
+        "r9g.12xlarge",
+        "r9g.16xlarge",
+        "r9g.24xlarge",
+        "r9g.48xlarge",
+        "r9g.metal-48xl",
+        "r9gd.medium",
+        "r9gd.large",
+        "r9gd.xlarge",
+        "r9gd.2xlarge",
+        "r9gd.4xlarge",
+        "r9gd.8xlarge",
+        "r9gd.12xlarge",
+        "r9gd.16xlarge",
+        "r9gd.24xlarge",
+        "r9gd.48xlarge",
+        "r9gd.metal-48xl",
+        "m9g.medium"
       ]
     },
     "InstanceTypeHypervisor":{
@@ -79374,6 +79413,16 @@
           "shape":"Integer",
           "documentation":"<p>The Amazon EBS Provisioned Rate for Volume Initialization (volume initialization rate) specified for the volume during creation, in MiB/s. If no volume initialization rate was specified, the value is <code>null</code>.</p>",
           "locationName":"volumeInitializationRate"
+        },
+        "VolumeArn":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the volume.</p>",
+          "locationName":"volumeArn"
+        },
+        "OwnerId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the Amazon Web Services account that owns the volume.</p>",
+          "locationName":"ownerId"
         },
         "VolumeId":{
           "shape":"String",

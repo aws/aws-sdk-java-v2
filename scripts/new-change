@@ -16,7 +16,8 @@ To generate a new changelog entry::
 
 This will open up a file in your editor (via the ``EDITOR`` env  var).
 You'll see this template::
-    # Type should be one of: feature, bugfix, deprecation, removal, documentation
+    # Type should be one of: feature, bugfix, perf-improvement, deprecation,
+    # removal, documentation
     type: {change_type}
 
     # The marketing name of the service this change applies to
@@ -52,8 +53,10 @@ CHANGES_DIR = os.path.join(
     '.changes'
 )
 CHANGE_PARTS = ['type', 'category', 'description']
+VALID_CHANGE_TYPES = ['feature', 'bugfix', 'perf-improvement', 'deprecation',
+                      'removal', 'documentation']
 TEMPLATE = """\
-# Type should be one of: feature, bugfix, deprecation, removal, documentation
+# Type should be one of: {valid_types}
 type: {change_type}
 
 # The marketing name of the service this change applies to
@@ -107,6 +110,7 @@ def all_values_provided(args):
 def get_values_from_editor(args):
     with tempfile.NamedTemporaryFile('w') as f:
         contents = TEMPLATE.format(
+            valid_types=', '.join(VALID_CHANGE_TYPES),
             change_type=args.change_type,
             category=args.category,
             description=args.description,
@@ -189,9 +193,8 @@ def parse_filled_in_contents(contents):
             continue
         if 'type' not in parsed and line.startswith('type:'):
             t = line[len('type:'):].strip()
-            if t not in ['feature', 'bugfix', 'deprecation', 'removal',
-                         'documentation']:
-                raise Exception("Unsupported category %s" % t)
+            if t not in VALID_CHANGE_TYPES:
+                raise Exception("Unsupported type %s" % t)
             parsed['type'] = t
         elif 'category' not in parsed and line.startswith('category:'):
             parsed['category'] = line[len('category:'):].strip()
@@ -211,8 +214,7 @@ def parse_filled_in_contents(contents):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-t', '--type', dest='change_type',
-                        default='', choices=('bugfix', 'feature',
-                                             'deprecation', 'documentation'))
+                        default='', choices=VALID_CHANGE_TYPES)
     parser.add_argument('-c', '--category', dest='category',
                         default='')
     parser.add_argument('-u', '--contributor', dest='contributor',

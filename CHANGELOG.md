@@ -1,4 +1,216 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.54.20__ __2026-09-16__
+## __AWS Elastic Beanstalk__
+  - ### Features
+    - Adds support to create and manage Elastic Beanstalk Cluster Environments.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - This release enhances the ListEntities API to support issuerAccountId and SourceAuthorization filter for ResaleAuthorization entity.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - Next Gen Resilience Hub now supports dependency insights (LLM-based insights about customer's service dependencies) and organization-level policy sharing (provision to share policy with member accounts for an organization)
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds support for a new DELETE FAILED status for Bedrock AgentCore Runtimes and Bedrock AgentCore Runtime Endpoints.
+
+## __Amazon Connect Customer Profiles__
+  - ### Features
+    - This release introduces the SearchRecommendations API, which retrieves recommendations for a profile identified by a search key.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for ContactAnalysis via ListContactReferences.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Releasing new EC2 R9g and R9gd memory-optimized instances powered by AWS Graviton5 processors, with up to 25 percent better compute performance than R8g instances, faster DDR5 memory, and up to 100 Gbps network and 72 Gbps EBS bandwidth. R9gd instances additionally provide local NVMe SSD storage.
+
+## __Amazon S3__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved
+
+## __Amazon S3 Control__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Files__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Outposts__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Tables__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+## __Amazon S3 Vectors__
+  - ### Performance Improvements
+    - Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved.
+
+# __2.54.19__ __2026-09-15__
+## __AWS Direct Connect__
+  - ### Features
+    - AWS Direct Connect is introducing flat-rate pricing, a simplified billing model that gives you a fixed monthly price for dedicated connectivity with no per-gigabyte data transfer out charges within the selected pricing tier.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now preserves the original source IP address using Proxy Protocol v2 when you place a Network Load Balancer in front of your server for SFTP connections.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Amazon Bedrock AgentCore Runtime now supports specifying the platform version of an agent runtime through the new platformVersion field on CreateAgentRuntime, UpdateAgentRuntime, and GetAgentRuntime.
+
+## __Amazon WorkSpaces__
+  - ### Features
+    - Added support for 4 new graphics-optimized compute types - Graphics.g7 (2xlarge, 4xlarge, 8xlarge, 12xlarge).
+
+# __2.54.18__ __2026-09-14__
+## __AWS Billing__
+  - ### Features
+    - Increased the maximum number of services returned in the supportEligibleSpendByService field of ListEnterpriseSupportLinkedAccountCharges
+
+## __AWS CodeDeploy__
+  - ### Features
+    - AWS CodeDeploy now returns the deployment mode on GetDeployment and BatchGetDeployments. The new deploymentMode field on DeploymentInfo indicates whether a deployment used the standard deployment process or restarted the application using a previously installed revision (RESTART mode).
+
+## __AWS Glue__
+  - ### Features
+    - Amazon Glue releasing the new API ListIntegrationTableProperties and adding IntegrationArn to TargetTableConfig
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Performance Improvements
+    - Fix request-side performance regression that scaled with payload size for `query` and `ec2` protocol services where the request endpoint was re-parsed as a URI. The internal `HTTP_REQUEST_URI_BEFORE_MODIFY` execution attribute is now deprecated and computed on demand from `HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY`; the value the SDK records carries the scheme, host, port and path but no query string.
+
+## __AWS Security Token Service__
+  - ### Features
+    - Increases the maximum session token size to 4,096 bytes and removes the packed policy size limit. Adds SessionTokenSize and SessionTokenUtilization fields and a new MinimumSessionTokenSize parameter. PackedPolicySize is deprecated.
+
+## __AWSBillingConductor__
+  - ### Features
+    - This release adds support for custom volume tiering. You can now define custom tiers on a pricing rule's tiering configuration, where each tier specifies a usage range and the rate applied to usage in that range.
+
+## __EC2 Image Builder__
+  - ### Features
+    - This release adds a dryRun option to Image Builder create APIs (except CreateImage), structured failure context on failed images including component and distribution failure details, and step retry attempt tracking.
+
+# __2.54.17__ __2026-09-11__
+## __AWS Batch__
+  - ### Features
+    - Added new bulk job APIs (CancelJobs, TerminateJobs, TerminateServiceJobs) and new fields on ListJobs and ListServiceJobs responses. This allows customers to cancel or terminate multiple jobs in a single request. ListJobs and ListServiceJobs responses now include isCancelled and isTerminated fields.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds Dolby Vision metadata to Probe results, including profile, level, and presence of the RPU, base layer, and enhancement layer. Adds video sample and display aspect ratios. Adds the UnprocessableEntityException (HTTP 422) error to Probe for recognized but malformed or corrupt inputs.
+
+## __AWS Invoicing__
+  - ### Features
+    - Add ListProcurementPortals and ListProcurementPortalSuppliers APIs to retrieve AWS-supported 3rd party procurement portals and their suppliers for e-invoice delivery and purchase order retrieval.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade Netty to 4.1.138
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - This feature adds support for setting the cpu architecture type that should be used to launch tasks for an Express Gateway Service.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Amazon Lightsail now lets you serve website content from a private Lightsail bucket through a Lightsail distribution. This release adds enablePrivateOriginAccess to the CreateDistribution and UpdateDistribution actions, plus new defaultRootObject and customErrorResponses options.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Prevent the CRT-based S3 async client from replacing a pre-existing destination when using `getObject(request, Path)`. Failed or cancelled downloads now delete files they create. Existing destinations surface `FileAlreadyExistsException`; callers that require replacement can use `AsyncResponseTransformer.toFile` with `FileTransformerConfiguration.defaultCreateOrReplaceExisting()`. This fixes an inconsistency introduced in 2.32.11.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Updated S3 Object Lock Default Retention documentation.
+
+# __2.54.16__ __2026-09-10__
+## __AWS Outposts__
+  - ### Features
+    - Added fields to identify Outpost generation and rack scaling configuration on Outpost and CatalogItem resources.
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - This release adds the ListTestRunSourceEvents and ListTestRunDependencies APIs, which return the alarm state changes during a test run and the dependencies the run blocked.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Enable BDD Endpoints for a small subset of services.
+    - Updated endpoint and partition metadata.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - TwelveLabs Marengo 3.0 is now an embedding model option in Amazon Bedrock Managed Knowledge Base. Create multimodal embeddings for video, audio, and image content that capture visual scenes, speech, and video cues, not just transcribed text.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - The CreateImage API now supports a BootModeOverride parameter to explicitly set UEFI boot mode on a new AMI, overriding the source instance's inherited boot mode.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This release adds the ability for customers to attach customer owned Elastic Network Interfaces (ENIs) to HyperPod cluster nodes.
+
+## __RTBFabric__
+  - ### Features
+    - AWS RTB Fabric now lets you control how traffic is routed to your responder gateway across Availability Zones. Set the new clientRoutingPolicy parameter  to keep traffic within the same Availability Zone or distribute traffic across all Availability Zones.
+
+# __2.54.15__ __2026-09-09__
+## __AWS Elemental Inference__
+  - ### Features
+    - This release adds contextual metadata, a feed output type that generates a descriptive summary of your media content along with IAB taxonomy and GARM suitability classifications. It also adds feed resource policies for granting cross-account access to a feed.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - MediaLive now supports Manual Style Control for vertical caption positioning in TTML, WebVTT, and Embedded captions, Contextual Metadata Enrichment via Elemental Inference, and an Output Usage field on MediaPackage v2 for Dynamic Multiview validation.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Dynamic Multiview enables viewers to watch multiple live video streams in a single combined output. Viewers can select from 6 preset tiled layouts. Create MediaPackage channels with Input Type MULTIVIEW and configure Available Layouts and Available Sources. See the API Documentation for details.
+
+## __AWS Lambda__
+  - ### Features
+    - Updates documentation for lambda function timeout.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Added the AWS Service Request function type for MediaTailor Functions, enabling authenticated requests to AWS Elemental Inference for contextual ad targeting during ad insertion.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - This release adds support for custom Gres.conf configuration and Slurm version 26.05 in AWS PCS. Customers can now specify generic resource (GRES) settings to control how GPUs and other resources are configured and shared on their compute node groups.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fixed an intermittent NullPointerException when downloading a single-part object with a multipart-enabled async S3 client. A race between the emit loop and subscription cancellation could dereference a cleared subscriber reference; the reference is now stable and reads are null-safe.
+        - Contributed by: [@cthiebault](https://github.com/cthiebault)
+
+## __Amazon Connect Service__
+  - ### Features
+    - Add metric configuration field to evaluation forms and ListEvaluationFormAIVersions API for retrieving AI-generated evaluation form versions
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds support for sharing Amazon EBS volumes across AWS accounts using AWS Resource Access Manager (RAM). Consuming accounts can view shared volume metadata and create copies of shared volumes within the same Availability Zone, with optional re-encryption using their own KMS key.
+
+## __Apache HTTP Client__
+  - ### Deprecations
+    - `apache-client` is now deprecated in favor of `apache5-client`. [Apache HttpClient 4.x](https://hc.apache.org/status.html) is in maintenance mode, receiving fixes only for major defects and security issues.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@cthiebault](https://github.com/cthiebault)
 # __2.54.14__ __2026-09-08__
 ## __AWS CloudTrail__
   - ### Features
