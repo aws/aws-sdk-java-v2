@@ -39,8 +39,8 @@ class StsWebIdentityCredentialsProviderFactoryTest {
         AwsCredentialsProvider provider = factory.create(
             WebIdentityTokenCredentialProperties.builder()
                                                 .asyncCredentialUpdateEnabled(true)
-                                                .prefetchTime(Duration.ofMinutes(5))
-                                                .staleTime(Duration.ofMinutes(15))
+                                                .prefetchTime(Duration.ofMinutes(15))
+                                                .staleTime(Duration.ofMinutes(5))
                                                 .roleArn("role-arn")
                                                 .webIdentityTokenFile(Paths.get("/path/to/file"))
                                                 .roleSessionName("session-name")
