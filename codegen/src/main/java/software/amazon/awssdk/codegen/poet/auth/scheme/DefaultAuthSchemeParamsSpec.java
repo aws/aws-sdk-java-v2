@@ -292,6 +292,6 @@ public class DefaultAuthSchemeParamsSpec implements ClassSpec {
     }
 
     private Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 }

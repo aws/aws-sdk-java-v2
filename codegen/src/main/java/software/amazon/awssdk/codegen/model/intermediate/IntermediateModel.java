@@ -21,12 +21,16 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.awscore.AwsResponse;
 import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
@@ -63,6 +67,9 @@ public final class IntermediateModel {
 
     @JsonIgnore
     private EndpointBddModel endpointBddModel;
+
+    @JsonIgnore
+    private Map<String, ParameterModel> endpointParameters;
 
     private Map<String, ClientContextParam> clientContextParams;
 
@@ -175,7 +182,53 @@ public final class IntermediateModel {
         return waiters;
     }
 
-    public EndpointRuleSetModel getEndpointRuleSetModel() {
+    /**
+     * The endpoint parameters this service declares.
+     *
+     * <p>Unmodifiable, because parameters are assembled once: {@link
+     * software.amazon.awssdk.codegen.IntermediateModelBuilder} merges in any that {@code customizationConfig}
+     * declares, and nothing else may add to the set.
+     *
+     * @see #setEndpointParameters(Map)
+     */
+    @JsonIgnore
+    public Map<String, ParameterModel> getEndpointParameters() {
+        if (endpointParameters == null) {
+            endpointParameters = declaredEndpointParameters();
+        }
+        return Collections.unmodifiableMap(endpointParameters);
+    }
+
+    /**
+     * Replaces the endpoint parameters with {@code endpointParameters}, which must be the declared parameters plus any
+     * the customization config adds. Only {@link software.amazon.awssdk.codegen.IntermediateModelBuilder} should call
+     * this.
+     */
+    @JsonIgnore
+    public void setEndpointParameters(Map<String, ParameterModel> endpointParameters) {
+        this.endpointParameters = new LinkedHashMap<>(endpointParameters);
+    }
+
+    /**
+     * The rules tree of this service's rule set, for the rules-based endpoint provider. A service on the BDD model
+     * resolves endpoints from {@link #getEndpointBddModel()} instead and never reads this.
+     */
+    @JsonIgnore
+    public List<RuleModel> getEndpointRules() {
+        return endpointRuleSetOrDefault().getRules();
+    }
+
+    private Map<String, ParameterModel> declaredEndpointParameters() {
+        Map<String, ParameterModel> declared = endpointBddModel != null ? endpointBddModel.getParameters()
+                                                                       : endpointRuleSetOrDefault().getParameters();
+        // A model may omit `parameters` entirely, which reads back as null rather than as an empty map.
+        return declared == null ? new LinkedHashMap<>() : new LinkedHashMap<>(declared);
+    }
+
+    /**
+     * Falls back to a generic regional rule set for a service that ships neither endpoint model.
+     */
+    private EndpointRuleSetModel endpointRuleSetOrDefault() {
         if (endpointRuleSetModel == null) {
             endpointRuleSetModel = EndpointRuleSetModel.defaultRules(metadata.getEndpointPrefix());
         }

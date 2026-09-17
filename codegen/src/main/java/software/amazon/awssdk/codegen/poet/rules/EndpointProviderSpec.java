@@ -35,7 +35,6 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.rules.endpoints.BuiltInParameter;
 import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.RuleModel;
-import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
@@ -55,8 +54,9 @@ public class EndpointProviderSpec implements ClassSpec {
         this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(intermediateModel);
         String packageName = intermediateModel.getMetadata().getFullInternalEndpointRulesPackageName();
         this.typeMirror = new RuleRuntimeTypeMirror(packageName);
-        EndpointRuleSetModel model = intermediateModel.getEndpointRuleSetModel();
-        this.utils = createCodegenRulesUtil(model.getRules(), model.getParameters(), typeMirror);
+        this.utils = createCodegenRulesUtil(intermediateModel.getEndpointRules(),
+                                            intermediateModel.getEndpointParameters(),
+                                            typeMirror);
         this.knownEndpointAttributes = knownEndpointAttributes(intermediateModel);
     }
 
@@ -170,7 +170,7 @@ public class EndpointProviderSpec implements ClassSpec {
 
     private CodeBlock validateRequiredParams() {
         CodeBlock.Builder b = CodeBlock.builder();
-        Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = intermediateModel.getEndpointParameters();
         parameters.entrySet().stream()
                   .filter(e -> Boolean.TRUE.equals(e.getValue().isRequired()))
                   .forEach(e -> {

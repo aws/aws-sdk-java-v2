@@ -24,7 +24,6 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
@@ -155,8 +154,9 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             return true;
         }
 
-        Map<String, ParameterModel> endpointParameters = model.getEndpointRuleSetModel().getParameters();
-        if (endpointParameters == null) {
+        // Operation context params are JMESPath expressions over the request that feed endpoint parameters, so a
+        // service declaring no endpoint parameters has nothing for them to bind to.
+        if (model.getEndpointParameters().isEmpty()) {
             return false;
         }
 

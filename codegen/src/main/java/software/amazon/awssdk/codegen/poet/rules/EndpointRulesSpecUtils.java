@@ -280,12 +280,11 @@ public class EndpointRulesSpecUtils {
     }
 
     public Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 
     public boolean isDeclaredParam(String paramName) {
-        Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
-        return parameters.containsKey(paramName);
+        return intermediateModel.getEndpointParameters().containsKey(paramName);
     }
 
     /**
