@@ -259,7 +259,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(String o) {
-                return AttributeValue.builder().s(o).build();
+                return AttributeValue.createS(o);
             }
             @Override
             public AttributeValue convert(String o) {
@@ -288,7 +288,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(String o) {
-                return AttributeValue.builder().n(o).build();
+                return AttributeValue.createN(o);
             }
         }
 
@@ -314,7 +314,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(Long o) {
-                return AttributeValue.builder().n(String.valueOf(o)).build();
+                return AttributeValue.createN(String.valueOf(o));
             }
         }
 
@@ -339,7 +339,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(ByteBuffer o) {
-                return AttributeValue.builder().b(SdkBytes.fromByteBuffer(o)).build();
+                return AttributeValue.createB(SdkBytes.fromByteBuffer(o));
             }
         }
 
@@ -364,7 +364,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<String> o) {
-                return AttributeValue.builder().ss(o).build();
+                return AttributeValue.createSs(o);
             }
         }
 
@@ -389,7 +389,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<String> o) {
-                return AttributeValue.builder().ns(o).build();
+                return AttributeValue.createNs(o);
             }
         }
 
@@ -426,7 +426,7 @@ final class StandardModelFactories {
                 for (ByteBuffer bb : o) {
                     sdkBytes.add(SdkBytes.fromByteBuffer(bb));
                 }
-                return AttributeValue.builder().bs(sdkBytes).build();
+                return AttributeValue.createBs(sdkBytes);
             }
         }
 
@@ -474,7 +474,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(Boolean value) {
-                return AttributeValue.builder().bool(value).build();
+                return AttributeValue.createBool(value);
             }
             @Override
             public Boolean unconvert(AttributeValue o) {
@@ -522,7 +522,7 @@ final class StandardModelFactories {
              */
             @Override
             public AttributeValue build(String value) {
-                return AttributeValue.builder().n(value).build();
+                return AttributeValue.createN(value);
             }
         }
 
@@ -547,7 +547,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<AttributeValue> o) {
-                return AttributeValue.builder().l(o).build();
+                return AttributeValue.createL(o);
             }
         }
 
@@ -592,7 +592,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(List<AttributeValue> o) {
-                return AttributeValue.builder().l(o).build();
+                return AttributeValue.createL(o);
             }
         }
 
@@ -620,7 +620,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(Map<String,AttributeValue> o) {
-                return AttributeValue.builder().m(o).build();
+                return AttributeValue.createM(o);
             }
         }
 
@@ -656,7 +656,7 @@ final class StandardModelFactories {
             }
             @Override
             public AttributeValue build(Map<String,AttributeValue> o) {
-                return AttributeValue.builder().m(o).build();
+                return AttributeValue.createM(o);
             }
         }
 
@@ -695,7 +695,7 @@ final class StandardModelFactories {
         private DynamoDBTypeConverter<AttributeValue,T> getConverter(ConvertibleType<T> type) {
             return new DelegateConverter<AttributeValue,T>(getRule(type).newConverter(type)) {
                 public final AttributeValue convert(T o) {
-                    return o == null ? AttributeValue.builder().nul(true).build() : super.convert(o);
+                    return o == null ? AttributeValue.createNul(true) : super.convert(o);
                 }
             };
         }
