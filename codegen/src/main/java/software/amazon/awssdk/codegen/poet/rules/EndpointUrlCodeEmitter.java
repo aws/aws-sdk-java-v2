@@ -33,7 +33,7 @@ import software.amazon.awssdk.endpoints.EndpointUrl;
  * base path (no query or fragment). Dynamic (template based) resolution are only supported in the host
  * and path segments in pre-parsing.  Otherwise, we fall back to runtime parsing.
  */
-final class EndpointUrlCodeEmitter {
+public final class EndpointUrlCodeEmitter {
 
     private static final String HTTPS_SCHEME_PREFIX = "https://";
     private static final String HTTP_SCHEME_PREFIX = "http://";
@@ -56,16 +56,26 @@ final class EndpointUrlCodeEmitter {
      * @param codegenVisitor the parent code generator, used to emit sub-expressions
      */
     static void emit(RuleExpression urlExpr, CodeBlock.Builder builder, CodeGeneratorVisitor codegenVisitor) {
+        emit(urlExpr, builder, (RuleExpressionVisitor<?>) codegenVisitor);
+    }
+
+    /**
+     * Emit the optimal EndpointUrl construction code for the given URL expression.
+     *
+     * <p>This overload accepts any {@link RuleExpressionVisitor} that emits code into the same builder,
+     * allowing both the standard CodeGeneratorVisitor and BDD visitors to share the same URL emission logic.
+     */
+    public static void emit(RuleExpression urlExpr, CodeBlock.Builder builder, RuleExpressionVisitor<?> visitor) {
         if (urlExpr instanceof LiteralStringExpression) {
             emitFromLiteralString(((LiteralStringExpression) urlExpr).value(), builder);
             return;
         }
         if (urlExpr instanceof StringConcatExpression) {
-            emitFromStringConcat((StringConcatExpression) urlExpr, builder, codegenVisitor);
+            emitFromStringConcat((StringConcatExpression) urlExpr, builder, visitor);
             return;
         }
         // Expression type we can't decompose (e.g. variable reference, function call)
-        emitRuntimeParse(urlExpr, builder, codegenVisitor);
+        emitRuntimeParse(urlExpr, builder, visitor);
     }
 
     /**
@@ -140,7 +150,7 @@ final class EndpointUrlCodeEmitter {
      */
     private static void emitFromStringConcat(StringConcatExpression concatExpr,
                                              CodeBlock.Builder builder,
-                                             CodeGeneratorVisitor codegenVisitor) {
+                                             RuleExpressionVisitor<?> codegenVisitor) {
         List<RuleExpression> expressions = concatExpr.expressions();
         if (expressions.isEmpty()) {
             emitRuntimeParse(concatExpr, builder, codegenVisitor);
@@ -226,7 +236,7 @@ final class EndpointUrlCodeEmitter {
      * Emit EndpointUrl.fromString(urlExpr) for runtime parsing when static decomposition isn't possible.
      */
     private static void emitRuntimeParse(RuleExpression urlExpr, CodeBlock.Builder builder,
-                                         CodeGeneratorVisitor codegenVisitor) {
+                                         RuleExpressionVisitor<?> codegenVisitor) {
         builder.add("$T.fromString(", EndpointUrl.class);
         urlExpr.accept(codegenVisitor);
         builder.add(")");
@@ -240,7 +250,7 @@ final class EndpointUrlCodeEmitter {
      * emission logic.
      */
     private static void emitConcatExpression(List<RuleExpression> parts, CodeBlock.Builder builder,
-                                             CodeGeneratorVisitor codegenVisitor) {
+                                             RuleExpressionVisitor<?> codegenVisitor) {
         if (parts.isEmpty()) {
             builder.add("$S", "");
             return;

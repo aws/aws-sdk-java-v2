@@ -49,6 +49,13 @@ public final class RuleRuntimeTypeMirror {
         .addTypeParam(ClassName.get(String.class))
         .ruleTypeParam(STRING)
         .build();
+
+    /**
+     * Registry name of the synthetic {@code substringEquals} function emitted by the BDD peephole
+     * pass. Prefixed with {@code __} so it cannot collide with a rules standard library function.
+     */
+    public static final String SUBSTRING_EQUALS_FN = "__substringEquals";
+
     private static final String URL_TYPE_NAME = "Url";
     private static final String PARTITION_TYPE_NAME = "Partition";
     private static final String ARN_TYPE_NAME = "Arn";
@@ -133,6 +140,20 @@ public final class RuleRuntimeTypeMirror {
                 .addArgument("reverse", BOOLEAN)
                 .containingType(containingType)
                 .build(),
+            // Synthetic. Not a rules standard library function; BddPeepholeVisitor rewrites
+            // stringEquals(coalesce(substring(...), ""), literal) into this to avoid allocating the
+            // intermediate substring. The "__" prefix cannot collide with a spec function name.
+            RuleFunctionMirror
+                .builder(SUBSTRING_EQUALS_FN)
+                .javaName("substringEquals")
+                .returns(BOOLEAN)
+                .addArgument("value", STRING)
+                .addArgument("startIdx", INTEGER)
+                .addArgument("stopIdx", INTEGER)
+                .addArgument("reverse", BOOLEAN)
+                .addArgument("literal", STRING)
+                .containingType(containingType)
+                .build(),
             RuleFunctionMirror
                 .builder("stringEquals")
                 .returns(BOOLEAN)
@@ -192,9 +213,33 @@ public final class RuleRuntimeTypeMirror {
             // still does the trick for codegen.
             RuleFunctionMirror
                 .builder("listAccess")
-                .returns(BOOLEAN)
+                .returns(STRING)
                 .addArgument("value", LIST_OF_STRING)
                 .addArgument("index", INTEGER)
+                .containingType(containingType)
+                .build(),
+            RuleFunctionMirror
+                .builder("split")
+                .returns(LIST_OF_STRING)
+                .addArgument("value", STRING)
+                .addArgument("delimiter", STRING)
+                .addArgument("limit", INTEGER)
+                .containingType(containingType)
+                .build(),
+            RuleFunctionMirror
+                .builder("ite")
+                .returns(STRING)
+                .addArgument("condition", BOOLEAN)
+                .addArgument("ifTrue", STRING)
+                .addArgument("ifFalse", STRING)
+                .containingType(containingType)
+                .build(),
+            // coalesce is variadic and generic (return type mirrors type of arguments)
+            RuleFunctionMirror
+                .builder("coalesce")
+                .returns(VOID) // generic, but we must provide a type
+                .addArgument("value1", VOID) // variadic and generic, but add 2 generic args
+                .addArgument("value2", VOID)
                 .containingType(containingType)
                 .build()
         );

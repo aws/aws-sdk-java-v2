@@ -28,6 +28,7 @@ import software.amazon.awssdk.awscore.AwsResponseMetadata;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.WaiterDefinition;
@@ -60,6 +61,9 @@ public final class IntermediateModel {
     @JsonIgnore
     private NamingStrategy namingStrategy;
 
+    @JsonIgnore
+    private EndpointBddModel endpointBddModel;
+
     private Map<String, ClientContextParam> clientContextParams;
 
     static {
@@ -80,7 +84,7 @@ public final class IntermediateModel {
                              Map<String, ShapeModel> shapes,
                              CustomizationConfig customizationConfig) {
         this(metadata, operations, shapes, customizationConfig, null,
-             Collections.emptyMap(), null, Collections.emptyMap(), null, null, null);
+             Collections.emptyMap(), null, Collections.emptyMap(), null, null, null, null);
     }
 
     public IntermediateModel(
@@ -94,6 +98,7 @@ public final class IntermediateModel {
         Map<String, WaiterDefinition> waiters,
         EndpointRuleSetModel endpointRuleSetModel,
         EndpointTestSuiteModel endpointTestSuiteModel,
+        EndpointBddModel endpointBddModel,
         Map<String, ClientContextParam> clientContextParams) {
         this.metadata = metadata;
         this.operations = operations;
@@ -105,6 +110,7 @@ public final class IntermediateModel {
         this.waiters = waiters;
         this.endpointRuleSetModel = endpointRuleSetModel;
         this.endpointTestSuiteModel = endpointTestSuiteModel;
+        this.endpointBddModel = endpointBddModel;
         this.clientContextParams = clientContextParams;
     }
 
@@ -181,6 +187,10 @@ public final class IntermediateModel {
             endpointTestSuiteModel = new EndpointTestSuiteModel();
         }
         return endpointTestSuiteModel;
+    }
+
+    public EndpointBddModel getEndpointBddModel() {
+        return endpointBddModel;
     }
 
     public Map<String, ClientContextParam> getClientContextParams() {

@@ -37,7 +37,8 @@ public class Tokenizer {
         List<Token> tokens = new ArrayList<>();
         TokenizerState state = new TokenizerState(source);
         do {
-            Token token = next(state);
+            Token previous = tokens.isEmpty() ? null : tokens.get(tokens.size() - 1);
+            Token token = next(state, previous);
             tokens.add(token);
             if (token.type == TokenKind.EOF) {
                 break;
@@ -46,7 +47,7 @@ public class Tokenizer {
         return tokens;
     }
 
-    private static Token next(TokenizerState state) {
+    private static Token next(TokenizerState state, Token previous) {
         if (!state.hasNext()) {
             return EOF;
         }
@@ -81,6 +82,13 @@ public class Tokenizer {
         }
         if (ch == '#') {
             return new Token(TokenKind.HASH, "#");
+        }
+        // Only treat '-' as a distinct token when it opens a negative index, i.e. directly after '[' and followed by a
+        // digit, as in "[-2]" or "resourceId[-1]". Anywhere else '-' is an ordinary string character (for example
+        // "s3-fips" or "not a valid host-label"), so it must fall through to string handling to avoid splitting
+        // literals into extra concatenation terms.
+        if (ch == '-' && previous != null && previous.type == TokenKind.OPEN_SQUARE && isDigit(state.peek())) {
+            return new Token(TokenKind.MINUS, "-");
         }
         if (isDigit(ch)) {
             return consumeNumber(state, ch);
@@ -224,6 +232,33 @@ public class Tokenizer {
         index += 3;
     }
 
+    // e.g., [-2]
+    public boolean isDirectNegativeIndexedAccess() {
+        return matches(TokenKind.OPEN_SQUARE, TokenKind.MINUS, TokenKind.NUMBER, TokenKind.CLOSE_SQUARE);
+    }
+
+    public void consumeDirectNegativeIndexed(Consumer<Integer> consumer) {
+        if (!isDirectNegativeIndexedAccess()) {
+            throw new IllegalStateException("not at direct negative indexed");
+        }
+        consumer.accept(-Integer.parseInt(tokens.get(index + 2).value));
+        index += 4;
+    }
+
+    // e.g., resourceId[-1]
+    public boolean isNegativeIndexedAccess() {
+        return matches(TokenKind.IDENTIFIER, TokenKind.OPEN_SQUARE, TokenKind.MINUS, TokenKind.NUMBER,
+                       TokenKind.CLOSE_SQUARE);
+    }
+
+    public void consumeNegativeIndexed(BiConsumer<String, Integer> consumer) {
+        if (!isNegativeIndexedAccess()) {
+            throw new IllegalStateException("not at negative indexed");
+        }
+        consumer.accept(tokens.get(index).value, -Integer.parseInt(tokens.get(index + 3).value));
+        index += 5;
+    }
+
     // e.g., {url#scheme}
     public boolean isNamedAccess() {
         return matches(TokenKind.OPEN_CURLY, TokenKind.IDENTIFIER, TokenKind.HASH, TokenKind.IDENTIFIER, TokenKind.CLOSE_CURLY);
@@ -278,6 +313,7 @@ public class Tokenizer {
         NUMBER,
         IDENTIFIER,
         HASH,
+        MINUS,
         OPEN_CURLY,
         CLOSE_CURLY,
         OPEN_SQUARE,
