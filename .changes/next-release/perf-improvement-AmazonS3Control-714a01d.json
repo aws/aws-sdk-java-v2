@@ -1,6 +1,0 @@
-{
-    "type": "perf-improvement",
-    "category": "Amazon S3 Control",
-    "contributor": "",
-    "description": "Enable BDD based endpoints.  Endpoint resolution behavior is unchanged but performance is improved."
-}
