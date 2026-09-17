@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS Security Token Service",
+    "contributor": "afarber",
+    "description": "Honor `duration_seconds` in assume-role profiles."
+}
