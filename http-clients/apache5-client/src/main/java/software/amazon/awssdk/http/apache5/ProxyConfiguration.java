@@ -308,6 +308,7 @@ public final class ProxyConfiguration implements ToCopyableBuilder<ProxyConfigur
          * proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com,b.com"} and
          * {@code "a.com, b.com"} are accepted. Each entry may be an exact host name (e.g. {@code example.com}), a
          * leading-wildcard suffix (e.g. {@code *.example.com}, which matches {@code example.com} and its subdomains),
+         * or a leading-dot suffix (e.g. {@code .example.com}, equivalent to {@code *.example.com}),
          * a single {@code *} (which matches all hosts), or a CIDR range for IP addresses (e.g. {@code 10.0.0.0/8}).
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values.
