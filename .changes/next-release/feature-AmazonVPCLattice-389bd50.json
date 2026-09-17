@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon VPC Lattice",
-    "contributor": "",
-    "description": "Adding support for CIDR Resource Configuration"
-}
