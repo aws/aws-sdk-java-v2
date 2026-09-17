@@ -107,6 +107,15 @@ public class BaseClientBuilderClassTest {
                                                  "test-no-region-client-builder-class.java");
     }
 
+    @Test
+    void baseClientBuilderClassWithReadWriteTimeout() {
+        IntermediateModel model = serviceWithH2();
+        // Simulate the exemption processor baking a 15-minute partial tier; verify it composes with the existing H2
+        // serviceHttpConfig content.
+        model.getMetadata().setDefaultReadWriteTimeoutMillis(900000L);
+        validateBaseClientBuilderClassGeneration(model, "test-read-write-timeout-service-client-builder-class.java");
+    }
+
     private void validateBaseClientBuilderClassGeneration(IntermediateModel model, String expectedClassName) {
         validateGeneration(BaseClientBuilderClass::new, model, expectedClassName);
     }

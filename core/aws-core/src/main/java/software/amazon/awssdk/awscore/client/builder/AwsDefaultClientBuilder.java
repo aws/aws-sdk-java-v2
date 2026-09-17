@@ -21,6 +21,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.CONFIGUR
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -50,6 +51,7 @@ import software.amazon.awssdk.core.client.builder.SdkDefaultClientBuilder;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.http.EnableDefaultSocketTimeout2026Resolver;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.SdkInternalTestAdvancedClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
@@ -57,6 +59,7 @@ import software.amazon.awssdk.core.retry.NewRetries2026Resolver;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -98,6 +101,12 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
     private static final Logger log = Logger.loggerFor(AwsClientBuilder.class);
     private static final String[] FIPS_SEARCH = {"fips-", "-fips"};
     private static final String[] FIPS_REPLACE = {"", ""};
+
+    /**
+     * The flat default read/write inactivity timeout applied when the rollout gate is on and the service is not listed in the
+     * codegen exemption artifact.
+     */
+    private static final Duration DEFAULT_READ_WRITE_TIMEOUT = Duration.ofMinutes(5);
 
     private final AutoDefaultsModeDiscovery autoDefaultsModeDiscovery;
 
@@ -249,8 +258,45 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
      * </ol>
      */
     private AttributeMap resolveHttpClientConfig(LazyValueSource config) {
-        AttributeMap attributeMap = serviceHttpConfig();
+        AttributeMap attributeMap = applyDefaultReadWriteTimeout(config, serviceHttpConfig());
         return mergeSmartHttpDefaults(config, attributeMap);
+    }
+
+    /**
+     * Applies the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} rollout gate to the codegen-baked
+     * {@link SdkHttpConfigurationOption#SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT} contributed by {@link #serviceHttpConfig()}.
+     * The gate resolves from the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} environment variable/system property, else the
+     * codegen-baked {@link SdkClientOption#DEFAULT_ENABLE_SOCKET_TIMEOUT_2026} default, else off.
+     *
+     * <p>When the gate is on, an unlisted service (nothing baked) gets the flat 5-minute default and a baked tier is kept as-is
+     * ({@link Duration#ZERO} for fully-exempt, 15 minutes for partial). When the gate is off, a baked positive tier (partial)
+     * is forced to {@link Duration#ZERO} so it cannot apply; otherwise the option is left untouched. Leaving it absent for an
+     * unlisted, gated-off service is equivalent to {@link Duration#ZERO}: the gate being off means the environment variable is
+     * not truthy, so the HTTP client's option-absent path applies nothing either way.
+     */
+    private AttributeMap applyDefaultReadWriteTimeout(LazyValueSource config, AttributeMap serviceHttpConfig) {
+        boolean gateEnabled = new EnableDefaultSocketTimeout2026Resolver()
+            .defaultEnableSocketTimeout2026(config.get(SdkClientOption.DEFAULT_ENABLE_SOCKET_TIMEOUT_2026))
+            .resolve();
+
+        Duration bakedTier = serviceHttpConfig.get(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT);
+
+        if (gateEnabled) {
+            if (bakedTier != null) {
+                return serviceHttpConfig;
+            }
+            return serviceHttpConfig.toBuilder()
+                                    .put(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT,
+                                         DEFAULT_READ_WRITE_TIMEOUT)
+                                    .build();
+        }
+
+        if (bakedTier != null && !bakedTier.isZero()) {
+            return serviceHttpConfig.toBuilder()
+                                    .put(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT, Duration.ZERO)
+                                    .build();
+        }
+        return serviceHttpConfig;
     }
 
     /**
