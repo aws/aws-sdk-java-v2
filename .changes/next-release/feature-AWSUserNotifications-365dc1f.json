@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS User Notifications",
-    "contributor": "",
-    "description": "Added support for attachments on managed notification events. Added support to access and subscribe sensitive managed notification events."
-}
