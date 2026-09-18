@@ -21,17 +21,18 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 
 /**
- * Shared constants for DynamoDB performance benchmark infrastructure (mocked and live).
+ * Shared constants for DynamoDB mocked Tier C benchmark infrastructure.
  * Does not construct clients; factories and benchmarks consume these values.
  */
 public final class DynamoDbBenchmarkConstant {
 
     public static final Region REGION = Region.US_EAST_1;
 
+    /** Logical table name used in mocked requests/responses */
     public static final String TABLE_NAME = "sdk-java-ddb-perf-benchmark";
 
     /**
-     * Deterministic fake credentials for mocked Tier C clients. Not used for live Tier D.
+     * Deterministic fake credentials for mocked Tier C clients.
      */
     public static final AwsCredentialsProvider MOCK_CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));

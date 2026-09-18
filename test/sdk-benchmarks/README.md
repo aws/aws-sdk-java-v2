@@ -10,10 +10,10 @@ or measurement time in order to get more reliable data.
 
 ## DynamoDB suite (manual)
 
-New DynamoDB Tier C (mocked pipeline) and Tier D (live) benchmarks live under
-`software.amazon.awssdk.benchmark.dynamodb`. They are **manual-only** and are not
-selected by `BenchmarkRunner` / CI. See **[DYNAMODB.md](DYNAMODB.md)** for tiers,
-inventory, commands, live opt-in, and interpretation notes.
+New DynamoDB Tier C (mocked pipeline) benchmarks live under
+`software.amazon.awssdk.benchmark.dynamodb.pipeline`. They are **manual-only** and are not
+selected by `BenchmarkRunner` / CI. See **[DYNAMODB.md](DYNAMODB.md)** for context on existing
+Tier A/B coverage, the Tier C inventory, commands, and interpretation notes.
 
 There are three ways to run benchmarks.
 
