@@ -166,7 +166,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
 
         b.addStatement("$T builder = $T.builder()", paramsBuilderClass(), endpointRulesSpecUtils.parametersClassName());
 
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
         parameters.forEach((n, m) -> {
             if (m.getBuiltInEnum() == null) {
                 return;
@@ -535,7 +535,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
     }
 
     private CodeBlock matchToParameterType(String paramName) {
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
         Optional<ParameterModel> endpointParameter = parameters.entrySet().stream()
                                                                .filter(e -> e.getKey().toLowerCase(Locale.US)
                                                                              .equals(paramName.toLowerCase(Locale.US)))
