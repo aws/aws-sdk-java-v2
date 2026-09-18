@@ -136,8 +136,17 @@ public final class EndpointDiscoveryRefreshCache {
         }
 
         if (endpoint.expirationTime().isBefore(Instant.now())) {
-            cache.put(key, endpoint.toBuilder().expirationTime(Instant.now().plusSeconds(60)).build());
-            refreshCacheAsync(request, key);
+            EndpointDiscoveryEndpoint refreshedEndpoint =
+                endpoint.toBuilder().expirationTime(Instant.now().plusSeconds(60)).build();
+            // CAS on the stale value each caller read: only the thread that actually wins the
+            // race to replace it kicks off a background refresh. Without this, every thread that
+            // reads the same expired entry before any of them writes back would independently
+            // decide it's expired and each fire its own refreshCacheAsync call, causing a
+            // thundering herd of duplicate endpoint-discovery requests right when the cache entry
+            // expires under concurrent load.
+            if (cache.replace(key, endpoint, refreshedEndpoint)) {
+                refreshCacheAsync(request, key);
+            }
         }
 
         return endpoint.endpoint();
