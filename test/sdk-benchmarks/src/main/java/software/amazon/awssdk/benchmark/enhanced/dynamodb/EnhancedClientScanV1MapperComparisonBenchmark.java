@@ -44,8 +44,11 @@ import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 @State(Scope.Benchmark)
 public class EnhancedClientScanV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
+    private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
     private static final DynamoDBScanExpression V1_SCAN_EXPRESSION = new DynamoDBScanExpression();
+    private static final software.amazon.awssdk.mapper.dynamodb.DynamoDBScanExpression V2_MAPPER_SCAN_EXPRESSION =
+            new software.amazon.awssdk.mapper.dynamodb.DynamoDBScanExpression();
 
     @Benchmark
     public Object v2Scan(TestState s) {
@@ -55,6 +58,11 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
     @Benchmark
     public Object v1Scan(TestState s) {
         return s.v1DdbMapper.scan(s.testItem.getV1BeanClass(), V1_SCAN_EXPRESSION).iterator().next();
+    }
+
+    @Benchmark
+    public Object v2MapperScan(TestState s) {
+        return s.v2DdbMapper.scan(s.testItem.getV2MapperBeanClass(), V2_MAPPER_SCAN_EXPRESSION).iterator().next();
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh, ScanResponse scanResponse) {
@@ -72,15 +80,17 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
 
         private DynamoDbTable<?> v2Table;
         private DynamoDBMapper v1DdbMapper;
-
+        private software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper v2DdbMapper;
 
         @Setup
         public void setup(Blackhole bh) {
+            DynamoDbClient v2Client = getV2Client(bh, testItem.v2Response);
             DynamoDbEnhancedClient v2DdbEnh = DynamoDbEnhancedClient.builder()
-                    .dynamoDbClient(getV2Client(bh, testItem.v2Response))
+                    .dynamoDbClient(v2Client)
                     .build();
 
             v2Table = v2DdbEnh.table(testItem.name(), testItem.schema);
+            v2DdbMapper = new software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper(v2Client);
 
             v1DdbMapper = new DynamoDBMapper(getV1Client(bh, testItem.v1Response));
         }
@@ -93,6 +103,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.tiny(),
                                                      V2_ITEM_FACTORY.tiny()))
                                 .build(),
+                    V2MapperItemFactory.V2MapperTinyBean.class,
 
                     V1ItemFactory.V1TinyBean.class,
                     new ScanResult().withItems(
@@ -105,6 +116,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.small(),
                                                      V2_ITEM_FACTORY.small()))
                                 .build(),
+                    V2MapperItemFactory.V2MapperSmallBean.class,
 
                     V1ItemFactory.V1SmallBean.class,
                     new ScanResult().withItems(
@@ -118,6 +130,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.huge(),
                                                      V2_ITEM_FACTORY.huge()))
                                 .build(),
+                    V2MapperItemFactory.V2MapperHugeBean.class,
 
                     V1ItemFactory.V1HugeBean.class,
                     new ScanResult().withItems(
@@ -131,6 +144,7 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
                                                      V2_ITEM_FACTORY.hugeFlat(),
                                                      V2_ITEM_FACTORY.hugeFlat()))
                                 .build(),
+                    V2MapperItemFactory.V2MapperHugeBeanFlat.class,
 
                     V1ItemFactory.V1HugeBeanFlat.class,
                     new ScanResult().withItems(
@@ -138,9 +152,12 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
             ),
             ;
 
-            // V2
+            // Enhanced Client
             private TableSchema<?> schema;
             private ScanResponse v2Response;
+
+            // Mapper v2
+            private Class<?> v2MapperBeanClass;
 
             // V1
             private Class<?> v1BeanClass;
@@ -148,11 +165,13 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
 
             TestItem(TableSchema<?> schema,
                      ScanResponse v2Response,
+                     Class<?> v2MapperBeanClass,
 
                      Class<?> v1BeanClass,
                      ScanResult v1Response) {
                 this.schema = schema;
                 this.v2Response = v2Response;
+                this.v2MapperBeanClass = v2MapperBeanClass;
 
                 this.v1BeanClass = v1BeanClass;
                 this.v1Response = v1Response;
@@ -161,6 +180,11 @@ public class EnhancedClientScanV1MapperComparisonBenchmark {
             public Class<?> getV1BeanClass() {
                 return v1BeanClass;
             }
+
+            public Class<?> getV2MapperBeanClass() {
+                return v2MapperBeanClass;
+            }
+
         }
     }
 }

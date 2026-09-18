@@ -41,11 +41,16 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 @State(Scope.Benchmark)
 public class EnhancedClientPutV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
+    private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
     private static final DynamoDBMapperConfig MAPPER_CONFIG =
         DynamoDBMapperConfig.builder()
                             .withSaveBehavior(DynamoDBMapperConfig.SaveBehavior.PUT)
                             .build();
+    private static final software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig V2_MAPPER_CONFIG =
+        software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.builder()
+            .withSaveBehavior(software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior.PUT)
+            .build();
 
     @Benchmark
     public void v2Put(TestState s) {
@@ -55,6 +60,11 @@ public class EnhancedClientPutV1MapperComparisonBenchmark {
     @Benchmark
     public void v1Put(TestState s) {
         s.v1DdbMapper.save(s.testItem.v1Bean);
+    }
+
+    @Benchmark
+    public void v2MapperPut(TestState s) {
+        s.v2DdbMapper.save(s.testItem.v2MapperBean);
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh) {
@@ -72,15 +82,17 @@ public class EnhancedClientPutV1MapperComparisonBenchmark {
 
         private DynamoDbTable v2Table;
         private DynamoDBMapper v1DdbMapper;
-
+        private software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper v2DdbMapper;
 
         @Setup
         public void setup(Blackhole bh) {
+            DynamoDbClient v2Client = getV2Client(bh);
             DynamoDbEnhancedClient v2DdbEnh = DynamoDbEnhancedClient.builder()
-                    .dynamoDbClient(getV2Client(bh))
+                    .dynamoDbClient(v2Client)
                     .build();
 
             v2Table = v2DdbEnh.table(testItem.name(), testItem.schema);
+            v2DdbMapper = new software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper(v2Client, V2_MAPPER_CONFIG);
 
             v1DdbMapper = new DynamoDBMapper(getV1Client(bh), MAPPER_CONFIG);
         }
@@ -89,6 +101,7 @@ public class EnhancedClientPutV1MapperComparisonBenchmark {
             TINY(
                     V2ItemFactory.TINY_BEAN_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.tinyBean(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperTinyBean(),
 
                     V1_ITEM_FACTORY.v1TinyBean()
             ),
@@ -96,6 +109,7 @@ public class EnhancedClientPutV1MapperComparisonBenchmark {
             SMALL(
                     V2ItemFactory.SMALL_BEAN_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.smallBean(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperSmallBean(),
 
                     V1_ITEM_FACTORY.v1SmallBean()
             ),
@@ -103,6 +117,7 @@ public class EnhancedClientPutV1MapperComparisonBenchmark {
             HUGE(
                     V2ItemFactory.HUGE_BEAN_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.hugeBean(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperHugeBean(),
 
                     V1_ITEM_FACTORY.v1hugeBean()
             ),
@@ -110,24 +125,30 @@ public class EnhancedClientPutV1MapperComparisonBenchmark {
             HUGE_FLAT(
                     V2ItemFactory.HUGE_BEAN_FLAT_TABLE_SCHEMA,
                     V2_ITEM_FACTORY.hugeBeanFlat(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperHugeBeanFlat(),
 
                     V1_ITEM_FACTORY.v1HugeBeanFlat()
             ),
             ;
 
-            // V2
+            // Enhanced Client
             private TableSchema<?> schema;
             private Object v2Bean;
+
+            // Mapper v2
+            private Object v2MapperBean;
 
             // V1
             private Object v1Bean;
 
             TestItem(TableSchema<?> schema,
-                             Object v2Bean,
+                     Object v2Bean,
+                     Object v2MapperBean,
 
-                             Object v1Bean) {
+                     Object v1Bean) {
                 this.schema = schema;
                 this.v2Bean = v2Bean;
+                this.v2MapperBean = v2MapperBean;
 
                 this.v1Bean = v1Bean;
             }
