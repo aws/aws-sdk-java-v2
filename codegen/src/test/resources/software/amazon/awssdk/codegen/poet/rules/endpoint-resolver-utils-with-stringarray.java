@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -135,8 +136,9 @@ public final class SampleSvcEndpointResolverUtils {
     List<String> stringArrayParam = Collections.emptyList();
     Nested nested = request.nested();
     if (nested != null) {
-      stringArrayParam = new ArrayList<>();
-      for (ObjectMember objectMember : nested.listOfObjects()) {
+      List<ObjectMember> listOfObjects = nested.listOfObjects();
+      stringArrayParam = new ArrayList<>(listOfObjects.size());
+      for (ObjectMember objectMember : listOfObjects) {
         if (objectMember != null) {
           String key = objectMember.key();
           if (key != null) {
@@ -150,8 +152,9 @@ public final class SampleSvcEndpointResolverUtils {
 
   private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
       MapKeysOperationRequest request) {
-    List<String> stringArrayParam = new ArrayList<>();
-    for (String key : new HashMap<>(request.requestItems()).keySet()) {
+    Map<String, String> requestItems = request.requestItems();
+    List<String> stringArrayParam = new ArrayList<>(requestItems.size());
+    for (String key : new HashMap<>(requestItems).keySet()) {
       if (key != null) {
         stringArrayParam.add(key);
       }
@@ -161,8 +164,9 @@ public final class SampleSvcEndpointResolverUtils {
 
   private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
       TransactionOperationRequest request) {
-    List<String> stringArrayParam = new ArrayList<>();
-    for (TransactItem transactItem : request.transactItems()) {
+    List<TransactItem> transactItems = request.transactItems();
+    List<String> stringArrayParam = new ArrayList<>(transactItems.size());
+    for (TransactItem transactItem : transactItems) {
       if (transactItem != null) {
         Put put = transactItem.put();
         if (put != null) {

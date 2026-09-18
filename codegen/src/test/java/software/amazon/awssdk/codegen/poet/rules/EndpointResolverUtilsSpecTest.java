@@ -110,8 +110,9 @@ public class EndpointResolverUtilsSpecTest {
 
     private static void addBinding(IntermediateModel model, String operationName, String parameterName,
                                    TreeNode path) {
-        ParameterModel parameter = model.getEndpointRuleSetModel().getParameters().get("stringArrayParam");
-        model.getEndpointRuleSetModel().getParameters().put(parameterName, parameter);
+        Map<String, ParameterModel> parameters = new LinkedHashMap<>(model.getEndpointParameters());
+        parameters.put(parameterName, parameters.get("stringArrayParam"));
+        model.setEndpointParameters(parameters);
 
         OperationContextParam operationContextParam = new OperationContextParam();
         operationContextParam.setPath(path);

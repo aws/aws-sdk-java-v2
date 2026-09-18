@@ -169,9 +169,9 @@ class JmesPathTypedGetterGeneratorTest {
                    "expected the result to be seeded with an immutable empty list, but got: " + code);
         assertTrue(code.contains("if (request_ != null)"),
                    "expected the struct prefix to be null-guarded, but got: " + code);
-        assertTrue(code.contains("stringArrayParam = new java.util.ArrayList<>()"),
-                   "expected the guarded branch to switch to a mutable list, but got: " + code);
-        assertTrue(code.contains("new java.util.HashMap<>(request_.itemMap()).keySet()"),
+        assertTrue(code.contains("stringArrayParam = new java.util.ArrayList<>(itemMap.size())"),
+                   "expected the guarded branch to switch to a presized mutable list, but got: " + code);
+        assertTrue(code.contains("new java.util.HashMap<>(itemMap).keySet()"),
                    "expected the key loop to copy the map through HashMap, but got: " + code);
     }
 

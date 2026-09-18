@@ -156,17 +156,19 @@ final class JmesPathTypedGetterGenerator {
         boolean prefixGuarded = fields.size() > 1;
         if (prefixGuarded) {
             b.addStatement("$T $N = $T.emptyList()", resultType, resultVar, ClassName.get(Collections.class));
-        } else {
-            b.addStatement("$T $N = new $T<>()", resultType, resultVar, ClassName.get(ArrayList.class));
         }
 
         Walk walk = walkToLast(b, names, inputShape, fields);
+        String mapVar = names.newName(baseName(walk.lastMember));
+        b.addStatement("$T $N = $L", typeProvider.returnType(walk.lastMember), mapVar,
+                       accessLast(walk, walk.lastMember));
         if (prefixGuarded) {
-            b.addStatement("$N = new $T<>()", resultVar, ClassName.get(ArrayList.class));
+            b.addStatement("$N = new $T<>($N.size())", resultVar, ClassName.get(ArrayList.class), mapVar);
+        } else {
+            b.addStatement("$T $N = new $T<>($N.size())", resultType, resultVar, ClassName.get(ArrayList.class), mapVar);
         }
         String keyVar = names.newName("key");
-        b.beginControlFlow("for ($T $N : new $T<>($L).keySet())", String.class, keyVar, HashMap.class,
-                           accessLast(walk, walk.lastMember));
+        b.beginControlFlow("for ($T $N : new $T<>($N).keySet())", String.class, keyVar, HashMap.class, mapVar);
         b.beginControlFlow("if ($N != null)", keyVar);
         b.addStatement("$N.add($N)", resultVar, keyVar);
         b.endControlFlow();
@@ -197,21 +199,25 @@ final class JmesPathTypedGetterGenerator {
         boolean prefixGuarded = parts.prefix.size() > 1;
         if (prefixGuarded) {
             b.addStatement("$T $N = $T.emptyList()", listElementType, resultVar, ClassName.get(Collections.class));
-        } else {
-            b.addStatement("$T $N = new $T<>()", listElementType, resultVar, ClassName.get(ArrayList.class));
         }
 
         Walk walk = walkToLast(b, names, inputShape, parts.prefix);
-        if (prefixGuarded) {
-            b.addStatement("$N = new $T<>()", resultVar, ClassName.get(ArrayList.class));
-        }
         MemberModel listMember = walk.lastMember;
+        String listVar = names.newName(baseName(listMember));
+        b.addStatement("$T $N = $L", typeProvider.returnType(listMember), listVar, accessLast(walk, listMember));
+        // The source size is exact for a single-leaf projection and a lower bound for a multiselect.
+        if (prefixGuarded) {
+            b.addStatement("$N = new $T<>($N.size())", resultVar, ClassName.get(ArrayList.class), listVar);
+        } else {
+            b.addStatement("$T $N = new $T<>($N.size())", listElementType, resultVar, ClassName.get(ArrayList.class),
+                           listVar);
+        }
         MemberModel elementMember = listMember.getListModel().getListMemberModel();
         ShapeModel elementShape = targetShape(elementMember);
         TypeName elementType = typeProvider.returnType(elementMember);
         String elementVar = names.newName(elementBaseName(elementMember));
 
-        b.beginControlFlow("for ($T $N : $L)", elementType, elementVar, accessLast(walk, listMember));
+        b.beginControlFlow("for ($T $N : $N)", elementType, elementVar, listVar);
         b.beginControlFlow("if ($N != null)", elementVar);
         if (parts.isMultiSelect()) {
             for (List<Step> branch : parts.multiSelect().branches) {

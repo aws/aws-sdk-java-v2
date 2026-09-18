@@ -522,7 +522,7 @@ public class EndpointResolverUtilsSpec implements ClassSpec {
     }
 
     private String operationContextParamType(String paramName) {
-        Map<String, ParameterModel> parameters = model.getEndpointRuleSetModel().getParameters();
+        Map<String, ParameterModel> parameters = model.getEndpointParameters();
         return parameters.entrySet().stream()
                          .filter(e -> e.getKey().toLowerCase(Locale.US).equals(paramName.toLowerCase(Locale.US)))
                          .map(e -> e.getValue().getType())
