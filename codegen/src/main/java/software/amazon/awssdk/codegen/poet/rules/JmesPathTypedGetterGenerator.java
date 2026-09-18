@@ -151,11 +151,11 @@ final class JmesPathTypedGetterGenerator {
 
         TypeName resultType = ParameterizedTypeName.get(ClassName.get(List.class), ClassName.get(String.class));
         String resultVar = names.newName(setterName);
-        // If the prefix is guarded, the loop may never run: seed the immutable empty list that the reflective
-        // runtime's stringValues() returns for a null prefix.
+        // If the prefix is guarded, the loop may never run: seed the result the reflective runtime returns for a
+        // null prefix, which for keys() is a mutable empty list (a null projection prefix yields an immutable one).
         boolean prefixGuarded = fields.size() > 1;
         if (prefixGuarded) {
-            b.addStatement("$T $N = $T.emptyList()", resultType, resultVar, ClassName.get(Collections.class));
+            b.addStatement("$T $N = new $T<>()", resultType, resultVar, ClassName.get(ArrayList.class));
         }
 
         Walk walk = walkToLast(b, names, inputShape, fields);
@@ -205,7 +205,8 @@ final class JmesPathTypedGetterGenerator {
         MemberModel listMember = walk.lastMember;
         String listVar = names.newName(baseName(listMember));
         b.addStatement("$T $N = $L", typeProvider.returnType(listMember), listVar, accessLast(walk, listMember));
-        // The source size is exact for a single-leaf projection and a lower bound for a multiselect.
+        // Presizing to the source list size avoids growth in the common one-result-per-element case and reduces
+        // growth for multiselects; null filtering can leave the result smaller.
         if (prefixGuarded) {
             b.addStatement("$N = new $T<>($N.size())", resultVar, ClassName.get(ArrayList.class), listVar);
         } else {

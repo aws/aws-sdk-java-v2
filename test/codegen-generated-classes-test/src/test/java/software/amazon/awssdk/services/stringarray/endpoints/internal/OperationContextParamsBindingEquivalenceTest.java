@@ -15,10 +15,16 @@
 
 package software.amazon.awssdk.services.stringarray.endpoints.internal;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -33,6 +39,7 @@ import software.amazon.awssdk.services.stringarray.jmespath.internal.JmesPathRun
 import software.amazon.awssdk.services.stringarray.model.ListOfObjectsOperationRequest;
 import software.amazon.awssdk.services.stringarray.model.ListOfUnionsOperationRequest;
 import software.amazon.awssdk.services.stringarray.model.MapOperationRequest;
+import software.amazon.awssdk.services.stringarray.model.NestedMapOperationRequest;
 import software.amazon.awssdk.services.stringarray.model.ObjectMember;
 import software.amazon.awssdk.services.stringarray.model.UnionMember;
 
@@ -40,8 +47,8 @@ import software.amazon.awssdk.services.stringarray.model.UnionMember;
  * Verifies that the codegen-lowered {@code operationContextParams} bindings for the synthetic string array service
  * produce the same values as the reflective {@code JmesPathRuntime} evaluation, which remains the fallback for
  * unsupported expressions and is used here as the equivalence oracle. Covers a projection behind a nullable struct
- * ("nested.listOfObjects[*].key"), a multiselect-list + flatten over union members
- * ("listOfUnions[*][string, object.key][]"), and {@code keys()} over a map ("keys(map)").
+ * ("nested.listOfObjects[*].key"), a multiselect-list + flatten ("listOfUnions[*][string, object.key][]"),
+ * {@code keys()} over a map ("keys(map)"), and {@code keys()} behind a nullable struct ("keys(nestedMap.map)").
  *
  * <p>Each lowered binding is invoked directly via its generated, private
  * {@code setOperationContextParams(builder, request)} overload, so the check is isolated to the binding itself.
@@ -181,5 +188,65 @@ public class OperationContextParamsBindingEquivalenceTest {
         List<String> low = lowered(request);
         assertEquals(reflectiveMap(request), low, "lowered binding must equal reflective evaluation");
         assertEquals(new HashSet<>(Arrays.asList(keys)), new HashSet<>(low), "content must match");
+    }
+
+    private static List<String> reflectiveNestedMap(NestedMapOperationRequest request) {
+        return new Value(request).field("nestedMap").field("map").keys().stringValues();
+    }
+
+    private static void assertNestedMapEquivalent(NestedMapOperationRequest request, List<String> expectedContent) {
+        List<String> low = lowered(request);
+        assertEquals(reflectiveNestedMap(request), low, "lowered binding must equal reflective evaluation");
+        assertEquals(new HashSet<>(expectedContent), new HashSet<>(low), "content must match");
+    }
+
+    @Test
+    public void nestedMapNullPrefix() {
+        assertNestedMapEquivalent(NestedMapOperationRequest.builder().build(), Collections.emptyList());
+    }
+
+    /**
+     * {@code keys()} normalizes a null prefix to an empty list value, whose {@code stringValues()} is mutable, so the
+     * lowered binding must hand the endpoint params a mutable list here, unlike a null projection prefix.
+     */
+    @Test
+    public void nestedMapNullPrefixYieldsSameMutabilityAsReflective() {
+        NestedMapOperationRequest request = NestedMapOperationRequest.builder().build();
+        assertDoesNotThrow(() -> reflectiveNestedMap(request).add("x"),
+                           "oracle assumption: reflective keys() returns a mutable list for a null prefix");
+        assertDoesNotThrow(() -> lowered(request).add("x"),
+                           "lowered binding must match the reflective list's mutability for a null prefix");
+    }
+
+    @Test
+    public void nestedMapKeys() {
+        NestedMapOperationRequest request = NestedMapOperationRequest.builder()
+            .nestedMap(n -> n.map(Collections.singletonMap("table", "value")))
+            .build();
+        assertNestedMapEquivalent(request, Collections.singletonList("table"));
+    }
+
+    /**
+     * The equivalence assertions above are only meaningful if the generated methods are actually lowered: a codegen
+     * regression that sends these operations back to the reflective path would make every comparison
+     * oracle-against-itself. The resolver's class file must not reference the reflective runtime.
+     */
+    @Test
+    public void operationContextParamBindingsDoNotUseReflectiveFallback() throws IOException {
+        byte[] classBytes = readClassBytes(StringArrayEndpointResolverUtils.class);
+        assertFalse(new String(classBytes, StandardCharsets.ISO_8859_1).contains("JmesPathRuntime"),
+                    "generated resolver references JmesPathRuntime; bindings fell back to the reflective path");
+    }
+
+    private static byte[] readClassBytes(Class<?> clazz) throws IOException {
+        try (InputStream in = clazz.getResourceAsStream(clazz.getSimpleName() + ".class");
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) > 0) {
+                out.write(buffer, 0, read);
+            }
+            return out.toByteArray();
+        }
     }
 }

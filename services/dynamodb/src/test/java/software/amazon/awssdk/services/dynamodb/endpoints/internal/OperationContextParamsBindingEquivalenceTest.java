@@ -16,8 +16,13 @@
 package software.amazon.awssdk.services.dynamodb.endpoints.internal;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -244,5 +249,32 @@ public class OperationContextParamsBindingEquivalenceTest {
         items.add(null);
         assertWriteEquivalent(TransactWriteItemsRequest.builder().transactItems(items).build(),
                              Collections.singletonList("p1"));
+    }
+
+    /**
+     * The equivalence assertions above are only meaningful if the generated methods are actually lowered: a codegen
+     * regression that sends these operations back to the reflective path would make every comparison
+     * oracle-against-itself. The resolver's class file must not reference the reflective runtime.
+     */
+    @Test
+    public void operationContextParamBindingsDoNotUseReflectiveFallback() throws IOException {
+        byte[] classBytes = readClassBytes(DynamoDbEndpointResolverUtils.class);
+        assertFalse(new String(classBytes, StandardCharsets.ISO_8859_1).contains("JmesPathRuntime"),
+                    "The generated resolver references JmesPathRuntime, so at least one operation's bindings use the "
+                    + "reflective fallback. If a codegen change caused this, fix the regression. If a model change "
+                    + "added an expression outside the lowering subset, the fallback is working as designed but is a "
+                    + "performance regression for that operation: extend the lowerer or consciously update this test.");
+    }
+
+    private static byte[] readClassBytes(Class<?> clazz) throws IOException {
+        try (InputStream in = clazz.getResourceAsStream(clazz.getSimpleName() + ".class");
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            byte[] buffer = new byte[8192];
+            int read;
+            while ((read = in.read(buffer)) > 0) {
+                out.write(buffer, 0, read);
+            }
+            return out.toByteArray();
+        }
     }
 }

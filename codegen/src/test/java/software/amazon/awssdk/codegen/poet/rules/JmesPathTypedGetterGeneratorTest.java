@@ -153,11 +153,12 @@ class JmesPathTypedGetterGeneratorTest {
     }
 
     /**
-     * {@code keys()} behind a nullable struct must seed the immutable empty list that the reflective runtime returns
-     * for a null prefix.
+     * {@code keys()} behind a nullable struct must seed the mutable empty list that the reflective runtime returns
+     * for a null prefix: keys() normalizes null to an empty list value whose {@code stringValues()} is mutable,
+     * unlike a null projection prefix.
      */
     @Test
-    void keysWithNullablePrefixSeedsAnImmutableEmptyList() {
+    void keysWithNullablePrefixSeedsAMutableEmptyList() {
         IntermediateModel model = ClientTestModels.stringArrayServiceModels();
         JmesPathTypedGetterGenerator generator = new JmesPathTypedGetterGenerator(model);
         ShapeModel input = model.getOperation("ListOfObjectsOperation").getInputShape();
@@ -165,12 +166,12 @@ class JmesPathTypedGetterGeneratorTest {
         CodeBlock generated = generator.lower(input, "keys(Request.ItemMap)", "stringarray", "stringArrayParam");
 
         String code = generated.toString();
-        assertTrue(code.contains("java.util.Collections.emptyList()"),
-                   "expected the result to be seeded with an immutable empty list, but got: " + code);
+        assertTrue(code.contains("stringArrayParam = new java.util.ArrayList<>();"),
+                   "expected the result to be seeded with a mutable empty list, but got: " + code);
         assertTrue(code.contains("if (request_ != null)"),
                    "expected the struct prefix to be null-guarded, but got: " + code);
         assertTrue(code.contains("stringArrayParam = new java.util.ArrayList<>(itemMap.size())"),
-                   "expected the guarded branch to switch to a presized mutable list, but got: " + code);
+                   "expected the guarded branch to switch to a presized list, but got: " + code);
         assertTrue(code.contains("new java.util.HashMap<>(itemMap).keySet()"),
                    "expected the key loop to copy the map through HashMap, but got: " + code);
     }
