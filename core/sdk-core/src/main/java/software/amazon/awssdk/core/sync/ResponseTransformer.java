@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.sync.ValidatingResponseTransformer;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
@@ -109,7 +110,8 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
 
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link FileAlreadyExistsException} will be thrown.
+     * then a {@link FileAlreadyExistsException} will be thrown, as the cause of an {@link SdkClientException}, without
+     * sending a request.
      *
      * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
      * {@link NoSuchFileException} will be thrown if they are missing.
@@ -119,7 +121,17 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return ResponseTransformer instance.
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
-        return new ResponseTransformer<ResponseT, ResponseT>() {
+        return new ValidatingResponseTransformer<ResponseT>() {
+            @Override
+            public void validate() {
+                // Reject a destination the Files.copy below could never write, before the request is sent. That copy
+                // uses CREATE_NEW semantics and stays authoritative, so a file appearing later still fails there.
+                if (Files.exists(path)) {
+                    throw SdkClientException.create("Cannot write to the existing file " + path,
+                                                    new FileAlreadyExistsException(path.toString()));
+                }
+            }
+
             @Override
             public ResponseT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
                 try {

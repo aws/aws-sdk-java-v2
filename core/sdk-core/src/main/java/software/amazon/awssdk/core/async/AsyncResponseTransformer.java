@@ -186,8 +186,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
 
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
-     * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
-     * be thrown.
+     * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, the
+     * operation's returned future completes exceptionally with an
+     * {@link software.amazon.awssdk.core.exception.SdkClientException} caused by a
+     * {@link java.nio.file.FileAlreadyExistsException}, and no request is sent.
      *
      * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
      * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
@@ -204,6 +206,13 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
      * {@link FileTransformerConfiguration}.
+     *
+     * <p>Before any request is sent, the destination is checked against the configured
+     * {@link FileTransformerConfiguration.FileWriteOption}: {@code CREATE_NEW} requires that the file does not yet
+     * exist, and {@code WRITE_TO_POSITION} requires that it does. If the check fails, the operation's returned future
+     * completes exceptionally with an {@link software.amazon.awssdk.core.exception.SdkClientException} - caused by a
+     * {@link java.nio.file.FileAlreadyExistsException} or {@link java.nio.file.NoSuchFileException} - and no request is
+     * sent.
      *
      * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
      * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
