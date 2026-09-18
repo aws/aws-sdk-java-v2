@@ -43,6 +43,7 @@ import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 @State(Scope.Benchmark)
 public class EnhancedClientGetV1MapperComparisonBenchmark {
     private static final V2ItemFactory V2_ITEM_FACTORY = new V2ItemFactory();
+    private static final V2MapperItemFactory V2_MAPPER_ITEM_FACTORY = new V2MapperItemFactory();
     private static final V1ItemFactory V1_ITEM_FACTORY = new V1ItemFactory();
 
     @Benchmark
@@ -53,6 +54,11 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
     @Benchmark
     public Object v1Get(TestState s) {
         return s.v1DdbMapper.load(s.testItem.v1Key);
+    }
+
+    @Benchmark
+    public Object v2MapperGet(TestState s) {
+        return s.v2DdbMapper.load(s.testItem.v2MapperKey.getClass(), "hashKey");
     }
 
     private static DynamoDbClient getV2Client(Blackhole bh, GetItemResponse getItemResponse) {
@@ -72,15 +78,17 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
 
         private DynamoDbTable<?> v2Table;
         private DynamoDBMapper v1DdbMapper;
-
+        private software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper v2DdbMapper;
 
         @Setup
         public void setup(Blackhole bh) {
+            DynamoDbClient v2Client = getV2Client(bh, testItem.v2Response);
             DynamoDbEnhancedClient v2DdbEnh = DynamoDbEnhancedClient.builder()
-                    .dynamoDbClient(getV2Client(bh, testItem.v2Response))
+                    .dynamoDbClient(v2Client)
                     .build();
 
             v2Table = v2DdbEnh.table(testItem.name(), testItem.schema);
+            v2DdbMapper = new software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper(v2Client);
 
             v1DdbMapper = new DynamoDBMapper(getV1Client(bh, testItem.v1Response));
         }
@@ -89,6 +97,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
             TINY(
                     V2ItemFactory.TINY_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.tiny()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperTinyBean(),
 
                     new V1ItemFactory.V1TinyBean("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.tiny())
@@ -97,6 +106,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
             SMALL(
                     V2ItemFactory.SMALL_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.small()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperSmallBean(),
 
                     new V1ItemFactory.V1SmallBean("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.small())
@@ -105,6 +115,7 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
             HUGE(
                     V2ItemFactory.HUGE_BEAN_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.huge()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperHugeBean(),
 
                     new V1ItemFactory.V1HugeBean("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.huge())
@@ -113,27 +124,33 @@ public class EnhancedClientGetV1MapperComparisonBenchmark {
             HUGE_FLAT(
                     V2ItemFactory.HUGE_BEAN_FLAT_TABLE_SCHEMA,
                     GetItemResponse.builder().item(V2_ITEM_FACTORY.hugeFlat()).build(),
+                    V2_MAPPER_ITEM_FACTORY.v2MapperHugeBeanFlat(),
 
                     new V1ItemFactory.V1HugeBeanFlat("hashKey"),
                     new GetItemResult().withItem(V1_ITEM_FACTORY.hugeFlat())
             ),
             ;
 
-            // V2
+            // Enhanced Client
             private TableSchema<?> schema;
             private GetItemResponse v2Response;
+
+            // Mapper v2
+            private Object v2MapperKey;
 
             // V1
             private Object v1Key;
             private GetItemResult v1Response;
 
             TestItem(TableSchema<?> schema,
-                             GetItemResponse v2Response,
+                     GetItemResponse v2Response,
+                     Object v2MapperKey,
 
-                             Object v1Key,
-                             GetItemResult v1Response) {
+                     Object v1Key,
+                     GetItemResult v1Response) {
                 this.schema = schema;
                 this.v2Response = v2Response;
+                this.v2MapperKey = v2MapperKey;
 
                 this.v1Key = v1Key;
                 this.v1Response = v1Response;
