@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Fix projection expressions for attributes containing list indices.",
+    "contributor": "afarber"
+}
