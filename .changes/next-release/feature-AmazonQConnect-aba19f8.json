@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Q Connect",
-    "contributor": "",
-    "description": "Amazon Connect AI Agents now support multi-agent orchestration and structured JSON input and output messaging for orchestration agents."
-}
