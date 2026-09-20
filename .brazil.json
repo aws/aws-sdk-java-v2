@@ -323,6 +323,22 @@
     }
   },
   "dependencies": {
+    "com.amazonaws:aws-java-sdk-core": {
+      "packageName": "AWSJavaClientRuntime",
+      "packageVersion": "1.12.x"
+    },
+    "com.amazonaws:aws-java-sdk-dynamodb": {
+      "packageName": "AWSDynamoDBJavaModel",
+      "packageVersion": "1.12.x"
+    },
+    "com.amazonaws:aws-java-sdk-s3": {
+      "packageName": "AWSS3JavaClient",
+      "packageVersion": "1.12.x"
+    },
+    "joda-time:joda-time": {
+      "packageName": "Joda-time",
+      "packageVersion": "2.x"
+    },
     "com.fasterxml.jackson.core:jackson-annotations": {
       "packageName": "Jackson-annotations",
       "packageVersion": "2.9.x"
