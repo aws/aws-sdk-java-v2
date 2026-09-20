@@ -17,6 +17,7 @@ package software.amazon.awssdk.http.crt.internal.request;
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
@@ -27,11 +28,14 @@ import software.amazon.awssdk.utils.async.ByteBufferStoringSubscriber.TransferRe
 final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
     private final SdkHttpContentPublisher requestPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
+    private final Consumer<Throwable> onBodyError;
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
+    private final AtomicBoolean errorSignaled = new AtomicBoolean(false);
 
-    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, long readLimit) {
+    CrtRequestBodyAdapter(SdkHttpContentPublisher requestPublisher, long readLimit, Consumer<Throwable> onBodyError) {
         this.requestPublisher = requestPublisher;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(readLimit);
+        this.onBodyError = onBodyError;
     }
 
     @Override
@@ -40,7 +44,16 @@ final class CrtRequestBodyAdapter implements HttpRequestBodyStream {
             requestPublisher.subscribe(requestBodySubscriber);
         }
 
-        return requestBodySubscriber.transferTo(bodyBytesOut) == TransferResult.END_OF_STREAM;
+        try {
+            return requestBodySubscriber.transferTo(bodyBytesOut) == TransferResult.END_OF_STREAM;
+        } catch (RuntimeException e) {
+            // This is a native JNI upcall: an escaping exception is printed to stderr and discarded by CRT (#6715).
+            // Fail the request with the original publisher error instead of letting it propagate.
+            if (errorSignaled.compareAndSet(false, true)) {
+                onBodyError.accept(e);
+            }
+            return false;
+        }
     }
 
     @Override

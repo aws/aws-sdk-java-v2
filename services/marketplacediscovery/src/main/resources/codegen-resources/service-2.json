@@ -842,6 +842,17 @@
       "max":30,
       "min":0
     },
+    "FixedPercentage":{
+      "type":"structure",
+      "required":["percentageValue"],
+      "members":{
+        "percentageValue":{
+          "shape":"BoundedString",
+          "documentation":"<p>The percentage value applied at each renewal cycle.</p>"
+        }
+      },
+      "documentation":"<p>A single fixed price increase percentage applied at each renewal cycle.</p>"
+    },
     "FixedUpfrontPricingTerm":{
       "type":"structure",
       "required":[
@@ -1142,11 +1153,11 @@
       "required":[
         "offerId",
         "catalog",
-        "agreementProposalId",
         "sellerOfRecord",
+        "associatedEntities",
+        "agreementProposalId",
         "pricingModel",
-        "badges",
-        "associatedEntities"
+        "badges"
       ],
       "members":{
         "offerId":{
@@ -1161,10 +1172,6 @@
           "shape":"NullableString",
           "documentation":"<p>The display name of the offer. This is free-form text provided by the seller.</p>"
         },
-        "agreementProposalId":{
-          "shape":"AgreementResourceId",
-          "documentation":"<p>An encoded string to be passed by the acceptor of the terms when creating an agreement.</p>"
-        },
         "expirationTime":{
           "shape":"Timestamp",
           "documentation":"<p>The date and time until when the offer can be procured. This value is null for offers that never expire.</p>"
@@ -1177,6 +1184,14 @@
           "shape":"SellerInformation",
           "documentation":"<p>The entity responsible for selling the product under this offer.</p>"
         },
+        "associatedEntities":{
+          "shape":"OfferAssociatedEntityList",
+          "documentation":"<p>The products and offer sets associated with this offer.</p>"
+        },
+        "agreementProposalId":{
+          "shape":"AgreementResourceId",
+          "documentation":"<p>An encoded string to be passed by the acceptor of the terms when creating an agreement.</p>"
+        },
         "replacementAgreementId":{
           "shape":"AgreementResourceId",
           "documentation":"<p>The identifier of the existing agreement that this offer would replace. Enables agreement-based offer functionality.</p>"
@@ -1188,10 +1203,6 @@
         "badges":{
           "shape":"PurchaseOptionBadgeList",
           "documentation":"<p>Badges indicating special attributes of the offer, such as private pricing, future dated, or replacement offer.</p>"
-        },
-        "associatedEntities":{
-          "shape":"OfferAssociatedEntityList",
-          "documentation":"<p>The products and offer sets associated with this offer.</p>"
         }
       }
     },
@@ -1307,10 +1318,10 @@
         "productId",
         "catalog",
         "productName",
+        "manufacturer",
         "deployedOnAws",
         "shortDescription",
         "longDescription",
-        "manufacturer",
         "logoThumbnailUrl",
         "fulfillmentOptionSummaries",
         "categories",
@@ -1332,6 +1343,10 @@
           "shape":"NonEmptyString",
           "documentation":"<p>The human-readable display name of the product.</p>"
         },
+        "manufacturer":{
+          "shape":"SellerInformation",
+          "documentation":"<p>The entity who manufactured the product.</p>"
+        },
         "deployedOnAws":{
           "shape":"DeployedOnAwsStatus",
           "documentation":"<p>Indicates whether the product is deployed on AWS infrastructure.</p>"
@@ -1343,10 +1358,6 @@
         "longDescription":{
           "shape":"GetProductOutputLongDescriptionString",
           "documentation":"<p>A detailed description of what the product does, in paragraph format.</p>"
-        },
-        "manufacturer":{
-          "shape":"SellerInformation",
-          "documentation":"<p>The entity who manufactured the product.</p>"
         },
         "logoThumbnailUrl":{
           "shape":"URL",
@@ -1719,11 +1730,11 @@
         "listingId",
         "listingName",
         "publisher",
+        "fulfillmentOptionSummaries",
         "catalog",
         "shortDescription",
         "logoThumbnailUrl",
         "categories",
-        "fulfillmentOptionSummaries",
         "badges",
         "reviewSummary",
         "pricingModels",
@@ -1743,6 +1754,10 @@
           "shape":"SellerInformation",
           "documentation":"<p>The entity who created and published the listing.</p>"
         },
+        "fulfillmentOptionSummaries":{
+          "shape":"FulfillmentOptionSummaryList",
+          "documentation":"<p>A summary of fulfillment options available for the listing.</p>"
+        },
         "catalog":{
           "shape":"Catalog",
           "documentation":"<p>The name of the catalog that the listing belongs to.</p>"
@@ -1758,10 +1773,6 @@
         "categories":{
           "shape":"CategoryList",
           "documentation":"<p>The categories used to classify this listing into logical groups.</p>"
-        },
-        "fulfillmentOptionSummaries":{
-          "shape":"FulfillmentOptionSummaryList",
-          "documentation":"<p>A summary of fulfillment options available for the listing.</p>"
         },
         "badges":{
           "shape":"ListingBadgeList",
@@ -1811,6 +1822,29 @@
       "box":true,
       "max":100,
       "min":1
+    },
+    "NetPaymentTerm":{
+      "type":"structure",
+      "required":[
+        "id",
+        "type",
+        "paymentDuePeriod"
+      ],
+      "members":{
+        "id":{
+          "shape":"TermId",
+          "documentation":"<p>The unique identifier of the term.</p>"
+        },
+        "type":{
+          "shape":"TermType",
+          "documentation":"<p>The category of the term.</p>"
+        },
+        "paymentDuePeriod":{
+          "shape":"BoundedString",
+          "documentation":"<p>The duration after invoice date by which payment is due.</p>"
+        }
+      },
+      "documentation":"<p>Defines a net payment term that sets how many days after the invoice date the payment is due.</p>"
     },
     "NextToken":{
       "type":"string",
@@ -1945,7 +1979,11 @@
         "supportTerm":{"shape":"SupportTerm"},
         "usageBasedPricingTerm":{"shape":"UsageBasedPricingTerm"},
         "validityTerm":{"shape":"ValidityTerm"},
-        "variablePaymentTerm":{"shape":"VariablePaymentTerm"}
+        "variablePaymentTerm":{"shape":"VariablePaymentTerm"},
+        "netPaymentTerm":{
+          "shape":"NetPaymentTerm",
+          "documentation":"<p>A net payment term.</p>"
+        }
       },
       "documentation":"<p>A term attached to an offer. Each element contains exactly one term type, such as a pricing term, legal term, or payment schedule term.</p>",
       "union":true
@@ -1953,6 +1991,40 @@
     "OfferTermsList":{
       "type":"list",
       "member":{"shape":"OfferTerm"}
+    },
+    "PaymentScheduleEntry":{
+      "type":"structure",
+      "required":[
+        "chargeDateOffset",
+        "chargePercentage"
+      ],
+      "members":{
+        "chargeDateOffset":{
+          "shape":"BoundedString",
+          "documentation":"<p>The relative offset from the renewal agreement start date when this installment is due, in ISO 8601 duration format. The offset uses months only or days only (for example, P1M or P30D); mixed units are not supported, and every offset in a schedule uses the same unit.</p>"
+        },
+        "chargePercentage":{
+          "shape":"BoundedString",
+          "documentation":"<p>The percentage of the increased TCV to charge in this installment. All entries in a schedule sum to 100.00.</p>"
+        },
+        "dayOfMonth":{
+          "shape":"PaymentScheduleEntryDayOfMonthInteger",
+          "documentation":"<p>The optional calendar day of month on which the charge occurs. When absent, the charge day is derived from <code>chargeDateOffset</code>, and this field does not apply when <code>chargeDateOffset</code> is expressed in days. For months with fewer days than the specified day, the charge occurs on the last day of the month. For example, if <code>dayOfMonth</code> is 31, the charge in April occurs on April 30.</p>"
+        }
+      },
+      "documentation":"<p>A single installment entry in the renewal payment schedule.</p>"
+    },
+    "PaymentScheduleEntryDayOfMonthInteger":{
+      "type":"integer",
+      "box":true,
+      "max":31,
+      "min":1
+    },
+    "PaymentScheduleEntryList":{
+      "type":"list",
+      "member":{"shape":"PaymentScheduleEntry"},
+      "max":200,
+      "min":1
     },
     "PaymentScheduleTerm":{
       "type":"structure",
@@ -1981,6 +2053,55 @@
         }
       },
       "documentation":"<p>Defines a payment schedule term with installment payments at specified dates.</p>"
+    },
+    "PaymentScheduleTermTemplate":{
+      "type":"structure",
+      "required":["schedule"],
+      "members":{
+        "schedule":{
+          "shape":"PaymentScheduleEntryList",
+          "documentation":"<p>An ordered list of installment entries for the renewal payment schedule.</p>"
+        }
+      },
+      "documentation":"<p>A template for the payment schedule term on the renewal offer.</p>"
+    },
+    "PercentageRange":{
+      "type":"structure",
+      "required":[
+        "minimumValue",
+        "maximumValue",
+        "defaultValue"
+      ],
+      "members":{
+        "minimumValue":{
+          "shape":"BoundedString",
+          "documentation":"<p>The minimum percentage by which the price can increase at each renewal cycle.</p>"
+        },
+        "maximumValue":{
+          "shape":"BoundedString",
+          "documentation":"<p>The maximum percentage by which the price can increase at each renewal cycle.</p>"
+        },
+        "defaultValue":{
+          "shape":"BoundedString",
+          "documentation":"<p>The percentage increase applied by default when no other value is finalized before the adjustment deadline. Falls between <code>minimumValue</code> and <code>maximumValue</code>.</p>"
+        }
+      },
+      "documentation":"<p>A price increase percentage range with minimum, maximum, and default values.</p>"
+    },
+    "PriceIncrease":{
+      "type":"structure",
+      "members":{
+        "fixedPercentage":{
+          "shape":"FixedPercentage",
+          "documentation":"<p>A single fixed percentage applied uniformly at every renewal cycle.</p>"
+        },
+        "percentageRange":{
+          "shape":"PercentageRange",
+          "documentation":"<p>A percentage band with minimum, maximum, and default values that bound the price increase at each renewal cycle.</p>"
+        }
+      },
+      "documentation":"<p>The pricing adjustment that applies at each renewal cycle, expressed as either a fixed percentage or a percentage range. Exactly one variant is present.</p>",
+      "union":true
     },
     "PricingModel":{
       "type":"structure",
@@ -2229,7 +2350,8 @@
       "enum":[
         "PRIVATE_PRICING",
         "FUTURE_DATED",
-        "REPLACEMENT_OFFER"
+        "REPLACEMENT_OFFER",
+        "AUTO_RENEW"
       ]
     },
     "PurchaseOptionFilter":{
@@ -2434,9 +2556,34 @@
         "type":{
           "shape":"TermType",
           "documentation":"<p>The category of the term.</p>"
+        },
+        "maxRenewals":{
+          "shape":"RenewalTermMaxRenewalsInteger",
+          "documentation":"<p>The maximum number of renewals allowed on this offer. Absent means unlimited renewals.</p>"
+        },
+        "lockoutPeriod":{
+          "shape":"BoundedString",
+          "documentation":"<p>The duration before the agreement end date when the lockout window begins, in ISO 8601 format (for example, P30D). Absent means no lockout.</p>"
+        },
+        "adjustmentDeadline":{
+          "shape":"BoundedString",
+          "documentation":"<p>The duration before the agreement end date by which the renewal price is finalized, represented in ISO 8601 format (for example, P30D). Only applicable with <code>PercentageRange</code>.</p>"
+        },
+        "priceIncrease":{
+          "shape":"PriceIncrease",
+          "documentation":"<p>The price increase applied at each renewal cycle. Absent means identical pricing on renewal.</p>"
+        },
+        "termTemplates":{
+          "shape":"TermTemplateList",
+          "documentation":"<p>Structural templates defining how specific terms are reshaped on each renewal cycle. Absent for upfront-only offers.</p>"
         }
       },
       "documentation":"<p>Defines a renewal term that enables automatic agreement renewal.</p>"
+    },
+    "RenewalTermMaxRenewalsInteger":{
+      "type":"integer",
+      "box":true,
+      "min":1
     },
     "Resource":{
       "type":"structure",
@@ -3011,6 +3158,23 @@
       "min":1,
       "pattern":"[A-Za-z0-9+=;,.@\\-_]+"
     },
+    "TermTemplate":{
+      "type":"structure",
+      "members":{
+        "paymentScheduleTermTemplate":{
+          "shape":"PaymentScheduleTermTemplate",
+          "documentation":"<p>The installment schedule used to structure payments on the renewal offer.</p>"
+        }
+      },
+      "documentation":"<p>A structural template defining how a specific term type is reshaped on each renewal cycle. Exactly one variant is present.</p>",
+      "union":true
+    },
+    "TermTemplateList":{
+      "type":"list",
+      "member":{"shape":"TermTemplate"},
+      "max":10,
+      "min":0
+    },
     "TermType":{
       "type":"string",
       "enum":[
@@ -3025,7 +3189,8 @@
         "RenewalTerm",
         "SupportTerm",
         "ValidityTerm",
-        "VariablePaymentTerm"
+        "VariablePaymentTerm",
+        "NetPaymentTerm"
       ]
     },
     "ThrottlingException":{

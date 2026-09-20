@@ -1,162 +1,87 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
-# __2.47.4__ __2026-07-09__
-## __Apache 5 HTTP Client__
+# __2.55.1__ __2026-09-18__
+## __AWS Glue__
+  - ### Features
+    - Introducing AWS Glue Data Quality advanced rule recommendations for faster recommendations. This capability uses Amazon Athena to analyze a sample of table data and Amazon Bedrock to recommend DQDL rules.
+
+## __AWS SDK for Java v2 Codegen__
   - ### Bugfixes
-    - Fix GraalVM native-image metadata for Apache 5.
-        - Contributed by: [@luneo7](https://github.com/luneo7)
+    - Resolve endpoint parameters up front and ensure all parts of codegen reference them consistently.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds support for A2A servers via the ApplicationType and AuthConfig fields, allowing customers to register their agent-to-agent servers with API key authentication.
 
 ## __Amazon Connect Service__
   - ### Features
-    - Amazon Connect - Added DeleteContactData API to support PII deletion of customer endpoint, additional email recipients and email subject.
+    - This release adds the ListSecurityProfileAIAgents API and updates the CreateSecurityProfile and UpdateSecurityProfile APIs to support the AllowedAIAgents field on security profiles, allowing customers to manage the 3P AI agents associated with a security profile for Agent-to-Agent interactions.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for specifying Notebook type
 
 ## __Amazon Elastic Compute Cloud__
   - ### Features
-    - Added support for additional override parameters in CreateFleet, including LaunchTemplateSpecificationUserData, KeyName, IamInstanceProfile, and MetadataOptions. The CreateFleet response now also includes SubnetId, AvailabilityZone, and AvailabilityZoneId for launched instances.
+    - This release adds documentation for the T8i instance family to the EC2 ModifyDefaultCreditSpecification and GetDefaultCreditSpecification APIs.
 
-## __Amazon GuardDuty__
+## __Amazon Interactive Video Service RealTime__
   - ### Features
-    - Adding "AI Analyst" enum value for detector
+    - GetParticipant, ListParticipantEvents, ListParticipantReplicas, StartParticipantReplication, and StopParticipantReplication now accept participant IDs containing underscores.
 
-## __Amazon Interactive Video Service__
+## __Amazon Q Connect__
   - ### Features
-    - adds support for AWS IVS ad configuration APIs to allow for a postRollConfiguration object on the ad configuration resource
+    - Amazon Connect AI Agents now support multi-agent orchestration and structured JSON input and output messaging for orchestration agents.
 
-## __Synthetics__
+## __Amazon SageMaker Service__
   - ### Features
-    - CloudWatch Synthetics adds support for customer managed KMS keys for canary environment variables. Customers can now encrypt their canary's Lambda function environment variables at rest using their own AWS KMS key, providing additional control over data protection.
+    - Adds support for the hub content resource in SageMaker Search.
 
-# __2.47.3__ __2026-07-08__
-## __AWS SDK for Java v2__
-  - ### Bugfixes
-    - Refactor per-operation inline lambdas to factory methods in generated clients
-    - Updating Lake Formation Access Grants Plugin version to 1.4.3
-        - Contributed by: [@rajasbh-aws](https://github.com/rajasbh-aws)
-
-## __AWS Sign-In Service__
+## __Amazon Transcribe Service__
   - ### Features
-    - Adds support for OAuth 2.0 token operations in AWS Sign-In, CreateOAuth2TokenWithIAM (client credentials flow), IntrospectOAuth2TokenWithIAM (token inspection), and RevokeOAuth2TokenWithIAM (token revocation).
+    - Amazon Transcribe now lets you encrypt your custom vocabularies, custom vocabulary filters, and custom language models with a customer managed AWS KMS key instead of an AWS owned key, and adds a new UpdateLanguageModel operation to transition CLM encryption to a different KMS key.
 
-## __Amazon DynamoDB__
+# __2.55.0__ __2026-09-17__
+## __AWS CRT HTTP Client__
   - ### Features
-    - Adding alternative factory methods to construct AttributeValue that circumvent the use of the builder pattern, and wiring those new factory methods into the DDB enhanced client usages to improve performance.
+    - Added an opt-in read/write (socket) inactivity timeout for the CRT-based HTTP clients (`AwsCrtHttpClient` and `AwsCrtAsyncHttpClient`). It is not enabled unless you set the `AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026` environment variable or the `aws.enableDefaultSocketTimeout2026` system property. Once enabled, an SDK-managed CRT HTTP client that has no explicit `connectionHealthConfiguration` set receives a per-service read/write timeout; a connection that makes no read or write progress within that window is closed and the in-flight request fails with a retryable `IOException`. The timeout is not applied to an HTTP client you build and supply yourself via `httpClient(...)`.
 
-## __Amazon S3__
-  - ### Bugfixes
-    - Fix regression where the SDK automatically attached the source object's versionId to UploadPartCopy requests during multipart copy, causing S3 to require `s3:GetObjectVersion` permission. Updated to only add versionId when explicitly provided by the caller.
-
-## __Contributors__
-Special thanks to the following contributors to this release: 
-
-[@rajasbh-aws](https://github.com/rajasbh-aws)
-# __2.47.2__ __2026-07-08__
-## __AWS Common Runtime HTTP Client__
-  - ### Bugfixes
-    - Fix CRT connection pool exhaustion/leak when streams are cancelled due to API call timeouts.  Ensure concurrency/HTTP metrics are always published.
+## __AWS End User Messaging Social__
+  - ### Features
+    - Add support for WhatsApp Calling APIs.
 
 ## __AWS IoT Wireless__
   - ### Features
-    - Default session downlink transmission parameters have been added to the existing Multicast Group APIs. Explicit transmission parameters are no longer required when starting a multicast session during the FUOTA procedure.
+    - Adds Multi-frame GNSS support to the AWS IoT Core Device Location GetPositionEstimate API. The new GnssMultiFrame measurement type improves location accuracy by combining multiple GNSS signal captures (2, 4, 8, 16, or 32) from the same device to estimate its position.
 
-## __AWS Resilience Hub V2__
+## __AWS User Notifications__
   - ### Features
-    - Next Generation Resilience Hub now supports filtering and sorting failure mode assessments, resource type filtering in ListResources, cross-region and cross-account topology edges, data recovery achievability status, and more granular dependency discovery progress tracking.
+    - Added support for attachments on managed notification events. Added support to access and subscribe sensitive managed notification events.
 
-## __Amazon AppConfig__
+## __Amazon Bedrock AgentCore__
   - ### Features
-    - Update ExperimentRun APIs to support ConflictExceptions.
-
-## __Amazon Bedrock AgentCore Control__
-  - ### Features
-    - AgentCore Gateway now supports mapping allowed scopes to separate advertised scopes on the inbound authorizer.
-
-## __Amazon EC2 Container Service__
-  - ### Features
-    - Amazon ECS now automatically detects the correct CPU architecture for Express Mode services.
-
-## __Amazon Elastic Compute Cloud__
-  - ### Features
-    - Replace Root Volume now supports a VolumeId parameter. This allows the customer to pass in a pre-prepared volume as the target root volume for an RRV workflow.
-
-## __Amazon Location Service Places V2__
-  - ### Features
-    - Added AddressNamesMode, AddressNameTranslations, MobilityMode, PostalCodeMode, SecondaryAddresses, and DriveThrough features across Places V2 APIs to support address name formatting,  multilingual translations, travel-aware search, multi-city postal codes, and unit-level address resolution.
-
-# __2.47.1__ __2026-07-07__
-## __AWS Config__
-  - ### Features
-    - Added support for connecting AWS Config to third-party cloud service providers. New APIs include PutConnector, GetConnector, DeleteConnector, and ListConnectors for managing connectors, and PutThirdPartyServiceLinkedConfigurationRecorder for creating third-party service-linked recorders.
-
-## __AWS Lambda__
-  - ### Features
-    - AWS Lambda Durable Functions now supports customer managed KMS keys. This allows customers to configure a KMS key in Durable Config to have all their durable execution data encrypted.
-
-## __AWS Marketplace Catalog Service__
-  - ### Features
-    - This release enhances the ListEntities API to support ResellerRole filter for ResaleAuthorization entity.
-
-## __AWS SDK for Java v2__
-  - ### Bugfixes
-    - Re-resolve SSO access token on each credential refresh in the SSOCredentialsProvider instead of caching it at construction time ensuring that refreshed tokens (for example from running `aws sso login`) are always used.
-
-## __AWS SecurityHub__
-  - ### Features
-    - release SecurityHub MultiCloud integration with Azure
-
-## __AWSMarketplace Metering__
-  - ### Features
-    - The usage reporting window for the BatchMeterUsage API has been extended from 6 hours to 24 hours. Sellers can now submit usage records for up to 24 hours after a metered event occurs. The existing 6-hour grace period at the end of a billing cycle still applies.
+    - Batch evaluation now supports evaluating specific traces within a session. Each session can specify up to 100 trace IDs to evaluate.
 
 ## __Amazon Connect Service__
   - ### Features
-    - Adds support for CreateAuthCode and DeleteSession APIs.
+    - Made the replicaAlias attribute optional in the ReplicateInstance API to support Global routing for Amazon Connect Global Resiliency (ACGR) instances. This change maintains backward compatibility. When onboarding to ACGR without Global routing, you must specify a custom replicaAlias in your API call
 
 ## __Amazon Elastic Compute Cloud__
   - ### Features
-    - This launch surfaces the public SSM parameter associated with public AMIs in the AMI metadata.
+    - Adding support for "Tunnel" VPC Endpoint
 
-## __Amazon Route 53 Global Resolver__
+## __Amazon GuardDuty__
   - ### Features
-    - Adds ListSharedDNSViews operation to list all DNS Views shared with caller using AWS Resource Access Manager. Also updates ListHostedZoneAssociations operation so that resource ARN param is optional, allowing caller to list all HostedZoneAssociations in account.
+    - This change surfaces AI Protection resources on existing public IAM attack sequences. Customers will now see which model was accessed and whether a guardrail intervened as part of the credential-compromise sequence.
 
-## __Amazon Simple Systems Manager (SSM)__
+## __Amazon Simple Email Service__
   - ### Features
-    - Adding SSM Cloud Connector to support Azure Virtual Machines onboarding to AWS Systems Manager
+    - Added support to query the tenant name for BatchGetMetricData and CreateExportJob APIs to filter metrics and messages at the tenant level.
 
-## __Inspector2__
+## __Amazon Simple Notification Service__
   - ### Features
-    - This release extends vulnerability management to Azure VM, container registries and function apps. Adds support for per-member-account scan configuration settings.
+    - SNS API reference documentation update
 
-## __Partner Central Revenue Measurement API__
+## __Amazon VPC Lattice__
   - ### Features
-    - Add support for AWS Partner Central Revenue Measurement API for creating, managing, and tracking revenue attributions and marketplace revenue share allocations.
+    - Adding support for CIDR Resource Configuration
 
-# __2.47.0__ __2026-07-06__
-## __AWS Billing__
-  - ### Features
-    - Adds support for managing AWS account credits and billing preferences, including retrieving credit details, viewing per-month credit allocation history, redeeming promotional codes, and configuring credit sharing and billing preferences.
-
-## __AWS SDK for Java v2__
-  - ### Features
-    - Moved auth scheme and endpoint resolution from per-service generated interceptors to shared pipeline stages, establishing clear separation between customer extension points and SDK internals. This also fixes a bug where credentials injected via `ExecutionInterceptor.modifyRequest()` were not being used for signing ([#6486](https://github.com/aws/aws-sdk-java-v2/issues/6486))
-    - Updated endpoint and partition metadata.
-
-  - ### Bugfixes
-    - Updating Lake Formation Access Grants Plugin version to 1.4.2
-        - Contributed by: [@rajasbh-aws](https://github.com/rajasbh-aws)
-
-## __Amazon CloudWatch Logs__
-  - ### Features
-    - Added PutStorageTierPolicy and GetStorageTierPolicy APIs to Amazon CloudWatch Logs. Customers can now configure account-level Intelligent Tiering to automatically optimize log storage costs by moving infrequently accessed data to lower-cost storage tiers.
-
-## __Amazon OpenSearch Service__
-  - ### Features
-    - This release introduces Saved Object Migration APIs, enabling users to migrate dashboards, visualizations, index patterns, and other saved objects from a data source into an Amazon OpenSearch Service application workspace with configurable export filters and conflict resolution strategies.
-
-## __MailManager__
-  - ### Features
-    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
-
-## __Contributors__
-Special thanks to the following contributors to this release: 
-
-[@rajasbh-aws](https://github.com/rajasbh-aws)

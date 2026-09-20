@@ -54,6 +54,20 @@
       ],
       "documentation":"<p>Associates a trial component with a trial. A trial component can be associated with multiple trials. To disassociate a trial component from a trial, call the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DisassociateTrialComponent.html\">DisassociateTrialComponent</a> API.</p>"
     },
+    "AttachClusterNodeNetworkInterface":{
+      "name":"AttachClusterNodeNetworkInterface",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"AttachClusterNodeNetworkInterfaceRequest"},
+      "output":{"shape":"AttachClusterNodeNetworkInterfaceResponse"},
+      "errors":[
+        {"shape":"ResourceNotFound"},
+        {"shape":"ResourceLimitExceeded"}
+      ],
+      "documentation":"<p> Attaches an elastic network interface (ENI) to a node in a HyperPod cluster. </p> <p> To use this operation, you must have the <code>sagemaker:AttachClusterNodeNetworkInterface</code> permission. </p>"
+    },
     "AttachClusterNodeVolume":{
       "name":"AttachClusterNodeVolume",
       "http":{
@@ -5003,6 +5017,76 @@
     }
   },
   "shapes":{
+    "AIAdapterId":{
+      "type":"string",
+      "documentation":"<p>A unique identifier for a LoRA adapter within a recommendation job request. The ID must start and end with an alphanumeric character, can contain hyphens between alphanumeric characters, and can be up to 63 characters long. This ID is used as the inference component name when the adapter is deployed.</p>",
+      "max":63,
+      "min":1,
+      "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9])*"
+    },
+    "AIAdapterModelPackageEntry":{
+      "type":"structure",
+      "required":[
+        "AdapterId",
+        "ModelPackageArn"
+      ],
+      "members":{
+        "AdapterId":{
+          "shape":"AIAdapterId",
+          "documentation":"<p>A unique identifier for the adapter. This ID is used as the inference component name when the adapter is deployed. The ID must start and end with an alphanumeric character, can contain hyphens between alphanumeric characters, and can be up to 63 characters long.</p>"
+        },
+        "ModelPackageArn":{
+          "shape":"ModelPackageArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the model package that contains the LoRA adapter artifacts.</p>"
+        }
+      },
+      "documentation":"<p>A LoRA adapter entry identified by a model package ARN.</p>"
+    },
+    "AIAdapterModelPackageEntryList":{
+      "type":"list",
+      "member":{"shape":"AIAdapterModelPackageEntry"},
+      "max":10,
+      "min":1
+    },
+    "AIAdapterS3Entry":{
+      "type":"structure",
+      "required":[
+        "AdapterId",
+        "S3Uri"
+      ],
+      "members":{
+        "AdapterId":{
+          "shape":"AIAdapterId",
+          "documentation":"<p>A unique identifier for the adapter. This ID is used as the inference component name when the adapter is deployed. The ID must start and end with an alphanumeric character, can contain hyphens between alphanumeric characters, and can be up to 63 characters long.</p>"
+        },
+        "S3Uri":{
+          "shape":"S3Uri",
+          "documentation":"<p>The Amazon S3 URI of the directory that contains the LoRA adapter artifacts in PEFT format.</p>"
+        }
+      },
+      "documentation":"<p>A LoRA adapter entry identified by an Amazon S3 URI.</p>"
+    },
+    "AIAdapterS3EntryList":{
+      "type":"list",
+      "member":{"shape":"AIAdapterS3Entry"},
+      "max":10,
+      "min":1
+    },
+    "AIAdapterSource":{
+      "type":"structure",
+      "members":{
+        "ModelPackageArns":{
+          "shape":"AIAdapterModelPackageEntryList",
+          "documentation":"<p>A list of LoRA adapters identified by their model package ARNs. Use this when your adapters were produced by a SageMaker AI fine-tuning workflow that registers model packages.</p>"
+        },
+        "S3Uris":{
+          "shape":"AIAdapterS3EntryList",
+          "documentation":"<p>A list of LoRA adapters identified by their Amazon S3 URIs. Use this when your adapters are stored as raw artifacts in Amazon S3.</p>"
+        }
+      },
+      "documentation":"<p>The source of LoRA adapters for an AI recommendation job. This is a union type — specify exactly one of the members.</p>",
+      "union":true
+    },
     "AIBenchmarkEndpoint":{
       "type":"structure",
       "required":["Identifier"],
@@ -5307,9 +5391,31 @@
         "ExpectedPerformance":{
           "shape":"ExpectedPerformanceList",
           "documentation":"<p>The expected performance metrics for this recommendation.</p>"
+        },
+        "AdapterDetails":{
+          "shape":"AIRecommendationAdapterDetails",
+          "documentation":"<p>The LoRA adapter details for this recommendation. This field contains both the model package ARNs and Amazon S3 URIs for each adapter, regardless of which form was originally supplied. This field is absent when the job was created without LoRA adapters.</p>"
         }
       },
       "documentation":"<p>An optimization recommendation generated by an AI recommendation job.</p>"
+    },
+    "AIRecommendationAdapterDetails":{
+      "type":"structure",
+      "required":[
+        "ModelPackageArns",
+        "S3Uris"
+      ],
+      "members":{
+        "ModelPackageArns":{
+          "shape":"AIAdapterModelPackageEntryList",
+          "documentation":"<p>The list of LoRA adapters with their model package ARNs.</p>"
+        },
+        "S3Uris":{
+          "shape":"AIAdapterS3EntryList",
+          "documentation":"<p>The list of LoRA adapters with their Amazon S3 URIs.</p>"
+        }
+      },
+      "documentation":"<p>The per-recommendation LoRA adapter details. Contains both the model package ARNs and Amazon S3 URIs for each adapter, regardless of which form was originally supplied in the request. When you supply only Amazon S3 URIs, Amazon SageMaker AI creates model packages on your behalf.</p>"
     },
     "AIRecommendationAllowOptimization":{
       "type":"boolean",
@@ -5374,6 +5480,10 @@
         "EnvironmentVariables":{
           "shape":"EnvironmentMap",
           "documentation":"<p>The environment variables for the deployment.</p>"
+        },
+        "MinCpuMemoryRequiredInMb":{
+          "shape":"AIRecommendationMinCpuMemoryRequiredInMb",
+          "documentation":"<p>The minimum host (CPU) memory, in MiB, to reserve for each model copy when deploying the recommendation as an Inference Component. This value maps to the Inference Component's <code>ComputeResourceRequirements$MinMemoryRequiredInMb</code> field.</p>"
         }
       },
       "documentation":"<p>The deployment configuration for a recommendation.</p>"
@@ -5466,6 +5576,12 @@
         "ml.g6e.16xlarge",
         "ml.g6e.24xlarge",
         "ml.g6e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
         "ml.g7e.2xlarge",
         "ml.g7e.4xlarge",
         "ml.g7e.8xlarge",
@@ -5553,6 +5669,11 @@
         "throughput",
         "cost"
       ]
+    },
+    "AIRecommendationMinCpuMemoryRequiredInMb":{
+      "type":"integer",
+      "box":true,
+      "min":1
     },
     "AIRecommendationModelDetails":{
       "type":"structure",
@@ -6691,6 +6812,12 @@
         "ml.r6id.24xlarge",
         "ml.r6id.32xlarge",
         "ml.p5.4xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
         "ml.g7e.2xlarge",
         "ml.g7e.4xlarge",
         "ml.g7e.8xlarge",
@@ -6780,6 +6907,12 @@
         "RSessionGateway",
         "Canvas"
       ]
+    },
+    "ApplicationArn":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"arn:aws[a-z\\-]*:sso::[0-9]{12}:application/(sso)?ins-[a-zA-Z0-9.-]{16}/apl-[a-zA-Z0-9.-]{16}"
     },
     "ApprovalDescription":{
       "type":"string",
@@ -7180,6 +7313,55 @@
       "max":128,
       "min":1,
       "pattern":"[a-zA-Z0-9._-]+"
+    },
+    "AttachClusterNodeNetworkInterfaceRequest":{
+      "type":"structure",
+      "required":[
+        "ClusterName",
+        "NodeId",
+        "NetworkInterfaceId"
+      ],
+      "members":{
+        "ClusterName":{
+          "shape":"ClusterNameOrArn",
+          "documentation":"<p> The name or Amazon Resource Name (ARN) of the SageMaker HyperPod cluster that contains the target node. </p>"
+        },
+        "NodeId":{
+          "shape":"ClusterNodeId",
+          "documentation":"<p> The unique identifier of the cluster node to which you want to attach the network interface. The node must belong to your specified HyperPod cluster and cannot be part of a Restricted Instance Group (RIG). </p>"
+        },
+        "NetworkInterfaceId":{
+          "shape":"ClusterNetworkInterfaceId",
+          "documentation":"<p> The unique identifier of the elastic network interface (ENI) to attach. </p>"
+        }
+      }
+    },
+    "AttachClusterNodeNetworkInterfaceResponse":{
+      "type":"structure",
+      "required":[
+        "ClusterArn",
+        "NodeId",
+        "NetworkInterfaceId",
+        "AttachmentId"
+      ],
+      "members":{
+        "ClusterArn":{
+          "shape":"ClusterArn",
+          "documentation":"<p> The Amazon Resource Name (ARN) of your SageMaker HyperPod cluster where the network interface attachment operation was performed. </p>"
+        },
+        "NodeId":{
+          "shape":"ClusterNodeId",
+          "documentation":"<p> The unique identifier of the cluster node where your network interface was attached. </p>"
+        },
+        "NetworkInterfaceId":{
+          "shape":"ClusterNetworkInterfaceId",
+          "documentation":"<p> The unique identifier of the elastic network interface (ENI) that was attached. </p>"
+        },
+        "AttachmentId":{
+          "shape":"ClusterNetworkInterfaceAttachmentId",
+          "documentation":"<p> The unique identifier of the network interface attachment. Use this value to reference or detach the network interface later. </p>"
+        }
+      }
     },
     "AttachClusterNodeVolumeRequest":{
       "type":"structure",
@@ -9966,7 +10148,7 @@
       "members":{
         "PatchingStrategy":{
           "shape":"ClusterPatchingStrategy",
-          "documentation":"<p>The strategy for applying patches to instances in the group.</p>"
+          "documentation":"<p>The strategy for applying patches to instances in the group.</p> <ul> <li> <p> <code>WhenIdle</code>: Cordons all instances and patches each instance as it becomes idle (no running jobs). Each instance is uncordoned immediately after patching and becomes available for new jobs. If instances do not become idle, they remain on the previous AMI version. You can then use UpdateClusterSoftware with the desired ImageReleaseVersion to manually update the remaining instances.</p> </li> <li> <p> <code>WhenAllIdle</code>: Cordons all instances and waits for all to become idle before patching. All instances are uncordoned after patching completes. If not all instances become idle, no patching occurs and all instances remain on the previous AMI version.</p> </li> </ul>"
         },
         "PatchSchedule":{
           "shape":"ClusterPatchSchedule",
@@ -9984,7 +10166,7 @@
       "members":{
         "PatchingStrategy":{
           "shape":"ClusterPatchingStrategy",
-          "documentation":"<p>The strategy used for applying patches to instances in the group.</p>"
+          "documentation":"<p>The strategy used for applying patches to instances in the group.</p> <ul> <li> <p> <code>WhenIdle</code>: Cordons all instances and patches each instance as it becomes idle (no running jobs). Each instance is uncordoned immediately after patching and becomes available for new jobs. If instances do not become idle, they remain on the previous AMI version. You can then use UpdateClusterSoftware with the desired ImageReleaseVersion to manually update the remaining instances.</p> </li> <li> <p> <code>WhenAllIdle</code>: Cordons all instances and waits for all to become idle before patching. All instances are uncordoned after patching completes. If not all instances become idle, no patching occurs and all instances remain on the previous AMI version.</p> </li> </ul>"
         },
         "CurrentPatchSchedule":{
           "shape":"ClusterPatchScheduleDetails",
@@ -10532,7 +10714,7 @@
         },
         "ImageId":{
           "shape":"ImageId",
-          "documentation":"<p>When configuring your HyperPod cluster, you can specify an image ID using one of the following options:</p> <ul> <li> <p> <code>HyperPodPublicAmiId</code>: Use a HyperPod public AMI</p> </li> <li> <p> <code>CustomAmiId</code>: Use your custom AMI</p> </li> <li> <p> <code>default</code>: Use the default latest system image</p> </li> </ul> <p>If you choose to use a custom AMI (<code>CustomAmiId</code>), ensure it meets the following requirements:</p> <ul> <li> <p>Encryption: The custom AMI must be unencrypted.</p> </li> <li> <p>Ownership: The custom AMI must be owned by the same Amazon Web Services account that is creating the HyperPod cluster.</p> </li> <li> <p>Volume support: Only the primary AMI snapshot volume is supported; additional AMI volumes are not supported.</p> </li> </ul> <p>When updating the instance group's AMI through the <code>UpdateClusterSoftware</code> operation, if an instance group uses a custom AMI, you must provide an <code>ImageId</code> or use the default as input. Note that if you don't specify an instance group in your <code>UpdateClusterSoftware</code> request, then all of the instance groups are patched with the specified image.</p>"
+          "documentation":"<p>When configuring your HyperPod cluster, you can specify an image ID using one of the following options:</p> <ul> <li> <p> <code>HyperPodPublicAmiId</code>: Use a HyperPod public AMI</p> </li> <li> <p> <code>CustomAmiId</code>: Use your custom AMI</p> </li> <li> <p> <code>default</code>: Use the default latest system image. For clusters with continuous scaling node provisioning mode, new instance groups inherit the AMI from the earliest existing instance group</p> </li> </ul> <p>If you choose to use a custom AMI (<code>CustomAmiId</code>), ensure it meets the following requirements:</p> <ul> <li> <p>Encryption: The custom AMI must be unencrypted.</p> </li> <li> <p>Ownership: The custom AMI must be owned by the same Amazon Web Services account that is creating the HyperPod cluster.</p> </li> <li> <p>Volume support: Only the primary AMI snapshot volume is supported; additional AMI volumes are not supported.</p> </li> </ul> <p>When updating the instance group's AMI through the <code>UpdateClusterSoftware</code> operation, if an instance group uses a custom AMI, you must provide an <code>ImageId</code> or use the default as input. Note that if you don't specify an instance group in your <code>UpdateClusterSoftware</code> request, then all of the instance groups are patched with the specified image.</p>"
         },
         "AutoPatchConfig":{
           "shape":"ClusterAutoPatchConfig",
@@ -10795,7 +10977,91 @@
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
         "ml.g7e.48xlarge",
-        "ml.p6-b300.48xlarge"
+        "ml.p6-b300.48xlarge",
+        "ml.g4dn.xlarge",
+        "ml.g4dn.2xlarge",
+        "ml.g4dn.4xlarge",
+        "ml.g4dn.8xlarge",
+        "ml.g4dn.12xlarge",
+        "ml.g4dn.16xlarge",
+        "ml.c6g.medium",
+        "ml.c6g.large",
+        "ml.c6g.xlarge",
+        "ml.c6g.2xlarge",
+        "ml.c6g.4xlarge",
+        "ml.c6g.8xlarge",
+        "ml.c6g.12xlarge",
+        "ml.c6g.16xlarge",
+        "ml.c7g.medium",
+        "ml.c7g.large",
+        "ml.c7g.xlarge",
+        "ml.c7g.2xlarge",
+        "ml.c7g.4xlarge",
+        "ml.c7g.8xlarge",
+        "ml.c7g.12xlarge",
+        "ml.c7g.16xlarge",
+        "ml.c8g.medium",
+        "ml.c8g.large",
+        "ml.c8g.xlarge",
+        "ml.c8g.2xlarge",
+        "ml.c8g.4xlarge",
+        "ml.c8g.8xlarge",
+        "ml.c8g.12xlarge",
+        "ml.c8g.16xlarge",
+        "ml.c8g.24xlarge",
+        "ml.c8g.48xlarge",
+        "ml.c6a.large",
+        "ml.c6a.xlarge",
+        "ml.c6a.2xlarge",
+        "ml.c6a.4xlarge",
+        "ml.c6a.8xlarge",
+        "ml.c6a.12xlarge",
+        "ml.c6a.16xlarge",
+        "ml.c6a.24xlarge",
+        "ml.c6a.32xlarge",
+        "ml.c6a.48xlarge",
+        "ml.m6a.large",
+        "ml.m6a.xlarge",
+        "ml.m6a.2xlarge",
+        "ml.m6a.4xlarge",
+        "ml.m6a.8xlarge",
+        "ml.m6a.12xlarge",
+        "ml.m6a.16xlarge",
+        "ml.m6a.24xlarge",
+        "ml.m6a.32xlarge",
+        "ml.m6a.48xlarge",
+        "ml.m6g.medium",
+        "ml.m6g.large",
+        "ml.m6g.xlarge",
+        "ml.m6g.2xlarge",
+        "ml.m6g.4xlarge",
+        "ml.m6g.8xlarge",
+        "ml.m6g.12xlarge",
+        "ml.m6g.16xlarge",
+        "ml.m7g.medium",
+        "ml.m7g.large",
+        "ml.m7g.xlarge",
+        "ml.m7g.2xlarge",
+        "ml.m7g.4xlarge",
+        "ml.m7g.8xlarge",
+        "ml.m7g.12xlarge",
+        "ml.m7g.16xlarge",
+        "ml.m8g.medium",
+        "ml.m8g.large",
+        "ml.m8g.xlarge",
+        "ml.m8g.2xlarge",
+        "ml.m8g.4xlarge",
+        "ml.m8g.8xlarge",
+        "ml.m8g.12xlarge",
+        "ml.m8g.16xlarge",
+        "ml.m8g.24xlarge",
+        "ml.m8g.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge"
       ]
     },
     "ClusterInstanceTypeDetail":{
@@ -11030,6 +11296,12 @@
       },
       "documentation":"<p>The network interface configuration for a Amazon SageMaker HyperPod cluster instance group.</p>"
     },
+    "ClusterNetworkInterfaceAttachmentId":{
+      "type":"string",
+      "max":28,
+      "min":1,
+      "pattern":"eni-attach-[0-9a-f]{8}(?:[0-9a-f]{9})?"
+    },
     "ClusterNetworkInterfaceDetails":{
       "type":"structure",
       "members":{
@@ -11039,6 +11311,12 @@
         }
       },
       "documentation":"<p>The network interface configuration details for a Amazon SageMaker HyperPod cluster instance group.</p>"
+    },
+    "ClusterNetworkInterfaceId":{
+      "type":"string",
+      "max":21,
+      "min":1,
+      "pattern":"eni-[0-9a-f]{8}(?:[0-9a-f]{9})?"
     },
     "ClusterNodeDetails":{
       "type":"structure",
@@ -12628,6 +12906,10 @@
         "ComputeSpec":{
           "shape":"AIRecommendationComputeSpec",
           "documentation":"<p>The compute resource specification for the recommendation job. You can specify up to 3 instance types to consider, and optionally provide capacity reservation configuration.</p>"
+        },
+        "AdapterSource":{
+          "shape":"AIAdapterSource",
+          "documentation":"<p>The LoRA adapter source for the recommendation job. Specify either a list of model package ARNs or Amazon S3 URIs for your LoRA adapters. When this parameter is absent, the recommendation job runs without LoRA adapter support.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -14441,6 +14723,10 @@
           "shape":"RoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) for an IAM role in your account that the MLflow App uses to access the artifact store in Amazon S3. The role should have the <code>AmazonS3FullAccess</code> permission.</p>"
         },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The ID of the Amazon Web Services KMS key used to encrypt the data at rest associated with the MLflow App. If you don't specify a value, the MLflow App is not encrypted with a customer-managed key.</p>"
+        },
         "ModelRegistrationMode":{
           "shape":"ModelRegistrationMode",
           "documentation":"<p>Whether to enable or disable automatic registration of new MLflow models to the SageMaker Model Registry. To enable automatic model registration, set this value to <code>AutoModelRegistrationEnabled</code>. To disable automatic model registration, set this value to <code>AutoModelRegistrationDisabled</code>. If not specified, <code>AutomaticModelRegistration</code> defaults to <code>AutoModelRegistrationDisabled</code>.</p>"
@@ -15168,6 +15454,10 @@
         "VpcConfig":{
           "shape":"OptimizationVpcConfig",
           "documentation":"<p>A VPC in Amazon VPC that your optimized model has access to.</p>"
+        },
+        "TrainingPlanArns":{
+          "shape":"OptimizationJobTrainingPlanArns",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the training plan to use for this optimization job.</p> <p>When you use reserved capacity from a training plan, the optimization job runs on that reserved capacity instead of on-demand capacity. If you omit this field, the job uses on-demand capacity. You can specify at most one training plan.</p> <p>For more information about how to reserve GPU capacity for your optimization jobs using Amazon SageMaker Training Plans, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">Reserve capacity with training plans</a>.</p>"
         }
       }
     },
@@ -15246,9 +15536,13 @@
           "shape":"PartnerAppConfig",
           "documentation":"<p>Configuration settings for the SageMaker Partner AI App.</p>"
         },
+        "IdcConfig":{
+          "shape":"IdcConfigInput",
+          "documentation":"<p>Specifies the Amazon Web Services IAM Identity Center configuration for the SageMaker Partner AI App. Specify this parameter when <code>AuthType</code> is <code>IDC</code>. Apps that use <code>IAM</code> authorization don't use this parameter.</p>"
+        },
         "AuthType":{
           "shape":"PartnerAppAuthType",
-          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App.</p>"
+          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App. Valid values:</p> <ul> <li> <p> <code>IAM</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM identity.</p> </li> <li> <p> <code>IDC</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM Identity Center identity. Specify the Identity Center instance to use in <code>IdcConfig</code>.</p> </li> </ul>"
         },
         "EnableIamSessionBasedIdentity":{
           "shape":"Boolean",
@@ -16658,7 +16952,7 @@
     "DeepHealthChecks":{
       "type":"list",
       "member":{"shape":"DeepHealthCheckType"},
-      "max":2,
+      "max":3,
       "min":1
     },
     "DefaultDomainIdList":{
@@ -17979,6 +18273,10 @@
         "ComputeSpec":{
           "shape":"AIRecommendationComputeSpec",
           "documentation":"<p>The compute resource specification for the recommendation job.</p>"
+        },
+        "AdapterSource":{
+          "shape":"AIAdapterSource",
+          "documentation":"<p>The LoRA adapter source that you specified when you created the recommendation job. This field is absent when you created the job without LoRA adapters.</p>"
         },
         "CreationTime":{
           "shape":"Timestamp",
@@ -20950,6 +21248,10 @@
           "shape":"RoleArn",
           "documentation":"<p>The Amazon Resource Name (ARN) for an IAM role in your account that the MLflow App uses to access the artifact store in Amazon S3.</p>"
         },
+        "KmsKeyId":{
+          "shape":"KmsKeyId",
+          "documentation":"<p>The ID of the Amazon Web Services KMS key used to encrypt the data at rest associated with the MLflow App. This field is absent if the MLflow App is not encrypted with a customer-managed key.</p>"
+        },
         "Status":{
           "shape":"MlflowAppStatus",
           "documentation":"<p>The current creation status of the described MLflow App.</p>"
@@ -21944,6 +22246,10 @@
         "VpcConfig":{
           "shape":"OptimizationVpcConfig",
           "documentation":"<p>A VPC in Amazon VPC that your optimized model has access to.</p>"
+        },
+        "TrainingPlanArns":{
+          "shape":"OptimizationJobTrainingPlanArns",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the training plan associated with this optimization job. This field appears only when you specified a training plan when you created the job. Optimization jobs that use on-demand capacity don't return this field.</p>"
         }
       }
     },
@@ -22019,7 +22325,7 @@
         },
         "AuthType":{
           "shape":"PartnerAppAuthType",
-          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App.</p>"
+          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App. Valid values:</p> <ul> <li> <p> <code>IAM</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM identity.</p> </li> <li> <p> <code>IDC</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM Identity Center identity.</p> </li> </ul>"
         },
         "EnableIamSessionBasedIdentity":{
           "shape":"Boolean",
@@ -22042,6 +22348,10 @@
         "AvailableUpgrade":{
           "shape":"AvailableUpgrade",
           "documentation":"<p>A map of available minor version upgrades for the SageMaker Partner AI App. The key is the semantic version number, and the value is a list of release notes for that version. A null value indicates no upgrades are available.</p>"
+        },
+        "IdcConfig":{
+          "shape":"IdcConfigOutput",
+          "documentation":"<p>Contains the Amazon Web Services IAM Identity Center configuration for the SageMaker Partner AI App, including the Identity Center instance and the Identity Center application that SageMaker creates for the app. The service returns this field for apps that use <code>IDC</code> authorization.</p>"
         }
       }
     },
@@ -26475,6 +26785,107 @@
       "min":0,
       "pattern":".*"
     },
+    "HubContent":{
+      "type":"structure",
+      "required":[
+        "HubContentName",
+        "HubContentArn",
+        "HubContentVersion",
+        "HubContentType",
+        "DocumentSchemaVersion",
+        "HubName",
+        "HubArn",
+        "HubContentStatus",
+        "CreationTime"
+      ],
+      "members":{
+        "HubContentName":{
+          "shape":"HubContentName",
+          "documentation":"<p>The name of the hub content.</p>"
+        },
+        "HubContentArn":{
+          "shape":"HubContentArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hub content.</p>"
+        },
+        "HubContentVersion":{
+          "shape":"HubContentVersion",
+          "documentation":"<p>The version of the hub content.</p>"
+        },
+        "HubContentType":{
+          "shape":"HubContentType",
+          "documentation":"<p>The type of hub content.</p>"
+        },
+        "DocumentSchemaVersion":{
+          "shape":"DocumentSchemaVersion",
+          "documentation":"<p>The document schema version for the hub content.</p>"
+        },
+        "HubName":{
+          "shape":"HubName",
+          "documentation":"<p>The name of the hub that contains the content.</p>"
+        },
+        "HubArn":{
+          "shape":"HubArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the hub that contains the content.</p>"
+        },
+        "HubContentDisplayName":{
+          "shape":"HubContentDisplayName",
+          "documentation":"<p>The display name of the hub content.</p>"
+        },
+        "HubContentDescription":{
+          "shape":"HubContentDescription",
+          "documentation":"<p>A description of the hub content.</p>"
+        },
+        "HubContentMarkdown":{
+          "shape":"HubContentMarkdown",
+          "documentation":"<p>A string that provides a description of the hub content. This string can include links, tables, and standard markdown formatting.</p>"
+        },
+        "HubContentDocument":{
+          "shape":"HubContentDocument",
+          "documentation":"<p>The hub content document that describes information about the hub content such as type, associated containers, scripts, and more.</p>"
+        },
+        "SageMakerPublicHubContentArn":{
+          "shape":"SageMakerPublicHubContentArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the public hub content.</p>"
+        },
+        "ReferenceMinVersion":{
+          "shape":"ReferenceMinVersion",
+          "documentation":"<p>The minimum version of the hub content.</p>"
+        },
+        "SupportStatus":{
+          "shape":"HubContentSupportStatus",
+          "documentation":"<p>The support status of the hub content.</p>"
+        },
+        "HubContentSearchKeywords":{
+          "shape":"HubContentSearchKeywordList",
+          "documentation":"<p>The searchable keywords for the hub content.</p>"
+        },
+        "HubContentDependencies":{
+          "shape":"HubContentDependencyList",
+          "documentation":"<p>The location of any dependencies that the hub content has, such as scripts, model artifacts, datasets, or notebooks.</p>"
+        },
+        "HubContentStatus":{
+          "shape":"HubContentStatus",
+          "documentation":"<p>The status of the hub content.</p>"
+        },
+        "FailureReason":{
+          "shape":"FailureReason",
+          "documentation":"<p>The failure reason if importing hub content failed.</p>"
+        },
+        "CreationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The date and time that hub content was created.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The last modified time of the hub content.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Any tags associated with the hub content.</p>"
+        }
+      },
+      "documentation":"<p>Contains information about a hub content resource, including its name, version, type, associated documents, dependencies, and status, as returned by a search result.</p>"
+    },
     "HubContentArn":{
       "type":"string",
       "max":255,
@@ -27663,6 +28074,32 @@
         }
       },
       "documentation":"<p>Use this parameter to specify a supported global condition key that is added to the IAM policy.</p>"
+    },
+    "IdcConfigInput":{
+      "type":"structure",
+      "required":["InstanceArn"],
+      "members":{
+        "InstanceArn":{
+          "shape":"InstanceArn",
+          "documentation":"<p>The ARN of the Amazon Web Services IAM Identity Center instance that the SageMaker Partner AI App uses to authenticate users.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the Amazon Web Services IAM Identity Center configuration to use for a SageMaker Partner AI App that uses <code>IDC</code> authorization.</p>"
+    },
+    "IdcConfigOutput":{
+      "type":"structure",
+      "required":["InstanceArn"],
+      "members":{
+        "InstanceArn":{
+          "shape":"InstanceArn",
+          "documentation":"<p>The ARN of the Amazon Web Services IAM Identity Center instance that the SageMaker Partner AI App uses to authenticate users.</p>"
+        },
+        "ApplicationArn":{
+          "shape":"ApplicationArn",
+          "documentation":"<p>The ARN of the Amazon Web Services IAM Identity Center application that SageMaker creates for the SageMaker Partner AI App.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Amazon Web Services IAM Identity Center configuration of a SageMaker Partner AI App that uses <code>IDC</code> authorization.</p>"
     },
     "IdempotencyToken":{
       "type":"string",
@@ -28969,6 +29406,12 @@
       "member":{"shape":"TrainingInputMode"},
       "min":1
     },
+    "InstanceArn":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"arn:aws[a-z\\-]*:sso:::instance/(sso)?ins-[a-zA-Z0-9.-]{16}"
+    },
     "InstanceCount":{
       "type":"integer",
       "box":true,
@@ -29231,6 +29674,33 @@
       "member":{"shape":"InstancePoolSummary"},
       "min":1
     },
+    "InstancePreference":{
+      "type":"structure",
+      "required":["InstanceType"],
+      "members":{
+        "InstanceType":{
+          "shape":"TrainingInstanceType",
+          "documentation":"<p>The ML compute instance type. An instance type can appear only once in an <code>InstancePreferences</code> list.</p>"
+        },
+        "InstanceCount":{
+          "shape":"TrainingInstanceCount",
+          "documentation":"<p>The number of instances to launch if this instance type is selected. Specify the instance count for the training job in one of the following two ways:</p> <ol> <li> <p> <b>Per preference</b> – Set <code>InstanceCount</code> on every preference in the <code>InstancePreferences</code> list and don't set <code>ResourceConfig$InstanceCount</code>. Use this when each instance type needs a different number of instances to deliver equivalent compute.</p> </li> <li> <p> <b>One count for the job</b> – Set <code>ResourceConfig$InstanceCount</code> and omit it from every preference. SageMaker applies this to all instance types in the list.</p> </li> </ol> <p>For example, in a list of five preferences, either all five specify <code>InstanceCount</code> or none of them do. SageMaker rejects requests that set <code>InstanceCount</code> on only some preferences, that set it both per preference and in <code>ResourceConfig</code>, or that omit it in both places.</p>",
+          "box":true
+        },
+        "TrainingPlanArns":{
+          "shape":"TrainingPlanArnList",
+          "documentation":"<p>The Amazon Resource Name (ARN) of a training plan to use if this instance type is selected. The plan's instance type must match <code>InstanceType</code>. A preference with a training plan uses that plan's reserved capacity; a preference without one uses on-demand capacity. Per-preference <code>TrainingPlanArns</code> is mutually exclusive with the job-level <code>TrainingPlanArn</code> in <code>ResourceConfig</code>.</p>"
+        }
+      },
+      "documentation":"<p>A candidate instance type preference in an <code>InstancePreferences</code> list.</p>"
+    },
+    "InstancePreferenceList":{
+      "type":"list",
+      "member":{"shape":"InstancePreference"},
+      "documentation":"<p>Ordered list of candidate instance types, in priority order.</p>",
+      "max":5,
+      "min":1
+    },
     "InstanceRequirementsEniConfiguration":{
       "type":"structure",
       "members":{
@@ -29425,6 +29895,12 @@
         "ml.g6.16xlarge",
         "ml.g6.24xlarge",
         "ml.g6.48xlarge",
+        "ml.g7e.2xlarge",
+        "ml.g7e.4xlarge",
+        "ml.g7e.8xlarge",
+        "ml.g7e.12xlarge",
+        "ml.g7e.24xlarge",
+        "ml.g7e.48xlarge",
         "ml.p5.4xlarge",
         "ml.p5en.48xlarge",
         "ml.g6e.xlarge",
@@ -35305,7 +35781,7 @@
       "documentation":"<p>Maximum job scheduler pending time in seconds.</p>",
       "box":true,
       "max":2419200,
-      "min":7200
+      "min":1800
     },
     "MaxPercentageOfInputDatasetLabeled":{
       "type":"integer",
@@ -38628,7 +39104,9 @@
         "Stopped",
         "Failed",
         "Deleting",
-        "Updating"
+        "Updating",
+        "PendingMaintenance",
+        "InMaintenance"
       ]
     },
     "NotebookInstanceSummary":{
@@ -38931,7 +39409,7 @@
     "OnStartDeepHealthChecks":{
       "type":"list",
       "member":{"shape":"DeepHealthCheckType"},
-      "max":2,
+      "max":3,
       "min":1
     },
     "OnlineStoreConfig":{
@@ -38952,7 +39430,7 @@
         },
         "StorageType":{
           "shape":"StorageType",
-          "documentation":"<p>Option for different tiers of low latency storage for real-time data retrieval.</p> <ul> <li> <p> <code>Standard</code>: A managed low latency data store for feature groups.</p> </li> <li> <p> <code>InMemory</code>: A managed data store for feature groups that supports very low latency retrieval. </p> </li> </ul>"
+          "documentation":"<p>Option for different tiers of low latency storage for real-time data retrieval.</p> <ul> <li> <p> <code>Standard</code>: A managed low latency data store for feature groups.</p> </li> <li> <p> <code>Standard_V2</code>: A managed low latency data store for feature groups that supports partial updates to individual features using the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_UpdateRecord.html\">UpdateRecord</a> operation. Choose this storage type at feature group creation time if your use case requires updating specific feature values without rewriting the entire record.</p> </li> <li> <p> <code>InMemory</code>: A managed data store for feature groups that supports very low latency retrieval.</p> </li> </ul>"
         }
       },
       "documentation":"<p>Use this to specify the Amazon Web Services Key Management Service (KMS) Key ID, or <code>KMSKeyId</code>, for at rest data encryption. You can turn <code>OnlineStore</code> on or off by specifying the <code>EnableOnlineStore</code> flag at General Assembly.</p> <p>The default value is <code>False</code>.</p>"
@@ -38963,6 +39441,10 @@
         "TtlDuration":{
           "shape":"TtlDuration",
           "documentation":"<p>Time to live duration, where the record is hard deleted after the expiration time is reached; <code>ExpiresAt</code> = <code>EventTime</code> + <code>TtlDuration</code>. For information on HardDelete, see the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_DeleteRecord.html\">DeleteRecord</a> API in the Amazon SageMaker API Reference guide.</p>"
+        },
+        "StorageType":{
+          "shape":"StorageType",
+          "documentation":"<p>The online store storage type to migrate the feature group to. Use this parameter to migrate an existing feature group from <code>Standard</code> to <code>Standard_V2</code> storage format, enabling support for the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_feature_store_UpdateRecord.html\">UpdateRecord</a> operation. Migration is a one-way operation and cannot be reversed.</p>"
         }
       },
       "documentation":"<p>Updates the feature group online store configuration.</p>"
@@ -39081,7 +39563,20 @@
         "ml.inf2.48xlarge",
         "ml.trn1.2xlarge",
         "ml.trn1.32xlarge",
-        "ml.trn1n.32xlarge"
+        "ml.trn1n.32xlarge",
+        "ml.p6-b200.48xlarge",
+        "ml.g7e.2xlarge",
+        "ml.g7e.4xlarge",
+        "ml.g7e.8xlarge",
+        "ml.g7e.12xlarge",
+        "ml.g7e.24xlarge",
+        "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge"
       ]
     },
     "OptimizationJobEnvironmentVariables":{
@@ -39211,6 +39706,13 @@
         }
       },
       "documentation":"<p>Summarizes an optimization job by providing some of its key properties.</p>"
+    },
+    "OptimizationJobTrainingPlanArns":{
+      "type":"list",
+      "member":{"shape":"TrainingPlanArn"},
+      "documentation":"<p>Amazon Resource Names (ARNs) of the training plans whose reserved capacity backs the optimization job. Bounded to a single plan for now; the list shape allows widening to multiple plans in the future without a breaking scalar-to-list change.</p>",
+      "max":1,
+      "min":0
     },
     "OptimizationModelAcceptEula":{"type":"boolean"},
     "OptimizationModelAccessConfig":{
@@ -39579,7 +40081,10 @@
     },
     "PartnerAppAuthType":{
       "type":"string",
-      "enum":["IAM"]
+      "enum":[
+        "IAM",
+        "IDC"
+      ]
     },
     "PartnerAppConfig":{
       "type":"structure",
@@ -40401,6 +40906,32 @@
         "LowerPriority"
       ]
     },
+    "PrefixAwareRoutingConcurrencyThreshold":{
+      "type":"integer",
+      "box":true,
+      "max":1024,
+      "min":1
+    },
+    "PrefixAwareRoutingConfig":{
+      "type":"structure",
+      "members":{
+        "PrefixLength":{
+          "shape":"PrefixAwareRoutingPrefixLength",
+          "documentation":"<p>The maximum length of the prefix used for routing decisions. Required when <code>RoutingStrategy</code> is <code>PREFIX_AWARE</code>.</p> <ul> <li> <p>For the SageMaker Runtime <code>InvokeEndpoint</code> and <code>InvokeEndpointWithResponseStream</code> APIs, this value specifies the number of bytes from the beginning of the request body.</p> </li> <li> <p>For OpenAI-compatible API, this value specifies the number of characters from the text content of the messages array.</p> </li> </ul> <p>The endpoint routes requests that share the same prefix to the same instance. Set this value to cover shared content (such as system prompts) plus enough unique content to distribute workloads across instances.</p>"
+        },
+        "ConcurrencyThreshold":{
+          "shape":"PrefixAwareRoutingConcurrencyThreshold",
+          "documentation":"<p>The maximum number of in-flight requests on the target instance before the endpoint routes to another instance. Required when <code>RoutingStrategy</code> is <code>PREFIX_AWARE</code>. When in-flight requests on the prefix-selected instance reach this threshold, the endpoint routes the request to an instance with more available capacity.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for prefix-aware routing on a SageMaker real-time inference endpoint. Specify <code>PrefixLength</code> and <code>ConcurrencyThreshold</code> to control routing behavior.</p>"
+    },
+    "PrefixAwareRoutingPrefixLength":{
+      "type":"integer",
+      "box":true,
+      "max":65536,
+      "min":1024
+    },
     "PresignedDomainUrl":{"type":"string"},
     "PresignedUrlAccessConfig":{
       "type":"structure",
@@ -40461,11 +40992,7 @@
     },
     "ProcessingClusterConfig":{
       "type":"structure",
-      "required":[
-        "InstanceCount",
-        "InstanceType",
-        "VolumeSizeInGB"
-      ],
+      "required":["VolumeSizeInGB"],
       "members":{
         "InstanceCount":{
           "shape":"ProcessingInstanceCount",
@@ -40482,6 +41009,18 @@
         "VolumeKmsKeyId":{
           "shape":"KmsKeyId",
           "documentation":"<p>The Amazon Web Services Key Management Service (Amazon Web Services KMS) key that Amazon SageMaker uses to encrypt data on the storage volume attached to the ML compute instance(s) that run the processing job. </p> <note> <p>Certain Nitro-based instances include local storage, dependent on the instance type. Local storage volumes are encrypted using a hardware module on the instance. You can't request a <code>VolumeKmsKeyId</code> when using an instance type with local storage.</p> <p>For a list of instance types that support local instance storage, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/InstanceStorage.html#instance-store-volumes\">Instance Store Volumes</a>.</p> <p>For more information about local instance storage encryption, see <a href=\"https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ssd-instance-store.html\">SSD Instance Store Volumes</a>.</p> </note>"
+        },
+        "InstancePreferences":{
+          "shape":"ProcessingInstancePreferenceList",
+          "documentation":"<p>An ordered list of ML compute instance types for the processing job, in priority order. Amazon SageMaker launches the job on the first instance type in the list that has available capacity. If capacity is insufficient, Amazon SageMaker evaluates the next instance type in the list. Exactly one instance type is selected for the job.</p> <p> <code>InstancePreferences</code> is mutually exclusive with <code>InstanceType</code>.</p>"
+        },
+        "SelectedInstanceType":{
+          "shape":"ProcessingInstanceType",
+          "documentation":"<p>The instance type that Amazon SageMaker selected for the job from <code>InstancePreferences</code>. Returned by <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeProcessingJob.html\">DescribeProcessingJob</a> </code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateProcessingJob</code> requests.</p>"
+        },
+        "SelectedInstanceCount":{
+          "shape":"ProcessingInstanceCount",
+          "documentation":"<p>The number of instances of <code>SelectedInstanceType</code> that the job launched with. The job is billed for this instance type and count. Returned by <code>DescribeProcessingJob</code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateProcessingJob</code> requests.</p>"
         }
       },
       "documentation":"<p>Configuration for the cluster used to run a processing job.</p>"
@@ -40550,6 +41089,28 @@
       "type":"integer",
       "box":true,
       "max":100,
+      "min":1
+    },
+    "ProcessingInstancePreference":{
+      "type":"structure",
+      "required":["InstanceType"],
+      "members":{
+        "InstanceType":{
+          "shape":"ProcessingInstanceType",
+          "documentation":"<p>The ML compute instance type. An instance type can appear only once in an <code>InstancePreferences</code> list.</p>"
+        },
+        "InstanceCount":{
+          "shape":"ProcessingInstanceCount",
+          "documentation":"<p>The number of instances to launch if this instance type is selected. Specify the instance count for the processing job in one of the following two ways:</p> <ol> <li> <p> <b>Per preference</b> – Set <code>InstanceCount</code> on every preference in the <code>InstancePreferences</code> list and don't set <code>ProcessingClusterConfig$InstanceCount</code>. Use this when each instance type needs a different number of instances to deliver equivalent compute.</p> </li> <li> <p> <b>One count for the job</b> – Set <code>ProcessingClusterConfig$InstanceCount</code> and omit it from every preference. Amazon SageMaker applies this to all instance types in the list.</p> </li> </ol> <p>For example, in a list of five preferences, either all five specify <code>InstanceCount</code> or none of them do. Amazon SageMaker rejects requests that set <code>InstanceCount</code> on only some preferences, that set it both per preference and in <code>ProcessingClusterConfig</code>, or that omit it in both places.</p>"
+        }
+      },
+      "documentation":"<p>A candidate instance type preference in a processing <code>InstancePreferences</code> list.</p>"
+    },
+    "ProcessingInstancePreferenceList":{
+      "type":"list",
+      "member":{"shape":"ProcessingInstancePreference"},
+      "documentation":"<p>Ordered list of candidate instance types, in priority order.</p>",
+      "max":5,
       "min":1
     },
     "ProcessingInstanceType":{
@@ -40681,7 +41242,13 @@
         "ml.g7e.8xlarge",
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
-        "ml.g7e.48xlarge"
+        "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge"
       ]
     },
     "ProcessingJob":{
@@ -41335,6 +41902,12 @@
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
         "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge",
         "ml.p4d.24xlarge",
         "ml.c7g.large",
         "ml.c7g.xlarge",
@@ -41533,7 +42106,11 @@
       "members":{
         "RoutingStrategy":{
           "shape":"RoutingStrategy",
-          "documentation":"<p>Sets how the endpoint routes incoming traffic:</p> <ul> <li> <p> <code>LEAST_OUTSTANDING_REQUESTS</code>: The endpoint routes requests to the specific instances that have more capacity to process them.</p> </li> <li> <p> <code>RANDOM</code>: The endpoint routes each request to a randomly chosen instance.</p> </li> </ul>"
+          "documentation":"<p>Sets how the endpoint routes incoming traffic:</p> <ul> <li> <p> <code>LEAST_OUTSTANDING_REQUESTS</code>: The endpoint routes requests to the specific instances that have more capacity to process them.</p> </li> <li> <p> <code>RANDOM</code>: The endpoint routes each request to a randomly chosen instance.</p> </li> <li> <p> <code>PREFIX_AWARE</code>: The endpoint routes requests that share the same prompt prefix to the same instance. When the number of in-flight requests on the selected instance reaches the configured threshold, the endpoint routes the request to an instance with more available capacity.</p> </li> </ul>"
+        },
+        "PrefixAwareRoutingConfig":{
+          "shape":"PrefixAwareRoutingConfig",
+          "documentation":"<p>The configuration for prefix-aware routing. Specify this parameter only when you set <code>RoutingStrategy</code> to <code>PREFIX_AWARE</code>.</p>"
         }
       },
       "documentation":"<p>Settings that control how the endpoint routes incoming traffic to the instances that the endpoint hosts.</p>"
@@ -43313,6 +43890,19 @@
         "InstancePlacementConfig":{
           "shape":"InstancePlacementConfig",
           "documentation":"<p>Configuration for how training job instances are placed and allocated within UltraServers. Only applicable for UltraServer capacity.</p>"
+        },
+        "InstancePreferences":{
+          "shape":"InstancePreferenceList",
+          "documentation":"<p>An ordered list of ML compute instance types for the training job, in priority order. SageMaker launches the training job on the first instance type in the list that has available capacity. If capacity is insufficient, SageMaker evaluates the next instance type in the preferred list. Exactly one instance type is selected for the job.</p> <p> <code>InstancePreferences</code> is mutually exclusive with <code>InstanceType</code>, <code>InstanceGroups</code>, <code>InstancePlacementConfig</code>, and <code>EnableManagedSpotTraining</code>, and supports only Flexible Training Plans (FTP) and On-Demand capacity.</p>"
+        },
+        "SelectedInstanceType":{
+          "shape":"TrainingInstanceType",
+          "documentation":"<p>The instance type that SageMaker selected for the job from the provided <code>InstancePreferences</code>. The job is billed for this instance type and count. Returned by <code> <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_DescribeTrainingJob.html\">DescribeTrainingJob</a> </code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateTrainingJob</code> requests.</p>"
+        },
+        "SelectedInstanceCount":{
+          "shape":"TrainingInstanceCount",
+          "documentation":"<p>The number of instances of <code>SelectedInstanceType</code> that the training job launched with. The job is billed for this instance type and count. Returned by <code>DescribeTrainingJob</code> after an instance type is selected. This field is read-only and isn't accepted in <code>CreateTrainingJob</code> requests.</p>",
+          "box":true
         }
       },
       "documentation":"<p>Describes the resources, including machine learning (ML) compute instances and ML storage volumes, to use for model training. </p>"
@@ -43479,7 +44069,8 @@
         "HyperParameterTuningJob",
         "ModelCard",
         "PipelineVersion",
-        "Job"
+        "Job",
+        "HubContent"
       ]
     },
     "ResponseMIMEType":{
@@ -43634,7 +44225,8 @@
       "type":"string",
       "enum":[
         "LEAST_OUTSTANDING_REQUESTS",
-        "RANDOM"
+        "RANDOM",
+        "PREFIX_AWARE"
       ]
     },
     "RuleConfigurationName":{
@@ -44115,6 +44707,10 @@
         "Job":{
           "shape":"Job",
           "documentation":"<p>The properties of a job.</p>"
+        },
+        "HubContent":{
+          "shape":"HubContent",
+          "documentation":"<p>The properties of a hub content resource.</p>"
         }
       },
       "documentation":"<p>A single resource returned as part of the <a href=\"https://docs.aws.amazon.com/sagemaker/latest/APIReference/API_Search.html\">Search</a> API response.</p>"
@@ -44410,6 +45006,12 @@
         }
       }
     },
+    "SequenceLength":{
+      "type":"string",
+      "max":50,
+      "min":1,
+      "pattern":"\\d+K"
+    },
     "ServerlessJobBaseModelArn":{
       "type":"string",
       "documentation":"<p>ServerlessJobConfig relevant fields</p>",
@@ -44452,6 +45054,10 @@
         "EvaluatorArn":{
           "shape":"EvaluatorArn",
           "documentation":"<p> The evaluator Amazon Resource Name (ARN) used as reward function or reward prompt. </p>"
+        },
+        "SequenceLength":{
+          "shape":"SequenceLength",
+          "documentation":"<p> The maximum sequence length, in tokens, that the customization job supports. SageMaker uses this value to select a training configuration for the base model that you specify. The parameter supports the following values: </p> <ul> <li> <p> <code>1K</code> </p> </li> <li> <p> <code>2K</code> </p> </li> <li> <p> <code>4K</code> </p> </li> <li> <p> <code>8K</code> </p> </li> <li> <p> <code>16K</code> </p> </li> <li> <p> <code>32K</code> </p> </li> <li> <p> <code>64K</code> </p> </li> <li> <p> <code>128K</code> </p> </li> </ul> <p> If you don't specify a value, SageMaker selects a training configuration based on the other values that you specify. The selection is not restricted to a particular sequence length. </p>"
         }
       },
       "documentation":"<p> The configuration for the serverless training job. </p>"
@@ -45662,7 +46268,7 @@
         },
         "MaxPendingTimeInSeconds":{
           "shape":"MaxPendingTimeInSeconds",
-          "documentation":"<p>The maximum length of time, in seconds, that a training or compilation job can be pending before it is stopped.</p> <note> <p>When working with training jobs that use capacity from <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">training plans</a>, not all <code>Pending</code> job states count against the <code>MaxPendingTimeInSeconds</code> limit. The following scenarios do not increment the <code>MaxPendingTimeInSeconds</code> counter:</p> <ul> <li> <p>The plan is in a <code>Scheduled</code> state: Jobs queued (in <code>Pending</code> status) before a plan's start date (waiting for scheduled start time)</p> </li> <li> <p>Between capacity reservations: Jobs temporarily back to <code>Pending</code> status between two capacity reservation periods</p> </li> </ul> <p> <code>MaxPendingTimeInSeconds</code> only increments when jobs are actively waiting for capacity in an <code>Active</code> plan.</p> </note>"
+          "documentation":"<p>The maximum length of time, in seconds, that a training or compilation job can be pending before it is stopped.</p> <note> <p>When working with training jobs that use capacity from <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/reserve-capacity-with-training-plans.html\">training plans</a>, not all <code>Pending</code> job states count against the <code>MaxPendingTimeInSeconds</code> limit. The following scenarios do not increment the <code>MaxPendingTimeInSeconds</code> counter:</p> <ul> <li> <p>The plan is in a <code>Scheduled</code> state: Jobs queued (in <code>Pending</code> status) before a plan's start date (waiting for scheduled start time)</p> </li> <li> <p>Between capacity reservations: Jobs temporarily back to <code>Pending</code> status between two capacity reservation periods</p> </li> </ul> <p> <code>MaxPendingTimeInSeconds</code> only increments when jobs are actively waiting for capacity in an <code>Active</code> plan.</p> </note> <note> <ul> <li> <p> <code>MaxPendingTimeInSeconds</code> takes effect only for jobs that request accelerated computing instance types, such as instances in the <code>ml.p</code>, <code>ml.g</code>, and <code>ml.trn</code> families. It has no effect on jobs that request CPU-only instance types.</p> </li> <li> <p>If the job specifies <code>InstancePreferences</code>, <code>MaxPendingTimeInSeconds</code> bounds the total time SageMaker spends working through your list of instance types. It is not applied per instance type preference, and takes effect only when the list includes at least one accelerated computing instance type.</p> </li> </ul> </note>"
         }
       },
       "documentation":"<p>Specifies a limit to how long a job can run. When the job reaches the time limit, SageMaker ends the job. Use this API to cap costs.</p> <p>To stop a training job, SageMaker sends the algorithm the <code>SIGTERM</code> signal, which delays job termination for 120 seconds. Algorithms can use this 120-second window to save the model artifacts, so the results of training are not lost. </p> <p>The training algorithms provided by SageMaker automatically save the intermediate results of a model training job when possible. This attempt to save artifacts is only a best effort case as model might not be in a state from which it can be saved. For example, if training has just started, the model might not be ready to save. When saved, this intermediate data is a valid model artifact. You can use it to create a model with <code>CreateModel</code>.</p> <note> <p>The Neural Topic Model (NTM) currently does not support saving intermediate model artifacts. When training NTMs, make sure that the maximum runtime is sufficient for the training job to complete.</p> </note>"
@@ -45671,6 +46277,7 @@
       "type":"string",
       "enum":[
         "Standard",
+        "Standard_V2",
         "InMemory"
       ]
     },
@@ -46892,7 +47499,13 @@
         "ml.g7e.8xlarge",
         "ml.g7e.12xlarge",
         "ml.g7e.24xlarge",
-        "ml.g7e.48xlarge"
+        "ml.g7e.48xlarge",
+        "ml.g7.2xlarge",
+        "ml.g7.4xlarge",
+        "ml.g7.8xlarge",
+        "ml.g7.12xlarge",
+        "ml.g7.24xlarge",
+        "ml.g7.48xlarge"
       ]
     },
     "TrainingInstanceTypes":{
@@ -47232,6 +47845,13 @@
       "max":2048,
       "min":50,
       "pattern":"arn:aws[a-z\\-]*:sagemaker:[a-z0-9\\-]*:[0-9]{12}:training-plan/.*"
+    },
+    "TrainingPlanArnList":{
+      "type":"list",
+      "member":{"shape":"TrainingPlanArn"},
+      "documentation":"<p>Training plan ARNs for a single instance preference.</p>",
+      "max":1,
+      "min":1
     },
     "TrainingPlanArns":{
       "type":"list",
@@ -47836,7 +48456,15 @@
         "ml.g6.12xlarge",
         "ml.g6.16xlarge",
         "ml.g6.24xlarge",
-        "ml.g6.48xlarge"
+        "ml.g6.48xlarge",
+        "ml.g6e.xlarge",
+        "ml.g6e.2xlarge",
+        "ml.g6e.4xlarge",
+        "ml.g6e.8xlarge",
+        "ml.g6e.12xlarge",
+        "ml.g6e.16xlarge",
+        "ml.g6e.24xlarge",
+        "ml.g6e.48xlarge"
       ]
     },
     "TransformInstanceTypes":{
@@ -50198,6 +50826,14 @@
         "ApplicationConfig":{
           "shape":"PartnerAppConfig",
           "documentation":"<p>Configuration settings for the SageMaker Partner AI App.</p>"
+        },
+        "IdcConfig":{
+          "shape":"IdcConfigInput",
+          "documentation":"<p>Specifies the Amazon Web Services IAM Identity Center configuration for the SageMaker Partner AI App. Specify this parameter when <code>AuthType</code> is <code>IDC</code>. Apps that use <code>IAM</code> authorization don't use this parameter.</p>"
+        },
+        "AuthType":{
+          "shape":"PartnerAppAuthType",
+          "documentation":"<p>The authorization type that users use to access the SageMaker Partner AI App. Use this parameter to migrate an existing SageMaker Partner AI App from <code>IAM</code> authorization to <code>IDC</code> authorization. Valid values:</p> <ul> <li> <p> <code>IAM</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM identity.</p> </li> <li> <p> <code>IDC</code>: Users access the SageMaker Partner AI App with their Amazon Web Services IAM Identity Center identity. Specify the Identity Center instance to use in <code>IdcConfig</code>.</p> </li> </ul>"
         },
         "EnableIamSessionBasedIdentity":{
           "shape":"Boolean",

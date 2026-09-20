@@ -70,6 +70,15 @@ public interface ProtocolSpec {
         return Optional.empty();
     }
 
+    /**
+     * The per-client field holding the non-streaming {@code exceptionMetadataMapper}, when the protocol emits one. The
+     * mapper switches over the whole model's exceptions and is identical for every operation, so it is generated once as
+     * a client field instead of once per operation body.
+     */
+    default Optional<FieldSpec> errorResponseMapperField() {
+        return Optional.empty();
+    }
+
     default List<MethodSpec> additionalMethods() {
         return new ArrayList<>();
     }
@@ -210,13 +219,19 @@ public interface ProtocolSpec {
         return poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
     }
 
-    default String publishMetricsWhenComplete() {
-        return String.format(".whenComplete((r, e) -> {%n"
-                             + "%s%n"
-                             + "})", publishMetrics());
+    /**
+     * Invocation of the client's shared {@code publishMetrics} helper. Emitted instead of an inline
+     * {@code metricPublishers.forEach(...)} so the operation body carries no synthetic lambda.
+     */
+    default String publishMetrics() {
+        return "publishMetrics(metricPublishers, apiCallMetricCollector);";
     }
 
-    default String publishMetrics() {
-        return "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));";
+    /**
+     * Invocation of the client's shared {@code publishMetricsWhenComplete} helper, which holds the {@code whenComplete}
+     * callback that non-streaming async operations would otherwise each declare as a lambda.
+     */
+    default String publishMetricsWhenComplete(String futureName) {
+        return String.format("publishMetricsWhenComplete(%s, metricPublishers, apiCallMetricCollector)", futureName);
     }
 }

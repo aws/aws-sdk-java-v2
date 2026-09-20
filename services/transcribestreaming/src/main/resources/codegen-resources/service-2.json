@@ -715,7 +715,7 @@
       "members":{
         "Message":{"shape":"String"}
       },
-      "documentation":"<p>Your client has exceeded one of the Amazon Transcribe limits. This is typically the audio length limit. Break your audio stream into smaller chunks and try your request again.</p>",
+      "documentation":"<p>Your client has exceeded one of the Amazon Transcribe limits, typically the concurrent stream service quota. This error can also occur if a stream exceeds the maximum session duration. In rare cases, this error can also occur if you increase your number of concurrent streams too quickly. Reduce your number of concurrent streams and try your request again using an exponential backoff strategy.</p>",
       "error":{"httpStatusCode":429},
       "exception":true
     },
@@ -730,7 +730,10 @@
       "enum":[
         "pcm",
         "ogg-opus",
-        "flac"
+        "flac",
+        "g711-alaw",
+        "g711-ulaw",
+        "g729"
       ]
     },
     "MediaSampleRateHertz":{
@@ -2115,6 +2118,12 @@
           "documentation":"<p>Specify the time window, in minutes, during which your transcription session can be resumed, measured from the stream start time. This optional parameter accepts integer values from 1 to 300 (5 hours).</p> <p> For example, if your stream starts at 1 PM and you specify a <code>SessionResumeWindow</code> of 30 minutes, you can reconnect to the session as many times as you want until 1:30 PM. </p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-session-resume-window"
+        },
+        "TranscriptFormat":{
+          "shape":"TranscriptFormat",
+          "documentation":"<p>Specify how numbers, dates, and other alphanumeric entities are rendered in your transcription results.</p> <ul> <li> <p> <code>WRITTEN</code> renders these entities in their standard written form (for example, <code>$50</code>, <code>10:30 AM</code>, and <code>101</code>).</p> </li> <li> <p> <code>SPOKEN</code> renders these entities as words, exactly as they were spoken (for example, <code>fifty dollars</code>, <code>ten thirty a m</code>, and <code>one oh one</code>).</p> </li> </ul> <p>If you don't specify a value, Amazon Transcribe uses <code>WRITTEN</code> by default.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-transcript-format"
         }
       },
       "payload":"AudioStream"
@@ -2269,6 +2278,12 @@
           "documentation":"<p>Provides the session resume window, in minutes, that you specified in your request.</p>",
           "location":"header",
           "locationName":"x-amzn-transcribe-session-resume-window"
+        },
+        "TranscriptFormat":{
+          "shape":"TranscriptFormat",
+          "documentation":"<p>Provides the transcript format that you specified in your request.</p>",
+          "location":"header",
+          "locationName":"x-amzn-transcribe-transcript-format"
         }
       },
       "payload":"TranscriptResultStream"
@@ -2317,6 +2332,13 @@
       "documentation":"<p>The <code>TranscriptEvent</code> associated with a <code>TranscriptResultStream</code>.</p> <p>Contains a set of transcription results from one or more audio segments, along with additional information per your request parameters.</p>",
       "event":true
     },
+    "TranscriptFormat":{
+      "type":"string",
+      "enum":[
+        "spoken",
+        "written"
+      ]
+    },
     "TranscriptResultStream":{
       "type":"structure",
       "members":{
@@ -2330,7 +2352,7 @@
         },
         "LimitExceededException":{
           "shape":"LimitExceededException",
-          "documentation":"<p>Your client has exceeded one of the Amazon Transcribe limits. This is typically the audio length limit. Break your audio stream into smaller chunks and try your request again.</p>"
+          "documentation":"<p>Your client has exceeded one of the Amazon Transcribe limits, typically the concurrent stream service quota. This error can also occur if a stream exceeds the maximum session duration. In rare cases, this error can also occur if you increase your number of concurrent streams too quickly. Reduce your number of concurrent streams and try your request again using an exponential backoff strategy.</p>"
         },
         "InternalFailureException":{
           "shape":"InternalFailureException",
