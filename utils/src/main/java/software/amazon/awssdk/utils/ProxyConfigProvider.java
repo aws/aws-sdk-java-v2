@@ -122,4 +122,21 @@ public interface ProxyConfigProvider {
      * @return A set containing the non-proxy host names.
      */
     Set<String> nonProxyHosts();
+
+    /**
+     * Gets the set of non-proxy hosts as raw tokens, i.e. without the {@code * -> .*?} Java-regex rewrite that
+     * {@link #nonProxyHosts()} applies for system-property and environment-variable sources. Consumers whose matcher expects
+     * the raw {@code nonProxyHosts} tokens (such as the CRT client's curl-style native matcher) must use this instead of
+     * {@link #nonProxyHosts()}.
+     *
+     * <p>The default throws {@link UnsupportedOperationException} rather than falling back to {@link #nonProxyHosts()}: a
+     * fallback would silently feed Java-regex tokens into a curl-style matcher and reintroduce incorrect proxy bypass.
+     * Implementations consumed by CRT-based clients must override it.
+     *
+     * @return A set containing the raw non-proxy host tokens.
+     */
+    default Set<String> rawNonProxyHosts() {
+        throw new UnsupportedOperationException("rawNonProxyHosts() must be implemented to supply un-rewritten nonProxyHosts "
+                                                + "tokens for curl-style matchers such as the CRT client.");
+    }
 }

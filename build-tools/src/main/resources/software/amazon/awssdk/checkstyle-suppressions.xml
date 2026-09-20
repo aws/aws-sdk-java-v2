@@ -76,4 +76,9 @@
     For the mapper every checkstyle is turned off except for these rules. -->
     <suppress checks="^((?!UnnecessaryFinalOnLocalVariable|HideUtilityClassConstructor|MissingSdkAnnotation|Header).)*$"
               files=".*[\\/]software[\\/]amazon[\\/]awssdk[\\/]mapper[\\/]dynamodb[\\/].+\.java$"/>
+
+    <!-- Shared HTTP client test suites live in src/main/java so client modules can consume them;
+         allow test-style underscore method names. -->
+    <suppress checks="MethodName"
+              files=".*[\\/]http-client-tests[\\/]src[\\/]main[\\/]java[\\/].*TestSuite\.java$"/>
 </suppressions>

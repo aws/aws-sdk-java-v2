@@ -187,6 +187,11 @@ public class ChecksumCalculatingAsyncRequestBody implements AsyncRequestBody {
     }
 
     @Override
+    public String body() {
+        return wrapped.body();
+    }
+
+    @Override
     public void subscribe(Subscriber<? super ByteBuffer> s) {
         Validate.notNull(s, "Subscription MUST NOT be null.");
         if (sdkChecksum != null) {

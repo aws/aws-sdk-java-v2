@@ -27,7 +27,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidSdkServiceException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -42,7 +41,6 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkGlobalTime;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.regions.Region;
@@ -368,9 +366,15 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @Test
     public void testExceptionHandling() throws Exception {
+        Instant endTime = Instant.now();
         try {
             cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder()
-                                                   .namespace("fake-namespace").build());
+                                                   .namespace("fake-namespace")
+                                                   .startTime(endTime.minus(Duration.ofMinutes(5)))
+                                                   .endTime(endTime)
+                                                   .period(60)
+                                                   .statistics(Statistic.AVERAGE)
+                                                   .build());
             fail("Expected an SdkServiceException, but wasn't thrown");
         } catch (MissingRequiredParameterException e) {
             // There is a strong contract on the value of these fields, and they should never change unexpectedly

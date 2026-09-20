@@ -27,6 +27,7 @@ import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.TableIndices;
+import software.amazon.awssdk.enhanced.dynamodb.internal.TableVectorIndices;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.CreateTableOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteItemOperation;
 import software.amazon.awssdk.enhanced.dynamodb.internal.operations.DeleteTableOperation;
@@ -101,6 +102,29 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     }
 
     @Override
+    public DefaultDynamoDbAsyncVectorIndex<T> vectorIndex(String indexName) {
+        validateVectorIndexExists(indexName);
+
+        return new DefaultDynamoDbAsyncVectorIndex<>(dynamoDbClient,
+                                                     extension,
+                                                     tableSchema,
+                                                     tableName,
+                                                     indexName);
+    }
+
+    private void validateVectorIndexExists(String indexName) {
+        boolean exists = tableSchema.tableMetadata()
+                                    .vectorIndices()
+                                    .stream()
+                                    .anyMatch(vectorIndex -> vectorIndex.indexName().equals(indexName));
+        if (!exists) {
+            throw new IllegalArgumentException("Attempt to execute an operation that requires a vector index "
+                                               + "without defining the index in the table metadata. Index name: "
+                                               + indexName);
+        }
+    }
+
+    @Override
     public CompletableFuture<Void> createTable(CreateTableEnhancedRequest request) {
         TableOperation<T, ?, ?, Void> operation = CreateTableOperation.create(request);
         return operation.executeOnPrimaryIndexAsync(tableSchema, tableName, extension, dynamoDbClient);
@@ -117,10 +141,12 @@ public final class DefaultDynamoDbAsyncTable<T> implements DynamoDbAsyncTable<T>
     @Override
     public CompletableFuture<Void> createTable() {
         TableIndices indices = new TableIndices(new ArrayList<>(tableSchema.tableMetadata().indices()));
+        TableVectorIndices vectorIndices = new TableVectorIndices(new ArrayList<>(tableSchema.tableMetadata().vectorIndices()));
 
         return createTable(CreateTableEnhancedRequest.builder()
                                                      .localSecondaryIndices(indices.localSecondaryIndices())
                                                      .globalSecondaryIndices(indices.globalSecondaryIndices())
+                                                     .vectorIndexes(vectorIndices.enhancedVectorIndices())
                                                      .build());
     }
 
