@@ -1,4 +1,45 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.1__ __2026-09-18__
+## __AWS Glue__
+  - ### Features
+    - Introducing AWS Glue Data Quality advanced rule recommendations for faster recommendations. This capability uses Amazon Athena to analyze a sample of table data and Amazon Bedrock to recommend DQDL rules.
+
+## __AWS SDK for Java v2 Codegen__
+  - ### Bugfixes
+    - Resolve endpoint parameters up front and ensure all parts of codegen reference them consistently.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds support for A2A servers via the ApplicationType and AuthConfig fields, allowing customers to register their agent-to-agent servers with API key authentication.
+
+## __Amazon Connect Service__
+  - ### Features
+    - This release adds the ListSecurityProfileAIAgents API and updates the CreateSecurityProfile and UpdateSecurityProfile APIs to support the AllowedAIAgents field on security profiles, allowing customers to manage the 3P AI agents associated with a security profile for Agent-to-Agent interactions.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for specifying Notebook type
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release adds documentation for the T8i instance family to the EC2 ModifyDefaultCreditSpecification and GetDefaultCreditSpecification APIs.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - GetParticipant, ListParticipantEvents, ListParticipantReplicas, StartParticipantReplication, and StopParticipantReplication now accept participant IDs containing underscores.
+
+## __Amazon Q Connect__
+  - ### Features
+    - Amazon Connect AI Agents now support multi-agent orchestration and structured JSON input and output messaging for orchestration agents.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for the hub content resource in SageMaker Search.
+
+## __Amazon Transcribe Service__
+  - ### Features
+    - Amazon Transcribe now lets you encrypt your custom vocabularies, custom vocabulary filters, and custom language models with a customer managed AWS KMS key instead of an AWS owned key, and adds a new UpdateLanguageModel operation to transition CLM encryption to a different KMS key.
+
 # __2.55.0__ __2026-09-17__
 ## __AWS CRT HTTP Client__
   - ### Features
