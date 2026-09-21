@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.presignedurl.model;
 import java.net.URL;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.services.s3.internal.presignedurl.PresignedUrlRedactionUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -115,10 +116,17 @@ public final class PresignedUrlDownloadRequest implements ToCopyableBuilder<Pres
                Objects.equals(ifMatch(), other.ifMatch());
     }
 
+    /**
+     * Returns a string representation of this object. This is useful for testing and debugging. Sensitive data will be
+     * redacted from this string using a placeholder value: the query string of the presigned URL carries the request
+     * signature, the credential scope and, for session credentials, the security token, so it is never rendered. The
+     * user-info and fragment components of the URL are omitted entirely. Use {@link #presignedUrl()} to obtain the
+     * unmodified URL.
+     */
     @Override
     public String toString() {
         return ToString.builder("PresignedUrlDownloadRequest")
-                       .add("PresignedUrl", presignedUrl())
+                       .add("PresignedUrl", PresignedUrlRedactionUtils.redactQueryString(presignedUrl()))
                        .add("Range", range())
                        .add("IfMatch", ifMatch())
                        .build();

@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "`PresignedUrlDownloadRequest#toString()` and the presigned URL marshaller's exception messages render the presigned URL without its query string. `PresignedUrlDownloadRequest#presignedUrl()` still returns the full URL."
+}

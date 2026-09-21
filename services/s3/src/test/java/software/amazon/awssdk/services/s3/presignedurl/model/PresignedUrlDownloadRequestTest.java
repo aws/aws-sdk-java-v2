@@ -20,6 +20,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.net.URL;
 import nl.jqno.equalsverifier.EqualsVerifier;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 
 class PresignedUrlDownloadRequestTest {
 
@@ -88,13 +90,20 @@ class PresignedUrlDownloadRequestTest {
     }
 
     @Test
-    void toString_shouldContainActualFieldValues() throws Exception {
-        URL url = new URL("https://example.com");
-        String range = "bytes=0-100";
+    void toString_redactsPresignedUrlQueryString() throws Exception {
+        URL url = new URL("https://bucket.s3.us-east-1.amazonaws.com/dir/key.txt?" +
+                          "X-Amz-Algorithm=AWS4-HMAC-SHA256&" +
+                          "X-Amz-Credential=AKIAEXAMPLE%2F20240101%2Fus-east-1%2Fs3%2Faws4_request&" +
+                          "X-Amz-Date=20240101T000000Z&" +
+                          "X-Amz-Expires=604800&" +
+                          "X-Amz-Security-Token=SESSIONTOKENEXAMPLE&" +
+                          "X-Amz-SignedHeaders=host&" +
+                          "X-Amz-Signature=deadbeefdeadbeef");
 
         PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                                            .presignedUrl(url)
-                                                                           .range(range)
+                                                                           .range("bytes=0-100")
+                                                                           .ifMatch("etag")
                                                                            .build();
 
         String result = request.toString();
@@ -102,14 +111,43 @@ class PresignedUrlDownloadRequestTest {
         assertThat(result)
             .isNotNull()
             .isNotEmpty()
-            .contains(request.presignedUrl().toString())
-            .contains(request.range());
+            .doesNotContain("X-Amz-Signature")
+            .doesNotContain("deadbeef")
+            .doesNotContain("X-Amz-Credential")
+            .doesNotContain("AKIAEXAMPLE")
+            .doesNotContain("X-Amz-Security-Token")
+            .doesNotContain("SESSIONTOKENEXAMPLE")
+            .doesNotContain(url.getQuery())
+            .contains("https://bucket.s3.us-east-1.amazonaws.com/dir/key.txt")
+            .contains("*** Sensitive Data Redacted ***")
+            .contains("bytes=0-100")
+            .contains("etag");
+    }
 
+    @ParameterizedTest
+    @CsvSource(delimiter = '|', value = {
+        "https://example.com/key                              | https://example.com/key",
+        "https://example.com                                  | https://example.com",
+        "https://host:8443/key?X-Amz-Signature=abc            | https://host:8443/key?*** Sensitive Data Redacted ***",
+        "https://***@host/key?X-Amz-Signature=abc#frag| https://host/key?*** Sensitive Data Redacted ***",
+        "https://host/key#X-Amz-Signature=abc                 | https://host/key",
+        "https://host/key?                                    | https://host/key?*** Sensitive Data Redacted ***"
+    })
+    void toString_rendersUrlWithoutQueryString(String url, String expectedUrlRendering) throws Exception {
+        assertThat(toStringOf(new URL(url)))
+            .isEqualTo("PresignedUrlDownloadRequest(PresignedUrl=" + expectedUrlRendering + ")");
     }
 
     @Test
     void serializableBuilderClass_shouldReturnCorrectClass() {
         assertThat(PresignedUrlDownloadRequest.serializableBuilderClass())
             .isEqualTo(PresignedUrlDownloadRequest.BuilderImpl.class);
+    }
+
+    private String toStringOf(URL url) {
+        return PresignedUrlDownloadRequest.builder()
+                                         .presignedUrl(url)
+                                         .build()
+                                         .toString();
     }
 }
