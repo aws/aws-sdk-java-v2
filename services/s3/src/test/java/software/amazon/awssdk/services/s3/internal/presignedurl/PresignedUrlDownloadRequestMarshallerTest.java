@@ -20,7 +20,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -240,5 +244,66 @@ class PresignedUrlDownloadRequestMarshallerTest {
         assertThatThrownBy(() -> marshaller.marshall(request))
             .isInstanceOf(SdkClientException.class)
             .hasMessageContaining("Unable to marshall pre-signed URL Request");
+    }
+
+    @Test
+    void marshall_withMalformedUrl_shouldNotLeakPresignedUrlInExceptionMessage() throws Exception {
+        SdkHttpFullRequest baseRequest = SdkHttpFullRequest.builder()
+                                                           .method(SdkHttpMethod.GET)
+                                                           .protocol("https")
+                                                           .host("example.com")
+                                                           .build();
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class)))
+            .thenReturn(baseRequest);
+
+        URL malformedUrl = new URL("https", "test-bucket.s3.us-east-1.amazonaws.com", -1,
+                                   "/my key.txt?X-Amz-Signature=deadbeef&X-Amz-Security-Token=TOKEN");
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                         .url(malformedUrl)
+                                                                                         .build();
+
+        assertThatThrownBy(() -> marshaller.marshall(request))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Unable to marshall pre-signed URL Request for "
+                        + "https://test-bucket.s3.us-east-1.amazonaws.com/my key.txt?*** Sensitive Data Redacted ***: "
+                        + "Illegal character in path at index 49")
+            .satisfies(e -> assertThat(e.toString()).doesNotContain("X-Amz-Signature", "deadbeef", "TOKEN"))
+            .satisfies(e -> assertThat(String.valueOf(new CompletionException(e)))
+                .doesNotContain("X-Amz-Signature", "deadbeef", "TOKEN"))
+            .satisfies(e -> assertThat(stackTraceOf(e)).doesNotContain("X-Amz-Signature", "deadbeef", "TOKEN"))
+            .satisfies(e -> assertThat(e.getCause())
+                .isInstanceOf(URISyntaxException.class)
+                .hasMessage("Illegal character in path at index 49: "
+                            + "https://test-bucket.s3.us-east-1.amazonaws.com/my key.txt?*** Sensitive Data Redacted ***"))
+            .satisfies(e -> assertThat(e.getCause().getStackTrace()[0].getClassName()).startsWith("java.net."));
+    }
+
+    @Test
+    void marshall_whenProtocolMarshallerFails_shouldReplaceCauseWithItsTypeAndRedactedUrl() {
+        IllegalStateException failure = new IllegalStateException("failed for " + testUrl);
+        when(mockProtocolMarshaller.marshall(any(PresignedUrlDownloadRequestWrapper.class))).thenThrow(failure);
+
+        PresignedUrlDownloadRequestWrapper request = PresignedUrlDownloadRequestWrapper.builder()
+                                                                                         .url(testUrl)
+                                                                                         .build();
+
+        assertThatThrownBy(() -> marshaller.marshall(request))
+            .isInstanceOf(SdkClientException.class)
+            .hasMessage("Unable to marshall pre-signed URL Request for "
+                        + "https://test-bucket.s3.us-east-1.amazonaws.com/test-key?*** Sensitive Data Redacted ***: "
+                        + "java.lang.IllegalStateException")
+            .satisfies(e -> assertThat(stackTraceOf(e))
+                .doesNotContain("X-Amz-Signature", "example-signature", "X-Amz-Security-Token", "X-Amz-Credential"))
+            .satisfies(e -> assertThat(e.getCause())
+                .isInstanceOf(SdkClientException.class)
+                .hasMessage("java.lang.IllegalStateException for "
+                            + "https://test-bucket.s3.us-east-1.amazonaws.com/test-key?*** Sensitive Data Redacted ***"))
+            .satisfies(e -> assertThat(e.getCause().getStackTrace()).isEqualTo(failure.getStackTrace()));
+    }
+
+    private static String stackTraceOf(Throwable throwable) {
+        StringWriter writer = new StringWriter();
+        throwable.printStackTrace(new PrintWriter(writer, true));
+        return writer.toString();
     }
 }
