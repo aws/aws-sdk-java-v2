@@ -1,4 +1,25 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.2__ __2026-09-21__
+## __AWSBillingConductor__
+  - ### Features
+    - Launching Auto Billing Transfer Billing Group Creation Preference feature
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Amazon Bedrock AgentCore Harness now supports lifecycle hooks for invocations and tool calls, with Lambda, SNS, and EventBridge targets. This release also adds apiBase for custom OpenAI-compatible endpoints.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Amazon Bedrock AgentCore Harness now supports lifecycle hooks for invocations and tool calls, with Lambda, SNS, and EventBridge targets. This release also adds apiBase for custom OpenAI-compatible endpoints
+
+## __Amazon DocumentDB with MongoDB compatibility__
+  - ### Features
+    - Add support for CopyTagsToSnapshot field in CreateDbCluster, ModifyDbCluster, RestoreDbClusterFromSnapshot and RestoreDbClusterToPointInTime for DocumentDB.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Add support for r6i, m8i, c8i, r8i instance types in Training and Processing
+
 # __2.55.1__ __2026-09-18__
 ## __AWS Glue__
   - ### Features
