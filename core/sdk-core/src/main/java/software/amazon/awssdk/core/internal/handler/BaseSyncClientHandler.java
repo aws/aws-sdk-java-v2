@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.AmazonSyncHttpClient;
 import software.amazon.awssdk.core.internal.http.CombinedResponseHandler;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
@@ -212,7 +213,7 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
         public ReturnT handle(SdkHttpFullResponse response, ExecutionAttributes executionAttributes) throws Exception {
             OutputT resp = httpResponseHandler.handle(response, executionAttributes);
             AbortableInputStream content = response.content().orElseGet(AbortableInputStream::createEmpty);
-            AbortableInputStream body = wrapForConcatenatedGzipSupport(content);
+            AbortableInputStream body = wrapForConcatenatedGzipSupport(content, executionAttributes);
             return transformResponse(resp, body);
         }
 
@@ -226,8 +227,11 @@ public abstract class BaseSyncClientHandler extends BaseClientHandler implements
          * around {@link java.util.zip.GZIPInputStream} truncating concatenated (multi-member) gzip at a member boundary.
          * Non-gzip content passes through unchanged and the original stream's {@code abort()} is preserved.
          */
-        private static AbortableInputStream wrapForConcatenatedGzipSupport(AbortableInputStream content) {
-            return GzipAvailabilityInputStream.wrap(content, content);
+        private static AbortableInputStream wrapForConcatenatedGzipSupport(
+            AbortableInputStream content, ExecutionAttributes executionAttributes) {
+            boolean enabled = executionAttributes.getOptionalAttribute(
+                SdkInternalExecutionAttribute.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED).orElse(true);
+            return enabled ? GzipAvailabilityInputStream.wrap(content, content) : content;
         }
 
 

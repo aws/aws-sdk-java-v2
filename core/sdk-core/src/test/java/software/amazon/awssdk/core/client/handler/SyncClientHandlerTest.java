@@ -31,6 +31,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.junit.Before;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -187,6 +189,27 @@ public class SyncClientHandlerTest {
         Object decoded = syncClientHandler.execute(clientExecutionParams(), responseTransformer);
 
         assertThat(decoded).isEqualTo("member-0member-1member-2member-3member-4");
+    }
+
+    @Test
+    public void execute_whenConcatenatedGzipSupportDisabled_doesNotCoerceAvailable() throws Exception {
+        mockSuccessfulStreamingCall(concatenatedGzip("member-0", "member-1"));
+        AtomicInteger availableAfterHeader = new AtomicInteger(-1);
+        when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class)))
+            .thenAnswer(invocation -> {
+                AbortableInputStream stream = invocation.getArgument(1);
+                stream.read();
+                stream.read();
+                stream.read();
+                availableAfterHeader.set(stream.available());
+                return null;
+            });
+        ClientExecutionParams<SdkRequest, SdkResponse> params = clientExecutionParams()
+            .putExecutionAttribute(SdkInternalExecutionAttribute.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED, false);
+
+        syncClientHandler.execute(params, responseTransformer);
+
+        assertThat(availableAfterHeader.get()).isZero();
     }
 
     @Test

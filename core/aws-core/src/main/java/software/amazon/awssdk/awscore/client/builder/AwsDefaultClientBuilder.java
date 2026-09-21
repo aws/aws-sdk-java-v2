@@ -138,6 +138,7 @@ public abstract class AwsDefaultClientBuilder<BuilderT extends AwsClientBuilder<
         SdkClientConfiguration config = mergeServiceDefaults(configuration);
         config = config.merge(c -> c.option(AwsAdvancedClientOption.ENABLE_DEFAULT_REGION_DETECTION, true)
                                     .option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION, false)
+                                    .option(SdkAdvancedClientOption.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED, true)
                                     .option(AwsClientOption.SERVICE_SIGNING_NAME, signingName())
                                     .option(SdkClientOption.SERVICE_NAME, serviceName())
                                     .option(AwsClientOption.ENDPOINT_PREFIX, serviceEndpointPrefix()));

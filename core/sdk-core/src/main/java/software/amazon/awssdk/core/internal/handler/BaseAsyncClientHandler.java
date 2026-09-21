@@ -27,6 +27,7 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
@@ -36,7 +37,9 @@ import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
+import software.amazon.awssdk.core.internal.async.ConfigurableAsyncResponseTransformer;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
 import software.amazon.awssdk.core.internal.http.IdempotentAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
@@ -98,8 +101,19 @@ public abstract class BaseAsyncClientHandler extends BaseClientHandler implement
             ExecutionAttributes executionAttributes = executionParams.executionAttributes();
             executionAttributes.putAttribute(InternalCoreExecutionAttribute.EXECUTION_ATTEMPT, 1);
 
+            Boolean configuredValue = executionAttributes.getAttribute(
+                SdkInternalExecutionAttribute.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED);
+            if (configuredValue == null) {
+                configuredValue = resolveRequestConfiguration(executionParams)
+                    .option(SdkAdvancedClientOption.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED);
+            }
+            boolean concatenatedGzipStreamSupportEnabled = configuredValue == null || configuredValue;
+            AsyncResponseTransformer<OutputT, ReturnT> configuredTransformer =
+                ConfigurableAsyncResponseTransformer.configure(asyncResponseTransformer,
+                                                               concatenatedGzipStreamSupportEnabled);
+
             AsyncStreamingResponseHandler<OutputT, ReturnT> asyncStreamingResponseHandler =
-                new AsyncStreamingResponseHandler<>(asyncResponseTransformer);
+                new AsyncStreamingResponseHandler<>(configuredTransformer);
 
             // For streaming requests, prepare() should be called as early as possible to avoid NPE in client
             // See https://github.com/aws/aws-sdk-java-v2/issues/1268. We do this with a wrapper that caches the prepare

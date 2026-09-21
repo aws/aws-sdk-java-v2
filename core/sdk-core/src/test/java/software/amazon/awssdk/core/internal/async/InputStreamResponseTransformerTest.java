@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.utils.async.SimplePublisher;
@@ -157,4 +158,33 @@ class InputStreamResponseTransformerTest {
         assertThat(stream.available()).isGreaterThanOrEqualTo(1);
     }
 
+    @Test
+    void withConcatenatedGzipStreamSupportEnabled_whenDisabled_returnsImmutableCopyWithoutAvailableCoercion()
+        throws IOException {
+        InputStreamResponseTransformer<SdkResponse> original = new InputStreamResponseTransformer<>();
+        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> disabled =
+            original.withConcatenatedGzipStreamSupportEnabled(false);
+
+        assertThat(original.withConcatenatedGzipStreamSupportEnabled(true)).isSameAs(original);
+        assertThat(disabled).isNotSameAs(original);
+        assertThat(availableAfterGzipHeader(original)).isGreaterThanOrEqualTo(1);
+        assertThat(availableAfterGzipHeader(disabled)).isZero();
+    }
+
+    private static int availableAfterGzipHeader(
+        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer) throws IOException {
+        SimplePublisher<ByteBuffer> body = new SimplePublisher<>();
+        CompletableFuture<ResponseInputStream<SdkResponse>> future = responseTransformer.prepare();
+        responseTransformer.onResponse(VoidSdkResponse.builder().build());
+        responseTransformer.onStream(SdkPublisher.adapt(body));
+        ResponseInputStream<SdkResponse> stream = future.join();
+        body.send(ByteBuffer.wrap(new byte[] {0x1f, (byte) 0x8b, 0x08}));
+        stream.read();
+        stream.read();
+        stream.read();
+        int result = stream.available();
+        body.complete();
+        stream.close();
+        return result;
+    }
 }

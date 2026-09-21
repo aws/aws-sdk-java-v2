@@ -35,11 +35,21 @@ import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
  */
 @SdkInternalApi
 public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
-    implements AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> {
+    implements AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>,
+               ConfigurableAsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> {
 
     private volatile CompletableFuture<ResponseInputStream<ResponseT>> future;
     private volatile ResponseT response;
     private volatile WaitForSubscribeOnErrorWrapper subscriber;
+    private final boolean concatenatedGzipStreamSupportEnabled;
+
+    public InputStreamResponseTransformer() {
+        this(true);
+    }
+
+    private InputStreamResponseTransformer(boolean concatenatedGzipStreamSupportEnabled) {
+        this.concatenatedGzipStreamSupportEnabled = concatenatedGzipStreamSupportEnabled;
+    }
 
     @Override
     public CompletableFuture<ResponseInputStream<ResponseT>> prepare() {
@@ -61,7 +71,9 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
         this.subscriber = waitForSubscribeSubscriber;
 
         publisher.subscribe(waitForSubscribeSubscriber);
-        AbortableInputStream content = GzipAvailabilityInputStream.wrap(inputStreamSubscriber, inputStreamSubscriber);
+        AbortableInputStream content = concatenatedGzipStreamSupportEnabled
+            ? GzipAvailabilityInputStream.wrap(inputStreamSubscriber, inputStreamSubscriber)
+            : AbortableInputStream.create(inputStreamSubscriber, inputStreamSubscriber);
         future.complete(new ResponseInputStream<>(response, content));
     }
 
@@ -76,6 +88,12 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
     @Override
     public String name() {
         return TransformerType.STREAM.getName();
+    }
+
+    @Override
+    public AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>
+        withConcatenatedGzipStreamSupportEnabled(boolean enabled) {
+        return concatenatedGzipStreamSupportEnabled == enabled ? this : new InputStreamResponseTransformer<>(enabled);
     }
 
     // Simple wrapper subscriber that ensures we don't forward the `onError` to the delegate until onSubscribe is called, to be
