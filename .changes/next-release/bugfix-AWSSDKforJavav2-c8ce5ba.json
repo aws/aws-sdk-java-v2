@@ -2,5 +2,5 @@
     "type": "bugfix",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Fixed an issue where concatenated gzip response streams could be truncated to the first member when decoded with GZIPInputStream. A transient available()==0 at a gzip member boundary was treated as end of stream; ResponseInputStream now reports available() as at least 1 for gzip content while the stream is open."
+    "description": "Fixed an issue where concatenated (multi-member) gzip response streams could be truncated to the first member when decoded with GZIPInputStream, because a transient available()==0 at a member boundary was treated as end of stream. Response bodies detected as gzip now report available() as at least 1 while the stream is open."
 }

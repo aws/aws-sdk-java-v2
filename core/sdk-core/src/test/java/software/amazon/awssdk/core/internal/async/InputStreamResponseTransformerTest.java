@@ -142,4 +142,19 @@ class InputStreamResponseTransformerTest {
             assertThat(onSubscribeCalled.get()).isTrue();
         }
     }
+
+    @Test
+    void onStream_whenGzipDetected_coercesAvailableAboveZeroWhileOpen() throws IOException {
+        ResponseInputStream<SdkResponse> stream = resultFuture.join();
+
+        publisher.send(ByteBuffer.wrap(new byte[] {0x1f, (byte) 0x8b, 0x08})); // gzip magic
+        stream.read();
+        stream.read();
+        stream.read();
+
+        // Nothing buffered now, so the raw stream would report 0; the gzip-aware wrapper coerces it to >= 1 so a
+        // wrapping GZIPInputStream does not truncate concatenated (multi-member) gzip at a member boundary.
+        assertThat(stream.available()).isGreaterThanOrEqualTo(1);
+    }
+
 }

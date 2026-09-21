@@ -19,6 +19,8 @@ import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.http.Abortable;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 
 /**
@@ -50,6 +52,16 @@ public final class GzipAvailabilityInputStream extends FilterInputStream impleme
 
     public GzipAvailabilityInputStream(InputStream in) {
         super(in);
+    }
+
+    /**
+     * Wraps a response body's content so {@code available()} is gzip-safe, while preserving {@code abort()} on the
+     * original stream. Applied by the SDK at the sync and async blocking-stream boundaries (where the caller's
+     * {@link java.util.zip.GZIPInputStream} reads), so that {@link software.amazon.awssdk.core.ResponseInputStream}
+     * itself stays content-type agnostic.
+     */
+    public static AbortableInputStream wrap(InputStream content, Abortable abortable) {
+        return AbortableInputStream.create(new GzipAvailabilityInputStream(content), abortable);
     }
 
     @Override

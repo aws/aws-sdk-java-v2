@@ -24,7 +24,6 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
-import software.amazon.awssdk.core.internal.io.GzipAvailabilityInputStream;
 import software.amazon.awssdk.core.io.SdkFilterInputStream;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.AbortableInputStream;
@@ -73,10 +72,9 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     }
 
     public ResponseInputStream(ResponseT resp, AbortableInputStream in, Duration timeout) {
-        super(new GzipAvailabilityInputStream(in));
+        super(in);
         this.response = Validate.paramNotNull(resp, "response");
         this.abortable = Validate.paramNotNull(in, "abortableInputStream");
-        
         Duration resolvedTimeout = timeout != null ? timeout : DEFAULT_TIMEOUT;
         scheduleTimeoutTask(resolvedTimeout);
     }
@@ -86,7 +84,7 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
     }
 
     public ResponseInputStream(ResponseT resp, InputStream in, Duration timeout) {
-        super(new GzipAvailabilityInputStream(in));
+        super(in);
         this.response = Validate.paramNotNull(resp, "response");
         this.abortable = in instanceof Abortable ? (Abortable) in : null;
 

@@ -16,18 +16,28 @@
 package software.amazon.awssdk.core.internal.io;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Stream;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.http.AbortableInputStream;
 
 /** Unit tests for {@link GzipAvailabilityInputStream}. */
 class GzipAvailabilityInputStreamTest {
@@ -188,12 +198,110 @@ class GzipAvailabilityInputStreamTest {
         assertThat(delegate.released).isTrue();
     }
 
+    @Test
+    void read_whenConcatenatedMembersHaveTransientZeroAvailable_decodesAllMembers() throws IOException {
+        InputStream underlying = new TrickleStream(concatenatedGzip("PART_ONE;", "PART_TWO;"), false);
+
+        assertThat(readAllGzip(new GzipAvailabilityInputStream(underlying))).isEqualTo("PART_ONE;PART_TWO;");
+    }
+
+    @Test
+    void read_whenManyConcatenatedMembersHaveTransientZeroAvailable_decodesAllMembers() throws IOException {
+        InputStream underlying = new TrickleStream(concatenatedGzip("A;", "B;", "C;", "D;", "E;"), false);
+
+        assertThat(readAllGzip(new GzipAvailabilityInputStream(underlying))).isEqualTo("A;B;C;D;E;");
+    }
+
+    @Test
+    void read_whenSingleMemberHasZeroAvailable_decodesWithoutHanging() {
+        String decoded = assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            InputStream underlying = new TrickleStream(concatenatedGzip("ONLY_ONE_MEMBER;"), false);
+            return readAllGzip(new GzipAvailabilityInputStream(underlying));
+        });
+
+        assertThat(decoded).isEqualTo("ONLY_ONE_MEMBER;");
+    }
+
+    @Test
+    void read_whenConcatenatedMembersNeverReportZeroAvailable_decodesAllMembers() throws IOException {
+        InputStream underlying = new TrickleStream(concatenatedGzip("PART_ONE;", "PART_TWO;"), true);
+
+        assertThat(readAllGzip(new GzipAvailabilityInputStream(underlying))).isEqualTo("PART_ONE;PART_TWO;");
+    }
+
+    @Test
+    void readLine_whenContentIsNonGzip_deliversLineWithoutBlocking() {
+        ControllableStream underlying = new ControllableStream();
+        underlying.feed("event: E1\n");
+        BufferedReader reader =
+            new BufferedReader(new InputStreamReader(new GzipAvailabilityInputStream(underlying), StandardCharsets.UTF_8));
+
+        assertTimeoutPreemptively(Duration.ofSeconds(2), () ->
+            assertThat(reader.readLine()).isEqualTo("event: E1"));
+    }
+
+    @Test
+    void wrap_whenAborted_propagatesToOriginalAbortable() throws IOException {
+        AtomicBoolean aborted = new AtomicBoolean(false);
+        InputStream body = new TrickleStream(concatenatedGzip("HELLO"), false);
+        AbortableInputStream wrapped = GzipAvailabilityInputStream.wrap(body, () -> aborted.set(true));
+
+        wrapped.abort();
+
+        assertThat(aborted).isTrue();
+    }
+
+    @Test
+    void read_whenSourceBlocksThenSignalsEof_decodesWithoutHanging() {
+        String decoded = assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            InputStream underlying = new BlockingEofStream(concatenatedGzip("ONLY_ONE;"));
+            return readAllGzip(new GzipAvailabilityInputStream(underlying));
+        });
+
+        assertThat(decoded).isEqualTo("ONLY_ONE;");
+    }
+
+    @Test
+    void reset_whenMarkedBeforeReading_reReadsSameBytes() throws IOException {
+        InputStream body = new ByteArrayInputStream("hello-world".getBytes(StandardCharsets.UTF_8));
+        GzipAvailabilityInputStream stream = new GzipAvailabilityInputStream(body);
+
+        assertThat(stream.markSupported()).isTrue();
+        stream.mark(16);
+        int first = stream.read();
+        int second = stream.read();
+        stream.reset();
+
+        assertThat(stream.read()).isEqualTo(first);
+        assertThat(stream.read()).isEqualTo(second);
+    }
+
     private static byte[] gzip(String s) throws IOException {
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         try (GZIPOutputStream g = new GZIPOutputStream(bos)) {
             g.write(s.getBytes(StandardCharsets.UTF_8));
         }
         return bos.toByteArray();
+    }
+
+    private static String readAllGzip(InputStream in) throws IOException {
+        try (GZIPInputStream gz = new GZIPInputStream(in)) {
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[64];
+            int n;
+            while ((n = gz.read(buf)) != -1) {
+                out.write(buf, 0, n);
+            }
+            return new String(out.toByteArray(), StandardCharsets.UTF_8);
+        }
+    }
+
+    private static byte[] concatenatedGzip(String... members) throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        for (String member : members) {
+            out.write(gzip(member));
+        }
+        return out.toByteArray();
     }
 
     /** Serves bytes but always reports available()==0. */
@@ -322,6 +430,141 @@ class GzipAvailabilityInputStreamTest {
         @Override
         public int available() {
             return avail;
+        }
+    }
+
+    /** Serves bytes one at a time; reports available()==0 unless {@code neverZero}. */
+    private static final class TrickleStream extends InputStream {
+        private final byte[] data;
+        private final boolean neverZero;
+        private int pos;
+
+        TrickleStream(byte[] data, boolean neverZero) {
+            this.data = data;
+            this.neverZero = neverZero;
+        }
+
+        @Override
+        public int read() {
+            return pos < data.length ? data[pos++] & 0xff : -1;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) {
+            if (len == 0) {
+                return 0;
+            }
+            if (pos >= data.length) {
+                return -1;
+            }
+            b[off] = (byte) (data[pos++] & 0xff);
+            return 1;
+        }
+
+        @Override
+        public int available() {
+            return neverZero ? 1 : 0;
+        }
+    }
+
+    /** A blocking live feed: read waits for fed data and bulk reads return only buffered bytes. */
+    private static final class ControllableStream extends InputStream {
+        private final LinkedBlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
+        private volatile boolean finished;
+
+        void feed(String s) {
+            for (byte b : s.getBytes(StandardCharsets.UTF_8)) {
+                queue.add(b & 0xff);
+            }
+        }
+
+        @Override
+        public int read() throws IOException {
+            try {
+                Integer b;
+                while ((b = queue.poll(50, TimeUnit.MILLISECONDS)) == null) {
+                    if (finished) {
+                        return -1;
+                    }
+                }
+                return b;
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IOException(e);
+            }
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+            int first = read();
+            if (first < 0) {
+                return -1;
+            }
+            b[off] = (byte) first;
+            int n = 1;
+            while (n < len) {
+                Integer next = queue.poll();
+                if (next == null) {
+                    break;
+                }
+                b[off + n] = (byte) (int) next;
+                n++;
+            }
+            return n;
+        }
+
+        @Override
+        public int available() {
+            return queue.size();
+        }
+    }
+
+    /** Serves bytes one at a time, then blocks briefly once before signalling EOF. */
+    private static final class BlockingEofStream extends InputStream {
+        private final byte[] data;
+        private int pos;
+        private boolean blocked;
+
+        BlockingEofStream(byte[] data) {
+            this.data = data;
+        }
+
+        @Override
+        public int read() throws IOException {
+            if (pos < data.length) {
+                return data[pos++] & 0xff;
+            }
+            if (!blocked) {
+                blocked = true;
+                try {
+                    Thread.sleep(150);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IOException(e);
+                }
+            }
+            return -1;
+        }
+
+        @Override
+        public int read(byte[] b, int off, int len) throws IOException {
+            if (len == 0) {
+                return 0;
+            }
+            int first = read();
+            if (first < 0) {
+                return -1;
+            }
+            b[off] = (byte) first;
+            return 1;
+        }
+
+        @Override
+        public int available() {
+            return 0;
         }
     }
 }
