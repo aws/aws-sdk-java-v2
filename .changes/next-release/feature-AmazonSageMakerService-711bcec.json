@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Add support for r6i, m8i, c8i, r8i instance types in Training and Processing"
+}
