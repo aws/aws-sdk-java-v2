@@ -37,8 +37,13 @@ import software.amazon.awssdk.utils.Validate;
                    --service-json /path/to/service-2.json
                    [--paginators-json /path/to/paginators-1.json
                     --waiters-json /path/to/waiters-2.json
+                    --endpoint-rule-set-json /path/to/endpoint-rule-set.json
+                    --endpoint-tests-json /path/to/endpoint-tests.json
                     --endpoint-bdd-json /path/to/endpoint-bdd-1.json]"
  * </pre>
+ *
+ * <p>The endpoint model is either the BDD model or the rule set, never both: when {@code --endpoint-bdd-json} names an
+ * existing file it is copied and {@code --endpoint-rule-set-json} is ignored, otherwise the rule set is copied.
  */
 public class UpdateServiceMain extends Cli {
     private static final Logger log = Logger.loggerFor(UpdateServiceMain.class);
@@ -50,11 +55,12 @@ public class UpdateServiceMain extends Cli {
               requiredOption("service-json", "The service-2.json file for the service."),
               optionalOption("paginators-json", "The paginators-1.json file for the service."),
               optionalOption("waiters-json", "The waiters-2.json file for the service."),
-              optionalOption("endpoint-rule-set-json", "The endpoint-rule-set.json file for the service."),
+              optionalOption("endpoint-rule-set-json", "The endpoint-rule-set.json file for the service. Ignored when "
+                                                       + "endpoint-bdd-json is given and points at an existing file."),
               optionalOption("endpoint-tests-json", "The endpoint-tests.json file for the service."),
-              optionalOption("endpoint-bdd-json", "The endpoint-bdd-1.json file for the service. Only copied for a "
-                                                  + "service that already has one, so that BDD endpoint resolution "
-                                                  + "stays opt-in per service."));
+              optionalOption("endpoint-bdd-json", "The endpoint-bdd-1.json file for the service. When present it is "
+                                                  + "the endpoint model used for the service, and "
+                                                  + "endpoint-rule-set-json is ignored."));
     }
 
     public static void main(String[] args) {
@@ -105,9 +111,32 @@ public class UpdateServiceMain extends Cli {
             copyFile(serviceJson, codegenFileLocation.resolve("service-2.json"));
             copyFile(paginatorsJson, codegenFileLocation.resolve("paginators-1.json"));
             copyFile(waitersJson, codegenFileLocation.resolve("waiters-2.json"));
-            copyFile(endpointRuleSetJson, codegenFileLocation.resolve("endpoint-rule-set.json"));
+            copyEndpointModel(codegenFileLocation);
             copyFile(endpointTestsJson, codegenFileLocation.resolve("endpoint-tests.json"));
-            copyFileIfAlreadyPresent(endpointBddJson, codegenFileLocation.resolve("endpoint-bdd-1.json"));
+        }
+
+        /**
+         * Copies whichever endpoint model drives codegen for this service. A BDD model supersedes the rule set, so
+         * when one is available it is copied and {@code endpoint-rule-set-json} is ignored; otherwise the rule set is
+         * copied as before.
+         */
+        private void copyEndpointModel(Path codegenFileLocation) throws IOException {
+            if (endpointBddJson != null && Files.isRegularFile(endpointBddJson)) {
+                log.info(() -> "Using endpoint BDD model " + endpointBddJson + " for " + serviceModuleName
+                               + "; ignoring endpoint-rule-set-json.");
+                copyFile(endpointBddJson, codegenFileLocation.resolve("endpoint-bdd-1.json"));
+                return;
+            }
+
+            if (endpointRuleSetJson == null) {
+                log.info(() -> "No endpoint BDD model available for " + serviceModuleName
+                               + " and endpoint-rule-set-json is not set; leaving the endpoint model unchanged.");
+                return;
+            }
+
+            log.info(() -> "No endpoint BDD model available for " + serviceModuleName
+                           + "; using endpoint rule set " + endpointRuleSetJson + ".");
+            copyFile(endpointRuleSetJson, codegenFileLocation.resolve("endpoint-rule-set.json"));
         }
 
         private Path codegenFileLocation(String serviceModuleName, String serviceId) {
@@ -138,23 +167,6 @@ public class UpdateServiceMain extends Cli {
                 log.info(() -> "Copying " + source + " to " + destination);
                 FileUtils.copyFile(source.toFile(), destination.toFile());
             }
-        }
-
-        /**
-         * Updates {@code destination} from {@code source} only when {@code destination} already exists, leaving a
-         * service that does not have the file without one.
-         */
-        private void copyFileIfAlreadyPresent(Path source, Path destination) throws IOException {
-            if (source == null || !Files.isRegularFile(source)) {
-                return;
-            }
-            if (!Files.isRegularFile(destination)) {
-                log.info(() -> "Skipping " + source + " because " + destination + " does not exist. Add the file to opt "
-                               + "this service in.");
-                return;
-            }
-            log.info(() -> "Copying " + source + " to " + destination);
-            FileUtils.copyFile(source.toFile(), destination.toFile());
         }
     }
 }
