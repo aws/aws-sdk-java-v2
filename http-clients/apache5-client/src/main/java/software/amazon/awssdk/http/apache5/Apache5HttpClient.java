@@ -93,6 +93,7 @@ import software.amazon.awssdk.http.apache5.internal.DefaultConfiguration;
 import software.amazon.awssdk.http.apache5.internal.SdkProxyRoutePlanner;
 import software.amazon.awssdk.http.apache5.internal.conn.ClientConnectionManagerFactory;
 import software.amazon.awssdk.http.apache5.internal.conn.IdleConnectionReaper;
+import software.amazon.awssdk.http.apache5.internal.conn.RecreatingHttpClientConnectionManager;
 import software.amazon.awssdk.http.apache5.internal.conn.SafePoolingHttpClientConnectionManagerBuilder;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkConnectionKeepAliveStrategy;
 import software.amazon.awssdk.http.apache5.internal.conn.SdkTlsSocketFactory;
@@ -174,10 +175,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
 
         HttpClientBuilder builder = HttpClients.custom();
 
-        // Note that it is important we register the original connection manager with the
-        // IdleConnectionReaper as it's required for the successful deregistration of managers
-        // from the reaper. See https://github.com/aws/aws-sdk-java/issues/722.
-        PoolingHttpClientConnectionManager cm = cmFactory.create(configuration, standardOptions);
+        // Apache destroys the connection manager if a java.lang.Error escapes a request, which would otherwise leave
+        // this client permanently unusable even when the application itself recovered. This wrapper rebuilds the pool
+        // instead. See RecreatingHttpClientConnectionManager.
+        //
+        // Note that it is important we register this same instance with the IdleConnectionReaper, rather than the pool
+        // it currently holds, as it's required for the successful deregistration of managers from the reaper in
+        // close(). See https://github.com/aws/aws-sdk-java/issues/722.
+        RecreatingHttpClientConnectionManager cm =
+            RecreatingHttpClientConnectionManager.create(() -> cmFactory.create(configuration, standardOptions));
 
         Registry<AuthSchemeFactory> authSchemeRegistry = configuration.authSchemeRegistry ;
         if (authSchemeRegistry != null) {
@@ -283,8 +289,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
     @Override
     public void close() {
         HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
-        IdleConnectionReaper.getInstance().deregisterConnectionManager(cm);
-        cm.close(CloseMode.IMMEDIATE);
+        if (cm instanceof RecreatingHttpClientConnectionManager) {
+            RecreatingHttpClientConnectionManager recreatingCm = (RecreatingHttpClientConnectionManager) cm;
+            IdleConnectionReaper.getInstance().deregisterConnectionManager(recreatingCm);
+            // Closing is intentional and permanent, unlike Apache closing the pool on an Error, so the pool must not be
+            // rebuilt afterwards. Both go through close(CloseMode) otherwise.
+            recreatingCm.closePermanently();
+        } else {
+            cm.close(CloseMode.IMMEDIATE);
+        }
     }
 
     private HttpExecuteResponse execute(HttpUriRequestBase apacheRequest, MetricCollector metricCollector) throws IOException {
@@ -390,15 +403,30 @@ public final class Apache5HttpClient implements SdkHttpClient {
     }
 
     private void collectPoolMetric(MetricCollector metricCollector) {
-        HttpClientConnectionManager cm = httpClient.getHttpClientConnectionManager();
-        if (cm instanceof PoolingHttpClientConnectionManager && !(metricCollector instanceof NoOpMetricCollector)) {
-            PoolingHttpClientConnectionManager poolingCm = (PoolingHttpClientConnectionManager) cm;
-            PoolStats totalStats = poolingCm.getTotalStats();
-            metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());
-            metricCollector.reportMetric(AVAILABLE_CONCURRENCY, totalStats.getAvailable());
-            metricCollector.reportMetric(LEASED_CONCURRENCY, totalStats.getLeased());
-            metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, totalStats.getPending());
+        if (metricCollector instanceof NoOpMetricCollector) {
+            return;
         }
+
+        PoolStats totalStats = poolStats(httpClient.getHttpClientConnectionManager());
+        if (totalStats == null) {
+            return;
+        }
+
+        metricCollector.reportMetric(MAX_CONCURRENCY, totalStats.getMax());
+        metricCollector.reportMetric(AVAILABLE_CONCURRENCY, totalStats.getAvailable());
+        metricCollector.reportMetric(LEASED_CONCURRENCY, totalStats.getLeased());
+        metricCollector.reportMetric(PENDING_CONCURRENCY_ACQUIRES, totalStats.getPending());
+    }
+
+    private static PoolStats poolStats(HttpClientConnectionManager cm) {
+        if (cm instanceof RecreatingHttpClientConnectionManager) {
+            // Reports the pool currently in use, which may be a replacement for one Apache destroyed.
+            return ((RecreatingHttpClientConnectionManager) cm).poolStats();
+        }
+        if (cm instanceof PoolingHttpClientConnectionManager) {
+            return ((PoolingHttpClientConnectionManager) cm).getTotalStats();
+        }
+        return null;
     }
 
     @Override

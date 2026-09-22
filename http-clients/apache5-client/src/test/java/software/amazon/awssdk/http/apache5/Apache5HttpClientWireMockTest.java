@@ -29,6 +29,7 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -285,6 +286,81 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
             IllegalStateException.class
         ).hasMessageContaining("Connection pool shut down");
     }
+
+    /**
+     * Apache closes its connection manager when a {@link Error} escapes a request, which used to leave this client
+     * permanently unusable even though the application had recovered.
+     *
+     * <p>The Error is raised from the request body because Apache writes the body from inside
+     * {@code MainClientExec.execute}, in the same try block whose {@code catch (Error)} closes the connection manager.
+     * That is the same code path a real {@code OutOfMemoryError} takes when it lands on a request thread.
+     */
+    @Test
+    public void errorThrownDuringRequest_clientRemainsUsable() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        stubForMockRequest(200);
+        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+
+        assertThat(executeRequest(client, request).httpResponse().statusCode()).isEqualTo(200);
+
+        assertThatThrownBy(() -> executeRequest(client, errorThrowingBody(request)))
+            .isInstanceOf(OutOfMemoryError.class);
+
+        // Previously: IllegalStateException: Connection pool shut down, for the rest of the JVM's life.
+        assertThat(executeRequest(client, request).httpResponse().statusCode()).isEqualTo(200);
+    }
+
+    @Test
+    public void errorThrownDuringRequest_repeatedly_clientRemainsUsable() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        stubForMockRequest(200);
+        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+
+        for (int i = 0; i < 3; i++) {
+            assertThatThrownBy(() -> executeRequest(client, errorThrowingBody(request)))
+                .isInstanceOf(OutOfMemoryError.class);
+            assertThat(executeRequest(client, request).httpResponse().statusCode()).isEqualTo(200);
+        }
+    }
+
+    @Test
+    public void errorThrownDuringRequest_thenClose_stillRejectsRequests() throws Exception {
+        SdkHttpClient client = createSdkHttpClient();
+        stubForMockRequest(200);
+        SdkHttpFullRequest request = mockSdkRequest("http://localhost:" + mockServer.port(), SdkHttpMethod.POST);
+
+        assertThatThrownBy(() -> executeRequest(client, errorThrowingBody(request)))
+            .isInstanceOf(OutOfMemoryError.class);
+        client.close();
+
+        // Recovering from an Error must not make close() recoverable too.
+        assertThatThrownBy(() -> executeRequest(client, request))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Connection pool shut down");
+    }
+
+    private HttpExecuteResponse executeRequest(SdkHttpClient client, SdkHttpFullRequest request) throws IOException {
+        HttpExecuteResponse response =
+            client.prepareRequest(HttpExecuteRequest.builder()
+                                                   .request(request)
+                                                   .contentStreamProvider(request.contentStreamProvider().orElse(null))
+                                                   .build())
+                  .call();
+        response.responseBody().ifPresent(IoUtils::drainInputStream);
+        return response;
+    }
+
+    private static SdkHttpFullRequest errorThrowingBody(SdkHttpFullRequest request) {
+        return request.toBuilder()
+                      .contentStreamProvider(() -> new InputStream() {
+                          @Override
+                          public int read() {
+                              throw new OutOfMemoryError("Simulated heap exhaustion while writing the request body");
+                          }
+                      })
+                      .build();
+    }
+
 
     @Test
     public void connectionTimeout_exceedsLimit_throwsException() {
