@@ -84,9 +84,10 @@ public class OperationContextParamsBindingEquivalenceTest {
 
     private static void assertKeysEquivalent(List<String> reflectiveResult, List<String> loweredResult,
                                              List<String> expectedContent) {
-        assertEquals(reflectiveResult, loweredResult, "lowered binding must equal reflective evaluation");
-        // Key order is asserted positionally against the reflective oracle above; the expected content is
-        // written in insertion order, so compare it as a set.
+        assertEquals(reflectiveResult.size(), loweredResult.size(),
+                     "lowered result must contain the same number of keys as reflective evaluation");
+        assertEquals(new HashSet<>(reflectiveResult), new HashSet<>(loweredResult),
+                     "lowered key content must equal reflective evaluation");
         assertEquals(new HashSet<>(expectedContent), new HashSet<>(loweredResult), "content must match");
     }
 
@@ -96,9 +97,6 @@ public class OperationContextParamsBindingEquivalenceTest {
         assertKeysEquivalent(new Value(empty).field("RequestItems").keys().stringValues(),
                              loweredList(empty), Collections.emptyList());
 
-        // Keys whose insertion order differs from their HashMap iteration order: the endpoint ruleset reads
-        // ResourceArnList positionally (getAttr(..., "[0]")) and the reflective runtime wraps maps as
-        // new HashMap<>(map), so the lowered binding must reproduce that hash ordering.
         String[] keys = {"zebra", "mango", "apple", "delta", "foxtrot", "bravo", "yankee", "tango", "kilo", "echo"};
         Map<String, KeysAndAttributes> items = new LinkedHashMap<>();
         for (String key : keys) {

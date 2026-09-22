@@ -22,7 +22,6 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -168,7 +167,7 @@ final class JmesPathTypedGetterGenerator {
             b.addStatement("$T $N = new $T<>($N.size())", resultType, resultVar, ClassName.get(ArrayList.class), mapVar);
         }
         String keyVar = names.newName("key");
-        b.beginControlFlow("for ($T $N : new $T<>($N).keySet())", String.class, keyVar, HashMap.class, mapVar);
+        b.beginControlFlow("for ($T $N : $N.keySet())", String.class, keyVar, mapVar);
         b.beginControlFlow("if ($N != null)", keyVar);
         b.addStatement("$N.add($N)", resultVar, keyVar);
         b.endControlFlow();

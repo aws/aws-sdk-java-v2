@@ -172,8 +172,8 @@ class JmesPathTypedGetterGeneratorTest {
                    "expected the struct prefix to be null-guarded, but got: " + code);
         assertTrue(code.contains("stringArrayParam = new java.util.ArrayList<>(itemMap.size())"),
                    "expected the guarded branch to switch to a presized list, but got: " + code);
-        assertTrue(code.contains("new java.util.HashMap<>(itemMap).keySet()"),
-                   "expected the key loop to copy the map through HashMap, but got: " + code);
+        assertTrue(code.contains("for (java.lang.String key : itemMap.keySet())"),
+                   "expected the key loop to iterate the map directly, but got: " + code);
     }
 
     /**

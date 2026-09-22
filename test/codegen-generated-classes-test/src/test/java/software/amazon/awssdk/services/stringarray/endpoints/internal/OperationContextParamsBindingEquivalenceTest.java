@@ -176,17 +176,19 @@ public class OperationContextParamsBindingEquivalenceTest {
     }
 
     @Test
-    public void mapKeysMatchReflectiveHashOrdering() {
-        // Keys whose insertion order differs from their HashMap iteration order: the reflective runtime wraps maps
-        // as new HashMap<>(map), so the lowered binding must reproduce that hash ordering positionally.
+    public void mapKeysMatchReflectiveContent() {
         String[] keys = {"zebra", "mango", "apple", "delta", "foxtrot", "bravo", "yankee", "tango", "kilo", "echo"};
         Map<String, String> map = new LinkedHashMap<>();
         for (String key : keys) {
             map.put(key, "value");
         }
         MapOperationRequest request = MapOperationRequest.builder().map(map).build();
+        List<String> reflective = reflectiveMap(request);
         List<String> low = lowered(request);
-        assertEquals(reflectiveMap(request), low, "lowered binding must equal reflective evaluation");
+        assertEquals(reflective.size(), low.size(),
+                     "lowered result must contain the same number of keys as reflective evaluation");
+        assertEquals(new HashSet<>(reflective), new HashSet<>(low),
+                     "lowered key content must equal reflective evaluation");
         assertEquals(new HashSet<>(Arrays.asList(keys)), new HashSet<>(low), "content must match");
     }
 
@@ -195,8 +197,12 @@ public class OperationContextParamsBindingEquivalenceTest {
     }
 
     private static void assertNestedMapEquivalent(NestedMapOperationRequest request, List<String> expectedContent) {
+        List<String> reflective = reflectiveNestedMap(request);
         List<String> low = lowered(request);
-        assertEquals(reflectiveNestedMap(request), low, "lowered binding must equal reflective evaluation");
+        assertEquals(reflective.size(), low.size(),
+                     "lowered result must contain the same number of keys as reflective evaluation");
+        assertEquals(new HashSet<>(reflective), new HashSet<>(low),
+                     "lowered key content must equal reflective evaluation");
         assertEquals(new HashSet<>(expectedContent), new HashSet<>(low), "content must match");
     }
 

@@ -3,7 +3,6 @@ package software.amazon.awssdk.services.samplesvc.endpoints.internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -154,7 +153,7 @@ public final class SampleSvcEndpointResolverUtils {
       MapKeysOperationRequest request) {
     Map<String, String> requestItems = request.requestItems();
     List<String> stringArrayParam = new ArrayList<>(requestItems.size());
-    for (String key : new HashMap<>(requestItems).keySet()) {
+    for (String key : requestItems.keySet()) {
       if (key != null) {
         stringArrayParam.add(key);
       }
