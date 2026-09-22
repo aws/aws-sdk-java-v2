@@ -2,5 +2,5 @@
     "type": "perf-improvement",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Endpoint parameters derived from JMESPath expressions (operationContextParams) are now bound using typed getters generated at build time instead of a reflective runtime, reducing per-request allocation and latency during endpoint resolution. Generated keys() bindings now iterate request maps directly instead of copying them through HashMap. This changes the unspecified order of the derived key list, but current DynamoDB endpoint routing behavior is unchanged."
+    "description": "Fix unnecessary allocation and request latency during endpoint resolution for operations that derive endpoint parameters from request data, including DynamoDB batch and transaction operations and Amazon S3 DeleteObjects. These bindings now use generated typed getters and iterate request maps directly instead of using reflection and copying maps. The order of derived key lists may change, but current DynamoDB endpoint routing behavior is unchanged."
 }
