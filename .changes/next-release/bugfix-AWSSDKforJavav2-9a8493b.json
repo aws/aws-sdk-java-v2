@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Surface exceptions thrown from event stream `Visitor` or `subscriber(Consumer)` callbacks. Previously a callback exception cancelled the stream and the operation `CompletableFuture` completed successfully, silently truncating the response. The future now completes exceptionally with the callback exception wrapped in `NonRetryableException`, and the failure is not retried. Applications that relied on throwing from a callback to stop a stream successfully should use a custom subscriber and call `Subscription.cancel()` instead."
+}
