@@ -1,4 +1,41 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.3__ __2026-09-22__
+## __AWS Glue__
+  - ### Features
+    - Adding two new fields for Glue Materialized Views feature - (1) SubObjectsStatistics and (2) SparkPipelineInfo.
+
+## __AWS SDK for Java v2__
+  - ### Performance Improvements
+    - Migrate all services to BDD based endpoints. Endpoint resolution behavior is unchanged but performance is improved.
+
+## __AWS Single Sign-On Admin__
+  - ### Features
+    - AWS IAM Identity Center now returns PrimaryRegion and Regions in the DescribeInstance response, providing information about replicated instances, and returns IdentityStoreArn in both the ListInstances and DescribeInstance responses.
+
+## __Amazon API Gateway__
+  - ### Features
+    - API Gateway now supports two new security policies for REST APIs and custom domain names, SecurityPolicy-TLS13-1-2-Ext2-PQ-2025-09 (TLS 1.3 1.2 with post-quantum cryptography) and SecurityPolicy-TLS13-1-2-Ext2-FIPS-PQ-2025-09 (adds FIPS). Both retain legacy algorithms for backward compatibility.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Amazon EC2 now supports quote-based start date changes for future-dated Capacity Reservations
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds support for granular custom permissions on 28 action connectors, including Gmail, Google Drive, Google Sheets, Airtable, and Dropbox. Administrators can now allow or deny individual connector operations instead of all action connectors at once.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - `PresignedUrlDownloadRequest#toString()` and the presigned URL marshaller's exception messages render the presigned URL without its query string. `PresignedUrlDownloadRequest#presignedUrl()` still returns the full URL.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Amazon CloudWatch Omni is now generally available, an AI-powered unified observability for AI agents, applications, and infrastructure. Centralization now supports context graph for multi-account resource discovery, and dataset integrations makes logs available in CloudWatch datasets.
+
+## __CloudWatch Omni__
+  - ### Features
+    - Amazon CloudWatch Omni is now generally available, an AI-powered unified observability for AI agents, applications, and infrastructure. As part of it, organization centralization rules now support cross-account context graph centralization.
+
 # __2.55.2__ __2026-09-21__
 ## __AWSBillingConductor__
   - ### Features
