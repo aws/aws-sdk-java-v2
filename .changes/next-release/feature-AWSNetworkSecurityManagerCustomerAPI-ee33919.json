@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Network Security Manager Customer API",
-    "contributor": "",
-    "description": "AWS Network Security Manager is a new service that helps you centrally configure, deploy, and continuously enforce security policies on network security services across the accounts and resources in your AWS Organization."
-}

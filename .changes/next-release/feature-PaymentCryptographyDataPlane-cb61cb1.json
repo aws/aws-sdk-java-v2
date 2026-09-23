@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Payment Cryptography Data Plane",
-    "contributor": "",
-    "description": "Adds asymmetric key support to ReEncryptData for re-encrypting data between RSA and symmetric data encryption keys."
-}
