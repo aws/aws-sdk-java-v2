@@ -51,14 +51,19 @@ public class HttpCredentialsLoaderTest {
 
     private static String successResponseWithInvalidBody;
 
+    private static String successResponseWithAccountId;
+
     @BeforeClass
     public static void setup() throws IOException {
         try (InputStream successInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
             ("/resources/wiremock/successResponse.json");
              InputStream responseWithInvalidBodyInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
-                 ("/resources/wiremock/successResponseWithInvalidBody.json")) {
+                 ("/resources/wiremock/successResponseWithInvalidBody.json");
+             InputStream responseWithAccountIdInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
+                 ("/resources/wiremock/successResponseWithAccountId.json")) {
             successResponse = IoUtils.toUtf8String(successInputStream);
             successResponseWithInvalidBody = IoUtils.toUtf8String(responseWithInvalidBodyInputStream);
+            successResponseWithAccountId = IoUtils.toUtf8String(responseWithAccountIdInputStream);
         }
     }
 
@@ -76,6 +81,40 @@ public class HttpCredentialsLoaderTest {
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentials.sessionToken()).isEqualTo("TOKEN_TOKEN_TOKEN");
+        assertThat(credentials.accountId()).isNotPresent();
+    }
+
+    /**
+     * Test that loadCredentials parses AccountId when present in the response.
+     */
+    @Test
+    public void testLoadCredentialsParsesAccountIdWhenPresent() {
+        stubForSuccessResponseWithCustomBody(successResponseWithAccountId);
+
+        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create(PROVIDER_NAME);
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.loadCredentials(testEndpointProvider())
+                                                                                       .getAwsCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.sessionToken()).isEqualTo("TOKEN_TOKEN_TOKEN");
+        assertThat(credentials.accountId()).isPresent().hasValue("123456789012");
+    }
+
+    /**
+     * Test that loadCredentials succeeds without AccountId when it's absent from the response.
+     */
+    @Test
+    public void testLoadCredentialsSucceedsWithoutAccountId() {
+        stubForSuccessResponseWithCustomBody(successResponse);
+
+        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create(PROVIDER_NAME);
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.loadCredentials(testEndpointProvider())
+                                                                                       .getAwsCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.accountId()).isNotPresent();
     }
 
     /**
