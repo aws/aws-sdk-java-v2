@@ -25,16 +25,26 @@ import static software.amazon.awssdk.codegen.internal.Utils.unCapitalize;
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.pascalCase;
 import static software.amazon.awssdk.utils.internal.CodegenNamingUtils.splitOnWordBoundaries;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.model.intermediate.Metadata;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.smithy.aws.traits.ServiceTrait;
@@ -51,6 +61,9 @@ import software.amazon.smithy.model.shapes.ServiceShape;
 public class DefaultSmithyNamingStrategy implements NamingStrategy {
     private static final Logger log = Logger.loggerFor(DefaultSmithyNamingStrategy.class);
     private static final String COLLISION_DISAMBIGUATION_PREFIX = "Default";
+
+    private static final Pattern VALID_IDENTIFIER_NAME =
+        Pattern.compile("\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*");
 
     private static final Set<String> RESERVED_KEYWORDS;
     private static final Set<String> RESERVED_EXCEPTION_METHOD_NAMES;
@@ -96,7 +109,7 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
                                        CustomizationConfig customizationConfig) {
         this.smithyModel = smithyModel;
         this.service = service;
-        this.customizationConfig = customizationConfig;
+        this.customizationConfig = customizationConfig == null ? CustomizationConfig.create() : customizationConfig;
     }
 
     @Override
@@ -127,62 +140,72 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     @Override
     public String getClientPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_CLIENT_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_CLIENT_PATTERN);
     }
 
     @Override
     public String getModelPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_MODEL_PATTERN);
+        return getCustomizedPackageName(shareModelWithOrDefault(serviceName), Constant.PACKAGE_NAME_MODEL_PATTERN);
     }
 
     @Override
     public String getTransformPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
+        return getCustomizedPackageName(shareModelWithOrDefault(serviceName), Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
     }
 
     @Override
     public String getRequestTransformPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_TRANSFORM_PATTERN);
     }
 
     @Override
     public String getPaginatorsPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_PAGINATORS_PATTERN);
     }
 
     @Override
     public String getWaitersPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_WAITERS_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_WAITERS_PATTERN);
     }
 
     @Override
     public String getEndpointRulesPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_RULES_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_RULES_PATTERN);
     }
 
     @Override
     public String getPresignedUrlPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_PRESIGNEDURL_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_PRESIGNEDURL_PATTERN);
     }
 
     @Override
     public String getAuthSchemePackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_AUTH_SCHEME_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_AUTH_SCHEME_PATTERN);
     }
 
     @Override
     public String getJmesPathPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_JMESPATH_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_JMESPATH_PATTERN);
     }
 
     @Override
     public String getBatchManagerPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_BATCHMANAGER_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_BATCHMANAGER_PATTERN);
     }
 
     @Override
     public String getSmokeTestPackageName(String serviceName) {
-        return getCustomizedPackageName(serviceName, Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
+        return getCustomizedPackageName(concatServiceNameIfShareModel(serviceName),
+                                        Constant.PACKAGE_NAME_SMOKE_TEST_PATTERN);
     }
 
     @Override
@@ -367,8 +390,83 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     @Override
     public void validateCustomerVisibleNaming(IntermediateModel trimmedModel) {
-        // TODO(smithy-migration): port DefaultNamingStrategy.validateCustomerVisibleNaming so Smithy-derived
-        // IntermediateModels get the same customer-visible name checks. Tracked with the next AddSmithyShapes PR.
+        Metadata metadata = trimmedModel.getMetadata();
+        validateCustomerVisibleName(metadata.getSyncInterface(), "metadata-derived interface name");
+        validateCustomerVisibleName(metadata.getSyncBuilderInterface(), "metadata-derived builder interface name");
+        validateCustomerVisibleName(metadata.getAsyncInterface(), "metadata-derived async interface name");
+        validateCustomerVisibleName(metadata.getAsyncBuilderInterface(), "metadata-derived async builder interface name");
+        validateCustomerVisibleName(metadata.getBaseBuilderInterface(), "metadata-derived builder interface name");
+        validateCustomerVisibleName(metadata.getBaseExceptionName(), "metadata-derived exception name");
+        validateCustomerVisibleName(metadata.getBaseRequestName(), "metadata-derived request name");
+        validateCustomerVisibleName(metadata.getBaseResponseName(), "metadata-derived response name");
+
+        trimmedModel.getOperations().values().forEach(operation -> {
+            validateCustomerVisibleName(operation.getOperationName(), "operations");
+        });
+
+        trimmedModel.getWaiters().forEach((name, waiter) -> {
+            validateCustomerVisibleName(name, "waiters");
+        });
+
+        trimmedModel.getShapes().values().forEach(shape -> {
+            String shapeName = shape.getShapeName();
+            validateCustomerVisibleName(shapeName, "shapes");
+            shape.getMembers().forEach(member -> {
+                validateCustomerVisibleName(member.getFluentGetterMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getFluentSetterMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getFluentEnumGetterMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getFluentEnumSetterMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getExistenceCheckMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getBeanStyleGetterMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getBeanStyleSetterMethodName(), shapeName + " shape");
+                validateCustomerVisibleName(member.getEnumType(), shapeName + " shape");
+            });
+        });
+    }
+
+    private void validateCustomerVisibleName(String name, String location) {
+        if (name == null) {
+            return;
+        }
+
+        if (name.contains("_")) {
+            UnderscoresInNameBehavior behavior = customizationConfig.getUnderscoresInNameBehavior();
+            List<String> allowedNames = customizationConfig.getAllowedUnderscoreNames();
+            if (allowedNames != null && allowedNames.contains(name)) {
+                return;
+            }
+
+            String supportedBehaviors = Arrays.toString(UnderscoresInNameBehavior.values());
+            if (behavior == null) {
+                throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                    ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                    ValidationErrorSeverity.DANGER,
+                    String.format(
+                        "Encountered a name or identifier that the customer will see (%s in the %s) with an underscore. "
+                        + "This isn't idiomatic in Java. Please remove the underscores.",
+                        name, location)
+                ));
+            }
+            if (behavior != UnderscoresInNameBehavior.ALLOW) {
+                throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                    ValidationErrorId.INVALID_CODEGEN_CUSTOMIZATION,
+                    ValidationErrorSeverity.DANGER,
+                    String.format(
+                        "Unsupported underscoresInShapeNameBehavior: %s. Supported values: %s",
+                        behavior, supportedBehaviors)
+                ));
+            }
+        }
+
+        if (!VALID_IDENTIFIER_NAME.matcher(name).matches()) {
+            throw ModelInvalidException.fromEntry(ValidationEntry.create(
+                ValidationErrorId.INVALID_IDENTIFIER_NAME,
+                ValidationErrorSeverity.DANGER,
+                String.format(
+                    "Encountered a name or identifier that is invalid within Java (%s in %s). Please remove invalid "
+                    + "characters.", name, location)
+            ));
+        }
     }
 
     private String serviceId() {
@@ -387,6 +485,36 @@ public class DefaultSmithyNamingStrategy implements NamingStrategy {
 
     private String getCustomizedPackageName(String serviceName, String defaultPattern) {
         return String.format(defaultPattern, StringUtils.lowerCase(serviceName));
+    }
+
+    /**
+     * Nests the package under the service whose models are being shared, using the configured package
+     * name when the service sets one and the given service name otherwise.
+     *
+     * <p>Keys off the presence of {@code shareModelConfig} rather than of {@code shareModelWith},
+     * matching {@link DefaultNamingStrategy}. Deliberate: diverging from C2J here would change
+     * generated package names.
+     */
+    private String concatServiceNameIfShareModel(String serviceName) {
+        if (customizationConfig.getShareModelConfig() != null) {
+            return customizationConfig.getShareModelConfig().getShareModelWith() + "."
+                   + Optional.ofNullable(customizationConfig.getShareModelConfig().getPackageName())
+                             .orElse(serviceName);
+        }
+        return serviceName;
+    }
+
+    /**
+     * Returns the name of the service whose models are being shared, or the given service name when
+     * this service does not share models. The model and transform packages are shared outright rather
+     * than nested under the sharing service.
+     */
+    private String shareModelWithOrDefault(String serviceName) {
+        if (customizationConfig.getShareModelConfig() != null
+            && customizationConfig.getShareModelConfig().getShareModelWith() != null) {
+            return customizationConfig.getShareModelConfig().getShareModelWith();
+        }
+        return serviceName;
     }
 
     private static boolean isJavaKeyword(String word) {
