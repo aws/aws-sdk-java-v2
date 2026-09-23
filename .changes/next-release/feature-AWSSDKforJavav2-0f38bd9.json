@@ -1,6 +1,0 @@
-{
-    "type": "perf-improvement",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "Fix unnecessary allocation and request latency during endpoint resolution for operations that derive endpoint parameters from request data, including DynamoDB batch and transaction operations and Amazon S3 DeleteObjects. These bindings now use generated typed getters and iterate request maps directly instead of using reflection and copying maps. The order of derived key lists may change, but current DynamoDB endpoint routing behavior is unchanged."
-}
