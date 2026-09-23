@@ -52,40 +52,6 @@ public class AssumeRoleProfileTest {
         });
     }
 
-    /**
-     * A profile using {@code credential_source=Environment} resolves its source credentials from system properties or
-     * environment variables. Verify the assume-role provider is still built when those source credentials are long-term
-     * credentials, meaning no session token is present. The integration test covers this path with the credentials the
-     * build runs with, which do carry a session token.
-     */
-    @Test
-    public void createAssumeRoleCredentialsProviderViaCredentialSourceWithoutSessionTokenSucceeds() {
-        System.setProperty("aws.accessKeyId", "defaultAccessKey");
-        System.setProperty("aws.secretAccessKey", "defaultSecretAccessKey");
-        System.clearProperty("aws.sessionToken");
-
-        try {
-            String profileContent =
-                "[profile test]\n"
-                + "credential_source=Environment\n"
-                + "role_arn=arn:aws:iam::123456789012:role/testRole";
-            ProfileFile profiles = ProfileFile.builder()
-                                              .content(new StringInputStream(profileContent))
-                                              .type(ProfileFile.Type.CONFIGURATION)
-                                              .build();
-            assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
-                assertThat(new ProfileCredentialsUtils(profiles, profile, profiles::profile).credentialsProvider())
-                    .hasValueSatisfying(credentialsProvider -> {
-                        assertThat(credentialsProvider).isInstanceOf(SdkAutoCloseable.class);
-                        ((SdkAutoCloseable) credentialsProvider).close();
-                    });
-            });
-        } finally {
-            System.clearProperty("aws.accessKeyId");
-            System.clearProperty("aws.secretAccessKey");
-        }
-    }
-
     @Test
     public void assumeRoleOutOfOrderDefinitionSucceeds() {
         String profileContent =

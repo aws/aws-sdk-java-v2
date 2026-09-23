@@ -38,6 +38,7 @@ import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.iam.model.EntityAlreadyExistsException;
 import software.amazon.awssdk.services.iam.model.MalformedPolicyDocumentException;
+import software.amazon.awssdk.services.sts.model.GetCallerIdentityResponse;
 import software.amazon.awssdk.services.sts.model.StsException;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.testutils.Waiter;
@@ -56,18 +57,18 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
 
     private static final String ASSUME_ROLE = "sts:AssumeRole";
 
-    /** Matches an assumed-role session ARN so the underlying role ARN can be used in a trust policy. */
-    private static final Pattern ASSUMED_ROLE_ARN = Pattern.compile("arn:aws:sts::(\\d+):assumed-role/([^/]+)/.*");
+    private static final Pattern ASSUMED_ROLE_ARN = Pattern.compile("arn:aws:sts::\\d+:assumed-role/([^/]+)/.*");
 
     /**
      * The credentials the test itself runs with. These are used as the source credentials for the assume-role chain, so
-     * the test does not need to create an IAM user or a long-term access key.
+     * the test does not need to  create an IAM user or a long-term access key.
      */
     private static AwsCredentials sourceCredentials;
 
     @BeforeClass
     public static void setup() {
-        accountId = sts.getCallerIdentity().account();
+        GetCallerIdentityResponse callerIdentity = sts.getCallerIdentity();
+        accountId = callerIdentity.account();
         ROLE_ARN = String.format(ROLE_ARN_FORMAT, accountId);
 
         sourceCredentials = CREDENTIALS_PROVIDER_CHAIN.resolveCredentials();
@@ -75,9 +76,14 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
         // Try to create a role that can be assumed by the identity running this test, until the eventual consistency
         // catches up.
         try {
+            String callerArn = callerIdentity.arn();
+            Matcher matcher = ASSUMED_ROLE_ARN.matcher(callerArn);
+            String trustedPrincipalArn = matcher.matches() ? iam.getRole(r -> r.roleName(matcher.group(1))).role().arn()
+                                                           : callerArn;
+
             String rolePolicyDoc = new Policy()
                     .withStatements(new Statement(Effect.Allow)
-                                            .withPrincipals(new Principal("AWS", callerRoleArn(), false))
+                                            .withPrincipals(new Principal("AWS", trustedPrincipalArn, false))
                                             .withActions(new Action(ASSUME_ROLE)))
                     .toJson();
 
@@ -100,17 +106,6 @@ public class AssumeRoleIntegrationTest extends IntegrationTestBaseWithIAM {
     @AfterClass
     public static void cleanup() {
         iam.deleteRole(req -> req.roleName(ROLE_NAME));
-    }
-
-    /**
-     * Returns the ARN to name in the role's trust policy. A trust policy cannot reference an assumed-role session ARN, so
-     * sessions are mapped back to the ARN of the role that was assumed.
-     */
-    private static String callerRoleArn() {
-        String callerArn = sts.getCallerIdentity().arn();
-        Matcher matcher = ASSUMED_ROLE_ARN.matcher(callerArn);
-        return matcher.matches() ? String.format("arn:aws:iam::%s:role/%s", matcher.group(1), matcher.group(2))
-                                 : callerArn;
     }
 
     /** The session token of the credentials running this test, or null if they are long-term credentials. */
