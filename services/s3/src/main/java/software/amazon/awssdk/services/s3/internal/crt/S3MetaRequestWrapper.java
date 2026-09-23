@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
@@ -57,6 +58,23 @@ public class S3MetaRequestWrapper {
             }
         }
         return null;
+    }
+
+    /**
+     * Asynchronously pauses the meta request. Unlike {@link #pause()}, this is supported for GetObject as well as PutObject, and
+     * the returned future only completes once all in-flight work has settled, which for a download to a file means the file has
+     * been written and closed.
+     *
+     * @return a future completed with the resume token, or completed with {@code null} if the meta request has already been
+     *         closed or CRT captured no resumable state.
+     */
+    public CompletableFuture<ResumeToken> pauseAsync() {
+        synchronized (lock) {
+            if (!isClosed) {
+                return delegate.pauseAsync();
+            }
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     public void cancel() {

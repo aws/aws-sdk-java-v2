@@ -147,6 +147,13 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .addJavadoc("Returns the region. The region parameter may be used with the $S auth scheme.",
                                               AwsV4AuthScheme.SCHEME_ID)
                                   .build());
+            b.addMethod(MethodSpec.methodBuilder("regionId")
+                                  .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                                  .returns(String.class)
+                                  .addJavadoc("Returns the region ID as a string. Returns null if region is not set.")
+                                  .addStatement("$T region = region()", Region.class)
+                                  .addStatement("return region == null ? null : region.id()")
+                                  .build());
         }
 
         if (authSchemeSpecUtils.hasSigV4aSupport()) {
@@ -228,7 +235,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
     }
 
     private Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 
     private TypeName toCopyableBuilderInterface() {

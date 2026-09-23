@@ -37,6 +37,7 @@ public class OperationNameTest {
             OperationName.QUERY,
             OperationName.PUT_ITEM,
             OperationName.SCAN,
+            OperationName.SEARCH_VECTORS,
             OperationName.TRANSACT_GET_ITEMS,
             OperationName.TRANSACT_WRITE_ITEMS,
             OperationName.UPDATE_ITEM
@@ -46,7 +47,7 @@ public class OperationNameTest {
     @Test
     public void label_returnsExpectedLabelForEachConstant() {
         int operationNameCount = OperationName.values().length;
-        assertEquals(14, operationNameCount);
+        assertEquals(15, operationNameCount);
 
         assertNull(OperationName.NONE.label());
         assertEquals("BatchGetItem", OperationName.BATCH_GET_ITEM.label());
@@ -59,6 +60,7 @@ public class OperationNameTest {
         assertEquals("Query", OperationName.QUERY.label());
         assertEquals("PutItem", OperationName.PUT_ITEM.label());
         assertEquals("Scan", OperationName.SCAN.label());
+        assertEquals("SearchVectors", OperationName.SEARCH_VECTORS.label());
         assertEquals("TransactGetItems", OperationName.TRANSACT_GET_ITEMS.label());
         assertEquals("TransactWriteItems", OperationName.TRANSACT_WRITE_ITEMS.label());
         assertEquals("UpdateItem", OperationName.UPDATE_ITEM.label());

@@ -31,10 +31,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.core.waiters.AsyncWaiter;
 import software.amazon.awssdk.core.waiters.Waiter;
 import software.amazon.awssdk.core.waiters.WaiterAcceptor;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.ListMultipartUploadsResponse;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.NoSuchUploadException;
@@ -43,6 +46,7 @@ import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener;
+import software.amazon.awssdk.transfer.s3.util.ChecksumUtils;
 import software.amazon.awssdk.utils.Logger;
 
 public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3IntegrationTestBase {
@@ -167,7 +171,12 @@ public class S3TransferManagerUploadPauseResumeIntegrationTest extends S3Integra
             FileUpload resumedUpload = resumeTm.resumeUploadFile(resumableFileUpload);
             resumedUpload.completionFuture().join();
             verifyMultipartUploadIdNotExist(resumableFileUpload);
-            assertThat(resumedUpload.progress().snapshot().totalBytes()).hasValue(bytes.length);
+
+            // Verify via S3 checksum instead of progress snapshot, which may be empty for cross-TM resume
+            ResponseInputStream<GetObjectResponse> obj =
+                s3.getObject(r -> r.bucket(BUCKET).key(KEY), ResponseTransformer.toInputStream());
+            assertThat(ChecksumUtils.computeCheckSum(bytes))
+                .isEqualTo(ChecksumUtils.computeCheckSum(obj));
         } finally {
             Files.write(largeFile.toPath(), originalBytes);
         }

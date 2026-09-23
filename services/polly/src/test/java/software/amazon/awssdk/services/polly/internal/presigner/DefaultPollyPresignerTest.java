@@ -192,6 +192,26 @@ class DefaultPollyPresignerTest {
     }
 
     @Test
+    void presign_noEndpointOverride_usesDefaultEndpoint() {
+        PollyPresigner presigner = DefaultPollyPresigner.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentialsProvider)
+                .build();
+
+        SynthesizeSpeechPresignRequest presignRequest = SynthesizeSpeechPresignRequest.builder()
+                .synthesizeSpeechRequest(BASIC_SYNTHESIZE_SPEECH_REQUEST)
+                .signatureDuration(Duration.ofHours(3))
+                .build();
+
+        PresignedSynthesizeSpeechRequest presigned = presigner.presignSynthesizeSpeech(presignRequest);
+
+        URL presignedUrl = presigned.url();
+        assertThat(presignedUrl.getProtocol()).isEqualTo("https");
+        assertThat(presignedUrl.getHost()).isEqualTo("polly.us-east-1.amazonaws.com");
+        assertThat(presignedUrl.getPath()).isEqualTo("/v1/speech");
+    }
+
+    @Test
     void presign_endpointOverriden() {
         PollyPresigner presigner = DefaultPollyPresigner.builder()
                 .region(Region.US_EAST_1)

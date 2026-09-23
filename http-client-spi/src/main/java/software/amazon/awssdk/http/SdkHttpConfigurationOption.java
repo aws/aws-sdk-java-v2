@@ -42,6 +42,16 @@ public final class SdkHttpConfigurationOption<T> extends AttributeMap.Key<T> {
             new SdkHttpConfigurationOption<>("WriteTimeout", Duration.class);
 
     /**
+     * SDK-internal. A fallback read/write timeout that is honored only by HTTP client implementations which do not
+     * enforce a read/write timeout of their own (currently the AWS CRT-based clients); implementations that already
+     * apply one, such as the Apache and Netty clients, ignore it. Unlike {@link #READ_TIMEOUT}/{@link #WRITE_TIMEOUT},
+     * which carry a caller-configured socket timeout, this value is resolved by the SDK and is not intended to be set by
+     * end users. {@link Duration#ZERO} means no timeout is applied (the service is fully exempt, or the rollout gate is off).
+     */
+    public static final SdkHttpConfigurationOption<Duration> SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT =
+            new SdkHttpConfigurationOption<>("SdkInternalFallbackReadWriteTimeout", Duration.class);
+
+    /**
      * Timeout for establishing a connection to a remote service.
      */
     public static final SdkHttpConfigurationOption<Duration> CONNECTION_TIMEOUT =

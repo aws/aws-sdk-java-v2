@@ -246,7 +246,7 @@
     "module-path-tests": {
       "skipImport": true
     },
-    "old-client-version-compatibility-test": {
+    "service-client-backward-compat-test": {
       "skipImport": true
     },
     "protocol-tests": {
@@ -316,6 +316,9 @@
       "skipImport": true
     },
     "s3-tests": {
+      "skipImport": true
+    },
+    "warmup-tests": {
       "skipImport": true
     },
     "dynamodb-mapper": {

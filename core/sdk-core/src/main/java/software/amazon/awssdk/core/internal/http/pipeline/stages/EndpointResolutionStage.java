@@ -33,6 +33,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.StringUtils;
@@ -58,6 +59,10 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         ExecutionAttributes attrs = context.executionAttributes();
 
         if (Boolean.TRUE.equals(attrs.getAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT))) {
+            return request;
+        }
+
+        if (Boolean.TRUE.equals(attrs.getAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION))) {
             return request;
         }
 
@@ -98,27 +103,30 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
         ClientEndpointProvider clientEndpointProvider =
             attrs.getAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER);
         if (interceptorModifiedEndpoint(request, attrs)) {
-            applyResolvedPath(request, clientEndpointProvider.clientEndpoint(), endpoint.url());
+            applyResolvedPath(request, clientEndpointProvider.clientEndpoint(), endpoint.endpointUrl());
             return request;
         }
-        return setUri(request, clientEndpointProvider.clientEndpoint(), endpoint.url());
+        return setUri(request, clientEndpointProvider.clientEndpoint(), endpoint.endpointUrl());
     }
 
     /**
-     * Detects if an interceptor modified the HTTP request URL in modifyHttpRequest().
-     * Compares the current request's host and scheme against the snapshot taken before interceptors ran.
+     * Detects if an interceptor modified the HTTP request endpoint in modifyHttpRequest().
+     * Compares the current request's host, scheme and port against the snapshot taken before interceptors ran.
      */
     private static boolean interceptorModifiedEndpoint(SdkHttpFullRequest.Builder request, ExecutionAttributes attrs) {
-        URI preModifyUri = attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY);
-        if (preModifyUri == null) {
+        EndpointUrl preModifyEndpoint =
+            attrs.getAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY);
+        if (preModifyEndpoint == null) {
             return false;
         }
         String requestHost = request.host();
+        if (requestHost == null) {
+            return false;
+        }
         Integer requestPort = request.port();
-        return requestHost != null
-            && (!requestHost.equals(preModifyUri.getHost())
-                || !String.valueOf(request.protocol()).equals(preModifyUri.getScheme())
-                || (requestPort != null && requestPort != preModifyUri.getPort()));
+        return !requestHost.equals(preModifyEndpoint.host())
+               || !String.valueOf(request.protocol()).equals(preModifyEndpoint.scheme())
+               || (requestPort != null && requestPort != preModifyEndpoint.port());
     }
 
     /**
@@ -127,19 +135,19 @@ public final class EndpointResolutionStage implements MutableRequestToRequestPip
      */
     private static SdkHttpFullRequest.Builder setUri(SdkHttpFullRequest.Builder request,
                                                       URI clientEndpoint,
-                                                      URI resolvedUri) {
-        applyResolvedPath(request, clientEndpoint, resolvedUri);
-        return request.protocol(resolvedUri.getScheme())
-                      .host(resolvedUri.getHost())
-                      .port(resolvedUri.getPort());
+                                                      EndpointUrl resolvedUrl) {
+        applyResolvedPath(request, clientEndpoint, resolvedUrl);
+        return request.protocol(resolvedUrl.scheme())
+                      .host(resolvedUrl.host())
+                      .port(resolvedUrl.port());
     }
 
     private static void applyResolvedPath(SdkHttpFullRequest.Builder request,
                                            URI clientEndpoint,
-                                           URI resolvedUri) {
+                                           EndpointUrl resolvedUrl) {
         String clientEndpointPath = clientEndpoint.getRawPath();
         String requestPath = request.encodedPath();
-        String resolvedUriPath = resolvedUri.getRawPath();
+        String resolvedUriPath = resolvedUrl.encodedPath();
 
         if (!resolvedUriPath.equals(clientEndpointPath)) {
             request.encodedPath(combinePath(clientEndpointPath, requestPath, resolvedUriPath));

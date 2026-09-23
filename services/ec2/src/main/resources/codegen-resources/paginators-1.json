@@ -78,6 +78,12 @@
       "output_token": "NextToken",
       "result_key": "CapacityReservationBillingRequests"
     },
+    "DescribeCapacityReservationDateChangeQuotes": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityReservationModificationQuotes"
+    },
     "DescribeCapacityReservationFleets": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -1000,6 +1006,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "Associations"
+    },
+    "GetTransitGatewayPolicyTableEntries": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "TransitGatewayPolicyTableEntries"
     },
     "GetTransitGatewayPrefixListReferences": {
       "input_token": "NextToken",

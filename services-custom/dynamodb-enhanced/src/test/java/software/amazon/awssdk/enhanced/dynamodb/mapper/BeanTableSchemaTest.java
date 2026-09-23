@@ -25,6 +25,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.enhanced.dynamodb.LogCaptor;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractNestedImmutable;
@@ -72,6 +74,8 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedCompositeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedOrderingBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InlineFilterOnlyVectorBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultiVectorIndexBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultipleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBeanIgnoreNulls;
@@ -89,6 +93,13 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleConverter
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ThreeSortKeyBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TwoPartitionKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorAndGsiBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorIndexBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorWithNestingBean;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElement;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -1436,6 +1447,185 @@ public class BeanTableSchemaTest {
             Assertions.assertThat(logEvents.get(0).getMessage().getFormattedMessage())
                       .contains("software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean - Creating bean schema");
         }
+    }
+
+    @Test
+    public void vectorIndexBean_producesCorrectVectorIndexMetadata() {
+        BeanTableSchema<VectorIndexBean> beanTableSchema = BeanTableSchema.create(VectorIndexBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactlyInAnyOrder(
+            SearchSchemaElement.builder().attributeName("category").searchSchemaElementType(SearchSchemaElementType.HASH).build(),
+            SearchSchemaElement.builder().attributeName("brand").searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER).build()
+        );
+    }
+
+    @Test
+    public void vectorIndexBean_vectorIndexNotInIndices() {
+        BeanTableSchema<VectorIndexBean> beanTableSchema = BeanTableSchema.create(VectorIndexBean.class);
+
+        assertThat(beanTableSchema.tableMetadata().indices().stream()
+                                  .filter(i -> "embedding-index".equals(i.name()))
+                                  .findAny()).isEmpty();
+    }
+
+    @Test
+    public void multiVectorIndexBean_producesFiveVectorIndices() {
+        BeanTableSchema<MultiVectorIndexBean> beanTableSchema = BeanTableSchema.create(MultiVectorIndexBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(5);
+        Map<String, VectorIndexMetadata> byName = vectorIndices.stream()
+                                                               .collect(java.util.stream.Collectors.toMap(VectorIndexMetadata::indexName, v -> v));
+
+        assertThat(byName.get("cosine-idx").dimensions()).isEqualTo(128);
+        assertThat(byName.get("cosine-idx").distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(byName.get("cosine-idx").vectorAttributeName()).isEqualTo("embeddingCosine");
+
+        assertThat(byName.get("dot-idx").dimensions()).isEqualTo(256);
+        assertThat(byName.get("dot-idx").distanceFunction()).isEqualTo(DistanceFunction.DOT_PRODUCT);
+        assertThat(byName.get("dot-idx").vectorAttributeName()).isEqualTo("embeddingDot");
+
+        assertThat(byName.get("euclidean-idx").dimensions()).isEqualTo(512);
+        assertThat(byName.get("euclidean-idx").distanceFunction()).isEqualTo(DistanceFunction.EUCLIDEAN);
+        assertThat(byName.get("euclidean-idx").vectorAttributeName()).isEqualTo("embeddingEuclidean");
+
+        assertThat(byName.get("cosine-idx-2").dimensions()).isEqualTo(1024);
+        assertThat(byName.get("cosine-idx-2").distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(byName.get("cosine-idx-2").vectorAttributeName()).isEqualTo("embeddingCosine2");
+
+        assertThat(byName.get("dot-idx-2").dimensions()).isEqualTo(1536);
+        assertThat(byName.get("dot-idx-2").distanceFunction()).isEqualTo(DistanceFunction.DOT_PRODUCT);
+        assertThat(byName.get("dot-idx-2").vectorAttributeName()).isEqualTo("embeddingDot2");
+    }
+
+    @Test
+    public void multiVectorIndexBean_sharedHashKeyAppliedToAllIndices() {
+        BeanTableSchema<MultiVectorIndexBean> beanTableSchema = BeanTableSchema.create(MultiVectorIndexBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        SearchSchemaElement expectedHash = SearchSchemaElement.builder()
+                                                              .attributeName("category")
+                                                              .searchSchemaElementType(SearchSchemaElementType.HASH)
+                                                              .build();
+        for (VectorIndexMetadata vi : vectorIndices) {
+            assertThat(vi.searchSchemaElements()).contains(expectedHash);
+        }
+    }
+
+    @Test
+    public void vectorIndexBean_withGsiAnnotations_gsiStillWorksCorrectly() {
+        BeanTableSchema<VectorAndGsiBean> beanTableSchema = BeanTableSchema.create(VectorAndGsiBean.class);
+        TableMetadata tableMetadata = beanTableSchema.tableMetadata();
+
+        assertThat(tableMetadata.indexPartitionKey("gsi-category")).isEqualTo("category");
+        assertThat(tableMetadata.indexSortKey("gsi-category")).isEqualTo(Optional.of("sortValue"));
+
+        assertThat(tableMetadata.indices().stream()
+                                .filter(i -> "embedding-index".equals(i.name()))
+                                .findAny()).isEmpty();
+
+        Collection<VectorIndexMetadata> vectorIndices = tableMetadata.vectorIndices();
+        assertThat(vectorIndices).hasSize(1);
+        assertThat(vectorIndices.iterator().next().indexName()).isEqualTo("embedding-index");
+    }
+
+    @Test
+    public void inlineFilterOnlyVectorBean_createsValidIndexWithoutHashKey() {
+        BeanTableSchema<InlineFilterOnlyVectorBean> beanTableSchema = BeanTableSchema.create(InlineFilterOnlyVectorBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER)
+                               .build()
+        );
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedBeanPresent_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build()
+        );
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedImmutablePresent_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build());
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedBeanNull_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build());
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedImmutableNull_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build());
     }
 
     @DynamoDbBean
