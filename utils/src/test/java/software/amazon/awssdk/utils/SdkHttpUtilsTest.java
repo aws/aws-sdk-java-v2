@@ -318,5 +318,35 @@ public class SdkHttpUtilsTest {
                                             .collect(Collectors.toSet()));
     }
 
+    @Test
+    void parseNonProxyHostsProperty_regexPathStillRewritesWildcard() {
+        String previous = System.getProperty("http.nonProxyHosts");
+        System.setProperty("http.nonProxyHosts", "example.com|*greedy.org");
+        try {
+            assertThat(SdkHttpUtils.parseNonProxyHostsProperty())
+                .isEqualTo(Stream.of("example.com", ".*?greedy.org").collect(Collectors.toSet()));
+        } finally {
+            if (previous == null) {
+                System.clearProperty("http.nonProxyHosts");
+            } else {
+                System.setProperty("http.nonProxyHosts", previous);
+            }
+        }
+    }
 
+    @Test
+    void parseListOfNonProxyHostWithCommaSpace_trimsSurroundingWhitespace(){
+        String multipleHostNames = "example.com, *greedy.org, 192.168.1.1";
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", multipleHostNames);
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).isEqualTo(Stream.of("example.com", ".*?greedy.org", "192.168.1.1")
+                                            .collect(Collectors.toSet()));
+    }
+
+    @Test
+    void parseNonProxyHostWithSurroundingWhitespace_isTrimmed(){
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", "   example.com   ");
+        Set<String> strings = SdkHttpUtils.parseNonProxyHostsEnvironmentVariable();
+        assertThat(strings).containsExactly("example.com");
+    }
 }

@@ -1,0 +1,54 @@
+{
+    "version": "2.48.2",
+    "date": "2026-07-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Sustainability",
+            "contributor": "",
+            "description": "Adds support for retrieving estimated water allocation data."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Release support for g7 instance type for SageMaker inference endpoints."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Redshift",
+            "contributor": "",
+            "description": "Amazon Redshift - Added support for rg.large and rg.12xlarge node types in CreateCluster, ModifyCluster, and ResizeCluster API operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Adds support for returning the task UUID (universally unique identifier) in GetRunTask and ListRunTasks responses"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Storage Service",
+            "contributor": "",
+            "description": "Documentation update for removing the 30 day minimum restriction for transition to Standard-IA or OneZone-IA storage classes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Amazon EMR updates the Session object returned by GetSession API"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Voice",
+            "contributor": "",
+            "description": "Marked CreateProxySession, DeleteProxySession, GetProxySession, ListProxySessions, UpdateProxySession, PutVoiceConnectorProxy, DeleteVoiceConnectorProxy, and GetVoiceConnectorProxy as deprecated."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

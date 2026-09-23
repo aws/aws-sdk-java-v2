@@ -21,6 +21,8 @@ import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTag
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primarySortKey;
 
 import java.util.Objects;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,6 +30,8 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.model.BatchGetItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.ReadBatch;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 
 public class FlattenWithTagsTest extends LocalDynamoDbSyncTestBase {
@@ -191,5 +195,34 @@ public class FlattenWithTagsTest extends LocalDynamoDbSyncTestBase {
 
         assertThat(updatedRecord, is(record));
         assertThat(fetchedRecord, is(record));
+    }
+
+    @Test
+    public void sortTaggedFlattenedPath_acrossMultipleOperations_shouldPreserveValues() {
+        Record initial = new Record().setId("id-tag")
+                                     .setDocument(new Document().setDocumentAttribute1("s1").setDocumentAttribute2("v2"));
+        mappedTable.putItem(initial);
+
+        Record update = new Record().setId("id-tag")
+                                    .setDocument(new Document().setDocumentAttribute1("s1").setDocumentAttribute2("v2u")
+                                                               .setDocumentAttribute3("v3u"));
+        mappedTable.updateItem(update);
+
+        List<Record> scanned = mappedTable.scan().items().stream().collect(Collectors.toList());
+        assertThat(scanned.size(), is(1));
+        assertThat(scanned.get(0), is(update));
+
+        List<Record> batchRead = enhancedClient.batchGetItem(BatchGetItemEnhancedRequest.builder()
+                                                                                         .readBatches(ReadBatch.builder(Record.class)
+                                                                                                               .mappedTableResource(mappedTable)
+                                                                                                               .addGetItem(r -> r.key(k -> k.partitionValue("id-tag")
+                                                                                                                                           .sortValue("s1")))
+                                                                                                               .build())
+                                                                                         .build())
+                                            .resultsForTable(mappedTable)
+                                            .stream()
+                                            .collect(Collectors.toList());
+        assertThat(batchRead.size(), is(1));
+        assertThat(batchRead.get(0), is(update));
     }
 }

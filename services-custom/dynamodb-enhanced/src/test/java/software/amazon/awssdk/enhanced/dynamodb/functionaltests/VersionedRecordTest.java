@@ -41,6 +41,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.TransactWriteItemsEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
@@ -724,5 +725,22 @@ public class VersionedRecordTest extends LocalDynamoDbSyncTestBase {
 
         AnnotatedRecordStartAtNegativeOne result = annotatedStartAtNegativeOneTable.getItem(r -> r.key(k -> k.partitionValue("test-id")));
         assertThat(result.getVersion(), is(0L));
+    }
+
+    @Test
+    public void transactWriteUpdate_versionedRecord_shouldIncrementVersion() {
+        mappedTable.putItem(r -> r.item(new Record().setId("tx-id").setAttribute("one")));
+        Record existing = mappedTable.getItem(r -> r.key(k -> k.partitionValue("tx-id")));
+
+        enhancedClient.transactWriteItems(TransactWriteItemsEnhancedRequest.builder()
+                                                                            .addUpdateItem(mappedTable,
+                                                                                           new Record().setId("tx-id")
+                                                                                                       .setAttribute("two")
+                                                                                                       .setVersion(existing.getVersion()))
+                                                                            .build());
+
+        Record updated = mappedTable.getItem(r -> r.key(k -> k.partitionValue("tx-id")));
+        assertThat(updated.getVersion(), is(existing.getVersion() + 1));
+        assertThat(updated.getAttribute(), is("two"));
     }
 }

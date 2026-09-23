@@ -34,12 +34,14 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
     private final String keyPairIdHeaderValue;
     private final String signatureHeaderValue;
     private final String expiresHeaderValue;
+    private final String hashAlgorithmHeaderValue;
 
     private DefaultCookiesForCannedPolicy(DefaultBuilder builder) {
         this.resourceUrl = builder.resourceUrl;
         this.keyPairIdHeaderValue = builder.keyPairIdHeaderValue;
         this.signatureHeaderValue = builder.signatureHeaderValue;
         this.expiresHeaderValue = builder.expiresHeaderValue;
+        this.hashAlgorithmHeaderValue = builder.hashAlgorithmHeaderValue;
     }
 
     public static Builder builder() {
@@ -58,6 +60,7 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
                        .add("signatureHeaderValue", signatureHeaderValue)
                        .add("keyPairIdHeaderValue", keyPairIdHeaderValue)
                        .add("expiresHeaderValue", expiresHeaderValue)
+                       .add("hashAlgorithmHeaderValue", hashAlgorithmHeaderValue)
                        .build();
     }
 
@@ -68,13 +71,16 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
 
     @Override
     public SdkHttpRequest createHttpGetRequest() {
-        return SdkHttpRequest.builder()
-                             .uri(URI.create(resourceUrl))
-                             .appendHeader(COOKIE, signatureHeaderValue())
-                             .appendHeader(COOKIE, keyPairIdHeaderValue())
-                             .appendHeader(COOKIE, expiresHeaderValue())
-                             .method(SdkHttpMethod.GET)
-                             .build();
+        SdkHttpRequest.Builder builder = SdkHttpRequest.builder()
+                                                       .uri(URI.create(resourceUrl))
+                                                       .appendHeader(COOKIE, signatureHeaderValue())
+                                                       .appendHeader(COOKIE, keyPairIdHeaderValue())
+                                                       .appendHeader(COOKIE, expiresHeaderValue())
+                                                       .method(SdkHttpMethod.GET);
+        if (hashAlgorithmHeaderValue != null) {
+            builder.appendHeader(COOKIE, hashAlgorithmHeaderValue);
+        }
+        return builder.build();
     }
 
     @Override
@@ -93,6 +99,11 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
     }
 
     @Override
+    public String hashAlgorithmHeaderValue() {
+        return hashAlgorithmHeaderValue;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -105,7 +116,8 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
         return Objects.equals(keyPairIdHeaderValue, cookie.keyPairIdHeaderValue)
                && Objects.equals(signatureHeaderValue, cookie.signatureHeaderValue)
                && Objects.equals(resourceUrl, cookie.resourceUrl)
-               && Objects.equals(expiresHeaderValue, cookie.expiresHeaderValue);
+               && Objects.equals(expiresHeaderValue, cookie.expiresHeaderValue)
+               && Objects.equals(hashAlgorithmHeaderValue, cookie.hashAlgorithmHeaderValue);
     }
 
     @Override
@@ -114,6 +126,7 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
         result = 31 * result + (signatureHeaderValue != null ? signatureHeaderValue.hashCode() : 0);
         result = 31 * result + (resourceUrl != null ? resourceUrl.hashCode() : 0);
         result = 31 * result + (expiresHeaderValue != null ? expiresHeaderValue.hashCode() : 0);
+        result = 31 * result + (hashAlgorithmHeaderValue != null ? hashAlgorithmHeaderValue.hashCode() : 0);
         return result;
     }
 
@@ -123,6 +136,7 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
         private String signatureHeaderValue;
         private String keyPairIdHeaderValue;
         private String expiresHeaderValue;
+        private String hashAlgorithmHeaderValue;
 
         private DefaultBuilder() {
         }
@@ -132,6 +146,7 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
             this.signatureHeaderValue = cookies.signatureHeaderValue;
             this.keyPairIdHeaderValue = cookies.keyPairIdHeaderValue;
             this.expiresHeaderValue = cookies.expiresHeaderValue;
+            this.hashAlgorithmHeaderValue = cookies.hashAlgorithmHeaderValue;
         }
 
         @Override
@@ -155,6 +170,12 @@ public final class DefaultCookiesForCannedPolicy implements CookiesForCannedPoli
         @Override
         public Builder expiresHeaderValue(String expiresHeaderValue) {
             this.expiresHeaderValue = expiresHeaderValue;
+            return this;
+        }
+
+        @Override
+        public Builder hashAlgorithmHeaderValue(String hashAlgorithmHeaderValue) {
+            this.hashAlgorithmHeaderValue = hashAlgorithmHeaderValue;
             return this;
         }
 

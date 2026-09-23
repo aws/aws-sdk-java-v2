@@ -67,6 +67,14 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
     Region region();
 
     /**
+     * Returns the region ID as a string. Returns null if region is not set.
+     */
+    default String regionId() {
+        Region region = region();
+        return region == null ? null : region.id();
+    }
+
+    /**
      * Returns the RegionSet. The regionSet parameter may be used with the "aws.auth#sigv4a" auth scheme.
      */
     RegionSet regionSet();

@@ -18,6 +18,9 @@ package software.amazon.awssdk.http.crt.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.net.ConnectException;
+import javax.net.ssl.SSLHandshakeException;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.crt.http.HttpException;
@@ -69,5 +72,38 @@ public class CrtUtilsTest {
         Throwable result = CrtUtils.wrapWithIoExceptionIfRetryable(httpException);
 
         assertThat(result).isSameAs(httpException);
+    }
+
+    /**
+     * TLS negotiation failures must chain the original {@link HttpException} (with its CRT error code)
+     * as cause, so callers can differentiate transient from persistent failures.
+     */
+    @Test
+    public void wrapCrtException_tlsNegotiationError_wrapsInSslHandshakeExceptionWithCause() {
+        HttpException httpException = new HttpException(CrtUtils.CRT_TLS_NEGOTIATION_ERROR_CODE);
+
+        Throwable result = CrtUtils.wrapCrtException(httpException);
+
+        assertThat(result).isInstanceOf(SSLHandshakeException.class)
+                          .hasMessage(httpException.getMessage())
+                          .hasCause(httpException);
+        assertThat(((HttpException) result.getCause()).getErrorCode())
+            .isEqualTo(CrtUtils.CRT_TLS_NEGOTIATION_ERROR_CODE);
+    }
+
+    /**
+     * Socket timeouts must chain the original {@link HttpException} as cause.
+     */
+    @Test
+    public void wrapCrtException_socketTimeout_wrapsInConnectExceptionWithCause() {
+        HttpException httpException = new HttpException(CrtUtils.CRT_SOCKET_TIMEOUT);
+
+        Throwable result = CrtUtils.wrapCrtException(httpException);
+
+        assertThat(result).isInstanceOf(ConnectException.class)
+                          .hasMessage(httpException.getMessage())
+                          .hasCause(httpException);
+        assertThat(((HttpException) result.getCause()).getErrorCode())
+            .isEqualTo(CrtUtils.CRT_SOCKET_TIMEOUT);
     }
 }
