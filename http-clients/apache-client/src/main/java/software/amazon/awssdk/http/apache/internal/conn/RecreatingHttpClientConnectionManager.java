@@ -16,10 +16,12 @@
 package software.amazon.awssdk.http.apache.internal.conn;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.apache.http.HttpClientConnection;
+import org.apache.http.conn.ConnectionPoolTimeoutException;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
@@ -102,7 +104,16 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
 
     @Override
     public ConnectionRequest requestConnection(HttpRoute route, Object state) {
-        return activeDelegate().requestConnection(route, state);
+        return new RebuildingConnectionRequest(route, state);
+    }
+
+    /**
+     * @param used the pool a caller just tried and failed to lease from
+     * @return true if that pool is no longer the one this manager hands out, meaning it was destroyed underneath the
+     *         caller. False once {@link #closePermanently()} has run, so that a closed client keeps rejecting requests.
+     */
+    private boolean wasDestroyedConcurrently(HttpClientConnectionManager used) {
+        return lifecycle == Lifecycle.NEEDS_RECREATE || used != delegate;
     }
 
     @Override
@@ -218,6 +229,85 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     @SdkTestInternalApi
     HttpClientConnectionManager currentDelegate() {
         return delegate;
+    }
+
+    /**
+     * A connection request that survives having its pool destroyed underneath it.
+     *
+     * <p>Acquiring a connection spans two calls, and Apache raises
+     * {@code IllegalStateException("Connection pool shut down")} from both: {@code requestConnection}, and later
+     * {@code ConnectionRequest#get} when the caller blocks for a connection
+     * ({@code AbstractConnPool.getPoolEntryBlocking}). Either can hit a request that read a live pool moments before
+     * Apache's Error handler destroyed it.
+     *
+     * <p>That exception is not retried by the SDK's retry policy, so without this a concurrent request would be failed
+     * outright by an Error raised somewhere else - the exact symptom this class exists to remove. Instead, acquire again
+     * from the replacement pool. Bounded to one extra attempt per call so a pool that keeps dying cannot loop.
+     */
+    private final class RebuildingConnectionRequest implements ConnectionRequest {
+
+        private final HttpRoute route;
+        private final Object state;
+        private volatile HttpClientConnectionManager leasedFrom;
+        private volatile ConnectionRequest delegateRequest;
+        private volatile boolean cancelled;
+
+        private RebuildingConnectionRequest(HttpRoute route, Object state) {
+            this.route = route;
+            this.state = state;
+            acquireWithRetry();
+        }
+
+        @Override
+        public HttpClientConnection get(long timeout, TimeUnit timeUnit)
+                throws InterruptedException, ExecutionException, ConnectionPoolTimeoutException {
+            try {
+                return delegateRequest.get(timeout, timeUnit);
+            } catch (IllegalStateException e) {
+                if (!shouldAcquireAgain()) {
+                    throw e;
+                }
+                acquireWithRetry();
+                return delegateRequest.get(timeout, timeUnit);
+            }
+        }
+
+        @Override
+        public boolean cancel() {
+            cancelled = true;
+            return delegateRequest.cancel();
+        }
+
+        private void acquireWithRetry() {
+            try {
+                acquire();
+            } catch (IllegalStateException e) {
+                if (!shouldAcquireAgain()) {
+                    throw e;
+                }
+                acquire();
+            }
+        }
+
+        private void acquire() {
+            // Cleared first so that a failure to build a pool at all is never mistaken for a pool that was destroyed
+            // underneath us. The former must surface; retrying it would just hide the real cause.
+            leasedFrom = null;
+            HttpClientConnectionManager pool = activeDelegate();
+            leasedFrom = pool;
+            delegateRequest = pool.requestConnection(route, state);
+        }
+
+        /**
+         * @return true only when this request had a pool and that pool is no longer the one handed out, meaning it was
+         *         destroyed underneath us. False for a cancelled request, for a genuinely closed client, for a failure
+         *         to build a replacement pool, and for any other {@link IllegalStateException} - all of which must
+         *         surface to the caller.
+         */
+        private boolean shouldAcquireAgain() {
+            HttpClientConnectionManager used = leasedFrom;
+            return !cancelled && used != null && wasDestroyedConcurrently(used);
+        }
     }
 
     private enum Lifecycle {

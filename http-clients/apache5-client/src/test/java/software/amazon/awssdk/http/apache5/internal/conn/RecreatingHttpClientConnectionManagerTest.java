@@ -16,9 +16,11 @@
 package software.amazon.awssdk.http.apache5.internal.conn;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -193,6 +195,209 @@ public class RecreatingHttpClientConnectionManagerTest {
 
         assertThat(created).hasSize(1);
         assertThat(cm.recreationCount()).isZero();
+    }
+
+    /**
+     * A caller can read the current pool, have Apache destroy it a moment later, and only then try to lease from it.
+     * Apache reports that as {@code IllegalStateException: Connection pool shut down} - the very exception this change
+     * exists to eliminate, and one the SDK's retry policy does not retry. It must not escape.
+     */
+    @Test
+    public void lease_poolDestroyedMidLease_retriesOnRebuiltPool() {
+        List<HttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager[] holder = new RecreatingHttpClientConnectionManager[1];
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            if (pools.isEmpty()) {
+                // The first pool is destroyed by a concurrent Error handler just as it is leased from.
+                when(pool.lease(any(), any(), any(), any())).thenAnswer(invocation -> {
+                    holder[0].close(CloseMode.IMMEDIATE);
+                    throw new IllegalStateException("Connection pool shut down");
+                });
+            } else {
+                when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            }
+            pools.add(pool);
+            return pool;
+        });
+        holder[0] = cm;
+
+        assertThat(cm.lease("id-1", ROUTE, TIMEOUT, null)).isNotNull();
+
+        assertThat(pools).hasSize(2);
+        assertThat(cm.recreationCount()).isEqualTo(1);
+        verify(pools.get(1)).lease(any(), eq(ROUTE), any(), any());
+    }
+
+    @Test
+    public void lease_illegalStateWithLivePool_isNotRetried() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenThrow(new IllegalStateException("something else"));
+            created.add(pool);
+            return pool;
+        });
+
+        // The pool was never destroyed, so this is a real error and must surface rather than triggering a rebuild.
+        assertThatThrownBy(() -> cm.lease("id-1", ROUTE, TIMEOUT, null))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("something else");
+        assertThat(created).hasSize(1);
+        assertThat(cm.recreationCount()).isZero();
+    }
+
+    @Test
+    public void lease_afterClosePermanently_isNotRetried() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any()))
+                .thenThrow(new IllegalStateException("Connection pool shut down"));
+            created.add(pool);
+            return pool;
+        });
+
+        cm.closePermanently();
+
+        // Closing must stay permanent: this is the documented behaviour of using a closed SDK HTTP client.
+        assertThatThrownBy(() -> cm.lease("id-1", ROUTE, TIMEOUT, null))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Connection pool shut down");
+        assertThat(created).hasSize(1);
+        assertThat(cm.recreationCount()).isZero();
+    }
+
+    @Test
+    public void lease_rebuiltPoolAlsoFails_propagatesRatherThanLooping() {
+        RecreatingHttpClientConnectionManager[] holder = new RecreatingHttpClientConnectionManager[1];
+        AtomicInteger factoryCalls = new AtomicInteger();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            factoryCalls.incrementAndGet();
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            // Every pool is destroyed the instant it is used, so the retry cannot succeed either.
+            when(pool.lease(any(), any(), any(), any())).thenAnswer(invocation -> {
+                holder[0].close(CloseMode.IMMEDIATE);
+                throw new IllegalStateException("Connection pool shut down");
+            });
+            return pool;
+        });
+        holder[0] = cm;
+
+        assertThatThrownBy(() -> cm.lease("id-1", ROUTE, TIMEOUT, null))
+            .isInstanceOf(IllegalStateException.class);
+
+        // Exactly one retry: the initial pool, plus one rebuild. No unbounded rebuild loop.
+        assertThat(factoryCalls.get()).isEqualTo(2);
+    }
+
+    /**
+     * If building a replacement pool fails - a bad TLS configuration, or an OOM that has not abated - the failure must
+     * reach the caller and leave this manager willing to try again later, not wedged in a half-built state.
+     */
+    @Test
+    public void lease_factoryFailsDuringRebuild_propagatesAndRemainsRetryable() {
+        AtomicInteger factoryCalls = new AtomicInteger();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            int call = factoryCalls.incrementAndGet();
+            if (call == 2) {
+                throw new IllegalStateException("cannot build a pool right now");
+            }
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+
+        assertThatThrownBy(() -> cm.lease("id-1", ROUTE, TIMEOUT, null))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("cannot build a pool right now");
+
+        // The next request tries again and succeeds, so a transient failure to rebuild is not permanent.
+        assertThat(cm.lease("id-2", ROUTE, TIMEOUT, null)).isNotNull();
+        assertThat(factoryCalls.get()).isEqualTo(3);
+        assertThat(cm.recreationCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void lease_factoryThrowsError_propagatesAndRemainsRetryable() {
+        AtomicInteger factoryCalls = new AtomicInteger();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            int call = factoryCalls.incrementAndGet();
+            if (call == 2) {
+                // The heap is still exhausted when we try to rebuild.
+                throw new OutOfMemoryError("Java heap space");
+            }
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+
+        assertThatThrownBy(() -> cm.lease("id-1", ROUTE, TIMEOUT, null)).isInstanceOf(OutOfMemoryError.class);
+        assertThat(cm.lease("id-2", ROUTE, TIMEOUT, null)).isNotNull();
+        assertThat(factoryCalls.get()).isEqualTo(3);
+    }
+
+    /**
+     * A request in flight when the pool was replaced still returns its endpoint afterwards, and that endpoint belongs to
+     * the pool that was discarded. Apache 5.x {@code StrictConnPool.release} throws for an entry it never leased (4.x
+     * ignores it), which would fail a request that merely overlapped someone else's Error with an exception the SDK
+     * cannot retry.
+     */
+    @Test
+    public void release_endpointFromReplacedPool_isIgnored() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            doThrow(new IllegalStateException("Pool entry is not present in the set of leased entries"))
+                .when(pool).release(any(), any(), any());
+            created.add(pool);
+            return pool;
+        });
+
+        // Force a replacement so the manager knows a pool has been discarded.
+        cm.close(CloseMode.IMMEDIATE);
+        cm.lease("id-1", ROUTE, TIMEOUT, null);
+        assertThat(cm.recreationCount()).isEqualTo(1);
+
+        cm.release(mock(ConnectionEndpoint.class), null, TimeValue.ZERO_MILLISECONDS);
+    }
+
+    @Test
+    public void release_foreignEntryBeforeAnyReplacement_propagates() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            doThrow(new IllegalStateException("Pool entry is not present in the set of leased entries"))
+                .when(pool).release(any(), any(), any());
+            created.add(pool);
+            return pool;
+        });
+
+        // No pool has been replaced, so this cannot be a stale endpoint and must surface as the bug it would be.
+        assertThatThrownBy(() -> cm.release(mock(ConnectionEndpoint.class), null, TimeValue.ZERO_MILLISECONDS))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("not present in the set of leased entries");
+    }
+
+    @Test
+    public void release_unrelatedIllegalState_propagates() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            doThrow(new IllegalStateException("Endpoint not acquired / already released"))
+                .when(pool).release(any(), any(), any());
+            created.add(pool);
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+        cm.lease("id-1", ROUTE, TIMEOUT, null);
+
+        // Even after a replacement, only the foreign-entry case is ignored.
+        assertThatThrownBy(() -> cm.release(mock(ConnectionEndpoint.class), null, TimeValue.ZERO_MILLISECONDS))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Endpoint not acquired");
     }
 
     @Test

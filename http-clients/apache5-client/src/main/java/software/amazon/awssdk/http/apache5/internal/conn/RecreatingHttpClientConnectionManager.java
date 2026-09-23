@@ -103,12 +103,57 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
 
     @Override
     public LeaseRequest lease(String id, HttpRoute route, Timeout requestTimeout, Object state) {
-        return activeDelegate().lease(id, route, requestTimeout, state);
+        HttpClientConnectionManager current = activeDelegate();
+        try {
+            return current.lease(id, route, requestTimeout, state);
+        } catch (IllegalStateException e) {
+            // We may have lost a race: Apache's Error handler destroyed this pool after we read it but before we leased
+            // from it, which Apache reports as IllegalStateException("Connection pool shut down"). The SDK does not
+            // retry that exception, so rebuild and lease once more rather than failing the caller for someone else's
+            // Error. Rethrown if the pool was not concurrently destroyed, so a genuinely closed client keeps failing.
+            if (!wasDestroyedConcurrently(current)) {
+                throw e;
+            }
+            return activeDelegate().lease(id, route, requestTimeout, state);
+        }
+    }
+
+    /**
+     * @param used the pool a caller just tried and failed to lease from
+     * @return true if that pool is no longer the one this manager hands out, meaning it was destroyed underneath the
+     *         caller. False once {@link #closePermanently()} has run, so that a closed client keeps rejecting requests.
+     */
+    private boolean wasDestroyedConcurrently(HttpClientConnectionManager used) {
+        return lifecycle == Lifecycle.NEEDS_RECREATE || used != delegate;
     }
 
     @Override
     public void release(ConnectionEndpoint endpoint, Object newState, TimeValue validDuration) {
-        delegate.release(endpoint, newState, validDuration);
+        try {
+            delegate.release(endpoint, newState, validDuration);
+        } catch (IllegalStateException e) {
+            if (!isForeignEntryRelease(e)) {
+                throw e;
+            }
+            // The endpoint was leased from a pool that has since been replaced, so the pool it is being returned to has
+            // never heard of it. Unlike Apache 4.x, whose AbstractConnPool.release silently ignores a foreign entry,
+            // 5.x StrictConnPool.release throws. There is genuinely nothing to return: the pool this endpoint came from
+            // was closed, and closing it closed this connection. Swallowing keeps a request that merely overlapped
+            // someone else's Error from failing with an exception the SDK cannot retry.
+            log.debug(() -> "Ignoring release of a connection that was leased from a connection pool which has since "
+                            + "been replaced. The connection was already closed when that pool was closed.");
+        }
+    }
+
+    /**
+     * @return true if this exception is 5.x rejecting an endpoint that belongs to a pool we have already discarded.
+     *         Gated on a replacement actually having happened, so that before any Error-triggered rebuild this method
+     *         changes nothing and a genuine double-release still surfaces.
+     */
+    private boolean isForeignEntryRelease(IllegalStateException e) {
+        return recreationCount.get() > 0
+               && e.getMessage() != null
+               && e.getMessage().contains("not present in the set of leased entries");
     }
 
     @Override
