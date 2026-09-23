@@ -324,8 +324,8 @@ public final class InstanceProfileCredentialsProvider
     }
 
     /**
-     * Returns headers for the credential GET request, including the IMDSv2 token and the extended credentials header.
-     * The extended credentials header signals IMDS to return the AccountId field in the response.
+     * Returns headers for the credential GET request. Includes the extended credentials header to signal IMDS to
+     * return the AccountId field in the response, and the IMDSv2 token if available.
      */
     private Map<String, String> getCredentialHeaders(String metadataToken) {
         Map<String, String> headers = new HashMap<>();
@@ -333,7 +333,7 @@ public final class InstanceProfileCredentialsProvider
             headers.put(EC2_METADATA_TOKEN_HEADER, metadataToken);
         }
         headers.put(EXTENDED_CREDENTIALS_HEADER, EXTENDED_CREDENTIALS_VALUE);
-        return headers;
+        return Collections.unmodifiableMap(headers);
     }
 
     @Override

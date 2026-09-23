@@ -180,6 +180,10 @@ public class InstanceProfileCredentialsProviderTest {
         // Verify extended header is NOT sent on profile discovery GET
         WireMock.verify(getRequestedFor(urlPathEqualTo(CREDENTIALS_RESOURCE_PATH))
                             .withoutHeader(EXTENDED_CREDENTIALS_HEADER));
+
+        // Verify extended header is NOT sent on token PUT
+        WireMock.verify(putRequestedFor(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                            .withoutHeader(EXTENDED_CREDENTIALS_HEADER));
     }
 
     @Test

@@ -53,6 +53,8 @@ public class HttpCredentialsLoaderTest {
 
     private static String successResponseWithAccountId;
 
+    private static String successResponseWithUnexpectedFields;
+
     @BeforeClass
     public static void setup() throws IOException {
         try (InputStream successInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
@@ -60,10 +62,13 @@ public class HttpCredentialsLoaderTest {
              InputStream responseWithInvalidBodyInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
                  ("/resources/wiremock/successResponseWithInvalidBody.json");
              InputStream responseWithAccountIdInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
-                 ("/resources/wiremock/successResponseWithAccountId.json")) {
+                 ("/resources/wiremock/successResponseWithAccountId.json");
+             InputStream responseWithUnexpectedFieldsInputStream = HttpCredentialsLoaderTest.class.getResourceAsStream
+                 ("/resources/wiremock/successResponseWithUnexpectedFields.json")) {
             successResponse = IoUtils.toUtf8String(successInputStream);
             successResponseWithInvalidBody = IoUtils.toUtf8String(responseWithInvalidBodyInputStream);
             successResponseWithAccountId = IoUtils.toUtf8String(responseWithAccountIdInputStream);
+            successResponseWithUnexpectedFields = IoUtils.toUtf8String(responseWithUnexpectedFieldsInputStream);
         }
     }
 
@@ -115,6 +120,24 @@ public class HttpCredentialsLoaderTest {
         assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
         assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentials.accountId()).isNotPresent();
+    }
+
+    /**
+     * Test that loadCredentials does not fail when response contains unexpected/unknown fields.
+     * This verifies the SEP requirement: "Parsing MUST NOT fail in the presence of unexpected fields."
+     */
+    @Test
+    public void testLoadCredentialsIgnoresUnexpectedFields() {
+        stubForSuccessResponseWithCustomBody(successResponseWithUnexpectedFields);
+
+        HttpCredentialsLoader credentialsProvider = HttpCredentialsLoader.create(PROVIDER_NAME);
+        AwsSessionCredentials credentials = (AwsSessionCredentials) credentialsProvider.loadCredentials(testEndpointProvider())
+                                                                                       .getAwsCredentials();
+
+        assertThat(credentials.accessKeyId()).isEqualTo("ACCESS_KEY_ID");
+        assertThat(credentials.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(credentials.sessionToken()).isEqualTo("TOKEN_TOKEN_TOKEN");
+        assertThat(credentials.accountId()).isPresent().hasValue("123456789012");
     }
 
     /**
