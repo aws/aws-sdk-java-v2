@@ -3941,10 +3941,6 @@
         "lastUpdateOn":{
           "shape":"Timestamp",
           "documentation":"<p>The timestamp when the code security integration was last updated.</p>"
-        },
-        "tags":{
-          "shape":"TagMap",
-          "documentation":"<p>The tags associated with the code security integration.</p>"
         }
       },
       "documentation":"<p>A summary of information about a code security integration.</p>"
@@ -4034,10 +4030,6 @@
         "scopeSettings":{
           "shape":"ScopeSettings",
           "documentation":"<p>The scope settings that define which repositories will be scanned. If the <code>ScopeSetting</code> parameter is <code>ALL</code> the scan configuration applies to all existing and future projects imported into Amazon Inspector.</p>"
-        },
-        "tags":{
-          "shape":"TagMap",
-          "documentation":"<p>The tags associated with the scan configuration.</p>"
         }
       },
       "documentation":"<p>A summary of information about a code security scan configuration.</p>"
@@ -4461,7 +4453,7 @@
       "type":"string",
       "max":128,
       "min":1,
-      "pattern":"(?!aws:)[\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*"
+      "pattern":"[\\p{L}\\p{Z}\\p{N}_.:/=+\\-@]*"
     },
     "ConnectorTagMap":{
       "type":"map",
@@ -6131,7 +6123,9 @@
         "DAYS_30",
         "DAYS_60",
         "DAYS_90",
-        "DAYS_180"
+        "DAYS_180",
+        "DAYS_3",
+        "DAYS_7"
       ]
     },
     "EcrPullDateRescanMode":{
@@ -6163,7 +6157,9 @@
         "DAYS_180",
         "DAYS_14",
         "DAYS_60",
-        "DAYS_90"
+        "DAYS_90",
+        "DAYS_3",
+        "DAYS_7"
       ]
     },
     "EcrRescanDurationState":{
@@ -7482,13 +7478,13 @@
           "shape":"Timestamp",
           "documentation":"<p>The timestamp when the code security integration was last updated.</p>"
         },
-        "tags":{
-          "shape":"TagMap",
-          "documentation":"<p>The tags associated with the code security integration.</p>"
-        },
         "authorizationUrl":{
           "shape":"AuthorizationUrl",
           "documentation":"<p>The URL used to authorize the integration with the repository provider. This is only returned if reauthorization is required to fix a connection issue. Otherwise, it is null.</p>"
+        },
+        "tags":{
+          "shape":"TagMap",
+          "documentation":"<p>The tags associated with the code security integration.</p>"
         }
       }
     },
@@ -9525,7 +9521,7 @@
       "type":"string",
       "max":512,
       "min":1,
-      "pattern":"(?:/(?:\\.[-\\w]+|[-\\w]+(?:\\.[-\\w]+)?))+/?"
+      "pattern":"(?:(?:/(?:\\.[-\\w]+|[-\\w]+(?:[. ][-\\w]+)*))+/?|[A-Za-z]:\\\\(?:[-\\w]+(?:[. ][-\\w]+)*\\\\)*[-\\w]+(?:[. ][-\\w]+)*)"
     },
     "PathList":{
       "type":"list",
@@ -10078,6 +10074,50 @@
         "lambdaFunctionTags":{
           "shape":"ResourceMapFilterList",
           "documentation":"<p>The Amazon Web Services Lambda function tags used as resource filter criteria.</p>"
+        },
+        "cloudProvider":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud providers used as resource filter criteria.</p>"
+        },
+        "cloudProviderAccountId":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud provider account IDs used as resource filter criteria.</p>"
+        },
+        "cloudProviderOrgId":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud provider organization IDs used as resource filter criteria.</p>"
+        },
+        "cloudProviderRegion":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud provider regions used as resource filter criteria.</p>"
+        },
+        "cloudVmInstanceTags":{
+          "shape":"ResourceMapFilterList",
+          "documentation":"<p>The cloud VM instance tags used as resource filter criteria.</p>"
+        },
+        "cloudContainerImageTags":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud container image tags used as resource filter criteria.</p>"
+        },
+        "cloudContainerRepositoryName":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud container repository names used as resource filter criteria.</p>"
+        },
+        "cloudContainerRegistryName":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud container registry names used as resource filter criteria.</p>"
+        },
+        "cloudServerlessFunctionName":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud serverless function names used as resource filter criteria.</p>"
+        },
+        "cloudServerlessFunctionRuntime":{
+          "shape":"ResourceStringFilterList",
+          "documentation":"<p>The cloud serverless function runtimes used as resource filter criteria.</p>"
+        },
+        "cloudServerlessFunctionTags":{
+          "shape":"ResourceMapFilterList",
+          "documentation":"<p>The cloud serverless function tags used as resource filter criteria.</p>"
         }
       },
       "documentation":"<p>The resource filter criteria for a Software bill of materials (SBOM) report.</p>"

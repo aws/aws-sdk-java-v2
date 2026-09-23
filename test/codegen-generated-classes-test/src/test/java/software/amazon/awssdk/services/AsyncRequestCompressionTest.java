@@ -83,7 +83,7 @@ public class AsyncRequestCompressionTest {
                                                          c -> c.minimumCompressionThresholdInBytes(1)))
                                                      .build();
 
-        asyncClient.putOperationWithRequestCompression(request);
+        asyncClient.putOperationWithRequestCompression(request).join();
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
         InputStream loggedStream = loggedRequest.contentStreamProvider().get().newStream();
@@ -104,7 +104,7 @@ public class AsyncRequestCompressionTest {
                                                      .body(SdkBytes.fromUtf8String(UNCOMPRESSED_BODY))
                                                      .build();
 
-        asyncClient.putOperationWithRequestCompression(request);
+        asyncClient.putOperationWithRequestCompression(request).join();
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
         InputStream loggedStream = loggedRequest.contentStreamProvider().get().newStream();
@@ -148,7 +148,7 @@ public class AsyncRequestCompressionTest {
                                                          c -> c.minimumCompressionThresholdInBytes(1)))
                                                      .build();
 
-        asyncClient.putOperationWithRequestCompression(request);
+        asyncClient.putOperationWithRequestCompression(request).join();
 
         SdkHttpFullRequest loggedRequest = (SdkHttpFullRequest) mockAsyncHttpClient.getLastRequest();
         InputStream loggedStream = loggedRequest.contentStreamProvider().get().newStream();

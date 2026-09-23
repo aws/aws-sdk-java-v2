@@ -8,12 +8,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
@@ -33,16 +35,15 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.client.handler.AsyncClientHandler;
 import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
-import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRefreshCache;
 import software.amazon.awssdk.core.endpointdiscovery.EndpointDiscoveryRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
@@ -57,6 +58,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.endpointdiscoverytest.auth.scheme.EndpointDiscoveryTestAuthSchemeParams;
 import software.amazon.awssdk.services.endpointdiscoverytest.auth.scheme.EndpointDiscoveryTestAuthSchemeProvider;
+import software.amazon.awssdk.services.endpointdiscoverytest.auth.scheme.internal.DefaultEndpointDiscoveryTestAuthSchemeProvider;
 import software.amazon.awssdk.services.endpointdiscoverytest.endpoints.EndpointDiscoveryTestEndpointParams;
 import software.amazon.awssdk.services.endpointdiscoverytest.endpoints.EndpointDiscoveryTestEndpointProvider;
 import software.amazon.awssdk.services.endpointdiscoverytest.endpoints.internal.EndpointDiscoveryTestEndpointResolverUtils;
@@ -97,7 +99,19 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            default:
+                return Optional.empty();
+        }
+    };
+
     private EndpointDiscoveryRefreshCache endpointDiscoveryCache;
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultEndpointDiscoveryTestAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
@@ -144,15 +158,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<DescribeEndpointsResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, DescribeEndpointsResponse::builder);
-            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-                if (errorCode == null) {
-                    return Optional.empty();
-                }
-                switch (errorCode) {
-                    default:
-                        return Optional.empty();
-                }
-            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
 
@@ -162,15 +167,13 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                              .withMarshaller(new DescribeEndpointsRequestMarshaller(protocolFactory))
                              .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
                              .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
-                             .withAuthSchemeOptionsResolver(authSchemeResolver("DescribeEndpoints", clientConfiguration))
-                             .withEndpointResolver(endpointResolver("DescribeEndpoints")).withInput(describeEndpointsRequest));
-            CompletableFuture<DescribeEndpointsResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint).withInput(describeEndpointsRequest));
+            CompletableFuture<DescribeEndpointsResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -211,15 +214,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<TestDiscoveryIdentifiersRequiredResponse> responseHandler = protocolFactory
                 .createResponseHandler(operationMetadata, TestDiscoveryIdentifiersRequiredResponse::builder);
-            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-                if (errorCode == null) {
-                    return Optional.empty();
-                }
-                switch (errorCode) {
-                    default:
-                        return Optional.empty();
-                }
-            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
@@ -254,24 +248,18 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> executeFuture = endpointFuture
                 .thenCompose(cachedEndpoint -> clientHandler
                     .execute(new ClientExecutionParams<TestDiscoveryIdentifiersRequiredRequest, TestDiscoveryIdentifiersRequiredResponse>()
-                                 .withOperationName("TestDiscoveryIdentifiersRequired")
-                                 .withProtocolMetadata(protocolMetadata)
+                                 .withOperationName("TestDiscoveryIdentifiersRequired").withProtocolMetadata(protocolMetadata)
                                  .withMarshaller(new TestDiscoveryIdentifiersRequiredRequestMarshaller(protocolFactory))
-                                 .withResponseHandler(responseHandler)
-                                 .withErrorResponseHandler(errorResponseHandler)
-                                 .withRequestConfiguration(clientConfiguration)
-                                 .withMetricCollector(apiCallMetricCollector)
-                                 .withAuthSchemeOptionsResolver(
-                                     authSchemeResolver("TestDiscoveryIdentifiersRequired", clientConfiguration))
-                                 .withEndpointResolver(endpointResolver("TestDiscoveryIdentifiersRequired"))
-                                 .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryIdentifiersRequiredRequest)));
-            CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                                 .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                 .withEndpointResolver(this::resolveEndpoint).discoveredEndpoint(cachedEndpoint)
+                                 .withInput(testDiscoveryIdentifiersRequiredRequest)));
+            CompletableFuture<TestDiscoveryIdentifiersRequiredResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -311,15 +299,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<TestDiscoveryOptionalResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, TestDiscoveryOptionalResponse::builder);
-            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-                if (errorCode == null) {
-                    return Optional.empty();
-                }
-                switch (errorCode) {
-                    default:
-                        return Optional.empty();
-                }
-            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
@@ -345,24 +324,18 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             CompletableFuture<TestDiscoveryOptionalResponse> executeFuture = endpointFuture
                 .thenCompose(cachedEndpoint -> clientHandler
                     .execute(new ClientExecutionParams<TestDiscoveryOptionalRequest, TestDiscoveryOptionalResponse>()
-                                 .withOperationName("TestDiscoveryOptional")
-                                 .withProtocolMetadata(protocolMetadata)
+                                 .withOperationName("TestDiscoveryOptional").withProtocolMetadata(protocolMetadata)
                                  .withMarshaller(new TestDiscoveryOptionalRequestMarshaller(protocolFactory))
-                                 .withResponseHandler(responseHandler)
-                                 .withErrorResponseHandler(errorResponseHandler)
-                                 .withRequestConfiguration(clientConfiguration)
-                                 .withMetricCollector(apiCallMetricCollector)
-                                 .withAuthSchemeOptionsResolver(
-                                     authSchemeResolver("TestDiscoveryOptional", clientConfiguration))
-                                 .withEndpointResolver(endpointResolver("TestDiscoveryOptional"))
-                                 .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryOptionalRequest)));
-            CompletableFuture<TestDiscoveryOptionalResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                                 .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                 .withEndpointResolver(this::resolveEndpoint).discoveredEndpoint(cachedEndpoint)
+                                 .withInput(testDiscoveryOptionalRequest)));
+            CompletableFuture<TestDiscoveryOptionalResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -402,15 +375,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
 
             HttpResponseHandler<TestDiscoveryRequiredResponse> responseHandler = protocolFactory.createResponseHandler(
                 operationMetadata, TestDiscoveryRequiredResponse::builder);
-            Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-                if (errorCode == null) {
-                    return Optional.empty();
-                }
-                switch (errorCode) {
-                    default:
-                        return Optional.empty();
-                }
-            };
             HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                        operationMetadata, exceptionMetadataMapper);
             boolean endpointDiscoveryEnabled = clientConfiguration.option(SdkClientOption.ENDPOINT_DISCOVERY_ENABLED);
@@ -444,24 +408,18 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             CompletableFuture<TestDiscoveryRequiredResponse> executeFuture = endpointFuture
                 .thenCompose(cachedEndpoint -> clientHandler
                     .execute(new ClientExecutionParams<TestDiscoveryRequiredRequest, TestDiscoveryRequiredResponse>()
-                                 .withOperationName("TestDiscoveryRequired")
-                                 .withProtocolMetadata(protocolMetadata)
+                                 .withOperationName("TestDiscoveryRequired").withProtocolMetadata(protocolMetadata)
                                  .withMarshaller(new TestDiscoveryRequiredRequestMarshaller(protocolFactory))
-                                 .withResponseHandler(responseHandler)
-                                 .withErrorResponseHandler(errorResponseHandler)
-                                 .withRequestConfiguration(clientConfiguration)
-                                 .withMetricCollector(apiCallMetricCollector)
-                                 .withAuthSchemeOptionsResolver(
-                                     authSchemeResolver("TestDiscoveryRequired", clientConfiguration))
-                                 .withEndpointResolver(endpointResolver("TestDiscoveryRequired"))
-                                 .discoveredEndpoint(cachedEndpoint).withInput(testDiscoveryRequiredRequest)));
-            CompletableFuture<TestDiscoveryRequiredResponse> whenCompleted = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+                                 .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                 .withRequestConfiguration(clientConfiguration).withMetricCollector(apiCallMetricCollector)
+                                 .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                 .withEndpointResolver(this::resolveEndpoint).discoveredEndpoint(cachedEndpoint)
+                                 .withInput(testDiscoveryRequiredRequest)));
+            CompletableFuture<TestDiscoveryRequiredResponse> whenCompleted = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             executeFuture = CompletableFutureUtils.forwardExceptionTo(whenCompleted, executeFuture);
             return executeFuture;
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -497,8 +455,25 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
         return publishers;
     }
 
-    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, String operationName,
-                                                            SdkClientConfiguration clientConfiguration) {
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         EndpointDiscoveryTestAuthSchemeProvider requestAuthSchemeProvider = request
             .overrideConfiguration()
             .flatMap(c -> c.authSchemeProvider())
@@ -506,16 +481,30 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
                                             "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider")).orElse(null);
         EndpointDiscoveryTestAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
                                                                                                        : Validate.isInstanceOf(EndpointDiscoveryTestAuthSchemeProvider.class,
-                                                                                                                               clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER),
+                                                                                                                               executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                "Expected an instance of EndpointDiscoveryTestAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultEndpointDiscoveryTestAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         EndpointDiscoveryTestAuthSchemeParams.Builder paramsBuilder = EndpointDiscoveryTestAuthSchemeParams.builder().operation(
             operationName);
-        paramsBuilder.region(clientConfiguration.option(AwsClientOption.AWS_REGION));
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 
-    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes, String operationName) {
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
         EndpointDiscoveryTestEndpointProvider provider = (EndpointDiscoveryTestEndpointProvider) executionAttributes
             .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
         try {
@@ -545,14 +534,6 @@ final class DefaultEndpointDiscoveryTestAsyncClient implements EndpointDiscovery
             }
             throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
         }
-    }
-
-    private AuthSchemeOptionsResolver authSchemeResolver(String operationName, SdkClientConfiguration clientConfiguration) {
-        return r -> resolveAuthSchemeOptions(r, operationName, clientConfiguration);
-    }
-
-    private EndpointResolver endpointResolver(String operationName) {
-        return (r, a) -> resolveEndpoint(r, a, operationName);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
