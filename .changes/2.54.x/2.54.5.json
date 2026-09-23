@@ -1,0 +1,54 @@
+{
+    "version": "2.54.5",
+    "date": "2026-08-26",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS CRT Async HTTP Client",
+            "contributor": "",
+            "description": "Fixed an issue where an error signaled by a request body publisher was printed to stderr on a CRT event loop thread instead of failing the request with the original error."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Amazon SageMaker AI now supports ml.g7 instances for model optimization. You can now run model optimization jobs on ml.g7 instances, in supported AWS Regions."
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager User Subscriptions",
+            "contributor": "",
+            "description": "Released support for License Expiry field in ListProductSubscriptions API"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS CRT-based S3 Client",
+            "contributor": "",
+            "description": "Fixed an issue where an error signaled by a request body publisher (for example via `AsyncRequestBody.fromPublisher`) was printed to stderr on a CRT event loop thread instead of failing the operation; the operation's future now completes with the original publisher error. See [#6715](https://github.com/aws/aws-sdk-java-v2/issues/6715)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "Adding new status enum for Firewalls."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DevOps Agent Service",
+            "contributor": "",
+            "description": "AWS DevOps Agent now supports trigger filter groups for Release Readiness Review, letting you control when the capability auto-triggers based on webhook events and target branches."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS CRT HTTP Client",
+            "contributor": "",
+            "description": "Fixed an issue where an error thrown while reading the request body stream was printed to stderr on a CRT event loop thread instead of failing the request with the original error. See [#6715](https://github.com/aws/aws-sdk-java-v2/issues/6715)."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds deleting state to possible VPC States."
+        }
+    ]
+}

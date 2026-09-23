@@ -50,6 +50,8 @@ import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
+import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.http.async.SimpleSubscriber;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -467,6 +469,96 @@ class TransferProgressUpdaterTest {
         assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(partSize);
 
         assertThat(upstreamBytesReceived.get()).isEqualTo(60 + (int) partSize);
+    }
+
+    @Test
+    void crtProgressListener_totalBytesUnknownUpFront_takesTotalBytesFromCrtProgress() {
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), null);
+        PublisherListener<S3MetaRequestProgress> listener = updater.crtProgressListener();
+
+        assertThat(updater.progress().snapshot().totalBytes()).isEmpty();
+
+        listener.subscriberOnNext(new S3MetaRequestProgress().withContentLength(1024L).withBytesTransferred(256L));
+
+        assertThat(updater.progress().snapshot().totalBytes()).hasValue(1024L);
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(256L);
+        assertThat(updater.progress().snapshot().ratioTransferred()).hasValue(0.25);
+
+        listener.subscriberOnNext(new S3MetaRequestProgress().withContentLength(1024L).withBytesTransferred(768L));
+
+        assertThat(updater.progress().snapshot().totalBytes()).hasValue(1024L);
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(1024L);
+    }
+
+    @Test
+    void crtProgressListener_totalBytesKnownUpFront_keepsTheKnownTotalBytes() {
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), 2048L);
+
+        updater.crtProgressListener()
+               .subscriberOnNext(new S3MetaRequestProgress().withContentLength(1024L).withBytesTransferred(256L));
+
+        assertThat(updater.progress().snapshot().totalBytes()).hasValue(2048L);
+    }
+
+    @Test
+    void wrapCrtResponseFileTransformer_publisherSubscribedAfterTransfer_keepsProgressReportedByCrt() {
+        // When CRT writes the body straight to a file the SDK only sees the response, and the (already empty) body publisher,
+        // once the transfer has finished. Resetting the byte count at that point would discard everything CRT reported.
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), null);
+        updater.crtProgressListener()
+               .subscriberOnNext(new S3MetaRequestProgress().withContentLength(1024L).withBytesTransferred(1024L));
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(1024L);
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+            updater.wrapCrtResponseFileTransformer(noOpTransformer());
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().contentLength(1024L).build());
+        transformer.onStream(SdkPublisher.adapt(new SimplePublisher<>()));
+
+        assertThat(updater.progress().snapshot().transferredBytes()).isEqualTo(1024L);
+        assertThat(updater.progress().snapshot().totalBytes()).hasValue(1024L);
+        assertThat(updater.progress().snapshot().sdkResponse()).isPresent();
+    }
+
+    @Test
+    void wrapResponseTransformer_publisherSubscribed_resetsProgress() {
+        // Contrast with wrapCrtResponseFileTransformer: on the Java path the publisher is subscribed before any body arrives,
+        // so resetting there is what makes retries report progress correctly.
+        TransferProgressUpdater updater = new TransferProgressUpdater(Mockito.mock(TransferObjectRequest.class), null);
+        updater.crtProgressListener()
+               .subscriberOnNext(new S3MetaRequestProgress().withContentLength(1024L).withBytesTransferred(1024L));
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+            updater.wrapResponseTransformer(noOpTransformer());
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().contentLength(1024L).build());
+        transformer.onStream(SdkPublisher.adapt(new SimplePublisher<>()));
+
+        assertThat(updater.progress().snapshot().transferredBytes()).isZero();
+    }
+
+    private static AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> noOpTransformer() {
+        return new AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>() {
+            @Override
+            public CompletableFuture<GetObjectResponse> prepare() {
+                return new CompletableFuture<>();
+            }
+
+            @Override
+            public void onResponse(GetObjectResponse response) {
+                // noop, test only
+            }
+
+            @Override
+            public void onStream(SdkPublisher<ByteBuffer> publisher) {
+                publisher.subscribe(b -> { /* do nothing, test only */ });
+            }
+
+            @Override
+            public void exceptionOccurred(Throwable error) {
+                // noop, test only
+            }
+        };
     }
 
     private static class ExceptionThrowingByteArrayInputStream extends ByteArrayInputStream {

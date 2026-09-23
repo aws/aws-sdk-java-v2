@@ -196,28 +196,11 @@ public final class SigningUtils {
     }
 
     /**
-     * Signs the data given with the private key given, using the SHA1withRSA
-     * algorithm provided by bouncy castle.
+     * Signs the data given with the private key using the specified Java Security signing algorithm.
      */
-    public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
+    public static byte[] sign(byte[] dataToSign, PrivateKey privateKey, String algorithm) throws InvalidKeyException {
         try {
-            Signature signature = Signature.getInstance("SHA1withRSA");
-            SecureRandom random = new SecureRandom();
-            signature.initSign(privateKey, random);
-            signature.update(dataToSign);
-            return signature.sign();
-        } catch (NoSuchAlgorithmException | SignatureException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /**
-     * Signs the data given with the private key given, using the SHA1withECDSA
-     * algorithm provided by bouncy castle.
-     */
-    public static byte[] signWithSha1ECDSA(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException  {
-        try {
-            Signature signature = Signature.getInstance("SHA1withECDSA");
+            Signature signature = Signature.getInstance(algorithm);
             SecureRandom random = new SecureRandom();
             signature.initSign(privateKey, random);
             signature.update(dataToSign);
