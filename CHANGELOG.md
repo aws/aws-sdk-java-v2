@@ -1,4 +1,48 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.4__ __2026-09-23__
+## __AWS Billing__
+  - ### Features
+    - Added the ListBillingViewSegments API, which returns billing view segment information for a specified billing view ARN and time range. This API enables customers and integrated tools to programmatically determine the billing context of their accounts.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - This release adds support for SMPTE 337M audio passthrough, compositing up to five motion graphic overlays in a single output, and controlling how passthrough video is segmented in ABR outputs. It also adds 3GP, 3G2, AAC, AC-3, and E-AC-3 as supported input containers for the Probe operation.
+
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - This release adds support for signalling start and end in the ContentKeyPeriod element in key request from MediaPackageV2
+
+## __AWS Network Security Manager Customer API__
+  - ### Features
+    - AWS Network Security Manager is a new service that helps you centrally configure, deploy, and continuously enforce security policies on network security services across the accounts and resources in your AWS Organization.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+  - ### Performance Improvements
+    - Fix unnecessary allocation and request latency during endpoint resolution for operations that derive endpoint parameters from request data, including DynamoDB batch and transaction operations and Amazon S3 DeleteObjects. These bindings now use generated typed getters and iterate request maps directly instead of using reflection and copying maps. The order of derived key lists may change, but current DynamoDB endpoint routing behavior is unchanged.
+
+## __Amazon Kinesis__
+  - ### Features
+    - Amazon Kinesis Data Streams now supports service managed record distribution for on demand streams. Set the record distribution strategy to AUTO to evenly distribute records across shards. Configure it at stream creation with CreateStream or update anytime with UpdateStreamRecordDistributionStrategy
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Adds support for speaker diarization on Amazon Lex V2 bot locales. Speaker diarization keeps your bot on the primary (loudest) speaker during a streaming voice conversation, so background voices do not start a turn or interrupt a prompt.
+
+## __Connect Health__
+  - ### Features
+    - Multi language support with code switching, custom template sectionHeader now allows underscores.
+
+## __EC2 Image Builder__
+  - ### Features
+    - Documentation update for EC2 Image Builder - adds API request and response examples for all operations, improves descriptions throughout, and corrects response field patterns for image versions and workflow ARNs.
+
+## __Payment Cryptography Data Plane__
+  - ### Features
+    - Adds asymmetric key support to ReEncryptData for re-encrypting data between RSA and symmetric data encryption keys.
+
 # __2.55.3__ __2026-09-22__
 ## __AWS Glue__
   - ### Features
