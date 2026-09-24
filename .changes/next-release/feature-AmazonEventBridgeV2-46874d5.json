@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon EventBridgeV2",
+    "contributor": "",
+    "description": "Introducing Amazon EventBridge enhanced Custom event bus, a new shareable event bus for organizational-scale event-driven applications feature ordered delivery, deduplication, open event formats, and cross-account bus sharing."
+}
