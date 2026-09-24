@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS IoT",
+    "contributor": "",
+    "description": "Fixed ListV2LoggingLevels and DeleteV2LoggingLevel documentation to include all supported target-types"
+}
