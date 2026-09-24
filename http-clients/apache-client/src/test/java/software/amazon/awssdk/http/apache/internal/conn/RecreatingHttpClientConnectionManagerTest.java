@@ -37,9 +37,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
+import org.apache.http.HttpClientConnection;
+import org.apache.http.HttpHost;
 import org.apache.http.conn.ConnectionRequest;
 import org.apache.http.conn.HttpClientConnectionManager;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -49,7 +52,7 @@ import org.junit.jupiter.api.Test;
  */
 public class RecreatingHttpClientConnectionManagerTest {
 
-    private static final HttpRoute ROUTE = new HttpRoute(new org.apache.http.HttpHost("localhost", 8080));
+    private static final HttpRoute ROUTE = new HttpRoute(new HttpHost("localhost", 8080));
 
     private List<HttpClientConnectionManager> created;
     private Supplier<HttpClientConnectionManager> factory;
@@ -184,7 +187,7 @@ public class RecreatingHttpClientConnectionManagerTest {
 
         // These all relate to connections leased from the pool that was just discarded. Building a fresh pool for them
         // would be pointless, and reaping idle connections must not resurrect a client that is sitting unused.
-        cm.releaseConnection(mock(org.apache.http.HttpClientConnection.class), null, 0, TimeUnit.MILLISECONDS);
+        cm.releaseConnection(mock(HttpClientConnection.class), null, 0, TimeUnit.MILLISECONDS);
         cm.closeIdleConnections(1, TimeUnit.MILLISECONDS);
         cm.closeExpiredConnections();
 
@@ -204,7 +207,7 @@ public class RecreatingHttpClientConnectionManagerTest {
     @Test
     public void connect_delegatesToCurrentPool() throws Exception {
         RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(factory);
-        org.apache.http.HttpClientConnection conn = mock(org.apache.http.HttpClientConnection.class);
+        HttpClientConnection conn = mock(HttpClientConnection.class);
 
         cm.connect(conn, ROUTE, 1000, null);
 
@@ -364,8 +367,7 @@ public class RecreatingHttpClientConnectionManagerTest {
     public void poolStats_poolingManager_reportsCurrentPool() {
         AtomicInteger maxTotal = new AtomicInteger(5);
         RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
-            org.apache.http.impl.conn.PoolingHttpClientConnectionManager pool =
-                new org.apache.http.impl.conn.PoolingHttpClientConnectionManager();
+            PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager();
             pool.setMaxTotal(maxTotal.getAndIncrement());
             return pool;
         });

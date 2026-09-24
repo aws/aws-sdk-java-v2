@@ -293,7 +293,15 @@ public final class Apache5HttpClient implements SdkHttpClient {
             RecreatingHttpClientConnectionManager recreatingCm = (RecreatingHttpClientConnectionManager) cm;
             IdleConnectionReaper.getInstance().deregisterConnectionManager(recreatingCm);
             // Closing is intentional and permanent, unlike Apache closing the pool on an Error, so the pool must not be
-            // rebuilt afterwards. Both go through close(CloseMode) otherwise.
+            // rebuilt afterwards. Both go through close(CloseMode) otherwise, which is why the wrapper needs a separate
+            // entry point at all.
+            //
+            // Ordering matters here, and is the reason this method does not close the underlying CloseableHttpClient:
+            // HttpClientBuilder#build adds a non-shared connection manager to the client's closeables, so closing the
+            // Apache client would reach this wrapper through the same close(CloseMode) that an Error takes, and be
+            // treated as "rebuild on the next request". closePermanently() must run first, because it marks the wrapper
+            // closed and makes every later close a no-op. If this method ever needs to close the Apache client itself,
+            // do it after this call, never before.
             recreatingCm.closePermanently();
         } else {
             cm.close(CloseMode.IMMEDIATE);

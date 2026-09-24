@@ -66,15 +66,21 @@ import software.amazon.awssdk.utils.Logger;
  * <h2>Why connections leased from a replaced pool are safe to release into this wrapper</h2>
  * A request that was in flight when the pool was replaced will still call {@link #releaseConnection}, {@link #connect},
  * {@link #upgrade} or {@link #routeComplete} afterwards, and those calls reach the replacement pool rather than the one
- * the connection came from. That is harmless with Apache's pooling manager:
+ * the connection came from. That is harmless with Apache 4.x's pooling manager:
  * <ul>
  *   <li>{@code connect} and {@code routeComplete} act on the connection and its own pool entry, not on pool
  *       bookkeeping.</li>
  *   <li>{@code releaseConnection} detaches the entry from the connection and then calls {@code AbstractConnPool.release},
- *       which is guarded by {@code if (this.leased.remove(entry))} and so ignores an entry it never leased.</li>
+ *       which performs all of its work inside {@code if (this.leased.remove(entry))} with no else branch, and so
+ *       silently ignores an entry it never leased.</li>
  * </ul>
- * The in-flight request itself still fails, because its connection was closed when the old pool was shut down. Only
- * requests that start after the replacement see a working pool.
+ * Apache 5.x is not equivalent: there {@code StrictConnPool.release} throws for a foreign entry, which is why the 5.x
+ * wrapper has to handle that case explicitly. Do not copy this reasoning between the two modules without re-reading the
+ * corresponding Apache source.
+ *
+ * <p>The in-flight request itself still fails, because its connection was closed when the old pool was shut down. It
+ * fails with an {@link java.io.IOException} such as {@code SocketException: Socket closed}, which the SDK's retry policy
+ * does retry. Only requests that start after the replacement see a working pool.
  */
 @SdkInternalApi
 public final class RecreatingHttpClientConnectionManager implements HttpClientConnectionManager {
@@ -191,6 +197,11 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     }
 
     /**
+     * Reports statistics for the pool currently held, deliberately without building one. Reaping and metrics must never
+     * resurrect a client that is simply sitting idle, so between an Error destroying a pool and the next request
+     * rebuilding it this returns the destroyed pool's final stats - which can show leases that no longer exist. That
+     * window is transient and corrects itself on the next request.
+     *
      * @return pool statistics for the current pool, or null if it does not expose any.
      */
     public PoolStats poolStats() {

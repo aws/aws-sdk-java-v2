@@ -266,6 +266,12 @@ public final class ApacheHttpClient implements SdkHttpClient {
         if (cm instanceof RecreatingHttpClientConnectionManager) {
             // Closing is intentional and permanent, unlike Apache shutting the pool down on an Error, so the pool must
             // not be rebuilt afterwards.
+            //
+            // Ordering matters here, and is the reason this method does not close the underlying CloseableHttpClient:
+            // that would reach the connection manager through Apache's own shutdown path, which this wrapper treats as
+            // "rebuild on the next request". closePermanently() must run first, because it marks the wrapper closed and
+            // makes every later shutdown a no-op. If this method ever needs to close the Apache client itself, do it
+            // after this call, never before.
             ((RecreatingHttpClientConnectionManager) cm).closePermanently();
         } else {
             cm.shutdown();

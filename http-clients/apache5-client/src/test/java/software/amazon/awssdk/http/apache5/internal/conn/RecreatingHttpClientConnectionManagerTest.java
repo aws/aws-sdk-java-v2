@@ -28,7 +28,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -37,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.apache.hc.client5.http.HttpRoute;
+import org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager;
 import org.apache.hc.client5.http.io.ConnectionEndpoint;
 import org.apache.hc.client5.http.io.HttpClientConnectionManager;
 import org.apache.hc.client5.http.io.LeaseRequest;
@@ -400,6 +403,65 @@ public class RecreatingHttpClientConnectionManagerTest {
             .hasMessageContaining("Endpoint not acquired");
     }
 
+    /**
+     * The reason {@link IdleConnectionCloser} exists: the reaper registers this wrapper once and must keep reaping
+     * across pool replacements. Registering the pool itself would leave the reaper holding a discarded pool, and would
+     * break deregistration in {@code close()}.
+     */
+    @Test
+    public void reaper_afterRecreation_reapsReplacementPoolNotDiscardedOne() throws Exception {
+        List<PoolingHttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            PoolingHttpClientConnectionManager pool = mock(PoolingHttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            pools.add(pool);
+            return pool;
+        });
+
+        Map<IdleConnectionCloser, Long> registered = new HashMap<>();
+        ExecutorService reaperExecutor = Executors.newSingleThreadExecutor();
+        IdleConnectionReaper reaper = new IdleConnectionReaper(registered, () -> reaperExecutor, 50);
+        try {
+            reaper.registerConnectionManager(cm, 1L);
+
+            // Apache destroys the pool, then the next request builds a replacement.
+            cm.close(CloseMode.IMMEDIATE);
+            cm.lease("id-1", ROUTE, TIMEOUT, null);
+            assertThat(pools).hasSize(2);
+
+            PoolingHttpClientConnectionManager discarded = pools.get(0);
+            PoolingHttpClientConnectionManager replacement = pools.get(1);
+            verify(discarded, never()).closeIdle(any(TimeValue.class));
+
+            // The reaper still holds the one registration it was given, so reaping now has to reach the replacement.
+            Thread.sleep(400);
+
+            verify(replacement, atLeastOnce()).closeIdle(any(TimeValue.class));
+            verify(discarded, never()).closeIdle(any(TimeValue.class));
+            assertThat(reaper.deregisterConnectionManager(cm)).isTrue();
+        } finally {
+            reaperExecutor.shutdownNow();
+        }
+    }
+
+    @Test
+    public void closeIdle_afterRecreation_delegatesToReplacementPool() {
+        List<PoolingHttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            PoolingHttpClientConnectionManager pool = mock(PoolingHttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            pools.add(pool);
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+        cm.lease("id-1", ROUTE, TIMEOUT, null);
+        cm.closeIdle(TimeValue.ofSeconds(5));
+
+        verify(pools.get(1)).closeIdle(TimeValue.ofSeconds(5));
+        verify(pools.get(0), never()).closeIdle(any(TimeValue.class));
+    }
+
     @Test
     public void closeIdle_nonPoolingManager_isANoOp() {
         RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(factory);
@@ -421,8 +483,7 @@ public class RecreatingHttpClientConnectionManagerTest {
     public void poolStats_poolingManager_reportsCurrentPool() {
         AtomicInteger maxTotal = new AtomicInteger(5);
         RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
-            org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager pool =
-                new org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager();
+            PoolingHttpClientConnectionManager pool = new PoolingHttpClientConnectionManager();
             pool.setMaxTotal(maxTotal.getAndIncrement());
             return pool;
         });

@@ -361,7 +361,6 @@ public class Apache5HttpClientWireMockTest extends SdkHttpClientTestSuite {
                       .build();
     }
 
-
     @Test
     public void connectionTimeout_exceedsLimit_throwsException() {
         // Test connection timeout with a very short timeout and non-responsive address

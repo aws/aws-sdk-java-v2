@@ -63,16 +63,25 @@ import software.amazon.awssdk.utils.Logger;
  * close by the SDK goes through {@link #closePermanently()} instead, which does not rebuild. In 5.x the SDK and Apache
  * would otherwise call the identical method, so this distinction is essential.
  *
- * <h2>Why endpoints leased from a replaced pool are safe to release into this wrapper</h2>
+ * <h2>Endpoints leased from a pool that has since been replaced</h2>
  * A request that was in flight when the pool was replaced will still call {@link #release}, {@link #connect} or
  * {@link #upgrade} afterwards, and those calls reach the replacement pool rather than the one the endpoint came from.
- * That is harmless with Apache's pooling manager:
- * <ul>
- *   <li>{@code connect} and {@code upgrade} act on the endpoint's own connection, not on pool bookkeeping.</li>
- *   <li>{@code release} detaches the entry from the endpoint and then calls {@code StrictConnPool.release}, which is
- *       guarded by {@code if (this.leased.remove(entry))} and so ignores an entry it never leased.</li>
- * </ul>
- * The in-flight request itself still fails, because its connection was closed when the old pool was closed. Only
+ * {@code connect} and {@code upgrade} are fine: they act on the endpoint's own connection, not on pool bookkeeping.
+ *
+ * <p>{@code release} is not. Apache 5.x rejects an entry the pool never leased - {@code StrictConnPool.release} ends in
+ * {@code else { throw new IllegalStateException("Pool entry is not present in the set of leased entries"); }}, and
+ * {@code LaxConnPool} throws the same from {@code removeLeased}, so this does not depend on which
+ * {@code PoolConcurrencyPolicy} is in effect. Apache 4.x differs here: its {@code AbstractConnPool.release} performs the
+ * same work inside {@code if (leased.remove(entry))} with no else branch, so a foreign entry is silently ignored and the
+ * 4.x wrapper needs no equivalent handling.
+ *
+ * <p>{@link #release} therefore swallows exactly that exception, and only once a pool has actually been replaced. There
+ * is genuinely nothing to return: the pool the endpoint came from was closed, and closing it closed the connection.
+ * Without this, a request that merely overlapped someone else's {@link Error} would fail with an exception the SDK's
+ * retry policy does not retry - reintroducing the symptom this class exists to remove, on a different code path.
+ *
+ * <p>The in-flight request itself still fails, because its connection was closed when the old pool was closed. It fails
+ * with an {@link java.io.IOException} such as {@code SocketException: Socket closed}, which the SDK does retry. Only
  * requests that start after the replacement see a working pool.
  */
 @SdkInternalApi
@@ -220,6 +229,11 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     }
 
     /**
+     * Reports statistics for the pool currently held, deliberately without building one. Reaping and metrics must never
+     * resurrect a client that is simply sitting idle, so between an Error destroying a pool and the next request
+     * rebuilding it this returns the destroyed pool's final stats - which can show leases that no longer exist. That
+     * window is transient and corrects itself on the next request.
+     *
      * @return pool statistics for the current pool, or null if it does not expose any.
      */
     public PoolStats poolStats() {
