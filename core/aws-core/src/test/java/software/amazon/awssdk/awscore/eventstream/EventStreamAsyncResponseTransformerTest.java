@@ -19,13 +19,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.reactivex.Flowable;
+import io.reactivex.processors.PublishProcessor;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -36,6 +39,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.utils.ImmutableMap;
 import software.amazon.eventstream.HeaderValue;
@@ -79,17 +83,20 @@ public class EventStreamAsyncResponseTransformerTest {
             public void onComplete() {
             }
         };
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
         AsyncResponseTransformer<SdkResponse, Void> transformer =
             EventStreamAsyncResponseTransformer.builder()
                                                .eventStreamResponseHandler(
                                                    onEventStream(p -> p.subscribe(requestOneSubscriber)))
                                                .eventResponseHandler((r, e) -> new Object())
                                                .executor(Executors.newSingleThreadExecutor())
-                                               .future(new CompletableFuture<>())
+                                               .future(operationFuture)
                                                .build();
-        transformer.prepare();
+        CompletableFuture<Void> transformFuture = transformer.prepare();
         transformer.onStream(SdkPublisher.adapt(bytePublisher));
         latch.await();
+        transformFuture.join();
+        operationFuture.join();
         assertThat(numEvents)
             .as("Expected only one event to be delivered")
             .hasValue(1);
@@ -145,6 +152,267 @@ public class EventStreamAsyncResponseTransformerTest {
         assertThat(numEvents)
             .as("Expected only one event to be delivered")
             .hasValue(2);
+    }
+
+    @Test(timeout = 5000)
+    public void builderConsumerThrowsRuntimeException_attemptFailsBeforeCancellation() throws InterruptedException {
+        RuntimeException failure = new RuntimeException("boom");
+        verifyBuilderConsumerFailure(event -> {
+            throw failure;
+        }, failure);
+    }
+
+    @Test(timeout = 5000)
+    public void builderConsumerThrowsError_attemptFailsBeforeCancellation() throws InterruptedException {
+        AssertionError failure = new AssertionError("boom");
+        verifyBuilderConsumerFailure(event -> {
+            throw failure;
+        }, failure);
+    }
+
+    @Test(timeout = 5000)
+    public void builderConsumerThrowsWithPublisherTransformer_attemptFailsBeforeCancellation()
+        throws InterruptedException {
+        RuntimeException failure = new RuntimeException("boom");
+        Object transformedEvent = new Object();
+        TestResponseHandlerBuilder builder =
+            new TestResponseHandlerBuilder().publisherTransformer(publisher -> publisher.map(event -> transformedEvent));
+        verifyBuilderConsumerFailure(builder, event -> {
+            assertThat(event).isSameAs(transformedEvent);
+            throw failure;
+        }, failure);
+    }
+
+    @Test
+    public void builderConsumerCompletesNormally_operationCompletesNormally() {
+        Message eventMessage = eventMessage();
+        AtomicInteger numEvents = new AtomicInteger();
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
+        TestResponseHandler handler = new TestResponseHandlerBuilder()
+            .subscriber(event -> numEvents.incrementAndGet())
+            .build();
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+            EventStreamAsyncResponseTransformer.builder()
+                                               .eventStreamResponseHandler(handler)
+                                               .eventResponseHandler((r, e) -> new Object())
+                                               .future(operationFuture)
+                                               .build();
+
+        CompletableFuture<Void> transformFuture = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(Flowable.just(eventMessage.toByteBuffer())));
+
+        transformFuture.join();
+        operationFuture.join();
+        assertThat(numEvents).hasValue(1);
+    }
+
+    @Test
+    public void builderConsumer_validEventsDoNotCompleteOperation() {
+        Message eventMessage = eventMessage();
+        PublishProcessor<ByteBuffer> bytePublisher = PublishProcessor.create();
+        AtomicInteger numEvents = new AtomicInteger();
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
+        TestResponseHandler handler = new TestResponseHandlerBuilder()
+            .subscriber(event -> numEvents.incrementAndGet())
+            .build();
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+            EventStreamAsyncResponseTransformer.builder()
+                                               .eventStreamResponseHandler(handler)
+                                               .eventResponseHandler((r, e) -> new Object())
+                                               .future(operationFuture)
+                                               .build();
+
+        CompletableFuture<Void> transformFuture = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+        bytePublisher.onNext(eventMessage.toByteBuffer());
+
+        assertThat(numEvents).hasValue(1);
+        assertThat(transformFuture).isNotDone();
+        assertThat(operationFuture).isNotDone();
+
+        bytePublisher.onNext(eventMessage.toByteBuffer());
+        bytePublisher.onComplete();
+
+        transformFuture.join();
+        operationFuture.join();
+        assertThat(numEvents).hasValue(2);
+    }
+
+    @Test(timeout = 5000)
+    public void staleAttemptCallbackFailureDoesNotCompleteCurrentAttempt() {
+        RuntimeException firstAttemptFailure = new RuntimeException("attempt failed");
+        RuntimeException lateCallbackFailure = new RuntimeException("late callback failed");
+        PublishProcessor<ByteBuffer> firstPublisher = PublishProcessor.create();
+        PublishProcessor<ByteBuffer> secondPublisher = PublishProcessor.create();
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
+        AtomicInteger callbackInvocations = new AtomicInteger();
+        TestResponseHandler handler = new TestResponseHandlerBuilder()
+            .subscriber(event -> {
+                callbackInvocations.incrementAndGet();
+                throw lateCallbackFailure;
+            })
+            .build();
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+            EventStreamAsyncResponseTransformer.builder()
+                                               .eventStreamResponseHandler(handler)
+                                               .eventResponseHandler((r, e) -> new Object())
+                                               .future(operationFuture)
+                                               .build();
+
+        CompletableFuture<Void> firstAttempt = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(firstPublisher));
+        transformer.exceptionOccurred(firstAttemptFailure);
+        assertThatThrownBy(firstAttempt::join).hasCause(firstAttemptFailure);
+
+        CompletableFuture<Void> secondAttempt = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(secondPublisher));
+        firstPublisher.onNext(eventMessage().toByteBuffer());
+
+        assertThat(callbackInvocations).hasValue(1);
+        assertThat(operationFuture).isNotDone();
+        assertThat(secondAttempt).isNotDone();
+
+        secondPublisher.onComplete();
+        secondAttempt.join();
+        operationFuture.join();
+    }
+
+    @Test(timeout = 5000)
+    public void deferredStaleAttemptCallbackFailureDoesNotCompleteCurrentAttempt() throws InterruptedException {
+        RuntimeException firstAttemptFailure = new RuntimeException("attempt failed");
+        RuntimeException lateCallbackFailure = new RuntimeException("late callback failed");
+        PublishProcessor<ByteBuffer> firstPublisher = PublishProcessor.create();
+        PublishProcessor<ByteBuffer> secondPublisher = PublishProcessor.create();
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
+        CompletableFuture<Void> releaseFirstDispatch = new CompletableFuture<>();
+        CompletableFuture<Void> firstDispatch = new CompletableFuture<>();
+        CountDownLatch firstDispatchStarted = new CountDownLatch(1);
+        AtomicInteger dispatchInvocations = new AtomicInteger();
+        AtomicInteger callbackInvocations = new AtomicInteger();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        try {
+            TestResponseHandlerBuilder builder = new TestResponseHandlerBuilder().subscriber(event -> {
+                callbackInvocations.incrementAndGet();
+                throw lateCallbackFailure;
+            });
+            EventStreamResponseHandlerFromBuilder<Object, Object> handler =
+                new EventStreamResponseHandlerFromBuilder<Object, Object>(builder) {
+                    @Override
+                    public void onEventStream(SdkPublisher<Object> publisher) {
+                        if (dispatchInvocations.getAndIncrement() == 0) {
+                            executor.execute(() -> {
+                                firstDispatchStarted.countDown();
+                                try {
+                                    releaseFirstDispatch.join();
+                                    super.onEventStream(publisher);
+                                    firstDispatch.complete(null);
+                                } catch (Throwable t) {
+                                    firstDispatch.completeExceptionally(t);
+                                }
+                            });
+                        } else {
+                            super.onEventStream(publisher);
+                        }
+                    }
+                };
+            AsyncResponseTransformer<SdkResponse, Void> transformer =
+                EventStreamAsyncResponseTransformer.builder()
+                                                   .eventStreamResponseHandler(handler)
+                                                   .eventResponseHandler((r, e) -> new Object())
+                                                   .future(operationFuture)
+                                                   .build();
+
+            CompletableFuture<Void> firstAttempt = transformer.prepare();
+            transformer.onStream(SdkPublisher.adapt(firstPublisher));
+            assertThat(firstDispatchStarted.await(1, TimeUnit.SECONDS)).isTrue();
+            transformer.exceptionOccurred(firstAttemptFailure);
+            assertThatThrownBy(firstAttempt::join).hasCause(firstAttemptFailure);
+
+            CompletableFuture<Void> secondAttempt = transformer.prepare();
+            transformer.onStream(SdkPublisher.adapt(secondPublisher));
+            releaseFirstDispatch.complete(null);
+            firstDispatch.join();
+            firstPublisher.onNext(eventMessage().toByteBuffer());
+
+            assertThat(callbackInvocations).hasValue(1);
+            assertThat(operationFuture).isNotDone();
+            assertThat(secondAttempt).isNotDone();
+
+            secondPublisher.onComplete();
+            secondAttempt.join();
+            operationFuture.join();
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test(timeout = 5000)
+    public void responseHandlerFromBuilderOverride_originalPublisher_callbackFailurePropagates()
+        throws InterruptedException {
+        RuntimeException failure = new RuntimeException("boom");
+        AtomicBoolean invoked = new AtomicBoolean();
+        AtomicInteger numEvents = new AtomicInteger();
+        TestResponseHandlerBuilder builder = new TestResponseHandlerBuilder().subscriber(event -> {
+            numEvents.incrementAndGet();
+            throw failure;
+        });
+        EventStreamResponseHandlerFromBuilder<Object, Object> handler =
+            new EventStreamResponseHandlerFromBuilder<Object, Object>(builder) {
+                @Override
+                public void onEventStream(SdkPublisher<Object> publisher) {
+                    invoked.set(true);
+                    super.onEventStream(publisher);
+                }
+            };
+
+        verifyBuilderConsumerFailure(handler, failure, numEvents);
+        assertThat(invoked).isTrue();
+    }
+
+    @Test(timeout = 5000)
+    public void responseHandlerFromBuilderOverride_wrappedPublisher_callbackFailurePropagates()
+        throws InterruptedException {
+        RuntimeException failure = new RuntimeException("boom");
+        AtomicInteger numEvents = new AtomicInteger();
+        TestResponseHandlerBuilder builder = new TestResponseHandlerBuilder().subscriber(event -> {
+            numEvents.incrementAndGet();
+            throw failure;
+        });
+        EventStreamResponseHandlerFromBuilder<Object, Object> handler =
+            new EventStreamResponseHandlerFromBuilder<Object, Object>(builder) {
+                @Override
+                public void onEventStream(SdkPublisher<Object> publisher) {
+                    super.onEventStream(publisher.map(event -> event));
+                }
+            };
+
+        verifyBuilderConsumerFailure(handler, failure, numEvents);
+    }
+
+    @Test(timeout = 5000)
+    public void responseHandlerFromBuilderOverride_deferredPublisher_callbackFailurePropagates()
+        throws InterruptedException {
+        RuntimeException failure = new RuntimeException("boom");
+        AtomicInteger numEvents = new AtomicInteger();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            TestResponseHandlerBuilder builder = new TestResponseHandlerBuilder().subscriber(event -> {
+                numEvents.incrementAndGet();
+                throw failure;
+            });
+            EventStreamResponseHandlerFromBuilder<Object, Object> handler =
+                new EventStreamResponseHandlerFromBuilder<Object, Object>(builder) {
+                    @Override
+                    public void onEventStream(SdkPublisher<Object> publisher) {
+                        executor.execute(() -> super.onEventStream(publisher));
+                    }
+                };
+
+            verifyBuilderConsumerFailure(handler, failure, numEvents);
+        } finally {
+            executor.shutdownNow();
+        }
     }
 
     @Test
@@ -321,6 +589,62 @@ public class EventStreamAsyncResponseTransformerTest {
                 .hasValue(0);
     }
 
+    private void verifyBuilderConsumerFailure(Consumer<Object> consumer, Throwable expectedFailure)
+        throws InterruptedException {
+        verifyBuilderConsumerFailure(new TestResponseHandlerBuilder(), consumer, expectedFailure);
+    }
+
+    private void verifyBuilderConsumerFailure(TestResponseHandlerBuilder builder,
+                                              Consumer<Object> consumer,
+                                              Throwable expectedFailure) throws InterruptedException {
+        AtomicInteger numEvents = new AtomicInteger();
+        EventStreamResponseHandler<Object, Object> handler = builder
+            .subscriber(event -> {
+                numEvents.incrementAndGet();
+                consumer.accept(event);
+            })
+            .build();
+        verifyBuilderConsumerFailure(handler, expectedFailure, numEvents);
+    }
+
+    private void verifyBuilderConsumerFailure(EventStreamResponseHandler<Object, Object> handler,
+                                              Throwable expectedFailure,
+                                              AtomicInteger numEvents) throws InterruptedException {
+        Message eventMessage = eventMessage();
+        CountDownLatch cancelled = new CountDownLatch(1);
+        Flowable<ByteBuffer> bytePublisher = Flowable.just(eventMessage.toByteBuffer(), eventMessage.toByteBuffer())
+                                                     .doOnCancel(cancelled::countDown);
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
+        AsyncResponseTransformer<SdkResponse, Void> transformer =
+            EventStreamAsyncResponseTransformer.builder()
+                                               .eventStreamResponseHandler(handler)
+                                               .eventResponseHandler((r, e) -> new Object())
+                                               .future(operationFuture)
+                                               .build();
+
+        CompletableFuture<Void> transformFuture = transformer.prepare();
+        transformer.onStream(SdkPublisher.adapt(bytePublisher));
+
+        CompletionException completionException = null;
+        try {
+            transformFuture.join();
+        } catch (CompletionException e) {
+            completionException = e;
+        }
+        assertThat(completionException).isNotNull();
+        assertThat(completionException.getCause()).isInstanceOf(NonRetryableException.class);
+        assertThat(completionException.getCause().getCause()).isSameAs(expectedFailure);
+        assertThat(cancelled.await(1, TimeUnit.SECONDS)).isTrue();
+        assertThat(operationFuture).isNotDone();
+        assertThat(numEvents).hasValue(1);
+    }
+
+    private Message eventMessage() {
+        return new Message(ImmutableMap.of(":message-type", HeaderValue.fromString("event"),
+                                           ":event-type", HeaderValue.fromString("foo")),
+                           new byte[0]);
+    }
+
     private void verifyExceptionThrown(Map<String, HeaderValue> headers) {
         SdkServiceException exception = SdkServiceException.builder().build();
 
@@ -351,6 +675,20 @@ public class EventStreamAsyncResponseTransformerTest {
         }).isSameAs(exception);
 
         assertThat(handler.exceptionOccurredCalled).isTrue();
+    }
+
+    private static final class TestResponseHandlerBuilder
+        extends DefaultEventStreamResponseHandlerBuilder<Object, Object, TestResponseHandlerBuilder> {
+
+        private TestResponseHandler build() {
+            return new TestResponseHandler(this);
+        }
+    }
+
+    private static final class TestResponseHandler extends EventStreamResponseHandlerFromBuilder<Object, Object> {
+        private TestResponseHandler(TestResponseHandlerBuilder builder) {
+            super(builder);
+        }
     }
 
     private static class SubscribingResponseHandler implements EventStreamResponseHandler<Object, Object> {

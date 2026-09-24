@@ -35,6 +35,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
@@ -87,18 +88,12 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
      * completion of the request (i.e. finish reading all the data from the wire) and the completion of the event
      * stream (i.e. deliver the last event to the subscriber).
      */
-    private final CompletableFuture<Void> future;
+    private final CompletableFuture<Void> operationFuture;
 
     /**
-     * Whether exceptions may be sent to the downstream event stream response handler. This prevents multiple exception
-     * deliveries from being performed.
+     * Most recently prepared request attempt, shared with asynchronous stream callbacks.
      */
-    private final AtomicBoolean exceptionsMayBeSent = new AtomicBoolean(true);
-
-    /**
-     * The future generated via {@link #prepare()}.
-     */
-    private volatile CompletableFuture<Void> transformFuture;
+    private volatile AttemptContext currentAttempt;
 
     /**
      * Request Id for the streaming request. The value is populated when the initial response is received from the service.
@@ -119,13 +114,13 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         HttpResponseHandler<? extends ResponseT> initialResponseHandler,
         HttpResponseHandler<? extends EventT> eventResponseHandler,
         HttpResponseHandler<? extends Throwable> exceptionResponseHandler,
-        CompletableFuture<Void> future,
+        CompletableFuture<Void> operationFuture,
         String serviceName) {
         this.eventStreamResponseHandler = eventStreamResponseHandler;
         this.initialResponseHandler = initialResponseHandler;
         this.eventResponseHandler = eventResponseHandler;
         this.exceptionResponseHandler = exceptionResponseHandler;
-        this.future = future;
+        this.operationFuture = operationFuture;
         this.attributesFactory = () -> new ExecutionAttributes().putAttribute(SdkExecutionAttribute.SERVICE_NAME, serviceName);
     }
 
@@ -142,8 +137,13 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     @Override
     public CompletableFuture<Void> prepare() {
-        transformFuture = new CompletableFuture<>();
-        return transformFuture;
+        AttemptContext previousAttempt = currentAttempt;
+        if (previousAttempt != null) {
+            previousAttempt.terminated.set(true);
+        }
+        AttemptContext attempt = new AttemptContext();
+        currentAttempt = attempt;
+        return attempt.transformFuture;
     }
 
     @Override
@@ -163,48 +163,79 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
 
     @Override
     public void onStream(SdkPublisher<ByteBuffer> publisher) {
-        Validate.isTrue(transformFuture != null, "onStream() invoked without prepare().");
-
-        exceptionsMayBeSent.set(true);
+        AttemptContext attempt = currentAttempt;
+        Validate.isTrue(attempt != null, "onStream() invoked without prepare().");
 
         SynchronousMessageDecoder decoder = new SynchronousMessageDecoder();
-        eventStreamResponseHandler.onEventStream(publisher.flatMapIterable(decoder::decode)
-                                                          .flatMapIterable(this::transformMessage)
-                                                          .doAfterOnComplete(this::handleOnStreamComplete)
-                                                          .doAfterOnError(this::handleOnStreamError)
-                                                          .doAfterOnCancel(this::handleOnStreamCancel));
+        SdkPublisher<EventT> eventPublisher = publisher.flatMapIterable(decoder::decode)
+                                                        .flatMapIterable(this::transformMessage)
+                                                        .doAfterOnComplete(() -> handleOnStreamComplete(attempt))
+                                                        .doAfterOnError(t -> handleOnStreamError(attempt, t))
+                                                        .doAfterOnCancel(() -> handleOnStreamCancel(attempt));
+        EventStreamResponseHandlerFromBuilder.invokeOnEventStream(
+            eventStreamResponseHandler, eventPublisher, t -> handleEventConsumerFailure(attempt, t));
     }
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
-        if (exceptionsMayBeSent.compareAndSet(true, false)) {
+        AttemptContext attempt = currentAttempt;
+        // Marshaling and interceptor failures can invoke this before prepare().
+        if (attempt != null) {
+            handleStreamFailure(attempt, throwable);
+        }
+    }
+
+    private void handleStreamFailure(AttemptContext attempt, Throwable throwable) {
+        if (attempt.terminated.compareAndSet(false, true)) {
             try {
                 eventStreamResponseHandler.exceptionOccurred(throwable);
             } catch (RuntimeException e) {
                 log.warn(() -> "Exception raised by exceptionOccurred. Ignoring.", e);
             }
-            transformFuture.completeExceptionally(throwable);
+            attempt.transformFuture.completeExceptionally(throwable);
         }
     }
 
-    private void handleOnStreamComplete() {
-        log.trace(() -> getLogPrefix() + "Event stream completed successfully.");
-        exceptionsMayBeSent.set(false);
-        eventStreamResponseHandler.complete();
-        transformFuture.complete(null);
-        future.complete(null);
+    private void handleOnStreamComplete(AttemptContext attempt) {
+        if (attempt.terminated.compareAndSet(false, true)) {
+            log.trace(() -> getLogPrefix() + "Event stream completed successfully.");
+            eventStreamResponseHandler.complete();
+            attempt.transformFuture.complete(null);
+            if (currentAttempt == attempt) {
+                operationFuture.complete(null);
+            }
+        }
     }
 
-    private void handleOnStreamError(Throwable throwable) {
+    private void handleOnStreamError(AttemptContext attempt, Throwable throwable) {
         log.trace(() -> getLogPrefix() + "Event stream failed.", throwable);
-        exceptionOccurred(throwable);
+        handleStreamFailure(attempt, throwable);
     }
 
-    private void handleOnStreamCancel() {
-        log.trace(() -> getLogPrefix() + "Event stream cancelled.");
-        exceptionsMayBeSent.set(false);
-        transformFuture.complete(null);
-        future.complete(null);
+    private void handleOnStreamCancel(AttemptContext attempt) {
+        if (attempt.terminated.compareAndSet(false, true)) {
+            log.trace(() -> getLogPrefix() + "Event stream cancelled.");
+            attempt.transformFuture.complete(null);
+            if (currentAttempt == attempt) {
+                operationFuture.complete(null);
+            }
+        }
+    }
+
+    private void handleEventConsumerFailure(AttemptContext attempt, Throwable throwable) {
+        if (attempt.terminated.compareAndSet(false, true)) {
+            log.trace(() -> getLogPrefix() + "Event stream callback failed.", throwable);
+            attempt.transformFuture.completeExceptionally(
+                NonRetryableException.create("Exception thrown from an event stream callback.", throwable));
+        }
+    }
+
+    /**
+     * Holds the transform future and terminal claim for one request attempt.
+     */
+    private static final class AttemptContext {
+        private final CompletableFuture<Void> transformFuture = new CompletableFuture<>();
+        private final AtomicBoolean terminated = new AtomicBoolean();
     }
 
     private static final class SynchronousMessageDecoder {
@@ -337,7 +368,7 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         private HttpResponseHandler<? extends ResponseT> initialResponseHandler;
         private HttpResponseHandler<? extends EventT> eventResponseHandler;
         private HttpResponseHandler<? extends Throwable> exceptionResponseHandler;
-        private CompletableFuture<Void> future;
+        private CompletableFuture<Void> operationFuture;
         private String serviceName;
 
         private Builder() {
@@ -391,11 +422,11 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
         }
 
         /**
-         * @param future Future to notify when the last event has been delivered.
+         * @param operationFuture Future to notify when the last event has been delivered.
          * @return This object for method chaining.
          */
-        public Builder<ResponseT, EventT> future(CompletableFuture<Void> future) {
-            this.future = future;
+        public Builder<ResponseT, EventT> future(CompletableFuture<Void> operationFuture) {
+            this.operationFuture = operationFuture;
             return this;
         }
 
@@ -413,7 +444,7 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                                              initialResponseHandler,
                                                              eventResponseHandler,
                                                              exceptionResponseHandler,
-                                                             future,
+                                                             operationFuture,
                                                              serviceName);
         }
     }
