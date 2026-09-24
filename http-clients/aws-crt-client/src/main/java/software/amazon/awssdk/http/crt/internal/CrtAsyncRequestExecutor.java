@@ -63,11 +63,12 @@ public final class CrtAsyncRequestExecutor {
             acquireStartTime = System.nanoTime();
         }
 
-        HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext);
         HttpStreamManager streamManager = executionContext.streamManager();
 
         CrtResponseAdapter crtResponseHandler =
             CrtResponseAdapter.toCrtResponseHandler(requestFuture, asyncRequest.responseHandler());
+
+        HttpRequestBase crtRequest = toAsyncCrtRequest(executionContext, crtResponseHandler::failRequest);
 
         CompletableFuture<HttpStreamBase> streamFuture =
             streamManager.acquireStream(crtRequest, crtResponseHandler);

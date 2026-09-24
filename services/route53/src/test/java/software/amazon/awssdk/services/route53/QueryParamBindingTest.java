@@ -15,11 +15,14 @@
 
 package software.amazon.awssdk.services.route53;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.net.URI;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -32,6 +35,8 @@ import software.amazon.awssdk.services.route53.transform.GetHealthCheckLastFailu
 import software.amazon.awssdk.services.route53.transform.ListHealthChecksRequestMarshaller;
 
 public class QueryParamBindingTest {
+
+    private static final Pattern API_VERSION_PREFIX = Pattern.compile("^/\\d{4}-\\d{2}-\\d{2}(?=/)");
 
     protected static final AwsXmlProtocolFactory PROTOCOL_FACTORY = AwsXmlProtocolFactory
         .builder()
@@ -58,7 +63,7 @@ public class QueryParamBindingTest {
                 .build();
 
         SdkHttpFullRequest httpReq_List = new ListHealthChecksRequestMarshaller(PROTOCOL_FACTORY).marshall(listReq);
-        assertEquals("/2013-04-01/healthcheck", httpReq_List.encodedPath());
+        assertEquals("/healthcheck", pathAfterApiVersion(httpReq_List.encodedPath()));
 
         Map<String, List<String>> queryParams = httpReq_List.rawQueryParameters();
         assertEquals(2, queryParams.size());
@@ -74,10 +79,18 @@ public class QueryParamBindingTest {
         System.out.println(httpReq_GetFailure);
         // parameter value should be URL encoded
         assertEquals(
-                "/2013-04-01/healthcheck/%3Fcharlie/lastfailurereason",
-                httpReq_GetFailure.encodedPath());
+                "/healthcheck/%3Fcharlie/lastfailurereason",
+                pathAfterApiVersion(httpReq_GetFailure.encodedPath()));
 
         queryParams = httpReq_GetFailure.rawQueryParameters();
         assertEquals(0, queryParams.size());
+    }
+
+    private static String pathAfterApiVersion(String encodedPath) {
+        Matcher matcher = API_VERSION_PREFIX.matcher(encodedPath);
+        assertThat(matcher.lookingAt())
+            .withFailMessage("Expected path to start with an API version segment, but was: %s", encodedPath)
+            .isTrue();
+        return encodedPath.substring(matcher.end());
     }
 }

@@ -31,6 +31,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
@@ -57,16 +58,14 @@ import software.amazon.awssdk.services.cloudfront.model.ViewerProtocolPolicy;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V2RestXmlRoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private CloudFrontClient client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
+        byte[] response = MockHttpServer.loadFixture("rest-xml-protocol/create-distribution-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "text/xml");
         server.start();
 
         client = CloudFrontClient.builder()

@@ -28,6 +28,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -68,6 +69,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     private volatile boolean responseHandlingInitiated;
 
+    // Guards the single terminal responseHandler.onError notification. The first error to complete resultFuture wins;
+    // the later cancel-derived AWS_ERROR_S3_CANCELED must not re-notify. See #6715.
+    private final AtomicBoolean responseHandlerNotified = new AtomicBoolean(false);
+
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        PublisherListener<S3MetaRequestProgress> progressListener,
@@ -83,8 +88,17 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                        Duration s3MetaRequestTimeout) {
         this.resultFuture = executeFuture;
         this.metaRequestFuture = metaRequestFuture;
+        this.responseHandler = responseHandler;
+        this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
+        this.s3MetaRequestTimeout = s3MetaRequestTimeout;
 
+        // Registered last: the callback reads responseHandler and s3MetaRequestTimeout, so all fields must be assigned
+        // first in case resultFuture is already complete and the callback runs synchronously here.
         resultFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                notifyResponseHandlerOnError(t);
+            }
+
             S3MetaRequestWrapper s3MetaRequest = s3MetaRequest();
             if (s3MetaRequest == null) {
                 return;
@@ -95,10 +109,6 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             }
             s3MetaRequest.close();
         });
-
-        this.responseHandler = responseHandler;
-        this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
-        this.s3MetaRequestTimeout = s3MetaRequestTimeout;
     }
 
     private S3MetaRequestWrapper s3MetaRequest() {
@@ -290,9 +300,15 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     }
 
     private void failResponseHandlerAndFuture(Throwable exception) {
-        runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
-                       () -> responseHandler.onError(exception));
+        notifyResponseHandlerOnError(exception);
         resultFuture.completeExceptionally(exception);
+    }
+
+    private void notifyResponseHandlerOnError(Throwable exception) {
+        if (responseHandlerNotified.compareAndSet(false, true)) {
+            runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
+                           () -> responseHandler.onError(exception));
+        }
     }
 
     private static boolean isServiceError(int responseStatus) {
