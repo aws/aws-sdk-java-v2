@@ -231,6 +231,11 @@ public class CustomizationConfig {
     private Boolean defaultNewRetries2026;
 
     /**
+     * Whether the client will apply a default read/write timeout by default.
+     */
+    private Boolean defaultEnableSocketTimeout2026;
+
+    /**
      * Whether to generate an abstract decorator class that delegates to the async service client
      */
     private boolean delegateAsyncClientClass;
@@ -313,11 +318,6 @@ public class CustomizationConfig {
     private Map<String, ClientContextParam> customClientContextParams;
 
     private boolean s3ExpressAuthSupport;
-
-    /**
-     * Set to true to enable compiled endpoint rules. Currently defaults to false.
-     */
-    private boolean enableGenerateCompiledEndpointRules = false;
 
     /**
      * Customization related to auth scheme derived from endpoints.
@@ -737,6 +737,14 @@ public class CustomizationConfig {
         this.defaultNewRetries2026 = defaultNewRetries2026;
     }
 
+    public Boolean getDefaultEnableSocketTimeout2026() {
+        return defaultEnableSocketTimeout2026;
+    }
+
+    public void setDefaultEnableSocketTimeout2026(Boolean defaultEnableSocketTimeout2026) {
+        this.defaultEnableSocketTimeout2026 = defaultEnableSocketTimeout2026;
+    }
+
     public ServiceConfig getServiceConfig() {
         return serviceConfig;
     }
@@ -815,14 +823,6 @@ public class CustomizationConfig {
 
     public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
-    }
-
-    public boolean isEnableGenerateCompiledEndpointRules() {
-        return enableGenerateCompiledEndpointRules;
-    }
-
-    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
-        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
     }
 
     public Map<String, String> getSkipEndpointTests() {

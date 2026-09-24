@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
@@ -46,6 +47,7 @@ import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.querytojsoncompatible.auth.scheme.QueryToJsonCompatibleAuthSchemeParams;
 import software.amazon.awssdk.services.querytojsoncompatible.auth.scheme.QueryToJsonCompatibleAuthSchemeProvider;
+import software.amazon.awssdk.services.querytojsoncompatible.auth.scheme.internal.DefaultQueryToJsonCompatibleAuthSchemeProvider;
 import software.amazon.awssdk.services.querytojsoncompatible.endpoints.QueryToJsonCompatibleEndpointParams;
 import software.amazon.awssdk.services.querytojsoncompatible.endpoints.QueryToJsonCompatibleEndpointProvider;
 import software.amazon.awssdk.services.querytojsoncompatible.endpoints.internal.QueryToJsonCompatibleEndpointResolverUtils;
@@ -78,6 +80,21 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
     private final AwsJsonProtocolFactory protocolFactory;
 
     private final SdkClientConfiguration clientConfiguration;
+
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            case "InvalidInputException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
+                                                    .exceptionBuilderSupplier(InvalidInputException::builder).build());
+            default:
+                return Optional.empty();
+        }
+    };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
 
     protected DefaultQueryToJsonCompatibleClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
@@ -114,18 +131,6 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
 
         HttpResponseHandler<APostOperationResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
                                                                                                             APostOperationResponse::builder);
-        Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
-            if (errorCode == null) {
-                return Optional.empty();
-            }
-            switch (errorCode) {
-                case "InvalidInputException":
-                    return Optional.of(ExceptionMetadata.builder().errorCode("InvalidInputException").httpStatusCode(400)
-                                                        .exceptionBuilderSupplier(InvalidInputException::builder).build());
-                default:
-                    return Optional.empty();
-            }
-        };
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
                                                                                                    operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
@@ -150,7 +155,7 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
                                              .withEndpointResolver(this::resolveEndpoint)
                                              .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -174,6 +179,15 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
         return publishers;
     }
 
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
             ExecutionAttributes executionAttributes) {
         String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
@@ -186,10 +200,23 @@ final class DefaultQueryToJsonCompatibleClient implements QueryToJsonCompatibleC
                                                                                                        : Validate.isInstanceOf(QueryToJsonCompatibleAuthSchemeProvider.class,
                                                                                                                                executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                                                                                                                                "Expected an instance of QueryToJsonCompatibleAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultQueryToJsonCompatibleAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         QueryToJsonCompatibleAuthSchemeParams.Builder paramsBuilder = QueryToJsonCompatibleAuthSchemeParams.builder().operation(
             operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 

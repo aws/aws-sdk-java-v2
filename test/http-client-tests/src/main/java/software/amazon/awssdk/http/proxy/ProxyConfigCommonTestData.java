@@ -36,6 +36,7 @@ public final class ProxyConfigCommonTestData {
     public static final String ENVIRONMENT_HOST = "environmentVariable.com".toLowerCase(Locale.US);
     public static final String ENVIRONMENT_VARIABLE_PORT_NUMBER = "3333";
     public static final String ENVIRONMENT_VARIABLE_NON_PROXY = "environmentVariableNonProxy".toLowerCase(Locale.US);
+    public static final String ENVIRONMENT_VARIABLE_NON_PROXY_SECOND = "secondNonProxy.com".toLowerCase(Locale.US);
     public static final String USER_HOST_ON_BUILDER = "proxyBuilder.com";
     public static final int USER_PORT_NUMBER_ON_BUILDER = 9999;
     public static final String USER_USERNAME_ON_BUILDER = "proxyBuilderUser";
@@ -245,7 +246,16 @@ public final class ProxyConfigCommonTestData {
                 + "resolved",
                 getSystemPropertiesWithNoUserName(),
                 environmentSettingsWithNoPassword(),
-                new TestProxySetting(), false, true, getEnvironmentVariableProxySettings().password(null))
+                new TestProxySetting(), false, true, getEnvironmentVariableProxySettings().password(null)),
+
+            Arguments.of(
+                "Provided no system property and a comma-space separated no_proxy environment variable when "
+                + "useEnvironmentVariable is set then each non-proxy host is resolved with surrounding whitespace trimmed",
+                Collections.singletonList(Pair.of("", "")),
+                environmentSettingsWithCommaSpaceNonProxy(),
+                new TestProxySetting(), false, true,
+                getEnvironmentVariableProxySettings().nonProxyHost(ENVIRONMENT_VARIABLE_NON_PROXY,
+                                                                   ENVIRONMENT_VARIABLE_NON_PROXY_SECOND))
         );
     }
 
@@ -297,6 +307,15 @@ public final class ProxyConfigCommonTestData {
             Pair.of("%s_proxy",
                     "http://" + ENV_VARIABLE_USER + "@" + ENVIRONMENT_HOST + ":" + ENVIRONMENT_VARIABLE_PORT_NUMBER + "/"),
             Pair.of("no_proxy", ENVIRONMENT_VARIABLE_NON_PROXY)
+        );
+    }
+
+    private static List<Pair<String, String>> environmentSettingsWithCommaSpaceNonProxy() {
+        return Arrays.asList(
+            Pair.of("%s_proxy",
+                    "http://" + ENV_VARIABLE_USER + ":" + ENV_VARIABLE_PASSWORD + "@" + ENVIRONMENT_HOST
+                    + ":" + ENVIRONMENT_VARIABLE_PORT_NUMBER + "/"),
+            Pair.of("no_proxy", ENVIRONMENT_VARIABLE_NON_PROXY + ", " + ENVIRONMENT_VARIABLE_NON_PROXY_SECOND)
         );
     }
 

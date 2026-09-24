@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import org.slf4j.Logger;
@@ -58,6 +59,7 @@ import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeParams;
 import software.amazon.awssdk.services.query.auth.scheme.QueryAuthSchemeProvider;
+import software.amazon.awssdk.services.query.auth.scheme.internal.DefaultQueryAuthSchemeProvider;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointParams;
 import software.amazon.awssdk.services.query.endpoints.QueryEndpointProvider;
 import software.amazon.awssdk.services.query.endpoints.internal.QueryEndpointResolverUtils;
@@ -139,6 +141,8 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
 
     private final ScheduledExecutorService executorService;
 
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
+
     protected DefaultQueryAsyncClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsAsyncClientHandler(clientConfiguration);
         this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
@@ -199,12 +203,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .hostPrefixExpression(resolvedHostExpression).withInput(aPostOperationRequest));
             CompletableFuture<APostOperationResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -261,12 +263,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(aPostOperationWithOutputRequest));
             CompletableFuture<APostOperationWithOutputResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -319,12 +319,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
                              .withEndpointResolver(this::resolveEndpoint).withInput(bearerAuthOperationRequest));
             CompletableFuture<BearerAuthOperationResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -385,12 +383,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                              .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
                              .withInput(getOperationWithChecksumRequest));
             CompletableFuture<GetOperationWithChecksumResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -448,12 +444,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
                                                     HttpChecksumRequired.create()).withInput(operationWithChecksumRequiredRequest));
             CompletableFuture<OperationWithChecksumRequiredResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -506,12 +500,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithContextParamRequest));
             CompletableFuture<OperationWithContextParamResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -565,12 +557,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithCustomMemberRequest));
             CompletableFuture<OperationWithCustomMemberResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -628,12 +618,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithCustomizedOperationContextParamRequest));
             CompletableFuture<OperationWithCustomizedOperationContextParamResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -691,12 +679,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithMapOperationContextParamRequest));
             CompletableFuture<OperationWithMapOperationContextParamResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -749,12 +735,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithNoneAuthTypeRequest));
             CompletableFuture<OperationWithNoneAuthTypeResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -812,12 +796,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithOperationContextParamRequest));
             CompletableFuture<OperationWithOperationContextParamResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -876,12 +858,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                                     RequestCompression.builder().encodings("gzip").isStreaming(false).build())
                              .withInput(operationWithRequestCompressionRequest));
             CompletableFuture<OperationWithRequestCompressionResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -938,12 +918,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint)
                              .withInput(operationWithStaticContextParamsRequest));
             CompletableFuture<OperationWithStaticContextParamsResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1046,7 +1024,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                    () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
                 endOfStreamFuture.whenComplete((r2, e2) -> {
-                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                    publishMetrics(metricPublishers, apiCallMetricCollector);
                 });
             });
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
@@ -1054,7 +1032,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             AsyncResponseTransformer<PutOperationWithChecksumResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                            () -> finalAsyncResponseTransformer.exceptionOccurred(t));
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1116,12 +1094,10 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                              .withEndpointResolver(this::resolveEndpoint).withAsyncRequestBody(requestBody)
                              .withInput(streamingInputOperationRequest));
             CompletableFuture<StreamingInputOperationResponse> whenCompleteFuture = null;
-            whenCompleteFuture = executeFuture.whenComplete((r, e) -> {
-                metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
-            });
+            whenCompleteFuture = publishMetricsWhenComplete(executeFuture, metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
         } catch (Throwable t) {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1192,7 +1168,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
                                    () -> finalAsyncResponseTransformer.exceptionOccurred(e));
                 }
                 endOfStreamFuture.whenComplete((r2, e2) -> {
-                    metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+                    publishMetrics(metricPublishers, apiCallMetricCollector);
                 });
             });
             return CompletableFutureUtils.forwardExceptionTo(whenCompleteFuture, executeFuture);
@@ -1200,7 +1176,7 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
             AsyncResponseTransformer<StreamingOutputOperationResponse, ReturnT> finalAsyncResponseTransformer = asyncResponseTransformer;
             runAndLogError(log, "Exception thrown in exceptionOccurred callback, ignoring",
                            () -> finalAsyncResponseTransformer.exceptionOccurred(t));
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
             return CompletableFutureUtils.failedFuture(t);
         }
     }
@@ -1244,6 +1220,23 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         return publishers;
     }
 
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    /**
+     * Publishes the collected API call metrics once {@code future} completes, normally or exceptionally.
+     */
+    private static <T> CompletableFuture<T> publishMetricsWhenComplete(CompletableFuture<T> future,
+            List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        return future.whenComplete((r, e) -> publishMetrics(metricPublishers, apiCallMetricCollector));
+    }
+
     private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
             ExecutionAttributes executionAttributes) {
         String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
@@ -1255,9 +1248,22 @@ final class DefaultQueryAsyncClient implements QueryAsyncClient {
         QueryAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
             .isInstanceOf(QueryAuthSchemeProvider.class, executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
                           "Expected an instance of QueryAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultQueryAuthSchemeProvider;
+        String cacheKey = operationName + ":" + executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
         QueryAuthSchemeParams.Builder paramsBuilder = QueryAuthSchemeParams.builder().operation(operationName);
         paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
         List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
         return options;
     }
 

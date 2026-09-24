@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.presignedurl;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
@@ -72,10 +73,47 @@ public class PresignedUrlDownloadRequestMarshaller implements Marshaller<Presign
 
             return requestBuilder.build();
         } catch (Exception e) {
+            String redactedUrl = PresignedUrlRedactionUtils.redactQueryString(presignedUrlDownloadRequestWrapper.url());
             throw SdkClientException.builder()
-                    .message("Unable to marshall pre-signed URL Request: " + e.getMessage())
-                    .cause(e).build();
+                    .message("Unable to marshall pre-signed URL Request for " + redactedUrl + ": " + failureDescription(e))
+                    .cause(redactedCause(e, redactedUrl))
+                    .build();
         }
+    }
+
+    /**
+     * Describes a marshalling failure without echoing the presigned URL: {@link URISyntaxException#getMessage()} appends
+     * the URL it was given, query string included, so only the reason and the index are used.
+     */
+    private static String failureDescription(Exception e) {
+        if (e instanceof URISyntaxException) {
+            URISyntaxException syntaxException = (URISyntaxException) e;
+            int index = syntaxException.getIndex();
+            return index < 0 ? syntaxException.getReason()
+                             : syntaxException.getReason() + " at index " + index;
+        }
+        return e.getClass().getName();
+    }
+
+    /**
+     * Rebuilds the failure around the redacted URL, because the chained cause is read back by
+     * {@code getCause().getMessage()} and printed by every stack trace that renders the exception. A
+     * {@link URISyntaxException} keeps its type, reason and index; any other failure is named by its class only, since its
+     * message is not known to be free of the URL. Both carry the frames of the original failure.
+     */
+    private static Throwable redactedCause(Exception e, String redactedUrl) {
+        String url = redactedUrl == null ? "null" : redactedUrl;
+        Throwable redacted;
+        if (e instanceof URISyntaxException && ((URISyntaxException) e).getReason() != null) {
+            URISyntaxException syntaxException = (URISyntaxException) e;
+            redacted = new URISyntaxException(url, syntaxException.getReason(), syntaxException.getIndex());
+        } else {
+            redacted = SdkClientException.builder()
+                                         .message(e.getClass().getName() + " for " + url)
+                                         .build();
+        }
+        redacted.setStackTrace(e.getStackTrace());
+        return redacted;
     }
 
     /**

@@ -42,12 +42,14 @@ public final class CreateTableEnhancedRequest {
     private final StreamSpecification streamSpecification;
     private final Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
     private final Collection<EnhancedGlobalSecondaryIndex> globalSecondaryIndices;
+    private final Collection<EnhancedVectorIndex> vectorIndexes;
 
     private CreateTableEnhancedRequest(Builder builder) {
         this.provisionedThroughput = builder.provisionedThroughput;
         this.streamSpecification = builder.streamSpecification;
         this.localSecondaryIndices = builder.localSecondaryIndices;
         this.globalSecondaryIndices = builder.globalSecondaryIndices;
+        this.vectorIndexes = builder.vectorIndexes;
     }
 
     /**
@@ -64,7 +66,8 @@ public final class CreateTableEnhancedRequest {
         return builder().provisionedThroughput(provisionedThroughput)
                         .streamSpecification(streamSpecification)
                         .localSecondaryIndices(localSecondaryIndices)
-                        .globalSecondaryIndices(globalSecondaryIndices);
+                        .globalSecondaryIndices(globalSecondaryIndices)
+                        .vectorIndexes(vectorIndexes);
     }
 
     /**
@@ -95,6 +98,13 @@ public final class CreateTableEnhancedRequest {
         return globalSecondaryIndices;
     }
 
+    /**
+     * Returns the vector indexes set on this request object, or null if none have been set.
+     */
+    public Collection<EnhancedVectorIndex> vectorIndexes() {
+        return vectorIndexes;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -106,20 +116,23 @@ public final class CreateTableEnhancedRequest {
 
         CreateTableEnhancedRequest that = (CreateTableEnhancedRequest) o;
 
-        if (provisionedThroughput != null ? ! provisionedThroughput.equals(that.provisionedThroughput) :
+        if (provisionedThroughput != null ? !provisionedThroughput.equals(that.provisionedThroughput) :
             that.provisionedThroughput != null) {
             return false;
         }
-        if (streamSpecification != null ? ! streamSpecification.equals(that.streamSpecification) :
+        if (streamSpecification != null ? !streamSpecification.equals(that.streamSpecification) :
             that.streamSpecification != null) {
             return false;
         }
-        if (localSecondaryIndices != null ? ! localSecondaryIndices.equals(that.localSecondaryIndices) :
+        if (localSecondaryIndices != null ? !localSecondaryIndices.equals(that.localSecondaryIndices) :
             that.localSecondaryIndices != null) {
             return false;
         }
-        return globalSecondaryIndices != null ? globalSecondaryIndices.equals(that.globalSecondaryIndices) :
-            that.globalSecondaryIndices == null;
+        if (globalSecondaryIndices != null ? !globalSecondaryIndices.equals(that.globalSecondaryIndices) :
+            that.globalSecondaryIndices != null) {
+            return false;
+        }
+        return vectorIndexes != null ? vectorIndexes.equals(that.vectorIndexes) : that.vectorIndexes == null;
     }
 
     @Override
@@ -128,6 +141,7 @@ public final class CreateTableEnhancedRequest {
         result = 31 * result + (streamSpecification != null ? streamSpecification.hashCode() : 0);
         result = 31 * result + (localSecondaryIndices != null ? localSecondaryIndices.hashCode() : 0);
         result = 31 * result + (globalSecondaryIndices != null ? globalSecondaryIndices.hashCode() : 0);
+        result = 31 * result + (vectorIndexes != null ? vectorIndexes.hashCode() : 0);
         return result;
     }
 
@@ -140,13 +154,13 @@ public final class CreateTableEnhancedRequest {
         private StreamSpecification streamSpecification;
         private Collection<EnhancedLocalSecondaryIndex> localSecondaryIndices;
         private Collection<EnhancedGlobalSecondaryIndex> globalSecondaryIndices;
+        private Collection<EnhancedVectorIndex> vectorIndexes;
 
         private Builder() {
         }
 
         /**
-         * Sets the provisioned throughput for this table. Use this parameter to set the table's
-         * read and write capacity units.
+         * Sets the provisioned throughput for this table. Use this parameter to set the table's read and write capacity units.
          * <p>
          * See the DynamoDb documentation for more information on default throughput values.
          */
@@ -251,6 +265,40 @@ public final class CreateTableEnhancedRequest {
             return globalSecondaryIndices(Stream.of(globalSecondaryIndices).map(gsi -> {
                 EnhancedGlobalSecondaryIndex.Builder builder = EnhancedGlobalSecondaryIndex.builder();
                 gsi.accept(builder);
+                return builder.build();
+            }).collect(Collectors.toList()));
+        }
+
+        /**
+         * Defines a vector index for this table.
+         * <p>
+         * See {@link EnhancedVectorIndex} for more information on creating and using a vector index.
+         */
+        public Builder vectorIndexes(Collection<EnhancedVectorIndex> vectorIndexes) {
+            this.vectorIndexes = vectorIndexes;
+            return this;
+        }
+
+        /**
+         * Defines a vector index for this table.
+         * <p>
+         * See {@link EnhancedVectorIndex} for more information on creating and using a vector index.
+         */
+        public Builder vectorIndexes(EnhancedVectorIndex... vectorIndexes) {
+            this.vectorIndexes = Arrays.asList(vectorIndexes);
+            return this;
+        }
+
+        /**
+         * This is a convenience method for {@link #vectorIndexes(Collection)} that creates instances of the
+         * {@link EnhancedVectorIndex.Builder} for you, avoiding the need to create them manually via
+         * {@link EnhancedVectorIndex#builder()}.
+         */
+        @SafeVarargs
+        public final Builder vectorIndexes(Consumer<EnhancedVectorIndex.Builder>... vectorIndexes) {
+            return vectorIndexes(Stream.of(vectorIndexes).map(vectorIndex -> {
+                EnhancedVectorIndex.Builder builder = EnhancedVectorIndex.builder();
+                vectorIndex.accept(builder);
                 return builder.build();
             }).collect(Collectors.toList()));
         }

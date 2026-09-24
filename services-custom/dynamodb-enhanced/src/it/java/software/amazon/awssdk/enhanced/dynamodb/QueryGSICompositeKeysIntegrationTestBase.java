@@ -30,6 +30,7 @@ import static software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional.so
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.enhanced.dynamodb.model.CompositeKeyRecord;
@@ -84,12 +85,32 @@ abstract class QueryGSICompositeKeysIntegrationTestBase extends DynamoDbEnhanced
         COMPOSITE_RECORDS.forEach(record -> mappedTable.putItem(r -> r.item(record)));
     }
 
+    private static final List<String> GSI_NAMES = Arrays.asList("gsi1", "gsi2", "gsi3", "gsi4", "gsi5", "gsi6");
+
     protected static void waitForGsiConsistency() {
-        try {
-            Thread.sleep(3000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+        int expectedCount = COMPOSITE_RECORDS.size();
+        for (String gsiName : GSI_NAMES) {
+            waitForGsiPropagation(gsiName, expectedCount);
         }
+    }
+
+    private static void waitForGsiPropagation(String gsiName, int expectedCount) {
+        for (int attempt = 0; attempt < 20; attempt++) {
+            int count = dynamoDbClient.scan(r -> r.tableName(mappedTable.tableName())
+                                                  .indexName(gsiName)
+                                                  .limit(expectedCount + 1))
+                                      .items().size();
+            if (count >= expectedCount) {
+                return;
+            }
+            try {
+                Thread.sleep(Math.min(500L << Math.min(attempt, 3), 2_000L));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
+        }
+        throw new AssertionError("GSI propagation timed out for " + gsiName);
     }
 
     private static CompositeKeyRecord createRecord(String id, String sort, String pk1, Integer pk2, String pk3,
