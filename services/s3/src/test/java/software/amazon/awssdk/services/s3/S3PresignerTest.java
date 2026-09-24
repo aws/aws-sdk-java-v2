@@ -37,6 +37,7 @@ import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.auth.signer.internal.AbstractAwsS3V4Signer;
@@ -234,6 +235,65 @@ public class S3PresignerTest {
             assertThat(expires).containsOnlyDigits();
             assertThat(Integer.parseInt(expires)).isEqualTo(1234);
         });
+    }
+
+    @Test
+    public void getObject_sessionCredentialsExpiringBeforeRequestedDuration_capsExpirationAndSignedWindow() {
+        Duration requested = Duration.ofHours(2);
+        Instant credentialExpiration = Instant.now().plus(Duration.ofHours(1));
+        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
+                                                                        .accessKeyId("akid")
+                                                                        .secretAccessKey("skid")
+                                                                        .sessionToken("token")
+                                                                        .expirationTime(credentialExpiration)
+                                                                        .build();
+
+        S3Presigner sessionPresigner =
+            presignerBuilder().credentialsProvider(StaticCredentialsProvider.create(sessionCredentials)).build();
+
+        PresignedGetObjectRequest presigned =
+            sessionPresigner.presignGetObject(r -> r.signatureDuration(requested)
+                                                    .getObjectRequest(gor -> gor.bucket("a").key("b")));
+
+        // Reported expiration is capped to the credential expiry, truncated to whole seconds (so it can land up to ~1s before
+        // the exact credential-expiry instant), and is never later than it.
+        assertThat(presigned.expiration()).isAfter(credentialExpiration.minusSeconds(2))
+                                          .isBeforeOrEqualTo(credentialExpiration);
+
+        // The signed X-Amz-Expires window is capped below the requested 2h and tracks the ~1h credential lifetime.
+        int expiresSeconds = Integer.parseInt(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0));
+        assertThat(expiresSeconds).isLessThan((int) requested.getSeconds());
+        assertThat(expiresSeconds).isBetween((int) Duration.ofHours(1).getSeconds() - 5, (int) Duration.ofHours(1).getSeconds());
+    }
+
+    @Test
+    public void getObject_oldSignerPath_sessionCredentialsExpiringBeforeRequestedDuration_capsSignedWindow() {
+
+        Duration requested = Duration.ofHours(2);
+        Instant credentialExpiration = Instant.now().plus(Duration.ofHours(1));
+        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
+                                                                        .accessKeyId("akid")
+                                                                        .secretAccessKey("skid")
+                                                                        .sessionToken("token")
+                                                                        .expirationTime(credentialExpiration)
+                                                                        .build();
+
+        S3Presigner sessionPresigner =
+            presignerBuilder().credentialsProvider(StaticCredentialsProvider.create(sessionCredentials)).build();
+
+        // A request-level signer override routes through the legacy (pre-SRA) signer path, which reads the capped
+        // PRESIGNER_EXPIRATION overwritten by the fix.
+        PresignedGetObjectRequest presigned =
+            sessionPresigner.presignGetObject(r -> r.signatureDuration(requested)
+                                                    .getObjectRequest(gor -> gor.bucket("a").key("b")
+                                                                                .overrideConfiguration(
+                                                                                    c -> c.signer(AwsS3V4Signer.create()))));
+
+        assertThat(presigned.expiration()).isAfter(credentialExpiration.minusSeconds(2))
+                                          .isBeforeOrEqualTo(credentialExpiration);
+        int expiresSeconds = Integer.parseInt(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0));
+        assertThat(expiresSeconds).isLessThan((int) requested.getSeconds());
+        assertThat(expiresSeconds).isBetween((int) Duration.ofHours(1).getSeconds() - 5, (int) Duration.ofHours(1).getSeconds());
     }
 
     @Test

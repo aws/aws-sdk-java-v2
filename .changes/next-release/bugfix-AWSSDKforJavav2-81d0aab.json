@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an issue where presigned URLs signed with temporary credentials reported and signed an expiration later than the credential expiration. The S3 and Polly presigners now cap `PresignedRequest.expiration()` and `X-Amz-Expires` at the credential expiration. See [#2379](https://github.com/aws/aws-sdk-java-v2/issues/2379)."
+}
