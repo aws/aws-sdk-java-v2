@@ -26,18 +26,16 @@ import java.util.List;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.amazonaws.auth.AnonymousAWSCredentials;
-import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBTestBase;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.test.util.UnorderedCollectionComparator;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
  * Tests on the DynamoDBMapper.generateCreateTableRequest method.
@@ -48,133 +46,97 @@ public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
 
     @BeforeClass
     public static void setUp() {
-        dynamo = new AmazonDynamoDBClient(new AnonymousAWSCredentials());
-        mapper = new DynamoDBMapper(dynamo);
+        mapper = new DynamoDBMapper(getClient());
+    }
+
+    private static KeySchemaElement key(String name, KeyType type) {
+        return KeySchemaElement.builder().attributeName(name).keyType(type).build();
+    }
+
+    private static AttributeDefinition attr(String name, ScalarAttributeType type) {
+        return AttributeDefinition.builder().attributeName(name).attributeType(type).build();
+    }
+
+    private static LocalSecondaryIndex lsi(String name, KeySchemaElement... keys) {
+        return LocalSecondaryIndex.builder().indexName(name).keySchema(keys).build();
+    }
+
+    private static GlobalSecondaryIndex gsi(String name, KeySchemaElement... keys) {
+        return GlobalSecondaryIndex.builder().indexName(name).keySchema(keys).build();
     }
 
     @Test
     public void testParseIndexRangeKeyClass() {
         CreateTableRequest request = mapper.generateCreateTableRequest(IndexRangeKeyClass.class);
 
-        assertEquals("aws-java-sdk-index-range-test", request.getTableName());
+        assertEquals("aws-java-sdk-index-range-test", request.tableName());
         List<KeySchemaElement> expectedKeyElements = Arrays.asList(
-                new KeySchemaElement("key", KeyType.HASH),
-                new KeySchemaElement("rangeKey", KeyType.RANGE)
+                key("key", KeyType.HASH),
+                key("rangeKey", KeyType.RANGE)
                 );
-        assertEquals(expectedKeyElements, request.getKeySchema());
+        assertEquals(expectedKeyElements, request.keySchema());
 
         List<AttributeDefinition> expectedAttrDefinitions = Arrays.asList(
-                new AttributeDefinition("key", ScalarAttributeType.N),
-                new AttributeDefinition("rangeKey", ScalarAttributeType.N),
-                new AttributeDefinition("indexFooRangeKey", ScalarAttributeType.N),
-                new AttributeDefinition("indexBarRangeKey", ScalarAttributeType.N),
-                new AttributeDefinition("multipleIndexRangeKey", ScalarAttributeType.N)
+                attr("key", ScalarAttributeType.N),
+                attr("rangeKey", ScalarAttributeType.N),
+                attr("indexFooRangeKey", ScalarAttributeType.N),
+                attr("indexBarRangeKey", ScalarAttributeType.N),
+                attr("multipleIndexRangeKey", ScalarAttributeType.N)
                 );
         assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 expectedAttrDefinitions,
-                request.getAttributeDefinitions()));
+                request.attributeDefinitions()));
 
         List<LocalSecondaryIndex> expectedLsi = Arrays.asList(
-                new LocalSecondaryIndex()
-                        .withIndexName("index_foo")
-                        .withKeySchema(
-                                new KeySchemaElement("key", KeyType.HASH),
-                                new KeySchemaElement("indexFooRangeKey", KeyType.RANGE)),
-                new LocalSecondaryIndex()
-                        .withIndexName("index_bar")
-                        .withKeySchema(
-                                new KeySchemaElement("key", KeyType.HASH),
-                                new KeySchemaElement("indexBarRangeKey", KeyType.RANGE)),
-                new LocalSecondaryIndex()
-                        .withIndexName("index_foo_copy")
-                        .withKeySchema(
-                                new KeySchemaElement("key", KeyType.HASH),
-                                new KeySchemaElement("multipleIndexRangeKey", KeyType.RANGE)),
-                new LocalSecondaryIndex()
-                        .withIndexName("index_bar_copy")
-                        .withKeySchema(
-                                new KeySchemaElement("key", KeyType.HASH),
-                                new KeySchemaElement("multipleIndexRangeKey", KeyType.RANGE)));
-        assertTrue(equalLsi(expectedLsi, request.getLocalSecondaryIndexes()));
+                lsi("index_foo", key("key", KeyType.HASH), key("indexFooRangeKey", KeyType.RANGE)),
+                lsi("index_bar", key("key", KeyType.HASH), key("indexBarRangeKey", KeyType.RANGE)),
+                lsi("index_foo_copy", key("key", KeyType.HASH), key("multipleIndexRangeKey", KeyType.RANGE)),
+                lsi("index_bar_copy", key("key", KeyType.HASH), key("multipleIndexRangeKey", KeyType.RANGE)));
+        assertTrue(equalLsi(expectedLsi, request.localSecondaryIndexes()));
 
-        assertNull(request.getGlobalSecondaryIndexes());
-        assertNull(request.getProvisionedThroughput());
+        assertTrue(request.globalSecondaryIndexes().isEmpty());
+        assertNull(request.provisionedThroughput());
     }
 
     @Test
     public void testComplexIndexedHashRangeClass() {
         CreateTableRequest request = mapper.generateCreateTableRequest(MapperQueryExpressionTest.HashRangeClass.class);
 
-        assertEquals("table_name", request.getTableName());
+        assertEquals("table_name", request.tableName());
         List<KeySchemaElement> expectedKeyElements = Arrays.asList(
-                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                new KeySchemaElement("primaryRangeKey", KeyType.RANGE)
+                key("primaryHashKey", KeyType.HASH),
+                key("primaryRangeKey", KeyType.RANGE)
                 );
-        assertEquals(expectedKeyElements, request.getKeySchema());
+        assertEquals(expectedKeyElements, request.keySchema());
 
         List<AttributeDefinition> expectedAttrDefinitions = Arrays.asList(
-                new AttributeDefinition("primaryHashKey", ScalarAttributeType.S),
-                new AttributeDefinition("indexHashKey", ScalarAttributeType.S),
-                new AttributeDefinition("primaryRangeKey", ScalarAttributeType.S),
-                new AttributeDefinition("indexRangeKey", ScalarAttributeType.S),
-                new AttributeDefinition("anotherIndexRangeKey", ScalarAttributeType.S)
+                attr("primaryHashKey", ScalarAttributeType.S),
+                attr("indexHashKey", ScalarAttributeType.S),
+                attr("primaryRangeKey", ScalarAttributeType.S),
+                attr("indexRangeKey", ScalarAttributeType.S),
+                attr("anotherIndexRangeKey", ScalarAttributeType.S)
                 );
         assertTrue(UnorderedCollectionComparator.equalUnorderedCollections(
                 expectedAttrDefinitions,
-                request.getAttributeDefinitions()));
+                request.attributeDefinitions()));
 
         List<LocalSecondaryIndex> expectedLsi = Arrays.asList(
-                new LocalSecondaryIndex()
-                        .withIndexName("LSI-primary-range")
-                        .withKeySchema(
-                                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                                new KeySchemaElement("primaryRangeKey", KeyType.RANGE)),
-                new LocalSecondaryIndex()
-                        .withIndexName("LSI-index-range-1")
-                        .withKeySchema(
-                                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                                new KeySchemaElement("indexRangeKey", KeyType.RANGE)),
-                new LocalSecondaryIndex()
-                        .withIndexName("LSI-index-range-2")
-                        .withKeySchema(
-                                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                                new KeySchemaElement("indexRangeKey", KeyType.RANGE)),
-                new LocalSecondaryIndex()
-                        .withIndexName("LSI-index-range-3")
-                        .withKeySchema(
-                                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                                new KeySchemaElement("anotherIndexRangeKey", KeyType.RANGE)));
-        assertTrue(equalLsi(expectedLsi, request.getLocalSecondaryIndexes()));
+                lsi("LSI-primary-range", key("primaryHashKey", KeyType.HASH), key("primaryRangeKey", KeyType.RANGE)),
+                lsi("LSI-index-range-1", key("primaryHashKey", KeyType.HASH), key("indexRangeKey", KeyType.RANGE)),
+                lsi("LSI-index-range-2", key("primaryHashKey", KeyType.HASH), key("indexRangeKey", KeyType.RANGE)),
+                lsi("LSI-index-range-3", key("primaryHashKey", KeyType.HASH), key("anotherIndexRangeKey", KeyType.RANGE)));
+        assertTrue(equalLsi(expectedLsi, request.localSecondaryIndexes()));
 
         List<GlobalSecondaryIndex> expectedGsi = Arrays.asList(
-                new GlobalSecondaryIndex()
-                        .withIndexName("GSI-primary-hash-index-range-1")
-                        .withKeySchema(
-                                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                                new KeySchemaElement("indexRangeKey", KeyType.RANGE)),
-                new GlobalSecondaryIndex()
-                        .withIndexName("GSI-primary-hash-index-range-2")
-                        .withKeySchema(
-                                new KeySchemaElement("primaryHashKey", KeyType.HASH),
-                                new KeySchemaElement("anotherIndexRangeKey", KeyType.RANGE)),
-                new GlobalSecondaryIndex()
-                        .withIndexName("GSI-index-hash-primary-range")
-                        .withKeySchema(
-                                new KeySchemaElement("indexHashKey", KeyType.HASH),
-                                new KeySchemaElement("primaryRangeKey", KeyType.RANGE)),
-                new GlobalSecondaryIndex()
-                        .withIndexName("GSI-index-hash-index-range-1")
-                        .withKeySchema(
-                                new KeySchemaElement("indexHashKey", KeyType.HASH),
-                                new KeySchemaElement("indexRangeKey", KeyType.RANGE)),
-                new GlobalSecondaryIndex()
-                        .withIndexName("GSI-index-hash-index-range-2")
-                        .withKeySchema(
-                                new KeySchemaElement("indexHashKey", KeyType.HASH),
-                                new KeySchemaElement("indexRangeKey", KeyType.RANGE)));
-        assertTrue(equalGsi(expectedGsi, request.getGlobalSecondaryIndexes()));
+                gsi("GSI-primary-hash-index-range-1", key("primaryHashKey", KeyType.HASH), key("indexRangeKey", KeyType.RANGE)),
+                gsi("GSI-primary-hash-index-range-2",
+                        key("primaryHashKey", KeyType.HASH), key("anotherIndexRangeKey", KeyType.RANGE)),
+                gsi("GSI-index-hash-primary-range", key("indexHashKey", KeyType.HASH), key("primaryRangeKey", KeyType.RANGE)),
+                gsi("GSI-index-hash-index-range-1", key("indexHashKey", KeyType.HASH), key("indexRangeKey", KeyType.RANGE)),
+                gsi("GSI-index-hash-index-range-2", key("indexHashKey", KeyType.HASH), key("indexRangeKey", KeyType.RANGE)));
+        assertTrue(equalGsi(expectedGsi, request.globalSecondaryIndexes()));
 
-        assertNull(request.getProvisionedThroughput());
+        assertNull(request.provisionedThroughput());
     }
 
     private static boolean equalLsi(Collection<LocalSecondaryIndex> a, Collection<LocalSecondaryIndex> b) {
@@ -191,10 +153,10 @@ public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
 
         @Override
         public boolean equals(LocalSecondaryIndex a, LocalSecondaryIndex b) {
-            return a.getIndexName().equals(b.getIndexName())
-                    && a.getKeySchema().equals(b.getKeySchema());
+            return a.indexName().equals(b.indexName())
+                    && a.keySchema().equals(b.keySchema());
         }
-        
+
     }
 
     private static class GlobalSecondaryIndexDefinitionComparator
@@ -203,8 +165,8 @@ public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
 
         @Override
         public boolean equals(GlobalSecondaryIndex a, GlobalSecondaryIndex b) {
-            return a.getIndexName().equals(b.getIndexName())
-                    && a.getKeySchema().equals(b.getKeySchema());
+            return a.indexName().equals(b.indexName())
+                    && a.keySchema().equals(b.keySchema());
         }
     }
 }
