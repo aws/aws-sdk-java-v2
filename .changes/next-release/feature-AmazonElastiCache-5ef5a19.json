@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon ElastiCache",
+    "contributor": "",
+    "description": "Added tagging support for ElastiCache Global DataStore."
+}
