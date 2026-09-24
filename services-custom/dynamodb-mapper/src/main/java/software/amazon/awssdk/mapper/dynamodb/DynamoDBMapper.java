@@ -1056,8 +1056,11 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         DeleteItemRequest.Builder reqBuilder = DeleteItemRequest.builder()
                 .key(key)
-                .tableName(tableName)
-                .expected(internalAssertions);
+                .tableName(tableName);
+
+        if (!internalAssertions.isEmpty()) {
+            reqBuilder.expected(internalAssertions);
+        }
 
         if (deleteExpression != null) {
             String conditionalExpression = deleteExpression.getConditionExpression();
@@ -1076,12 +1079,14 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
                                 deleteExpression.getExpressionAttributeValues());
             }
 
-            reqBuilder = reqBuilder.expected(
+            Map<String, ExpectedAttributeValue> mergedAssertions =
                     mergeExpectedAttributeValueConditions(internalAssertions,
-                            deleteExpression.getExpected(),
-                            deleteExpression.getConditionalOperator()))
-                    .conditionalOperator(
-                            deleteExpression.getConditionalOperator());
+                                                           deleteExpression.getExpected(),
+                                                           deleteExpression.getConditionalOperator());
+            if (mergedAssertions != null) {
+                reqBuilder.expected(mergedAssertions);
+            }
+            reqBuilder.conditionalOperator(deleteExpression.getConditionalOperator());
 
         }
         db.deleteItem(reqBuilder.build());
