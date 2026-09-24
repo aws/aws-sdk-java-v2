@@ -22,6 +22,7 @@ import java.nio.file.Path;
 import java.util.stream.Stream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.codegen.CodeGenerator;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
@@ -36,6 +37,7 @@ import software.amazon.smithy.model.Model;
 /**
  * Generates AWS SDK for Java sources from a Smithy build projection.
  */
+@SdkInternalApi
 public final class AwsSdkJavaCodegenPlugin implements SmithyBuildPlugin {
 
     /** Plugin name. */
