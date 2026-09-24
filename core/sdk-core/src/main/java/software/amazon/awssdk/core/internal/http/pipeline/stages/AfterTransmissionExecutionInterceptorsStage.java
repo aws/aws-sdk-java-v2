@@ -23,11 +23,15 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 @SdkInternalApi
 public class AfterTransmissionExecutionInterceptorsStage
     implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, Pair<SdkHttpFullRequest, SdkHttpFullResponse>> {
+    private static final Logger LOG = Logger.loggerFor(AfterTransmissionExecutionInterceptorsStage.class);
+
     @Override
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                                  RequestExecutionContext context) throws Exception {
@@ -40,7 +44,15 @@ public class AfterTransmissionExecutionInterceptorsStage
                                                                                               .orElse(null)));
 
         // interceptors.afterTransmission
-        context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
+        boolean completed = false;
+        try {
+            context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
+            completed = true;
+        } finally {
+            if (!completed) {
+                input.right().content().ifPresent(stream -> IoUtils.closeQuietlyV2(stream, LOG));
+            }
+        }
 
         // interceptors.modifyHttpResponse
         interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());
