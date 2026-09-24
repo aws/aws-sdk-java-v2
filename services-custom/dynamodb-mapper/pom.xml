@@ -59,12 +59,6 @@
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3ClientCacheIntegrationTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkIDTest.java</testExclude>
                             <testExclude>software/amazon/awssdk/mapper/dynamodb/S3LinkTest.java</testExclude>
-                            <!-- Blocked on Table-admin: calls mapper.generateCreateTableRequest(), which still
-                                 returns a v1 CreateTableRequest. Rides with the GenerateCreateTableRequest* PR. -->
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/JsonIntegrationTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/GenerateDeleteTableRequestTest.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequest2Test.java</testExclude>
-                            <testExclude>software/amazon/awssdk/mapper/dynamodb/mapper/GenerateCreateTableRequestTest.java</testExclude>
                     </testExcludes>
                 </configuration>
             </plugin>
