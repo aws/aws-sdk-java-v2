@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http;
 
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
@@ -44,6 +45,7 @@ public final class RequestExecutionContext {
     private TimeoutTracker apiCallTimeoutTracker;
     private TimeoutTracker apiCallAttemptTimeoutTracker;
     private MetricCollector attemptMetricCollector;
+    private volatile CompletableFuture<Void> activeAsyncHttpClientFuture;
 
     private RequestExecutionContext(Builder builder) {
         this.requestProvider = builder.requestProvider;
@@ -116,6 +118,20 @@ public final class RequestExecutionContext {
 
     public void apiCallAttemptTimeoutTracker(TimeoutTracker timeoutTracker) {
         this.apiCallAttemptTimeoutTracker = timeoutTracker;
+    }
+
+    public void activeAsyncHttpClientFuture(CompletableFuture<Void> activeAsyncHttpClientFuture) {
+        this.activeAsyncHttpClientFuture = activeAsyncHttpClientFuture;
+    }
+
+    /**
+     * Fail the active async HTTP execution so the HTTP client releases any response body that has not been handed to the caller.
+     */
+    public void abortActiveAsyncHttpRequest(Throwable cause) {
+        CompletableFuture<Void> activeFuture = activeAsyncHttpClientFuture;
+        if (activeFuture != null) {
+            activeFuture.completeExceptionally(cause);
+        }
     }
 
     public MetricCollector attemptMetricCollector() {
