@@ -49,6 +49,7 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
+import software.amazon.awssdk.awscore.presigner.PresignExpirationUtils;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientEndpointProvider;
@@ -428,11 +429,22 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
 
         SdkHttpFullRequest httpRequest = getHttpFullRequest(execCtx);
 
+        // A presigned request cannot outlive the credentials that signed it, so cap both the signed and reported expiration.
+        SelectedAuthScheme<?> selectedAuthScheme = execCtx.executionAttributes().getAttribute(SELECTED_AUTH_SCHEME);
+        Instant credentialExpiration =
+            selectedAuthScheme == null ? null
+                                       : CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity())
+                                                               .expirationTime().orElse(null);
+        Duration effectiveDuration =
+            PresignExpirationUtils.effectiveExpirationDuration(expirationDuration, signingInstant, credentialExpiration);
+        Instant effectiveExpiration = signingInstant.plus(effectiveDuration);
+        execCtx.executionAttributes().putAttribute(PRESIGNER_EXPIRATION, effectiveExpiration);
+
         SdkHttpFullRequest signedHttpRequest = execCtx.signer() != null
                                                ? presignRequest(execCtx, httpRequest)
-                                               : sraPresignRequest(execCtx, httpRequest, signingClock, expirationDuration);
+                                               : sraPresignRequest(execCtx, httpRequest, signingClock, effectiveDuration);
 
-        initializePresignedRequest(presignedRequest, signedHttpRequest, expiration);
+        initializePresignedRequest(presignedRequest, signedHttpRequest, effectiveExpiration);
 
         return presignedRequest;
     }

@@ -267,6 +267,11 @@ public interface PresignedRequest {
      * will fail.
      *
      * This may differ from the local clock, based on the skew between the local and AWS service clocks.
+     *
+     * When the request is signed with temporary (session) credentials that carry an expiration, this value (and the
+     * signed X-Amz-Expires window) is capped to min(requestedDuration, timeUntilCredentialExpiry), because the request
+     * stops working once the signing credentials expire even if a longer duration was requested. The cap only ever
+     * shortens the window; it is a no-op for credentials with no known expiry.
      */
     Instant expiration();
 

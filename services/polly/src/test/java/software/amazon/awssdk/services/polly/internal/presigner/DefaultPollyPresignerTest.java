@@ -31,6 +31,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.Aws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -59,6 +60,37 @@ class DefaultPollyPresignerTest {
     @BeforeEach
     public void methodSetup() {
         credentialsProvider = StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
+    }
+
+    @Test
+    void presign_sessionCredentialsExpiringBeforeRequestedDuration_capsExpirationAndSignedWindow() {
+        Instant signingInstant = Instant.parse("2024-02-20T22:00:00Z");
+        Instant credentialExpiration = signingInstant.plus(Duration.ofHours(1));
+        AwsSessionCredentials sessionCredentials = AwsSessionCredentials.builder()
+                                                                        .accessKeyId("akid")
+                                                                        .secretAccessKey("skid")
+                                                                        .sessionToken("token")
+                                                                        .expirationTime(credentialExpiration)
+                                                                        .build();
+
+        PollyPresigner presigner = DefaultPollyPresigner.builder(Clock.fixed(signingInstant, ZoneId.of("UTC")))
+                                                        .region(Region.US_EAST_1)
+                                                        .credentialsProvider(StaticCredentialsProvider.create(sessionCredentials))
+                                                        .build();
+
+        SynthesizeSpeechPresignRequest presignRequest =
+            SynthesizeSpeechPresignRequest.builder()
+                                          .synthesizeSpeechRequest(BASIC_SYNTHESIZE_SPEECH_REQUEST)
+                                          .signatureDuration(Duration.ofHours(3))
+                                          .build();
+
+        PresignedSynthesizeSpeechRequest presigned = presigner.presignSynthesizeSpeech(presignRequest);
+
+        // Both the signed X-Amz-Expires window and the reported expiration are capped to the credential's expiry (1h), not the
+        // requested 3h.
+        assertThat(presigned.httpRequest().rawQueryParameters().get("X-Amz-Expires").get(0))
+            .isEqualTo(Long.toString(Duration.ofHours(1).getSeconds()));
+        assertThat(presigned.expiration()).isEqualTo(credentialExpiration);
     }
 
     @Test
