@@ -94,6 +94,9 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     private volatile HttpClientConnectionManager delegate;
     private volatile Lifecycle lifecycle = Lifecycle.ACTIVE;
 
+    /** A pool whose shutdown failed part way through, still holding sockets that need closing. */
+    private volatile HttpClientConnectionManager abandonedPool;
+
     private RecreatingHttpClientConnectionManager(Supplier<HttpClientConnectionManager> connectionManagerFactory) {
         this.connectionManagerFactory = connectionManagerFactory;
         this.delegate = connectionManagerFactory.get();
@@ -177,7 +180,49 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
                        + "rebuilt on the next request, so this client remains usable. Check application logs for the "
                        + "underlying Error - requests in flight at the time have failed.");
 
-        toShutDown.shutdown();
+        try {
+            toShutDown.shutdown();
+        } catch (Throwable t) {
+            // Deliberately not rethrown. Apache calls this from `catch (Error error) { connManager.shutdown();
+            // throw error; }`, so throwing here would replace the Error the application actually needs to see with a
+            // second one raised while cleaning up. Swallowing lets Apache rethrow the original.
+            //
+            // A shutdown that dies part way through leaves sockets open that nothing will ever close: it sets the pool's
+            // isShutDown flag before closing entries, so a retried shutdown() early-returns and does nothing. Hand the
+            // pool to the cleanup path instead, which runs on the next rebuild when the heap has likely recovered.
+            abandonedPool = toShutDown;
+            log.warn(() -> "Shutting the Apache HTTP connection pool down did not complete, so some of its connections "
+                          + "may still be open. A best effort attempt to close them will be made when the pool is "
+                          + "rebuilt.", t);
+        }
+    }
+
+    /**
+     * Closes connections orphaned by a {@link #shutdown()} that failed part way through.
+     *
+     * <p>Only idle connections can be reclaimed here, and only because {@code closeIdleConnections} reaches them through
+     * {@code AbstractConnPool.enumAvailable}, which does not consult the pool's {@code isShutDown} flag and so still
+     * walks entries an interrupted shutdown left behind. Connections that were leased at the time are not reachable this
+     * way, but they do not need to be: the requests holding them close their own sockets directly as they unwind, via
+     * {@code ConnectionHolder.abortConnection}.
+     *
+     * <p>Best effort by nature, and it runs before the replacement pool is built so that a failure here cannot stop the
+     * client from recovering.
+     */
+    private void cleanUpAbandonedPool() {
+        HttpClientConnectionManager abandoned = abandonedPool;
+        if (abandoned == null) {
+            return;
+        }
+        abandonedPool = null;
+
+        try {
+            abandoned.closeIdleConnections(0, TimeUnit.MILLISECONDS);
+            log.debug(() -> "Closed idle connections left open by a connection pool shutdown that did not complete.");
+        } catch (Throwable t) {
+            log.warn(() -> "Could not close connections left open by a connection pool shutdown that did not complete. "
+                          + "Some sockets may remain open until the process exits.", t);
+        }
     }
 
     /**
@@ -222,6 +267,7 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
 
         synchronized (lifecycleLock) {
             if (lifecycle == Lifecycle.NEEDS_RECREATE) {
+                cleanUpAbandonedPool();
                 delegate = connectionManagerFactory.get();
                 lifecycle = Lifecycle.ACTIVE;
                 int count = recreationCount.incrementAndGet();

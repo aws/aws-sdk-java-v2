@@ -22,6 +22,7 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -140,6 +141,111 @@ public class RecreatingHttpClientConnectionManagerTest {
 
         assertThat(created).hasSize(4);
         assertThat(cm.recreationCount()).isEqualTo(3);
+    }
+
+    /**
+     * Apache calls shutdown() from inside {@code catch (Error error) { ...; throw error; }}. If our shutdown throws, that
+     * rethrow never runs and the application sees a cleanup failure instead of the Error that actually caused the
+     * problem, so a failure here must not escape.
+     */
+    @Test
+    public void shutdown_poolShutdownThrows_doesNotPropagate() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.requestConnection(any(), any())).thenReturn(mock(ConnectionRequest.class));
+            doThrow(new OutOfMemoryError("Java heap space")).when(pool).shutdown();
+            created.add(pool);
+            return pool;
+        });
+
+        cm.shutdown();
+
+        // Still recovers on the next request despite the failed shutdown.
+        assertThat(cm.requestConnection(ROUTE, null)).isNotNull();
+        assertThat(cm.recreationCount()).isEqualTo(1);
+    }
+
+    /**
+     * A shutdown that dies part way through sets the pool's isShutDown flag before closing its entries, so a retried
+     * shutdown() early-returns and those sockets are never closed. closeIdleConnections still reaches them, because
+     * {@code AbstractConnPool.enumAvailable} does not consult that flag, so the rebuild uses it to reclaim them.
+     */
+    @Test
+    public void requestConnection_afterFailedShutdown_closesIdleConnectionsOfAbandonedPool() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.requestConnection(any(), any())).thenReturn(mock(ConnectionRequest.class));
+            if (created.isEmpty()) {
+                doThrow(new OutOfMemoryError("Java heap space")).when(pool).shutdown();
+            }
+            created.add(pool);
+            return pool;
+        });
+        HttpClientConnectionManager abandoned = created.get(0);
+
+        cm.shutdown();
+        verify(abandoned, never()).closeIdleConnections(anyLong(), any());
+
+        cm.requestConnection(ROUTE, null);
+
+        // Zero idle time closes every pooled connection the interrupted shutdown left behind.
+        verify(abandoned).closeIdleConnections(eq(0L), eq(TimeUnit.MILLISECONDS));
+        assertThat(created).hasSize(2);
+    }
+
+    @Test
+    public void requestConnection_afterCleanShutdown_doesNotTouchTheOldPool() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(factory);
+        HttpClientConnectionManager original = created.get(0);
+
+        cm.shutdown();
+        cm.requestConnection(ROUTE, null);
+
+        // The shutdown succeeded, so there is nothing to reclaim and no reason to call back into a discarded pool.
+        verify(original, never()).closeIdleConnections(anyLong(), any());
+    }
+
+    @Test
+    public void requestConnection_abandonedPoolCleanupThrows_stillRebuilds() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.requestConnection(any(), any())).thenReturn(mock(ConnectionRequest.class));
+            if (created.isEmpty()) {
+                doThrow(new OutOfMemoryError("Java heap space")).when(pool).shutdown();
+                doThrow(new IllegalStateException("cleanup failed too"))
+                    .when(pool).closeIdleConnections(anyLong(), any());
+            }
+            created.add(pool);
+            return pool;
+        });
+
+        cm.shutdown();
+
+        // Cleanup is best effort: failing at it must not stop the client from recovering.
+        assertThat(cm.requestConnection(ROUTE, null)).isNotNull();
+        assertThat(cm.recreationCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void requestConnection_afterFailedShutdown_cleansUpOnlyOnce() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.requestConnection(any(), any())).thenReturn(mock(ConnectionRequest.class));
+            if (created.isEmpty()) {
+                doThrow(new OutOfMemoryError("Java heap space")).when(pool).shutdown();
+            }
+            created.add(pool);
+            return pool;
+        });
+        HttpClientConnectionManager abandoned = created.get(0);
+
+        cm.shutdown();
+        cm.requestConnection(ROUTE, null);
+        cm.shutdown();
+        cm.requestConnection(ROUTE, null);
+
+        // The second shutdown succeeded, so the first pool must not be revisited.
+        verify(abandoned, times(1)).closeIdleConnections(anyLong(), any());
     }
 
     @Test

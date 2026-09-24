@@ -96,6 +96,9 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     private volatile HttpClientConnectionManager delegate;
     private volatile Lifecycle lifecycle = Lifecycle.ACTIVE;
 
+    /** A pool whose close failed part way through, still holding sockets that need closing. */
+    private volatile HttpClientConnectionManager abandonedPool;
+
     private RecreatingHttpClientConnectionManager(Supplier<HttpClientConnectionManager> connectionManagerFactory) {
         this.connectionManagerFactory = connectionManagerFactory;
         this.delegate = connectionManagerFactory.get();
@@ -185,7 +188,7 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     public void close(CloseMode closeMode) {
         HttpClientConnectionManager toClose = markForRecreate();
         if (toClose != null) {
-            toClose.close(closeMode);
+            closeSwallowingFailures(toClose, () -> toClose.close(closeMode));
         }
     }
 
@@ -196,8 +199,66 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
     public void close() throws IOException {
         HttpClientConnectionManager toClose = markForRecreate();
         if (toClose != null) {
-            toClose.close();
+            closeSwallowingFailures(toClose, toClose::close);
         }
+    }
+
+    /**
+     * Closes a pool Apache asked us to destroy, keeping hold of it for cleanup if that does not complete.
+     *
+     * <p>Failures are deliberately not rethrown. Apache calls us from {@code catch (Error error) {
+     * connectionManager.close(CloseMode.IMMEDIATE); throw error; }}, so throwing here would replace the Error the
+     * application actually needs to see with a second one raised while cleaning up. Swallowing lets Apache rethrow the
+     * original.
+     *
+     * <p>A close that dies part way through also leaves sockets open that nothing will ever close: it sets the pool's
+     * shut-down flag before discarding connections, so a retried close early-returns and does nothing. The pool is handed
+     * to {@link #cleanUpAbandonedPool()} instead, which runs on the next rebuild when the heap has likely recovered.
+     */
+    private void closeSwallowingFailures(HttpClientConnectionManager toClose, PoolCloser closer) {
+        try {
+            closer.close();
+        } catch (Throwable t) {
+            abandonedPool = toClose;
+            log.warn(() -> "Closing the Apache HTTP connection pool did not complete, so some of its connections may "
+                          + "still be open. A best effort attempt to close them will be made when the pool is rebuilt.",
+                     t);
+        }
+    }
+
+    /**
+     * Closes connections orphaned by a close that failed part way through.
+     *
+     * <p>Only idle connections can be reclaimed here, and only because {@code closeIdle} reaches them through
+     * {@code StrictConnPool.enumAvailable}, which does not consult the pool's shut-down flag and so still walks entries
+     * an interrupted close left behind. Connections that were leased at the time are not reachable this way, but they do
+     * not need to be: the requests holding them close their own sockets directly as they unwind, via
+     * {@code InternalExecRuntime.discardEndpoint}.
+     *
+     * <p>Best effort by nature, and it runs before the replacement pool is built so that a failure here cannot stop the
+     * client from recovering.
+     */
+    private void cleanUpAbandonedPool() {
+        HttpClientConnectionManager abandoned = abandonedPool;
+        if (abandoned == null) {
+            return;
+        }
+        abandonedPool = null;
+
+        try {
+            if (abandoned instanceof PoolingHttpClientConnectionManager) {
+                ((PoolingHttpClientConnectionManager) abandoned).closeIdle(TimeValue.ZERO_MILLISECONDS);
+                log.debug(() -> "Closed idle connections left open by a connection pool close that did not complete.");
+            }
+        } catch (Throwable t) {
+            log.warn(() -> "Could not close connections left open by a connection pool close that did not complete. "
+                          + "Some sockets may remain open until the process exits.", t);
+        }
+    }
+
+    @FunctionalInterface
+    private interface PoolCloser {
+        void close() throws IOException;
     }
 
     /**
@@ -277,6 +338,7 @@ public final class RecreatingHttpClientConnectionManager implements HttpClientCo
 
         synchronized (lifecycleLock) {
             if (lifecycle == Lifecycle.NEEDS_RECREATE) {
+                cleanUpAbandonedPool();
                 delegate = connectionManagerFactory.get();
                 lifecycle = Lifecycle.ACTIVE;
                 int count = recreationCount.incrementAndGet();

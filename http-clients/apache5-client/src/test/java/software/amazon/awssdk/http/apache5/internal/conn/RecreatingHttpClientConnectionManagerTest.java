@@ -148,6 +148,118 @@ public class RecreatingHttpClientConnectionManagerTest {
         assertThat(cm.recreationCount()).isEqualTo(3);
     }
 
+    /**
+     * Apache calls close() from inside {@code catch (Error error) { ...; throw error; }}. If our close throws, that
+     * rethrow never runs and the application sees a cleanup failure instead of the Error that actually caused the
+     * problem, so a failure here must not escape.
+     */
+    @Test
+    public void close_poolCloseThrows_doesNotPropagate() {
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            HttpClientConnectionManager pool = mock(HttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            doThrow(new OutOfMemoryError("Java heap space")).when(pool).close(any(CloseMode.class));
+            created.add(pool);
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+
+        // Still recovers on the next request despite the failed close.
+        assertThat(cm.lease("id-1", ROUTE, TIMEOUT, null)).isNotNull();
+        assertThat(cm.recreationCount()).isEqualTo(1);
+    }
+
+    /**
+     * A close that dies part way through sets the pool's shut-down flag before discarding its entries, so a retried close
+     * early-returns and those sockets are never closed. closeIdle still reaches them, because
+     * {@code StrictConnPool.enumAvailable} does not consult that flag, so the rebuild uses it to reclaim them.
+     */
+    @Test
+    public void lease_afterFailedClose_closesIdleConnectionsOfAbandonedPool() {
+        List<PoolingHttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            PoolingHttpClientConnectionManager pool = mock(PoolingHttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            if (pools.isEmpty()) {
+                doThrow(new OutOfMemoryError("Java heap space")).when(pool).close(any(CloseMode.class));
+            }
+            pools.add(pool);
+            return pool;
+        });
+        PoolingHttpClientConnectionManager abandoned = pools.get(0);
+
+        cm.close(CloseMode.IMMEDIATE);
+        verify(abandoned, never()).closeIdle(any(TimeValue.class));
+
+        cm.lease("id-1", ROUTE, TIMEOUT, null);
+
+        // Zero idle time closes every pooled connection the interrupted close left behind.
+        verify(abandoned).closeIdle(TimeValue.ZERO_MILLISECONDS);
+        assertThat(pools).hasSize(2);
+    }
+
+    @Test
+    public void lease_afterCleanClose_doesNotTouchTheOldPool() {
+        List<PoolingHttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            PoolingHttpClientConnectionManager pool = mock(PoolingHttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            pools.add(pool);
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+        cm.lease("id-1", ROUTE, TIMEOUT, null);
+
+        // The close succeeded, so there is nothing to reclaim and no reason to call back into a discarded pool.
+        verify(pools.get(0), never()).closeIdle(any(TimeValue.class));
+    }
+
+    @Test
+    public void lease_abandonedPoolCleanupThrows_stillRebuilds() {
+        List<PoolingHttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            PoolingHttpClientConnectionManager pool = mock(PoolingHttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            if (pools.isEmpty()) {
+                doThrow(new OutOfMemoryError("Java heap space")).when(pool).close(any(CloseMode.class));
+                doThrow(new IllegalStateException("cleanup failed too")).when(pool).closeIdle(any(TimeValue.class));
+            }
+            pools.add(pool);
+            return pool;
+        });
+
+        cm.close(CloseMode.IMMEDIATE);
+
+        // Cleanup is best effort: failing at it must not stop the client from recovering.
+        assertThat(cm.lease("id-1", ROUTE, TIMEOUT, null)).isNotNull();
+        assertThat(cm.recreationCount()).isEqualTo(1);
+    }
+
+    @Test
+    public void lease_afterFailedClose_cleansUpOnlyOnce() {
+        List<PoolingHttpClientConnectionManager> pools = new ArrayList<>();
+        RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(() -> {
+            PoolingHttpClientConnectionManager pool = mock(PoolingHttpClientConnectionManager.class);
+            when(pool.lease(any(), any(), any(), any())).thenReturn(mock(LeaseRequest.class));
+            if (pools.isEmpty()) {
+                doThrow(new OutOfMemoryError("Java heap space")).when(pool).close(any(CloseMode.class));
+            }
+            pools.add(pool);
+            return pool;
+        });
+        PoolingHttpClientConnectionManager abandoned = pools.get(0);
+
+        cm.close(CloseMode.IMMEDIATE);
+        cm.lease("id-1", ROUTE, TIMEOUT, null);
+        cm.close(CloseMode.IMMEDIATE);
+        cm.lease("id-2", ROUTE, TIMEOUT, null);
+
+        // The second close succeeded, so the first pool must not be revisited.
+        verify(abandoned, times(1)).closeIdle(any(TimeValue.class));
+    }
+
     @Test
     public void closePermanently_doesNotRebuild() {
         RecreatingHttpClientConnectionManager cm = RecreatingHttpClientConnectionManager.create(factory);
