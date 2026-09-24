@@ -158,6 +158,9 @@ public final class RetryableStageHelper {
      * code should not retry.
      */
     public Either<Duration, Duration> tryRefreshToken(Duration suggestedDelay) {
+        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates.
+        AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context);
+
         RetryToken retryToken;
         Duration attemptDelay;
         try {
@@ -194,6 +197,10 @@ public final class RetryableStageHelper {
     }
 
     public CompletableFuture<Either<Duration, Duration>> tryRefreshTokenAsync(Duration suggestedDelay) {
+        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates.
+        // Not awaited: invalidation is best-effort and must not delay the retry path.
+        AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context);
+
         CompletableFuture<Either<Duration, Duration>> cf = new CompletableFuture<>();
 
         RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);

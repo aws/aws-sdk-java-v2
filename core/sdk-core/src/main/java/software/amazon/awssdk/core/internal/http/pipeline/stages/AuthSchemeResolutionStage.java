@@ -151,7 +151,12 @@ public final class AuthSchemeResolutionStage implements MutableRequestToRequestP
         }
         CompletableFuture<? extends T> identity = identityProvider.resolveIdentity(ResolveIdentityRequest.builder().build());
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
-                                         new SelectedAuthScheme<>(identity, existing.signer(), existing.authSchemeOption()));
+                                         SelectedAuthScheme.<T>builder()
+                                                           .identity(identity)
+                                                           .signer(existing.signer())
+                                                           .authSchemeOption(existing.authSchemeOption())
+                                                           .identityProvider(identityProvider)
+                                                           .build());
     }
 
     private void recordBusinessMetrics(SelectedAuthScheme<? extends Identity> selectedAuthScheme,
