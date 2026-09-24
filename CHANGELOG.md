@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.5__ __2026-09-24__
+## __AWS IoT__
+  - ### Features
+    - Fixed ListV2LoggingLevels and DeleteV2LoggingLevel documentation to include all supported target-types
+
+## __AWS Marketplace Discovery__
+  - ### Features
+    - AWS Marketplace Discovery API now supports localized responses and SigV4a request signing. It returns new fulfillment details, including AMI architecture, EBS volume and security group information, SaaS quick-launch status, and SageMaker input and output MIME types.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS Security Agent__
+  - ### Features
+    - Added support for Confluence export, enabling customers to publish security findings to Confluence pages.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - This release adds Create, Get, Update, and DeleteResourceMetricsConfiguration to enable detailed metric collection for an AWS resource, and adds UpdateOTelEnrichment plus include and exclude filters on StartOTelEnrichment so you can choose which metric namespaces CloudWatch enriches.
+
+## __Amazon DataZone__
+  - ### Features
+    - Amazon DataZone now supports the TOOLING blueprint category on CreateEnvironmentBlueprint, UpdateEnvironmentBlueprint, GetEnvironmentBlueprint, and ListEnvironmentBlueprints, for custom tooling blueprints. CreateConnection now accepts roleArn in iamProperties.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Added tagging support for ElastiCache Global DataStore.
+
+## __Amazon EventBridge__
+  - ### Features
+    - Adds a ManagedBy field to the DescribeEventBus and ListEventBuses responses, identifying the AWS service that created an event bus on your behalf.
+
+## __Amazon EventBridgeV2__
+  - ### Features
+    - Introducing Amazon EventBridge enhanced Custom event bus, a new shareable event bus for organizational-scale event-driven applications feature ordered delivery, deduplication, open event formats, and cross-account bus sharing.
+
+## __Amazon Route 53 Resolver__
+  - ### Features
+    - Documentation updates for Route 53 Resolver. Clarifies which Outpost Resolver operations apply to first-generation AWS Outposts and that Resolver is managed automatically on second-generation Outposts. Adds Local Network Interface subnet compatibility notes for Resolver endpoints.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Updates to the ListDatabases and WorkgroupName validation
+
 # __2.55.4__ __2026-09-23__
 ## __AWS Billing__
   - ### Features
