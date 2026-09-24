@@ -979,6 +979,10 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
                 final Map<String, AttributeValueUpdate> updateValues,
                 final DynamoDBMapperConfig config
         ) {
+            if (transformer == null) {
+                return updateValues;
+            }
+
             Map<String, AttributeValue> item = convertToItem(updateValues);
 
             HashSet<String> keysAdded = new HashSet<String>();
