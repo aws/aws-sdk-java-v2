@@ -278,6 +278,76 @@ public class EventStreamAsyncResponseTransformerTest {
     }
 
     @Test(timeout = 5000)
+    public void deferredStaleAttemptCallbackFailureDoesNotCompleteCurrentAttempt() throws InterruptedException {
+        RuntimeException firstAttemptFailure = new RuntimeException("attempt failed");
+        RuntimeException lateCallbackFailure = new RuntimeException("late callback failed");
+        PublishProcessor<ByteBuffer> firstPublisher = PublishProcessor.create();
+        PublishProcessor<ByteBuffer> secondPublisher = PublishProcessor.create();
+        CompletableFuture<Void> operationFuture = new CompletableFuture<>();
+        CompletableFuture<Void> releaseFirstDispatch = new CompletableFuture<>();
+        CompletableFuture<Void> firstDispatch = new CompletableFuture<>();
+        CountDownLatch firstDispatchStarted = new CountDownLatch(1);
+        AtomicInteger dispatchInvocations = new AtomicInteger();
+        AtomicInteger callbackInvocations = new AtomicInteger();
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+
+        try {
+            TestResponseHandlerBuilder builder = new TestResponseHandlerBuilder().subscriber(event -> {
+                callbackInvocations.incrementAndGet();
+                throw lateCallbackFailure;
+            });
+            EventStreamResponseHandlerFromBuilder<Object, Object> handler =
+                new EventStreamResponseHandlerFromBuilder<Object, Object>(builder) {
+                    @Override
+                    public void onEventStream(SdkPublisher<Object> publisher) {
+                        if (dispatchInvocations.getAndIncrement() == 0) {
+                            executor.execute(() -> {
+                                firstDispatchStarted.countDown();
+                                try {
+                                    releaseFirstDispatch.join();
+                                    super.onEventStream(publisher);
+                                    firstDispatch.complete(null);
+                                } catch (Throwable t) {
+                                    firstDispatch.completeExceptionally(t);
+                                }
+                            });
+                        } else {
+                            super.onEventStream(publisher);
+                        }
+                    }
+                };
+            AsyncResponseTransformer<SdkResponse, Void> transformer =
+                EventStreamAsyncResponseTransformer.builder()
+                                                   .eventStreamResponseHandler(handler)
+                                                   .eventResponseHandler((r, e) -> new Object())
+                                                   .future(operationFuture)
+                                                   .build();
+
+            CompletableFuture<Void> firstAttempt = transformer.prepare();
+            transformer.onStream(SdkPublisher.adapt(firstPublisher));
+            assertThat(firstDispatchStarted.await(1, TimeUnit.SECONDS)).isTrue();
+            transformer.exceptionOccurred(firstAttemptFailure);
+            assertThatThrownBy(firstAttempt::join).hasCause(firstAttemptFailure);
+
+            CompletableFuture<Void> secondAttempt = transformer.prepare();
+            transformer.onStream(SdkPublisher.adapt(secondPublisher));
+            releaseFirstDispatch.complete(null);
+            firstDispatch.join();
+            firstPublisher.onNext(eventMessage().toByteBuffer());
+
+            assertThat(callbackInvocations).hasValue(1);
+            assertThat(operationFuture).isNotDone();
+            assertThat(secondAttempt).isNotDone();
+
+            secondPublisher.onComplete();
+            secondAttempt.join();
+            operationFuture.join();
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    @Test(timeout = 5000)
     public void responseHandlerFromBuilderOverride_originalPublisher_callbackFailurePropagates()
         throws InterruptedException {
         RuntimeException failure = new RuntimeException("boom");
