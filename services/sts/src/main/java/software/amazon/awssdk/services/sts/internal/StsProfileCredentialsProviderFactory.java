@@ -51,6 +51,29 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                                                  request.sourceChain());
     }
 
+    static AssumeRoleRequest createAssumeRoleRequest(Profile profile) {
+        String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
+        String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
+                                        .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
+        String externalId = profile.property(ProfileProperty.EXTERNAL_ID).orElse(null);
+        Integer durationSeconds = profile.property(ProfileProperty.DURATION_SECONDS)
+                                         .map(Integer::valueOf)
+                                         .orElse(null);
+
+        return AssumeRoleRequest.builder()
+                                .roleArn(roleArn)
+                                .roleSessionName(roleSessionName)
+                                .externalId(externalId)
+                                .durationSeconds(durationSeconds)
+                                .build();
+    }
+
+    private static String requireProperty(Profile profile, String requiredProperty) {
+        return profile.property(requiredProperty)
+                      .orElseThrow(() -> new IllegalArgumentException(String.format(MISSING_PROPERTY_ERROR_FORMAT,
+                                                                                    requiredProperty, profile.name())));
+    }
+
     /**
      * A wrapper for a {@link StsAssumeRoleCredentialsProvider} that is returned by this factory when
      * {@link #create(ChildProfileCredentialsRequest)} is invoked. This wrapper is important because it ensures the
@@ -63,16 +86,7 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
 
         private StsProfileCredentialsProvider(AwsCredentialsProvider parentCredentialsProvider, Profile profile,
                                               String sourceChain) {
-            String roleArn = requireProperty(profile, ProfileProperty.ROLE_ARN);
-            String roleSessionName = profile.property(ProfileProperty.ROLE_SESSION_NAME)
-                                            .orElseGet(() -> "aws-sdk-java-" + System.currentTimeMillis());
-            String externalId = profile.property(ProfileProperty.EXTERNAL_ID).orElse(null);
-
-            AssumeRoleRequest assumeRoleRequest = AssumeRoleRequest.builder()
-                                                                   .roleArn(roleArn)
-                                                                   .roleSessionName(roleSessionName)
-                                                                   .externalId(externalId)
-                                                                   .build();
+            AssumeRoleRequest assumeRoleRequest = createAssumeRoleRequest(profile);
 
             this.stsClient = StsClient.builder()
                                       .applyMutation(client -> configureEndpoint(client, profile))
@@ -104,12 +118,6 @@ public final class StsProfileCredentialsProviderFactory implements ChildProfileC
                 stsClientBuilder.region(Region.US_EAST_1);
                 stsClientBuilder.endpointOverride(URI.create("https://sts.amazonaws.com"));
             }
-        }
-
-        private String requireProperty(Profile profile, String requiredProperty) {
-            return profile.property(requiredProperty)
-                          .orElseThrow(() -> new IllegalArgumentException(String.format(MISSING_PROPERTY_ERROR_FORMAT,
-                                                                                        requiredProperty, profile.name())));
         }
 
         @Override
