@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Add support for account-ID based endpoints when using IMDS credential provider. The SDK now sends the `X-amzn-extended: 1` header on IMDS credential requests and parses the `AccountId` field from the response when available."
+}

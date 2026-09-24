@@ -22,26 +22,24 @@ import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeastOnce;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
 import java.time.Duration;
 import java.time.Instant;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpExecuteResponse;
+import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.SdkHttpResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.RegisterExtension;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.InstanceProfileCredentialsProvider;
 import software.amazon.awssdk.core.SdkSystemSetting;
-import software.amazon.awssdk.core.exception.SdkException;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.DateUtils;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Tests that verify AccountId from IMDS credentials flows into DynamoDB account-based endpoint resolution.
@@ -73,10 +71,18 @@ class ImdsAccountIdEndpointTest {
                                                                .configureStaticDsl(true)
                                                                .build();
 
+    private MockSyncHttpClient mockHttpClient;
+
     @BeforeEach
     void setup() {
         System.setProperty(SdkSystemSetting.AWS_EC2_METADATA_SERVICE_ENDPOINT.property(),
                            "http://localhost:" + wireMockServer.getPort());
+        mockHttpClient = new MockSyncHttpClient();
+        mockHttpClient.stubNextResponse(HttpExecuteResponse.builder()
+                                                           .response(SdkHttpResponse.builder().statusCode(200).build())
+                                                           .responseBody(AbortableInputStream.create(
+                                                               new StringInputStream("{}")))
+                                                           .build());
     }
 
     @AfterAll
@@ -93,57 +99,41 @@ class ImdsAccountIdEndpointTest {
                     .willReturn(aResponse().withBody(credentialsBody)));
     }
 
+    private DynamoDbClient createClient(InstanceProfileCredentialsProvider credentialsProvider) {
+        return DynamoDbClient.builder()
+                             .region(Region.US_EAST_1)
+                             .credentialsProvider(credentialsProvider)
+                             .httpClient(mockHttpClient)
+                             .build();
+    }
+
     @Test
     void imdsWithAccountId_usesAccountBasedEndpoint() {
         stubImdsResponse(STUB_CREDENTIALS_WITH_ACCOUNT_ID);
 
-        ExecutionInterceptor interceptor = Mockito.spy(AbstractExecutionInterceptor.class);
-
         try (InstanceProfileCredentialsProvider credentialsProvider =
                  InstanceProfileCredentialsProvider.builder().build();
-             DynamoDbClient client = DynamoDbClient.builder()
-                                                   .region(Region.US_EAST_1)
-                                                   .credentialsProvider(credentialsProvider)
-                                                   .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor)
-                                                                                .retryPolicy(r -> r.numRetries(0)))
-                                                   .build()) {
+             DynamoDbClient client = createClient(credentialsProvider)) {
 
-            assertThatThrownBy(client::listTables).isInstanceOf(SdkException.class);
+            client.listTables();
         }
 
-        ArgumentCaptor<Context.BeforeTransmission> context =
-            ArgumentCaptor.forClass(Context.BeforeTransmission.class);
-        Mockito.verify(interceptor, atLeastOnce()).beforeTransmission(context.capture(), any());
-
-        String host = context.getValue().httpRequest().getUri().getHost();
-        assertThat(host).contains(ACCOUNT_ID + ".ddb.");
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest.host()).contains(ACCOUNT_ID + ".ddb.");
     }
 
     @Test
     void imdsWithoutAccountId_usesStandardEndpoint() {
         stubImdsResponse(STUB_CREDENTIALS_WITHOUT_ACCOUNT_ID);
 
-        ExecutionInterceptor interceptor = Mockito.spy(AbstractExecutionInterceptor.class);
-
         try (InstanceProfileCredentialsProvider credentialsProvider =
                  InstanceProfileCredentialsProvider.builder().build();
-             DynamoDbClient client = DynamoDbClient.builder()
-                                                   .region(Region.US_EAST_1)
-                                                   .credentialsProvider(credentialsProvider)
-                                                   .overrideConfiguration(c -> c.addExecutionInterceptor(interceptor)
-                                                                                .retryPolicy(r -> r.numRetries(0)))
-                                                   .build()) {
+             DynamoDbClient client = createClient(credentialsProvider)) {
 
-            assertThatThrownBy(client::listTables).isInstanceOf(SdkException.class);
+            client.listTables();
         }
 
-        ArgumentCaptor<Context.BeforeTransmission> context =
-            ArgumentCaptor.forClass(Context.BeforeTransmission.class);
-        Mockito.verify(interceptor, atLeastOnce()).beforeTransmission(context.capture(), any());
-
-        String host = context.getValue().httpRequest().getUri().getHost();
-        assertThat(host).isEqualTo("dynamodb.us-east-1.amazonaws.com");
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest.host()).isEqualTo("dynamodb.us-east-1.amazonaws.com");
     }
-
-    public static abstract class AbstractExecutionInterceptor implements ExecutionInterceptor {}
 }
