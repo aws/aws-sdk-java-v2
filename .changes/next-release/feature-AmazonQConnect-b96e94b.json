@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Q Connect",
+    "contributor": "",
+    "description": "Release shapes for the proactive agentic recommendations and the multi-knowledge base search features. Increases the maximum length of QuickResponseContent."
+}
