@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Agents for Amazon Bedrock",
-    "contributor": "",
-    "description": "Adds support for calling VPC configuration API's in Bedrock. These configurations allow the use of On Prem connectors in Bedrock Managed Knowledge bases"
-}
