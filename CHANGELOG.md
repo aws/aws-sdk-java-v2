@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.6__ __2026-09-25__
+## __ARC - Region switch__
+  - ### Features
+    - Adds a service quota checker to Region switch to verify quota parity between your primary and standby Region, and automatically submit quota limit increases. Adds an optional EC2 Auto Scaling and ECS setting that waits for instances or tasks in the scaled-up Region to be healthy in target groups.
+
+## __AWS Glue__
+  - ### Features
+    - add support for table level federation
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for RTMP push router outputs in AWS Elemental MediaConnect.
+
+## __AWS Security Agent__
+  - ### Features
+    - This release adds the ListActorMessages operation, which returns the multi-factor authentication messages received at an actor's server-generated email address
+
+## __AWS Well-Architected Tool__
+  - ### Features
+    - This change releases the Well-Architected Agent, a generative AI service that analyzes a customer's AWS environment and delivers personalized, prioritized recommendations across cost, security, performance, and resilience.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Adds support for calling VPC configuration API's in Bedrock. These configurations allow the use of On Prem connectors in Bedrock Managed Knowledge bases
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Amazon Bedrock AgentCore Payments now supports credential rotation for payment connectors, letting you rotate API and wallet secrets for Quick Create payment auths from the console. This release also adds Type and Creation type columns to the payment managers views.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Agent Privacy During Hold is a new privacy capability for Amazon Connect Voice that prevents agent audio from being captured in call recordings or Contact Lens conversational analytics during hold. When enabled, agents are automatically muted on entering hold and unmuted on resuming the contact
+
+## __Amazon Neptune Graph__
+  - ### Features
+    - Add GraphIdentifier filter for ListImportTasks
+
+## __Amazon Q Connect__
+  - ### Features
+    - Release shapes for the proactive agentic recommendations and the multi-knowledge base search features. Increases the maximum length of QuickResponseContent.
+
+## __Amazon Rekognition__
+  - ### Features
+    - This release adds support for Feedback and Metadata in the GetFaceLivenessSessionResults response. Feedback returns codes explaining why a Face Liveness check produced its result. Metadata includes the client SDK type.
+
 # __2.55.5__ __2026-09-24__
 ## __AWS IoT__
   - ### Features

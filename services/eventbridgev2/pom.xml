@@ -17,7 +17,7 @@
     <parent>
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>services</artifactId>
-        <version>2.55.6-SNAPSHOT</version>
+        <version>2.55.6</version>
     </parent>
     <artifactId>eventbridgev2</artifactId>
     <name>AWS Java SDK :: Services :: Event Bridge V2</name>
