@@ -386,7 +386,27 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT extends SdkResponse>
         AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
-        return new InputStreamResponseTransformer<>();
+        return new InputStreamResponseTransformer<>(false);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an {@link InputStream}.
+     * You are responsible for performing blocking reads from this input stream and closing the stream when you are finished.
+     *
+     * <p>When enabled, gzip response streams are adapted so that {@link InputStream#available()} does not temporarily return
+     * {@code 0} while the stream is still open. This works around {@link java.util.zip.GZIPInputStream} treating a temporary
+     * {@code 0} at a concatenated gzip member boundary as the end of the complete stream. Because this can cause a read after
+     * {@code available()} to block, it should only be enabled when the response will be read with {@code GZIPInputStream}.
+     *
+     * @param gzipInputStreamCompatibilityEnabled Whether to enable {@code GZIPInputStream} compatibility for concatenated gzip.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return AsyncResponseTransformer instance.
+     * @see #toBlockingInputStream()
+     */
+    static <ResponseT extends SdkResponse>
+        AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream(
+            boolean gzipInputStreamCompatibilityEnabled) {
+        return new InputStreamResponseTransformer<>(gzipInputStreamCompatibilityEnabled);
     }
 
     /**

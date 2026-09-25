@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.internal.io.GzipAvailabilityInputStream;
 import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 
 /**
@@ -38,6 +40,15 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
     private volatile CompletableFuture<ResponseInputStream<ResponseT>> future;
     private volatile ResponseT response;
     private volatile WaitForSubscribeOnErrorWrapper subscriber;
+    private final boolean gzipInputStreamCompatibilityEnabled;
+
+    public InputStreamResponseTransformer() {
+        this(false);
+    }
+
+    public InputStreamResponseTransformer(boolean gzipInputStreamCompatibilityEnabled) {
+        this.gzipInputStreamCompatibilityEnabled = gzipInputStreamCompatibilityEnabled;
+    }
 
     @Override
     public CompletableFuture<ResponseInputStream<ResponseT>> prepare() {
@@ -59,7 +70,10 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
         this.subscriber = waitForSubscribeSubscriber;
 
         publisher.subscribe(waitForSubscribeSubscriber);
-        future.complete(new ResponseInputStream<>(response, inputStreamSubscriber));
+        InputStream content = gzipInputStreamCompatibilityEnabled
+                                       ? GzipAvailabilityInputStream.wrap(inputStreamSubscriber, inputStreamSubscriber)
+                                       : inputStreamSubscriber;
+        future.complete(new ResponseInputStream<>(response, content));
     }
 
     @Override

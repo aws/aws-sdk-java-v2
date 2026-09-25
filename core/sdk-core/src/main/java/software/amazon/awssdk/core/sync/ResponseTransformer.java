@@ -36,6 +36,7 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.io.GzipAvailabilityInputStream;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
@@ -261,17 +262,30 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @see #toInputStream(Duration)
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
-        return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
-            @Override
-            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
-                return new ResponseInputStream<>(response, inputStream);
-            }
+        return toInputStream(null, false);
+    }
 
-            @Override
-            public String name() {
-                return TransformerType.STREAM.getName();
-            }
-        });
+    /**
+     * Creates a response transformer that returns an unmanaged input stream with the response content. This input stream must
+     * be explicitly closed to release the connection.
+     *
+     * <p>The stream has the default first-read timeout of 60 seconds. Use {@link #toInputStream(Duration, boolean)} to specify a
+     * custom timeout.
+     *
+     * <p>When enabled, gzip response streams are adapted so that {@link InputStream#available()} does not temporarily return
+     * {@code 0} while the stream is still open. This works around {@link java.util.zip.GZIPInputStream} treating a temporary
+     * {@code 0} at a concatenated gzip member boundary as the end of the complete stream. Because this can cause a read after
+     * {@code available()} to block, it should only be enabled when the response will be read with {@code GZIPInputStream}.
+     *
+     * @param gzipInputStreamCompatibilityEnabled Whether to enable {@code GZIPInputStream} compatibility for concatenated gzip.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     * @see #toInputStream()
+     * @see #toInputStream(Duration, boolean)
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(
+        boolean gzipInputStreamCompatibilityEnabled) {
+        return toInputStream(null, gzipInputStreamCompatibilityEnabled);
     }
 
     /**
@@ -289,10 +303,33 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @see #toInputStream()
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(Duration timeout) {
+        return toInputStream(timeout, false);
+    }
+
+    /**
+     * Creates a response transformer that returns an unmanaged input stream with the response content and a custom timeout.
+     * This input stream must be explicitly closed to release the connection.
+     *
+     * <p>When enabled, gzip response streams are adapted so that {@link InputStream#available()} does not temporarily return
+     * {@code 0} while the stream is still open. This works around {@link java.util.zip.GZIPInputStream} treating a temporary
+     * {@code 0} at a concatenated gzip member boundary as the end of the complete stream. Because this can cause a read after
+     * {@code available()} to block, it should only be enabled when the response will be read with {@code GZIPInputStream}.
+     *
+     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} or a negative
+     *                {@link Duration} to disable timeout.
+     * @param gzipInputStreamCompatibilityEnabled Whether to enable {@code GZIPInputStream} compatibility for concatenated gzip.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(
+        Duration timeout, boolean gzipInputStreamCompatibilityEnabled) {
         return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
             @Override
             public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
-                return new ResponseInputStream<>(response, inputStream, timeout);
+                AbortableInputStream content = gzipInputStreamCompatibilityEnabled
+                                               ? GzipAvailabilityInputStream.wrap(inputStream, inputStream)
+                                               : inputStream;
+                return new ResponseInputStream<>(response, content, timeout);
             }
 
             @Override
