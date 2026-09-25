@@ -22,18 +22,11 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,7 +41,6 @@ import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
@@ -179,50 +171,6 @@ public class SyncClientHandlerTest {
             .hasCauseInstanceOf(NonRetryableException.class);
     }
 
-    @Test
-    public void execute_whenConcatenatedGzipHasTransientZeroAvailable_decodesAllMembers() throws Exception {
-        mockSuccessfulStreamingCall(concatenatedGzip("member-0", "member-1", "member-2", "member-3", "member-4"));
-        when(responseTransformer.needsConnectionLeftOpen()).thenReturn(true); // customer-held stream, e.g. toInputStream()
-        when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class)))
-            .thenAnswer(invocation -> readAllGzip(invocation.getArgument(1)));
-
-        Object decoded = syncClientHandler.execute(clientExecutionParams(), responseTransformer);
-
-        assertThat(decoded).isEqualTo("member-0member-1member-2member-3member-4");
-    }
-
-    @Test
-    public void execute_whenConcatenatedGzipSupportDisabled_doesNotCoerceAvailable() throws Exception {
-        mockSuccessfulStreamingCall(concatenatedGzip("member-0", "member-1"));
-        AtomicInteger availableAfterHeader = new AtomicInteger(-1);
-        when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class)))
-            .thenAnswer(invocation -> {
-                AbortableInputStream stream = invocation.getArgument(1);
-                stream.read();
-                stream.read();
-                stream.read();
-                availableAfterHeader.set(stream.available());
-                return null;
-            });
-        ClientExecutionParams<SdkRequest, SdkResponse> params = clientExecutionParams()
-            .putExecutionAttribute(SdkInternalExecutionAttribute.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED, false);
-
-        syncClientHandler.execute(params, responseTransformer);
-
-        assertThat(availableAfterHeader.get()).isZero();
-    }
-
-    @Test
-    public void execute_whenCustomTransformerDoesNotLeaveConnectionOpen_decodesAllGzipMembers() throws Exception {
-        mockSuccessfulStreamingCall(concatenatedGzip("member-0", "member-1", "member-2"));
-        ResponseTransformer<SdkResponse, String> customTransformer =
-            (response, inputStream) -> readAllGzip(inputStream);
-
-        String decoded = syncClientHandler.execute(clientExecutionParams(), customTransformer);
-
-        assertThat(decoded).isEqualTo("member-0member-1member-2");
-    }
-
     private void verifyResponseTransformerPropagateException(Exception exception) throws Exception {
         mockSuccessfulApiCall();
         when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class))).thenThrow(
@@ -244,68 +192,6 @@ public class SyncClientHandlerTest {
     private void expectRetrievalFromMocks() {
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
         when(httpClient.prepareRequest(any())).thenReturn(httpClientCall);
-    }
-
-    private void mockSuccessfulStreamingCall(byte[] body) throws Exception {
-        expectRetrievalFromMocks();
-        when(httpClientCall.call()).thenReturn(HttpExecuteResponse.builder()
-                                                                  .responseBody(AbortableInputStream.create(zeroAvailableDripStream(body)))
-                                                                  .response(SdkHttpResponse.builder().statusCode(200).build())
-                                                                  .build());
-        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
-    }
-
-    /** Serves one byte per read and always reports {@code available()==0}, mimicking a socket with no bytes buffered. */
-    private static InputStream zeroAvailableDripStream(byte[] data) {
-        return new InputStream() {
-            private int pos;
-
-            @Override
-            public int read() {
-                return pos < data.length ? data[pos++] & 0xff : -1;
-            }
-
-            @Override
-            public int read(byte[] b, int off, int len) {
-                if (len == 0) {
-                    return 0;
-                }
-                if (pos >= data.length) {
-                    return -1;
-                }
-                b[off] = (byte) (data[pos++] & 0xff);
-                return 1;
-            }
-
-            @Override
-            public int available() {
-                return 0;
-            }
-        };
-    }
-
-    private static byte[] concatenatedGzip(String... members) throws IOException {
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        for (String member : members) {
-            ByteArrayOutputStream one = new ByteArrayOutputStream();
-            try (GZIPOutputStream gz = new GZIPOutputStream(one)) {
-                gz.write(member.getBytes(StandardCharsets.UTF_8));
-            }
-            out.write(one.toByteArray());
-        }
-        return out.toByteArray();
-    }
-
-    private static String readAllGzip(InputStream in) throws IOException {
-        try (GZIPInputStream gz = new GZIPInputStream(in)) {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            byte[] buf = new byte[64];
-            int n;
-            while ((n = gz.read(buf)) != -1) {
-                out.write(buf, 0, n);
-            }
-            return new String(out.toByteArray(), StandardCharsets.UTF_8);
-        }
     }
 
     private ClientExecutionParams<SdkRequest, SdkResponse> clientExecutionParams() {

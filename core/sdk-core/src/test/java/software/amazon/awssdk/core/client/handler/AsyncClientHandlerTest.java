@@ -19,14 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.spy;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -41,21 +36,13 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
-import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
-import software.amazon.awssdk.core.async.AsyncResponseTransformer;
-import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.EmptyPublisher;
-import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
-import software.amazon.awssdk.core.interceptor.Context;
-import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
-import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
@@ -65,7 +52,6 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
-import software.amazon.awssdk.utils.async.SimplePublisher;
 import utils.HttpTestUtils;
 import utils.ValidSdkObjects;
 
@@ -144,77 +130,6 @@ public class AsyncClientHandlerTest {
 
         // Then
         verifyNoMoreInteractions(responseHandler); // Response handler is not called
-    }
-
-    @Test
-    public void execute_whenGzipSupportDisabledAndTransformerWrapped_doesNotCoerceAvailable() throws Exception {
-        SdkClientConfiguration disabledConfiguration =
-            clientConfiguration().toBuilder()
-                                 .option(SdkAdvancedClientOption.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED, false)
-                                 .build();
-        asyncClientHandler = new SdkAsyncClientHandler(disabledConfiguration);
-        SimplePublisher<ByteBuffer> body = new SimplePublisher<>();
-        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> transformer =
-            AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture(
-                AsyncResponseTransformer.<SdkResponse>toBlockingInputStream()).left();
-
-        ResponseInputStream<SdkResponse> stream = driveStreamingExecute(transformer, body);
-        try {
-            body.send(ByteBuffer.wrap(new byte[] {0x1f, (byte) 0x8b, 0x08}));
-            readFully(stream, 3);
-            assertThat(stream.available()).isZero();
-        } finally {
-            body.complete();
-            stream.close();
-        }
-    }
-
-    @Test
-    public void execute_whenBeforeExecutionThrows_callsPrepareFirstAndPropagatesOriginalFailure() throws Exception {
-        IllegalStateException interceptorFailure = new IllegalStateException("beforeExecution failure");
-        ExecutionInterceptor failingInterceptor = new ExecutionInterceptor() {
-            @Override
-            public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
-                throw interceptorFailure;
-            }
-        };
-        SdkClientConfiguration configuration =
-            clientConfiguration().toBuilder()
-                                 .option(SdkClientOption.EXECUTION_INTERCEPTORS,
-                                         Arrays.asList(failingInterceptor))
-                                 .build();
-        asyncClientHandler = new SdkAsyncClientHandler(configuration);
-        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> transformer =
-            spy(AsyncResponseTransformer.<SdkResponse>toBlockingInputStream());
-
-        CompletableFuture<ResponseInputStream<SdkResponse>> result =
-            asyncClientHandler.execute(clientExecutionParams(), transformer);
-
-        verify(transformer).prepare();
-        assertThatThrownBy(() -> result.get(1, TimeUnit.SECONDS))
-            .hasRootCause(interceptorFailure);
-    }
-
-    private ResponseInputStream<SdkResponse> driveStreamingExecute(
-        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> transformer,
-        SimplePublisher<ByteBuffer> body) throws Exception {
-        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
-        expectRetrievalFromMocks();
-        when(httpClient.execute(executeRequest.capture())).thenReturn(httpClientFuture);
-        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
-
-        CompletableFuture<ResponseInputStream<SdkResponse>> future =
-            asyncClientHandler.execute(clientExecutionParams(), transformer);
-        SdkAsyncHttpResponseHandler capturedHandler = executeRequest.getValue().responseHandler();
-        capturedHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
-        capturedHandler.onStream(SdkPublisher.adapt(body));
-        return future.get(1, TimeUnit.SECONDS);
-    }
-
-    private static void readFully(InputStream stream, int byteCount) throws IOException {
-        for (int i = 0; i < byteCount; i++) {
-            assertThat(stream.read()).isNotEqualTo(-1);
-        }
     }
 
     private void expectRetrievalFromMocks() {

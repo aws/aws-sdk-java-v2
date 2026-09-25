@@ -44,13 +44,13 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 /**
  * End-to-end (through a real client over WireMock) verification that a concatenated (multi-member) gzip response body
  * with NO {@code Content-Encoding: gzip} header — i.e. the caller decodes it themselves — round-trips through both the
- * sync {@code toInputStream()} and async {@code toBlockingInputStream()} paths and decodes to ALL members.
+ * sync {@code toInputStream(true)} and async {@code toBlockingInputStream(true)} paths and decodes to ALL members.
  *
  * <p>This is a happy-path regression guard: it proves the {@code GzipAvailabilityInputStream} wrap the SDK now applies
  * does not corrupt, stall, or truncate a streaming gzip download over the real HTTP stack. It does NOT reproduce the
  * underlying truncation — WireMock delivers the whole body into the socket buffer, so {@code available()} is never
  * transiently {@code 0} at a member boundary. Deterministic reproduction of the boundary condition lives in the
- * lower-level stream and handler tests.
+ * lower-level stream and transformer tests.
  */
 @WireMockTest
 public class GetObjectConcatenatedGzipTest {
@@ -67,7 +67,7 @@ public class GetObjectConcatenatedGzipTest {
 
         try (S3Client s3 = syncClient(wm)) {
             ResponseInputStream<GetObjectResponse> body =
-                s3.getObject(r -> r.bucket(BUCKET).key(KEY), ResponseTransformer.toInputStream());
+                s3.getObject(r -> r.bucket(BUCKET).key(KEY), ResponseTransformer.toInputStream(true));
             assertThat(gunzip(body)).isEqualTo(EXPECTED);
         }
     }
@@ -78,7 +78,7 @@ public class GetObjectConcatenatedGzipTest {
 
         try (S3AsyncClient s3Async = asyncClient(wm)) {
             ResponseInputStream<GetObjectResponse> body =
-                s3Async.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBlockingInputStream()).join();
+                s3Async.getObject(r -> r.bucket(BUCKET).key(KEY), AsyncResponseTransformer.toBlockingInputStream(true)).join();
             assertThat(gunzip(body)).isEqualTo(EXPECTED);
         }
     }

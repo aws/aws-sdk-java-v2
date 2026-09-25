@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -57,14 +56,6 @@ public class S3AsyncClientDecorator {
                                           == RequestChecksumCalculation.WHEN_SUPPORTED;
                 return MultipartS3AsyncClient.create(client, multipartConfiguration, checksumEnabled);
             }));
-
-        boolean concatenatedGzipStreamSupportEnabled = !Boolean.FALSE.equals(
-            clientConfiguration.option(SdkAdvancedClientOption.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED));
-        decorators.add(ConditionalDecorator.create(
-            client -> !concatenatedGzipStreamSupportEnabled,
-            client -> new ConcatenatedGzipStreamSupportS3AsyncClient(
-                client, concatenatedGzipStreamSupportEnabled)));
-
         return ConditionalDecorator.decorate(base, decorators);
     }
 

@@ -23,7 +23,6 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
-import software.amazon.awssdk.core.internal.async.ConfigurableAsyncResponseTransformer;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
@@ -66,9 +65,7 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
     }
 
     @SdkInternalApi
-    final class NotifyingAsyncResponseTransformer<ResponseT, ResultT>
-        implements AsyncResponseTransformer<ResponseT, ResultT>,
-                   ConfigurableAsyncResponseTransformer<ResponseT, ResultT> {
+    final class NotifyingAsyncResponseTransformer<ResponseT, ResultT> implements AsyncResponseTransformer<ResponseT, ResultT> {
         private static final Logger log = Logger.loggerFor(NotifyingAsyncResponseTransformer.class);
 
         private final AsyncResponseTransformer<ResponseT, ResultT> delegate;
@@ -82,16 +79,6 @@ public interface AsyncResponseTransformerListener<ResponseT> extends PublisherLi
 
         public AsyncResponseTransformer<ResponseT, ResultT> getDelegate() {
             return delegate;
-        }
-
-        @Override
-        public AsyncResponseTransformer<ResponseT, ResultT> withConcatenatedGzipStreamSupportEnabled(boolean enabled) {
-            AsyncResponseTransformer<ResponseT, ResultT> configuredDelegate =
-                ConfigurableAsyncResponseTransformer.configure(delegate, enabled);
-            if (configuredDelegate == delegate) {
-                return this;
-            }
-            return new NotifyingAsyncResponseTransformer<>(configuredDelegate, listener);
         }
 
         @Override

@@ -88,14 +88,6 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
     public static final SdkAdvancedClientOption<Boolean> DISABLE_HOST_PREFIX_INJECTION =
         new SdkAdvancedClientOption<>(Boolean.class);
 
-    /**
-     * Whether response streams support concatenated (multi-member) gzip by preventing a temporary
-     * {@code InputStream.available() == 0} from being interpreted as the end of the gzip stream.
-     * Enabled by default.
-     */
-    public static final SdkAdvancedClientOption<Boolean> CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED =
-        new SdkAdvancedClientOption<>(Boolean.class);
-
     protected SdkAdvancedClientOption(Class<T> valueClass) {
         super(valueClass);
         OPTIONS.add(this);

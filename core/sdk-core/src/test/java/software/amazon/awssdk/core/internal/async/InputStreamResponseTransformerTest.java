@@ -23,15 +23,19 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
@@ -145,46 +149,117 @@ class InputStreamResponseTransformerTest {
     }
 
     @Test
-    void onStream_whenGzipDetected_coercesAvailableAboveZeroWhileOpen() throws IOException {
-        ResponseInputStream<SdkResponse> stream = resultFuture.join();
-
-        publisher.send(ByteBuffer.wrap(new byte[] {0x1f, (byte) 0x8b, 0x08})); // gzip magic
-        stream.read();
-        stream.read();
-        stream.read();
-
-        // Nothing buffered now, so the raw stream would report 0; the gzip-aware wrapper coerces it to >= 1 so a
-        // wrapping GZIPInputStream does not truncate concatenated (multi-member) gzip at a member boundary.
-        assertThat(stream.available()).isGreaterThanOrEqualTo(1);
+    void onStream_whenCompatibilityDisabled_preservesZeroAvailable() throws IOException {
+        assertThat(availableAfterHeader(AsyncResponseTransformer.toBlockingInputStream(), gzipHeader())).isZero();
     }
 
     @Test
-    void withConcatenatedGzipStreamSupportEnabled_whenDisabled_returnsImmutableCopyWithoutAvailableCoercion()
-        throws IOException {
-        InputStreamResponseTransformer<SdkResponse> original = new InputStreamResponseTransformer<>();
-        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> disabled =
-            original.withConcatenatedGzipStreamSupportEnabled(false);
-
-        assertThat(original.withConcatenatedGzipStreamSupportEnabled(true)).isSameAs(original);
-        assertThat(disabled).isNotSameAs(original);
-        assertThat(availableAfterGzipHeader(original)).isGreaterThanOrEqualTo(1);
-        assertThat(availableAfterGzipHeader(disabled)).isZero();
+    void onStream_whenCompatibilityEnabled_coercesAvailableAboveZeroWhileOpen() throws IOException {
+        assertThat(availableAfterHeader(AsyncResponseTransformer.toBlockingInputStream(true), gzipHeader()))
+            .isGreaterThanOrEqualTo(1);
     }
 
-    private static int availableAfterGzipHeader(
-        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer) throws IOException {
+    @Test
+    void onStream_whenCompatibilityEnabledAndContentIsNotGzip_preservesZeroAvailable() throws IOException {
+        assertThat(availableAfterHeader(AsyncResponseTransformer.toBlockingInputStream(true), new byte[] {1, 2, 3}))
+            .isZero();
+    }
+
+    @Test
+    void onStream_whenCompatibilityEnabled_preservesAbort() {
+        AtomicBoolean cancelled = new AtomicBoolean();
+        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer =
+            AsyncResponseTransformer.toBlockingInputStream(true);
+        CompletableFuture<ResponseInputStream<SdkResponse>> future = responseTransformer.prepare();
+        responseTransformer.onResponse(VoidSdkResponse.builder().build());
+        responseTransformer.onStream(SdkPublisher.adapt(subscriber -> subscriber.onSubscribe(new Subscription() {
+            @Override
+            public void request(long n) {
+            }
+
+            @Override
+            public void cancel() {
+                cancelled.set(true);
+            }
+        })));
+
+        future.join().abort();
+
+        assertThat(cancelled).isTrue();
+    }
+
+    @Test
+    void split_whenCompatibilityEnabled_preservesCompatibilityOnCombinedStream() throws Exception {
+        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer =
+            AsyncResponseTransformer.toBlockingInputStream(true);
+        AsyncResponseTransformer.SplitResult<SdkResponse, ResponseInputStream<SdkResponse>> splitResult =
+            responseTransformer.split(SplittingTransformerConfiguration.builder().bufferSizeInBytes(16L).build());
+        AtomicBoolean failed = new AtomicBoolean();
+        CountDownLatch partCompleted = new CountDownLatch(1);
+
+        splitResult.publisher().subscribe(new org.reactivestreams.Subscriber<
+            AsyncResponseTransformer<SdkResponse, SdkResponse>>() {
+            private Subscription subscription;
+
+            @Override
+            public void onSubscribe(Subscription subscription) {
+                this.subscription = subscription;
+                subscription.request(1);
+            }
+
+            @Override
+            public void onNext(AsyncResponseTransformer<SdkResponse, SdkResponse> partTransformer) {
+                partTransformer.prepare().whenComplete((ignored, error) -> {
+                    failed.set(error != null);
+                    partCompleted.countDown();
+                });
+                partTransformer.onResponse(VoidSdkResponse.builder().build());
+                partTransformer.onStream(AsyncRequestBody.fromBytes(gzipHeader()));
+                subscription.cancel();
+            }
+
+            @Override
+            public void onError(Throwable throwable) {
+                failed.set(true);
+                partCompleted.countDown();
+            }
+
+            @Override
+            public void onComplete() {
+            }
+        });
+
+        ResponseInputStream<SdkResponse> stream = splitResult.resultFuture().join();
+        assertThat(partCompleted.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(failed).isFalse();
+        stream.read();
+        stream.read();
+        stream.read();
+
+        assertThat(stream.available()).isGreaterThanOrEqualTo(1);
+        stream.close();
+    }
+
+    private static int availableAfterHeader(
+        AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer,
+        byte[] header) throws IOException {
         SimplePublisher<ByteBuffer> body = new SimplePublisher<>();
         CompletableFuture<ResponseInputStream<SdkResponse>> future = responseTransformer.prepare();
         responseTransformer.onResponse(VoidSdkResponse.builder().build());
         responseTransformer.onStream(SdkPublisher.adapt(body));
         ResponseInputStream<SdkResponse> stream = future.join();
-        body.send(ByteBuffer.wrap(new byte[] {0x1f, (byte) 0x8b, 0x08}));
-        stream.read();
-        stream.read();
-        stream.read();
-        int result = stream.available();
+        body.send(ByteBuffer.wrap(header));
+        for (int i = 0; i < header.length; i++) {
+            stream.read();
+        }
+        int available = stream.available();
         body.complete();
         stream.close();
-        return result;
+        return available;
     }
+
+    private static byte[] gzipHeader() {
+        return new byte[] {0x1f, (byte) 0x8b, 0x08};
+    }
+
 }

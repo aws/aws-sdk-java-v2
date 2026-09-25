@@ -88,12 +88,6 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
             new ExecutionAttribute<>("DisableHostPrefixInjection");
 
     /**
-     * Whether concatenated-gzip response stream support is enabled.
-     */
-    public static final ExecutionAttribute<Boolean> CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED =
-            new ExecutionAttribute<>("ConcatenatedGzipStreamSupportEnabled");
-
-    /**
      * Key to indicate if the Http Checksums that are valid for an operation.
      */
     public static final ExecutionAttribute<HttpChecksum> HTTP_CHECKSUM =

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.async;
 
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.Subscriber;
@@ -25,7 +26,6 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.internal.io.GzipAvailabilityInputStream;
-import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 
 /**
@@ -35,20 +35,19 @@ import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
  */
 @SdkInternalApi
 public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
-    implements AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>,
-               ConfigurableAsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> {
+    implements AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> {
 
     private volatile CompletableFuture<ResponseInputStream<ResponseT>> future;
     private volatile ResponseT response;
     private volatile WaitForSubscribeOnErrorWrapper subscriber;
-    private final boolean concatenatedGzipStreamSupportEnabled;
+    private final boolean gzipInputStreamCompatibilityEnabled;
 
     public InputStreamResponseTransformer() {
-        this(true);
+        this(false);
     }
 
-    private InputStreamResponseTransformer(boolean concatenatedGzipStreamSupportEnabled) {
-        this.concatenatedGzipStreamSupportEnabled = concatenatedGzipStreamSupportEnabled;
+    public InputStreamResponseTransformer(boolean gzipInputStreamCompatibilityEnabled) {
+        this.gzipInputStreamCompatibilityEnabled = gzipInputStreamCompatibilityEnabled;
     }
 
     @Override
@@ -71,9 +70,9 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
         this.subscriber = waitForSubscribeSubscriber;
 
         publisher.subscribe(waitForSubscribeSubscriber);
-        AbortableInputStream content = concatenatedGzipStreamSupportEnabled
-            ? GzipAvailabilityInputStream.wrap(inputStreamSubscriber, inputStreamSubscriber)
-            : AbortableInputStream.create(inputStreamSubscriber, inputStreamSubscriber);
+        InputStream content = gzipInputStreamCompatibilityEnabled
+                                       ? GzipAvailabilityInputStream.wrap(inputStreamSubscriber, inputStreamSubscriber)
+                                       : inputStreamSubscriber;
         future.complete(new ResponseInputStream<>(response, content));
     }
 
@@ -88,12 +87,6 @@ public class InputStreamResponseTransformer<ResponseT extends SdkResponse>
     @Override
     public String name() {
         return TransformerType.STREAM.getName();
-    }
-
-    @Override
-    public AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>
-        withConcatenatedGzipStreamSupportEnabled(boolean enabled) {
-        return concatenatedGzipStreamSupportEnabled == enabled ? this : new InputStreamResponseTransformer<>(enabled);
     }
 
     // Simple wrapper subscriber that ensures we don't forward the `onError` to the delegate until onSubscribe is called, to be

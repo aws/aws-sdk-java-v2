@@ -130,8 +130,6 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(SdkClientOption.CLIENT_CONTEXT_PARAMS))
             .putAttribute(SdkInternalExecutionAttribute.DISABLE_HOST_PREFIX_INJECTION,
                           clientConfig.option(SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION))
-            .putAttribute(SdkInternalExecutionAttribute.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED,
-                          clientConfig.option(SdkAdvancedClientOption.CONCATENATED_GZIP_STREAM_SUPPORT_ENABLED))
             .putAttribute(SdkInternalExecutionAttribute.SDK_CLIENT, clientConfig.option(SdkClientOption.SDK_CLIENT))
             .putAttribute(SdkExecutionAttribute.SIGNER_OVERRIDDEN, clientConfig.option(SdkClientOption.SIGNER_OVERRIDDEN))
             .putAttribute(AwsExecutionAttribute.USE_GLOBAL_ENDPOINT,
