@@ -254,7 +254,7 @@ public interface ExecutionInterceptor {
     }
 
     /**
-     * Modify the {@link SdkHttpFullRequest} before it is unmarshalled into an {@link SdkResponse}.
+     * Modify the HTTP response metadata, before it is unmarshalled into an {@link SdkResponse}.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
      * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
@@ -270,7 +270,10 @@ public interface ExecutionInterceptor {
     }
 
     /**
-     * Modify the {@link SdkHttpFullRequest} before it is unmarshalled into an {@link SdkResponse}.
+     * Modify the asynchronous HTTP response content before it is unmarshalled into an {@link SdkResponse}.
+     *
+     * <p>An interceptor that replaces the current response publisher is responsible for the lifecycle of the previous
+     * publisher. The replacement should consume or wrap the previous publisher, or cancel it if it is no longer needed.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
      * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
@@ -278,17 +281,18 @@ public interface ExecutionInterceptor {
      * @param context The current state of the execution, including the SDK and HTTP requests and the current HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      * give data to future lifecycle methods.
-     * @return The potentially-modified HTTP response that should be given to the unmarshaller. Must not be null.
+     * @return The potentially-modified response content publisher that should be given to the unmarshaller.
      */
     default Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(Context.ModifyHttpResponse context,
                                                                            ExecutionAttributes executionAttributes) {
-
-        // get headers here
         return context.responsePublisher();
     }
 
     /**
-     * Modify the {@link SdkHttpFullRequest} before it is unmarshalled into an {@link SdkResponse}.
+     * Modify the synchronous HTTP response content before it is unmarshalled into an {@link SdkResponse}.
+     *
+     * <p>An interceptor that replaces the current response stream is responsible for the lifecycle of the previous stream.
+     * The replacement should consume or wrap the previous stream, or close it if it is no longer needed.
      *
      * <p>Note: Unlike many other lifecycle methods, this one may be invoked multiple times. If the {@link RetryPolicy} determines
      * the error code returned by the service is retriable, this will be invoked for each response returned by the service.
@@ -296,7 +300,7 @@ public interface ExecutionInterceptor {
      * @param context The current state of the execution, including the SDK and HTTP requests and the current HTTP response.
      * @param executionAttributes A mutable set of attributes scoped to one specific request/response cycle that can be used to
      * give data to future lifecycle methods.
-     * @return The potentially-modified HTTP response that should be given to the unmarshaller. Must not be null.
+     * @return The potentially-modified response content stream that should be given to the unmarshaller.
      */
     default Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
                                                             ExecutionAttributes executionAttributes) {

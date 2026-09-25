@@ -207,6 +207,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         long startTime = MetricUtils.resetApiCallAttemptStartNanoTime(context);
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
+        context.activeAsyncHttpClientFuture(httpClientFuture);
 
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long d = System.nanoTime() - startTime;

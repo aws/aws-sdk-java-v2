@@ -23,8 +23,15 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 public class AfterExecutionInterceptorsStage<OutputT> implements RequestPipeline<OutputT, OutputT> {
     @Override
     public OutputT execute(OutputT input, RequestExecutionContext context) throws Exception {
-        context.interceptorChain().afterExecution(context.executionContext().interceptorContext(),
-                                                  context.executionAttributes());
-        return input;
+        try {
+            context.interceptorChain().afterExecution(context.executionContext().interceptorContext(),
+                                                      context.executionAttributes());
+            return input;
+        } catch (Throwable interceptorFailure) {
+            // Failing the HTTP future is the async transport's cancellation signal. Built-in clients release their resources
+            // and notify the response handler while cancelling, so calling the handler here could deliver the failure twice.
+            context.abortActiveAsyncHttpRequest(interceptorFailure);
+            throw interceptorFailure;
+        }
     }
 }
