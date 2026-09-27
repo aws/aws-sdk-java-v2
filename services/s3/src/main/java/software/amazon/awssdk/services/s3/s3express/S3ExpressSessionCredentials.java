@@ -53,11 +53,12 @@ public interface S3ExpressSessionCredentials extends AwsCredentialsIdentity {
     }
 
     /**
-     * Create S3 express session credentials for the provided {@link SessionCredentials}.
+     * Create S3 express session credentials, including the session expiration, for the provided {@link SessionCredentials}.
      */
     static S3ExpressSessionCredentials fromSessionResponse(SessionCredentials credentials) {
-        return create(credentials.accessKeyId(),
-                      credentials.secretAccessKey(),
-                      credentials.sessionToken());
+        return new DefaultS3ExpressSessionCredentials(credentials.accessKeyId(),
+                                                      credentials.secretAccessKey(),
+                                                      credentials.sessionToken(),
+                                                      credentials.expiration());
     }
 }

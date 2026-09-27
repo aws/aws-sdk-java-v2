@@ -66,10 +66,8 @@ public abstract class PresignedRequest {
      * <p/>
      * This may differ from the local clock, based on the skew between the local and AWS service clocks.
      * <p/>
-     * When the request is signed with temporary (session) credentials that carry an expiration (for example STS, EC2
-     * instance profile, or ECS/EKS container roles), this value is capped to {@code min(requestedDuration,
-     * timeUntilCredentialExpiry)}, because the request stops working once the signing credentials expire even if a longer
-     * duration was requested. The cap only ever shortens the window; it is a no-op for credentials with no known expiry.
+     * If the signing credentials expire before the requested duration ends, this is capped at the credential expiration,
+     * truncated to whole seconds. No cap is applied if less than one second of the credential lifetime remains.
      */
     public Instant expiration() {
         return expiration;

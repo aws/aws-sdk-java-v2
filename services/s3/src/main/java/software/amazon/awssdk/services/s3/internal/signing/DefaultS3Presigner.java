@@ -38,6 +38,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.CredentialUtils;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
@@ -49,7 +50,6 @@ import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
 import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.internal.AwsExecutionContextBuilder;
 import software.amazon.awssdk.awscore.internal.defaultsmode.DefaultsModeConfiguration;
-import software.amazon.awssdk.awscore.presigner.PresignExpirationUtils;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientEndpointProvider;
@@ -436,7 +436,7 @@ public final class DefaultS3Presigner extends DefaultSdkPresigner implements S3P
                                        : CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity())
                                                                .expirationTime().orElse(null);
         Duration effectiveDuration =
-            PresignExpirationUtils.effectiveExpirationDuration(expirationDuration, signingInstant, credentialExpiration);
+            CredentialUtils.calculateDurationCappedAtExpiration(expirationDuration, signingInstant, credentialExpiration);
         Instant effectiveExpiration = signingInstant.plus(effectiveDuration);
         execCtx.executionAttributes().putAttribute(PRESIGNER_EXPIRATION, effectiveExpiration);
 

@@ -42,7 +42,6 @@ import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.awscore.endpoint.DualstackEnabledProvider;
 import software.amazon.awssdk.awscore.endpoint.FipsEnabledProvider;
-import software.amazon.awssdk.awscore.presigner.PresignExpirationUtils;
 import software.amazon.awssdk.awscore.presigner.PresignRequest;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.ClientType;
@@ -185,7 +184,7 @@ public final class DefaultPollyPresigner implements PollyPresigner {
 
         // A presigned request cannot outlive the credentials that signed it, so cap both the signed and reported expiration.
         Instant signingInstant = signingClock.instant();
-        Duration effectiveDuration = PresignExpirationUtils.effectiveExpirationDuration(
+        Duration effectiveDuration = CredentialUtils.calculateDurationCappedAtExpiration(
             presignRequest.signatureDuration(), signingInstant, identity.expirationTime().orElse(null));
         Instant effectiveExpiration = signingInstant.plus(effectiveDuration);
 
