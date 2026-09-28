@@ -22,8 +22,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalInt;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 
@@ -58,54 +60,114 @@ class S3ExpressUtilsTest {
     }
 
     /**
-     * Validates that the S3Express bucket suffix used in {@link S3ExpressUtils#isS3ExpressBucket} matches the suffix
-     * defined in the endpoint ruleset.
+     * Validates that the S3Express bucket suffix used in {@link S3ExpressUtils#isS3ExpressBucket} is one the endpoint
+     * model tests for, and that the model tests for it the same way: as the trailing characters of the bucket name.
+     *
+     * <p>The model compares several trailing substrings of the bucket name ({@code --x-s3}, {@code --xa-s3}, and a
+     * bare {@code --}), so this looks for the S3Express one among them rather than expecting a single such condition.
      */
     @Test
-    void isS3ExpressBucket_suffixMatchesEndpointRuleset() throws IOException {
-        String rulesetSuffix = extractBucketSuffixFromRuleset();
-        assertThat(rulesetSuffix).isEqualTo("--x-s3");
+    void isS3ExpressBucket_suffixMatchesEndpointModel() throws IOException {
+        String suffix = "--x-s3";
+        Map<String, Integer> modelSuffixChecks = trailingBucketSuffixChecks();
+
+        assertThat(modelSuffixChecks)
+            .as("the endpoint model should compare a trailing substring of the bucket name against '%s'", suffix)
+            .containsKey(suffix);
+        assertThat(modelSuffixChecks.get(suffix))
+            .as("the model compares the trailing characters of the bucket name against '%s', so it must compare "
+                + "exactly %s of them", suffix, suffix.length())
+            .isEqualTo(suffix.length());
+
         GetObjectRequest request = GetObjectRequest.builder()
-                                                   .bucket("test-bucket" + rulesetSuffix)
+                                                   .bucket("test-bucket" + suffix)
                                                    .key("key")
                                                    .build();
         assertThat(S3ExpressUtils.isS3ExpressBucket(request))
-            .as("isS3ExpressBucket should recognize the suffix '%s' from the endpoint ruleset", rulesetSuffix)
+            .as("isS3ExpressBucket should recognize the suffix '%s' from the endpoint model", suffix)
             .isTrue();
     }
 
     /**
-     * Parses the endpoint-rule-set.json and extracts the S3Express bucket suffix.
+     * Parses endpoint-bdd-1.json and returns every suffix the model compares the end of the bucket name against,
+     * mapped to the number of trailing characters it compares.
      */
-    private String extractBucketSuffixFromRuleset() throws IOException {
-        Path rulesetPath = Paths.get("src/main/resources/codegen-resources/endpoint-rule-set.json");
-        assertThat(rulesetPath.toFile()).as("endpoint-rule-set.json should exist").exists();
-        JsonNode root = MAPPER.readTree(rulesetPath.toFile());
-        List<String> suffixes = new ArrayList<>();
-        findBucketSuffixValues(root, suffixes);
-        assertThat(suffixes)
-            .as("Expected exactly one bucketSuffix stringEquals check in the endpoint ruleset")
-            .hasSize(1);
-        return suffixes.get(0);
+    private Map<String, Integer> trailingBucketSuffixChecks() throws IOException {
+        Path modelPath = Paths.get("src/main/resources/codegen-resources/endpoint-bdd-1.json");
+        assertThat(modelPath.toFile()).as("endpoint-bdd-1.json should exist").exists();
+
+        JsonNode conditions = MAPPER.readTree(modelPath.toFile()).path("conditions");
+        assertThat(conditions.isArray()).as("the endpoint BDD model should declare a conditions array").isTrue();
+
+        Map<String, Integer> checks = new LinkedHashMap<>();
+        for (JsonNode condition : conditions) {
+            bucketSuffixCheck(condition).ifPresent(check -> checks.putIfAbsent(check.suffix, check.substringLength));
+        }
+        assertThat(checks)
+            .as("the endpoint BDD model should compare the end of the bucket name against at least one suffix")
+            .isNotEmpty();
+        return checks;
     }
 
-    private void findBucketSuffixValues(JsonNode node, List<String> results) {
-        if (node.isObject() && "stringEquals".equals(node.path("fn").asText(null))) {
+    /**
+     * Matches {@code stringEquals(<a trailing substring of Bucket>, "<suffix>")}. The BDD model inlines that substring
+     * into the condition; the rules model it replaced bound it to a named {@code bucketSuffix} variable first, so this
+     * matches on the shape of the comparison rather than on a variable name.
+     */
+    private Optional<BucketSuffixCheck> bucketSuffixCheck(JsonNode condition) {
+        if (!"stringEquals".equals(condition.path("fn").asText(null))) {
+            return Optional.empty();
+        }
+        JsonNode argv = condition.path("argv");
+        if (!argv.isArray() || argv.size() != 2) {
+            return Optional.empty();
+        }
+        for (int i = 0; i < 2; i++) {
+            JsonNode literal = argv.get(i);
+            if (!literal.isTextual()) {
+                continue;
+            }
+            OptionalInt substringLength = trailingBucketSubstringLength(argv.get(1 - i));
+            if (substringLength.isPresent()) {
+                return Optional.of(new BucketSuffixCheck(literal.asText(), substringLength.getAsInt()));
+            }
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Returns the length of the trailing substring of {@code Bucket} this expression takes, if it takes one:
+     * {@code substring(Bucket, start, stop, true)}, where the trailing {@code true} means "counting from the end". The
+     * call may be wrapped, in the S3 model by a {@code coalesce} that defaults to an empty string.
+     */
+    private OptionalInt trailingBucketSubstringLength(JsonNode node) {
+        if ("substring".equals(node.path("fn").asText(null))) {
             JsonNode argv = node.path("argv");
-            if (argv.isArray() && argv.size() == 2) {
-                for (int i = 0; i < 2; i++) {
-                    JsonNode arg = argv.get(i);
-                    JsonNode other = argv.get(1 - i);
-                    if (arg.isObject() && "bucketSuffix".equals(arg.path("ref").asText(null))
-                        && other.isTextual()) {
-                        results.add(other.asText());
-                        return;
-                    }
-                }
+            if (argv.isArray() && argv.size() == 4
+                && "Bucket".equals(argv.get(0).path("ref").asText(null))
+                && argv.get(3).asBoolean(false)) {
+                return OptionalInt.of(argv.get(2).asInt() - argv.get(1).asInt());
             }
         }
         for (JsonNode child : node) {
-            findBucketSuffixValues(child, results);
+            OptionalInt substringLength = trailingBucketSubstringLength(child);
+            if (substringLength.isPresent()) {
+                return substringLength;
+            }
+        }
+        return OptionalInt.empty();
+    }
+
+    /**
+     * The suffix the endpoint model compares the bucket name against, and the number of trailing characters it compares.
+     */
+    private static final class BucketSuffixCheck {
+        private final String suffix;
+        private final int substringLength;
+
+        private BucketSuffixCheck(String suffix, int substringLength) {
+            this.suffix = suffix;
+            this.substringLength = substringLength;
         }
     }
 }

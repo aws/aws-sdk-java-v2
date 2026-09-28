@@ -73,6 +73,18 @@
         "method": "POST",
         "requestUri": "/"
       }
+    },
+    "NestedMapOperation": {
+      "input": { "shape": "NestedMapOperationRequest" },
+      "operationContextParams": {
+        "stringArrayParam": {
+          "path": "keys(nestedMap.map)"
+        }
+      },
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      }
     }
   },
   "shapes": {
@@ -120,6 +132,18 @@
       }
     },
     "MapOperationRequest": {
+      "type": "structure",
+      "members": {
+        "map":{"shape":"Map"}
+      }
+    },
+    "NestedMapOperationRequest": {
+      "type": "structure",
+      "members": {
+        "nestedMap":{"shape":"NestedMap"}
+      }
+    },
+    "NestedMap": {
       "type": "structure",
       "members": {
         "map":{"shape":"Map"}

@@ -70,7 +70,7 @@ public final class EndpointParamsKnowledgeIndex {
 
     private EndpointParamsKnowledgeIndex(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
-        this.parametersToGenerate = builtInsForClientBuilder(intermediateModel.getEndpointRuleSetModel().getParameters());
+        this.parametersToGenerate = builtInsForClientBuilder(intermediateModel.getEndpointParameters());
     }
 
     /**
