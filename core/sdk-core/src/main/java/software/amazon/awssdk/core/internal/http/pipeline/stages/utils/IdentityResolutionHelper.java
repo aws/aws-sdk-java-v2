@@ -37,12 +37,6 @@ import software.amazon.awssdk.utils.CompletableFutureUtils;
 /**
  * Resolves the identity used to sign a request, both when the auth scheme is first selected and again before each retry
  * attempt.
- *
- * <p>The identity is first resolved when the auth scheme is selected, before the retry loop. Every retry attempt then
- * resolves it again through {@link #reResolveIdentityForRetry(ExecutionAttributes)}, so that a retry is signed with
- * credentials the identity provider currently holds. This is what lets a request rejected with expired credentials
- * succeed on retry: the rejection invalidates the provider's cached credentials, and the retry's resolution obtains
- * refreshed ones.
  */
 @SdkInternalApi
 public final class IdentityResolutionHelper {
@@ -52,19 +46,9 @@ public final class IdentityResolutionHelper {
 
     /**
      * Resolves the identity again for a retry attempt and replaces the
-     * {@link SdkInternalExecutionAttribute#SELECTED_AUTH_SCHEME} with a copy holding the newly resolved identity. Everything
-     * that reads the identity during the attempt, including the signing stage, interceptors reading credentials through
-     * execution attributes, and credential invalidation after a failed attempt, then observes the identity that signed the
-     * attempt.
-     *
-     * <p>The identity is resolved from the {@link SelectedAuthScheme#identityProvider()} using the identity properties of the
-     * selected {@link AuthSchemeOption}, the same inputs that were used to resolve it when the auth scheme was selected. This
-     * assumes the scheme's identity was produced by that provider. If there is no selected auth scheme, or it has no identity
-     * provider, the identity is left unchanged and the retry reuses it.
-     *
-     * <p>The resolution is started on the calling thread. If the identity provider throws rather than returning a future, the
-     * failure is stored as the scheme's identity so that it surfaces from the signing stage, and is handled like any other
-     * failure of the attempt.
+     * {@link SdkInternalExecutionAttribute#SELECTED_AUTH_SCHEME} with a copy holding the newly resolved identity.
+     * The identity is resolved from the {@link SelectedAuthScheme#identityProvider()} using the identity properties of the
+     * selected {@link AuthSchemeOption}.
      *
      * @param executionAttributes The execution attributes of the request being retried.
      */

@@ -66,13 +66,7 @@ public final class AwsRetryPolicy {
                         .build();
     }
 
-    /**
-     * Retries AWS-specific retryable errors, and authentication errors reporting that the credentials are no longer valid.
-     * An authentication error invalidates the cached credentials, and the retry attempt resolves the credentials again, so it
-     * is signed with refreshed credentials.
-     */
-    private static RetryCondition awsRetryCondition() {
-        return OrRetryCondition.create(RetryOnErrorCodeCondition.create(AwsErrorCode.RETRYABLE_ERROR_CODES),
-                                       RetryOnErrorCodeCondition.create(AwsErrorCode.AUTH_ERROR_CODES));
+    private static RetryOnErrorCodeCondition awsRetryCondition() {
+        return RetryOnErrorCodeCondition.create(AwsErrorCode.RETRYABLE_ERROR_CODES);
     }
 }

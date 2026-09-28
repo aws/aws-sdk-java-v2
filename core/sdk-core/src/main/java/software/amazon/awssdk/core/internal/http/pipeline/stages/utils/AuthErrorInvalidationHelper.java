@@ -35,8 +35,10 @@ import software.amazon.awssdk.utils.Logger;
  * {@link IdentityProvider#invalidate} so that the provider refreshes before it vends credentials again.
  *
  * <p>Each retry attempt resolves the identity again (see {@link IdentityResolutionHelper}), so invalidation takes effect on
- * the retry of the rejected request, as well as on later API calls. The retry path waits for the invalidation to finish
- * before the retry attempt resolves the identity.
+ * the retry of the rejected request, as well as on later API calls. Invalidation is best-effort and the retry path does not
+ * wait for it. A retry observes it when it completes before the retry attempt resolves the identity, which is always the case
+ * for the SDK's identity providers because they invalidate inline. If an invalidation is still in progress, the retry
+ * attempt may reuse the rejected identity.
  *
  * <p>Both the synchronous and asynchronous request paths must call
  * {@link #invalidateIfAuthError(Throwable, RequestExecutionContext)} for the behavior to apply to both client types.
@@ -62,8 +64,8 @@ public final class AuthErrorInvalidationHelper {
      * resolved by the time a response has been received, so the invalidation completes inline.
      *
      * <p>The returned future never completes exceptionally. Invalidation is best-effort, and any failure is logged at
-     * debug level instead of being propagated. Callers that go on to retry the request must wait for it to complete before
-     * the retry attempt resolves the identity, or the retry could obtain the credentials that were just rejected.
+     * debug level instead of being propagated. Callers are not required to await it, and the retry path does not, so that a
+     * slow or never-completing invalidation cannot delay or block the request.
      *
      * @param exception The exception from the failed request attempt
      * @param context   The request execution context containing auth scheme info

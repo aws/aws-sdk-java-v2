@@ -16,19 +16,15 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -227,10 +223,13 @@ public class RetryableStageHelperTest {
         assertThat(current.identity().join()).isSameAs(provider.lastResolvedIdentity());
     }
 
+    /**
+     * Invalidation is best-effort: an invalidation that never completes must not block the retry.
+     */
     @Test
-    void tryRefreshToken_onAuthError_waitsForInvalidationBeforeRefreshingRetryToken() {
-        CompletableFuture<Void> invalidation = new CompletableFuture<>();
-        TrackingIdentityProvider provider = new TrackingIdentityProvider(invalidation);
+    void tryRefreshToken_onAuthError_invalidatesWithoutWaitingForInvalidationToComplete() {
+        CompletableFuture<Void> neverCompletingInvalidation = new CompletableFuture<>();
+        TrackingIdentityProvider provider = new TrackingIdentityProvider(neverCompletingInvalidation);
         RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder()
                                                                         .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
                                                                              schemeWith(provider))
@@ -238,32 +237,27 @@ public class RetryableStageHelperTest {
         stubAcquireInitialToken();
 
         RefreshRetryTokenResponse mockRefreshResponse = mock(RefreshRetryTokenResponse.class);
-        when(mockRefreshResponse.delay()).thenReturn(Duration.ZERO);
-        AtomicBoolean invalidationDoneWhenRefreshing = new AtomicBoolean(false);
-        when(mockRetryStrategy.refreshRetryToken(any())).thenAnswer(invocation -> {
-            invalidationDoneWhenRefreshing.set(invalidation.isDone());
-            return mockRefreshResponse;
-        });
+        when(mockRefreshResponse.delay()).thenReturn(Duration.ofMillis(5));
+        when(mockRetryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
 
         helper.acquireInitialToken();
         helper.setLastException(new AuthErrorException());
 
-        ScheduledExecutorService executor = Executors.newSingleThreadScheduledExecutor();
-        try {
-            executor.schedule(() -> invalidation.complete(null), 100, TimeUnit.MILLISECONDS);
-            helper.tryRefreshToken(Duration.ZERO);
-        } finally {
-            executor.shutdownNow();
-        }
+        Either<Duration, Duration> backoff =
+            assertTimeoutPreemptively(Duration.ofSeconds(5), () -> helper.tryRefreshToken(Duration.ZERO));
 
+        assertThat(backoff.left()).hasValue(Duration.ofMillis(5));
         assertThat(provider.invalidateCount()).isEqualTo(1);
-        assertThat(invalidationDoneWhenRefreshing).isTrue();
+        assertThat(neverCompletingInvalidation).isNotDone();
     }
 
+    /**
+     * Invalidation is best-effort: an invalidation that never completes must not delay the retry.
+     */
     @Test
-    void tryRefreshTokenAsync_onAuthError_waitsForInvalidationBeforeRefreshingRetryToken() {
-        CompletableFuture<Void> invalidation = new CompletableFuture<>();
-        TrackingIdentityProvider provider = new TrackingIdentityProvider(invalidation);
+    void tryRefreshTokenAsync_onAuthError_invalidatesWithoutWaitingForInvalidationToComplete() {
+        CompletableFuture<Void> neverCompletingInvalidation = new CompletableFuture<>();
+        TrackingIdentityProvider provider = new TrackingIdentityProvider(neverCompletingInvalidation);
         RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder()
                                                                         .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
                                                                              schemeWith(provider))
@@ -281,13 +275,9 @@ public class RetryableStageHelperTest {
         CompletableFuture<Either<Duration, Duration>> backoff = helper.tryRefreshTokenAsync(Duration.ZERO);
 
         assertThat(provider.invalidateCount()).isEqualTo(1);
-        assertThat(backoff).isNotDone();
-        verify(mockRetryStrategy, never()).refreshRetryTokenAsync(any());
-
-        invalidation.complete(null);
-
+        assertThat(backoff).isCompleted();
         assertThat(backoff.join().left()).hasValue(Duration.ofMillis(5));
-        verify(mockRetryStrategy).refreshRetryTokenAsync(any());
+        assertThat(neverCompletingInvalidation).isNotDone();
     }
 
     private void stubAcquireInitialToken() {

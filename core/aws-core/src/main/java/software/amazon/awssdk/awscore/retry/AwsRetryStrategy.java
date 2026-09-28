@@ -214,16 +214,10 @@ public final class AwsRetryStrategy {
         return builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
     }
 
-    /**
-     * Retries AWS-specific retryable errors, and authentication errors reporting that the credentials are no longer valid.
-     * An authentication error invalidates the cached credentials, and the retry attempt resolves the credentials again, so it
-     * is signed with refreshed credentials.
-     */
     private static boolean retryOnAwsRetryableErrors(Throwable ex) {
         if (ex instanceof AwsServiceException) {
             AwsServiceException exception = (AwsServiceException) ex;
-            String errorCode = exception.awsErrorDetails().errorCode();
-            return AwsErrorCode.isRetryableErrorCode(errorCode) || AwsErrorCode.isAuthenticationErrorCode(errorCode);
+            return AwsErrorCode.isRetryableErrorCode(exception.awsErrorDetails().errorCode());
         }
         return false;
     }

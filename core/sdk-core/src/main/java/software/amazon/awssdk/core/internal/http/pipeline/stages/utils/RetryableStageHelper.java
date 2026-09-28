@@ -50,7 +50,6 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
-import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Either;
 
 /**
@@ -104,10 +103,8 @@ public final class RetryableStageHelper {
     }
 
     /**
-     * Invoke after {@link #startingAttempt()} and before executing the attempt, on the thread that executes the attempt. On a
-     * retry attempt this resolves the identity again, so the retry is signed with the credentials the identity provider
-     * currently holds rather than the ones used by the previous attempt. The first attempt uses the identity resolved when the
-     * auth scheme was selected, so this does nothing for it.
+     * Invoke after {@link #startingAttempt()} and before executing the attempt. Identity is only re-resolved on retry attempts.
+     * The first attempt uses the identity resolved when the auth scheme was selected.
      */
     public void resolveIdentityForAttempt() {
         if (isInitialAttempt()) {
@@ -172,10 +169,9 @@ public final class RetryableStageHelper {
      * code should not retry.
      */
     public Either<Duration, Duration> tryRefreshToken(Duration suggestedDelay) {
-        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates. Wait for the
-        // invalidation to finish: the retry attempt resolves the identity again, and must observe the invalidation. The
-        // returned future never completes exceptionally.
-        CompletableFutureUtils.joinLikeSync(AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context));
+        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates.
+        // Not awaited: invalidation is best-effort and must not delay or block the retry path.
+        AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context);
 
         RetryToken retryToken;
         Duration attemptDelay;
@@ -213,15 +209,10 @@ public final class RetryableStageHelper {
     }
 
     public CompletableFuture<Either<Duration, Duration>> tryRefreshTokenAsync(Duration suggestedDelay) {
-        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates. Wait for the
-        // invalidation to finish without blocking: the retry attempt resolves the identity again, and must observe the
-        // invalidation. The returned future never completes exceptionally. When it is already complete, which is the case
-        // for the SDK's identity providers, the retry token refresh continues on the current thread.
-        return AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context)
-                                          .thenCompose(ignored -> doRefreshRetryTokenAsync(suggestedDelay));
-    }
+        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates.
+        // Not awaited: invalidation is best-effort and must not delay or block the retry path.
+        AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context);
 
-    private CompletableFuture<Either<Duration, Duration>> doRefreshRetryTokenAsync(Duration suggestedDelay) {
         CompletableFuture<Either<Duration, Duration>> cf = new CompletableFuture<>();
 
         RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
