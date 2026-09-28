@@ -84,6 +84,10 @@ public final class SelectedAuthScheme<T extends Identity> {
         return authSchemeOption;
     }
 
+    /**
+     * The identity provider that resolved the {@link #identity()}, or null if it is unknown. When present, it is used to
+     * invalidate the identity after an authentication error, and to resolve the identity again before each retry attempt.
+     */
     public IdentityProvider<T> identityProvider() {
         return identityProvider;
     }
@@ -121,7 +125,11 @@ public final class SelectedAuthScheme<T extends Identity> {
         Builder<T> authSchemeOption(AuthSchemeOption authSchemeOption);
 
         /**
-         * The identity provider that resolved the identity. Used for invalidation on auth errors.
+         * The identity provider that resolved the identity. Used for invalidation on auth errors, and to resolve the identity
+         * again, using the identity properties of the {@link #authSchemeOption(AuthSchemeOption)}, before each retry attempt.
+         *
+         * <p>When an identity provider is set, the {@link #identity(CompletableFuture)} must have been resolved by it. A
+         * retry attempt replaces the identity with one newly resolved from this provider.
          */
         Builder<T> identityProvider(IdentityProvider<T> identityProvider);
 

@@ -116,6 +116,9 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             CompletableFuture<Response<OutputT>> responseFuture;
             try {
                 retryableStageHelper.startingAttempt();
+                // Resolve the identity for a retry on this thread, which is also the thread that starts the attempt's
+                // pipeline and signs the request.
+                retryableStageHelper.resolveIdentityForAttempt();
                 retryableStageHelper.logSendingRequest();
                 responseFuture = requestPipeline.execute(retryableStageHelper.requestToSend(), context);
 
