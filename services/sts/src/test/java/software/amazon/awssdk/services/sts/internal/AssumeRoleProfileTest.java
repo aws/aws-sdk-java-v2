@@ -19,10 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
-import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.services.sts.AssumeRoleIntegrationTest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringInputStream;
 
 /**
  * Verify some basic functionality of {@link StsProfileCredentialsProviderFactory} via the way customers will encounter it:
@@ -69,5 +70,36 @@ public class AssumeRoleProfileTest {
                                           .type(ProfileFile.Type.CONFIGURATION)
                                           .build();
         assertThat(profiles.profile("child")).isPresent();
+    }
+
+    @Test
+    public void assumeRoleRequestUsesDurationSecondsFromProfile() {
+        ProfileFile profiles = profileFileWithRoleProfile("duration_seconds=1800");
+
+        assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
+            AssumeRoleRequest request = StsProfileCredentialsProviderFactory.createAssumeRoleRequest(profile);
+            assertThat(request.durationSeconds()).isEqualTo(1800);
+        });
+    }
+
+    @Test
+    public void assumeRoleRequestDoesNotSetDurationSecondsWhenProfileOmitsIt() {
+        ProfileFile profiles = profileFileWithRoleProfile("");
+
+        assertThat(profiles.profile("test")).hasValueSatisfying(profile -> {
+            AssumeRoleRequest request = StsProfileCredentialsProviderFactory.createAssumeRoleRequest(profile);
+            assertThat(request.durationSeconds()).isNull();
+        });
+    }
+
+    private ProfileFile profileFileWithRoleProfile(String additionalRoleProperties) {
+        String profileContent =
+                "[profile test]\n"
+                + "role_arn=arn:aws:iam::123456789012:role/testRole\n"
+                + additionalRoleProperties;
+        return ProfileFile.builder()
+                          .content(new StringInputStream(profileContent))
+                          .type(ProfileFile.Type.CONFIGURATION)
+                          .build();
     }
 }
