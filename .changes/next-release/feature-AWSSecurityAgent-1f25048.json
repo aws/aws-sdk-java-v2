@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Security Agent",
-    "contributor": "",
-    "description": "Run automated penetration tests directly from your CI-CD pipeline to scan code changes before they ship, gating deployments on the findings"
-}
