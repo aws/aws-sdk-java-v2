@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "benjaminp",
+    "description": "Do not check for thread interruption in `SdkFilterInputStream.close()`."
+}
