@@ -296,25 +296,33 @@ public final class Utils {
     }
 
     /**
-     * Search for a shape model by its C2J name, excluding request and response shapes, which are not candidates to be members
-     * of another shape.
+     * Finds the shape a member should link to by C2J name, preferring a model shape. A request/response shape is used only
+     * when it is the only shape with that name, which happens when a structure is both an operation input/output and a member
+     * of another structure (a valid Smithy pattern).
      *
      * @return ShapeModel or null if the shape doesn't exist (if it's primitive or container type for example)
      */
     public static ShapeModel findMemberShapeModelByC2jNameIfExists(IntermediateModel intermediateModel, String shapeC2jName) {
-        ShapeModel candidate = null;
+        ShapeModel modelCandidate = null;
+        ShapeModel inputOutputCandidate = null;
         for (ShapeModel shape : intermediateModel.getShapes().values()) {
-            if (shape.getShapeType() != ShapeType.Request
-                    && shape.getShapeType() != ShapeType.Response
-                    && shape.getC2jName().equals(shapeC2jName)) {
-                if (candidate != null) {
-                    throw new IllegalStateException("Conflicting candidates for member model with C2J name " + shapeC2jName + ": "
-                                                    + candidate + " and " + shape);
-                }
-                candidate = shape;
+            if (!shape.getC2jName().equals(shapeC2jName)) {
+                continue;
             }
+            if (shape.getShapeType() == ShapeType.Request || shape.getShapeType() == ShapeType.Response) {
+                // Prefer the input/output shape whose class name matches the type generated for the member.
+                if (inputOutputCandidate == null || shape.getShapeName().equals(capitalize(shapeC2jName))) {
+                    inputOutputCandidate = shape;
+                }
+                continue;
+            }
+            if (modelCandidate != null) {
+                throw new IllegalStateException("Conflicting candidates for member model with C2J name " + shapeC2jName + ": "
+                                                + modelCandidate + " and " + shape);
+            }
+            modelCandidate = shape;
         }
-        return candidate;
+        return modelCandidate != null ? modelCandidate : inputOutputCandidate;
     }
 
     public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {
