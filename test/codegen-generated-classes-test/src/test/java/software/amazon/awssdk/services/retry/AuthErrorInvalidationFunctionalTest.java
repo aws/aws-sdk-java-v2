@@ -30,6 +30,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -67,13 +69,14 @@ public class AuthErrorInvalidationFunctionalTest {
 
     private static final int STANDARD_MAX_ATTEMPTS = 3;
 
-    @Test
-    public void expiredToken_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
+    @ParameterizedTest
+    @ValueSource(strings = {"ExpiredToken", "InvalidToken"})
+    public void authError_invalidatesCredentials_andRetryUsesRefreshedCredentials(String errorCode) {
         MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
         TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
 
         try (ProtocolRestJsonClient client = syncClient(mockHttpClient, credentialsProvider)) {
-            mockHttpClient.stubResponses(authErrorResponse("ExpiredToken"), successResponse());
+            mockHttpClient.stubResponses(authErrorResponse(errorCode), successResponse());
 
             client.allTypes();
 
@@ -82,28 +85,14 @@ public class AuthErrorInvalidationFunctionalTest {
         }
     }
 
-    @Test
-    public void invalidToken_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
-        MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
-        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
-
-        try (ProtocolRestJsonClient client = syncClient(mockHttpClient, credentialsProvider)) {
-            mockHttpClient.stubResponses(authErrorResponse("InvalidToken"), successResponse());
-
-            client.allTypes();
-
-            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
-            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0", "key-1");
-        }
-    }
-
-    @Test
-    public void async_expiredToken_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
+    @ParameterizedTest
+    @ValueSource(strings = {"ExpiredToken", "InvalidToken"})
+    public void async_authError_invalidatesCredentials_andRetryUsesRefreshedCredentials(String errorCode) {
         MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
         TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
 
         try (ProtocolRestJsonAsyncClient client = asyncClient(mockHttpClient, credentialsProvider)) {
-            mockHttpClient.stubResponses(authErrorResponse("ExpiredToken"), successResponse());
+            mockHttpClient.stubResponses(authErrorResponse(errorCode), successResponse());
 
             client.allTypes().join();
 
