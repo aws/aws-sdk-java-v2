@@ -76,22 +76,27 @@ final class StandardModelFactories {
      */
     private static final class StandardModelFactory implements DynamoDBMapperModelFactory {
         private final ConcurrentMap<ConversionSchema,TableFactory> cache;
+        private final ConcurrentMap<ConversionSchema,TableFactory> readOnlyByteBufferCache;
         private final S3Link.Factory s3Links;
 
         private StandardModelFactory(S3Link.Factory s3Links) {
             this.cache = new ConcurrentHashMap<ConversionSchema,TableFactory>();
+            this.readOnlyByteBufferCache = new ConcurrentHashMap<ConversionSchema,TableFactory>();
             this.s3Links = s3Links;
         }
 
         @Override
         public TableFactory getTableFactory(DynamoDBMapperConfig config) {
+            ConcurrentMap<ConversionSchema, TableFactory> selectedCache =
+                config.getByteBufferReadBehavior() == DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY
+                ? readOnlyByteBufferCache : cache;
             ConversionSchema schema = config.getConversionSchema();
-            if (!cache.containsKey(schema)) {
+            if (!selectedCache.containsKey(schema)) {
                 RuleFactory<Object> rules = rulesOf(config, s3Links, this);
                 rules = new ConversionSchemas.ItemConverterRuleFactory<Object>(config, s3Links, rules);
-                cache.putIfAbsent(schema, new StandardTableFactory(rules));
+                selectedCache.putIfAbsent(schema, new StandardTableFactory(rules));
             }
-            return cache.get(schema);
+            return selectedCache.get(schema);
         }
     }
 
@@ -167,17 +172,21 @@ final class StandardModelFactories {
         DynamoDBTypeConverterFactory.Builder scalars = config.getTypeConverterFactory().override();
         scalars.with(String.class, S3Link.class, s3Links);
 
-        Rules<T> factory = new Rules<T>(scalars.build());
+        boolean readOnlyByteBuffers =
+            config.getByteBufferReadBehavior() == DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY;
+        Rules<T> factory = new Rules<T>(scalars.build(), readOnlyByteBuffers);
         factory.add(factory.new NativeType(!ver1));
         factory.add(factory.new V2CompatibleBool(v2Compatible));
         factory.add(factory.new NativeBool(ver2));
         factory.add(factory.new StringScalar(true));
         factory.add(factory.new DateToEpochRule(true));
         factory.add(factory.new NumberScalar(true));
+        factory.add(factory.new SdkBytesScalar(true));
         factory.add(factory.new BinaryScalar(true));
         factory.add(factory.new NativeBoolSet(ver2));
         factory.add(factory.new StringScalarSet(true));
         factory.add(factory.new NumberScalarSet(true));
+        factory.add(factory.new SdkBytesScalarSet(true));
         factory.add(factory.new BinaryScalarSet(true));
         factory.add(factory.new ObjectSet(ver2));
         factory.add(factory.new ObjectStringSet(!ver2));
@@ -193,9 +202,17 @@ final class StandardModelFactories {
     private static final class Rules<T> implements RuleFactory<T> {
         private final Set<Rule<T>> rules = new LinkedHashSet<Rule<T>>();
         private final DynamoDBTypeConverterFactory scalars;
+        private final boolean readOnlyByteBuffers;
 
-        private Rules(DynamoDBTypeConverterFactory scalars) {
+        private Rules(DynamoDBTypeConverterFactory scalars, boolean readOnlyByteBuffers) {
             this.scalars = scalars;
+            this.readOnlyByteBuffers = readOnlyByteBuffers;
+        }
+
+        private ByteBuffer toByteBuffer(SdkBytes value) {
+            return readOnlyByteBuffers && value != null
+                   ? value.asByteBuffer()
+                   : MapperBinaryUtils.toWritableByteBuffer(value);
         }
 
         @SuppressWarnings("unchecked")
@@ -319,7 +336,32 @@ final class StandardModelFactories {
         }
 
         /**
-         * {@code B} conversion
+         * Native {@link SdkBytes} binary conversion.
+         */
+        private class SdkBytesScalar extends AbstractRule<SdkBytes,T> {
+            private SdkBytesScalar(boolean supported) {
+                super(DynamoDBAttributeType.B, supported);
+            }
+            @Override
+            public boolean isAssignableFrom(ConvertibleType<?> type) {
+                return super.isAssignableFrom(type) && type.is(SdkBytes.class);
+            }
+            @Override
+            public DynamoDBTypeConverter<AttributeValue,T> newConverter(ConvertibleType<T> type) {
+                return joinAll(getConverter(SdkBytes.class, type), type.<SdkBytes>typeConverter());
+            }
+            @Override
+            public SdkBytes get(AttributeValue value) {
+                return value.b();
+            }
+            @Override
+            public AttributeValue build(SdkBytes o) {
+                return AttributeValue.createB(o);
+            }
+        }
+
+        /**
+         * {@code B} conversion through {@link ByteBuffer}.
          */
         private class BinaryScalar extends AbstractRule<ByteBuffer,T> {
             private BinaryScalar(boolean supported) {
@@ -335,7 +377,7 @@ final class StandardModelFactories {
             }
             @Override
             public ByteBuffer get(AttributeValue value) {
-                return MapperBinaryUtils.toWritableByteBuffer(value.b());
+                return toByteBuffer(value.b());
             }
             @Override
             public AttributeValue build(ByteBuffer o) {
@@ -394,7 +436,34 @@ final class StandardModelFactories {
         }
 
         /**
-         * {@code BS} conversion
+         * Native {@link SdkBytes} binary-set conversion.
+         */
+        private class SdkBytesScalarSet extends AbstractRule<List<SdkBytes>,Collection<T>> {
+            private SdkBytesScalarSet(boolean supported) {
+                super(DynamoDBAttributeType.BS, supported);
+            }
+            @Override
+            public boolean isAssignableFrom(ConvertibleType<?> type) {
+                return super.isAssignableFrom(type) && type.is(SET)
+                       && type.param(0) != null && type.param(0).is(SdkBytes.class);
+            }
+            @Override
+            public DynamoDBTypeConverter<AttributeValue,Collection<T>> newConverter(ConvertibleType<Collection<T>> type) {
+                return joinAll(SET.join(getConverter(SdkBytes.class, type.<T>param(0))),
+                               type.<List<SdkBytes>>typeConverter());
+            }
+            @Override
+            public List<SdkBytes> get(AttributeValue value) {
+                return value.hasBs() ? value.bs() : null;
+            }
+            @Override
+            public AttributeValue build(List<SdkBytes> o) {
+                return AttributeValue.createBs(o);
+            }
+        }
+
+        /**
+         * {@code BS} conversion through {@link ByteBuffer}.
          */
         private class BinaryScalarSet extends AbstractRule<List<ByteBuffer>,Collection<T>> {
             private BinaryScalarSet(boolean supported) {
@@ -415,7 +484,7 @@ final class StandardModelFactories {
                 }
                 List<ByteBuffer> result = new ArrayList<ByteBuffer>(value.bs().size());
                 for (SdkBytes sb : value.bs()) {
-                    result.add(MapperBinaryUtils.toWritableByteBuffer(sb));
+                    result.add(toByteBuffer(sb));
                 }
                 return result;
             }
