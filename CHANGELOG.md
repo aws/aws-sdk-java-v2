@@ -1,4 +1,69 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.8__ __2026-09-29__
+## __AWS Elemental Inference__
+  - ### Features
+    - Adds an extendedAnalysis setting to contextual metadata outputs to control detection of people, environments, brands, and on-screen text, and updates the summaryGeneration documentation.
+
+## __AWS Glue__
+  - ### Features
+    - Add support for Glue system-managed materialized views.
+
+## __AWS MediaTailor__
+  - ### Features
+    - AWS Elemental MediaTailor now supports beaconing configuration on playback configurations. In Insights reporting mode, MediaTailor will now gather client side beaconing metrics. Set the reporting mode to Disabled to turn this off.
+
+## __AWS SSO Identity Store__
+  - ### Features
+    - Add support for network access controls to restrict Identity Store API and SCIM access to trusted networks, optimistic locking for users and groups via resource revisions, and resource ARNs as identifiers in requests.
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds support for Azure DevOps and Bitbucket Data Center integration providers.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family now supports configuring up to three custom ports on public SFTP servers, instead of the single default port 22. You can also set each port's communication mode (server-talk-first or client-talk-first) so legacy and modern SFTP clients connect reliably.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - AWS Deadline Cloud now supports Docker software add-ons on service-managed fleets. Adds support for Open Job Description EXPR and Feature Bundle 1 job templates with typed job parameters and job, step, and parameter names up to 512 characters.
+
+## __Agents for Amazon Bedrock Runtime__
+  - ### Features
+    - Amazon Bedrock Agentic Retrieve now supports the Bedrock Mantle (OpenAI Responses) endpoint via a new MantleFoundationModel configuration with an optional projectId.
+
+## __Amazon AppStream__
+  - ### Features
+    - Add support for NVIDIA GRID driver version metadata in Workspace Applications image responses through the new ImageSoftwareMetadata field.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - Amazon ElastiCache Serverless now supports public endpoints for Valkey caches. With the new Connection Type parameter, you can create a serverless cache accessible over the internet without any VPC configuration. Public endpoint caches require IAM authentication.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds the LaunchStatus field to CapacityReservation in the DescribeCapacityReservations response. This field indicates whether you can currently launch instances into an UltraServer.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - Amazon OpenSearch Service now supports advisory pre-validations for domain config changes. Non-critical checks now surface as warnings you can acknowledge (via the new AcceptedWarnings parameter) and proceed, instead of hard-blocking. Severity is reported in change-progress and dry-run results.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Adds the TargetResourceConfigurations parameter to CreateBlueGreenDeployment, letting you specify a target KMS key for each resource in the green environment.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds support for cpu flex type instances on SageMaker Training and Processing. Also contains minor updates to DescribeTrainingPlan to support ARN inputs.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - Added Filter support for ListTenants, ListEmailIdentities, and ListConfigurationSets APIs.
+
+## __Inspector2__
+  - ### Features
+    - The ListFindingAggregations API now includes Low, Informational, and Untriaged counts alongside the existing severity counts in SeverityCounts.
+
 # __2.55.7__ __2026-09-28__
 ## __AWS Billing__
   - ### Features
