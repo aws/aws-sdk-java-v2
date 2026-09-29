@@ -19,10 +19,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
+import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -30,6 +34,7 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -45,6 +50,7 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncCli
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringInputStream;
 
 /**
@@ -211,7 +217,8 @@ public class AuthErrorInvalidationFunctionalTest {
 
     /**
      * An async retry attempt resolves the credentials on the thread that runs the attempt, which is the thread that signs the
-     * request and runs the attempt's beforeTransmission interceptors. The first attempt resolves them on the calling thread.
+     * request and runs the attempt's beforeTransmission interceptors. That is a future completion executor thread, not the
+     * scheduler thread that fired the backoff timer. The first attempt resolves them on the calling thread.
      */
     @Test
     public void async_retryResolvesCredentialsOnTheThreadThatRunsTheAttempt() {
@@ -244,8 +251,50 @@ public class AuthErrorInvalidationFunctionalTest {
             assertThat(resolveThreads.get(0)).isSameAs(Thread.currentThread());
             assertThat(resolveThreads.get(1)).isNotSameAs(Thread.currentThread())
                                              .isSameAs(beforeTransmissionThreads.get(1));
+            assertThat(resolveThreads.get(1).getName()).startsWith("sdk-async-response");
         } finally {
             mockHttpClient.close();
+        }
+    }
+
+    /**
+     * A retry that blocks while refreshing credentials must not delay the timers of other requests on the client. The
+     * client's scheduler has a single thread, so a refresh running on it would hold back every timer until it finished.
+     */
+    @Test
+    public void async_blockingCredentialRefreshOnRetry_doesNotDelayOtherRequestsTimeouts() {
+        MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider =
+            TrackingCredentialsProvider.refreshedOnInvalidateBlockingFor(Duration.ofSeconds(2));
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+
+        try (ProtocolRestJsonAsyncClient client =
+                 ProtocolRestJsonAsyncClient.builder()
+                                            .credentialsProvider(credentialsProvider)
+                                            .region(Region.US_EAST_1)
+                                            .endpointOverride(URI.create("http://localhost"))
+                                            .httpClient(mockHttpClient)
+                                            .overrideConfiguration(o -> o.scheduledExecutorService(scheduler))
+                                            .build()) {
+            // Responses are handed out in request order: the slow call's response takes 5 seconds, and the other call is
+            // rejected with ExpiredToken, then succeeds on retry after the blocking refresh.
+            mockHttpClient.stubResponses(Pair.of(successResponse(), Duration.ofSeconds(5)),
+                                         Pair.of(authErrorResponse("ExpiredToken"), Duration.ZERO),
+                                         Pair.of(successResponse(), Duration.ZERO));
+
+            long start = System.nanoTime();
+            CompletableFuture<?> slowCall =
+                client.allTypes(r -> r.overrideConfiguration(o -> o.apiCallTimeout(Duration.ofMillis(300))));
+            CompletableFuture<?> rejectedCall = client.allTypes();
+
+            assertThatThrownBy(slowCall::join).hasCauseInstanceOf(ApiCallTimeoutException.class);
+            assertThat(Duration.ofNanos(System.nanoTime() - start)).isLessThan(Duration.ofMillis(1500));
+
+            rejectedCall.join();
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
+        } finally {
+            mockHttpClient.close();
+            scheduler.shutdownNow();
         }
     }
 
@@ -367,34 +416,51 @@ public class AuthErrorInvalidationFunctionalTest {
      * records every resolution and invalidation. Depending on how it is created, the generation advances when the
      * provider is invalidated (simulating a caching provider that refreshes after invalidation), on every resolution
      * (simulating a provider whose credentials change between attempts), or never (simulating static credentials).
+     * A provider can also block for a time on the first resolution after an invalidation, simulating a refresh from a slow
+     * credential source on the calling thread, as the SDK's caching providers do.
      */
     private static final class TrackingCredentialsProvider implements AwsCredentialsProvider {
         private final boolean advanceOnInvalidate;
         private final boolean advanceOnResolve;
+        private final Duration blockingRefreshDuration;
         private final AtomicInteger generation = new AtomicInteger();
         private final AtomicInteger resolveCount = new AtomicInteger();
         private final AtomicInteger invalidateCount = new AtomicInteger();
+        private final AtomicBoolean refreshPending = new AtomicBoolean();
         private final List<Thread> resolveThreads = new CopyOnWriteArrayList<>();
 
-        private TrackingCredentialsProvider(boolean advanceOnInvalidate, boolean advanceOnResolve) {
+        private TrackingCredentialsProvider(boolean advanceOnInvalidate, boolean advanceOnResolve,
+                                            Duration blockingRefreshDuration) {
             this.advanceOnInvalidate = advanceOnInvalidate;
             this.advanceOnResolve = advanceOnResolve;
+            this.blockingRefreshDuration = blockingRefreshDuration;
         }
 
         static TrackingCredentialsProvider refreshedOnInvalidate() {
-            return new TrackingCredentialsProvider(true, false);
+            return new TrackingCredentialsProvider(true, false, Duration.ZERO);
+        }
+
+        static TrackingCredentialsProvider refreshedOnInvalidateBlockingFor(Duration blockingRefreshDuration) {
+            return new TrackingCredentialsProvider(true, false, blockingRefreshDuration);
         }
 
         static TrackingCredentialsProvider newCredentialsOnEveryResolve() {
-            return new TrackingCredentialsProvider(false, true);
+            return new TrackingCredentialsProvider(false, true, Duration.ZERO);
         }
 
         static TrackingCredentialsProvider neverRefreshed() {
-            return new TrackingCredentialsProvider(false, false);
+            return new TrackingCredentialsProvider(false, false, Duration.ZERO);
         }
 
         @Override
         public AwsCredentials resolveCredentials() {
+            if (refreshPending.compareAndSet(true, false) && !blockingRefreshDuration.isZero()) {
+                try {
+                    Thread.sleep(blockingRefreshDuration.toMillis());
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
             int current = advanceOnResolve ? generation.getAndIncrement() : generation.get();
             return AwsBasicCredentials.create("key-" + current, "secret-" + current);
         }
@@ -416,6 +482,7 @@ public class AuthErrorInvalidationFunctionalTest {
             invalidateCount.incrementAndGet();
             if (advanceOnInvalidate) {
                 generation.incrementAndGet();
+                refreshPending.set(true);
             }
             return CompletableFuture.completedFuture(null);
         }
