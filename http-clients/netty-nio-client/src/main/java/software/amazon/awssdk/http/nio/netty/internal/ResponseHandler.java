@@ -25,7 +25,6 @@ import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_CONTENT_LENGTH;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_DATA_READ;
 import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.RESPONSE_STATUS_CODE;
-import static software.amazon.awssdk.http.nio.netty.internal.ChannelAttributeKey.STREAMING_COMPLETE_KEY;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatch;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ExceptionHandlingUtils.tryCatchFinally;
 
@@ -462,10 +461,9 @@ public class ResponseHandler extends SimpleChannelInboundHandler<HttpObject> {
     private void notifyIfResponseNotCompleted(ChannelHandlerContext handlerCtx) {
         RequestContext requestCtx = handlerCtx.channel().attr(REQUEST_CONTEXT_KEY).get();
         Boolean responseCompleted = handlerCtx.channel().attr(RESPONSE_COMPLETE_KEY).get();
-        Boolean isStreamingComplete = handlerCtx.channel().attr(STREAMING_COMPLETE_KEY).get();
         handlerCtx.channel().attr(KEEP_ALIVE).set(false);
 
-        if (!Boolean.TRUE.equals(responseCompleted) && !Boolean.TRUE.equals(isStreamingComplete)) {
+        if (!Boolean.TRUE.equals(responseCompleted)) {
             IOException err = new IOException(NettyUtils.closedChannelMessage(handlerCtx.channel()));
             runAndLogError(handlerCtx.channel(), () -> "Fail to execute SdkAsyncHttpResponseHandler#onError",
                            () -> requestCtx.handler().onError(err));
