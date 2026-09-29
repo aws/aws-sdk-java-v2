@@ -759,10 +759,46 @@ public interface IDynamoDBMapper {
     S3Link createS3Link(String s3region, String bucketName, String key);
 
     /**
-     * Parse the given POJO class and return the CreateTableRequest for the DynamoDB table it
-     * represents. Note that the returned request does not include the required
-     * ProvisionedThroughput parameters for the primary table and the GSIs, and that all secondary
-     * indexes are initialized with the default projection type - KEY_ONLY.
+     * Parses the given POJO class and returns the {@link CreateTableRequest} for the DynamoDB table it
+     * represents.
+     *
+     * <p>The returned request sets neither a billing mode nor provisioned throughput, and all secondary
+     * indexes use the {@link software.amazon.awssdk.services.dynamodb.model.ProjectionType#KEYS_ONLY}
+     * projection. The request is immutable; use {@link CreateTableRequest#toBuilder()} to complete it
+     * before passing it to {@link DynamoDbClient#createTable(CreateTableRequest)}.
+     *
+     * <p>The simplest option is on-demand capacity
+     * ({@link software.amazon.awssdk.services.dynamodb.model.BillingMode#PAY_PER_REQUEST}), which needs no
+     * throughput for the table or its global secondary indexes:
+     *
+     * <pre>{@code
+     * CreateTableRequest request = mapper.generateCreateTableRequest(MyPojo.class)
+     *                                    .toBuilder()
+     *                                    .billingMode(BillingMode.PAY_PER_REQUEST)
+     *                                    .build();
+     * dynamoDbClient.createTable(request);
+     * }</pre>
+     *
+     * <p>For provisioned capacity, set throughput on the table and on each global secondary index:
+     *
+     * <pre>{@code
+     * ProvisionedThroughput throughput = ProvisionedThroughput.builder()
+     *                                                         .readCapacityUnits(5L)
+     *                                                         .writeCapacityUnits(5L)
+     *                                                         .build();
+     * CreateTableRequest generated = mapper.generateCreateTableRequest(MyPojo.class);
+     * CreateTableRequest.Builder request = generated.toBuilder().provisionedThroughput(throughput);
+     * // Only set the indexes when the class declares some; an explicit empty list is not the same as unset.
+     * if (generated.hasGlobalSecondaryIndexes()) {
+     *     request.globalSecondaryIndexes(generated.globalSecondaryIndexes().stream()
+     *                                             .map(gsi -> gsi.toBuilder().provisionedThroughput(throughput).build())
+     *                                             .collect(Collectors.toList()));
+     * }
+     * dynamoDbClient.createTable(request.build());
+     * }</pre>
+     *
+     * @param clazz The annotated POJO class.
+     * @return The create-table request derived from the class's annotations.
      */
     CreateTableRequest generateCreateTableRequest(Class<?> clazz);
 

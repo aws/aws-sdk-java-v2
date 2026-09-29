@@ -2276,7 +2276,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             if (field.keyType() != null || field.indexed()) {
                 attributeDefinitions.add(AttributeDefinition.builder()
                     .attributeName(field.name())
-                    .attributeType(ScalarAttributeType.fromValue(field.attributeType().name()))
+                    .attributeType(ScalarAttributeType.valueOf(field.attributeType().name()))
                     .build());
             }
         }

@@ -36,7 +36,6 @@ import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
 import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.dynamodb.model.TableStatus;
 import software.amazon.awssdk.mapper.dynamodb.test.AWSTestBase;
 
 import static software.amazon.awssdk.mapper.dynamodb.pojos.TestDocClass.ChildClass;
@@ -50,7 +49,7 @@ public class JsonIntegrationTest extends AWSTestBase {
     private static DynamoDBMapper mapper;
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setup() {
         setUpCredentials();
         client = DynamoDbClient.builder()
                 .region(Region.US_WEST_2)
@@ -74,22 +73,7 @@ public class JsonIntegrationTest extends AWSTestBase {
                 .build();
 
         client.createTable(request);
-
-        Thread.sleep(10000);
-
-        while (true) {
-            TableStatus status = client.describeTable(b -> b.tableName(TABLE_NAME))
-                    .table()
-                    .tableStatus();
-
-            if (status == TableStatus.ACTIVE) {
-                break;
-            } else if (status != TableStatus.CREATING) {
-                throw new RuntimeException("Table creation failed");
-            }
-
-            Thread.sleep(2000);
-        }
+        client.waiter().waitUntilTableExists(b -> b.tableName(TABLE_NAME));
     }
 
     @AfterClass

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
@@ -27,7 +28,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper;
-import software.amazon.awssdk.mapper.dynamodb.test.util.DynamoDBTestBase;
 import software.amazon.awssdk.mapper.dynamodb.test.util.UnorderedCollectionComparator;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -40,13 +40,14 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 /**
  * Tests on the DynamoDBMapper.generateCreateTableRequest method.
  */
-public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
+public class GenerateCreateTableRequestTest {
 
     private static DynamoDBMapper mapper;
 
     @BeforeClass
     public static void setUp() {
-        mapper = new DynamoDBMapper(getClient());
+        // generateCreateTableRequest is pure schema derivation and never calls DynamoDB, so no client is needed.
+        mapper = new DynamoDBMapper(null);
     }
 
     private static KeySchemaElement key(String name, KeyType type) {
@@ -94,7 +95,7 @@ public class GenerateCreateTableRequestTest extends DynamoDBTestBase {
                 lsi("index_bar_copy", key("key", KeyType.HASH), key("multipleIndexRangeKey", KeyType.RANGE)));
         assertTrue(equalLsi(expectedLsi, request.localSecondaryIndexes()));
 
-        assertTrue(request.globalSecondaryIndexes().isEmpty());
+        assertFalse(request.hasGlobalSecondaryIndexes());
         assertNull(request.provisionedThroughput());
     }
 

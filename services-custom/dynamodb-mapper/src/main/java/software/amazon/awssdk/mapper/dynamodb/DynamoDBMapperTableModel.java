@@ -176,11 +176,8 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
         if (globalSecondaryIndexes.isEmpty()) {
             return null;
         }
-        Collection<GlobalSecondaryIndex> copies = new ArrayList<GlobalSecondaryIndex>(globalSecondaryIndexes.size());
-        for (String indexName : globalSecondaryIndexes.keySet()) {
-            copies.add(globalSecondaryIndex(indexName));
-        }
-        return copies;
+        // v2 model types are immutable, so the stored indexes can be returned directly.
+        return new ArrayList<GlobalSecondaryIndex>(globalSecondaryIndexes.values());
     }
 
     /**
@@ -198,29 +195,26 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
 
     /**
      * Gets the local secondary indexes for the given class.
-     * @param indexNames The index names.
      * @return The map of index name to LocalSecondaryIndexes.
      */
     public Collection<LocalSecondaryIndex> localSecondaryIndexes() {
         if (localSecondaryIndexes.isEmpty()) {
             return null;
         }
-        Collection<LocalSecondaryIndex> copies = new ArrayList<LocalSecondaryIndex>(localSecondaryIndexes.size());
-        for (String indexName : localSecondaryIndexes.keySet()) {
-            copies.add(localSecondaryIndex(indexName));
-        }
-        return copies;
+        // v2 model types are immutable, so the stored indexes can be returned directly.
+        return new ArrayList<LocalSecondaryIndex>(localSecondaryIndexes.values());
     }
 
     /**
      * Gets the local secondary index by name.
-     * @param indexNames The index name.
+     * @param indexName The index name.
      * @return The local secondary index, or null.
      */
     public LocalSecondaryIndex localSecondaryIndex(final String indexName) {
         if (!localSecondaryIndexes.containsKey(indexName)) {
             return null;
         }
+        // v2 model types are immutable, so the stored index can be returned directly.
         return localSecondaryIndexes.get(indexName);
     }
 
@@ -363,40 +357,40 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
         }
 
         public Map<String,GlobalSecondaryIndex> globalSecondaryIndexes() {
-            Map<String,GlobalSecondaryIndex.Builder> builders = new LinkedHashMap<String,GlobalSecondaryIndex.Builder>();
+            // Key schemas by index name; the index name and KEYS_ONLY projection are applied when building below.
             Map<String,List<KeySchemaElement>> keySchemas = new LinkedHashMap<String,List<KeySchemaElement>>();
             for (DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
                 for (String indexName : field.globalSecondaryIndexNames(HASH)) {
-                    GlobalSecondaryIndex.Builder gsi = GlobalSecondaryIndex.builder()
-                        .indexName(indexName)
-                        .projection(Projection.builder().projectionType(KEYS_ONLY).build());
-                    if (builders.put(indexName, gsi) != null) {
+                    List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(HASH).build());
+                    if (keySchemas.put(indexName, keySchema) != null) {
                         throw new DynamoDBMappingException(
                             targetType.getSimpleName() + "[" + field.name() + "]; must not duplicate GSI " + indexName
                         );
                     }
-                    List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(KeyType.HASH).build());
-                    keySchemas.put(indexName, keySchema);
                 }
             }
             for (DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
                 for (String indexName : field.globalSecondaryIndexNames(RANGE)) {
-                    if (!builders.containsKey(indexName)) {
+                    List<KeySchemaElement> keySchema = keySchemas.get(indexName);
+                    if (keySchema == null) {
                         throw new DynamoDBMappingException(
                             targetType.getSimpleName() + "[" + field.name() + "]; no HASH key for GSI " + indexName
                         );
                     }
-                    keySchemas.get(indexName).add(
-                        KeySchemaElement.builder().attributeName(field.name()).keyType(KeyType.RANGE).build());
+                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(RANGE).build());
                 }
             }
-            if (builders.isEmpty()) {
+            if (keySchemas.isEmpty()) {
                 return Collections.<String,GlobalSecondaryIndex>emptyMap();
             }
             Map<String,GlobalSecondaryIndex> map = new LinkedHashMap<String,GlobalSecondaryIndex>();
-            for (Map.Entry<String,GlobalSecondaryIndex.Builder> entry : builders.entrySet()) {
-                map.put(entry.getKey(), entry.getValue().keySchema(keySchemas.get(entry.getKey())).build());
+            for (Map.Entry<String,List<KeySchemaElement>> entry : keySchemas.entrySet()) {
+                map.put(entry.getKey(), GlobalSecondaryIndex.builder()
+                    .indexName(entry.getKey())
+                    .projection(Projection.builder().projectionType(KEYS_ONLY).build())
+                    .keySchema(entry.getValue())
+                    .build());
             }
             return Collections.unmodifiableMap(map);
         }
@@ -406,8 +400,8 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
             for (DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
                 for (String indexName : field.localSecondaryIndexNames()) {
                     List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-                    keySchema.add(KeySchemaElement.builder().attributeName(keys.get(HASH).name()).keyType(KeyType.HASH).build());
-                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(KeyType.RANGE).build());
+                    keySchema.add(KeySchemaElement.builder().attributeName(keys.get(HASH).name()).keyType(HASH).build());
+                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(RANGE).build());
                     LocalSecondaryIndex lsi = LocalSecondaryIndex.builder()
                         .indexName(indexName)
                         .projection(Projection.builder().projectionType(KEYS_ONLY).build())

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.mapper.dynamodb.mapper;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -118,7 +119,7 @@ public class GenerateCreateTableRequest2Test extends LocalDynamoDBTestBase {
                 lsi("index_bar_copy", key("key", KeyType.HASH), key("multipleIndexRangeKey", KeyType.RANGE)));
         assertTrue(equalLsi(expectedLsi, createdTableDescription.localSecondaryIndexes()));
 
-        assertTrue(request.globalSecondaryIndexes().isEmpty());
+        assertFalse(request.hasGlobalSecondaryIndexes());
         assertEquals(DEFAULT_CAPACITY, request.provisionedThroughput());
 
         // Only one table with indexes can be created simultaneously
