@@ -16,7 +16,6 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;

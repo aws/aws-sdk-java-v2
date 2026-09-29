@@ -154,6 +154,7 @@
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-java-sdk-dynamodb</artifactId>
             <version>${sdk-v1.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
