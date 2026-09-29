@@ -217,7 +217,7 @@ public final class AwsRetryStrategy {
     private static boolean retryOnAwsRetryableErrors(Throwable ex) {
         if (ex instanceof AwsServiceException) {
             AwsServiceException exception = (AwsServiceException) ex;
-            return AwsErrorCode.RETRYABLE_ERROR_CODES.contains(exception.awsErrorDetails().errorCode());
+            return AwsErrorCode.isRetryableErrorCode(exception.awsErrorDetails().errorCode());
         }
         return false;
     }

@@ -61,11 +61,13 @@ public final class AwsErrorCode {
         possibleClockSkewErrorCodes.add("AuthFailure");
         POSSIBLE_CLOCK_SKEW_ERROR_CODES = unmodifiableSet(possibleClockSkewErrorCodes);
 
-        Set<String> retryableErrorCodes = new HashSet<>(1);
+        Set<String> retryableErrorCodes = new HashSet<>(6);
         retryableErrorCodes.add("PriorRequestNotComplete");
         retryableErrorCodes.add("RequestTimeout");
         retryableErrorCodes.add("RequestTimeoutException");
         retryableErrorCodes.add("InternalError");
+        retryableErrorCodes.add("ExpiredToken");
+        retryableErrorCodes.add("InvalidToken");
         RETRYABLE_ERROR_CODES = unmodifiableSet(retryableErrorCodes);
 
         Set<String> authErrorCodes = new HashSet<>(2);

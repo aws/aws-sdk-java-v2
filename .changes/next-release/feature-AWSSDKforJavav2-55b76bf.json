@@ -2,5 +2,5 @@
     "type": "feature",
     "category": "AWS SDK for Java v2",
     "contributor": "",
-    "description": "Standardize cached credential stale/prefetch windows, improve credential refresh resilliancy (static-stability) and add automatic credential invalidation/refresh."
+    "description": "Standardize cached credential stale/prefetch windows, improve credential refresh resiliency (static-stability) and add automatic credential invalidation/refresh. Requests rejected with `ExpiredToken` or `InvalidToken` are now retried, and each retry attempt resolves credentials again."
 }
