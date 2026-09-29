@@ -92,6 +92,11 @@ public class ImmutableIntrospector {
                        return ImmutablePropertyDescriptor.create(propertyName, getter, setter);
                    }).collect(Collectors.toList());
 
+        // Drop builder setters that pair with getters excluded via @DynamoDbIgnore/@Transient.
+        // Libraries such as Immutables still emit those setters for @Value.Default methods, and
+        // without this step introspection fails even though the getter was intentionally ignored.
+        removeBuilderMethodsForIgnoredGetters(immutableClass, indexedBuilderMethods);
+
         if (!indexedBuilderMethods.isEmpty()) {
             throw generateExceptionForMethod(indexedBuilderMethods.values().iterator().next(),
                                              "A method was found on the immutable class builder that does not appear " +
@@ -104,6 +109,32 @@ public class ImmutableIntrospector {
                             .buildMethod(buildMethod)
                             .propertyDescriptors(propertyDescriptors)
                             .build();
+    }
+
+
+    private void removeBuilderMethodsForIgnoredGetters(Class<?> immutableClass,
+                                                       Map<String, Method> indexedBuilderMethods) {
+        for (Method method : immutableClass.getMethods()) {
+            if (isIgnoredGetter(method)) {
+                indexedBuilderMethods.remove(normalizeGetterName(method));
+            }
+        }
+    }
+
+    private boolean isIgnoredGetter(Method method) {
+        if (method.getDeclaringClass() == Object.class
+            || method.isSynthetic()
+            || method.isBridge()
+            || Modifier.isStatic(method.getModifiers())
+            || namesToExclude.contains(method.getName())
+            || method.getParameterCount() != 0
+            || method.getReturnType() == void.class
+            || method.getReturnType() == Void.class) {
+            return false;
+        }
+
+        return method.getAnnotation(DynamoDbIgnore.class) != null
+            || method.getAnnotation(Transient.class) != null;
     }
 
     private boolean isMappableMethod(Method method) {
