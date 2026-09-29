@@ -60,7 +60,7 @@ public final class BatchLoadContext {
     }
 
     /**
-     * @return the BatchGetItemResponse
+     * @param batchGetItemResult the BatchGetItemResponse
      */
     public void setBatchGetItemResult(BatchGetItemResponse batchGetItemResult) {
         this.batchGetItemResult = batchGetItemResult;

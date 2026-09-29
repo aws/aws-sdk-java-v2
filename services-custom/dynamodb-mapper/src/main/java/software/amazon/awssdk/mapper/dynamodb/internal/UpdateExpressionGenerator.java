@@ -35,7 +35,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * Currently this entails generating a string that can be used as a substitution token in the
  * updateExpression and insert corresponding attribute name/value in the expressionAttributeNameMap/expressionAttributeValueMap
  *
- * For ex: Attribute <stringAttribute="sdkAttributeStringValue"> will be converted to:
+ * For ex: Attribute {@code <stringAttribute="sdkAttributeStringValue">} will be converted to:
  *  updateExpression = "SET #5d810=:5d810" and
  *  expressionAttributeNameMap = {{#5d810, "stringAttribute"},...}
  *  expressionAttributeValueMap = {{:5d810, {S: "sdkAttributeStringValue"}},...}

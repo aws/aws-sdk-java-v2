@@ -676,7 +676,7 @@ public final class DynamoDBMapperConfig {
      * control the retry strategy when such scenario occurs.
      *
      * @see DynamoDBMapper#batchWrite(Iterable, Iterable, DynamoDBMapperConfig)
-     * @see <ahref="http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html">DynamoDB service API reference -- BatchWriteItem</a>
+     * @see <a href="http://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_BatchWriteItem.html">DynamoDB service API reference -- BatchWriteItem</a>
      */
     public interface BatchWriteRetryStrategy {
 

@@ -223,8 +223,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#BEGINS_WITH
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#BEGINS_WITH
+     * @see Condition
      */
     public final Condition beginsWith(final V value) {
         return Condition.builder().comparisonOperator(BEGINS_WITH).attributeValueList(convert(value)).build();
@@ -235,8 +235,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * @param lo The start of the range (inclusive).
      * @param hi The end of the range (inclusive).
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#BETWEEN
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#BETWEEN
+     * @see Condition
      */
     public final Condition between(final V lo, final V hi) {
         return Condition.builder().comparisonOperator(BETWEEN).attributeValueList(convert(lo), convert(hi)).build();
@@ -246,8 +246,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#CONTAINS
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#CONTAINS
+     * @see Condition
      */
     public final Condition contains(final V value) {
         return Condition.builder().comparisonOperator(CONTAINS).attributeValueList(convert(value)).build();
@@ -257,8 +257,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#EQ
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#EQ
+     * @see Condition
      */
     public final Condition eq(final V value) {
         return Condition.builder().comparisonOperator(EQ).attributeValueList(convert(value)).build();
@@ -268,8 +268,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#GE
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#GE
+     * @see Condition
      */
     public final Condition ge(final V value) {
         return Condition.builder().comparisonOperator(GE).attributeValueList(convert(value)).build();
@@ -279,8 +279,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#GT
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#GT
+     * @see Condition
      */
     public final Condition gt(final V value) {
         return Condition.builder().comparisonOperator(GT).attributeValueList(convert(value)).build();
@@ -290,8 +290,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified values.
      * @param values The values.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#IN
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#IN
+     * @see Condition
      */
     public final Condition in(final Collection<V> values) {
         return Condition.builder().comparisonOperator(IN).attributeValueList(LIST.convert(values, this)).build();
@@ -301,8 +301,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified values.
      * @param values The values.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#IN
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#IN
+     * @see Condition
      */
     public final Condition in(final V ... values) {
         return in(Arrays.asList(values));
@@ -311,8 +311,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
     /**
      * Creates a condition which filters on the specified value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#NULL
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#NULL
+     * @see Condition
      */
     public final Condition isNull() {
         return Condition.builder().comparisonOperator(NULL).build();
@@ -322,8 +322,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#LE
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#LE
+     * @see Condition
      */
     public final Condition le(final V value) {
         return Condition.builder().comparisonOperator(LE).attributeValueList(convert(value)).build();
@@ -333,8 +333,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#LT
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#LT
+     * @see Condition
      */
     public final Condition lt(final V value) {
         return Condition.builder().comparisonOperator(LT).attributeValueList(convert(value)).build();
@@ -344,8 +344,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#NE
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#NE
+     * @see Condition
      */
     public final Condition ne(final V value) {
         return Condition.builder().comparisonOperator(NE).attributeValueList(convert(value)).build();
@@ -355,8 +355,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * Creates a condition which filters on the specified value.
      * @param value The value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#NOT_CONTAINS
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#NOT_CONTAINS
+     * @see Condition
      */
     public final Condition notContains(final V value) {
         return Condition.builder().comparisonOperator(NOT_CONTAINS).attributeValueList(convert(value)).build();
@@ -365,8 +365,8 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
     /**
      * Creates a condition which filters on the specified value.
      * @return The condition.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#NOT_NULL
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#NOT_NULL
+     * @see Condition
      */
     public final Condition notNull() {
         return Condition.builder().comparisonOperator(NOT_NULL).build();
@@ -379,11 +379,11 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
      * @param lo The start of the range (inclusive).
      * @param hi The end of the range (inclusive).
      * @return The condition or null if both arguments are null.
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#BETWEEN
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#EQ
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#GE
-     * @see com.amazonaws.services.dynamodbv2.model.ComparisonOperator#LE
-     * @see com.amazonaws.services.dynamodbv2.model.Condition
+     * @see ComparisonOperator#BETWEEN
+     * @see ComparisonOperator#EQ
+     * @see ComparisonOperator#GE
+     * @see ComparisonOperator#LE
+     * @see Condition
      */
     public final Condition betweenAny(final V lo, final V hi) {
         return lo == null ? (hi == null ? null : le(hi)) : (hi == null ? ge(lo) : (lo.equals(hi) ? eq(lo) : between(lo,hi)));

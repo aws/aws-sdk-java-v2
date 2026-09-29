@@ -60,7 +60,7 @@ import java.util.Map;
  *
  * Initialize the DynamoDB mapper,
  * <pre class="brush: java">
- * AmazonDynamoDB dbClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dbClient = DynamoDbClient.create();
  * DynamoDBMapper dbMapper = new DynamoDBMapper(dbClient);
  * </pre>
  *
@@ -118,7 +118,7 @@ import java.util.Map;
  * @param <R> The range key value type; use <code>?</code> if no range key.
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper
- * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB
+ * @see DynamoDbClient
  */
 @SdkPublicApi
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
@@ -157,7 +157,6 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
 
     /**
      * Gets the hash key field model for the specified type.
-     * @param <H> The hash key type.
      * @return The hash key field model.
      * @throws DynamoDBMappingException If the hash key is not present.
      */
@@ -167,7 +166,6 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
 
     /**
      * Gets the range key field model for the specified type.
-     * @param <R> The range key type.
      * @return The range key field model.
      * @throws DynamoDBMappingException If the range key is not present.
      */
@@ -300,7 +298,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object exists.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#save
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see ExpectedAttributeValue
      */
     public void saveIfNotExists(T object) throws ConditionalCheckFailedException {
         DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
@@ -318,7 +316,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object does not exist.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#save
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see ExpectedAttributeValue
      */
     public void saveIfExists(T object) throws ConditionalCheckFailedException {
         DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
@@ -356,7 +354,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object does not exist.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#delete
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see ExpectedAttributeValue
      */
     public void deleteIfExists(T object) throws ConditionalCheckFailedException {
         DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();

@@ -293,7 +293,7 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
      * Creates a new key map from the specified object.
      * @param <H> The hash key type.
      * @param <R> The range key type.
-     * @param object The object instance.
+     * @param key The object instance.
      * @return The key map.
      */
     public <H,R> Map<String,AttributeValue> convertKey(final T key) {

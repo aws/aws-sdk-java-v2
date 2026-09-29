@@ -472,7 +472,7 @@ public final class DynamoDBQueryExpression <T> {
      *         <p>
      *         The condition you specify is applied to the items queried; any
      *         items that do not match the expression are not returned.
-     * @see QueryRequest#getFilterExpression()
+     * @see QueryRequest#filterExpression()
      */
     public String getFilterExpression() {
         return filterExpression;
@@ -490,7 +490,7 @@ public final class DynamoDBQueryExpression <T> {
      *            <p>
      *            The condition you specify is applied to the items queried; any
      *            items that do not match the expression are not returned.
-     * @see QueryRequest#setFilterExpression(String)
+     * @see QueryRequest.Builder#filterExpression(String)
      */
     public void setFilterExpression(String filterExpression) {
         this.filterExpression = filterExpression;
@@ -514,7 +514,7 @@ public final class DynamoDBQueryExpression <T> {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see QueryRequest#withFilterExpression(String)
+     * @see QueryRequest.Builder#filterExpression(String)
      */
     public DynamoDBQueryExpression<T> withFilterExpression(
             String filterExpression) {
@@ -610,10 +610,10 @@ public final class DynamoDBQueryExpression <T> {
      * <i>ExpressionAttributeValues</i>, see <a href=
      * "http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ExpressionPlaceholders.html"
      * >Using Placeholders for Attribute Names and Values</a> in the <i>Amazon
-     * DynamoDB Developer Guide</i>. <note>
+     * DynamoDB Developer Guide</i>.
      * <p>
-     * <i>KeyConditionExpression</i> replaces the legacy <i>KeyConditions</i>
-     * parameter. </note>
+     * <b>Note:</b> <i>KeyConditionExpression</i> replaces the legacy <i>KeyConditions</i>
+     * parameter.
      *
      * @return The condition that specifies the key value(s) for items to be
      *         retrieved by the <i>Query</i> action.
@@ -647,20 +647,20 @@ public final class DynamoDBQueryExpression <T> {
      *         true if the range key is equal to <code>:rangeval</code>.</li>
      *         <li>
      *         <p>
-     *         <code>rangeAttributeName</code> <i><</i> <code>:rangeval</code> -
+     *         <code>rangeAttributeName</code> <i>&lt;</i> <code>:rangeval</code> -
      *         true if the range key is less than <code>:rangeval</code>.</li>
      *         <li>
      *         <p>
-     *         <code>rangeAttributeName</code> <i><=</i> <code>:rangeval</code>
+     *         <code>rangeAttributeName</code> <i>&lt;=</i> <code>:rangeval</code>
      *         - true if the range key is less than or equal to
      *         <code>:rangeval</code>.</li>
      *         <li>
      *         <p>
-     *         <code>rangeAttributeName</code> <i>></i> <code>:rangeval</code> -
+     *         <code>rangeAttributeName</code> <i>&gt;</i> <code>:rangeval</code> -
      *         true if the range key is greater than <code>:rangeval</code>.</li>
      *         <li>
      *         <p>
-     *         <code>rangeAttributeName</code> <i>>= </i><code>:rangeval</code>
+     *         <code>rangeAttributeName</code> <i>&gt;=</i> <code>:rangeval</code>
      *         - true if the range key is greater than or equal to
      *         <code>:rangeval</code>.</li>
      *         <li>
@@ -710,10 +710,10 @@ public final class DynamoDBQueryExpression <T> {
      *         <i>ExpressionAttributeValues</i>, see <a href=
      *         "http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ExpressionPlaceholders.html"
      *         >Using Placeholders for Attribute Names and Values</a> in the
-     *         <i>Amazon DynamoDB Developer Guide</i>. <note>
+     *         <i>Amazon DynamoDB Developer Guide</i>.
      *         <p>
-     *         <i>KeyConditionExpression</i> replaces the legacy
-     *         <i>KeyConditions</i> parameter. </note>
+     *         <b>Note:</b> <i>KeyConditionExpression</i> replaces the legacy
+     *         <i>KeyConditions</i> parameter.
      */
     public String getKeyConditionExpression() {
         return keyConditionExpression;
@@ -749,19 +749,19 @@ public final class DynamoDBQueryExpression <T> {
      * the range key is equal to <code>:rangeval</code>.</li>
      * <li>
      * <p>
-     * <code>rangeAttributeName</code> <i><</i> <code>:rangeval</code> - true if
+     * <code>rangeAttributeName</code> <i>&lt;</i> <code>:rangeval</code> - true if
      * the range key is less than <code>:rangeval</code>.</li>
      * <li>
      * <p>
-     * <code>rangeAttributeName</code> <i><=</i> <code>:rangeval</code> - true
+     * <code>rangeAttributeName</code> <i>&lt;=</i> <code>:rangeval</code> - true
      * if the range key is less than or equal to <code>:rangeval</code>.</li>
      * <li>
      * <p>
-     * <code>rangeAttributeName</code> <i>></i> <code>:rangeval</code> - true if
+     * <code>rangeAttributeName</code> <i>&gt;</i> <code>:rangeval</code> - true if
      * the range key is greater than <code>:rangeval</code>.</li>
      * <li>
      * <p>
-     * <code>rangeAttributeName</code> <i>>= </i><code>:rangeval</code> - true
+     * <code>rangeAttributeName</code> <i>&gt;=</i> <code>:rangeval</code> - true
      * if the range key is greater than or equal to <code>:rangeval</code>.</li>
      * <li>
      * <p>
@@ -807,10 +807,10 @@ public final class DynamoDBQueryExpression <T> {
      * <i>ExpressionAttributeValues</i>, see <a href=
      * "http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/ExpressionPlaceholders.html"
      * >Using Placeholders for Attribute Names and Values</a> in the <i>Amazon
-     * DynamoDB Developer Guide</i>. <note>
+     * DynamoDB Developer Guide</i>.
      * <p>
-     * <i>KeyConditionExpression</i> replaces the legacy <i>KeyConditions</i>
-     * parameter. </note>
+     * <b>Note:</b> <i>KeyConditionExpression</i> replaces the legacy <i>KeyConditions</i>
+     * parameter.
      * <p>
      * When a key expression is specified, the corresponding name-map and
      * value-map can optionally be specified via {@link #withExpressionAttributeNames(Map)} and
@@ -830,7 +830,7 @@ public final class DynamoDBQueryExpression <T> {
      *
      * @return One or more substitution variables for simplifying complex
      *         expressions.
-     * @see QueryRequest#getExpressionAttributeNames()
+     * @see QueryRequest#expressionAttributeNames()
      */
     public java.util.Map<String, String> getExpressionAttributeNames() {
 
@@ -843,7 +843,7 @@ public final class DynamoDBQueryExpression <T> {
      * @param expressionAttributeNames
      *            One or more substitution variables for simplifying complex
      *            expressions.
-     * @see QueryRequest#setExpressionAttributeNames(Map)
+     * @see QueryRequest.Builder#expressionAttributeNames(Map)
      */
     public void setExpressionAttributeNames(
             java.util.Map<String, String> expressionAttributeNames) {
@@ -859,7 +859,7 @@ public final class DynamoDBQueryExpression <T> {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see QueryRequest#withExpressionAttributeNames(Map)
+     * @see QueryRequest.Builder#expressionAttributeNames(Map)
      */
     public DynamoDBQueryExpression<T> withExpressionAttributeNames(
             java.util.Map<String, String> expressionAttributeNames) {
@@ -880,7 +880,7 @@ public final class DynamoDBQueryExpression <T> {
      *            The corresponding value of the entry to be added into
      *            ExpressionAttributeNames.
      *
-     * @see QueryRequest#addExpressionAttributeNamesEntry(String, String)
+     * @see QueryRequest.Builder#expressionAttributeNames(Map)
      */
     public DynamoDBQueryExpression<T> addExpressionAttributeNamesEntry(
             String key, String value) {
@@ -910,7 +910,7 @@ public final class DynamoDBQueryExpression <T> {
      *
      * @return One or more values that can be substituted in an expression.
      *
-     * @see QueryRequest#getExpressionAttributeValues()
+     * @see QueryRequest#expressionAttributeValues()
      */
     public java.util.Map<String, AttributeValue> getExpressionAttributeValues() {
 
@@ -923,7 +923,7 @@ public final class DynamoDBQueryExpression <T> {
      * @param expressionAttributeValues
      *            One or more values that can be substituted in an expression.
      *
-     * @see QueryRequest#setExpressionAttributeValues(Map)
+     * @see QueryRequest.Builder#expressionAttributeValues(Map)
      */
     public void setExpressionAttributeValues(
             java.util.Map<String, AttributeValue> expressionAttributeValues) {
@@ -938,7 +938,7 @@ public final class DynamoDBQueryExpression <T> {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see QueryRequest#withExpressionAttributeValues(Map)
+     * @see QueryRequest.Builder#expressionAttributeValues(Map)
      */
     public DynamoDBQueryExpression<T> withExpressionAttributeValues(
             java.util.Map<String, AttributeValue> expressionAttributeValues) {
@@ -996,7 +996,7 @@ public final class DynamoDBQueryExpression <T> {
      *         in the case of an index, some or all of the attributes projected into
      *         the index.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public String getSelect() {
         return select;
@@ -1016,7 +1016,7 @@ public final class DynamoDBQueryExpression <T> {
      *         in the case of an index, some or all of the attributes projected into
      *         the index.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public void setSelect(String select) {
         this.select = select;
@@ -1041,7 +1041,7 @@ public final class DynamoDBQueryExpression <T> {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public DynamoDBQueryExpression<T> withSelect(String select) {
         this.select = select;
@@ -1062,7 +1062,7 @@ public final class DynamoDBQueryExpression <T> {
      *         in the case of an index, some or all of the attributes projected into
      *         the index.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public void setSelect(Select select) {
         this.select = select.toString();
@@ -1087,7 +1087,7 @@ public final class DynamoDBQueryExpression <T> {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public DynamoDBQueryExpression<T> withSelect(Select select) {
         this.select = select.toString();
@@ -1191,7 +1191,7 @@ public final class DynamoDBQueryExpression <T> {
      *         for indexes. If set to <code>NONE</code> (the default),
      *         <i>ConsumedCapacity</i> is not included in the response.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public String getReturnConsumedCapacity() {
         return returnConsumedCapacity;
@@ -1219,7 +1219,7 @@ public final class DynamoDBQueryExpression <T> {
      *         for indexes. If set to <code>NONE</code> (the default),
      *         <i>ConsumedCapacity</i> is not included in the response.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public void setReturnConsumedCapacity(String returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity;
@@ -1252,7 +1252,7 @@ public final class DynamoDBQueryExpression <T> {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public DynamoDBQueryExpression<T> withReturnConsumedCapacity(String returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity;
@@ -1281,7 +1281,7 @@ public final class DynamoDBQueryExpression <T> {
      *         for indexes. If set to <code>NONE</code> (the default),
      *         <i>ConsumedCapacity</i> is not included in the response.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public void setReturnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity.toString();
@@ -1314,7 +1314,7 @@ public final class DynamoDBQueryExpression <T> {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public DynamoDBQueryExpression<T> withReturnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity.toString();

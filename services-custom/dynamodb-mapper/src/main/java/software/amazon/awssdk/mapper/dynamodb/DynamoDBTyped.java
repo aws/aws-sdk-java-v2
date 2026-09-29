@@ -82,7 +82,7 @@ import java.lang.annotation.Target;
  * the annotation may be omited. The annotation is require for all non-standard
  * types or if the attribute type binding is being overriden.</p>
  *
- * <p><b>{@link com.amazonaws.services.dynamodbv2.model.AttributeValue}</b></p>
+ * <p><b>{@link software.amazon.awssdk.services.dynamodb.model.AttributeValue}</b></p>
  * <p>Direct native conversion is supported by default in all schemas.
  * If the attribute is a primary or index key, it must specify either
  * {@code B}, {@code N}, or {@code S}, otherwise, it may be omited.</p>
@@ -118,19 +118,19 @@ import java.lang.annotation.Target;
  * public Status getStatus()
  * </pre>
  *
- * <p><b>{@link UUID} to {@code B}</b></p>
+ * <p><b>{@link java.util.UUID} to {@code B}</b></p>
  * <p>The {@code UUID} type will serialize to {@link String}/{@code S} by
  * default in all conversion schemas. The schemas do support serializing to
- * {@link ByteBuffer}/{@code B} by override.</p>
+ * {@link java.nio.ByteBuffer}/{@code B} by override.</p>
  * <pre class="brush: java">
  * &#064;DynamoDBTyped(DynamoDBAttributeType.B)
  * public UUID getKey()
  * </pre>
  *
- * <p><b>{@link Set} to {@code L}</b></p>
+ * <p><b>{@link java.util.Set} to {@code L}</b></p>
  * <p>The standard V1 and V2 compatible conversion schemas do not by default
  * support non-scalar {@code Set} types. They are supported in V2.  In
- * non-supported schemas, the {@link List}/{@code L} override may be applied
+ * non-supported schemas, the {@link java.util.List}/{@code L} override may be applied
  * to any {@code Set} type.</p>
  * <pre class="brush: java">
  * &#064;DynamoDBTyped(DynamoDBAttributeType.L)

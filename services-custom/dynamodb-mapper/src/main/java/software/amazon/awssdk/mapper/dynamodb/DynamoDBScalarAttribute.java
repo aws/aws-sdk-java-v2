@@ -23,7 +23,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * @Deprecated - Replaced by {@link DynamoDBTyped}
+ * @deprecated - Replaced by {@link DynamoDBTyped}
  */
 @Deprecated
 @DynamoDB

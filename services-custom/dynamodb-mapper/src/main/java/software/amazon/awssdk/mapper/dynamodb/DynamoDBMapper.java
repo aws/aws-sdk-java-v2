@@ -175,11 +175,16 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * {@link CreateTableRequest} for the table represented by your annotated class.
  *
  * <pre class="brush: java">
- * AmazonDynamoDB dynamoDBClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dynamoDBClient = DynamoDbClient.create();
  * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
- * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class);
- * // Table provision throughput is still required since it cannot be specified in your POJO
- * req.setProvisionedThroughput(new ProvisionedThroughput(5L, 5L));
+ * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class)
+ *                                .toBuilder()
+ *                                // Table provision throughput is still required since it cannot be specified in your POJO
+ *                                .provisionedThroughput(ProvisionedThroughput.builder()
+ *                                                                            .readCapacityUnits(5L)
+ *                                                                            .writeCapacityUnits(5L)
+ *                                                                            .build())
+ *                                .build();
  * // Fire off the CreateTableRequest using the low-level client
  * dynamoDBClient.createTable(req);
  * </pre>
@@ -383,7 +388,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @param transformer
      *            The custom attribute transformer to invoke when serializing or
      *            deserializing an object.
-     * @param s3CredentialProvider
+     * @param s3CredentialsProvider
      *            The credentials provider for accessing S3.
      *            Relevant only if {@link S3Link} is involved.
      */
@@ -679,7 +684,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
          * @param object            The model object to be saved.
          * @param clazz             The domain class of the object.
          * @param tableName         The table name.
-         * @param saveConifg        The mapper configuration used for this save.
+         * @param saveConfig        The mapper configuration used for this save.
          * @param saveExpression    The save expression, including the user-provided conditions and an optional logic operator.
          */
         public SaveObjectHandler(
