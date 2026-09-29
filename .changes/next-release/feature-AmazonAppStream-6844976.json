@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon AppStream",
+    "contributor": "",
+    "description": "Add support for NVIDIA GRID driver version metadata in Workspace Applications image responses through the new ImageSoftwareMetadata field."
+}
