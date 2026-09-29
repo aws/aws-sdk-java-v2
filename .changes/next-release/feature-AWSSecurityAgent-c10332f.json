@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Security Agent",
-    "contributor": "",
-    "description": "Adds support for Azure DevOps and Bitbucket Data Center integration providers."
-}
