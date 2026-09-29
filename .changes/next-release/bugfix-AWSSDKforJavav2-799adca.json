@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "description": "Fix ApacheHttpClient and Apache5HttpClient never reusing pooled connections when a TLS client certificate is configured (tlsKeyManagersProvider). Disable Apache connection-state tracking so mTLS connections can be leased again across requests. See [#7405](https://github.com/aws/aws-sdk-java-v2/issues/7405).",
+    "contributor": "tanvir-ux"
+}
