@@ -172,8 +172,13 @@ public final class EventStreamAsyncResponseTransformer<ResponseT, EventT>
                                                         .doAfterOnComplete(() -> handleOnStreamComplete(attempt))
                                                         .doAfterOnError(t -> handleOnStreamError(attempt, t))
                                                         .doAfterOnCancel(() -> handleOnStreamCancel(attempt));
-        EventStreamResponseHandlerFromBuilder.invokeOnEventStream(
-            eventStreamResponseHandler, eventPublisher, t -> handleEventConsumerFailure(attempt, t));
+        if (eventStreamResponseHandler instanceof EventStreamResponseHandlerFromBuilder) {
+            EventStreamResponseHandlerFromBuilder<ResponseT, EventT> builderHandler =
+                (EventStreamResponseHandlerFromBuilder<ResponseT, EventT>) eventStreamResponseHandler;
+            builderHandler.onEventStream(eventPublisher, t -> handleEventConsumerFailure(attempt, t));
+        } else {
+            eventStreamResponseHandler.onEventStream(eventPublisher);
+        }
     }
 
     @Override

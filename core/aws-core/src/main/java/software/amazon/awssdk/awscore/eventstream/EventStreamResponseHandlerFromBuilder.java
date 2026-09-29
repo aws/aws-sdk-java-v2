@@ -38,11 +38,6 @@ import software.amazon.awssdk.utils.FunctionalUtils;
 public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
     implements EventStreamResponseHandler<ResponseT, EventT> {
 
-    /**
-     * Preserves the failure reporter when a synchronous override wraps the invocation publisher before delegating.
-     */
-    private static final ThreadLocal<Consumer<Throwable>> SCOPED_CALLBACK_FAILURE_REPORTER = new ThreadLocal<>();
-
     private final Consumer<ResponseT> responseConsumer;
     private final Consumer<Throwable> errorConsumer;
     private final Runnable onComplete;
@@ -74,11 +69,14 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
 
     @Override
     public void onEventStream(SdkPublisher<EventT> publisher) {
-        CallbackFailureContextPublisher<EventT> context = CallbackFailureContextPublisher.from(publisher);
-        SdkPublisher<EventT> transformedPublisher = publisherTransformer.apply(context.publisher());
+        onEventStream(publisher, FunctionalUtils.noOpConsumer());
+    }
+
+    void onEventStream(SdkPublisher<EventT> publisher, Consumer<Throwable> failureReporter) {
+        SdkPublisher<EventT> transformedPublisher = publisherTransformer.apply(publisher);
 
         if (eventConsumer != null) {
-            transformedPublisher.subscribe(sequentialConsumerSubscriber(eventConsumer, context.failureReporter()));
+            transformedPublisher.subscribe(sequentialConsumerSubscriber(eventConsumer, failureReporter));
         } else if (subscriber != null) {
             transformedPublisher.subscribe(subscriber.get());
         } else {
@@ -86,62 +84,10 @@ public abstract class EventStreamResponseHandlerFromBuilder<ResponseT, EventT>
         }
     }
 
-    static <ResponseT, EventT> void invokeOnEventStream(EventStreamResponseHandler<ResponseT, EventT> responseHandler,
-                                                        SdkPublisher<EventT> publisher,
-                                                        Consumer<Throwable> failureReporter) {
-        Consumer<Throwable> previousReporter = SCOPED_CALLBACK_FAILURE_REPORTER.get();
-        SCOPED_CALLBACK_FAILURE_REPORTER.set(failureReporter);
-        try {
-            responseHandler.onEventStream(new CallbackFailureContextPublisher<>(publisher, failureReporter));
-        } finally {
-            if (previousReporter == null) {
-                SCOPED_CALLBACK_FAILURE_REPORTER.remove();
-            } else {
-                SCOPED_CALLBACK_FAILURE_REPORTER.set(previousReporter);
-            }
-        }
-    }
-
     // Keeps the subscriber implementation private while allowing package-level Reactive Streams verification.
     static <T> Subscriber<T> sequentialConsumerSubscriber(Consumer<T> eventConsumer,
                                                            Consumer<Throwable> failureReporter) {
         return new SequentialConsumerSubscriber<>(eventConsumer, failureReporter);
-    }
-
-    /**
-     * Carries a callback failure reporter through virtual dispatch and resolves the scoped fallback for plain publishers.
-     */
-    private static final class CallbackFailureContextPublisher<T> implements SdkPublisher<T> {
-        private final SdkPublisher<T> publisher;
-        private final Consumer<Throwable> carriedFailureReporter;
-
-        private CallbackFailureContextPublisher(SdkPublisher<T> publisher,
-                                                Consumer<Throwable> carriedFailureReporter) {
-            this.publisher = publisher;
-            this.carriedFailureReporter = carriedFailureReporter;
-        }
-
-        private static <T> CallbackFailureContextPublisher<T> from(SdkPublisher<T> publisher) {
-            if (publisher instanceof CallbackFailureContextPublisher) {
-                return (CallbackFailureContextPublisher<T>) publisher;
-            }
-            return new CallbackFailureContextPublisher<>(publisher, null);
-        }
-
-        private SdkPublisher<T> publisher() {
-            return publisher;
-        }
-
-        private Consumer<Throwable> failureReporter() {
-            return carriedFailureReporter != null
-                   ? carriedFailureReporter
-                   : getOrDefault(SCOPED_CALLBACK_FAILURE_REPORTER.get(), FunctionalUtils::noOpConsumer);
-        }
-
-        @Override
-        public void subscribe(Subscriber<? super T> subscriber) {
-            publisher.subscribe(subscriber);
-        }
     }
 
     @Override
