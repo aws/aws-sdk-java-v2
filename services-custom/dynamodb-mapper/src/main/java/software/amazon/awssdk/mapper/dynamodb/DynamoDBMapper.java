@@ -29,7 +29,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.BatchWriteRet
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
 import software.amazon.awssdk.services.dynamodb.model.AttributeAction;
-import com.amazonaws.services.dynamodbv2.model.AttributeDefinition;
+import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValueUpdate;
 import software.amazon.awssdk.services.dynamodb.model.BatchGetItemRequest;
@@ -40,17 +40,18 @@ import software.amazon.awssdk.services.dynamodb.model.Condition;
 import software.amazon.awssdk.services.dynamodb.model.ConditionCheck;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalOperator;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Delete;
 import software.amazon.awssdk.services.dynamodb.model.DeleteItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.DeleteRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.Get;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
 import software.amazon.awssdk.services.dynamodb.model.ItemResponse;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
+import software.amazon.awssdk.services.dynamodb.model.KeyType;
 import software.amazon.awssdk.services.dynamodb.model.KeysAndAttributes;
 import software.amazon.awssdk.services.dynamodb.model.Put;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
@@ -60,7 +61,7 @@ import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionCheckFailure;
-import com.amazonaws.services.dynamodbv2.model.ScalarAttributeType;
+import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.model.Select;
@@ -174,11 +175,16 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * {@link CreateTableRequest} for the table represented by your annotated class.
  *
  * <pre class="brush: java">
- * AmazonDynamoDB dynamoDBClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dynamoDBClient = DynamoDbClient.create();
  * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
- * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class);
- * // Table provision throughput is still required since it cannot be specified in your POJO
- * req.setProvisionedThroughput(new ProvisionedThroughput(5L, 5L));
+ * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class)
+ *                                .toBuilder()
+ *                                // Table provision throughput is still required since it cannot be specified in your POJO
+ *                                .provisionedThroughput(ProvisionedThroughput.builder()
+ *                                                                            .readCapacityUnits(5L)
+ *                                                                            .writeCapacityUnits(5L)
+ *                                                                            .build())
+ *                                .build();
  * // Fire off the CreateTableRequest using the low-level client
  * dynamoDBClient.createTable(req);
  * </pre>
@@ -382,7 +388,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @param transformer
      *            The custom attribute transformer to invoke when serializing or
      *            deserializing an object.
-     * @param s3CredentialProvider
+     * @param s3CredentialsProvider
      *            The credentials provider for accessing S3.
      *            Relevant only if {@link S3Link} is involved.
      */
@@ -678,7 +684,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
          * @param object            The model object to be saved.
          * @param clazz             The domain class of the object.
          * @param tableName         The table name.
-         * @param saveConifg        The mapper configuration used for this save.
+         * @param saveConfig        The mapper configuration used for this save.
          * @param saveExpression    The save expression, including the user-provided conditions and an optional logic operator.
          */
         public SaveObjectHandler(
@@ -2260,31 +2266,33 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
         config = mergeConfig(config);
         DynamoDBMapperTableModel<T> model = getTableModel(clazz, config);
 
-        CreateTableRequest request = new CreateTableRequest();
-        request.setTableName(getTableName(clazz, config));
-        request.withKeySchema(new KeySchemaElement(model.hashKey().name(), com.amazonaws.services.dynamodbv2.model.KeyType.HASH));
+        List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+        keySchema.add(KeySchemaElement.builder().attributeName(model.hashKey().name()).keyType(KeyType.HASH).build());
         if (model.rangeKeyIfExists() != null) {
-            request.withKeySchema(new KeySchemaElement(model.rangeKey().name(), com.amazonaws.services.dynamodbv2.model.KeyType.RANGE));
+            keySchema.add(KeySchemaElement.builder().attributeName(model.rangeKey().name()).keyType(KeyType.RANGE).build());
         }
-        request.setGlobalSecondaryIndexes(model.globalSecondaryIndexes());
-        request.setLocalSecondaryIndexes(model.localSecondaryIndexes());
+        List<AttributeDefinition> attributeDefinitions = new ArrayList<AttributeDefinition>();
         for (DynamoDBMapperFieldModel<T,Object> field : model.fields()) {
             if (field.keyType() != null || field.indexed()) {
-                request.withAttributeDefinitions(new AttributeDefinition()
-                    .withAttributeType(ScalarAttributeType.valueOf(field.attributeType().name()))
-                    .withAttributeName(field.name())
-                );
+                attributeDefinitions.add(AttributeDefinition.builder()
+                    .attributeName(field.name())
+                    .attributeType(ScalarAttributeType.valueOf(field.attributeType().name()))
+                    .build());
             }
         }
-        return request;
+        return CreateTableRequest.builder()
+            .tableName(getTableName(clazz, config))
+            .keySchema(keySchema)
+            .globalSecondaryIndexes(model.globalSecondaryIndexes())
+            .localSecondaryIndexes(model.localSecondaryIndexes())
+            .attributeDefinitions(attributeDefinitions)
+            .build();
     }
 
     @Override
     public <T> DeleteTableRequest generateDeleteTableRequest(Class<T> clazz, DynamoDBMapperConfig config) {
         config = mergeConfig(config);
-        DeleteTableRequest deleteTableRequest = new DeleteTableRequest();
-        deleteTableRequest.setTableName(getTableName(clazz, config));
-        return deleteTableRequest;
+        return DeleteTableRequest.builder().tableName(getTableName(clazz, config)).build();
     }
 
     /**

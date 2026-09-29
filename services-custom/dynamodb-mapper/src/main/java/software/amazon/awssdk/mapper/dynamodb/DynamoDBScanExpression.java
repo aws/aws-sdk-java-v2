@@ -443,7 +443,7 @@ public final class DynamoDBScanExpression {
      *         <p>
      *         The condition you specify is applied to the items queried; any
      *         items that do not match the expression are not returned.
-     * @see ScanRequest#getFilterExpression()
+     * @see ScanRequest#filterExpression()
      */
     public String getFilterExpression() {
         return filterExpression;
@@ -461,7 +461,7 @@ public final class DynamoDBScanExpression {
      *            <p>
      *            The condition you specify is applied to the items queried; any
      *            items that do not match the expression are not returned.
-     * @see ScanRequest#setFilterExpression(String)
+     * @see ScanRequest.Builder#filterExpression(String)
      */
     public void setFilterExpression(String filterExpression) {
         this.filterExpression = filterExpression;
@@ -485,7 +485,7 @@ public final class DynamoDBScanExpression {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see ScanRequest#withFilterExpression(String)
+     * @see ScanRequest.Builder#filterExpression(String)
      */
     public DynamoDBScanExpression withFilterExpression(String filterExpression) {
         this.filterExpression = filterExpression;
@@ -497,7 +497,7 @@ public final class DynamoDBScanExpression {
      *
      * @return One or more substitution variables for simplifying complex
      *         expressions.
-     * @see scanRequest#getExpressionAttributeNames()
+     * @see ScanRequest#expressionAttributeNames()
      */
     public java.util.Map<String, String> getExpressionAttributeNames() {
 
@@ -510,7 +510,7 @@ public final class DynamoDBScanExpression {
      * @param expressionAttributeNames
      *            One or more substitution variables for simplifying complex
      *            expressions.
-     * @see ScanRequest#setExpressionAttributeNames(Map)
+     * @see ScanRequest.Builder#expressionAttributeNames(Map)
      */
     public void setExpressionAttributeNames(
             java.util.Map<String, String> expressionAttributeNames) {
@@ -526,7 +526,7 @@ public final class DynamoDBScanExpression {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see ScanRequest#withExpressionAttributeNames(Map)
+     * @see ScanRequest.Builder#expressionAttributeNames(Map)
      */
     public DynamoDBScanExpression withExpressionAttributeNames(
             java.util.Map<String, String> expressionAttributeNames) {
@@ -547,7 +547,7 @@ public final class DynamoDBScanExpression {
      *            The corresponding value of the entry to be added into
      *            ExpressionAttributeNames.
      *
-     * @see ScanRequest#addExpressionAttributeNamesEntry(String, String)
+     * @see ScanRequest.Builder#expressionAttributeNames(Map)
      */
     public DynamoDBScanExpression addExpressionAttributeNamesEntry(String key,
             String value) {
@@ -577,7 +577,7 @@ public final class DynamoDBScanExpression {
      *
      * @return One or more values that can be substituted in an expression.
      *
-     * @see ScanRequest#getExpressionAttributeValues()
+     * @see ScanRequest#expressionAttributeValues()
      */
     public java.util.Map<String, AttributeValue> getExpressionAttributeValues() {
 
@@ -590,7 +590,7 @@ public final class DynamoDBScanExpression {
      * @param expressionAttributeValues
      *            One or more values that can be substituted in an expression.
      *
-     * @see ScanRequest#setExpressionAttributeValues(Map)
+     * @see ScanRequest.Builder#expressionAttributeValues(Map)
      */
     public void setExpressionAttributeValues(
             java.util.Map<String, AttributeValue> expressionAttributeValues) {
@@ -605,7 +605,7 @@ public final class DynamoDBScanExpression {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see ScanRequest#withExpressionAttributeValues(Map)
+     * @see ScanRequest.Builder#expressionAttributeValues(Map)
      */
     public DynamoDBScanExpression withExpressionAttributeValues(
             java.util.Map<String, AttributeValue> expressionAttributeValues) {
@@ -663,7 +663,7 @@ public final class DynamoDBScanExpression {
      *         in the case of an index, some or all of the attributes projected into
      *         the index.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public String getSelect() {
         return select;
@@ -683,7 +683,7 @@ public final class DynamoDBScanExpression {
      *         in the case of an index, some or all of the attributes projected into
      *         the index.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public void setSelect(String select) {
         this.select = select;
@@ -708,7 +708,7 @@ public final class DynamoDBScanExpression {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public DynamoDBScanExpression withSelect(String select) {
         this.select = select;
@@ -729,7 +729,7 @@ public final class DynamoDBScanExpression {
      *         in the case of an index, some or all of the attributes projected into
      *         the index.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public void setSelect(Select select) {
         this.select = select.toString();
@@ -754,7 +754,7 @@ public final class DynamoDBScanExpression {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.Select
+     * @see Select
      */
     public DynamoDBScanExpression withSelect(Select select) {
         this.select = select.toString();
@@ -858,7 +858,7 @@ public final class DynamoDBScanExpression {
      *         for indexes. If set to <code>NONE</code> (the default),
      *         <i>ConsumedCapacity</i> is not included in the response.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public String getReturnConsumedCapacity() {
         return returnConsumedCapacity;
@@ -886,7 +886,7 @@ public final class DynamoDBScanExpression {
      *         for indexes. If set to <code>NONE</code> (the default),
      *         <i>ConsumedCapacity</i> is not included in the response.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public void setReturnConsumedCapacity(String returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity;
@@ -919,7 +919,7 @@ public final class DynamoDBScanExpression {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public DynamoDBScanExpression withReturnConsumedCapacity(String returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity;
@@ -948,7 +948,7 @@ public final class DynamoDBScanExpression {
      *         for indexes. If set to <code>NONE</code> (the default),
      *         <i>ConsumedCapacity</i> is not included in the response.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public void setReturnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity.toString();
@@ -981,7 +981,7 @@ public final class DynamoDBScanExpression {
      * @return A reference to this updated object so that method calls can be chained
      *         together.
      *
-     * @see com.amazonaws.services.dynamodbv2.model.ReturnConsumedCapacity
+     * @see ReturnConsumedCapacity
      */
     public DynamoDBScanExpression withReturnConsumedCapacity(ReturnConsumedCapacity returnConsumedCapacity) {
         this.returnConsumedCapacity = returnConsumedCapacity.toString();
@@ -991,7 +991,7 @@ public final class DynamoDBScanExpression {
     /**
      * Returns whether this scan uses consistent reads.
      *
-     * @see ScanRequest#isConsistentRead()
+     * @see ScanRequest#consistentRead()
      */
     public Boolean isConsistentRead() {
         return consistentRead;

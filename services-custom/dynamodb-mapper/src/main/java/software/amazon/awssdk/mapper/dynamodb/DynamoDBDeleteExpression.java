@@ -153,7 +153,7 @@ public final class DynamoDBDeleteExpression {
      * A condition that must be satisfied in order for a conditional DeleteItem
      * to succeed.
      *
-     * @see DeleteItemRequest#getConditionExpression()
+     * @see DeleteItemRequest#conditionExpression()
      */
     public String getConditionExpression() {
         return conditionExpression;
@@ -163,7 +163,7 @@ public final class DynamoDBDeleteExpression {
      * A condition that must be satisfied in order for a conditional DeleteItem
      * to succeed.
      *
-     * @see DeleteItemRequest#setConditionExpression()
+     * @see DeleteItemRequest.Builder#conditionExpression(String)
      */
     public void setConditionExpression(String conditionExpression) {
         this.conditionExpression = conditionExpression;
@@ -176,7 +176,7 @@ public final class DynamoDBDeleteExpression {
      * @return A reference to this updated object so that method calls can be
      *         chained together.
      *
-     * @see DeleteItemRequest#withConditionExpression(String)
+     * @see DeleteItemRequest.Builder#conditionExpression(String)
      */
     public DynamoDBDeleteExpression withConditionExpression(
             String conditionExpression) {
@@ -189,7 +189,7 @@ public final class DynamoDBDeleteExpression {
      *
      * @return One or more substitution variables for simplifying complex
      *         expressions.
-     * @see DeleteItemRequest#getExpressionAttributeNames()
+     * @see DeleteItemRequest#expressionAttributeNames()
      */
     public java.util.Map<String, String> getExpressionAttributeNames() {
 
@@ -202,7 +202,7 @@ public final class DynamoDBDeleteExpression {
      * @param expressionAttributeNames
      *            One or more substitution variables for simplifying complex
      *            expressions.
-     * @see DeleteItemRequest#setExpressionAttributeNames(Map)
+     * @see DeleteItemRequest.Builder#expressionAttributeNames(Map)
      */
     public void setExpressionAttributeNames(
             java.util.Map<String, String> expressionAttributeNames) {
@@ -218,7 +218,7 @@ public final class DynamoDBDeleteExpression {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see DeleteItemRequest#withExpressionAttributeNames(Map)
+     * @see DeleteItemRequest.Builder#expressionAttributeNames(Map)
      */
     public DynamoDBDeleteExpression withExpressionAttributeNames(
             java.util.Map<String, String> expressionAttributeNames) {
@@ -239,7 +239,7 @@ public final class DynamoDBDeleteExpression {
      *            The corresponding value of the entry to be added into
      *            ExpressionAttributeNames.
      *
-     * @see DeleteItemRequest#addExpressionAttributeNamesEntry(String, String)
+     * @see DeleteItemRequest.Builder#expressionAttributeNames(Map)
      */
     public DynamoDBDeleteExpression addExpressionAttributeNamesEntry(
             String key, String value) {
@@ -268,7 +268,7 @@ public final class DynamoDBDeleteExpression {
      * One or more values that can be substituted in an expression.
      *
      * @return One or more values that can be substituted in an expression.
-     * @see DeleteItemRequest#getExpressionAttributeValues()
+     * @see DeleteItemRequest#expressionAttributeValues()
      */
     public java.util.Map<String, AttributeValue> getExpressionAttributeValues() {
         return expressionAttributeValues;
@@ -280,7 +280,7 @@ public final class DynamoDBDeleteExpression {
      * @param expressionAttributeValues
      *            One or more values that can be substituted in an expression.
      *
-     * @see DeleteItemRequest#setExpressionAttributeValues(Map)
+     * @see DeleteItemRequest.Builder#expressionAttributeValues(Map)
      */
     public void setExpressionAttributeValues(
             java.util.Map<String, AttributeValue> expressionAttributeValues) {
@@ -295,7 +295,7 @@ public final class DynamoDBDeleteExpression {
      *
      * @return A reference to this updated object so that method calls can be
      *         chained together.
-     * @see DeleteItemRequest#withExpressionAttributeValues(Map)
+     * @see DeleteItemRequest.Builder#expressionAttributeValues(Map)
      */
     public DynamoDBDeleteExpression withExpressionAttributeValues(
             java.util.Map<String, AttributeValue> expressionAttributeValues) {

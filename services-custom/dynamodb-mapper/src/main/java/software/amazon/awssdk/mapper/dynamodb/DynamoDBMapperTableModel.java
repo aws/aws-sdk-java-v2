@@ -18,15 +18,14 @@ package software.amazon.awssdk.mapper.dynamodb;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
-import static com.amazonaws.services.dynamodbv2.model.ProjectionType.KEYS_ONLY;
+import static software.amazon.awssdk.services.dynamodb.model.ProjectionType.KEYS_ONLY;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.GlobalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.KeySchemaElement;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
-import com.amazonaws.services.dynamodbv2.model.GlobalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.KeySchemaElement;
-import com.amazonaws.services.dynamodbv2.model.LocalSecondaryIndex;
-import com.amazonaws.services.dynamodbv2.model.Projection;
-import com.amazonaws.services.dynamodbv2.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.LocalSecondaryIndex;
+import software.amazon.awssdk.services.dynamodb.model.Projection;
 
 import java.util.Arrays;
 import java.util.ArrayList;
@@ -35,6 +34,7 @@ import java.util.Collections;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -176,11 +176,8 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
         if (globalSecondaryIndexes.isEmpty()) {
             return null;
         }
-        Collection<GlobalSecondaryIndex> copies = new ArrayList<GlobalSecondaryIndex>(globalSecondaryIndexes.size());
-        for (String indexName : globalSecondaryIndexes.keySet()) {
-            copies.add(globalSecondaryIndex(indexName));
-        }
-        return copies;
+        // v2 model types are immutable, so the stored indexes can be returned directly.
+        return new ArrayList<GlobalSecondaryIndex>(globalSecondaryIndexes.values());
     }
 
     /**
@@ -192,47 +189,33 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
         if (!globalSecondaryIndexes.containsKey(indexName)) {
             return null;
         }
-        GlobalSecondaryIndex gsi = globalSecondaryIndexes.get(indexName);
-        GlobalSecondaryIndex copy = new GlobalSecondaryIndex().withIndexName(gsi.getIndexName());
-        copy.withProjection(new Projection().withProjectionType(gsi.getProjection().getProjectionType()));
-        for (KeySchemaElement key : gsi.getKeySchema()) {
-            copy.withKeySchema(new KeySchemaElement(key.getAttributeName(), key.getKeyType()));
-        }
-        return copy;
+        // v2 model types are immutable, so the stored index can be returned directly.
+        return globalSecondaryIndexes.get(indexName);
     }
 
     /**
      * Gets the local secondary indexes for the given class.
-     * @param indexNames The index names.
      * @return The map of index name to LocalSecondaryIndexes.
      */
     public Collection<LocalSecondaryIndex> localSecondaryIndexes() {
         if (localSecondaryIndexes.isEmpty()) {
             return null;
         }
-        Collection<LocalSecondaryIndex> copies = new ArrayList<LocalSecondaryIndex>(localSecondaryIndexes.size());
-        for (String indexName : localSecondaryIndexes.keySet()) {
-            copies.add(localSecondaryIndex(indexName));
-        }
-        return copies;
+        // v2 model types are immutable, so the stored indexes can be returned directly.
+        return new ArrayList<LocalSecondaryIndex>(localSecondaryIndexes.values());
     }
 
     /**
      * Gets the local secondary index by name.
-     * @param indexNames The index name.
+     * @param indexName The index name.
      * @return The local secondary index, or null.
      */
     public LocalSecondaryIndex localSecondaryIndex(final String indexName) {
         if (!localSecondaryIndexes.containsKey(indexName)) {
             return null;
         }
-        LocalSecondaryIndex lsi = localSecondaryIndexes.get(indexName);
-        LocalSecondaryIndex copy = new LocalSecondaryIndex().withIndexName(lsi.getIndexName());
-        copy.withProjection(new Projection().withProjectionType(lsi.getProjection().getProjectionType()));
-        for (KeySchemaElement key : lsi.getKeySchema()) {
-            copy.withKeySchema(new KeySchemaElement(key.getAttributeName(), key.getKeyType()));
-        }
-        return copy;
+        // v2 model types are immutable, so the stored index can be returned directly.
+        return localSecondaryIndexes.get(indexName);
     }
 
     /**
@@ -304,7 +287,7 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
      * Creates a new key map from the specified object.
      * @param <H> The hash key type.
      * @param <R> The range key type.
-     * @param object The object instance.
+     * @param key The object instance.
      * @return The key map.
      */
     public <H,R> Map<String,AttributeValue> convertKey(final T key) {
@@ -374,32 +357,40 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
         }
 
         public Map<String,GlobalSecondaryIndex> globalSecondaryIndexes() {
-            Map<String,GlobalSecondaryIndex> map = new LinkedHashMap<String,GlobalSecondaryIndex>();
+            // Key schemas by index name; the index name and KEYS_ONLY projection are applied when building below.
+            Map<String,List<KeySchemaElement>> keySchemas = new LinkedHashMap<String,List<KeySchemaElement>>();
             for (DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
                 for (String indexName : field.globalSecondaryIndexNames(HASH)) {
-                    GlobalSecondaryIndex gsi = new GlobalSecondaryIndex().withIndexName(indexName);
-                    if (map.put(indexName, gsi) != null) {
+                    List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(HASH).build());
+                    if (keySchemas.put(indexName, keySchema) != null) {
                         throw new DynamoDBMappingException(
                             targetType.getSimpleName() + "[" + field.name() + "]; must not duplicate GSI " + indexName
                         );
                     }
-                    gsi.withProjection(new Projection().withProjectionType(KEYS_ONLY));
-                    gsi.withKeySchema(new KeySchemaElement(field.name(), com.amazonaws.services.dynamodbv2.model.KeyType.HASH));
                 }
             }
             for (DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
                 for (String indexName : field.globalSecondaryIndexNames(RANGE)) {
-                    GlobalSecondaryIndex gsi = map.get(indexName);
-                    if (gsi == null) {
+                    List<KeySchemaElement> keySchema = keySchemas.get(indexName);
+                    if (keySchema == null) {
                         throw new DynamoDBMappingException(
                             targetType.getSimpleName() + "[" + field.name() + "]; no HASH key for GSI " + indexName
                         );
                     }
-                    gsi.withKeySchema(new KeySchemaElement(field.name(), com.amazonaws.services.dynamodbv2.model.KeyType.RANGE));
+                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(RANGE).build());
                 }
             }
-            if (map.isEmpty()) {
+            if (keySchemas.isEmpty()) {
                 return Collections.<String,GlobalSecondaryIndex>emptyMap();
+            }
+            Map<String,GlobalSecondaryIndex> map = new LinkedHashMap<String,GlobalSecondaryIndex>();
+            for (Map.Entry<String,List<KeySchemaElement>> entry : keySchemas.entrySet()) {
+                map.put(entry.getKey(), GlobalSecondaryIndex.builder()
+                    .indexName(entry.getKey())
+                    .projection(Projection.builder().projectionType(KEYS_ONLY).build())
+                    .keySchema(entry.getValue())
+                    .build());
             }
             return Collections.unmodifiableMap(map);
         }
@@ -408,15 +399,19 @@ public final class DynamoDBMapperTableModel<T> implements DynamoDBTypeConverter<
             Map<String,LocalSecondaryIndex> map = new LinkedHashMap<String,LocalSecondaryIndex>();
             for (DynamoDBMapperFieldModel<T,Object> field : fields.values()) {
                 for (String indexName : field.localSecondaryIndexNames()) {
-                    LocalSecondaryIndex lsi = new LocalSecondaryIndex().withIndexName(indexName);
+                    List<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
+                    keySchema.add(KeySchemaElement.builder().attributeName(keys.get(HASH).name()).keyType(HASH).build());
+                    keySchema.add(KeySchemaElement.builder().attributeName(field.name()).keyType(RANGE).build());
+                    LocalSecondaryIndex lsi = LocalSecondaryIndex.builder()
+                        .indexName(indexName)
+                        .projection(Projection.builder().projectionType(KEYS_ONLY).build())
+                        .keySchema(keySchema)
+                        .build();
                     if (map.put(indexName, lsi) != null) {
                         throw new DynamoDBMappingException(
                             targetType.getSimpleName() + "[" + field.name() + "]; must not duplicate LSI " + indexName
                         );
                     }
-                    lsi.withProjection(new Projection().withProjectionType(KEYS_ONLY));
-                    lsi.withKeySchema(new KeySchemaElement(keys.get(HASH).name(), com.amazonaws.services.dynamodbv2.model.KeyType.HASH));
-                    lsi.withKeySchema(new KeySchemaElement(field.name(), com.amazonaws.services.dynamodbv2.model.KeyType.RANGE));
                 }
             }
             if (map.isEmpty()) {

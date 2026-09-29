@@ -16,13 +16,13 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper.FailedBatch;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.DeleteTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import com.amazonaws.services.s3.model.Region;
 
 import java.util.List;
@@ -162,8 +162,8 @@ public interface IDynamoDBMapper {
     /**
      * Saves an item in DynamoDB. The service method used is determined by the
      * {@link DynamoDBMapperConfig#getSaveBehavior()} value, to use either
-     * {@link AmazonDynamoDB#putItem} or
-     * {@link AmazonDynamoDB#updateItem}:
+     * {@link DynamoDbClient#putItem} or
+     * {@link DynamoDbClient#updateItem}:
      * <ul>
      * <li><b>UPDATE</b> (default) : UPDATE will not affect unmodeled attributes on a save operation
      * and a null value for the modeled attribute will remove it from that item in DynamoDB. Because
@@ -220,7 +220,7 @@ public interface IDynamoDBMapper {
     <T> void delete(T object, DynamoDBDeleteExpression deleteExpression, DynamoDBMapperConfig config);
 
     /**
-     * Transactionally writes objects specified by transactionWriteRequest by calling {@link AmazonDynamoDB#transactWriteItems} API.
+     * Transactionally writes objects specified by transactionWriteRequest by calling {@link DynamoDbClient#transactWriteItems} API.
      * Changes to objects which are put or updated are applied in-memory. <b>Such in-memory updates are NOT thread safe.</b>
      * <p>
      * <b>This method ignores any SaveBehavior set on the mapper. Whether an object is put or updated is solely determined by the
@@ -245,7 +245,7 @@ public interface IDynamoDBMapper {
     void transactionWrite(TransactionWriteRequest transactionWriteRequest);
 
     /**
-     * Transactionally writes objects specified by transactionWriteRequest by calling {@link AmazonDynamoDB#transactWriteItems} API.
+     * Transactionally writes objects specified by transactionWriteRequest by calling {@link DynamoDbClient#transactWriteItems} API.
      * Changes to objects which are put or updated are applied in-memory. <b>Such in-memory updates are NOT thread safe.</b>
      * <p>
      * <b>This method ignores any SaveBehavior set on the mapper. Whether an object is put or updated is solely determined by the
@@ -275,7 +275,7 @@ public interface IDynamoDBMapper {
     void transactionWrite(TransactionWriteRequest transactionWriteRequest, DynamoDBMapperConfig config);
 
     /**
-     * Transactionally loads objects specified by transactionLoadRequest by calling {@link AmazonDynamoDB#transactGetItems} API.
+     * Transactionally loads objects specified by transactionLoadRequest by calling {@link DynamoDbClient#transactGetItems} API.
      * <p>
      * Any exceptions from underlying API are thrown as is. For more information, please refer
      * https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html
@@ -289,7 +289,7 @@ public interface IDynamoDBMapper {
     List<Object> transactionLoad(TransactionLoadRequest transactionLoadRequest);
 
     /**
-     * Transactionally loads objects specified by transactionLoadRequest by calling {@link AmazonDynamoDB#transactGetItems} API.
+     * Transactionally loads objects specified by transactionLoadRequest by calling {@link DynamoDbClient#transactGetItems} API.
      * <p>
      * Any exceptions from underlying API are thrown as is. For more information, please refer
      * https://docs.aws.amazon.com/amazondynamodb/latest/APIReference/API_TransactGetItems.html
@@ -309,7 +309,7 @@ public interface IDynamoDBMapper {
 
     /**
      * Deletes the objects given using one or more calls to the
-     * {@link AmazonDynamoDB#batchWriteItem} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem} API. <b>No version checks are
      * performed</b>, as required by the API.
      *
      * @see DynamoDBMapper#batchWrite(Iterable, Iterable)
@@ -318,7 +318,7 @@ public interface IDynamoDBMapper {
 
     /**
      * Deletes the objects given using one or more calls to the
-     * {@link AmazonDynamoDB#batchWriteItem} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem} API. <b>No version checks are
      * performed</b>, as required by the API.
      *
      * @see DynamoDBMapper#batchWrite(Iterable, Iterable)
@@ -327,11 +327,11 @@ public interface IDynamoDBMapper {
 
     /**
      * Saves the objects given using one or more calls to the
-     * {@link AmazonDynamoDB#batchWriteItem} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem} API. <b>No version checks are
      * performed</b>, as required by the API.
-     * <p/>
+     * <p>
      * <b>This method ignores any SaveBehavior set on the mapper</b>, and always behaves as if
-     * SaveBehavior.CLOBBER was specified, as the AmazonDynamoDB.batchWriteItem() request does not
+     * SaveBehavior.CLOBBER was specified, as the DynamoDbClient.batchWriteItem() request does not
      * support updating existing items.
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -345,11 +345,11 @@ public interface IDynamoDBMapper {
 
     /**
      * Saves the objects given using one or more calls to the
-     * {@link AmazonDynamoDB#batchWriteItem} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem} API. <b>No version checks are
      * performed</b>, as required by the API.
-     * <p/>
+     * <p>
      * <b>This method ignores any SaveBehavior set on the mapper</b>, and always behaves as if
-     * SaveBehavior.CLOBBER was specified, as the AmazonDynamoDB.batchWriteItem() request does not
+     * SaveBehavior.CLOBBER was specified, as the DynamoDbClient.batchWriteItem() request does not
      * support updating existing items. *
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -363,11 +363,11 @@ public interface IDynamoDBMapper {
 
     /**
      * Saves and deletes the objects given using one or more calls to the
-     * {@link AmazonDynamoDB#batchWriteItem} API. <b>No version checks are
+     * {@link DynamoDbClient#batchWriteItem} API. <b>No version checks are
      * performed</b>, as required by the API.
-     * <p/>
+     * <p>
      * <b>This method ignores any SaveBehavior set on the mapper</b>, and always behaves as if
-     * SaveBehavior.CLOBBER was specified, as the AmazonDynamoDB.batchWriteItem() request does not
+     * SaveBehavior.CLOBBER was specified, as the DynamoDbClient.batchWriteItem() request does not
      * support updating existing items.
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -386,7 +386,7 @@ public interface IDynamoDBMapper {
 
     /**
      * Saves and deletes the objects given using one or more calls to the
-     * {@link AmazonDynamoDB#batchWriteItem} API. Use mapper config to
+     * {@link DynamoDbClient#batchWriteItem} API. Use mapper config to
      * control the retry strategy when UnprocessedItems are returned by the BatchWriteItem API
      * <p>
      * This method fails to save the batch if the size of an individual object in the batch exceeds
@@ -401,10 +401,10 @@ public interface IDynamoDBMapper {
      *
      * @param objectsToWrite
      *            A list of objects to save to DynamoDB. <b>No version checks are performed</b>, as
-     *            required by the {@link AmazonDynamoDB#batchWriteItem} API.
+     *            required by the {@link DynamoDbClient#batchWriteItem} API.
      * @param objectsToDelete
      *            A list of objects to delete from DynamoDB. <b>No version checks are performed</b>,
-     *            as required by the {@link AmazonDynamoDB#batchWriteItem}
+     *            as required by the {@link DynamoDbClient#batchWriteItem}
      *            API.
      * @param config
      *            Only {@link DynamoDBMapperConfig#getTableNameOverride()} and
@@ -425,7 +425,7 @@ public interface IDynamoDBMapper {
     /**
      * Retrieves multiple items from multiple tables using their primary keys.
      *
-     * @see DynamoDBMapper#batchLoad(List, DynamoDBMapperConfig)
+     * @see DynamoDBMapper#batchLoad(Iterable, DynamoDBMapperConfig)
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
      *         objects for each table can be cast to the associated user defined type that is
@@ -455,7 +455,7 @@ public interface IDynamoDBMapper {
 
     /**
      * Retrieves the attributes for multiple items from multiple tables using their primary keys.
-     * {@link AmazonDynamoDB#batchGetItem} API.
+     * {@link DynamoDbClient#batchGetItem} API.
      *
      * @return A map of the loaded objects. Each key in the map is the name of a DynamoDB table.
      *         Each value in the map is a list of objects that have been loaded from that table. All
@@ -463,7 +463,7 @@ public interface IDynamoDBMapper {
      *         annotated as mapping that table.
      * @throws DynamoDBMapper.BatchGetItemException if all the requested items are not processed
      *         within the maximum number of retries.
-     * @see #batchLoad(List, DynamoDBMapperConfig)
+     * @see #batchLoad(Iterable, DynamoDBMapperConfig)
      * @see #batchLoad(Map, DynamoDBMapperConfig)
      */
     Map<String, List<Object>> batchLoad(Map<Class<?>, List<KeyPair>> itemsToGet);
@@ -471,7 +471,7 @@ public interface IDynamoDBMapper {
     /**
      * Retrieves multiple items from multiple tables using their primary keys. Valid only for tables
      * with a single hash key, or a single hash and range key. For other schemas, use
-     * {@link DynamoDBMapper#batchLoad(List, DynamoDBMapperConfig)}
+     * {@link DynamoDBMapper#batchLoad(Iterable, DynamoDBMapperConfig)}
      *
      * @param itemsToGet
      *            Map from class to load to list of primary key attributes.
@@ -759,10 +759,46 @@ public interface IDynamoDBMapper {
     S3Link createS3Link(String s3region, String bucketName, String key);
 
     /**
-     * Parse the given POJO class and return the CreateTableRequest for the DynamoDB table it
-     * represents. Note that the returned request does not include the required
-     * ProvisionedThroughput parameters for the primary table and the GSIs, and that all secondary
-     * indexes are initialized with the default projection type - KEY_ONLY.
+     * Parses the given POJO class and returns the {@link CreateTableRequest} for the DynamoDB table it
+     * represents.
+     *
+     * <p>The returned request sets neither a billing mode nor provisioned throughput, and all secondary
+     * indexes use the {@link software.amazon.awssdk.services.dynamodb.model.ProjectionType#KEYS_ONLY}
+     * projection. The request is immutable; use {@link CreateTableRequest#toBuilder()} to complete it
+     * before passing it to {@link DynamoDbClient#createTable(CreateTableRequest)}.
+     *
+     * <p>The simplest option is on-demand capacity
+     * ({@link software.amazon.awssdk.services.dynamodb.model.BillingMode#PAY_PER_REQUEST}), which needs no
+     * throughput for the table or its global secondary indexes:
+     *
+     * <pre>{@code
+     * CreateTableRequest request = mapper.generateCreateTableRequest(MyPojo.class)
+     *                                    .toBuilder()
+     *                                    .billingMode(BillingMode.PAY_PER_REQUEST)
+     *                                    .build();
+     * dynamoDbClient.createTable(request);
+     * }</pre>
+     *
+     * <p>For provisioned capacity, set throughput on the table and on each global secondary index:
+     *
+     * <pre>{@code
+     * ProvisionedThroughput throughput = ProvisionedThroughput.builder()
+     *                                                         .readCapacityUnits(5L)
+     *                                                         .writeCapacityUnits(5L)
+     *                                                         .build();
+     * CreateTableRequest generated = mapper.generateCreateTableRequest(MyPojo.class);
+     * CreateTableRequest.Builder request = generated.toBuilder().provisionedThroughput(throughput);
+     * // Only set the indexes when the class declares some; an explicit empty list is not the same as unset.
+     * if (generated.hasGlobalSecondaryIndexes()) {
+     *     request.globalSecondaryIndexes(generated.globalSecondaryIndexes().stream()
+     *                                             .map(gsi -> gsi.toBuilder().provisionedThroughput(throughput).build())
+     *                                             .collect(Collectors.toList()));
+     * }
+     * dynamoDbClient.createTable(request.build());
+     * }</pre>
+     *
+     * @param clazz The annotated POJO class.
+     * @return The create-table request derived from the class's annotations.
      */
     CreateTableRequest generateCreateTableRequest(Class<?> clazz);
 

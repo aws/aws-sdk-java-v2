@@ -21,16 +21,10 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression;
 import software.amazon.awssdk.services.dynamodb.model.ConditionalCheckFailedException;
 import software.amazon.awssdk.services.dynamodb.model.ExpectedAttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
-import software.amazon.awssdk.services.dynamodb.model.ResourceInUseException;
-import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
-import software.amazon.awssdk.services.dynamodb.model.TableDescription;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import software.amazon.awssdk.utils.Logger;
 
 /**
  * A wrapper for {@code DynamoDBMapper} which operates only on a specified
@@ -66,7 +60,7 @@ import software.amazon.awssdk.utils.Logger;
  *
  * Initialize the DynamoDB mapper,
  * <pre class="brush: java">
- * AmazonDynamoDB dbClient = new AmazonDynamoDBClient();
+ * DynamoDbClient dbClient = DynamoDbClient.create();
  * DynamoDBMapper dbMapper = new DynamoDBMapper(dbClient);
  * </pre>
  *
@@ -78,11 +72,6 @@ import software.amazon.awssdk.utils.Logger;
  * Or, if the table does not have a range key,
  * <pre class="brush: java">
  * DynamoDBTableMapper&lt;TestClass,Long,?&gt; table = dbMapper.newTableMapper(TestClass.class);
- * </pre>
- *
- * If you don't have your DynamoDB table set up yet, you can use,
- * <pre class="brush: java">
- * table.createTableIfNotExists(new ProvisionedThroughput(25L, 25L));
  * </pre>
  *
  * Save instances of annotated classes and retrieve them,
@@ -129,12 +118,10 @@ import software.amazon.awssdk.utils.Logger;
  * @param <R> The range key value type; use <code>?</code> if no range key.
  *
  * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper
- * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB
+ * @see DynamoDbClient
  */
 @SdkPublicApi
 public final class DynamoDBTableMapper<T extends Object, H extends Object, R extends Object> {
-
-    private static final Logger LOG = Logger.loggerFor(DynamoDBTableMapper.class);
 
     private final DynamoDBMapperTableModel<T> model;
     private final DynamoDBMapperFieldModel<T,H> hk;
@@ -170,7 +157,6 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
 
     /**
      * Gets the hash key field model for the specified type.
-     * @param <H> The hash key type.
      * @return The hash key field model.
      * @throws DynamoDBMappingException If the hash key is not present.
      */
@@ -180,7 +166,6 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
 
     /**
      * Gets the range key field model for the specified type.
-     * @param <R> The range key type.
      * @return The range key field model.
      * @throws DynamoDBMappingException If the range key is not present.
      */
@@ -313,7 +298,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object exists.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#save
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see ExpectedAttributeValue
      */
     public void saveIfNotExists(T object) throws ConditionalCheckFailedException {
         DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
@@ -331,7 +316,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object does not exist.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#save
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBSaveExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see ExpectedAttributeValue
      */
     public void saveIfExists(T object) throws ConditionalCheckFailedException {
         DynamoDBSaveExpression saveExpression = new DynamoDBSaveExpression();
@@ -369,7 +354,7 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      * @throws ConditionalCheckFailedException If the object does not exist.
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBMapper#delete
      * @see software.amazon.awssdk.mapper.dynamodb.DynamoDBDeleteExpression
-     * @see com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue
+     * @see ExpectedAttributeValue
      */
     public void deleteIfExists(T object) throws ConditionalCheckFailedException {
         DynamoDBDeleteExpression deleteExpression = new DynamoDBDeleteExpression();
@@ -457,74 +442,6 @@ public final class DynamoDBTableMapper<T extends Object, H extends Object, R ext
      */
     public PaginatedParallelScanList<T> parallelScan(DynamoDBScanExpression scanExpression, int totalSegments) {
         return mapper.<T>parallelScan(model.targetType(), scanExpression, totalSegments);
-    }
-
-    /**
-     * Returns information about the table, including the current status of the
-     * table, when it was created, the primary key schema, and any indexes on
-     * the table.
-     * @return The describe table results.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#describeTable
-     */
-    public TableDescription describeTable() {
-        throw new UnsupportedOperationException("table admin not yet ported to v2");
-    }
-
-    /**
-     * Creates the table with the specified throughput; also populates the same
-     * throughput for all global secondary indexes.
-     * @param throughput The provisioned throughput.
-     * @return The table decription.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#createTable
-     * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
-     */
-    public TableDescription createTable(ProvisionedThroughput throughput) {
-        throw new UnsupportedOperationException("table admin not yet ported to v2");
-    }
-
-    /**
-     * Creates the table and ignores the {@code ResourceInUseException} if it
-     * ialready exists.
-     * @param throughput The provisioned throughput.
-     * @return True if created, or false if the table already existed.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#createTable
-     * @see com.amazonaws.services.dynamodbv2.model.CreateTableRequest
-     */
-    public boolean createTableIfNotExists(ProvisionedThroughput throughput) {
-        try {
-            createTable(throughput);
-        } catch (final ResourceInUseException e) {
-            LOG.trace(() -> "Table already exists, no need to create", e);
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * Deletes the table.
-     * @return The table decription.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#deleteTable
-     * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
-     */
-    public TableDescription deleteTable() {
-        throw new UnsupportedOperationException("table admin not yet ported to v2");
-    }
-
-    /**
-     * Deletes the table and ignores the {@code ResourceNotFoundException} if
-     * it does not already exist.
-     * @return True if the table was deleted, or false if the table did not exist.
-     * @see com.amazonaws.services.dynamodbv2.AmazonDynamoDB#deleteTable
-     * @see com.amazonaws.services.dynamodbv2.model.DeleteTableRequest
-     */
-    public boolean deleteTableIfExists() {
-        try {
-            deleteTable();
-        } catch (final ResourceNotFoundException e) {
-            LOG.trace(() -> "Table does not exist, no need to delete", e);
-            return false;
-        }
-        return true;
     }
 
 }

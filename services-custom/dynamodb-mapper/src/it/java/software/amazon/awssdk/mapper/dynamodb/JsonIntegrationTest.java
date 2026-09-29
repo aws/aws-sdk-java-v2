@@ -28,13 +28,14 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.ConsistentReads;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.TableNameOverride;
-import com.amazonaws.services.dynamodbv2.model.CreateTableRequest;
-import com.amazonaws.services.dynamodbv2.model.ProvisionedThroughput;
-import com.amazonaws.services.dynamodbv2.model.ResourceNotFoundException;
-import com.amazonaws.services.dynamodbv2.model.TableStatus;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
+import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
+import software.amazon.awssdk.services.dynamodb.model.ProvisionedThroughput;
+import software.amazon.awssdk.services.dynamodb.model.ResourceNotFoundException;
 import software.amazon.awssdk.mapper.dynamodb.test.AWSTestBase;
 
 import static software.amazon.awssdk.mapper.dynamodb.pojos.TestDocClass.ChildClass;
@@ -44,13 +45,16 @@ public class JsonIntegrationTest extends AWSTestBase {
     private static final String TABLE_NAME = "test-table-"
             + UUID.randomUUID().toString();
 
-    private static AmazonDynamoDBClient client;
+    private static DynamoDbClient client;
     private static DynamoDBMapper mapper;
 
     @BeforeClass
-    public static void setup() throws Exception {
+    public static void setup() {
         setUpCredentials();
-        client = new AmazonDynamoDBClient(credentials);
+        client = DynamoDbClient.builder()
+                .region(Region.US_WEST_2)
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .build();
 
         mapper = new DynamoDBMapper(
                 client,
@@ -63,25 +67,13 @@ public class JsonIntegrationTest extends AWSTestBase {
 
         CreateTableRequest request = mapper
                 .generateCreateTableRequest(TestDocClass.class)
-                .withProvisionedThroughput(new ProvisionedThroughput(1L, 1L));
+                .toBuilder()
+                .provisionedThroughput(ProvisionedThroughput.builder()
+                        .readCapacityUnits(1L).writeCapacityUnits(1L).build())
+                .build();
 
         client.createTable(request);
-
-        Thread.sleep(10000);
-
-        while (true) {
-            String status = client.describeTable(TABLE_NAME)
-                    .getTable()
-                    .getTableStatus();
-
-            if (status.equals(TableStatus.ACTIVE.toString())) {
-                break;
-            } else if (!status.equals(TableStatus.CREATING.toString())) {
-                throw new RuntimeException("Table creation failed");
-            }
-
-            Thread.sleep(2000);
-        }
+        client.waiter().waitUntilTableExists(b -> b.tableName(TABLE_NAME));
     }
 
     @AfterClass
@@ -91,7 +83,7 @@ public class JsonIntegrationTest extends AWSTestBase {
         }
 
         try {
-            client.deleteTable(TABLE_NAME);
+            client.deleteTable(b -> b.tableName(TABLE_NAME));
         } catch (ResourceNotFoundException e) {
         }
     }

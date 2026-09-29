@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
  * backwards compatibility with old versions of the {@code DynamoDBMapper},
  * by default booleans are serialized using the DynamoDB N type, with a value
  * of '1' representing 'true' and a value of '0' representing 'false'.
- * <p/>
+ * <p>
  * Using this annotation on the field definition or getter method definition
  * for the attribute will cause it to be serialized as DynamoDB-native BOOL
  * type. Old versions of the {@code DynamoDBMapper} which do not know about the
