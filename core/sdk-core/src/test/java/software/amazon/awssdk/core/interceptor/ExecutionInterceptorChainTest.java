@@ -28,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import utils.ValidSdkObjects;
 
@@ -79,6 +80,48 @@ class ExecutionInterceptorChainTest {
                 throw new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
             }
         }, Hook.AFTER_TRANSMISSION);
+    }
+
+    @Test
+    void afterTransmissionThrows_withAbortableResponseBody_abortsBeforeClose() {
+        TrackableAbortableInputStream responseBody = new TrackableAbortableInputStream(false);
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterTransmission(Context.AfterTransmission context,
+                                          ExecutionAttributes executionAttributes) {
+                throw new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+            }
+        };
+        ExecutionInterceptorChain chain =
+            new ExecutionInterceptorChain(Collections.singletonList(interceptor));
+
+        assertThatThrownBy(() -> chain.afterTransmission(contextWithBody(responseBody), new ExecutionAttributes()))
+            .isExactlyInstanceOf(RuntimeException.class)
+            .hasMessage(INTERCEPTOR_FAILURE_MESSAGE);
+        assertThat(responseBody.aborted).isTrue();
+        assertThat(responseBody.closed).isTrue();
+        assertThat(responseBody.abortCalledBeforeClose).isTrue();
+    }
+
+    @Test
+    void responseBodyAbortThrows_preservesInterceptorExceptionAndClosesResponseBody() {
+        RuntimeException interceptorException = new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+        TrackableAbortableInputStream responseBody = new TrackableAbortableInputStream(true);
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public SdkHttpResponse modifyHttpResponse(Context.ModifyHttpResponse context,
+                                                      ExecutionAttributes executionAttributes) {
+                throw interceptorException;
+            }
+        };
+        ExecutionInterceptorChain chain =
+            new ExecutionInterceptorChain(Collections.singletonList(interceptor));
+
+        assertThatThrownBy(() -> chain.modifyHttpResponse(contextWithBody(responseBody), new ExecutionAttributes()))
+            .isSameAs(interceptorException);
+        assertThat(responseBody.aborted).isTrue();
+        assertThat(responseBody.closed).isTrue();
+        assertThat(responseBody.abortCalledBeforeClose).isTrue();
     }
 
     @Test
@@ -235,6 +278,38 @@ class ExecutionInterceptorChainTest {
     }
 
     @Test
+    void modifyAsyncHttpResponse_whenInterceptorReturnsEmptyAndLaterInterceptorThrows_cancelsOriginalPublisher() {
+        RuntimeException interceptorException = new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+        TrackablePublisher originalResponsePublisher = new TrackablePublisher();
+        ExecutionInterceptor throwingInterceptor = new ExecutionInterceptor() {
+            @Override
+            public Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(
+                Context.ModifyHttpResponse context,
+                ExecutionAttributes executionAttributes) {
+
+                throw interceptorException;
+            }
+        };
+        ExecutionInterceptor emptyPublisherInterceptor = new ExecutionInterceptor() {
+            @Override
+            public Optional<Publisher<ByteBuffer>> modifyAsyncHttpResponseContent(
+                Context.ModifyHttpResponse context,
+                ExecutionAttributes executionAttributes) {
+
+                return Optional.empty();
+            }
+        };
+        ExecutionInterceptorChain chain =
+            new ExecutionInterceptorChain(Arrays.asList(throwingInterceptor, emptyPublisherInterceptor));
+
+        assertThatThrownBy(() -> chain.modifyAsyncHttpResponse(contextWithPublisher(originalResponsePublisher),
+                                                               new ExecutionAttributes()))
+            .isSameAs(interceptorException);
+        assertThat(originalResponsePublisher.cancelled).isTrue();
+        assertThat(originalResponsePublisher.requested).isFalse();
+    }
+
+    @Test
     void modifyHttpResponse_whenLaterInterceptorThrows_closesLatestResponseBody() {
         TrackableInputStream originalResponseBody = new TrackableInputStream();
         TrackableInputStream modifiedResponseBody = new TrackableInputStream(originalResponseBody);
@@ -359,6 +434,36 @@ class ExecutionInterceptorChainTest {
             if (delegate != null) {
                 delegate.close();
             }
+        }
+    }
+
+    private static final class TrackableAbortableInputStream extends InputStream implements Abortable {
+        private final boolean failOnAbort;
+        private boolean aborted;
+        private boolean closed;
+        private boolean abortCalledBeforeClose;
+
+        private TrackableAbortableInputStream(boolean failOnAbort) {
+            this.failOnAbort = failOnAbort;
+        }
+
+        @Override
+        public int read() {
+            return -1;
+        }
+
+        @Override
+        public void abort() {
+            aborted = true;
+            if (failOnAbort) {
+                throw new RuntimeException("abort failed");
+            }
+        }
+
+        @Override
+        public void close() {
+            abortCalledBeforeClose = aborted;
+            closed = true;
         }
     }
 

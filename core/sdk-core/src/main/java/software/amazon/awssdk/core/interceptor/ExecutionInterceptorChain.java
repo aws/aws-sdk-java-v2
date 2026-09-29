@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.internal.interceptor.DefaultFailedExecutionContext;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.IoUtils;
@@ -145,7 +146,8 @@ public class ExecutionInterceptorChain {
     public InterceptorContext modifyAsyncHttpResponse(InterceptorContext context,
                                                       ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
-        Publisher<ByteBuffer> responsePublisher = result.responsePublisher().orElse(null);
+        Publisher<ByteBuffer> originalResponsePublisher = result.responsePublisher().orElse(null);
+        Publisher<ByteBuffer> responsePublisher = originalResponsePublisher;
 
         try {
             for (int i = interceptors.size() - 1; i >= 0; i--) {
@@ -153,8 +155,9 @@ public class ExecutionInterceptorChain {
 
                 Publisher<ByteBuffer> newResponsePublisher =
                     interceptor.modifyAsyncHttpResponseContent(result, executionAttributes).orElse(null);
-                // Track the current publisher for failure cleanup; a replacer owns the previous publisher.
-                responsePublisher = newResponsePublisher;
+                // The response handler falls back to the original publisher when no replacement is returned, so failure
+                // cleanup must do the same. An interceptor that replaces the publisher owns the previous publisher.
+                responsePublisher = newResponsePublisher != null ? newResponsePublisher : originalResponsePublisher;
 
                 if (newResponsePublisher != result.responsePublisher().orElse(null)) {
                     result = result.copy(r -> r.responsePublisher(newResponsePublisher));
@@ -253,6 +256,13 @@ public class ExecutionInterceptorChain {
 
     private void closeResponseBody(InputStream responseBody) {
         // An interceptor failure can prevent response-body ownership from reaching the next stage or caller.
+        if (responseBody instanceof Abortable) {
+            try {
+                ((Abortable) responseBody).abort();
+            } catch (Throwable e) {
+                LOG.debug(() -> "Failed to abort the response body after an interceptor failure.", e);
+            }
+        }
         IoUtils.closeQuietlyV2(responseBody, LOG);
     }
 
@@ -265,7 +275,7 @@ public class ExecutionInterceptorChain {
             // modifyAsyncHttpResponse runs before the response transformer subscribes, so this is the first subscription.
             responsePublisher.subscribe(new CancellingSubscriber());
         } catch (Throwable e) {
-            LOG.warn(() -> "Failed to cancel the response publisher after an interceptor failure.", e);
+            LOG.debug(() -> "Failed to cancel the response publisher after an interceptor failure.", e);
         }
     }
 
