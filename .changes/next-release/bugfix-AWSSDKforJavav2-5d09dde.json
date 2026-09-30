@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed `S3TransferManager.resumeDownloadFile` computing incorrect Range header for ranged downloads, which caused silent file corruption on resume."
+}
