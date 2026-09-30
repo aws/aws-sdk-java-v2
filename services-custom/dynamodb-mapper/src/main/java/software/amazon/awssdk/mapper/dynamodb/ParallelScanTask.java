@@ -64,11 +64,6 @@ public final class ParallelScanTask {
 
     private final DynamoDbClient dynamo;
 
-    @Deprecated
-    public ParallelScanTask(DynamoDBMapper mapper, DynamoDbClient dynamo, List<ScanRequest> parallelScanRequests) {
-        this(dynamo, parallelScanRequests);
-    }
-
     ParallelScanTask(DynamoDbClient dynamo, List<ScanRequest> parallelScanRequests) {
         this(dynamo, parallelScanRequests, Executors.newCachedThreadPool());
     }

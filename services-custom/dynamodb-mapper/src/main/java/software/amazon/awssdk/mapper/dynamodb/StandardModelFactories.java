@@ -24,6 +24,7 @@ import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactor
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory.TableFactory;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter.AbstractConverter;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverter.DelegateConverter;
+import software.amazon.awssdk.mapper.dynamodb.ConversionSchemas.ItemConverterRuleFactory;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Bean;
 import software.amazon.awssdk.mapper.dynamodb.StandardBeanProperties.Beans;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -92,8 +93,8 @@ final class StandardModelFactories {
                 ? readOnlyByteBufferCache : cache;
             ConversionSchema schema = config.getConversionSchema();
             if (!selectedCache.containsKey(schema)) {
-                RuleFactory<Object> rules = rulesOf(config, s3Links, this);
-                rules = new ConversionSchemas.ItemConverterRuleFactory<Object>(config, s3Links, rules);
+                RuleFactory<Object> typeConverters = rulesOf(config, s3Links, this);
+                ItemConverterRuleFactory<Object> rules = new ItemConverterRuleFactory<Object>(config, s3Links, typeConverters);
                 selectedCache.putIfAbsent(schema, new StandardTableFactory(rules));
             }
             return selectedCache.get(schema);
@@ -105,9 +106,9 @@ final class StandardModelFactories {
      */
     private static final class StandardTableFactory implements TableFactory {
         private final ConcurrentMap<Class<?>,DynamoDBMapperTableModel<?>> cache;
-        private final RuleFactory<Object> rules;
+        private final ItemConverterRuleFactory<Object> rules;
 
-        private StandardTableFactory(RuleFactory<Object> rules) {
+        private StandardTableFactory(ItemConverterRuleFactory<Object> rules) {
             this.cache = new ConcurrentHashMap<Class<?>,DynamoDBMapperTableModel<?>>();
             this.rules = rules;
         }
@@ -126,11 +127,11 @@ final class StandardModelFactories {
      * {@link DynamoDBMapperTableModel} builder.
      */
     private static final class TableBuilder<T> extends DynamoDBMapperTableModel.Builder<T> {
-        private TableBuilder(Class<T> clazz, Beans<T> beans, RuleFactory<Object> rules) {
+        private TableBuilder(Class<T> clazz, Beans<T> beans, ItemConverterRuleFactory<Object> rules) {
             super(clazz, beans.properties());
             for (Bean<T,Object> bean : beans.map().values()) {
                 try {
-                    with(new FieldBuilder<T,Object>(clazz, bean, rules.getRule(bean.type())).build());
+                    with(new FieldBuilder<T,Object>(clazz, bean, rules.getRule(bean)).build());
                 } catch (final RuntimeException e) {
                     throw new DynamoDBMappingException(String.format(
                         "%s[%s] could not be mapped for type %s",
@@ -140,7 +141,7 @@ final class StandardModelFactories {
             }
         }
 
-        private TableBuilder(Class<T> clazz, RuleFactory<Object> rules) {
+        private TableBuilder(Class<T> clazz, ItemConverterRuleFactory<Object> rules) {
             this(clazz, StandardBeanProperties.<T>of(clazz), rules);
         }
     }

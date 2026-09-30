@@ -91,11 +91,15 @@ final class StandardBeanProperties {
         private final DynamoDBMapperFieldModel.Properties<V> properties;
         private final ConvertibleType<V> type;
         private final Reflect<T,V> reflect;
+        private final Method getter;
+        private final Method setter;
 
         private Bean(FieldMap<V> annotations, Reflect<T,V> reflect, Method getter) {
             this.properties = new DynamoDBMapperFieldModel.Properties.Immutable<V>(annotations);
             this.type = ConvertibleType.<V>of(getter, annotations);
             this.reflect = reflect;
+            this.getter = getter;
+            this.setter = MethodReflect.setterOf(getter);
         }
 
         final DynamoDBMapperFieldModel.Properties<V> properties() {
@@ -108,6 +112,20 @@ final class StandardBeanProperties {
 
         final Reflect<T,V> reflect() {
             return this.reflect;
+        }
+
+        /**
+         * Gets the getter method. Only the {@link ConversionSchema} item converter path needs the raw method.
+         */
+        final Method getter() {
+            return this.getter;
+        }
+
+        /**
+         * Gets the setter method, or null if the property has no matching setter.
+         */
+        final Method setter() {
+            return this.setter;
         }
     }
 

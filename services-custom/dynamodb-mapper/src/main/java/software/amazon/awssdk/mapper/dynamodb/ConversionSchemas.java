@@ -343,7 +343,7 @@ public final class ConversionSchemas {
             for (Bean<Object,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
                 Object getterResult = bean.reflect().get(object);
                 if (getterResult != null) {
-                    AttributeValue value = convert(bean.type().getter(), getterResult);
+                    AttributeValue value = convert(bean.getter(), getterResult);
                     if (value != null) {
                         result.put(bean.properties().attributeName(), value);
                     }
@@ -486,8 +486,8 @@ public final class ConversionSchemas {
             for (Bean<T,Object> bean : StandardBeanProperties.of(clazz).map().values()) {
                 AttributeValue av = value.get(bean.properties().attributeName());
                 if (av != null) {
-                    ArgumentUnmarshaller unmarshaller = getUnmarshaller(bean.type().getter(), bean.type().setter());
-                    Object unmarshalled = unmarshall(unmarshaller, bean.type().setter(), av);
+                    ArgumentUnmarshaller unmarshaller = getUnmarshaller(bean.getter(), bean.setter());
+                    Object unmarshalled = unmarshall(unmarshaller, bean.setter(), av);
                     bean.reflect().set(result, unmarshalled);
                 }
             }
@@ -1431,9 +1431,12 @@ public final class ConversionSchemas {
     }
 
     /**
-     * {@link AttributeValue} converter with {@link ItemConverter}
+     * {@link AttributeValue} converter with {@link ItemConverter}.
+     * <p>
+     * Resolves rules per {@link Bean} rather than per {@link ConvertibleType} because the {@link ItemConverter} API
+     * of a custom {@link ConversionSchema} is keyed on the property's getter and setter methods.
      */
-    static class ItemConverterRuleFactory<V> implements RuleFactory<V> {
+    static class ItemConverterRuleFactory<V> {
         private final RuleFactory<V> typeConverters;
         private final ItemConverter converter;
         private final boolean customSchema;
@@ -1447,19 +1450,20 @@ public final class ConversionSchemas {
             this.typeConverters = typeConverters;
         }
 
-        @Override
-        public Rule<V> getRule(ConvertibleType<V> type) {
-            if (customSchema && type.typeConverter() == null) {
-                return new ItemConverterRule<V>(type);
+        Rule<V> getRule(Bean<?,V> bean) {
+            if (customSchema && bean.type().typeConverter() == null) {
+                return new ItemConverterRule<V>(bean.getter(), bean.setter());
             } else {
-                return typeConverters.getRule(type);
+                return typeConverters.getRule(bean.type());
             }
         }
 
         private final class ItemConverterRule<V> implements Rule<V>, DynamoDBTypeConverter<AttributeValue,V> {
-            private final ConvertibleType<V> type;
-            private ItemConverterRule(final ConvertibleType<V> type) {
-                this.type = type;
+            private final Method getter;
+            private final Method setter;
+            private ItemConverterRule(final Method getter, final Method setter) {
+                this.getter = getter;
+                this.setter = setter;
             }
             @Override
             public boolean isAssignableFrom(ConvertibleType<?> type) {
@@ -1472,17 +1476,17 @@ public final class ConversionSchemas {
             @Override
             public DynamoDBAttributeType getAttributeType() {
                 try {
-                    return converter.getFieldModel(type.getter()).attributeType();
+                    return converter.getFieldModel(getter).attributeType();
                 } catch (final DynamoDBMappingException no) {}
                 return DynamoDBAttributeType.NULL;
             }
             @Override
             public AttributeValue convert(final V object) {
-                return converter.convert(type.getter(), object);
+                return converter.convert(getter, object);
             }
             @Override
             public V unconvert(final AttributeValue object) {
-                return (V)converter.unconvert(type.getter(), type.setter(), object);
+                return (V)converter.unconvert(getter, setter, object);
             }
         }
     }
