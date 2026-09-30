@@ -128,8 +128,7 @@ public class V2CompatibleBooleansTest {
     }
 
     /**
-     * {@link software.amazon.awssdk.mapper.dynamodb.DynamoDBNativeBoolean} or {@link DynamoDBTyped} can force native
-     * boolean marshalling.
+     * {@link DynamoDBTyped} can force native boolean marshalling.
      */
     @Test
     public void saveCoercedNativeBooleanUsingDefaultConverters_MarshallsIntoNativeBool() {

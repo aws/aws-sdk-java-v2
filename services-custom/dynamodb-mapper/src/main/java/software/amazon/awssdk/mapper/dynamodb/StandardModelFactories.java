@@ -588,7 +588,7 @@ final class StandardModelFactories {
 
             /**
              * For the V2 compatible schema we save as a numeric attribute value unless overridden by {@link
-             * DynamoDBNativeBoolean} or {@link DynamoDBTyped}.
+             * DynamoDBTyped}.
              */
             @Override
             public AttributeValue build(String value) {

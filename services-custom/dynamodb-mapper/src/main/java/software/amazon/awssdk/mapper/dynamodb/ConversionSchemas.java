@@ -1302,7 +1302,8 @@ public final class ConversionSchemas {
             DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
             if (marshalling != null) {
                 return new CustomMarshaller(marshalling.marshallerClass());
-            } else if (annotations.actualOf(DynamoDBNativeBoolean.class) != null) {
+            } else if (annotations.attributeType() == DynamoDBAttributeType.BOOL) {
+                // @DynamoDBTyped(BOOL) forces native BOOL, matching the standard schemas.
                 return BooleanToBooleanMarshaller.instance();
             }
             return wrapped.getMarshaller(getter);

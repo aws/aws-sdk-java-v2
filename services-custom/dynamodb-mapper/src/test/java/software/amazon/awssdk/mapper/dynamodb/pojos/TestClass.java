@@ -16,9 +16,10 @@
 package software.amazon.awssdk.mapper.dynamodb.pojos;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMarshalling;
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBNativeBoolean;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 import software.amazon.awssdk.mapper.dynamodb.RandomUUIDMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
 
@@ -45,7 +46,7 @@ public class TestClass {
     public Boolean getBoxedBoolean() { return false; }
     public void setBoxedBoolean(Boolean value) { }
 
-    @DynamoDBNativeBoolean
+    @DynamoDBTyped(DynamoDBAttributeType.BOOL)
     public boolean getNativeBoolean() { return false; }
     public void setNativeBoolean(boolean value) { }
 

@@ -26,7 +26,6 @@ import software.amazon.awssdk.mapper.dynamodb.pojos.DateRange;
 import software.amazon.awssdk.mapper.dynamodb.pojos.KeyAndVal;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.KeyType;
-import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -155,11 +154,11 @@ public class StandardModelFactoriesTest {
      * Test mappings.
      */
     @Test
-    public void testScalarAttributeStringTimeZone() {
+    public void testTypedStringTimeZone() {
         final Object obj = new AutoKeyAndVal<TimeZone>() {
             @DynamoDBHashKey
             public String getKey() { return super.getKey(); }
-            @DynamoDBScalarAttribute(type=ScalarAttributeType.S)
+            @DynamoDBTyped(DynamoDBAttributeType.S)
             public TimeZone getVal() { return super.getVal(); }
             public void setVal(final TimeZone val) { super.setVal(val); }
         };
@@ -174,11 +173,11 @@ public class StandardModelFactoriesTest {
      * Test mappings.
      */
     @Test
-    public void testScalarAttributeStringLocale() {
+    public void testTypedStringLocale() {
         final Object obj = new AutoKeyAndVal<Locale>() {
             @DynamoDBHashKey
             public String getKey() { return super.getKey(); }
-            @DynamoDBScalarAttribute(type=ScalarAttributeType.S)
+            @DynamoDBTyped(DynamoDBAttributeType.S)
             public Locale getVal() { return super.getVal(); }
             public void setVal(final Locale val) { super.setVal(val); }
         };
@@ -193,11 +192,11 @@ public class StandardModelFactoriesTest {
      * Test mappings.
      */
     @Test
-    public void testScalarAttributeBinaryUuid() {
+    public void testTypedBinaryUuid() {
         final Object obj = new AutoKeyAndVal<UUID>() {
             @DynamoDBHashKey
             public String getKey() { return super.getKey(); }
-            @DynamoDBScalarAttribute(type=ScalarAttributeType.B)
+            @DynamoDBTyped(DynamoDBAttributeType.B)
             public UUID getVal() { return super.getVal(); }
             public void setVal(final UUID val) { super.setVal(val); }
         };
@@ -210,11 +209,11 @@ public class StandardModelFactoriesTest {
     }
 
     @Test
-    public void testScalarAttributeAttributeName() {
+    public void testTypedWithAttributeName() {
         final Object obj = new AutoKeyAndVal<String>() {
             @DynamoDBHashKey
             public String getKey() { return super.getKey(); }
-            @DynamoDBScalarAttribute(attributeName="value", type=ScalarAttributeType.S)
+            @DynamoDBAttribute(attributeName="value") @DynamoDBTyped(DynamoDBAttributeType.S)
             public String getVal() { return super.getVal(); }
             public void setVal(final String val) { super.setVal(val); }
         };
