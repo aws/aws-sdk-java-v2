@@ -1,4 +1,81 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.9__ __2026-09-30__
+## __AWS Account__
+  - ### Features
+    - This release adds support for verifying an AWS account's primary contact phone number. SendPhoneNumberVerification sends a one-time code by SMS, VerifyPhoneNumber validates it, and GetContactInformation now returns the verification status.
+
+## __AWS Batch__
+  - ### Features
+    - AWS Batch adds support for Amazon EKS access entries on EKS compute environments through the new accessEntry setting in CreateComputeEnvironment and UpdateComputeEnvironment.
+
+## __AWS Global Accelerator__
+  - ### Features
+    - IpSets now include the Network Zone for each Static IP address.
+
+## __AWS Glue__
+  - ### Features
+    - Enable Catalog ID for crawler, column statistics and materialized views.
+
+## __AWS Organizations__
+  - ### Features
+    - Add support for policy operations on the GUARDDUTY POLICY policy type.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __Agent Registry__
+  - ### Features
+    - Minor doc update for the AWS Agent Registry Custom metadata SearchDiscoverableRegistryRecords API
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Automated Reasoning policies now accept Unicode letters in identifier names such as type names, type value names, and variable names. You can now author policies in non-English languages using accented or non-Latin characters.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - This release adds support for private certificate authorities on Amazon Bedrock AgentCore Gateway targets. The new certificateConfigurations parameter on CreateGatewayTarget and UpdateGatewayTarget references a PEM-encoded CA certificate in Amazon S3 or AWS Secrets Manager.
+
+## __Amazon CloudWatch Logs__
+  - ### Features
+    - Amazon CloudWatch Logs now supports an optional roleArn parameter on PutDeliveryDestination for X-Ray trace delivery destinations, specifying the IAM role to assume when delivering traces.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Amazon Connect Rules can now trigger in-app notifications to users as a rule action. Notification character limit was increased to 500 visible characters.
+
+## __Amazon DataZone__
+  - ### Features
+    - Support for setting notebook run notification configurations
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds support for filtering exported table data using FilterExpression, ProjectionExpression and KeyConditionExpression with ExportTableToPointInTime.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - Releasing VPCL for BlueGreen ecs deployments.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - GuardDuty AWS Organizations policy integration. GetDetector and GetMemberDetectors now show whether a GuardDuty policy manages a feature.
+
+## __Amazon S3 Vectors__
+  - ### Features
+    - Amazon S3 Vectors now supports metadata prefiltering, providing higher recall on filtered queries.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - This feature enables customers to modify their accounting database via API.
+
+## __Amazon Simple Storage Service__
+  - ### Features
+    - Amazon S3 adds a new optional S3 Inventory field, IntelligentTieringReferenceDate, reporting the reference date S3 Intelligent-Tiering uses to evaluate an object's tier-transition eligibility. The value is populated for objects in the Intelligent-Tiering storage class and left blank for others.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Enablement for Bedrock PaymentManager logs via Observability Admin Telemetry Rule
+
 # __2.55.8__ __2026-09-29__
 ## __AWS Elemental Inference__
   - ### Features

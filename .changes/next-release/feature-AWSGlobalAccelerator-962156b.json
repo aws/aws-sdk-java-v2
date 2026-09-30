@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Global Accelerator",
-    "contributor": "",
-    "description": "IpSets now include the Network Zone for each Static IP address."
-}

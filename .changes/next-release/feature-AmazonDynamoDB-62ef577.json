@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "Adds support for filtering exported table data using FilterExpression, ProjectionExpression and KeyConditionExpression with ExportTableToPointInTime."
-}
