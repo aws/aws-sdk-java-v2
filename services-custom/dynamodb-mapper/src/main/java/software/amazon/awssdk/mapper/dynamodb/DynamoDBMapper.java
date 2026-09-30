@@ -209,7 +209,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * @see DynamoDBAttribute
  * @see DynamoDBVersionAttribute
  * @see DynamoDBIgnore
- * @see DynamoDBMarshalling
+ * @see DynamoDBTypeConverted
  * @see DynamoDBMapperConfig
  */
 @SdkPublicApi

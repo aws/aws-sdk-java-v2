@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static org.junit.Assert.assertEquals;
+
 import java.lang.reflect.Method;
+import org.junit.Test;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -28,6 +31,17 @@ public class UnmarshallerTest extends StandardModelFactoriesV2UnconvertTest {
     @Override
     protected <T> Object unconvert(Class<T> clazz, Method getter, Method setter, AttributeValue value) {
         return CONVERTER.unconvert(getter, setter, value);
+    }
+
+    /**
+     * The {@link ItemConverter} selects an unmarshaller by Java type and does not apply {@code @DynamoDBTypeConverted}
+     * converters (see {@link ConversionSchemas}), so the raw string is returned.
+     */
+    @Override
+    @Test
+    public void testCustomConverter() {
+        assertEquals("ignoreme", unconvert("getCustomString", "setCustomString",
+                AttributeValue.builder().s("ignoreme").build()));
     }
 
 }

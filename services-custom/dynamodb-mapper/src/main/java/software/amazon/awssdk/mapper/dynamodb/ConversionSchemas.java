@@ -39,7 +39,6 @@ import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.ByteBufferToB
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CalendarSetToStringSetMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CalendarToStringMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CollectionToListMarshaller;
-import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.CustomMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.DateSetToStringSetMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.DateToStringMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.marshallers.MapToMapMarshaller;
@@ -66,7 +65,6 @@ import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteSetUnma
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.ByteUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CalendarSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CalendarUnmarshaller;
-import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.CustomUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DateSetUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DateUnmarshaller;
 import software.amazon.awssdk.mapper.dynamodb.internal.unmarshallers.DoubleSetUnmarshaller;
@@ -111,6 +109,16 @@ import java.util.UUID;
 
 /**
  * Pre-defined strategies for mapping between Java types and DynamoDB types.
+ * <p>
+ * <b>Custom schemas.</b> A schema built with {@link #v1Builder(String)}, {@link #v2CompatibleBuilder(String)} or
+ * {@link #v2Builder(String)} converts each property that has no {@link DynamoDBTypeConverted} converter through its
+ * {@link ItemConverter}, which chooses an {@link ArgumentMarshaller} by the property's Java type. The
+ * {@link ItemConverter} does not apply {@link DynamoDBTypeConverted} converters itself. As a result, with a custom
+ * schema a {@link DynamoDBTypeConverted} converter on a member of a {@link DynamoDBDocument} class is ignored, as it
+ * is when calling the {@link ItemConverter} returned by {@link ConversionSchema#getConverter} directly. To customize
+ * how such a type is stored, register it on the builder with
+ * {@link Builder#addFirstType(Class, ArgumentMarshaller, ArgumentUnmarshaller)}, or use one of the predefined
+ * schemas ({@link #V1}, {@link #V2_COMPATIBLE}, {@link #V2}), which apply converters at every level.
  */
 @SdkPublicApi
 public final class ConversionSchemas {
@@ -243,8 +251,7 @@ public final class ConversionSchemas {
             this.marshallers = new CachingMarshallerSet(
                     new AnnotationAwareMarshallerSet(marshallers));
 
-            this.unmarshallers = new CachingUnmarshallerSet(
-                    new AnnotationAwareUnmarshallerSet(unmarshallers));
+            this.unmarshallers = new CachingUnmarshallerSet(unmarshallers);
         }
 
         @Override
@@ -1299,10 +1306,7 @@ public final class ConversionSchemas {
         @Override
         public ArgumentMarshaller getMarshaller(Method getter) {
             StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
-            if (marshalling != null) {
-                return new CustomMarshaller(marshalling.marshallerClass());
-            } else if (annotations.attributeType() == DynamoDBAttributeType.BOOL) {
+            if (annotations.attributeType() == DynamoDBAttributeType.BOOL) {
                 // @DynamoDBTyped(BOOL) forces native BOOL, matching the standard schemas.
                 return BooleanToBooleanMarshaller.instance();
             }
@@ -1312,33 +1316,6 @@ public final class ConversionSchemas {
         @Override
         public ArgumentMarshaller getMemberMarshaller(Type memberType) {
             return wrapped.getMemberMarshaller(memberType);
-        }
-    }
-
-    static class AnnotationAwareUnmarshallerSet
-            implements UnmarshallerSet {
-
-        private final UnmarshallerSet wrapped;
-
-        public AnnotationAwareUnmarshallerSet(UnmarshallerSet wrapped) {
-            this.wrapped = wrapped;
-        }
-
-        @Override
-        public ArgumentUnmarshaller getUnmarshaller(
-                Method getter,
-                Method setter) {
-            StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            DynamoDBMarshalling marshalling = annotations.actualOf(DynamoDBMarshalling.class);
-            if (marshalling != null) {
-                return new CustomUnmarshaller(getter.getReturnType(), marshalling.marshallerClass());
-            }
-            return wrapped.getUnmarshaller(getter, setter);
-        }
-
-        @Override
-        public ArgumentUnmarshaller getMemberUnmarshaller(Type c) {
-            return wrapped.getMemberUnmarshaller(c);
         }
     }
 

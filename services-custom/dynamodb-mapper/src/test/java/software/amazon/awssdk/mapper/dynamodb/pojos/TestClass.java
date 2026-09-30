@@ -17,8 +17,8 @@ package software.amazon.awssdk.mapper.dynamodb.pojos;
 
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBMarshalling;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 import software.amazon.awssdk.mapper.dynamodb.RandomUUIDMarshaller;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
@@ -56,7 +56,7 @@ public class TestClass {
     public UUID getUuid() { return null; }
     public void setUuid(UUID u) { }
 
-    @DynamoDBMarshalling(marshallerClass=RandomUUIDMarshaller.class)
+    @DynamoDBTypeConverted(converter=RandomUUIDMarshaller.class)
     public String getCustomString() { return null; }
     public void setCustomString(String s) { }
 

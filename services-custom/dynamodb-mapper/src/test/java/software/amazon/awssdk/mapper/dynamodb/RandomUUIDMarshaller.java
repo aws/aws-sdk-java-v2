@@ -17,19 +17,9 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import java.util.UUID;
 
-public class RandomUUIDMarshaller implements DynamoDBMarshaller<Object>, DynamoDBTypeConverter<String,Object> {
+public class RandomUUIDMarshaller implements DynamoDBTypeConverter<String,Object> {
 
     public static final String randomUUID = UUID.randomUUID().toString();
-
-    @Override
-    public String marshall(Object getterReturnResult) {
-        return randomUUID;
-    }
-
-    @Override
-    public Object unmarshall(Class<Object> clazz, String obj) {
-        return null;
-    }
 
     @Override
     public String convert(final Object object) {

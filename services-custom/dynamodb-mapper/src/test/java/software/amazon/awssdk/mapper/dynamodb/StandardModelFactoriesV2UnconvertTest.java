@@ -90,7 +90,10 @@ public class StandardModelFactoriesV2UnconvertTest {
     public void testString() {
         assertEquals("test", unconvert("getString", "setString",
                 AttributeValue.builder().s("test").build()));
+    }
 
+    @Test
+    public void testCustomConverter() {
         Assert.assertNull(unconvert("getCustomString", "setCustomString",
                 AttributeValue.builder().s("ignoreme").build()));
     }
