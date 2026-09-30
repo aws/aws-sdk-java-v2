@@ -351,7 +351,7 @@ public class VersionAttributeUpdateIntegrationTest extends DynamoDBMapperIntegra
             }
 
             // But specifying CLOBBER will allow deletion
-            util.save(obj, new DynamoDBMapperConfig(SaveBehavior.CLOBBER));
+            util.save(obj, SaveBehavior.CLOBBER.config());
 
             // Trying to delete with the wrong version should fail
             try {

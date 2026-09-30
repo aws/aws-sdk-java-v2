@@ -54,7 +54,7 @@ public class QueryIntegrationTest extends DynamoDBMapperIntegrationTestBase {
     public static void setUp() throws Exception {
         setUpTableWithRangeAttribute();
 
-        DynamoDBMapperConfig mapperConfig = new DynamoDBMapperConfig(ConsistentReads.CONSISTENT);
+        DynamoDBMapperConfig mapperConfig = ConsistentReads.CONSISTENT.config();
         mapper = new DynamoDBMapper(dynamo, mapperConfig);
 
         putTestData(mapper, TEST_ITEM_NUMBER);

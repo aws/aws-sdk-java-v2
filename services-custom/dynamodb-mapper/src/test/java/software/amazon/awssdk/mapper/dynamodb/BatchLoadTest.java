@@ -61,8 +61,10 @@ public class BatchLoadTest extends LocalDynamoDBTestBase {
     @BeforeClass
     public static void setUp() throws Exception {
         dynamo = client();
-        mapper = new DynamoDBMapper(dynamo, new DynamoDBMapperConfig(SaveBehavior.UPDATE,
-                                                                     ConsistentReads.CONSISTENT, null));
+        mapper = new DynamoDBMapper(dynamo, DynamoDBMapperConfig.builder()
+                                                                .withSaveBehavior(SaveBehavior.UPDATE)
+                                                                .withConsistentReads(ConsistentReads.CONSISTENT)
+                                                                .build());
         // Table setup is built directly against the v2 client rather than via
         // mapper.generateCreateTableRequest(), which is part of the deferred table-admin port.
         // The behavior under test is the data plane (batchSave/batchLoad), not table creation.
