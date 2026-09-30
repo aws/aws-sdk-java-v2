@@ -32,12 +32,27 @@ public final class CapturingHttpClient implements SdkHttpClient {
     private final int responseStatus;
     private final byte[] responseBody;
     private final String responseContentType;
+    private final java.util.Map<String, String> extraHeaders = new java.util.LinkedHashMap<>();
 
     public CapturingHttpClient(int responseStatus, String responseBody, String responseContentType) {
         this(responseStatus, responseBody.getBytes(StandardCharsets.UTF_8), responseContentType);
     }
 
     /** For a response body that is not text: an object's bytes, rather than an XML document. */
+    private volatile long delayMillis;
+
+    /** Delays every response, for the tests that need a call to be slow (timeouts). */
+    public CapturingHttpClient withDelay(long millis) {
+        this.delayMillis = millis;
+        return this;
+    }
+
+    /** Adds a response header, for the tests that need one the canned response does not carry. */
+    public CapturingHttpClient withResponseHeader(String name, String value) {
+        extraHeaders.put(name, value);
+        return this;
+    }
+
     public CapturingHttpClient(int responseStatus, byte[] responseBody, String responseContentType) {
         this.responseStatus = responseStatus;
         this.responseBody = responseBody;
@@ -72,6 +87,14 @@ public final class CapturingHttpClient implements SdkHttpClient {
         return new ExecutableHttpRequest() {
             @Override
             public HttpExecuteResponse call() {
+                if (delayMillis > 0) {
+                    try {
+                        Thread.sleep(delayMillis);
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new IllegalStateException("interrupted", e);
+                    }
+                }
                 return HttpExecuteResponse.builder()
                                           .response(SdkHttpResponse.builder()
                                                                    .statusCode(responseStatus)
@@ -80,6 +103,7 @@ public final class CapturingHttpClient implements SdkHttpClient {
                                                                               String.valueOf(responseBody.length))
                                                                    .putHeader("x-amz-request-id", "WIREDIFF000000000")
                                                                    .putHeader("x-amz-id-2", "wirediff")
+                                                                   .applyMutation(b -> extraHeaders.forEach(b::putHeader))
                                                                    .build())
                                           .responseBody(AbortableInputStream.create(
                                               new ByteArrayInputStream(responseBody)))

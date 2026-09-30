@@ -1,0 +1,17 @@
+POST /wirediff-bucket/big.bin
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+uploadId=upload-id-1
+--- headers ---
+amz-sdk-invocation-id: <normalized>
+amz-sdk-request: attempt=1; max=4
+authorization: SignedHeaders=amz-sdk-invocation-id;amz-sdk-request;content-length;content-type;host;x-amz-content-sha256;x-amz-date
+content-length: 277
+content-type: application/xml
+host: s3.us-east-1.amazonaws.com
+user-agent: <normalized>
+x-amz-content-sha256: UNSIGNED-PAYLOAD
+x-amz-date: <normalized>
+--- body (277 bytes) ---
+<?xml version="1.0" encoding="UTF-8"?><CompleteMultipartUpload xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><Part><ETag>&quot;part-1&quot;</ETag><PartNumber>1</PartNumber></Part><Part><ETag>&quot;part-2&quot;</ETag><PartNumber>2</PartNumber></Part></CompleteMultipartUpload>

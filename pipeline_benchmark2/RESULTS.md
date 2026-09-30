@@ -213,6 +213,128 @@ byte-identical `PutObject`/`UploadPart` requests, and the gaps that remain — a
 `compatability_issues.md` 13; multipart correctness, which does work, and the async gap that keeps it
 from being benchmarkable, are in section 14.
 
+## Async: the bridged async client, over CRT and Netty
+
+Raw data: `pipeline_benchmark2/paired-async-c1/merged/` and `pipeline_benchmark2/paired-async-c16/merged/`
+(each with `results.csv`, `summary.md`, and a `MERGE.md` explaining the assembly — the collections were
+run one rep per invocation because a single 4-rep invocation exceeds the 30-minute background limit the
+tooling imposes; arm order alternates between invocations, as it does within a normal run).
+
+| | |
+|---|---|
+| Arms | `bridge-async-stock-published-2.46.10-dirty.jar` vs `bridge-async-bridge-c1d88972e18-plus-async-wip-dirty.jar`, **same harness commit** |
+| Clients | `v2-async` (CRT), `v2-async-netty` (new arm), and `v2-sync` as the control — the sync numbers are the existing result, re-measured |
+| Config | 50 000 measured ops, 30 000 warmup, 4 paired reps, client pinned to CPUs 0–1, server to 4–6; concurrency 1 and 16, async driver in `inflight` mode |
+
+**The control reproduces.** `v2-sync` at concurrency 1 comes out at −36/−37/−19/−47% app CPU against the
+earlier collection's −32/−34/−19/−43%, on a different day and a rebuilt jar. So the setup is sound, and the
+async numbers can be read against the sync ones.
+
+### Concurrency 1: cheaper and faster, by less than sync
+
+| client | small-get | small-put | batch-get | batch-put |
+|---|---:|---:|---:|---:|
+| **latency** — async, CRT | −16.1% | −16.1% | −9.6% | −41.3% |
+| async, Netty | −18.1% | −14.4% | −12.4% | −34.9% |
+| sync (control) | −32.5% | −30.5% | −18.1% | −45.0% |
+| **app CPU/op** — async, CRT | −11.5% | −13.6% | −4.9% | −41.5% |
+| async, Netty | −6.2% | −5.8% | −4.5% | −30.6% |
+| sync (control) | −35.9% | −36.6% | −18.7% | −46.9% |
+
+4/4 paired wins in every cell; spread of pairs ±1.4–5.3%. The bridged async client beats stock async on
+every scenario and both transports, but on small operations by roughly half of what the bridged sync
+client beats stock sync by. Something on the async path costs back part of the pipeline saving. The
+per-call candidates are all bridge-side and all new: a virtual-thread start, a hop to the completion
+executor, the `FlowAdapters` layers, and — on responses — `ResponseBodyDataStream` copying through v2's
+`InputStreamSubscriber` to get around smithy-java's `asByteBuffer` bug (ledger 15.6). **Not profiled;
+this is a list of suspects, not an attribution.** Netty's gain is smaller than CRT's on small operations
+too, where the response is 470 B, so the difference is not only the large-body copy suspected below;
+what else differs by transport is unmeasured.
+
+Caveat: the summary flags 48 of 96 runs (every async case, and sync small ops) as not steady-state — JIT
+still compiling inside the window, in **both** arms. Latency and throughput are unaffected; per-op CPU is
+the column to hold loosely. The spreads are tight regardless.
+
+### Concurrency 16: throughput, and why latency is not reported
+
+| client | small-get | small-put | batch-get | batch-put |
+|---|---:|---:|---:|---:|
+| **wall µs/op** (1/throughput) — async, CRT | −23.3% | −28.6% | −12.7% | **−65.4%** |
+| async, Netty | −29.1% | −26.1% | −7.4% | **−53.4%** |
+| sync (control) | −54.7% | −49.9% | −25.5% | −46.5% |
+| **app CPU/op** — async, CRT | −16.9% | −20.9% | −12.1% | −43.0% |
+| async, Netty | −21.8% | −25.1% | **+4.9% (0/4)** | −34.0% |
+| sync (control) | −53.9% | −49.0% | −21.3% | −44.3% |
+
+**Mean latency is left out on purpose, because at this concurrency it measures the harness, not the
+SDK.** The async driver is one submitting thread keeping N calls outstanding (`Driver.java:151-171`).
+Stock v2 async marshals and signs *on the caller's thread* before `execute` returns (ledger 16.1), so the
+submitter spends that time busy instead of submitting, and never reaches 16 in flight. Little's law says
+how far short: stock `v2-async` batch-put runs 940 µs latency at 731 µs/op, i.e. **~1.3 calls in flight**;
+the bridge runs 4 027 µs at 253 µs/op, **~15.9**. Stock's latency looks better only because its queue
+is shorter, which is also why its throughput is so much worse. The same arithmetic applies, less
+extremely, to every async cell.
+
+So the batch-put throughput numbers (−65%, −53%) are real for **this** topology — an application that
+submits from one thread, which is common — and overstated for one that submits from many, where stock's
+marshalling would spread across callers too. The pipeline-cost number, independent of topology, is app
+CPU/op: −12% to −43%, with one loss.
+
+**The loss: Netty batch-get, +4.9%, 0/4**, where CRT batch-get is −12.1%. Batch-get is the one scenario
+with a large *response* (~38 KB), and Netty is the transport that delivers it in more, smaller buffers,
+so this is consistent with the response-body copy in `ResponseBodyDataStream` above. Consistent with,
+not shown to be; an allocation profile of this one cell would settle it. Same steady-state caveat as
+concurrency 1, more so: 95 of 96 runs flagged.
+
+### What this means
+
+- Async on the bridge is not a regression anywhere at concurrency 1 and loses in one cell at 16. The
+  design — a virtual thread per call over a synchronous pipeline — does not cost more than stock v2's
+  `CompletableFuture` pipeline; it costs less, just not as much less as sync.
+- The largest async effect is structural, not a pipeline saving: moving pre-transport work off the
+  caller's thread lets a single submitter keep its target concurrency. That is the same change that
+  costs thread-bound context propagation (ledger 16.1); the two go together.
+- Not measured: async S3 streaming and multipart (no async `s3-*` arm yet), and the memory cost of
+  queued calls that ledger 15.3 estimates.
+
+## Fidelity cost: what signing with v2's own signer costs
+
+Raw data: `pipeline_benchmark2/paired-fidelity/merged/` (all four scenarios) and
+`pipeline_benchmark2/paired-fidelity2/merged/` (small ops, after two trims), each assembled from one-rep
+invocations as in the async section. Same conditions: 50 000 ops, 30 000 warmup, 4 paired reps, concurrency 1,
+client on CPUs 0–1, server on 4–6, against the same stock jar.
+
+This measures ledger §17 — v2's signer bridged in place of smithy-java's, v2's auth-scheme resolution per
+attempt, response hooks, CRC32 validation, request overrides and timeouts — which is what took the fault sweep
+from 19 behavioral differences to 1 and every checksum, override and binding probe to parity with stock.
+
+| app CPU/op vs stock | before §17 | after §17 | after trims |
+|---|---:|---:|---:|
+| sync small-get | −35.9% | −18.5% | **−21.5%** |
+| sync small-put | −36.6% | −19.8% | **−19.7%** |
+| async small-get | −11.5% | +1.5% | **+2.8%** |
+| async small-put | −13.6% | −0.3% | **+1.7%** |
+| sync batch-get / batch-put | −18.7% / −46.9% | −13.4% / −44.4% | — |
+| async batch-get / batch-put | −4.9% / −41.5% | −2.9% / −36.7% | — |
+
+A fixed ~20 µs per call, so it moves small operations and barely touches batch-put. Latency is still lower
+than stock in every cell (sync small −14% to −18%, async small −2% to −3%, 4/4 or 3/4 wins).
+
+**Attribution.** `awssdk.bridge.stripSigner` — smithy-java's signer, no v2 auth-scheme resolution — recovers
+all of it on the same jar (sync small-get 108 → 86 µs, small-put 102 → 80 µs, three alternating pairs each).
+A JFR profile of the full bridge puts the signing path at 25% of pipeline CPU: v2's `AwsV4HttpSigner` itself
+~13%, the request conversions to and from v2's model ~8%, checksum and selected-scheme setup ~2%; the endpoint
+bridge's new work (auth-option resolution, the larger attribute copy) another ~5%. The two trims made
+afterwards — skipping checksum setup for operations with no checksum metadata, writing back only the headers
+signing changed — are inside the noise.
+
+**What it means.** The price of byte-for-byte S3 behavior (checksums, trailers, chunked signing, the
+endpoint's signing overrides) is paid on every call, including by DynamoDB, which needs none of it. The
+obvious recovery is to sign with smithy-java's signer when v2's would add nothing — no checksum metadata,
+default signer properties, no signer override — which would return DynamoDB to its pre-§17 numbers. It is
+not done because it rests on a claim not yet proven: that the two signers produce the same signature for
+those requests. A fixed-clock signature comparison would settle it.
+
 ## Cold start: the bridge's one loss
 
 Raw data: `pipeline_benchmark2/coldstart/20260904-2341/` (60 JVMs, zero failures, `summary.md` from

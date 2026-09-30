@@ -157,6 +157,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+
+        if (ClientClassUtils.usesSmithyJavaSerde(model)) {
+            // The same single smithy-java client the sync class holds. The pipeline is shared; what makes
+            // this one async is the transport V2ConfigTranslator picks from ASYNC_HTTP_CLIENT and the
+            // virtual-thread envelope in SmithyBridgeClient#runAsync.
+            type.addField(FieldSpec.builder(ClientClassUtils.SMITHY_BRIDGE_CLIENT, "smithyClient", PRIVATE, FINAL)
+                                   .build());
+        }
     }
 
     @Override
@@ -268,6 +276,10 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  SdkClientOption.class);
         }
 
+        if (ClientClassUtils.usesSmithyJavaSerde(model)) {
+            ClientClassUtils.addSmithyClientConstruction(builder, model, poetExtensions);
+        }
+
         return builder.build();
     }
 
@@ -312,6 +324,9 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
     @Override
     protected MethodSpec.Builder operationBody(MethodSpec.Builder builder, OperationModel opModel) {
+        if (ClientClassUtils.usesSmithyPipeline(model, opModel)) {
+            return smithyPipelineOperationBody(builder, opModel);
+        }
 
         addRequestModifierCode(opModel, model).ifPresent(builder::addCode);
         builder.addModifiers(PUBLIC)
@@ -442,6 +457,54 @@ public final class AsyncClientClass extends AsyncClientInterface {
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 
+        return builder;
+    }
+
+    /**
+     * An async operation on the smithy-java pipeline.
+     *
+     * <p>Leaner than the stock body for the same reasons the sync one is (see
+     * {@code SyncClientClass#traditionalMethod}): the response and error handlers, the per-request
+     * configuration copy, and endpoint discovery are all work smithy-java does itself or never reads. Two
+     * async-specific pieces are dropped too. The end-of-stream wrapper around the response transformer
+     * only feeds v2's own pipeline metrics, and there is no v2 pipeline here to feed. The event-stream
+     * marshalling never applies, because {@link ClientClassUtils#usesSmithyPipeline} excludes event-stream
+     * operations and they keep the stock body.
+     *
+     * <p>What is kept is v2's contract at the method boundary: API-call metrics, and a failed future — not
+     * a thrown exception — for anything that goes wrong before the call is dispatched, with the response
+     * transformer told about it first.
+     */
+    private MethodSpec.Builder smithyPipelineOperationBody(MethodSpec.Builder builder, OperationModel opModel) {
+        addRequestModifierCode(opModel, model).ifPresent(builder::addCode);
+        builder.addModifiers(PUBLIC)
+               .addAnnotation(Override.class);
+        builder.addStatement("$T<$T> metricPublishers = "
+                             + "resolveMetricPublishers(this.clientConfiguration, $N.overrideConfiguration().orElse(null))",
+                             List.class,
+                             MetricPublisher.class,
+                             opModel.getInput().getVariableName())
+               .addStatement("$1T apiCallMetricCollector = metricPublishers.isEmpty() ? $2T.create() : $1T.create($3S)",
+                             MetricCollector.class, NoOpMetricCollector.class, "ApiCall");
+        builder.beginControlFlow("try");
+        builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                             CoreMetric.class, "SERVICE_ID", model.getMetadata().getServiceId());
+        builder.addStatement("apiCallMetricCollector.reportMetric($T.$L, $S)",
+                             CoreMetric.class, "OPERATION_NAME", opModel.getOperationName());
+
+        addS3ArnableFieldCode(opModel, model).ifPresent(builder::addCode);
+        builder.addCode(ClientClassUtils.addEndpointTraitCode(opModel));
+
+        builder.addCode(ClientClassUtils.smithyJavaAsyncExecutionHandler(model, poetExtensions, opModel))
+               .endControlFlow()
+               .beginControlFlow("catch ($T t)", Throwable.class);
+        if (opModel.hasStreamingOutput()) {
+            builder.addStatement("runAndLogError(log, \"Exception thrown in exceptionOccurred callback, ignoring\",\n"
+                                 + "() -> $N.exceptionOccurred(t))", "asyncResponseTransformer");
+        }
+        builder.addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+               .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
+               .endControlFlow();
         return builder;
     }
 

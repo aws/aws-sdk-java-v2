@@ -1,0 +1,21 @@
+PUT /wirediff-bucket/k
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+--- headers ---
+authorization: SignedHeaders=content-encoding;content-type;x-amz-content-sha256;x-amz-date;x-amz-decoded-content-length;x-amz-sdk-checksum-algorithm;x-amz-trailer
+content-encoding: aws-chunked
+content-type: text/plain; charset=UTF-8
+user-agent: <normalized>
+x-amz-content-sha256: STREAMING-UNSIGNED-PAYLOAD-TRAILER
+x-amz-date: <normalized>
+x-amz-decoded-content-length: 38
+x-amz-sdk-checksum-algorithm: CRC32
+x-amz-trailer: x-amz-checksum-crc32
+--- body (80 bytes) ---
+26
+wire-diff streaming payload: 38 bytes.
+0
+x-amz-checksum-crc32:KQA2vw==
+
+

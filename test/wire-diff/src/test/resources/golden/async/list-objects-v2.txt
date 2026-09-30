@@ -1,0 +1,17 @@
+GET /wirediff-bucket
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+delimiter=/
+list-type=2
+max-keys=10
+prefix=logs/
+--- headers ---
+amz-sdk-invocation-id: <normalized>
+amz-sdk-request: attempt=1; max=4
+authorization: SignedHeaders=amz-sdk-invocation-id;amz-sdk-request;host;x-amz-content-sha256;x-amz-date
+host: s3.us-east-1.amazonaws.com
+user-agent: <normalized>
+x-amz-content-sha256: UNSIGNED-PAYLOAD
+x-amz-date: <normalized>
+--- body (0 bytes) ---

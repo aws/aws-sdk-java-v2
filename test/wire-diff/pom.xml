@@ -24,6 +24,7 @@
              the whole point; the harness measures the working tree, not a release. -->
         <aws.sdk.v2.version>2.46.11-SNAPSHOT</aws.sdk.v2.version>
         <junit5.version>5.10.2</junit5.version>
+        <bridge.version>2.46.11-SNAPSHOT</bridge.version>
     </properties>
 
     <dependencies>
@@ -39,6 +40,36 @@
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>apache5-client</artifactId>
             <version>${aws.sdk.v2.version}</version>
+        </dependency>
+        <!-- The two async transports the bridged async client has to drive. Both are here, and both are
+             exercised by the same tests, because they are the only two v2 async clients with their own
+             wire implementation and they differ in ways a bridge can trip over: Netty is a Java event
+             loop, CRT is native. -->
+        <!-- The other bridged service: awsJson rather than rest-xml, and no streaming, so it isolates the
+             async envelope from the body plumbing S3 exercises. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>dynamodb</artifactId>
+            <version>${aws.sdk.v2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+            <version>${aws.sdk.v2.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>aws-crt-client</artifactId>
+            <version>${aws.sdk.v2.version}</version>
+        </dependency>
+        <!-- Test scope, on its own version, so that the goldens can be captured from a *stock* published
+             SDK (-Daws.sdk.v2.version=2.46.10), which has no bridge artifact to resolve. CaptureMain runs
+             on the runtime classpath, so it never sees this; only the transport-bridge tests use it. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>smithy-java-bridge</artifactId>
+            <version>${bridge.version}</version>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>

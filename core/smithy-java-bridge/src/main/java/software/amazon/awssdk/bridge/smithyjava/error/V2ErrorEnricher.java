@@ -22,6 +22,10 @@ import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.bridge.smithyjava.streaming.V2StreamingBridge;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportFailures;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
+import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.smithy.java.client.core.CallContext;
@@ -31,6 +35,7 @@ import software.amazon.smithy.java.core.error.CallException;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
 import software.amazon.smithy.java.core.serde.SerializationException;
 import software.amazon.smithy.java.http.api.HttpResponse;
+import software.amazon.smithy.java.io.datastream.DataStream;
 import software.amazon.smithy.java.retries.api.RetrySafety;
 
 /**
@@ -84,16 +89,105 @@ public final class V2ErrorEnricher implements ClientInterceptor {
         this.baseExceptionBuilder = baseExceptionBuilder;
     }
 
+    /** The current attempt's error-response body, kept before smithy's deserializer consumes it. */
+    private static final software.amazon.smithy.java.context.Context.Key<RawBody> RAW_BODY =
+        software.amazon.smithy.java.context.Context.key("v2 raw error body");
+
+    /** Error bodies above this are not kept; v2 has no such cap, but an error document is never this big. */
+    private static final int LARGEST_RAW_ERROR_BODY = 64 * 1024;
+
+    /**
+     * Keeps an error response's bytes, which v2 exposes as {@code awsErrorDetails().rawResponse()}.
+     *
+     * <p>smithy's deserializer consumes the body to build the error, and it is one-shot, so it is read here
+     * and handed on as an in-memory copy. Only error statuses, only bodies of known, small length, so a
+     * successful response — and above all a streaming one — is never touched.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <ResponseT> ResponseT modifyBeforeDeserialization(
+            software.amazon.smithy.java.client.core.interceptors.ResponseHook<?, ?, ?, ResponseT> hook) {
+        if (!(hook.response() instanceof HttpResponse response) || response.statusCode() < 300
+            || V2TransportFailures.isStandIn(response) || response.body() == null
+            || response.body().contentLength() > LARGEST_RAW_ERROR_BODY) {
+            return hook.response();
+        }
+        byte[] bytes;
+        try (java.io.InputStream in = response.body().asInputStream()) {
+            bytes = in.readNBytes(LARGEST_RAW_ERROR_BODY + 1);
+        } catch (IOException e) {
+            return hook.response();
+        }
+        if (bytes.length > LARGEST_RAW_ERROR_BODY) {
+            return hook.response();
+        }
+        try {
+            hook.context().put(RAW_BODY, new RawBody(attempt(hook.context()), bytes));
+        } catch (UnsupportedOperationException readOnly) {
+            // Without a place to keep it, rawResponse stays absent, as before.
+        }
+        return (ResponseT) HttpResponse.of(response.httpVersion(), response.statusCode(), response.headers(),
+                                           software.amazon.smithy.java.io.datastream.DataStream.ofBytes(
+                                               bytes, response.body().contentType()));
+    }
+
+    private static byte[] rawBody(software.amazon.smithy.java.context.Context context) {
+        RawBody raw = context.get(RAW_BODY);
+        return raw != null && raw.attempt == attempt(context) ? raw.bytes : null;
+    }
+
+    private static int attempt(software.amazon.smithy.java.context.Context context) {
+        Integer attempt = context.get(CallContext.RETRY_ATTEMPT);
+        return attempt == null ? 0 : attempt;
+    }
+
+    private record RawBody(int attempt, byte[] bytes) {
+    }
+
     @Override
     public <O extends SerializableStruct> O modifyBeforeAttemptCompletion(
             OutputHook<?, O, ?, ?> hook,
             RuntimeException error
     ) {
+        if (error == null || bodyIsReplayable(hook)) {
+            return classify(hook, error);
+        }
+
+        // A one-shot request body. Classify exactly as for any other call -- the enrichment is still
+        // wanted, since it is what the caller will see -- and then withhold the retry, whatever the
+        // classification said. See V2NonReplayableError for why smithy-java's own guard misses this case.
+        RuntimeException classified = error;
+        try {
+            classify(hook, error);
+        } catch (RuntimeException substituted) {
+            classified = substituted;
+        }
+        throw new V2NonReplayableError(classified);
+    }
+
+    private static boolean bodyIsReplayable(OutputHook<?, ?, ?, ?> hook) {
+        DataStream body = hook.context().get(V2StreamingBridge.REQUEST_BODY);
+        return body == null || body.isReplayable();
+    }
+
+    private <O extends SerializableStruct> O classify(OutputHook<?, O, ?, ?> hook, RuntimeException error) {
+        // A transport failure a bridged transport deferred into the retry loop (ledger 3.6): the attempt's
+        // error is the stand-in response's, so swap in the real failure and classify it the way v2's retry
+        // conditions classify an exception with no response at all.
+        RuntimeException deferred = V2TransportFailures.deferredFailure(hook.context());
+        if (deferred != null && V2TransportFailures.isStandIn(hook.response())) {
+            if (retriedByV2(deferred, false)) {
+                throw new V2RetryableError(deferred);
+            }
+            throw deferred;
+        }
+
         HttpResponse response = hook.response() instanceof HttpResponse http ? http : null;
 
         if (error instanceof V2ModeledError modeled) {
             if (response != null) {
-                modeled.enrich(response, hook.context().get(CallContext.RESPONSE_ERROR_CODE), serviceName);
+                modeled.enrich(response, hook.context().get(CallContext.RESPONSE_ERROR_CODE), serviceName,
+                               rawBody(hook.context()));
                 applyRetryAfter(modeled, response);
             }
             return hook.forward(error);
@@ -103,7 +197,8 @@ public final class V2ErrorEnricher implements ClientInterceptor {
         // service exception for it would report `statusCode() == 200`, which no v2 caller expects.
         if (response != null && response.statusCode() >= 400) {
             V2UnmodeledError replacement =
-                    new V2UnmodeledError(build(response, hook.context().get(CallContext.RESPONSE_ERROR_CODE)), error);
+                    new V2UnmodeledError(build(response, hook.context().get(CallContext.RESPONSE_ERROR_CODE),
+                                               rawBody(hook.context())), error);
             applyRetryAfter(replacement, response);
             throw replacement;
         }
@@ -127,7 +222,7 @@ public final class V2ErrorEnricher implements ClientInterceptor {
     }
 
     /** Builds the service's base exception from an error response no modeled shape claimed. */
-    private AwsServiceException build(HttpResponse response, String errorCode) {
+    private AwsServiceException build(HttpResponse response, String errorCode, byte[] rawBody) {
         SdkHttpResponse httpResponse = SdkHttpFullResponse.builder()
                                                           .statusCode(response.statusCode())
                                                           .headers(response.headers().map())
@@ -146,6 +241,9 @@ public final class V2ErrorEnricher implements ClientInterceptor {
                                                                    .errorMessage(message)
                                                                    .serviceName(serviceName)
                                                                    .sdkHttpResponse(httpResponse)
+                                                                   .rawResponse(rawBody == null ? null
+                                                                                : software.amazon.awssdk.core.SdkBytes
+                                                                                      .fromByteArray(rawBody))
                                                                    .build())
                                    .statusCode(response.statusCode())
                                    .requestId(requestId(httpResponse))
@@ -181,6 +279,7 @@ public final class V2ErrorEnricher implements ClientInterceptor {
     private static boolean retriedByV2(RuntimeException error, boolean responseReceived) {
         for (Throwable cause = error; cause != null && cause.getCause() != cause; cause = cause.getCause()) {
             if (cause instanceof IOException || cause instanceof UncheckedIOException
+                || cause instanceof ApiCallAttemptTimeoutException || cause instanceof RetryableException
                 || (responseReceived && cause instanceof SerializationException)) {
                 return true;
             }

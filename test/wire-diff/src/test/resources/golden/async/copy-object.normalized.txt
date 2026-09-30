@@ -1,0 +1,16 @@
+PUT /wirediff-bucket/dst/key.txt
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+--- headers ---
+authorization: SignedHeaders=cache-control;content-type;x-amz-content-sha256;x-amz-copy-source;x-amz-date;x-amz-meta-owner;x-amz-meta-purpose;x-amz-metadata-directive
+cache-control: max-age=60
+content-type: text/plain
+user-agent: <normalized>
+x-amz-content-sha256: <payload-hash-or-unsigned>
+x-amz-copy-source: src-bucket/src/key.txt
+x-amz-date: <normalized>
+x-amz-meta-owner: wirediff
+x-amz-meta-purpose: byte-diff
+x-amz-metadata-directive: REPLACE
+--- body (0 bytes) ---

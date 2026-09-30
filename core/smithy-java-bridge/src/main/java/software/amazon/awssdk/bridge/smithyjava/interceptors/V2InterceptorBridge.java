@@ -15,13 +15,21 @@
 
 package software.amazon.awssdk.bridge.smithyjava.interceptors;
 
+import java.io.InputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
+import software.amazon.awssdk.bridge.smithyjava.auth.V2SigningAuthScheme;
+import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverrides;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.bridge.smithyjava.transport.ResponseBodyDataStream;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportFailures;
+import software.amazon.awssdk.core.ClientType;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
@@ -34,20 +42,27 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
+import org.reactivestreams.FlowAdapters;
+import org.reactivestreams.Publisher;
+import software.amazon.smithy.java.client.core.CallContext;
 import software.amazon.smithy.java.client.core.interceptors.ClientInterceptor;
 import software.amazon.smithy.java.client.core.interceptors.InputHook;
 import software.amazon.smithy.java.client.core.interceptors.OutputHook;
 import software.amazon.smithy.java.client.core.interceptors.RequestHook;
+import software.amazon.smithy.java.client.core.interceptors.ResponseHook;
 import software.amazon.smithy.java.core.schema.SerializableStruct;
+import software.amazon.smithy.java.endpoints.Endpoint;
 import software.amazon.smithy.java.http.api.HttpRequest;
 import software.amazon.smithy.java.http.api.HttpResponse;
 import software.amazon.smithy.java.http.api.ModifiableHttpRequest;
+import software.amazon.smithy.java.io.datastream.DataStream;
 
 /**
  * Runs a customer's v2 {@link ExecutionInterceptor} chain from inside smithy-java's pipeline.
@@ -73,8 +88,18 @@ import software.amazon.smithy.java.http.api.ModifiableHttpRequest;
  *   readBeforeExecution          --&gt;   beforeExecution
  *   modifyBeforeSerialization    --&gt;   modifyRequest
  *   modifyBeforeSigning          --&gt;   modifyHttpRequest / modifyHttpContent
+ *   modifyBeforeDeserialization  --&gt;   afterTransmission, modifyHttpResponse,
+ *                                       modifyHttpResponseContent | modifyAsyncHttpResponseContent,
+ *                                       beforeUnmarshalling
+ *   modifyBeforeCompletion       --&gt;   afterUnmarshalling, modifyResponse
  *   readAfterExecution           --&gt;   afterExecution | onExecutionFailure
  * </pre>
+ *
+ * <p>The response hooks matter more than they look, because v2 itself uses them: every v2 client carries
+ * {@code HttpChecksumValidationInterceptor}, which is how response checksums are validated at all, and S3
+ * layers several more on top ({@code modifyResponse} decodes URL-encoded listing keys, for one). They see
+ * the attempt's checksum spec because {@link #modifyBeforeDeserialization} adopts the attributes the signer
+ * bridge resolved; see {@code compatability_issues.md} 2.1 and 6.1.
  *
  * <p>{@code modifyRequest} maps to {@code modifyBeforeSerialization} and {@code modifyHttpRequest} to
  * {@code modifyBeforeSigning} because that is where each sits relative to serialization and signing in
@@ -133,6 +158,14 @@ public final class V2InterceptorBridge implements ClientInterceptor {
                                 v2Config.option(AwsClientOption.ENDPOINT_PREFIX));
         attributes.putAttribute(SdkExecutionAttribute.SERVICE_NAME, v2Config.option(SdkClientOption.SERVICE_NAME));
         attributes.putAttribute(SdkExecutionAttribute.CLIENT_TYPE, v2Config.option(SdkClientOption.CLIENT_TYPE));
+        // The client's checksum modes, which S3's interceptors read on the request side: with response
+        // validation at its WHEN_SUPPORTED default, EnableTrailingChecksumInterceptor asks GetObject for a
+        // trailing MD5 (x-amz-te: append-md5), and the response half -- stripping and checking those 16 bytes
+        // -- runs in the response hooks this class now bridges. See compatability_issues.md 13.6.
+        attributes.putAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION,
+                                v2Config.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION));
+        attributes.putAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION,
+                                v2Config.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION));
         // The service's own configuration object (S3Configuration, and its equivalents elsewhere). Worth
         // the line because omitting it does not disable the interceptors that read it -- it silently sends
         // them down their no-configuration path. S3's StreamingRequestInterceptor is the clearest case: it
@@ -153,6 +186,11 @@ public final class V2InterceptorBridge implements ClientInterceptor {
         ExecutionAttributes attributes = template.copy();
         attributes.putAttribute(SdkExecutionAttribute.OPERATION_NAME,
                                 hook.operation().schema().id().getName());
+        // A request's own execution attributes, which stock v2 hands to every interceptor (ledger 2.4).
+        RequestOverrideConfiguration overrides = hook.context().get(V2RequestOverrides.KEY);
+        if (overrides != null && overrides.executionAttributes() != null) {
+            attributes = overrides.executionAttributes().merge(attributes);
+        }
         CallState state = new CallState(InterceptorContext.builder().request(request).build(), attributes);
         hook.context().put(STATE, state);
         chain.beforeExecution(state.context, state.attributes);
@@ -195,6 +233,92 @@ public final class V2InterceptorBridge implements ClientInterceptor {
         modifiable.setUri(writeBackUri(after));
         modifiable.setHeaders(after.headers());
         return hook.asRequestType(modifiable);
+    }
+
+    /**
+     * v2's response-side hooks, run on the HTTP response before smithy deserializes it.
+     *
+     * <p>The body is handed to the chain in the form the client type expects — an {@code InputStream} for
+     * a sync client, a publisher for an async one, as v2 does — and whatever the chain returns becomes the
+     * body smithy deserializes, or, for a streaming operation, the body the caller's transformer reads. A
+     * validating wrapper therefore sits between the transport and the caller exactly where v2 puts it.
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public <ResponseT> ResponseT modifyBeforeDeserialization(ResponseHook<?, ?, ?, ResponseT> hook) {
+        CallState state = hook.context().get(STATE);
+        if (state == null || !(hook.response() instanceof HttpResponse response)
+            || V2TransportFailures.isStandIn(response)) {
+            // No response exists for a failed transport attempt; v2 runs no response hooks for one.
+            return hook.response();
+        }
+        adoptSigningAttributes(hook.context(), state);
+
+        boolean async = state.attributes.getAttribute(SdkExecutionAttribute.CLIENT_TYPE) == ClientType.ASYNC;
+        DataStream body = response.body();
+        InputStream in = async || body == null ? null : body.asInputStream();
+        Publisher<ByteBuffer> publisher = async && body != null ? FlowAdapters.toPublisher(body) : null;
+
+        SdkHttpResponse v2Response = toV2Response(response);
+        state.context = state.context.copy(b -> b.httpResponse(v2Response).responseBody(in).responsePublisher(publisher));
+        chain.afterTransmission(state.context, state.attributes);
+        InterceptorContext result = chain.modifyHttpResponse(state.context, state.attributes);
+        if (async) {
+            result = chain.modifyAsyncHttpResponse(result, state.attributes);
+        }
+        state.context = result;
+        chain.beforeUnmarshalling(result, state.attributes);
+
+        DataStream newBody;
+        long length = body == null ? -1 : body.contentLength();
+        String type = body == null ? null : body.contentType();
+        if (async) {
+            Publisher<ByteBuffer> after = result.responsePublisher().orElse(publisher);
+            newBody = after == publisher ? body : new ResponseBodyDataStream(after, type, length);
+        } else {
+            // The sync body was opened to show it to the chain, so it is always re-wrapped -- the original
+            // DataStream has been consumed either way.
+            InputStream after = result.responseBody().orElse(in);
+            newBody = after == null ? body : DataStream.ofInputStream(after, type, length);
+        }
+        SdkHttpResponse headers = result.httpResponse();
+        if (headers == v2Response && newBody == body) {
+            return hook.response();
+        }
+        return (ResponseT) HttpResponse.of(response.httpVersion(), headers.statusCode(),
+                                           software.amazon.smithy.java.http.api.HttpHeaders.of(headers.headers()),
+                                           newBody);
+    }
+
+    /** v2's {@code afterUnmarshalling} and {@code modifyResponse}, once per call, on success only. */
+    @Override
+    public <O extends SerializableStruct> O modifyBeforeCompletion(OutputHook<?, O, ?, ?> hook, RuntimeException error) {
+        CallState state = hook.context().get(STATE);
+        if (error != null || state == null || !(hook.output() instanceof SdkResponse output)) {
+            return error != null ? hook.forward(error) : hook.output();
+        }
+        state.context = state.context.copy(b -> b.response(output));
+        chain.afterUnmarshalling(state.context, state.attributes);
+        InterceptorContext result = chain.modifyResponse(state.context, state.attributes);
+        state.context = result;
+        return result.response() == output ? hook.output() : hook.asOutputType((SerializableStruct) result.response());
+    }
+
+    /**
+     * The attempt's checksum spec and selected auth scheme, as the signer bridge resolved them.
+     *
+     * <p>They are resolved per attempt, after this interceptor's per-call attributes were created, and
+     * travel on the endpoint ({@code V2SigningAuthScheme.SIGNING_INPUTS}). v2's response checksum
+     * validation reads {@code RESOLVED_CHECKSUM_SPECS}, which is a view onto the selected auth scheme, so
+     * both have to be here before the response hooks run.
+     */
+    private static void adoptSigningAttributes(software.amazon.smithy.java.context.Context context, CallState state) {
+        Endpoint endpoint = context.get(CallContext.ENDPOINT);
+        V2SigningAuthScheme.SigningInputs inputs =
+            endpoint == null ? null : endpoint.property(V2SigningAuthScheme.SIGNING_INPUTS);
+        if (inputs != null) {
+            state.attributes.putAbsentAttributes(inputs.attributes());
+        }
     }
 
     @Override

@@ -200,11 +200,20 @@ public final class AuthSchemeInterceptorSpec implements ClassSpec {
     }
 
     private MethodSpec generateAuthSchemeParams() {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("authSchemeParams")
-                                               .addModifiers(Modifier.PRIVATE)
-                                               .returns(authSchemeSpecUtils.parametersInterfaceName())
-                                               .addParameter(SdkRequest.class, "request")
-                                               .addParameter(ExecutionAttributes.class, "executionAttributes");
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("authSchemeParams");
+        // The smithy-java bridge signs with v2's signer, so it needs v2's auth-scheme options, and this is
+        // the only place that knows how to build the provider's parameters. Exposed only for services that
+        // opted in, so every other generated interceptor is unchanged. The body reads nothing but its
+        // arguments, which is what makes it safe to call statically.
+        if (intermediateModel.getCustomizationConfig() != null
+            && intermediateModel.getCustomizationConfig().isGenerateSmithyJavaSerde()) {
+            builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        } else {
+            builder.addModifiers(Modifier.PRIVATE);
+        }
+        builder.returns(authSchemeSpecUtils.parametersInterfaceName())
+               .addParameter(SdkRequest.class, "request")
+               .addParameter(ExecutionAttributes.class, "executionAttributes");
 
         if (!authSchemeSpecUtils.useEndpointBasedAuthProvider()) {
             builder.addStatement("$T operation = executionAttributes.getAttribute($T.OPERATION_NAME)", String.class,

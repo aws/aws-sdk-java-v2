@@ -16,6 +16,7 @@
 package software.amazon.awssdk.bridge.smithyjava.streaming;
 
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -89,6 +90,16 @@ public final class V2StreamingBridge implements ClientInterceptor {
     public static final Context.Key<AtomicReference<DataStream>> RESPONSE_BODY_SINK =
         Context.key("v2 streaming response body sink");
 
+    /**
+     * Set in the client config when the client signs with v2's own signer ({@code V2SigningAuthScheme}).
+     *
+     * <p>Then v2's signer decides the payload hash — {@code UNSIGNED-PAYLOAD} over HTTPS, chunked signing
+     * over HTTP, a trailer when a checksum is wanted — and this class must not pre-empt it with a header,
+     * nor refuse plain HTTP: both workarounds exist only because smithy-java's signer implements none of
+     * that.
+     */
+    public static final Context.Key<Boolean> V2_SIGNER = Context.key("v2 signer active");
+
     private static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
 
     private static final V2StreamingBridge INSTANCE = new V2StreamingBridge();
@@ -108,13 +119,22 @@ public final class V2StreamingBridge implements ClientInterceptor {
      * {@code SmithyBridgeClient#invoke}.
      *
      * @param requestBody the caller's body.
-     * @return an override config carrying the body and the interceptor that applies it.
+     * @return a contribution to the call's per-call config, carrying the body and the interceptor that applies it.
      */
-    public static RequestOverrideConfig forRequestBody(RequestBody requestBody) {
-        return RequestOverrideConfig.builder()
-                                    .putConfig(REQUEST_BODY, V2DataStreams.toDataStream(requestBody))
-                                    .addInterceptor(INSTANCE)
-                                    .build();
+    public static Consumer<RequestOverrideConfig.Builder> forRequestBody(RequestBody requestBody) {
+        return forRequestBody(V2DataStreams.toDataStream(requestBody));
+    }
+
+    /**
+     * Per-call configuration for a streaming request body that is already a {@link DataStream}: the
+     * async client's case, where {@link V2DataStreams#toDataStream(software.amazon.awssdk.core.async.AsyncRequestBody)}
+     * has adapted the caller's {@code AsyncRequestBody}.
+     *
+     * @param requestBody the body.
+     * @return a contribution to the call's per-call config, carrying the body and the interceptor that applies it.
+     */
+    public static Consumer<RequestOverrideConfig.Builder> forRequestBody(DataStream requestBody) {
+        return b -> b.putConfig(REQUEST_BODY, requestBody).addInterceptor(INSTANCE);
     }
 
     /**
@@ -122,13 +142,10 @@ public final class V2StreamingBridge implements ClientInterceptor {
      *
      * @param sink where the interceptor should leave the response body; generated code reads it after the
      *             call returns and hands it to the caller's {@code ResponseTransformer}.
-     * @return an override config carrying the sink and the interceptor that fills it.
+     * @return a contribution to the call's per-call config, carrying the sink and the interceptor that fills it.
      */
-    public static RequestOverrideConfig forResponseBody(AtomicReference<DataStream> sink) {
-        return RequestOverrideConfig.builder()
-                                    .putConfig(RESPONSE_BODY_SINK, sink)
-                                    .addInterceptor(INSTANCE)
-                                    .build();
+    public static Consumer<RequestOverrideConfig.Builder> forResponseBody(AtomicReference<DataStream> sink) {
+        return b -> b.putConfig(RESPONSE_BODY_SINK, sink).addInterceptor(INSTANCE);
     }
 
     /**
@@ -136,14 +153,24 @@ public final class V2StreamingBridge implements ClientInterceptor {
      *
      * @param requestBody the caller's body.
      * @param sink        where to leave the response body.
-     * @return an override config carrying both, and the interceptor.
+     * @return a contribution to the call's per-call config, carrying both, and the interceptor.
      */
-    public static RequestOverrideConfig forBoth(RequestBody requestBody, AtomicReference<DataStream> sink) {
-        return RequestOverrideConfig.builder()
-                                    .putConfig(REQUEST_BODY, V2DataStreams.toDataStream(requestBody))
-                                    .putConfig(RESPONSE_BODY_SINK, sink)
-                                    .addInterceptor(INSTANCE)
-                                    .build();
+    public static Consumer<RequestOverrideConfig.Builder> forBoth(RequestBody requestBody,
+                                                                  AtomicReference<DataStream> sink) {
+        return forBoth(V2DataStreams.toDataStream(requestBody), sink);
+    }
+
+    /**
+     * Per-call configuration for an operation that streams in both directions, with the request body
+     * already adapted.
+     *
+     * @param requestBody the body.
+     * @param sink        where to leave the response body.
+     * @return a contribution to the call's per-call config, carrying both, and the interceptor.
+     */
+    public static Consumer<RequestOverrideConfig.Builder> forBoth(DataStream requestBody,
+                                                                  AtomicReference<DataStream> sink) {
+        return b -> b.putConfig(REQUEST_BODY, requestBody).putConfig(RESPONSE_BODY_SINK, sink).addInterceptor(INSTANCE);
     }
 
     @Override
@@ -168,7 +195,9 @@ public final class V2StreamingBridge implements ClientInterceptor {
         // retry, and the replayable DataStream is what makes re-sending them correct.
         ModifiableHttpRequest modifiable = request.toModifiableCopy();
         modifiable.setBody(body);
-        modifiable.setHeader("x-amz-content-sha256", UNSIGNED_PAYLOAD);
+        if (!Boolean.TRUE.equals(hook.context().get(V2_SIGNER))) {
+            modifiable.setHeader("x-amz-content-sha256", UNSIGNED_PAYLOAD);
+        }
 
         if (body.hasKnownLength()) {
             modifiable.setHeader("content-length", Long.toString(body.contentLength()));
@@ -189,7 +218,7 @@ public final class V2StreamingBridge implements ClientInterceptor {
      */
     @Override
     public void readAfterSigning(RequestHook<?, ?, ?> hook) {
-        if (hook.context().get(REQUEST_BODY) == null) {
+        if (hook.context().get(REQUEST_BODY) == null || Boolean.TRUE.equals(hook.context().get(V2_SIGNER))) {
             return;
         }
         if (!(hook.request() instanceof HttpRequest request)) {

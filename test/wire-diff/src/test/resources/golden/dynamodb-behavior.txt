@@ -1,0 +1,6 @@
+sync  crc32 correct -> OK, attempts=1
+async crc32 correct -> OK, attempts=1
+sync  crc32 corrupt -> FAIL Crc32MismatchException, attempts=1
+async crc32 corrupt -> FAIL Crc32MismatchException, attempts=1
+sync  idempotency-token -> attempts=2 token-present=true same-token-on-retry=true
+async idempotency-token -> attempts=2 token-present=true same-token-on-retry=true

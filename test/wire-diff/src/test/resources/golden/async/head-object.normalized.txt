@@ -1,0 +1,11 @@
+HEAD /wirediff-bucket/logs/a.txt
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+--- headers ---
+authorization: SignedHeaders=if-match;x-amz-content-sha256;x-amz-date
+if-match: "etag-value"
+user-agent: <normalized>
+x-amz-content-sha256: <payload-hash-or-unsigned>
+x-amz-date: <normalized>
+--- body (0 bytes) ---

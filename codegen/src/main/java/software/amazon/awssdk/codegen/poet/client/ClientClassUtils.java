@@ -16,6 +16,8 @@
 package software.amazon.awssdk.codegen.poet.client;
 
 import static javax.lang.model.element.Modifier.PRIVATE;
+import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_INPUT_PARAM;
+import static software.amazon.awssdk.codegen.internal.Constant.ASYNC_STREAMING_OUTPUT_PARAM;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_INPUT_PARAM;
 import static software.amazon.awssdk.codegen.internal.Constant.SYNC_STREAMING_OUTPUT_PARAM;
 import static software.amazon.awssdk.codegen.poet.PoetUtils.classNameFromFqcn;
@@ -31,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import javax.lang.model.element.Modifier;
@@ -47,6 +51,7 @@ import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.HostPrefixProcessor;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.auth.scheme.AuthSchemeSpecUtils;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
@@ -58,16 +63,30 @@ import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.HostnameValidator;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
 public final class ClientClassUtils {
-
-    /**
-     * Referenced by name rather than by class so that the code generator does not need a compile-time
-     * dependency on the bridge, which depends on the generated code's runtime in turn.
-     */
+    // The bridge types below are referenced by name rather than by class so that the code generator does
+    // not need a compile-time dependency on the bridge, which depends on the generated code's runtime in turn.
+    static final ClassName SMITHY_BRIDGE_CLIENT =
+        ClassName.get("software.amazon.awssdk.bridge.smithyjava.client", "SmithyBridgeClient");
+    private static final ClassName HTTP_CHECKSUM_VALIDATION_INTERCEPTOR =
+        ClassName.get("software.amazon.awssdk.core.internal.interceptor", "HttpChecksumValidationInterceptor");
+    private static final ClassName SDK_INTERNAL_EXECUTION_ATTRIBUTE =
+        ClassName.get("software.amazon.awssdk.core.interceptor", "SdkInternalExecutionAttribute");
+    private static final ClassName V2_ENDPOINT_RESOLVER_BRIDGE =
+        ClassName.get("software.amazon.awssdk.bridge.smithyjava.endpoints", "V2EndpointResolverBridge");
+    private static final ClassName V2_CONFIG_TRANSLATOR =
+        ClassName.get("software.amazon.awssdk.bridge.smithyjava.client", "V2ConfigTranslator");
+    private static final ClassName AWS_JSON_1_PROTOCOL =
+        ClassName.get("software.amazon.smithy.java.aws.client.awsjson", "AwsJson1Protocol");
+    private static final ClassName REST_XML_PROTOCOL =
+        ClassName.get("software.amazon.smithy.java.aws.client.restxml", "RestXmlClientProtocol");
+    private static final ClassName ASYNC_STREAMING_INVOKER =
+        ClassName.get("software.amazon.awssdk.bridge.smithyjava.streaming", "V2AsyncStreamingInvoker");
     private static final ClassName STREAMING_INVOKER =
         ClassName.get("software.amazon.awssdk.bridge.smithyjava.streaming", "V2StreamingInvoker");
 
@@ -75,14 +94,16 @@ public final class ClientClassUtils {
     }
 
     /**
-     * Whether this operation's sync implementation delegates to the smithy-java pipeline instead of the
-     * v2 {@code ClientExecutionParams} pipeline.
+     * Whether this operation's sync and async implementations delegate to the smithy-java pipeline instead
+     * of the v2 {@code ClientExecutionParams} pipeline.
      *
-     * <p>Both the method body in {@code SyncClientClass} and the execution handler in the protocol specs
-     * must agree on this, which is why the predicate lives here.
+     * <p>The method bodies in {@code SyncClientClass} and {@code AsyncClientClass} and the execution handler
+     * in the protocol specs must agree on this, which is why the predicate lives here.
      *
-     * <p>Streaming operations are included; see {@code V2StreamingInvoker}. Event streams are not, but
-     * they are already filtered out before this is reached, in {@code SyncClientClass#operations}.
+     * <p>Streaming operations are included; see {@code V2StreamingInvoker} and
+     * {@code V2AsyncStreamingInvoker}. Event streams are not. The sync client filters them out before this
+     * is reached, in {@code SyncClientClass#operations}; the async client keeps them, on the stock
+     * pipeline, which is why the check has to be here as well.
      */
     public static boolean usesSmithyPipeline(IntermediateModel model, OperationModel opModel) {
         return model.getCustomizationConfig() != null
@@ -129,6 +150,150 @@ public final class ClientClassUtils {
                        .build();
         }
         return body.addStatement("return smithyClient.invoke($L, $T.instance())", input, operationClass)
+                   .build();
+    }
+
+    /**
+     * Emits the construction of the one smithy-java client the generated operations delegate to.
+     *
+     * <p>Everything service-specific is passed in here rather than looked up inside the bridge: the
+     * generated {@code ApiService}, a lambda composing the endpoint provider with the generated
+     * {@code ruleParams}, the built-in interceptors smithy-java replaces, and the service base
+     * exception used for unmodeled failures.
+     */
+    static void addSmithyClientConstruction(MethodSpec.Builder builder, IntermediateModel model,
+                                            PoetExtension poetExtensions) {
+        EndpointRulesSpecUtils endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
+        AuthSchemeSpecUtils authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        String operationsPackage = model.getMetadata().getFullModelPackageName().replace(".model", ".operations");
+        ClassName apiService = ClassName.get(operationsPackage, model.getMetadata().getServiceName() + "ApiService");
+        ClassName baseException = poetExtensions.getModelClass(model.getMetadata().getBaseExceptionName());
+
+        builder.addCode("this.smithyClient = $T.newClientBuilder(this.clientConfiguration,\n", V2_CONFIG_TRANSLATOR);
+        builder.addCode("    $T.instance(),\n", apiService);
+        builder.addCode("    new $T($T.instance().schema().id()),\n", smithyProtocolClass(model), apiService);
+        // The endpoint, then the operation's @endpoint host prefix, as the stock resolver interceptor does both.
+        // The provider is read from the call's attributes rather than captured from the client, as the stock
+        // interceptor reads it: that is where a request-level overrideConfiguration().endpointProvider(...)
+        // lands (V2RequestOverrides).
+        builder.addCode("    (request, executionAttributes) -> $T.withHostPrefix((($T) executionAttributes.getAttribute("
+                        + "$T.ENDPOINT_PROVIDER))\n"
+                        + "        .resolveEndpoint($T.ruleParams(request, executionAttributes)).join(),\n"
+                        + "        $T.hostPrefix(executionAttributes.getAttribute($T.OPERATION_NAME), request), "
+                        + "executionAttributes),\n",
+                        V2_ENDPOINT_RESOLVER_BRIDGE,
+                        endpointRulesSpecUtils.providerInterfaceName(),
+                        SDK_INTERNAL_EXECUTION_ATTRIBUTE,
+                        endpointRulesSpecUtils.resolverInterceptorName(),
+                        endpointRulesSpecUtils.resolverInterceptorName(),
+                        ClassName.get("software.amazon.awssdk.core.interceptor", "SdkExecutionAttribute"));
+        // These three do work that smithy-java now owns; running them again would resolve an endpoint
+        // and an auth scheme that nothing downstream reads. The fourth, when present, is v2's response
+        // checksum validator, which every v2 client carries: it acts only for an operation whose
+        // httpChecksum trait names a validation-mode member, so for a service with none it is inert, and
+        // listing it here keeps it from being the one interceptor that installs the interceptor bridge on
+        // an otherwise default client (the bridge's cost is ledger 2.1).
+        boolean validatesResponses = model.getOperations().values().stream()
+                                          .anyMatch(o -> o.getHttpChecksum() != null
+                                                         && o.getHttpChecksum().getRequestValidationModeMember() != null);
+        if (validatesResponses) {
+            builder.addCode("    $T.of($T.class, $T.class, $T.class),\n",
+                            Set.class,
+                            authSchemeSpecUtils.authSchemeInterceptor(),
+                            endpointRulesSpecUtils.resolverInterceptorName(),
+                            endpointRulesSpecUtils.requestModifierInterceptorName());
+        } else {
+            builder.addCode("    $T.of($T.class, $T.class, $T.class, $T.class),\n",
+                            Set.class,
+                            authSchemeSpecUtils.authSchemeInterceptor(),
+                            endpointRulesSpecUtils.resolverInterceptorName(),
+                            endpointRulesSpecUtils.requestModifierInterceptorName(),
+                            HTTP_CHECKSUM_VALIDATION_INTERCEPTOR);
+        }
+        // The service's base exception, used for any failure with no more specific v2 type: a transport
+        // error, or an error response whose shape is not in the operation's registry. Passed as a
+        // builder supplier rather than a finished exception because V2ErrorEnricher populates it from
+        // the HTTP response -- status code, request ID, awsErrorDetails -- which is what makes an
+        // unmodeled error retryable at all.
+        builder.addCode("    $T::builder,\n", baseException);
+        // v2's auth-scheme options, for the signer bridge: the configured provider composed with the
+        // generated params builder, exactly as the stock auth-scheme interceptor composes them.
+        builder.addCode("    (request, executionAttributes) -> (($T) executionAttributes.getAttribute("
+                        + "$T.AUTH_SCHEME_RESOLVER))\n",
+                        authSchemeSpecUtils.providerInterfaceName(), SDK_INTERNAL_EXECUTION_ATTRIBUTE);
+        builder.addCode("        .resolveAuthScheme($T.authSchemeParams(request, executionAttributes)))\n",
+                        authSchemeSpecUtils.authSchemeInterceptor());
+        // The stock per-request configuration update (request-level SdkPlugins), handed to the bridge so a
+        // plugin-bearing request can be translated as stock v2 would build it. Returns the client's own
+        // configuration, unallocated, for a request without plugins.
+        builder.addStatement("    .requestConfigurationUpdater(request -> updateSdkClientConfiguration(request, "
+                             + "this.clientConfiguration))\n    .build()");
+    }
+
+    /**
+     * The smithy-java protocol implementation for this service's wire protocol.
+     *
+     * <p>Fails loudly rather than defaulting: silently generating an awsJson client for, say, a query
+     * service would produce a client that compiles, builds, and then sends the wrong bytes at runtime.
+     * A protocol added here also needs its binding traits mapped in {@code SdkSchemaFactory}.
+     */
+    private static ClassName smithyProtocolClass(IntermediateModel model) {
+        switch (model.getMetadata().getProtocol()) {
+            case AWS_JSON:
+                return AWS_JSON_1_PROTOCOL;
+            case REST_XML:
+                return REST_XML_PROTOCOL;
+            default:
+                throw new UnsupportedOperationException(
+                    "generateSmithyJavaSerde is enabled for " + model.getMetadata().getServiceName()
+                    + ", but its protocol " + model.getMetadata().getProtocol().getValue()
+                    + " has no smithy-java protocol wired up in ClientClassUtils.");
+        }
+    }
+
+    /** Whether the service opted in to the smithy-java pipeline at all; per operation, see {@link #usesSmithyPipeline}. */
+    static boolean usesSmithyJavaSerde(IntermediateModel model) {
+        return model.getCustomizationConfig() != null && model.getCustomizationConfig().isGenerateSmithyJavaSerde();
+    }
+
+    /**
+     * The body of a generated <em>async</em> operation on the smithy-java pipeline, from the invocation to
+     * the returned future.
+     *
+     * <p>The async counterpart of {@link #smithyJavaExecutionHandler}. The call itself is one line, because
+     * {@code SmithyBridgeClient#runAsync} owns the threading; what is left here is v2's own per-call
+     * bookkeeping around the future: metrics are published when it completes, and cancelling the future
+     * the caller holds is forwarded to the one the call produced, as {@code CompletableFutureUtils
+     * .forwardExceptionTo} does in every stock async operation.
+     */
+    public static CodeBlock smithyJavaAsyncExecutionHandler(IntermediateModel model, PoetExtension poetExtensions,
+                                                            OperationModel opModel) {
+        String operationsPackage = model.getMetadata().getFullModelPackageName().replace(".model", ".operations");
+        ClassName operationClass = ClassName.get(operationsPackage, opModel.getOperationName() + "Operation");
+        String input = opModel.getInput().getVariableName();
+
+        TypeName resultType = opModel.hasStreamingOutput()
+                              ? TypeVariableName.get("ReturnT")
+                              : poetExtensions.getModelClass(opModel.getReturnType().getReturnType());
+        TypeName futureType = ParameterizedTypeName.get(ClassName.get(CompletableFuture.class), resultType);
+
+        CodeBlock.Builder body = CodeBlock.builder().add("\n\n");
+        if (opModel.hasStreamingOutput()) {
+            body.addStatement("$T executeFuture = $T.invoke(smithyClient, $L, $T.instance(), $L, $L)",
+                              futureType, ASYNC_STREAMING_INVOKER, input, operationClass,
+                              opModel.hasStreamingInput() ? ASYNC_STREAMING_INPUT_PARAM : "null",
+                              ASYNC_STREAMING_OUTPUT_PARAM);
+        } else if (opModel.hasStreamingInput()) {
+            body.addStatement("$T executeFuture = $T.invoke(smithyClient, $L, $T.instance(), $L)",
+                              futureType, ASYNC_STREAMING_INVOKER, input, operationClass, ASYNC_STREAMING_INPUT_PARAM);
+        } else {
+            body.addStatement("$T executeFuture = smithyClient.invokeAsync($L, $T.instance())",
+                              futureType, input, operationClass);
+        }
+        return body.addStatement("$T whenCompleted = executeFuture.whenComplete((r, e) -> "
+                                 + "metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect())))",
+                                 futureType)
+                   .addStatement("return $T.forwardExceptionTo(whenCompleted, executeFuture)", CompletableFutureUtils.class)
                    .build();
     }
 

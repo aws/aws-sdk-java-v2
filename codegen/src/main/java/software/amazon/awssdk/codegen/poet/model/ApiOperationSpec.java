@@ -28,9 +28,13 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeMarshaller;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.poet.ClassSpec;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
+import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 
 /**
  * Generates a static singleton {@code ApiOperation} implementation per service operation.
@@ -53,6 +57,8 @@ public class ApiOperationSpec implements ClassSpec {
     private static final ClassName V2_MODELED_ERROR =
         ClassName.get("software.amazon.awssdk.bridge.smithyjava.error", "V2ModeledError");
     private static final ClassName LIST = ClassName.get("java.util", "List");
+    private static final ClassName V2_OPERATION_METADATA =
+        ClassName.get("software.amazon.awssdk.bridge.smithyjava.client", "V2OperationMetadata");
 
     private final IntermediateModel model;
     private final OperationModel operationModel;
@@ -77,26 +83,66 @@ public class ApiOperationSpec implements ClassSpec {
         ClassName self = className();
         ParameterizedTypeName apiOpType = ParameterizedTypeName.get(API_OPERATION, inputType, outputType);
 
-        return TypeSpec.classBuilder(self)
-                       .addModifiers(Modifier.PUBLIC, Modifier.FINAL)
-                       .addAnnotation(PoetUtils.generatedAnnotation())
-                       .addSuperinterface(apiOpType)
-                       .addField(instanceField(self))
-                       .addField(schemaField())
-                       .addField(typeRegistryField())
-                       .addField(schemesField())
-                       .addMethod(instanceMethod(self))
-                       .addMethod(privateConstructor())
-                       .addMethod(inputBuilderMethod())
-                       .addMethod(outputBuilderMethod())
-                       .addMethod(schemaMethod())
-                       .addMethod(inputSchemaMethod())
-                       .addMethod(outputSchemaMethod())
-                       .addMethod(errorRegistryMethod())
-                       .addMethod(errorSchemasMethod())
-                       .addMethod(effectiveAuthSchemesMethod())
-                       .addMethod(serviceMethod())
-                       .build();
+        CodeBlock executionAttributes = executionAttributes();
+        TypeSpec.Builder type = TypeSpec.classBuilder(self);
+        if (!executionAttributes.isEmpty()) {
+            type.addSuperinterface(ParameterizedTypeName.get(V2_OPERATION_METADATA, inputType))
+                .addMethod(putExecutionAttributesMethod(executionAttributes));
+        }
+
+        return type.addModifiers(Modifier.PUBLIC, Modifier.FINAL)
+                   .addAnnotation(PoetUtils.generatedAnnotation())
+                   .addSuperinterface(apiOpType)
+                   .addField(instanceField(self))
+                   .addField(schemaField())
+                   .addField(typeRegistryField())
+                   .addField(schemesField())
+                   .addMethod(instanceMethod(self))
+                   .addMethod(privateConstructor())
+                   .addMethod(inputBuilderMethod())
+                   .addMethod(outputBuilderMethod())
+                   .addMethod(schemaMethod())
+                   .addMethod(inputSchemaMethod())
+                   .addMethod(outputSchemaMethod())
+                   .addMethod(errorRegistryMethod())
+                   .addMethod(errorSchemasMethod())
+                   .addMethod(effectiveAuthSchemesMethod())
+                   .addMethod(serviceMethod())
+                   .build();
+    }
+
+    /**
+     * The operation-level traits stock v2 writes into a call's execution attributes, emitted by the same
+     * generators the stock client method uses, so the bridge writes exactly what stock v2 writes.
+     *
+     * <p>{@code httpChecksum} and {@code httpChecksumRequired} decide request checksums and response
+     * validation; {@code requestCompression} decides compression. None of them is a shape trait in v2 —
+     * they live on the call — and none of them has a working smithy-java 1.6.1 consumer except
+     * {@code @httpChecksumRequired}, which smithy implements as {@code Content-MD5} where current v2 sends a
+     * CRC32. So they travel as v2 attributes, to v2's signer, rather than as smithy traits; see
+     * {@code V2OperationMetadata}.
+     */
+    private CodeBlock executionAttributes() {
+        if (operationModel.getInputShape() == null) {
+            return CodeBlock.of("");
+        }
+        return CodeBlock.builder()
+                        .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(operationModel))
+                        .add(HttpChecksumTrait.create(operationModel))
+                        .add(RequestCompressionTrait.create(operationModel, model))
+                        .build();
+    }
+
+    private MethodSpec putExecutionAttributesMethod(CodeBlock executionAttributes) {
+        return MethodSpec.methodBuilder("putExecutionAttributes")
+                         .addAnnotation(Override.class)
+                         .addModifiers(Modifier.PUBLIC)
+                         .addParameter(inputType, operationModel.getInput().getVariableName())
+                         .addParameter(V2_OPERATION_METADATA.nestedClass("Attributes"), "attributes")
+                         .addCode("attributes")
+                         .addCode(executionAttributes)
+                         .addCode(";\n")
+                         .build();
     }
 
     @Override
@@ -221,8 +267,17 @@ public class ApiOperationSpec implements ClassSpec {
         CodeBlock.Builder builder = CodeBlock.builder()
             .add("$T.builder()\n", TYPE_REGISTRY);
 
-        List<String> exceptions = operationModel.getExceptions().stream()
-            .map(e -> e.getExceptionName())
+        // Every error the service models, not only the operation's own: stock v2's generated error mapping
+        // for each operation lists them all (DynamoDB's GetItem maps ConditionalCheckFailedException), so a
+        // service error an operation does not declare still arrives as its modeled type. Registering only the
+        // operation's errors turned those into the service's base exception. Operation errors first, so an
+        // operation-specific registration wins any duplicate.
+        List<String> exceptions = java.util.stream.Stream.concat(
+                operationModel.getExceptions().stream().map(e -> e.getExceptionName()),
+                model.getShapes().values().stream()
+                     .filter(shape -> shape.getShapeType() == ShapeType.Exception)
+                     .map(shape -> shape.getShapeName()))
+            .distinct()
             .collect(Collectors.toList());
 
         for (String exceptionName : exceptions) {

@@ -1,0 +1,15 @@
+PUT /wirediff-bucket/k
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+tagging <valueless>
+--- headers ---
+authorization: SignedHeaders=content-type;x-amz-checksum-crc32;x-amz-content-sha256;x-amz-date;x-amz-sdk-checksum-algorithm
+content-type: application/xml
+user-agent: <normalized>
+x-amz-checksum-crc32: O44fNg==
+x-amz-content-sha256: UNSIGNED-PAYLOAD
+x-amz-date: <normalized>
+x-amz-sdk-checksum-algorithm: CRC32
+--- body (80 bytes) ---
+<Tagging><TagSet><Tag><Key>env</Key><Value>test</Value></Tag></TagSet></Tagging>

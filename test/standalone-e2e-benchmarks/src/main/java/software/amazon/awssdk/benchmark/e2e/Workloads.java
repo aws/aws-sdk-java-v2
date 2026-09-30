@@ -166,7 +166,12 @@ interface Workloads {
                 // the v2 chain is a real cost rather than three inert defaults.
                 return s3Sync(client, endpoint, metrics, concurrency);
             case "v2-async":
-                return v2Async(endpoint, metrics, concurrency);
+                return v2Async(endpoint, metrics, concurrency, false);
+            case "v2-async-netty":
+                // The other v2 async transport. A bridged async client has to drive both, and they park
+                // and wake differently (a Java event loop versus a native one), so a transport-specific
+                // cost in the bridge would show up in one arm and not the other.
+                return v2Async(endpoint, metrics, concurrency, true);
             case "smithy":
                 return smithy(endpoint, metrics, concurrency);
             default:
@@ -524,11 +529,15 @@ interface Workloads {
     // pick Netty (priority 1 in ClasspathSdkHttpServiceProvider's async table), so this benchmark is
     // deliberately measuring the intended long-term default rather than today's fallback.
 
-    private static Workload v2Async(URI endpoint, boolean metrics, int concurrency) {
+    private static Workload v2Async(URI endpoint, boolean metrics, int concurrency, boolean netty) {
         MetricsSupport.V2Publisher publisher = new MetricsSupport.V2Publisher();
         var ddb = software.amazon.awssdk.services.dynamodb.DynamoDbAsyncClient.builder()
             .endpointOverride(endpoint).region(Region.US_EAST_1).credentialsProvider(v2Creds())
-            .httpClient(AwsCrtAsyncHttpClient.builder().maxConcurrency(concurrency).build())
+            .httpClient(netty
+                        ? software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient.builder()
+                                                                                     .maxConcurrency(concurrency)
+                                                                                     .build()
+                        : AwsCrtAsyncHttpClient.builder().maxConcurrency(concurrency).build())
             .overrideConfiguration(v2Override(metrics, publisher))
             .build();
 
@@ -575,7 +584,7 @@ interface Workloads {
             }
 
             public String transport() {
-                return "crt";
+                return netty ? "netty" : "crt";
             }
 
             public void resetMetrics() {

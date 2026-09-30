@@ -101,6 +101,19 @@
             <artifactId>http-auth-spi</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
+        <!-- v2's own SigV4 signer and checksum algorithms, for V2SignerBridge: S3's flexible checksums,
+             aws-chunked trailers, chunked signing and UNSIGNED-PAYLOAD all live in v2's signer, and
+             smithy-java 1.6.1 implements none of them. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>http-auth-aws</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>checksums</artifactId>
+            <version>${awsjavasdk.version}</version>
+        </dependency>
 
         <!-- smithy-java runtime the bridges target. -->
         <dependency>

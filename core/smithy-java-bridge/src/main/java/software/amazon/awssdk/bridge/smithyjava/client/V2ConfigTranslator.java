@@ -24,21 +24,32 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.bridge.smithyjava.auth.V2IdentityResolver;
+import software.amazon.awssdk.bridge.smithyjava.auth.V2SigningAuthScheme;
 import software.amazon.awssdk.bridge.smithyjava.endpoints.V2EndpointResolverBridge;
 import software.amazon.awssdk.bridge.smithyjava.error.V2ErrorEnricher;
 import software.amazon.awssdk.bridge.smithyjava.interceptors.V2InterceptorBridge;
+import software.amazon.awssdk.bridge.smithyjava.serde.V2Crc32Validation;
+import software.amazon.awssdk.bridge.smithyjava.serde.V2RestXmlBodyRules;
+import software.amazon.awssdk.bridge.smithyjava.streaming.V2StreamingBridge;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2AsyncTransportBridge;
 import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportBridge;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportFailures;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.smithy.java.aws.client.auth.scheme.sigv4.SigV4AuthScheme;
 import software.amazon.smithy.java.aws.client.auth.scheme.sigv4.SigV4Settings;
+import software.amazon.smithy.java.aws.client.restxml.RestXmlClientProtocol;
 import software.amazon.smithy.java.aws.sdkv2.retries.SdkRetryStrategy;
 import software.amazon.smithy.java.client.core.ClientProtocol;
+import software.amazon.smithy.java.client.core.ClientTransport;
 import software.amazon.smithy.java.core.schema.ApiService;
 
 /**
@@ -53,11 +64,15 @@ import software.amazon.smithy.java.core.schema.ApiService;
  *   <caption>Disposition of the options this translator reads</caption>
  *   <tr><th>v2 option</th><th>Disposition</th></tr>
  *   <tr><td>{@code SYNC_HTTP_CLIENT}</td><td>bridged via {@link V2TransportBridge}</td></tr>
+ *   <tr><td>{@code ASYNC_HTTP_CLIENT}</td><td>bridged via {@link V2AsyncTransportBridge}</td></tr>
+ *   <tr><td>{@code FUTURE_COMPLETION_EXECUTOR}</td><td>bridged: completes async futures</td></tr>
  *   <tr><td>{@code CREDENTIALS_IDENTITY_PROVIDER}</td><td>bridged via {@link V2IdentityResolver}</td></tr>
  *   <tr><td>{@code RETRY_STRATEGY} / {@code RETRY_POLICY}</td><td>bridged via {@link SdkRetryStrategy}</td></tr>
  *   <tr><td>{@code EXECUTION_INTERCEPTORS}</td><td>bridged via {@link V2InterceptorBridge}, lazily</td></tr>
  *   <tr><td>endpoint provider</td><td>bridged via {@link V2EndpointResolverBridge}</td></tr>
  *   <tr><td>{@code SIGNING_REGION}, {@code SERVICE_SIGNING_NAME}</td><td>translated to SigV4 settings</td></tr>
+ *   <tr><td>{@code AUTH_SCHEME_PROVIDER} + v2's {@code AwsV4HttpSigner}</td><td>bridged via
+ *       {@link V2SigningAuthScheme} when generated code supplies an auth-options resolver</td></tr>
  *   <tr><td>everything else</td><td>see {@code compatability_issues.md} section 9</td></tr>
  * </table>
  */
@@ -81,6 +96,7 @@ public final class V2ConfigTranslator {
     private static final String STRIP_RETRIES = "awssdk.bridge.stripRetries";
     private static final String STRIP_INTERCEPTORS = "awssdk.bridge.stripInterceptors";
     private static final String STRIP_ERROR_ENRICHER = "awssdk.bridge.stripErrorEnricher";
+    private static final String STRIP_SIGNER = "awssdk.bridge.stripSigner";
 
     /**
      * Measurement knob: keep provably inert interceptors in the bridged chain.
@@ -101,6 +117,8 @@ public final class V2ConfigTranslator {
      */
     private static final Set<String> BRIDGED_HOOKS = Set.of(
             "beforeExecution", "modifyRequest", "modifyHttpRequest", "modifyHttpContent",
+            "afterTransmission", "modifyHttpResponse", "modifyHttpResponseContent",
+            "modifyAsyncHttpResponseContent", "beforeUnmarshalling", "afterUnmarshalling", "modifyResponse",
             "afterExecution", "onExecutionFailure");
 
     private static final String LAMBDA_FUNCTION_NAME = "AWS_LAMBDA_FUNCTION_NAME";
@@ -110,6 +128,23 @@ public final class V2ConfigTranslator {
 
     private static boolean stripped(String property) {
         return Boolean.getBoolean(STRIP_ALL) || Boolean.getBoolean(property);
+    }
+
+    /**
+     * Picks the transport from whichever HTTP client the v2 configuration actually carries.
+     *
+     * <p>A v2 client builder populates exactly one of these: a sync builder sets
+     * {@code SYNC_HTTP_CLIENT}, an async builder sets {@code ASYNC_HTTP_CLIENT}. So this single choice is
+     * what makes the same generated smithy-java call path serve both client flavors, and it is why the
+     * async transport is reachable — and testable — before any async codegen exists: hand a sync client
+     * an async-populated configuration and the calls go out over Netty or CRT.
+     */
+    private static ClientTransport<?, ?> transportFor(SdkClientConfiguration v2Config) {
+        SdkAsyncHttpClient asyncHttpClient = v2Config.option(SdkClientOption.ASYNC_HTTP_CLIENT);
+        if (asyncHttpClient != null) {
+            return new V2AsyncTransportBridge(asyncHttpClient);
+        }
+        return new V2TransportBridge(v2Config.option(SdkClientOption.SYNC_HTTP_CLIENT));
     }
 
     /**
@@ -140,17 +175,58 @@ public final class V2ConfigTranslator {
             Set<Class<? extends ExecutionInterceptor>> replacedInterceptors,
             Supplier<? extends AwsServiceException.Builder> baseExceptionBuilder
     ) {
+        return newClientBuilder(v2Config, service, protocol, endpointResolver, replacedInterceptors,
+                                baseExceptionBuilder, null);
+    }
+
+    /**
+     * As {@link #newClientBuilder(SdkClientConfiguration, ApiService, ClientProtocol,
+     * V2EndpointResolverBridge.V2RuleParamsResolver, Set, Supplier)}, signing with v2's own signer.
+     *
+     * @param authOptionsResolver composition of the configured {@code AUTH_SCHEME_PROVIDER} and the
+     *                            generated {@code authSchemeParams}; null signs with smithy-java's SigV4.
+     *                            See {@link V2SigningAuthScheme} for what v2's signer does that
+     *                            smithy-java's does not.
+     */
+    public static SmithyBridgeClient.Builder newClientBuilder(
+            SdkClientConfiguration v2Config,
+            ApiService service,
+            ClientProtocol<?, ?> protocol,
+            V2EndpointResolverBridge.V2RuleParamsResolver endpointResolver,
+            Set<Class<? extends ExecutionInterceptor>> replacedInterceptors,
+            Supplier<? extends AwsServiceException.Builder> baseExceptionBuilder,
+            V2EndpointResolverBridge.V2AuthOptionsResolver authOptionsResolver
+    ) {
         SmithyBridgeClient.Builder builder = SmithyBridgeClient.builder();
 
         builder.service(service)
                .protocol(protocol)
-               .transport(new V2TransportBridge(v2Config.option(SdkClientOption.SYNC_HTTP_CLIENT)))
+               .transport(transportFor(v2Config))
                .baseExceptionBuilder(baseExceptionBuilder);
+
+        // Only an async builder populates this, and only an async client's futures need it. See
+        // SmithyBridgeClient#runAsync for why the hop is kept even though it protects less than in v2.
+        builder.completionExecutor(v2Config.option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR));
+
+        // v2's signer needs v2's auth-scheme options, which the endpoint bridge resolves; with endpoints
+        // stripped there is nothing to resolve them, so the smithy signer is the only coherent choice.
+        boolean v2Signing = authOptionsResolver != null && !stripped(STRIP_SIGNER) && !stripped(STRIP_ENDPOINTS);
 
         if (stripped(STRIP_ENDPOINTS)) {
             builder.endpoint(v2Config.option(SdkClientOption.CLIENT_ENDPOINT_PROVIDER).clientEndpoint().toString());
         } else {
-            builder.endpointResolver(new V2EndpointResolverBridge(v2Config, endpointResolver));
+            builder.endpointResolver(new V2EndpointResolverBridge(v2Config, endpointResolver,
+                                                                  v2Signing ? authOptionsResolver : null));
+        }
+        // Request-level overrides, and the timeouts smithy-java has no notion of. See V2RequestOverrides,
+        // V2Timeouts, ledger 2.3, 8.1, 8.2.
+        builder.requestOverrideSupport(v2Config, stripped(STRIP_ENDPOINTS)
+                                                 ? config -> null
+                                                 : config -> new V2EndpointResolverBridge(
+                                                     config, endpointResolver, v2Signing ? authOptionsResolver : null));
+        builder.apiCallTimeout(v2Config.option(SdkClientOption.API_CALL_TIMEOUT));
+        if (v2Config.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT) != null) {
+            builder.putConfig(V2Timeouts.CLIENT_ATTEMPT_TIMEOUT, v2Config.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT));
         }
 
         // SigV4AuthScheme.getSignerProperties does context.expect(REGION), so the region must be present
@@ -163,7 +239,20 @@ public final class V2ConfigTranslator {
         if (signingRegion != null) {
             builder.putConfig(SigV4Settings.REGION, signingRegion.id());
         }
-        builder.putSupportedAuthSchemes(new SigV4AuthScheme(v2Config.option(AwsClientOption.SERVICE_SIGNING_NAME)));
+        String signingName = v2Config.option(AwsClientOption.SERVICE_SIGNING_NAME);
+        if (v2Signing) {
+            // A client-level legacy signer (overrideConfiguration().putAdvancedOption(SIGNER, ...)) replaces
+            // SigV4 for every call, as a request-level one does for its call.
+            software.amazon.awssdk.core.signer.Signer clientSigner =
+                Boolean.TRUE.equals(v2Config.option(SdkClientOption.SIGNER_OVERRIDDEN))
+                ? v2Config.option(SdkAdvancedClientOption.SIGNER) : null;
+            builder.putSupportedAuthSchemes(new V2SigningAuthScheme(signingName,
+                                                                    signingRegion == null ? null : signingRegion.id(),
+                                                                    clientSigner));
+            builder.putConfig(V2StreamingBridge.V2_SIGNER, Boolean.TRUE);
+        } else {
+            builder.putSupportedAuthSchemes(new SigV4AuthScheme(signingName));
+        }
 
         IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider =
                 v2Config.option(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
@@ -173,10 +262,32 @@ public final class V2ConfigTranslator {
 
         // Fills in the AWS error code and HTTP metadata that v2's retry classification needs, per
         // attempt, before the retry strategy sees the error.
+        //
+        // It must be the FIRST interceptor. smithy-java 1.6.1's ClientInterceptorChain runs
+        // modifyBeforeAttemptCompletion over every interceptor with no try/catch, and the default
+        // implementation is hook.forward(error), which rethrows -- so on the error path, the first
+        // interceptor that does not override the hook ends the chain, and every one after it never sees
+        // the error. Placed after V2Crc32Validation, this interceptor silently stopped running and no
+        // 5xx was retried. See compatability_issues.md 3.7.
         if (!stripped(STRIP_ERROR_ENRICHER)) {
             builder.addInterceptor(new V2ErrorEnricher(v2Config.option(SdkClientOption.SERVICE_NAME),
                                                       baseExceptionBuilder));
+            // The enricher is what reads a deferred transport failure back out, so deferral is only safe
+            // with it installed. See V2TransportFailures, ledger 3.6.
+            builder.putConfig(V2TransportFailures.ENABLED, Boolean.TRUE);
         }
+
+        // v2 validates a legacy x-amz-crc32 response header (DynamoDB) on sync and async clients alike,
+        // and does not retry a mismatch. See V2Crc32Validation, ledger 6.1.
+        Boolean fromCompressed = v2Config.option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED);
+        builder.addInterceptor(new V2Crc32Validation(Boolean.TRUE.equals(fromCompressed)));
+
+        // v2's rest-xml marshaller omits an empty payload and lets a modeled Content-Type win; smithy's
+        // does neither. See V2RestXmlBodyRules, ledger 12.6 and 12.7.
+        if (protocol instanceof RestXmlClientProtocol) {
+            builder.addInterceptor(V2RestXmlBodyRules.instance());
+        }
+
 
         software.amazon.awssdk.retries.api.RetryStrategy v2RetryStrategy =
                 stripped(STRIP_RETRIES) ? null : resolveRetryStrategy(v2Config);
@@ -192,6 +303,12 @@ public final class V2ConfigTranslator {
         if (!bridgeable.isEmpty()) {
             builder.addInterceptor(new V2InterceptorBridge(bridgeable, v2Config));
         }
+        // After the interceptor bridge: v2 merges request-level headers and query parameters after
+        // interceptors' modifyHttpRequest has run.
+        builder.addInterceptor(new V2RequestOverrides.Http(
+            v2Config.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS),
+            v2Config.option(SdkAdvancedClientOption.USER_AGENT_PREFIX),
+            v2Config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX)));
 
         return builder;
     }

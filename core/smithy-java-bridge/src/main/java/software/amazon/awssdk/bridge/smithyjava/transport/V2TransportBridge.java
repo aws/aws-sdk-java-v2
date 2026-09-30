@@ -20,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.bridge.smithyjava.client.V2Timeouts;
 import software.amazon.awssdk.http.ContentStreamProvider;
+import software.amazon.awssdk.http.ExecutableHttpRequest;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -71,9 +73,19 @@ public final class V2TransportBridge implements ClientTransport<HttpRequest, Htt
     @Override
     public HttpResponse send(Context context, HttpRequest request) {
         try {
-            HttpExecuteResponse v2Response = v2HttpClient
-                    .prepareRequest(toV2Request(request))
-                    .call();
+            return V2Timeouts.attempt(V2Timeouts.attemptTimeout(context), () -> sendAttempt(request));
+        } catch (RuntimeException e) {
+            // Into the retry loop rather than past it; see V2TransportFailures (ledger 3.6).
+            return V2TransportFailures.defer(context, e);
+        }
+    }
+
+    private HttpResponse sendAttempt(HttpRequest request) {
+        try {
+            ExecutableHttpRequest executable = v2HttpClient.prepareRequest(toV2Request(request));
+            // What a timeout calls to release the connection, as v2's timeout stages abort the request.
+            V2Timeouts.registerAbort(executable::abort);
+            HttpExecuteResponse v2Response = executable.call();
             return toSmithyResponse(v2Response);
         } catch (IOException e) {
             // Contract: transports must only throw TransportException/CallException subtypes.

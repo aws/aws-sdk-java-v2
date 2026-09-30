@@ -17,6 +17,7 @@ package software.amazon.awssdk.bridge.smithyjava.streaming;
 
 import java.io.IOException;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.bridge.smithyjava.client.SmithyBridgeClient;
 import software.amazon.awssdk.core.exception.AbortedException;
@@ -85,7 +86,7 @@ public final class V2StreamingInvoker {
             ResponseTransformer<O, ReturnT> transformer) {
 
         AtomicReference<DataStream> sink = new AtomicReference<>();
-        RequestOverrideConfig overrides = body == null
+        Consumer<RequestOverrideConfig.Builder> overrides = body == null
                                          ? V2StreamingBridge.forResponseBody(sink)
                                          : V2StreamingBridge.forBoth(body, sink);
 

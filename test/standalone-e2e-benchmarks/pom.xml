@@ -106,6 +106,13 @@
             <artifactId>aws-crt-client</artifactId>
             <version>${aws.sdk.v2.version}</version>
         </dependency>
+        <!-- Netty too, for the v2-async-netty arm only: a bridged async client has to drive both v2
+             async transports, so both are measured. -->
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>netty-nio-client</artifactId>
+            <version>${aws.sdk.v2.version}</version>
+        </dependency>
 
         <!-- ==================== Smithy-Java ==================== -->
         <!-- Generated DynamoDB client; built and published to mavenLocal by

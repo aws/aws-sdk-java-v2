@@ -72,7 +72,16 @@ a customer-supplied smithy retry strategy) sees the shim.
 `sealed`/package-private and builds its `HttpErrorDeserializer` internally, so there is no injection
 point.
 
-### 1.2 `DEGRADED` — generated smithy `Schema`s carry no traits
+### 1.2 `PARTLY RESOLVED` (§17) — generated smithy `Schema`s carry no traits
+
+> **Update, §17.** The operation-level traits that decide wire behavior are now carried — as v2's own
+> metadata on the generated operation (`V2OperationMetadata`: `httpChecksum`, `httpChecksumRequired`,
+> `requestCompression`), plus `@endpoint` host prefixes and `@idempotencyToken` defaults in codegen — and
+> are honored by v2's own code (signer, checksum rules, interceptors). What stays as described below is
+> smithy-java's *internal* use of traits (`@retryable`/`@readonly`/`@error` for its own retry and fault
+> views), which the bridge does not rely on. Measured against stock: 16/16 checksum goldens, 12/12 response
+> validation cases, host prefix and token behavior identical.
+
 
 `SdkSchemaFactory.structure(...)` and `Schema.createOperation(ShapeId)` produce schemas with **no
 traits**. Everything in smithy-java that reads traits off a schema is therefore inert:
@@ -94,7 +103,13 @@ code and fault a v2 caller reads come from the HTTP response via `V2ErrorEnriche
 correct. `V2UnmodeledError` derives its fault with `ErrorFault.ofHttpStatusCode` for the same reason —
 what smithy inferred without a parsed payload is not worth propagating.
 
-### 1.3 `DEGRADED` — unmodeled errors keep their metadata but lose their concrete type
+### 1.3 `RESOLVED` (§17.7) — unmodeled errors keep their metadata but lose their concrete type
+
+> **Update.** The case that lost its type in practice was an error the *service* models but the
+> *operation* does not declare (`ConditionalCheckFailedException` from a `GetItem`). Stock v2's generated
+> error mapping for every operation lists every service error; the bridge's per-operation registry now does
+> too. Fault sweep `20260930-*`: the `conditional-check-failed` rows are gone.
+
 
 When the wire error code matches no shape in the operation's `TypeRegistry`, smithy throws a bare
 `CallException` whose only content is a synthesized message (`"Server HTTP/1.1 503 response from
@@ -136,7 +151,12 @@ Widening the registry to the whole service would close it, at the cost of one `T
 service rather than per operation (DynamoDB: ~30 error shapes against `GetItem`'s 6) plus the
 construction cost on every client. Not attempted here.
 
-### 1.4 `DEGRADED` — `requestId` / `extendedRequestId` and HTTP metadata
+### 1.4 `PARTLY RESOLVED` (§17.7) — `requestId` / `extendedRequestId` and HTTP metadata
+
+> **Update.** `awsErrorDetails().rawResponse()` is now populated for error responses (the enricher keeps
+> the bytes before smithy's deserializer consumes them); the fault sweep's ten `rawResponse` rows are gone.
+> Response-side metadata on *successful* responses is unchanged from what is described below.
+
 
 v2 populates `SdkResponse.responseMetadata()`, `SdkResponse.sdkHttpResponse()` and
 `SdkServiceException.requestId()`/`statusCode()`/`awsErrorDetails()` from the HTTP response during
@@ -211,7 +231,16 @@ a registered id matches what the service actually sends.
 
 ## 2. Interceptors and plugins
 
-### 2.1 `BRIDGED` (lazily) — `ExecutionInterceptor`
+### 2.1 `BRIDGED` (lazily) — `ExecutionInterceptor`, now 13 of 18 hooks
+
+> **Update, §17.4.** The response side is bridged: `afterTransmission`, `modifyHttpResponse`,
+> `modifyHttpResponseContent` (sync) / `modifyAsyncHttpResponseContent` (async), `beforeUnmarshalling`,
+> `afterUnmarshalling`, `modifyResponse`. This is what activates v2's own `HttpChecksumValidationInterceptor`
+> (on every v2 client) and S3's response interceptors (trailing-MD5 stripping, URL-decoding of listings).
+> Still unbridged: `beforeMarshalling`, `afterMarshalling`, `modifyAsyncHttpContent`, `beforeTransmission`,
+> and `modifyException` — the last is the one with a known consumer (S3's `ExceptionTranslationInterceptor`).
+> The interceptors also now see the client's checksum modes and a request's own execution attributes.
+
 
 v2's generated builder (`BaseClientBuilderClass`) installs interceptors from five sources: three
 service built-ins (auth-scheme resolution, endpoint resolution, endpoint request-modifier), the
@@ -315,14 +344,29 @@ Residual differences in the hooks that *are* bridged:
 - `dynamodb-enhanced`'s `ApplyUserAgentInterceptor` is discovered and bridged, so the
   enhanced-client user-agent suffix is preserved.
 
-### 2.2 `MISSING` — `SdkPlugin`
+### 2.2 `PARTLY RESOLVED` (§17.8) — `SdkPlugin`
+
+> **Update.** Request-level plugins now run, through the generated client's own
+> `updateSdkClientConfiguration` (so they see exactly what they see on stock), and the parts of the result
+> smithy-java reads per call — endpoint resolution (region, endpoint provider, builtins) and identity — are
+> rebuilt for that call. Measured: a plugin that changes the region signs for the new region, sync and async,
+> as on stock. Not rebuilt per call: the transport and the retry strategy, which smithy fixes at client
+> construction; a plugin that changes either is honored on stock and ignored on the bridge.
+
 
 `overrideConfiguration()`/`addPlugin(SdkPlugin)` mutates `SdkServiceClientConfiguration.Builder` at
 client build time. Client-level plugins still run (they operate on v2 config before the bridge reads
 it), but **request-level** plugins do not, because the bridge never rebuilds its `ClientConfig`
 per request.
 
-### 2.3 `MISSING` — request-level `overrideConfiguration()`
+### 2.3 `RESOLVED` (§17.8) — request-level `overrideConfiguration()`
+
+> **Update.** Every field is honored, and `RequestOverridesTest` holds each one to stock's observed
+> behavior on the sync and async clients (24/24 lines identical): headers, raw query parameters, API names,
+> credentials, endpoint provider, auth-scheme provider, execution attributes, legacy signer, plugins, metric
+> publishers, `apiCallTimeout`, `apiCallAttemptTimeout`. `compressionConfiguration` is carried but has no
+> operation to act on in these two services (6.2). The text below describes the state before.
+
 
 `AwsRequestOverrideConfiguration` on an individual request (credentials, interceptors, headers,
 query params, API call timeouts, metric publishers, signer, plugins,
@@ -336,7 +380,11 @@ the method that folds request-level overrides into a per-request config, but on 
 calls it per operation). The one piece of request override configuration that does survive is metric
 publishers, because the generated method resolves them before delegating — see 7.1.
 
-### 2.4 `MISSING` — `executionAttributes()` on requests
+### 2.4 `RESOLVED` (§17.8) — `executionAttributes()` on requests
+
+> **Update.** A request's execution attributes reach the interceptor chain and the endpoint/signing
+> attributes, with request precedence, as on stock.
+
 
 No `SdkRequest`-level execution attribute reaches the pipeline.
 
@@ -521,7 +569,16 @@ this silently diverges again, in whichever direction. The general shape — v2 c
 concrete exception *types* from a JSON library that smithy-java does not use — applies to anything
 else that reaches v2's retryable set by inheritance rather than by declaration.
 
-### 3.6 `BLOCKED` — transport failures are never retried
+### 3.6 `FIXED in the bridge`, `UPSTREAM` (§17.9) — transport failures are never retried
+
+> **Update.** No longer blocked. A bridged transport now *defers* its failure into the retry loop instead
+> of throwing past it: it records the failure against the attempt and returns a marked stand-in response,
+> which deserialization turns into an attempt error, and `V2ErrorEnricher` swaps the real failure back in and
+> classifies it as v2 would (`V2TransportFailures`). Measured by the fault sweep: `connection-reset` now makes
+> as many attempts as stock and differs only in the name of the cause, and an attempt timeout is retried four
+> times, as on stock. The analysis below of *why* smithy-java cannot retry these stands, and the fix still
+> belongs upstream — this is the argument that it is a one-throw change.
+
 
 `CallException` holds retry safety in a mutable field with a setter, which is the mechanism the whole
 retry bridge depends on: `V2RetryClassification` and `V2ErrorEnricher` stamp v2's verdict onto the
@@ -633,6 +690,24 @@ wall is the same fact as a timing — no backoff, because no second attempt.
 
 ---
 
+
+### 3.7 `FIXED in the bridge`, `UPSTREAM` — one interceptor that does not override the error-path hook disables every interceptor after it
+
+Found when a harmless new interceptor silently stopped every 5xx from being retried. smithy-java 1.6.1's
+`ClientInterceptorChain.modifyBeforeAttemptCompletion` loops over the interceptors with no try/catch, and
+`ClientInterceptor`'s default implementation is `hook.forward(error)`, which **rethrows**. So on the error
+path the first interceptor that does not override the hook ends the loop, and no interceptor after it sees
+the error. Placing `V2Crc32Validation` (which overrides only `modifyBeforeDeserialization`) ahead of
+`V2ErrorEnricher` meant the enricher never ran: no v2 classification, no retry, the fallback exception type.
+Nothing failed loudly; `DynamoDbBehaviorTest` caught it because it is the one test whose transport fails an
+attempt.
+
+Worked around by ordering — the enricher is the first client interceptor, with the reason at the
+installation site — and pinned by `DynamoDbBehaviorTest`. The same shape applies to `modifyBeforeCompletion`.
+Upstream fix: the chain should catch and carry the error forward, or the default should return the error
+rather than throw it; as it stands, adding an interceptor to a smithy-java client can change its retry
+behavior, which no interceptor author would expect.
+
 ## 4. Authentication and credentials
 
 ### 4.1 `TRANSLATED` — auth scheme resolution
@@ -666,7 +741,15 @@ Residual: v2's `resolveIdentity(ResolveIdentityRequest)` properties are not forw
 calls the no-arg overload. Credential-scoped properties from an auth scheme (e.g. S3 Express)
 therefore do not reach the provider.
 
-### 4.3 `TRANSLATED` — SigV4 signing
+### 4.3 `BRIDGED` (§17.2) — SigV4 signing
+
+> **Update.** Signing is now v2's own `AwsV4HttpSigner`, driven with v2's signer properties from v2's own
+> auth-scheme provider plus the endpoint's auth-scheme overrides, as the stock interceptors compose them
+> (`V2SigningAuthScheme`). This answers open question 1 (signature equivalence) by construction, and it is
+> what closes 12.8, 12.9, 13.2 and 13.3, all of which were behaviors of v2's signer that smithy-java's does
+> not have. SigV4a and S3 Express session auth are offered by v2's provider but not implemented by the bridge;
+> it signs with the SigV4 option. `awssdk.bridge.stripSigner` restores smithy-java's signer.
+
 
 smithy's `SigV4Signer` replaces v2's `AwsV4HttpSigner`. Region and signing name come from
 `SdkClientConfiguration` (`AwsClientOption.SIGNING_REGION`, `SERVICE_SIGNING_NAME`) into
@@ -743,7 +826,13 @@ The prototype codegen ignores the `endpointBdd` trait and relies on the C2J
 `endpoint-rule-set.json` sidecar. Any service whose authoritative rules are BDD-only would resolve
 differently. Not an issue for DynamoDB, where both forms exist and agree.
 
-### 5.4 `MISSING` — host prefixes / `@endpoint` trait
+### 5.4 `RESOLVED` (§17.6) — host prefixes / `@endpoint` trait
+
+> **Update.** The endpoint bridge applies the operation's host prefix after resolution, as the stock
+> resolver interceptor does, honoring `DISABLE_HOST_PREFIX_INJECTION` (the generated `hostPrefix` is exposed
+> for bridged services). `write-get-object-response` matches stock byte for byte: the request goes to
+> `route-1.s3.us-east-1.amazonaws.com`.
+
 
 Neither smithy's `HostLabelEndpointResolver` (no traits on generated schemas, see 1.2) nor the
 bridged v2 path (`AwsEndpointProviderUtils.addHostPrefix` lives in the interceptor's
@@ -753,14 +842,27 @@ bridged v2 path (`AwsEndpointProviderUtils.addHostPrefix` lives in the intercept
 
 ## 6. Checksums, compression, and content encoding
 
-### 6.1 `MISSING` — CRC32 response validation
+### 6.1 `RESOLVED` (§17.3, §17.5) — CRC32 response validation
+
+> **Update.** Both forms. DynamoDB's `x-amz-crc32` is validated with v2's own `Crc32Validation`
+> (`V2Crc32Validation`), on sync *and* async clients, unretried on mismatch — all three as measured on stock,
+> which contradicted the source reading that async does not validate. S3's flexible response checksums are
+> validated by v2's own `HttpChecksumValidationInterceptor`, now reachable through the bridged response hooks;
+> `S3ResponseChecksumTest` holds 12 cases to stock (one named exception-type difference, 13.4).
+
 
 DynamoDB sets `calculateCrc32FromCompressedData: true`. v2 validates the `x-amz-crc32` response
 header against the received body and throws on mismatch. smithy-java's `HttpChecksumPlugin` covers
 request checksums for `@httpChecksum`-modeled operations; nothing validates DynamoDB's legacy CRC32
 response header. **Corrupted responses are accepted silently.**
 
-### 6.2 `MISSING` — request compression
+### 6.2 `MISSING`, metadata carried — request compression
+
+> **Update.** The `requestCompression` metadata now reaches the call's attributes (`V2OperationMetadata`),
+> but v2 compresses in a pipeline *stage* (`CompressRequestStage`), not an interceptor or the signer, so nothing
+> on the bridge acts on it. No operation in DynamoDB or S3 is affected; a service that uses it would need the
+> stage's logic ported, which is small.
+
 
 `RequestCompressionTrait` / `@requestCompression` is not applied. smithy has
 `RequestCompressionPlugin` but it is trait-driven, and generated schemas have no traits (1.2).
@@ -801,12 +903,22 @@ telemetry and any customer parsing it.
 
 ## 8. Timeouts
 
-### 8.1 `MISSING` — `apiCallTimeout`
+### 8.1 `RESOLVED` (§17.8) — `apiCallTimeout`
+
+> **Update.** Implemented in the bridge (`V2Timeouts`), client- and request-level, the way v2's timeout
+> stage does it: a timer that aborts the in-flight request and interrupts the wait, then v2's
+> `ApiCallTimeoutException`. Matches stock on sync and async against a stalled server.
+
 
 v2 enforces a whole-call deadline with a scheduled interrupt (`ApiCallTimeoutTracker`). smithy-java
 has no equivalent. A hung call is bounded only by the HTTP client's socket timeout.
 
-### 8.2 `MISSING` — `apiCallAttemptTimeout`
+### 8.2 `RESOLVED` (§17.8) — `apiCallAttemptTimeout`
+
+> **Update.** As 8.1, per attempt, in the transport bridges; the aborted attempt is retried, because transport
+> failures now reach the retry loop (3.6). Stock and bridge both make four attempts and surface
+> `ApiCallAttemptTimeoutException`.
+
 
 Same, per attempt.
 
@@ -824,21 +936,22 @@ Silently ignored:
 
 | v2 configuration | Notes |
 |---|---|
-| `SdkAdvancedClientOption.SIGNER` | see 4.3 |
-| `SdkAdvancedClientOption.USER_AGENT_PREFIX` / `USER_AGENT_SUFFIX` | smithy's `UserAgentPlugin` builds its own string |
-| `SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION` | nothing injects host prefixes anyway (5.4) |
-| `overrideConfiguration().headers(...)` / `putHeader(...)` | client-level extra headers dropped |
+| `SdkAdvancedClientOption.SIGNER` | **honored** now: a client-level legacy signer replaces SigV4 (§17.8) |
+| `SdkAdvancedClientOption.USER_AGENT_PREFIX` / `USER_AGENT_SUFFIX` | **honored** now, around smithy's own agent string (§17.8) |
+| `SdkAdvancedClientOption.DISABLE_HOST_PREFIX_INJECTION` | **honored** now (5.4) |
+| `overrideConfiguration().headers(...)` / `putHeader(...)` | **honored** now, merged as stock merges them (§17.8) |
 | `overrideConfiguration().compressionConfiguration(...)` | see 6.2 |
 | `overrideConfiguration().scheduledExecutorService(...)` | only used by timeouts (8) |
 | `overrideConfiguration().defaultProfileFile/Name` | used indirectly via `RetryMode` resolution only |
 | `dualstackEnabled` / `fipsEnabled` | **honored**, via the bridged rules engine (5.1) |
 | `accountIdEndpointMode` | **honored**, via the bridged rules engine (5.1) |
-| `responseChecksumValidation` / `requestChecksumCalculation` | see 6.1 |
-| `SdkClientOption.API_CALL_ATTEMPT_TIMEOUT`, `API_CALL_TIMEOUT` | see 8 |
+| `responseChecksumValidation` / `requestChecksumCalculation` | **honored** now, by v2's signer and interceptors (6.1, 12.9) |
+| `SdkClientOption.API_CALL_ATTEMPT_TIMEOUT`, `API_CALL_TIMEOUT` | **honored** now (8) |
+| `CRC32_FROM_COMPRESSED_DATA_ENABLED` | **honored** (6.1) |
 | `overrideConfiguration().retryPolicy(...)` | **silently downgraded** to smithy's default strategy — see 3.4 |
 | `overrideConfiguration().metricPublishers(...)` | publisher runs, but the record is empty — see 7.1 |
 | `endpointDiscoveryEnabled` | resolved and stored, never consulted — see 5.2 |
-| request-level `overrideConfiguration()` | ignored except for metric publishers — see 2.3 |
+| request-level `overrideConfiguration()` | **honored**, every field — see 2.3 |
 
 ---
 
@@ -851,7 +964,10 @@ it ships). The AWS SDK for Java v2 supports **Java 8**. Adopting smithy-java as 
 be a breaking platform change for the entire SDK, independent of any behavioral issue in this
 ledger. This branch builds at `jre.version=21`.
 
-### 10.2 out of scope — async clients
+### 10.2 in scope since §16 — async clients
+
+> **Update.** Built; see §15-16.
+
 
 `SdkAsyncHttpClient` / `CompletableFuture` operations, and therefore
 `DynamoDbAsyncClient`, are untouched. smithy-java's async client path exists but the transport
@@ -1048,7 +1164,14 @@ side. Fixed by emitting `@httpPrefixHeaders` when a HEADER-located member is a m
 Worth noting as the worst failure shape in this whole ledger: silent data loss on a documented,
 commonly-used feature, invisible to any test that does not inspect the request.
 
-### 12.6 `DEGRADED` — customization-injected members become body members
+### 12.6 `RESOLVED` (§17.6) — customization-injected members become body members
+
+> **Update.** The diagnosis below was wrong about the mechanism: stock's marshaller *also* reports
+> `hasPayloadMembers(true)` for `CopyObject`. The real difference is two rules in v2's
+> `XmlProtocolMarshaller` — an empty payload produces no body, and a modeled `Content-Type` suppresses
+> `application/xml` — which the bridge now applies after serialization (`V2RestXmlBodyRules`). `copy-object`
+> matches stock in both byte diffs; the ledgered skip is gone.
+
 
 CopyObject's `SourceBucket`/`SourceKey`/`SourceVersionId` are injected by `customization.config` and
 consumed by a `preClientExecutionRequestCustomizer` before marshalling; they never go on the wire.
@@ -1070,7 +1193,14 @@ Affects any operation with customization-injected members: CopyObject, UploadPar
 `UploadPartRequest.SdkPartType` (whose own documentation says "will not be included in the request
 payload").
 
-### 12.7 `DEGRADED` — duplicate `Content-Type`
+### 12.7 `RESOLVED` (§17.6) — duplicate `Content-Type`
+
+> **Update.** The diagnosis below was wrong about the mechanism: stock's marshaller *also* reports
+> `hasPayloadMembers(true)` for `CopyObject`. The real difference is two rules in v2's
+> `XmlProtocolMarshaller` — an empty payload produces no body, and a modeled `Content-Type` suppresses
+> `application/xml` — which the bridge now applies after serialization (`V2RestXmlBodyRules`). `copy-object`
+> matches stock in both byte diffs; the ledgered skip is gone.
+
 
 A consequence of 12.6, but it deserves its own line because it is the part S3 would reject rather than
 ignore. CopyObject models a `ContentType` header member, and `RestXmlClientProtocol` adds its own
@@ -1084,7 +1214,10 @@ content-type: text/plain
 Even without 12.6 this needs an answer: for any operation that both has an XML body and models
 `Content-Type` as a header, v2 lets the modeled value win and smithy-java appends.
 
-### 12.8 `DEGRADED` — `x-amz-content-sha256` is a real body hash where v2 sends `UNSIGNED-PAYLOAD`
+### 12.8 `RESOLVED` (§17.2) — `x-amz-content-sha256` is a real body hash where v2 sends `UNSIGNED-PAYLOAD`
+
+> **Update.** v2's own signer decides the payload hash now; the checksum goldens compare it verbatim.
+
 
 Over HTTPS, v2's S3 signer sends `UNSIGNED-PAYLOAD` and never hashes the body. smithy-java's SigV4
 signer computes the actual SHA-256 every time:
@@ -1104,7 +1237,13 @@ non-streaming requests match v2 as well would mean setting the same header for e
 which is a one-line change to the config translator and has not been made because nothing here needs
 it.
 
-### 12.9 `MISSING` — request checksums (`@httpChecksum`)
+### 12.9 `RESOLVED` (§17.3) — request checksums (`@httpChecksum`)
+
+> **Update.** Computed by v2's own signer from v2's own checksum decision, 16/16 against stock checksum
+> goldens (header, trailer, caller-chosen algorithm, precomputed value, sync and async). The CRC over an XML
+> body differs from stock's only because the body does (12.13), and the test checks it is correct for the
+> bytes sent.
+
 
 v2 computes a request checksum for operations that model one, and for those where S3 requires one it is
 not optional. `PutObjectTagging`:
@@ -1237,7 +1376,10 @@ Confirmed by `S3StreamingTest.streamsBodiesLargerThanTheHeap`, which moves 1 GiB
 a 256 MiB heap and compares position-dependent CRCs, so a pipeline that buffered, truncated, or
 reordered would fail rather than pass on a large host.
 
-### 13.2 `MISSING` — chunked (`aws-chunked`) signing; the bridge refuses to stream over plain HTTP
+### 13.2 `RESOLVED` (§17.2) — chunked (`aws-chunked`) signing; the bridge refuses to stream over plain HTTP
+
+> **Update.** v2's signer chunk-signs over HTTP, matching stock's `put-object-http` golden; the refusal is gone.
+
 
 Over HTTPS, sending `UNSIGNED-PAYLOAD` is what v2 does. Over plain HTTP v2 does **not**: it switches to
 chunked signing so the body stays authenticated on an unencrypted connection. `AwsChunkedDataStream`
@@ -1254,7 +1396,11 @@ not on the request any earlier: `ClientPipeline` calls `modifyBeforeSigning` and
 ordering problem as 2.1 and open question 4, reached from a different direction. Nothing is transmitted
 either way, so the caller sees the same refusal; the only cost is one wasted signature.
 
-### 13.3 `MISSING` — trailing request checksums, and what that costs the wire diff
+### 13.3 `RESOLVED` (§17.3) — trailing request checksums, and what that costs the wire diff
+
+> **Update.** Trailers match stock byte for byte (`S3ChecksumWireDiffTest`). The binding diffs still run with
+> checksums off on purpose; the checksum goldens are the comparison with them on.
+
 
 v2 defaults `requestChecksumCalculation` to `WHEN_SUPPORTED`, and for a streaming `PutObject` that is not
 a header: it adds `x-amz-checksum-crc32`, `content-encoding: aws-chunked` and
@@ -1313,7 +1459,12 @@ request content does not fail when the bridge withholds it, it takes a different
 lists what is still absent from the attribute map, and each entry there should be read as "some
 interceptor silently behaves differently", not "some interceptor is unavailable".
 
-### 13.6 `MISSING` — `GetObject` trailing MD5 validation (`x-amz-te: append-md5`), deliberately not enabled
+### 13.6 `RESOLVED` (§17.4) — `GetObject` trailing MD5 validation (`x-amz-te: append-md5`), deliberately not enabled
+
+> **Update.** Enabled, now that the response half is bridged: the request header matches stock, the trailer is
+> stripped and checked (`ResponseChecksumProbe`'s `append-md5` cases match stock), and `WireFormat` no longer
+> normalizes `x-amz-te`.
+
 
 Stock v2 sends `x-amz-te: append-md5` on `GetObject` and validates the trailing MD5 S3 appends;
 `EnableTrailingChecksumInterceptor.modifyResponse` also subtracts the 16 trailer bytes from the
@@ -1380,6 +1531,13 @@ Scope: v2's own multipart client — unmodified — driving a bridged `S3Client`
 non-multipart control, with a guard test asserting the client under test really is the bridged one (every
 other test here would pass against stock v2, since that is the point).
 
+> **Status after §16.** The bridged async client now exists, and multipart runs on it through the public
+> builder, so most of this section is history. 14.1, 14.2 and 14.4 are **resolved**; 14.3 is
+> **corrected** — stock v2 has the same behavior, so it was never a bridge degradation, and the bridge
+> now reports it better; 14.5 is **still open**. The entries are kept as written because they are the
+> record of what a sync-backed façade costs, which is the alternative anyone will propose next.
+> `S3MultipartTest` and `SyncBackedS3AsyncClient` stay for the same reason.
+
 **The headline is not about multipart.** Multipart splitting, part numbering, reassembly, cleanup and the
 `CompleteMultipartUpload` document all work on the bridged pipeline without a single change to v2's
 multipart code — the parts reassemble byte-identically to the source, and a failure still aborts the
@@ -1387,7 +1545,7 @@ upload. What does not work is the *async surface* multipart is reached through. 
 consequence of that one gap, and would be a consequence for `S3TransferManager` too, which is also built
 on `S3AsyncClient`.
 
-### 14.1 `MISSING` — the bridge generates no async client, so multipart is unreachable through its public API
+### 14.1 `RESOLVED` (§16) — the bridge generates no async client, so multipart is unreachable through its public API
 
 Only `SyncClientClass.java` is gated on `generateSmithyJavaSerde`. The generated `S3AsyncClient` is stock
 v2 and touches no smithy-java, so `S3AsyncClient.builder().multipartEnabled(true)` — the documented way
@@ -1405,7 +1563,7 @@ It is a measurement device, not a proposal. A real async bridge means either gen
 over smithy-java's own async client (the right answer, and a phase of its own) or shipping a façade with
 14.2-14.5 attached.
 
-### 14.2 `DEGRADED` — one thread is held per in-flight part, so the pool is the real concurrency limit
+### 14.2 `RESOLVED` (§16) — one thread is held per in-flight part, so the pool is the real concurrency limit
 
 A pool thread is occupied for the whole of each call, including the entire transfer of a part's body; a
 real async client holds no thread while bytes are in flight. So `MultipartConfiguration`'s concurrency is
@@ -1421,7 +1579,16 @@ hang, not an error.
 This is a property of *any* sync-backed async façade, generated or hand-written. It is the reason a
 sync-backed async client cannot be the answer for multipart, independently of anything smithy-java does.
 
-### 14.3 `DEGRADED` — a retryable failure on one part fails the whole upload
+### 14.3 `CORRECTED` (§16.4) — a retryable failure on one part fails the whole upload
+
+> **Correction.** The comparison below — "where stock v2 retries that part" — is wrong. Stock v2 does not
+> retry it either: `AsyncRequestBody.split` builds its parts as `NonRetryableSubAsyncRequestBody`
+> (`AsyncRequestBody.java:561,590`), which refuses a second subscriber, and the "Multiple subscribers
+> detected" message quoted below is v2's splitter refusing *v2's own* retry. Only
+> `BufferedSplittableAsyncRequestBody` produces retryable parts, and nothing in S3's multipart helpers
+> uses it unless the caller does. So this is stock behavior that the façade reproduced faithfully. What
+> the bridged async client does instead is in 16.4: same outcome, better diagnosis, and a retry that
+> works when the caller opts into retryable parts.
 
 Confirmed, not inferred: `S3MultipartTest.aRetryableFailureOnOnePartIsNotRetried` injects a single 500 on
 part 2 of 4 and the upload fails with v2's own
@@ -1444,7 +1611,7 @@ Cleanup is intact — the upload is aborted, so this does not leak incomplete mu
 checks that while the client is still open: the abort is fire-and-forget after the caller's future has
 already failed, so closing first cancels it and makes a working abort look like a leak.)
 
-### 14.4 `DEGRADED` — a deferred-consumption transformer works, but pins a thread until the caller lets go
+### 14.4 `RESOLVED` (§16) — a deferred-consumption transformer works, but pins a thread until the caller lets go
 
 This was written down as a deadlock and is not one; the test says otherwise, so the entry says otherwise.
 `AsyncResponseTransformer.toBlockingInputStream()` returns a usable stream and delivers the whole body
@@ -1471,7 +1638,7 @@ reactive-streams reentrancy is unavoidable, because transformers call `request(1
 A naive publisher recurses once per chunk and overflows the stack on any real object. A work-in-progress
 counter is required, not an optimization.
 
-### 14.5 `MISSING` — no cancellation
+### 14.5 `MISSING` — no cancellation (still open on the async client; see 15.4)
 
 Cancelling a returned future does not abort the underlying HTTP request; the pool thread runs the call to
 completion. For multipart that means cancelling a large upload releases the caller but not the bytes.
@@ -1487,15 +1654,400 @@ test), multipart with checksums enabled (`create(..., checksumEnabled = true)`, 
 13.3), and `UnknownContentLength` uploads, which take a different helper — the façade rejects an
 `AsyncRequestBody` of unknown length outright, since measuring one means buffering it.
 
+## 15. Async transport (`V2AsyncTransportBridge`)
+
+Scope: v2's two async HTTP clients — `NettyNioAsyncHttpClient` and `AwsCrtAsyncHttpClient`, unmodified —
+driving smithy-java's synchronous `ClientTransport` contract. Verified by
+`test/wire-diff/V2AsyncTransportBridgeTest`: 8 cases against a real loopback server, every one run over
+both transports (16 tests).
+
+This is the first half of a real async client, and it is the half that decides whether the rest is worth
+building. The design is a blocking `send` that returns on response **headers**, handing back a
+`DataStream` that wraps the transport's own body publisher via `FlowAdapters`. Both halves of that are
+measured below: the call returns in well under the server's 800 ms mid-body stall, and 200 concurrent
+calls complete on a virtual-thread executor against a server stalling every response — so there is no
+thread per in-flight request anywhere, which is the one thing `SyncBackedS3AsyncClient` (14.2) could not
+say. Bodies are not buffered and not copied; `DataStream` already *is* a `Flow.Publisher<ByteBuffer>`, so
+the adaptation is interface-only in both directions.
+
+### 15.1 `FIXED in the bridge` — neither async transport frames an unknown-length request body, so it is silently lost
+
+Found by test, on both transports, before any of this was written down. A request body of unknown length
+(`DataStream` with `contentLength() == -1`: an `InputStream` with no length, or v2's
+`AsyncRequestBody.fromPublisher` with no content length) reached the server as **zero bytes, with a 200
+response and no error on either side**.
+
+The cause is a gap between two layers that each assume the other does it. In stock v2 the framing decision
+belongs to the marshaller: `AbstractStreamingRequestMarshaller#addHeaders` (`core/sdk-core/.../transform/
+AbstractStreamingRequestMarshaller.java:61-76`) writes `Content-Length` from the body's length and falls
+back to `Transfer-Encoding: chunked`. Neither transport will do it for you:
+
+- **Netty** never reads `SdkHttpContentPublisher.contentLength()` at all — `RequestAdapter#adapt`
+  (`http-clients/netty-nio-client/.../internal/RequestAdapter.java:48-58,80-95`) copies the request's
+  headers verbatim and adds only `Host` and the H2 `:scheme`. It then *does* subscribe and write the body
+  (`NettyRequestExecutor.java:243-248`), unframed, which the peer reads as no body. That is a protocol
+  violation, not an empty request.
+- **CRT** derives `Content-Length` from the publisher when the caller left it unset
+  (`http-clients/aws-crt-client/.../internal/request/CrtRequestAdapter.java:111-115`), but collapses an
+  absent length to 0 (`CrtRequestBodyAdapter#getLength:46-49`) and then never subscribes.
+
+smithy-java's serializer writes `Content-Length` when it knows the length — which is why a known-length
+body worked from the start — and has no chunked fallback. `V2AsyncTransportBridge#addFraming` supplies it:
+`Transfer-Encoding: chunked` when the publisher reports no length and no framing header is already
+present. Asserted in both directions (`unknownLengthRequestBodyIsChunked`,
+`bodylessRequestGetsNoFramingHeaders`), because the wrong fix here adds `chunked` to a GET.
+
+Two parts of v2's version are model-driven and are **not** reproduced:
+
+- The `requiresLength` trait. v2 fails fast with `SdkClientException`, "This API requires Content-Length
+  header to be set", for operations that cannot be chunked (S3 `UploadPart` among them). The bridge sends
+  chunked instead and lets the service reject it, so the error a caller sees is a 4xx from S3 rather than
+  a client-side message naming the fix.
+- The HTTP/2 case. v2 omits the header when `useHttp2`; the bridge does not know the negotiated version at
+  this point, and `HttpVersion` in the smithy request is `HTTP_1_1` by construction.
+
+Both are consequences of the same thing: these are traits on the operation, and the transport is the wrong
+layer to learn them. A real fix puts framing in whatever generates the smithy request, which is where
+stock v2 puts it.
+
+### 15.2 `FIXED in the bridge` (3.6) — same retry blind spot as the sync transport, for the same reason
+
+> **Update.** Fixed with 3.6, by the same deferral, in both transport bridges.
+
+
+`send` returns on headers, so a failure while reading the body surfaces later, inside the pipeline's
+`deserialize`, and is retried. Everything this class sees — connect, TLS handshake, request send,
+response-header read — is not, because `ClientPipeline#afterIdentity` wraps the send and the deserialize
+in one try and the send's failure never reaches the code that would retry it. Identical to 3.6; the async
+path inherits it unchanged, and it is not fixable from the transport.
+
+Verified only that the exception *contract* holds: a refused connection arrives as a
+`software.amazon.smithy.java.*` type on both transports, not a raw `IOException` and not
+`CrtRuntimeException` (`connectFailureIsRemappedToSmithysExceptionContract`).
+
+### 15.3 `DIFFERENT` — a queued call costs a parked virtual thread rather than a future
+
+> **Revised.** This entry originally said virtual threads *remove* the transport's concurrency bound and
+> that the bridge would need its own semaphore. That was wrong, and no semaphore was added. Every
+> envelope still calls the v2 transport's `execute`, so the transport's bounds apply unchanged beneath
+> the bridge: Netty's `maxConcurrency` (default 50) limits what is on the wire, and
+> `maxPendingConnectionAcquires` (default 10,000, `SdkHttpConfigurationOption:152`) limits what may
+> queue for a connection, after which Netty fails the acquire exactly as it does for a stock client.
+> The 200-call test is the first bound working; nothing in the bridge sidesteps the second.
+
+What does differ is the cost of a queued call. In stock v2, a call waiting for a connection is a pending
+future and a handful of pipeline objects. On the bridge it is those plus a parked virtual thread — a
+continuation of perhaps a kilobyte, holding the envelope's stack. 10,000 queued calls is ~10 MB more
+heap, not 10,000 platform threads. Measurable and bounded, and the same bound applies to both.
+
+### 15.4 `PARTLY RESOLVED` (§17.8) — cancellation, still
+
+> **Update.** Timeouts now abort the in-flight exchange (the transport registers an abort action per
+> attempt). A caller cancelling the returned future still does not; that needs the same hook wired to the
+> future, which is small but not done.
+
+
+Unchanged from 14.5 and 8.1. The bridge's `send` parks on a `CompletableFuture`; interrupting the parked
+thread does not abort the v2 exchange, and smithy-java's transport contract has no place to return the
+handle that would. `apiCallTimeout` needs the same missing piece.
+
+### 15.5 not exercised at this layer
+
+Originally this entry said the async *client* did not exist yet; it does now (§16). What is still
+unexercised at the transport layer: HTTP/2 (Netty's H2 mode, which 15.1 notes changes the framing rules),
+`Expect: 100-continue` (Netty defers the body subscribe until the 100 arrives —
+`nrs/HttpStreamsClientHandler.java:134-142` — and the bridge has never driven that path), and a response
+whose declared `Content-Length` disagrees with the bytes delivered. TLS, listed here originally, is now
+covered: every S3 case in `BridgedAsyncClientsTest` runs over HTTPS, on both transports.
+
+### 15.6 `FIXED in the bridge`, `UPSTREAM` — smithy-java's publisher-backed `DataStream` cannot be read with `asByteBuffer()`
+
+A smithy-java 1.6.1 bug, found because the async transport is the first thing to hand the pipeline a
+publisher-backed response body. `PublisherDataStream.asByteBuffer()` sets `consumed = true` (line 60) and
+then subscribes through its own public `subscribe()` (line 62), which checks `consumed` and throws
+`IllegalStateException: DataStream is not replayable and has already been consumed` (line 202).
+`asInputStream()` does not have the bug, because it subscribes through the private `innerSubscribe`.
+
+So a one-shot `DataStream.ofPublisher(...)` body fails on its **first** `asByteBuffer()`, and that is how
+the codecs read every non-streaming response: `HttpBindingDeserializer.bodyAsByteBuffer`. Every XML
+response on the async path failed — `ListObjectsV2`, `CompleteMultipartUpload`, `CopyObject` — while
+bodyless and streaming responses passed, which made it look like a bridge serialization bug until the
+stack trace was read. smithy-java's own transport never hits it: it hands the pipeline
+`InputStream`-backed bodies.
+
+Fixed on the bridge side by not using `ofPublisher` for response bodies. `ResponseBodyDataStream` is the
+same one-shot semantics, reimplemented over v2's own `InputStreamSubscriber` (bounded buffer, streams
+rather than buffers). Pinned by `V2AsyncTransportBridgeTest.responseBodyReadsAsAByteBufferExactlyOnce`,
+which also asserts the second read still fails. The upstream fix is one line — `innerSubscribe` in
+`asByteBuffer` — and worth filing, since any smithy-java user with a publisher-backed transport hits it.
+
+
+## 16. Async client (generated `Default*AsyncClient` on smithy-java)
+
+Scope: `AsyncClientClass` now generates the async client onto the bridge behind the same
+`generateSmithyJavaSerde` gate as the sync one. For S3 that is 105 of 106 operations; the one left on the
+stock pipeline is `SelectObjectContent`, an event stream (16.6). DynamoDB is all of them. The async client
+shares the sync client's whole pipeline; what makes it async is two pieces, and neither is in smithy-java:
+
+- **The envelope.** `SmithyBridgeClient#runAsync` runs the blocking `Client#call` on its own virtual thread
+  and completes a v2-shaped future. smithy-java 1.6.1 has no async API at all (`Client.call → O`,
+  `ClientPipeline.send → O`, `ClientTransport.send → ResponseT`), so something has to park, and a virtual
+  thread parked on response headers is the cheapest thing that can.
+- **The bodies.** `V2DataStreams.toDataStream(AsyncRequestBody)` and `toSdkPublisher(DataStream)` adapt
+  v2's reactive bodies to smithy's `Flow.Publisher`-based `DataStream` with `FlowAdapters`, and
+  `V2AsyncStreamingInvoker` drives `AsyncResponseTransformer`. With `V2AsyncTransportBridge` underneath,
+  bytes move on Netty's or CRT's event loops in both directions, and nothing buffers.
+
+Verified by:
+
+| Suite | What | Result |
+|---|---|---|
+| `S3AsyncWireDiffTest` | the 9 `S3Cases` operations through `S3AsyncClient`, byte-diffed against goldens captured from **stock published 2.46.10 async** (`golden/async/`) | 8 identical; `copy-object` skipped for 12.6/12.7, the same ledgered reason as its sync twin |
+| `BridgedAsyncClientsTest` | public builders only, over a real socket, **Netty and CRT** each: put/get round trips, `toBlockingInputStream`, modeled errors, completion thread, 20 MiB multipart upload and download via `multipartEnabled(true)`, part-failure handling both ways, DynamoDB `GetItem` + `ConditionalCheckFailedException` | 19/19 |
+| `V2AsyncTransportBridgeTest` | the transport alone (§15), both transports | 18/18 |
+| JFR, `jdk.VirtualThreadPinned` at a **0 ms** threshold, over the two suites above | whether any envelope pins its carrier | 458 virtual threads started, **0 pinned** |
+
+The stock async goldens were compared with the stock *sync* goldens when they were captured: identical once
+normalized, and unabridged they differ only in stock async sending `content-length: 0` on the two bodyless
+requests. So the async diff is a bridge-versus-stock comparison, not a comparison of v2's two pipelines.
+
+### 16.1 `DIFFERENT` — pre-transport work runs on the envelope thread, not the caller's
+
+Stock v2 async does a surprising amount on the **caller's** thread before `execute` returns: interceptors'
+`beforeExecution` and `modifyRequest` (`BaseAsyncClientHandler:74`), marshalling, endpoint resolution, and
+credential resolution — `AwsCredentialsProvider#resolveIdentity` defaults to
+`completedFuture(resolveCredentials())`, so a slow credentials provider blocks the caller. On the bridge
+all of it runs inside `Client#call`, on the envelope's virtual thread, and the caller returns immediately.
+
+Mostly an improvement: a caller on an event loop can no longer be blocked by an IMDS round trip. The
+compatibility cost is anything **thread-bound**. An `ExecutionInterceptor` that reads a `ThreadLocal` in
+`beforeExecution` — an MDC logging context, an OpenTelemetry or X-Ray context captured by thread, a
+request-scoped security context — sees the envelope thread's (empty) value rather than the caller's.
+Stock v2 makes no documented promise here, but the behavior is long-standing and tracing integrations
+rely on it. A fix is to capture a context snapshot on the caller's thread and restore it on the envelope;
+that needs a hook the bridge does not have (a v2 SPI for "context to propagate", or smithy-java's
+`Context` carrying it), so it is not attempted.
+
+### 16.2 `SAME` — future shape and completion thread
+
+Matched deliberately, and both asserted over both transports:
+
+- Failures are a `CompletionException` whose cause is the v2 exception, as
+  `AsyncExecutionFailureExceptionReportingStage:51` produces — so `join()` throws it as is, `get()` wraps
+  it in `ExecutionException`, and `whenComplete` sees `t.getCause()` as the service exception.
+- Futures complete on `FUTURE_COMPLETION_EXECUTOR` (default threads `sdk-async-response-*`), so a
+  caller's executor, and any context propagation it does, is honored. The hop protects less than in v2 —
+  the envelope thread is not an I/O thread — but skipping it would silently ignore the configuration. A
+  rejected completion task completes inline rather than never.
+
+Cancellation forwarding is present in the same shape as stock (`CompletableFutureUtils.forwardExceptionTo`
+from the returned future to the call's), but see 16.5 for what it does not reach.
+
+### 16.3 `DIFFERENT` — `AsyncResponseTransformer.prepare` is called once per call, not once per attempt
+
+The async twin of 13.4. v2 calls `prepare()` inside its retry loop, so a transformer is re-prepared for
+each attempt, and a failure the transformer signals can be retried. The bridge calls `prepare()`,
+`onResponse()` and `onStream()` after `Client#call` returns, because smithy-java's retry loop is not
+reachable from outside it. In practice a retry the bridge performs happens before the transformer sees
+anything — a 5xx is retried inside the pipeline and the transformer never learns of it — and a failure
+*during* the body stream goes to the transformer's `exceptionOccurred` and is not retried. Whether stock
+v2 retries a mid-stream failure depends on its retry stage and the transformer, and was not measured
+here. Order of the callbacks, and `exceptionOccurred` on failure, match v2.
+
+The end-of-stream wrapper v2's generated async code puts around the transformer
+(`AsyncResponseTransformerUtils.wrapWithEndOfStreamFuture`) is omitted: it feeds v2's own pipeline
+metrics, which do not exist here. API-call metrics are published when the future completes, as in the
+non-streaming case.
+
+### 16.4 `IMPROVED` — a one-shot request body is never re-sent, and the caller sees the real failure
+
+The principled half of 14.3. smithy-java already refuses to retry a call whose body cannot be re-read —
+`ClientCall.isRetryDisallowed` checks `DataStream.isReplayable()` — but it only looks at the operation's
+**modeled** input stream member. The bridge passes bodies out of band, in the context
+(`V2StreamingBridge.REQUEST_BODY`), because v2's shapes have no body member; so the check never sees them
+and a one-shot body is retried anyway. That is what produced "Multiple subscribers detected" under the
+façade.
+
+`V2ErrorEnricher` now closes the gap. After classifying an attempt's failure as usual, if the out-of-band
+body is not replayable it substitutes a `V2NonReplayableError` (retry safety `NO`, a constant), and the
+client boundary unwraps it to the original failure. Replayability is decided in
+`V2DataStreams.toDataStream(AsyncRequestBody)`, because v2 does not record it — v2 simply resubscribes and
+lets a one-shot body fail. The rule is conservative in one direction only: a body is one-shot when it is
+*known* to be (`NonRetryableSubAsyncRequestBody`, or a `Stream`-typed body — the blocking input/output
+stream bodies and `fromInputStream`); bytes, files, and caller publishers are assumed replayable, which is
+what v2 assumes of every body.
+
+The bridge column is measured (`BridgedAsyncClientsTest`, both transports, same fake S3). The stock column
+is **not** measured on the async client: it is read from source (`AsyncRequestBody.java:561,590` build
+one-shot parts; `NonRetryableSubAsyncRequestBody` refuses the second subscriber) and matches the message
+the façade observed in 14.3, which came from the same v2 splitter.
+
+| Part body | Stock v2 (from source) | Bridge (measured) |
+|---|---|---|
+| `fromBytes`, split by multipart (one-shot parts) | retries, the part refuses the second subscriber, upload fails with `NonRetryableException: Multiple subscribers detected`, aborted | does not retry, the part is sent **once**, upload fails with the real `S3Exception` (500, `InternalError`), aborted |
+| `BufferedSplittableAsyncRequestBody` (retryable parts) | retries the part, upload succeeds | retries the part — sent twice — and the upload succeeds |
+
+Same outcome where stock fails, a better error, and no wasted second attempt. The heuristic is the
+fragile part: an `AsyncRequestBody` implementation that is one-shot but reports a non-`Stream` body type
+is still retried, and fails as it would on stock.
+
+### 16.5 `MISSING` — cancellation stops at the future
+
+Cancelling the future a caller holds completes the call's future exceptionally (the stock forwarding),
+but the envelope's virtual thread keeps running `Client#call`, and the v2 exchange underneath is not
+aborted — smithy-java's transport contract has nowhere to return the handle that would. Same root as
+15.4, 14.5 and 8.1 (`apiCallTimeout`). A cancelled large upload stops being awaited but keeps sending.
+
+### 16.6 `SAME AS STOCK` — event-stream operations stay on the stock pipeline, inside the same client
+
+`ClientClassUtils.usesSmithyPipeline` excludes event-stream operations, and the async client — unlike the
+sync one, which filters them out entirely — still generates them, on the stock body. So `S3AsyncClient`
+holds two pipelines: `SelectObjectContent` runs through v2's `clientHandler` and everything else through
+smithy-java. Both are built from the same `SdkClientConfiguration`, so configuration is consistent, but
+their behavior differences (everything in this ledger) apply to one operation and not its neighbors. A
+customer who measures or debugs `SelectObjectContent` is measuring stock v2.
+
+### 16.7 measured for DynamoDB; cheaper than stock async, by less than sync
+
+Paired stock-versus-bridge, CRT and Netty, concurrency 1 and 16 (`pipeline_benchmark2/RESULTS.md`, "Async").
+At concurrency 1 the bridged async client is 4-42% cheaper in app CPU and 10-41% lower in latency, 4/4 in
+every cell — about half of the sync client's margin on small operations. At concurrency 16, one loss:
+Netty `batch-get`, +4.9% CPU. Latency at concurrency 16 is not comparable, because stock v2's
+caller-thread marshalling (16.1) keeps a single-submitter harness from reaching the target concurrency.
+Not measured: async S3 streaming, async multipart throughput, and the queued-call memory 15.3 estimates.
+
+### 16.8 `FIXED in the bridge`, `UPSTREAM` — `RequestOverrideConfig.toBuilder()` drops the per-call context
+
+smithy-java 1.6.1's `RequestOverrideConfig.toBuilder()` copies interceptors, resolvers, auth schemes and the
+retry strategy, but not the context — and `context()` is package-private, so a caller cannot copy it either.
+Found when request-level overrides were layered onto a streaming call's per-call config: the body and the
+response sink lived in the context, so multipart parts went out empty and downloads came back empty, on the
+façade and on the async client alike. Fixed by composing every per-call contributor into one builder that is
+built once (`V2RequestOverrides.apply` takes contributions, not a built config). Upstream: copy the context in
+`toBuilder()`.
+
+## 17. Schema traits and request overrides: what was addressable
+
+Scope: the ledger entries caused by metadata the smithy path dropped — operation traits, checksums, host
+prefixes, idempotency tokens, error mapping — and by request-level `overrideConfiguration()`. The question
+this phase set out to answer is which of those are real limits of a smithy-java pipeline and which were
+simply not wired. Answer first: **every one of them was addressable**, and in almost every case by running
+v2's *own* code at the point smithy-java would run its equivalent. The residue is in 17.11.
+
+Verification is differential throughout: each behavior is recorded from **published 2.46.10** and the bridge
+is held to it, sync and async.
+
+| Suite | What | Result |
+|---|---|---|
+| `S3ChecksumWireDiffTest` | 8 checksum cases × sync/async, v2 default `WHEN_SUPPORTED`, checksum headers, `x-amz-content-sha256` and `aws-chunked` bodies compared verbatim | 16/16 |
+| `S3ResponseChecksumTest` | `ResponseChecksumProbe`: checksum mode on/off × correct/corrupt/absent, trailing MD5 correct/corrupt, sync/async | 16/16 lines, one named type difference (13.4) |
+| `DynamoDbBehaviorTest` | `DynamoDbBehaviorProbe`: `x-amz-crc32` correct/corrupt, idempotency token present and stable across a retry, sync/async | 6/6 |
+| `RequestOverridesTest` | `RequestOverrideProbe`: every request-level field and the client-level headers, signer and user-agent options, sync/async, timeouts against a real stalled server | 32/32 |
+| `S3WireDiffTest`, `S3AsyncWireDiffTest` | the binding diffs, now with `write-get-object-response` (host prefix) and without any ledgered skip | 10/10, 11/11 |
+| fault sweep (`error-behavior.sh`, all faults, persistent + transient) | exception type, attempts, retryability, request ID, raw response against stock | **1 behavioral difference** (was 19 at the start of this phase): `malformed-body`'s cause type, 3.5 |
+
+The whole `test/wire-diff` module is 91/91; codegen 577/577.
+
+### 17.1 The approach: carry v2's metadata, run v2's code
+
+smithy-java 1.6.1 has trait consumers for some of this and not for the parts that matter: its only checksum
+support is `Content-MD5` for `@httpChecksumRequired`; it has no chunked signing, no flexible checksums, no
+response validation, no host-prefix support in the configuration the bridge uses, no timeouts. Putting smithy
+traits on the schemas would have switched on the one behavior (MD5) that current v2 does *not* use. So the
+operation-level traits go onto the generated `ApiOperation` as v2's own execution attributes
+(`V2OperationMetadata`, emitted by the same generators as the stock client method), and the behavior comes
+from v2's signer, v2's checksum rules and v2's interceptors, driven from smithy-java's pipeline.
+
+### 17.2 v2's signer is bridged (4.3, 12.8, 13.2)
+
+`V2SigningAuthScheme`/`V2SignerBridge`: smithy's `aws.auth#sigv4` scheme, signing with `AwsV4HttpSigner` —
+`sign` for a content-provider body, `signAsync` for an `AsyncRequestBody` — with the signer properties v2's
+own auth-scheme provider resolves (generated `authSchemeParams`, exposed for bridged services) and the
+endpoint's `authSchemes` applied over them, as the stock interceptors compose them. The endpoint bridge
+assembles the inputs, because it runs before signing and has the input in hand, and they ride to the signer
+on the resolved `Endpoint`'s properties, because the resolver's context is read-only.
+
+### 17.3 Request checksums (12.9, 13.3)
+
+The checksum decision is v2's `HttpChecksumUtils.isHttpChecksumCalculationNeeded` and
+`HttpChecksumResolver`, run against the attempt's attributes; the default algorithm and header are
+`HttpChecksumStage#sraChecksum`'s lines; the computing is v2's signer. 16/16 against stock.
+
+### 17.4 Response hooks (2.1, 6.1 S3, 13.6)
+
+The interceptor bridge now drives v2's response-side hooks, handing the body as an `InputStream` or a
+publisher by client type, as v2 does. That alone switches on v2's `HttpChecksumValidationInterceptor` and
+S3's response interceptors. To keep a default DynamoDB client from installing the interceptor bridge for the
+validator — the cost the inert filter was built to avoid — codegen marks it replaced for services with no
+response-validating operation.
+
+### 17.5 `x-amz-crc32` (6.1 DynamoDB)
+
+v2's `Crc32Validation`, from a response hook, on both client types. The source said async does not validate;
+stock does, so the bridge does.
+
+### 17.6 Codec and binding rules (12.6, 12.7, 5.4, idempotency tokens)
+
+`V2RestXmlBodyRules` applies v2's two rest-xml body rules after serialization. The endpoint bridge applies
+`@endpoint` host prefixes. Generated `serializeMembers` fills an unset `@idempotencyToken` from v2's own
+generator — a gap no earlier entry had recorded: stock sends a UUID, the bridge sent nothing, so a retried
+`TransactWriteItems` was not idempotent.
+
+### 17.7 Errors (1.3, 1.4)
+
+Service-wide error registration per operation, as stock's generated mapping does; the raw error body kept for
+`awsErrorDetails().rawResponse()`; a transport failure's real cause, not smithy's wrapper.
+
+### 17.8 Request-level overrides and timeouts (2.2, 2.3, 2.4, 8.1, 8.2)
+
+`V2RequestOverrides` translates each field to the component that owns it; `V2Timeouts` implements both
+timeouts with a timer that aborts the attempt through an action each transport registers. The client-level
+counterparts go through the same components — `overrideConfiguration().headers()`, the legacy `SIGNER`
+advanced option, `USER_AGENT_PREFIX`/`SUFFIX`. 32/32 lines against stock, sync and async.
+
+Two things stock does that the source did not make obvious, both found by the probe and both now matched: a
+header set at client *and* request level is sent with **both** values, the client's first
+(`MergeCustomHeadersStage` appends, except for single-valued headers) — so the client's is the one
+`firstMatchingHeader` returns; and the user-agent prefix, API names and suffix wrap the *final* agent string,
+which smithy-java only sets after signing, so the bridge applies them just before transmission.
+
+### 17.9 Transport failures reach the retry loop (3.6)
+
+`V2TransportFailures`: a transport defers its failure into the attempt as a marked stand-in response, and the
+enricher restores and classifies it. This retires the one `BLOCKED` finding that would have stopped adoption
+on its own — as a bridge workaround; the upstream change is small and still the right fix.
+
+### 17.10 Three more smithy-java defects, found by this work
+
+All worked around in the bridge, all worth filing upstream: 15.6 (`PublisherDataStream.asByteBuffer()`
+always fails), 3.7 (an interceptor that does not override `modifyBeforeAttemptCompletion` disables every
+interceptor after it on the error path), 16.8 (`RequestOverrideConfig.toBuilder()` drops the context).
+
+### 17.11 What is left, and whether it is a real limit
+
+| Remaining | Real limit of the pipeline? |
+|---|---|
+| 1.1 v2 exceptions cannot be smithy `ModeledException`s | **Yes, structurally** (single inheritance). Worked around with a shim; invisible to callers. |
+| 3.5 / `malformed-body` cause type (Jackson 3 vs 2) | **Yes, as long as the codec is Jackson 3.** Type and retryability match; only the cause's class differs. |
+| 13.4 / 16.3 response transformer outside the retry loop | **Yes, without an upstream hook.** Visible as one exception type (a subclass of stock's) and as no retry of a mid-stream failure. |
+| 16.1 thread-bound context on the async envelope | **No** — needs a context-propagation hook, not a smithy change. |
+| 12.13 XML prolog / root namespace / `&quot;` | **Mostly no.** Cosmetic; the namespace is addressable in codegen, the prolog is a codec setting smithy lacks. |
+| 2.1 `modifyException`, `beforeMarshalling` and two other hooks | **No** — same pattern as the hooks bridged here. |
+| 2.2 plugins that change the transport or retry strategy per request | **Partly.** `RequestOverrideConfig` can carry a retry strategy; the transport is fixed at construction. |
+| SigV4a, S3 Express session auth | **No** — v2's signers exist; not wired. |
+| 6.2 request compression | **No** — v2's stage logic is small; no affected operation here. |
+| 7.x metrics and user agent | **No**, but large: v2's collectors would need driving from smithy hooks. |
+| 15.4 / 16.5 caller cancellation | **No** — the abort hook exists now; cancellation needs wiring to it. |
+
+The performance cost of this phase is in `pipeline_benchmark2/RESULTS.md` ("Fidelity cost").
+
 ## Open questions
 
-1. Does `SigV4Signer`'s canonical-header exclusion list match v2's `AwsV4HttpSigner` exactly? A
-   signature-comparison test against a fixed clock and fixed credentials would settle it.
+1. ~~Does `SigV4Signer`'s canonical-header exclusion list match v2's `AwsV4HttpSigner` exactly? A signature-comparison test against a fixed clock and fixed credentials would settle it.~~ **Answered (§17).** The bridge signs with v2's own `AwsV4HttpSigner` (4.3), so the canonical request is v2's by construction; the checksum goldens compare the signed-headers list verbatim.
 2. Is `ClientPipeline`'s per-attempt endpoint/identity re-resolution a measurable cost at
    concurrency 1, or is it noise? (Benchmark: retry-free path, so probably invisible — but it shows
    up under throttling.)
-3. `apiCallTimeout` (8.1) has no smithy concept at all. Would adding one upstream be accepted, or
-   does the bridge have to own it?
+3. ~~`apiCallTimeout` (8.1) has no smithy concept at all. Would adding one upstream be accepted, or does the bridge have to own it?~~ **Answered (§17).** The bridge owns it (`V2Timeouts`), with a per-attempt abort registered by each transport; it matches stock on sync and async (8.1, 8.2).
 4. Can `ClientPipeline` resolve the endpoint *before* `modifyBeforeSigning` (2.1)? Every alternative
    the bridge has is worse: showing interceptors a URI with no host, showing them the client endpoint
    and lying, or adding a second smithy hook after `setServiceEndpoint` that v2's chain has no
@@ -1515,12 +2067,10 @@ test), multipart with checksums enabled (`create(..., checksumEnabled = true)`, 
    the operation's `ShapeMarshaller`; the bridge infers it from `SDK_FIELDS`, where a
    customization-injected member is indistinguishable from a modeled one. Carrying the flag into the
    operation schema is the smaller change; marking injected members in codegen is the more correct one.
-9. Does anything besides `@httpChecksum` (12.9) make a bridged S3 operation outright fail? The wire
-   diff covers six operations; the checksum-required set alone is larger than that, and 200-with-error
-   body, `modifyException`, and virtual-host addressing are all still unexercised.
-10. What does a bridged **async** client cost (14.1)? smithy-java's client is async underneath, so the
-    generated `CompletableFuture` methods may be a thinner bridge than the sync ones rather than a
-    thicker one — but v2's async surface brings `AsyncRequestBody`/`AsyncResponseTransformer`,
-    `SdkAsyncHttpClient`, and the split-body retry contract that 14.3 shows is not incidental. Until this
-    is answered, multipart and `S3TransferManager` are unavailable on the bridge in any real sense, and
-    every finding in section 14 is about the façade rather than about smithy-java.
+9. ~~Does anything besides `@httpChecksum` (12.9) make a bridged S3 operation outright fail? The wire    diff covers six operations; the checksum-required set alone is larger than that, and 200-with-error body, `modifyException`, and virtual-host addressing are all still unexercised.~~ **Answered (§17).** The `@httpChecksum` breakage is fixed (12.9). What else was found and fixed: empty-payload rules (12.6/12.7), host prefixes (5.4), trailing MD5 (13.6). Still unexercised: 200-with-error-body, virtual-host addressing, S3 Express.
+10. ~~What does a bridged **async** client cost (14.1)?~~ **Answered (§16).** The premise was wrong —
+    smithy-java 1.6.1 is synchronous top to bottom, so the async client is the *thicker* bridge: a virtual
+    thread per call over the sync pipeline, with bodies adapted by `FlowAdapters`. It is cheaper than stock
+    v2 async all the same, by 4-42% in app CPU at concurrency 1, and about half the sync margin on small
+    operations (16.7). Multipart runs on it unmodified through the public builder, so the §14 façade
+    findings no longer describe the bridge.

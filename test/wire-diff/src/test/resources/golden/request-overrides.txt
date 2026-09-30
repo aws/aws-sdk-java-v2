@@ -1,0 +1,32 @@
+sync  headers -> x-probe-header=h1
+async headers -> x-probe-header=h1
+sync  rawQueryParameters -> probe=[q1]
+async rawQueryParameters -> probe=[q1]
+sync  apiNames -> user-agent has probeApi/1.0=true
+async apiNames -> user-agent has probeApi/1.0=true
+sync  credentialsProvider -> signed-with-override=true
+async credentialsProvider -> signed-with-override=true
+sync  endpointProvider -> host=override.example.com
+async endpointProvider -> host=override.example.com
+sync  authSchemeProvider -> scope-from-override=false
+async authSchemeProvider -> scope-from-override=false
+sync  executionAttributes -> interceptor-saw=ea1
+async executionAttributes -> interceptor-saw=ea1
+sync  signer -> legacy-signer-ran=true
+async signer -> legacy-signer-ran=true
+sync  plugins -> signed-for-eu-west-1=true
+async plugins -> signed-for-eu-west-1=true
+sync  metricPublishers -> published=1
+async metricPublishers -> published=1
+sync  client headers -> x-client-header=c1
+async client headers -> x-client-header=c1
+sync  client header under request header -> x-probe-header=client
+async client header under request header -> x-probe-header=client
+sync  client signer -> legacy-signer-ran=true
+async client signer -> legacy-signer-ran=true
+sync  user agent prefix/suffix -> prefix-first=true suffix-last=true
+async user agent prefix/suffix -> prefix-first=true suffix-last=true
+sync  apiCallTimeout -> FAIL ApiCallTimeoutException (early) attempts=1
+async apiCallTimeout -> FAIL ApiCallTimeoutException (early) attempts=1
+sync  apiCallAttemptTimeout -> FAIL ApiCallAttemptTimeoutException (after the delay) attempts=4
+async apiCallAttemptTimeout -> FAIL ApiCallAttemptTimeoutException (after the delay) attempts=4

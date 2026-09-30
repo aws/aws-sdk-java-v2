@@ -1,0 +1,10 @@
+DELETE /wirediff-bucket/nested/path/with%20spaces/object.txt
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+--- headers ---
+authorization: SignedHeaders=x-amz-content-sha256;x-amz-date
+user-agent: <normalized>
+x-amz-content-sha256: <payload-hash-or-unsigned>
+x-amz-date: <normalized>
+--- body (0 bytes) ---

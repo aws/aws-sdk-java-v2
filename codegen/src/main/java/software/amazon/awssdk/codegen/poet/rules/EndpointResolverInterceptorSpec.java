@@ -639,8 +639,15 @@ public class EndpointResolverInterceptorSpec implements ClassSpec {
         MethodSpec.Builder builder = MethodSpec.methodBuilder("hostPrefix")
                                                .returns(ParameterizedTypeName.get(Optional.class, String.class))
                                                .addParameter(String.class, "operationName")
-                                               .addParameter(SdkRequest.class, "request")
-                                               .addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+                                               .addParameter(SdkRequest.class, "request");
+        // Public for services on the smithy-java bridge, whose endpoint bridge replaces this interceptor and
+        // applies the operation's host prefix itself (the @endpoint trait); private everywhere else, so no
+        // other generated interceptor changes.
+        if (model.getCustomizationConfig() != null && model.getCustomizationConfig().isGenerateSmithyJavaSerde()) {
+            builder.addModifiers(Modifier.PUBLIC, Modifier.STATIC);
+        } else {
+            builder.addModifiers(Modifier.PRIVATE, Modifier.STATIC);
+        }
 
         boolean generateSwitch =
             model.getOperations().values().stream().anyMatch(opModel -> StringUtils.isNotBlank(getHostPrefix(opModel)));

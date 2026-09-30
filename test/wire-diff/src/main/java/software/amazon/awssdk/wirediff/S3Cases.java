@@ -42,6 +42,8 @@ import software.amazon.awssdk.services.s3.model.Tagging;
  *       signing.</li>
  *   <li>{@code get-object} — a streaming response body; the request itself is small, and what is under
  *       test is that adding a {@code ResponseTransformer} does not change it.</li>
+ *   <li>{@code write-get-object-response} — the {@code @endpoint} trait: the request goes to
+ *       {@code <RequestRoute>.<endpoint>}, a host prefix built from an input member (ledger 5.4).</li>
  *   <li>{@code upload-part} — a streaming body <em>plus</em> bound query parameters, the combination
  *       every multipart upload sends thousands of times.</li>
  * </ul>
@@ -153,10 +155,7 @@ public final class S3Cases {
                                                .cacheControl("max-age=60")
                                                .contentType("text/plain")
                                                .metadataDirective("REPLACE")
-                                               .metadata(Map.of("owner", "wirediff", "purpose", "byte-diff"))),
-                     "12.6 customization-injected members become body members, so an empty "
-                     + "<CopyObjectRequest/> document is sent; 12.7 that document also adds a second "
-                     + "Content-Type alongside the modeled one"),
+                                               .metadata(Map.of("owner", "wirediff", "purpose", "byte-diff")))),
 
             new Case("put-object",
                      "",
@@ -172,6 +171,11 @@ public final class S3Cases {
                                               .key("logs/a.txt")
                                               .range("bytes=0-37"),
                                         ResponseTransformer.toBytes())),
+
+            new Case("write-get-object-response",
+                     "",
+                     s3 -> s3.writeGetObjectResponse(r -> r.requestRoute("route-1").requestToken("token-1"),
+                                                     RequestBody.fromString(PAYLOAD, StandardCharsets.UTF_8))),
 
             new Case("upload-part",
                      "",

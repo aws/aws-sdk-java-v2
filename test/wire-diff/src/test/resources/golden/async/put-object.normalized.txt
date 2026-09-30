@@ -1,0 +1,13 @@
+PUT /wirediff-bucket/logs/a.txt
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+--- headers ---
+authorization: SignedHeaders=content-type;x-amz-content-sha256;x-amz-date;x-amz-meta-origin
+content-type: text/plain
+user-agent: <normalized>
+x-amz-content-sha256: <payload-hash-or-unsigned>
+x-amz-date: <normalized>
+x-amz-meta-origin: wirediff
+--- body (38 bytes) ---
+wire-diff streaming payload: 38 bytes.

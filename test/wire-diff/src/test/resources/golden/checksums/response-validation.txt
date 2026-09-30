@@ -1,0 +1,16 @@
+sync  mode-enabled correct -> OK 38 bytes (sent x-amz-checksum-mode: ENABLED)
+async mode-enabled correct -> OK 38 bytes (sent x-amz-checksum-mode: ENABLED)
+sync  mode-enabled corrupt -> FAIL SdkClientException (checksum mismatch)
+async mode-enabled corrupt -> FAIL SdkClientException (checksum mismatch)
+sync  mode-enabled absent -> OK 38 bytes (sent x-amz-checksum-mode: ENABLED)
+async mode-enabled absent -> OK 38 bytes (sent x-amz-checksum-mode: ENABLED)
+sync  mode-unset correct -> OK 38 bytes (sent x-amz-checksum-mode: -)
+async mode-unset correct -> OK 38 bytes (sent x-amz-checksum-mode: -)
+sync  mode-unset corrupt -> OK 38 bytes (sent x-amz-checksum-mode: -)
+async mode-unset corrupt -> OK 38 bytes (sent x-amz-checksum-mode: -)
+sync  mode-unset absent -> OK 38 bytes (sent x-amz-checksum-mode: -)
+async mode-unset absent -> OK 38 bytes (sent x-amz-checksum-mode: -)
+sync  append-md5 md5-correct -> OK 38 bytes, payload-intact=true
+async append-md5 md5-correct -> OK 38 bytes, payload-intact=true
+sync  append-md5 md5-corrupt -> FAIL RetryableException (checksum mismatch)
+async append-md5 md5-corrupt -> FAIL RetryableException (checksum mismatch)

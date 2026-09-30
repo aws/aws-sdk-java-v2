@@ -40,7 +40,7 @@ import software.amazon.awssdk.http.SdkHttpFullRequest;
  * <h2>Known differences</h2>
  *
  * <p>{@link #renderIgnoringKnownDifferences} additionally erases the pipeline-level differences already
- * recorded in {@code compatability_issues.md} §12.8-12.13 and §13.6. Those are uniform per operation and
+ * recorded in {@code compatability_issues.md} §12.8-12.13. Those are uniform per operation and
  * not what this harness exists to watch, so leaving them in makes all six cases fail forever and the
  * gate stops catching new regressions. Each erasure names its ledger entry; nothing is normalized away
  * that is not written down there, and {@link #render} still produces the unabridged text for the
@@ -65,23 +65,51 @@ public final class WireFormat {
         "x-amz-checksum-crc32c",        // 12.9
         "x-amz-checksum-sha1",          // 12.9
         "x-amz-checksum-sha256",        // 12.9
-        "content-md5",                  // 12.9
-        "x-amz-te");                    // 13.6 GetObject's trailing MD5 is deliberately not requested
+        "content-md5");                 // 12.9
+
+    /**
+     * What the checksum-aware render drops: the {@link #KNOWN_DIFFERENT_HEADERS} that are not about
+     * checksums. Everything a checksum changes — the checksum headers themselves, the algorithm header,
+     * {@code x-amz-trailer}, {@code content-encoding: aws-chunked}, {@code x-amz-decoded-content-length},
+     * and {@code x-amz-content-sha256} — is compared verbatim, because that is what those cases are for.
+     */
+    private static final Set<String> CHECKSUM_MODE_DROPPED = Set.of(
+        "amz-sdk-invocation-id",        // 12.10
+        "amz-sdk-request",              // 12.10
+        "host",                         // 12.11
+        "content-length");              // 12.11
+
+    /** A chunk or trailer signature: a function of the clock, like the Authorization signature. */
+    private static final java.util.regex.Pattern CHUNK_SIGNATURE =
+        java.util.regex.Pattern.compile("(chunk-signature=|x-amz-trailer-signature:)[0-9a-f]{64}");
+
+    private enum Mode { RAW, KNOWN, CHECKSUM }
 
     private WireFormat() {
     }
 
+    /**
+     * For the checksum goldens: {@link #renderIgnoringKnownDifferences}, but keeping every header and
+     * body byte a checksum decision changes. Chunk and trailer signatures — present only when a streaming
+     * body is chunk-signed over plain HTTP — are placeholdered, since they depend on the clock.
+     */
+    public static String renderChecksumAware(CapturingHttpClient.CapturedRequest captured) {
+        return render(captured, Mode.CHECKSUM);
+    }
+
     /** The full text, with only the four unstable values placeholdered. Used for golden capture. */
     public static String render(CapturingHttpClient.CapturedRequest captured) {
-        return render(captured, false);
+        return render(captured, Mode.RAW);
     }
 
     /** As {@link #render}, minus the differences ledgered in §12.8-12.13. Used for the assertion. */
     public static String renderIgnoringKnownDifferences(CapturingHttpClient.CapturedRequest captured) {
-        return render(captured, true);
+        return render(captured, Mode.KNOWN);
     }
 
-    private static String render(CapturingHttpClient.CapturedRequest captured, boolean ignoreKnown) {
+    private static String render(CapturingHttpClient.CapturedRequest captured, Mode mode) {
+        boolean ignoreKnown = mode != Mode.RAW;
+        Set<String> dropped = mode == Mode.CHECKSUM ? CHECKSUM_MODE_DROPPED : KNOWN_DIFFERENT_HEADERS;
         SdkHttpFullRequest request = captured.request();
         StringBuilder sb = new StringBuilder(1024);
 
@@ -108,15 +136,20 @@ public final class WireFormat {
         headers.putAll(request.headers());
         headers.forEach((name, values) -> {
             String lower = name.toLowerCase(Locale.ROOT);
-            if (ignoreKnown && KNOWN_DIFFERENT_HEADERS.contains(lower)) {
+            if (ignoreKnown && dropped.contains(lower)) {
                 return;
             }
-            for (String value : normalize(name, values, ignoreKnown)) {
+            for (String value : normalize(name, values, mode)) {
                 sb.append(lower).append(": ").append(value).append('\n');
             }
         });
 
         byte[] body = ignoreKnown ? normalizeXmlBody(captured.body()) : captured.body();
+        if (mode == Mode.CHECKSUM) {
+            body = CHUNK_SIGNATURE.matcher(new String(body, StandardCharsets.ISO_8859_1))
+                                  .replaceAll("$1" + PLACEHOLDER)
+                                  .getBytes(StandardCharsets.ISO_8859_1);
+        }
         sb.append("--- body (").append(body.length).append(" bytes) ---\n");
         sb.append(renderBody(body));
         if (body.length > 0) {
@@ -125,7 +158,8 @@ public final class WireFormat {
         return sb.toString();
     }
 
-    private static List<String> normalize(String name, List<String> values, boolean ignoreKnown) {
+    private static List<String> normalize(String name, List<String> values, Mode mode) {
+        boolean ignoreKnown = mode != Mode.RAW;
         if (name.equalsIgnoreCase("X-Amz-Date")
             || name.equalsIgnoreCase("amz-sdk-invocation-id")
             || name.equalsIgnoreCase("User-Agent")) {
@@ -136,13 +170,15 @@ public final class WireFormat {
         // accepted, and the cost -- not the value -- is the finding, so compare only that it was set.
         // S3StreamingTest asserts the literal value where it matters, which is where a regression to
         // hashing would mean buffering the object.
-        if (ignoreKnown && name.equalsIgnoreCase("x-amz-content-sha256")) {
+        if (mode == Mode.KNOWN && name.equalsIgnoreCase("x-amz-content-sha256")) {
             return List.of("<payload-hash-or-unsigned>");
         }
         if (name.equalsIgnoreCase("Authorization")) {
             List<String> out = new ArrayList<>(values.size());
             for (String value : values) {
-                out.add(ignoreKnown ? signedHeadersIgnoringKnown(value) : signedHeadersOnly(value));
+                out.add(ignoreKnown ? signedHeadersIgnoring(value, mode == Mode.CHECKSUM ? CHECKSUM_MODE_DROPPED
+                                                                                          : KNOWN_DIFFERENT_HEADERS)
+                                    : signedHeadersOnly(value));
             }
             return out;
         }
@@ -166,19 +202,19 @@ public final class WireFormat {
     }
 
     /**
-     * {@link #signedHeadersOnly} with the headers of {@link #KNOWN_DIFFERENT_HEADERS} removed.
+     * {@link #signedHeadersOnly} with the headers of {@code dropped} removed.
      *
      * <p>Without this the signed-headers list restates every header difference, so a single ledgered
      * gap fails the comparison twice and a genuinely new signing difference is hard to spot among them.
      */
-    private static String signedHeadersIgnoringKnown(String authorization) {
+    private static String signedHeadersIgnoring(String authorization, Set<String> dropped) {
         String signed = signedHeadersOnly(authorization);
         if (!signed.startsWith("SignedHeaders=")) {
             return signed;
         }
         Set<String> kept = new LinkedHashSet<>();
         for (String header : signed.substring("SignedHeaders=".length()).split(";")) {
-            if (!KNOWN_DIFFERENT_HEADERS.contains(header.toLowerCase(Locale.ROOT))) {
+            if (!dropped.contains(header.toLowerCase(Locale.ROOT))) {
                 kept.add(header);
             }
         }

@@ -436,6 +436,8 @@ public class AwsServiceModel implements ClassSpec {
         }
     }
 
+    private static final ClassName IDEMPOTENT_UTILS =
+        ClassName.get("software.amazon.awssdk.core.util", "IdempotentUtils");
     private static final ClassName SMITHY_SCHEMA =
         ClassName.get("software.amazon.smithy.java.core.schema", "Schema");
     private static final ClassName SMITHY_SHAPE_SERIALIZER =
@@ -536,6 +538,17 @@ public class AwsServiceModel implements ClassSpec {
             // not an unset auto-construct list/map (which v2 omits from the wire). This matches v2's
             // reference JSON exactly (verified by GeneratedSerdeVerifier).
             String field = m.getVariable().getVariableName();
+            if (m.isIdempotencyToken()) {
+                // v2 fills an unset idempotency token with a fresh UUID at marshalling time, through
+                // DefaultValueTrait.idempotencyToken() on the SdkField. This method reads fields directly and
+                // so never saw the trait: the bridge sent no token at all, and a retried TransactWriteItems
+                // lost its idempotency. Same generator as the trait, so the same values -- and generated once
+                // per call, since smithy-java serializes before its retry loop.
+                b.addStatement(smithyWriteStatement(m, smithyMemberSchemaName(m),
+                                                    CodeBlock.of("this.$1L != null ? this.$1L : $2T.getGenerator().get()",
+                                                                 field, IDEMPOTENT_UTILS).toString()));
+                continue;
+            }
             if (m.isList()) {
                 b.beginControlFlow("if (this.$L != null && !(this.$L instanceof $T))",
                                    field, field, SDK_AUTO_CONSTRUCT_LIST);

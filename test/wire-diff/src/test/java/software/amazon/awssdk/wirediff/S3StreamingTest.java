@@ -191,16 +191,17 @@ class S3StreamingTest {
     }
 
     /**
-     * Over plain HTTP the bridge refuses rather than sending an unauthenticated body (§13.2).
+     * Over plain HTTP a streamed body is chunk-signed, as stock v2 does it (§13.2, resolved).
      *
-     * <p>v2 does not refuse: it switches to aws-chunked signing, which keeps the body authenticated on
-     * an unencrypted connection. smithy-java 1.6.1 has no chunked signing, so the options are to refuse
-     * or to silently weaken the request. This asserts the refusal, and asserts the message names the
-     * reason — a client exception that does not explain itself here would send someone hunting through
-     * a signer.
+     * <p>This used to assert a refusal: smithy-java 1.6.1 has no chunked signing, so the bridge refused
+     * rather than send an unauthenticated body. With v2's own signer bridged ({@code V2SigningAuthScheme})
+     * the request goes out as v2 sends it — {@code STREAMING-AWS4-HMAC-SHA256-PAYLOAD}, each chunk
+     * carrying its own signature. The byte-level comparison with stock is
+     * {@code S3ChecksumWireDiffTest}'s {@code put-object-http}; this checks the property directly, with
+     * checksums off so no trailer is involved.
      */
     @Test
-    void refusesToStreamOverPlainHttp() {
+    void streamsOverPlainHttpWithChunkedSigning() {
         CapturingHttpClient transport = CapturingHttpClient.xml("");
         try (S3Client s3 = S3Client.builder()
                                    .region(Region.US_EAST_1)
@@ -210,13 +211,13 @@ class S3StreamingTest {
                                    .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED)
                                    .httpClient(transport)
                                    .build()) {
-            SdkClientException e = assertThrows(
-                SdkClientException.class,
-                () -> s3.putObject(r -> r.bucket("b").key("k"),
-                                   RequestBody.fromString("x", StandardCharsets.UTF_8)));
-            assertTrue(e.getMessage().contains("chunked signing"), "unhelpful message: " + e.getMessage());
+            s3.putObject(r -> r.bucket("b").key("k"), RequestBody.fromString("x", StandardCharsets.UTF_8));
         }
-        assertTrue(transport.captured().isEmpty(), "the request must not reach the transport");
+        CapturingHttpClient.CapturedRequest sent = transport.only();
+        assertEquals("STREAMING-AWS4-HMAC-SHA256-PAYLOAD",
+                     sent.request().firstMatchingHeader("x-amz-content-sha256").orElse(null));
+        assertTrue(new String(sent.body(), StandardCharsets.UTF_8).contains("chunk-signature="),
+                   "the body must be chunk-signed");
     }
 
     private static long drain(InputStream in) {

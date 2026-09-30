@@ -8,6 +8,7 @@ mock HTTP server:
 | `v1`       | AWS SDK for Java V1 (1.12.797)        | Apache HttpClient 4.x         | Blocking, N threads |
 | `v2-sync`  | AWS SDK for Java V2                   | **Apache5** (`Apache5HttpClient`) | Blocking, N threads |
 | `v2-async` | AWS SDK for Java V2                   | **AWS CRT**                   | N in flight from one thread |
+| `v2-async-netty` | AWS SDK for Java V2             | **Netty** (`NettyNioAsyncHttpClient`) | N in flight from one thread |
 | `smithy`   | smithy-java (1.6.1), generated client | SmithyHttpClient (HTTP/1.1)   | Blocking, N threads |
 
 On a jar built against the **smithy-java bridge** SDK, `v2-sync` is the V2 API running on the

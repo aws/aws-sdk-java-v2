@@ -93,6 +93,14 @@ public final class V2ModeledError extends ModeledException {
      * @param serviceName the v2 service name to record in {@code awsErrorDetails}.
      */
     public void enrich(HttpResponse response, String errorCode, String serviceName) {
+        enrich(response, errorCode, serviceName, null);
+    }
+
+    /**
+     * As {@link #enrich(HttpResponse, String, String)}, also recording the raw error body, which stock v2
+     * exposes as {@code awsErrorDetails().rawResponse()}.
+     */
+    public void enrich(HttpResponse response, String errorCode, String serviceName, byte[] rawBody) {
         if (!(delegate instanceof AwsServiceException.Builder builder)) {
             return;
         }
@@ -106,6 +114,9 @@ public final class V2ModeledError extends ModeledException {
                                                .errorMessage(message)
                                                .serviceName(serviceName)
                                                .sdkHttpResponse(httpResponse)
+                                               .rawResponse(rawBody == null ? null
+                                                                            : software.amazon.awssdk.core.SdkBytes
+                                                                                  .fromByteArray(rawBody))
                                                .build())
                .statusCode(response.statusCode())
                .requestId(httpResponse.firstMatchingHeader("x-amzn-RequestId")

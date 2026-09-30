@@ -1,13 +1,13 @@
 # Re-hosting the AWS SDK for Java v2 on smithy-java: prototype report
 
-**Status:** prototype complete for its stated scope; report current as of 2026-09-05.
+**Status:** prototype complete for its stated scope; report current as of 2026-09-30 (async client; schema traits and request overrides, ledger §17).
 **Branch:** `smithy-java-bridge-alexwoo-full`.
 **Versions:** smithy-java 1.6.1 / smithy 1.73.0 / AWS SDK for Java v2 2.46.11-SNAPSHOT, measured against
 published v2 2.46.10.
 
 This is the single report for the prototype: what was built, what it costs, and where it cannot reproduce
 v2's behavior. It summarizes and links to the three detailed documents rather than replacing them —
-`compatability_issues.md` (the 69-entry ledger), `pipeline_benchmark2/RESULTS.md` (the measurements), and
+`compatability_issues.md` (the 95-entry ledger), `pipeline_benchmark2/RESULTS.md` (the measurements), and
 `test/standalone-e2e-benchmarks/README.md` (how to reproduce them).
 
 It is a companion to `RFC-smithy-java-runtime.md`, which is the *proposal* and is left as originally
@@ -16,7 +16,7 @@ argument — this document says so explicitly (§4).
 
 ---
 
-## 1. The five findings that matter
+## 1. The six findings that matter
 
 1. **Performance is not the risk. The bridged pipeline is 19-43% cheaper in app CPU than stock v2's own
    pipeline**, across four DynamoDB scenarios, 4/4 paired wins each, against a noise floor of ±3-4%. The
@@ -29,11 +29,15 @@ argument — this document says so explicitly (§4).
    three times that is v2 model objects plus the `SdkPojo` serde adapters. Optimizing the bridges further
    has little left to give; the veneer is where the remaining gap lives.
 
-3. **One severe behavioral divergence, and it is upstream, not ours: transport failures are never
-   retried.** smithy-java drives its whole retry loop from inside `deserialize`, so no exception thrown
-   from a transport — of any type, reporting any `RetrySafety`, however it is classified — can produce a
-   second attempt. A connection reset gets 1 attempt where v2 makes 3. This affects a **native**
-   smithy-java client, not just a bridged one, and no benchmark could have found it (ledger 3.6).
+3. **Every compatibility gap caused by dropped metadata or unwired configuration turned out to be
+   addressable** — checksums, trailers, chunked signing, host prefixes, idempotency tokens, error mapping,
+   response validation, every request- and client-level override, both timeouts — almost always by running
+   v2's *own* code (its signer, its checksum rules, its interceptors) where smithy-java would run its
+   equivalent. The fault sweep went from 19 behavioral differences to **1** (a Jackson 2-vs-3 cause type).
+   Even the most severe divergence, **transport failures are never retried** (smithy-java decides retries
+   inside `deserialize`, so a failure thrown from the transport never reaches it — a native smithy-java
+   client has the same bug), is fixed in the bridge by deferring the failure into the attempt; the upstream
+   fix is still the right one (ledger 3.6, §17).
 
 4. **The prototype derives smithy `Schema`s from C2J-generated `SdkField`s, which is exactly the path the
    RFC argues is unsafe — and the prototype's own bug history is the strongest available evidence that the
@@ -41,7 +45,21 @@ argument — this document says so explicitly (§4).
    flattened away and the translator had to guess. See §4; this is the most consequential thing in this
    report.
 
-5. **Cold start is the one loss, and it is entirely client construction** (+95 ms, +22%). The bridged
+4b. **That fidelity has a price: about 20 µs per call.** Signing with v2's signer (needed for S3's checksums
+   and signing rules) takes the sync small-operation win from −36% to about −20% against stock, and async
+   small operations from −12% to parity. `stripSigner` recovers all of it; a hybrid that uses smithy's
+   signer where v2's adds nothing would recover it for DynamoDB, pending a signature-equivalence check
+   (`RESULTS.md`, "Fidelity cost").
+
+5. **The async client works on a synchronous smithy-java, and is cheaper than stock async too — by less
+   than sync.** One virtual thread per call, parked on response headers, over Netty and CRT: 0 carrier
+   pins, byte-identical to stock async on the diffed operations, multipart unmodified through the public
+   builder. At concurrency 1 it is 4-42% cheaper in app CPU and 10-41% faster, 4/4 in every cell — roughly
+   half the sync client's margin on small operations. It also found a smithy-java bug that breaks every
+   publisher-backed response (ledger 15.6), and it costs one real compatibility property: thread-bound
+   context no longer reaches interceptors (16.1).
+
+6. **Cold start is the one loss, and it is entirely client construction** (+95 ms, +22%). The bridged
    client's *first call* is already 20% faster than stock v2's. Two pipelines' class graphs get loaded, and
    114 of the extra classes come from the Smithy **model** library, pulled onto the runtime path by
    generated `SCHEMAS` static initializers.
@@ -50,16 +68,18 @@ argument — this document says so explicitly (§4).
 
 ## 2. What was built
 
-A working v2 sync client whose entire execution path is smithy-java, for two services and two protocols.
+Working v2 sync **and async** clients whose entire execution path is smithy-java, for two services and two
+protocols.
 
 ```
-   v2 public API        DynamoDbClient / S3Client, builders, request/response POJOs,
+   v2 public API        DynamoDbClient / S3Client and their *AsyncClient twins, builders, POJOs,
    (unchanged)          modeled exceptions, ExecutionInterceptor, ClientOverrideConfiguration
         │
-        │  ~4,700 lines, core/smithy-java-bridge, 25 classes
+        │  ~5,600 lines, core/smithy-java-bridge, 29 classes
         ▼
    the bridge           serde (SdkField→Schema, SdkPojo↔smithy struct)   ·  config translation
                         transport · identity · endpoints · retry · errors · interceptors · streaming
+                        async envelope (one virtual thread per call, parked until response headers)
         │
         ▼
    smithy-java 1.6.1    ClientPipeline · ClientInterceptor · schema-driven JSON/XML codecs
@@ -67,24 +87,28 @@ A working v2 sync client whose entire execution path is smithy-java, for two ser
 ```
 
 **Gated per service** on the `generateSmithyJavaSerde` customization flag, currently on for **DynamoDB**
-(awsJson1_0) and **S3** (rest-xml). Only `SyncClientClass` consults it, so a generated async client is
-untouched stock v2 (§7, and ledger 14.1).
+(awsJson1_0) and **S3** (rest-xml). `SyncClientClass` and `AsyncClientClass` both consult it; the async
+client keeps event-stream operations on the stock pipeline (S3 `SelectObjectContent`, ledger 16.6), so
+105 of S3's 106 async operations and all of DynamoDB's run on smithy-java.
 
 | Bridge component | Status | Ledger |
 |---|---|---|
 | serde — `SdkField` → smithy `Schema`, `SdkPojo` ↔ `SerializableStruct` | works, C2J-derived (§4) | 1.2, 11.1, 12.x |
 | transport — v2 `SdkHttpClient` ⇄ smithy `ClientTransport`, both directions | `BRIDGED` | 3.6, 10.6 |
+| async transport — v2 `SdkAsyncHttpClient` (Netty, CRT) → smithy `ClientTransport`, returns on headers | `BRIDGED`, bodies stay reactive | 15.x |
+| async envelope — blocking `Client#call` on a virtual thread → v2-shaped `CompletableFuture` | works; 0 carrier pins measured | 16.x |
 | config — `SdkClientConfiguration` read once at construction | `TRANSLATED`, 8 options honored, ~15 ignored | 9 |
 | identity/auth — `AwsCredentialsProvider` → `IdentityResolver`; SigV4 | `BRIDGED` / `TRANSLATED` | 4.x |
 | endpoints — v2 `EndpointProvider` driven from smithy | `BRIDGED`, re-resolved per attempt | 5.1, 3.3 |
 | retry — v2 strategy wrapped via `aws-sdkv2-retries` | `BRIDGED`, classification recomputed | 3.1, 3.2 |
 | errors — modeled + unmodeled enrichment through a `ModeledException` shim | `BRIDGED`, one `BLOCKED` root cause | 1.1, 1.3 |
 | interceptors — v2 `ExecutionInterceptor` ⇄ smithy `ClientInterceptor` | `BRIDGED` lazily; 6 of 20 hooks | 2.1 |
-| streaming — bodies travel beside the shape in a per-call override config | works, no buffering either way | 13.1 |
+| streaming — bodies travel beside the shape in a per-call override config; async bodies via `FlowAdapters` | works, no buffering either way | 13.1, 16.4 |
 
 Two things in `test/` exist only to make claims checkable, and are not part of the SDK:
 `test/standalone-e2e-benchmarks` (the A/B harness, mock server, fault injector) and `test/wire-diff` (the
-byte-diff and behavioral suites, including the `SyncBackedS3AsyncClient` façade of §7).
+byte-diff and behavioral suites, including the `SyncBackedS3AsyncClient` façade that multipart ran on
+before the async client existed — kept as the record of what a sync-backed façade costs, ledger §14).
 
 ---
 
@@ -149,6 +173,25 @@ touch), and an allocation profile would settle it.
 
 Forced conditions: HTTPS only (ledger 13.2 makes an HTTP `PutObject` incomparable) and checksums off on
 both sides (13.3, 6.1). So this is the streaming pipeline with checksums off, not a default `S3Client`.
+
+### Async — cheaper than stock async, by less than sync
+
+Collections `paired-async-c1/merged`, `paired-async-c16/merged`; same conditions and same harness commit
+in both arms; `v2-sync` re-measured as a control and reproduces the table above to within 4 points.
+
+| concurrency 1, app CPU/op | small-get | small-put | batch-get | batch-put |
+|---|---:|---:|---:|---:|
+| async, CRT | −11.5% | −13.6% | −4.9% | −41.5% |
+| async, Netty | −6.2% | −5.8% | −4.5% | −30.6% |
+| sync (control) | −35.9% | −36.6% | −18.7% | −46.9% |
+
+Latency moves the same way (async −10% to −41%), 4/4 paired wins in every cell. At concurrency 16 the
+async client is −7% to −65% in wall time per op, with one CPU loss — Netty batch-get, +4.9%, 0/4. The
+large concurrency-16 wins are partly the harness: its async driver submits from one thread, and stock
+v2 marshals on the caller's thread, so stock never reaches 16 in flight (~1.3 on batch-put, by Little's
+law). Moving that work off the caller is the same change that costs context propagation (ledger 16.1).
+Why async keeps only half of sync's saving is not profiled; the suspects, all bridge-side, are listed in
+`RESULTS.md`.
 
 ### Cold start — the one loss
 
@@ -238,26 +281,37 @@ Three other RFC positions the prototype can now speak to:
   (ledger 2.1).
 - **§10.7, "shim over smithy-java's transport and move on"** — done and bidirectional, and it produced
   finding #3. The transport boundary is where the retry model breaks.
-- **§10.8, "`services-custom/` out of scope"** — partially reversed. S3 multipart was exercised (§7) and
-  the finding was that it works and the *async surface* is what's missing. That is worth knowing before
-  scoping Phase 3.
+- **§10.8, "`services-custom/` out of scope"** — partially reversed. S3 multipart runs **unmodified** on
+  the bridged async client through the public `multipartEnabled(true)` builder, over Netty and CRT, 20 MiB
+  in 4 parts reassembled byte-exactly in both directions (ledger §16). Multipart is not a porting problem;
+  it inherits whatever the async client does.
 
 ---
 
 ## 5. Compatibility
 
-Full detail: `compatability_issues.md`, 69 entries across 14 sections, each recording what a customer
-would observe rather than the internal difference.
+Full detail: `compatability_issues.md`, 95 entries across 17 sections, each recording what a customer
+would observe rather than the internal difference. The status counts below predate §17, which resolved or
+partly resolved 22 entries — every `MISSING` entry about checksums, host prefixes, request overrides and
+timeouts, and the `BLOCKED` 3.6 — and added two (3.7, 16.8) plus its own eleven-part write-up. §17.11 is the
+current list of what remains and whether each is a real limit.
 
 | Status | Count | Meaning |
 |---|---:|---|
-| `MISSING` | 22 | v2 feature has no effect at all on this path |
-| `DEGRADED` | 20 | works, observably differs |
-| fixed | 7 | was blocking or missing, now correct |
+| `MISSING` | 23 | v2 feature has no effect at all on this path |
+| `DEGRADED` | 18 | works, observably differs |
+| fixed / resolved | 12 | was blocking or missing, now correct |
 | `BRIDGED` | 5 | v2 component adapted and driven by smithy |
 | `BLOCKED` | 3 | cannot be represented without an upstream change |
+| `DIFFERENT` | 3 | a deliberate behavioral difference, neither better nor worse by itself (async, §15-16) |
+| same as stock | 3 | investigated and found to match stock v2, including one former `DEGRADED` (14.3) |
 | `TRANSLATED` | 2 | v2 config read once and mapped to a smithy equivalent |
 | `FRAGILE` | 2 | matches today, but rests on a coincidence nothing enforces |
+| `IMPROVED` | 1 | differs from stock, in the caller's favor (16.4) |
+
+The async work moved four §14 entries: 14.1, 14.2 and 14.4 are resolved, and 14.3 turned out to be stock
+behavior that the façade had reproduced faithfully — `AsyncRequestBody.split` makes one-shot parts in
+stock v2 too — so it was never a bridge degradation.
 
 ### The three `BLOCKED` entries
 
@@ -285,6 +339,16 @@ would observe rather than the internal difference.
 - **The interceptor surface is 6 of 20 hooks** (2.1), plus `SdkPlugin` (2.2), request-level override
   config (2.3) and `executionAttributes()` (2.4) doing nothing.
 - **Paginators, waiters and utilities are not generated** (10.5).
+- **Async: thread-bound context does not follow the call** (16.1). Stock v2 async runs `beforeExecution`,
+  `modifyRequest`, marshalling and credential resolution on the *caller's* thread; the bridge runs them on
+  the call's virtual thread. The caller no longer blocks on a slow credentials provider — but an
+  interceptor that reads an MDC, tracing or security `ThreadLocal` sees an empty one. Cancellation reaches
+  the future and not the exchange (16.5).
+- **Five smithy-java defects found, all worked around in the bridge and worth filing:** transport failures
+  never retried (3.6); an interceptor that doesn't override the error-path hook silently disables every one
+  after it (3.7); a publisher-backed `DataStream` cannot be read with `asByteBuffer()` (15.6); the one-shot-body
+  retry guard only sees modeled stream members (16.4); `RequestOverrideConfig.toBuilder()` drops the context
+  (16.8).
 
 ### Two `FRAGILE` entries worth a guard
 
@@ -302,7 +366,11 @@ Four independent mechanisms, deliberately: each catches a class the others struc
 |---|---|---|---|
 | Byte diff vs stock build | `test/wire-diff/S3WireDiffTest` | 9 S3 operations, one parameterized case each | silent wire corruption — found all five §12 bugs |
 | Behavioral streaming tests | `test/wire-diff/S3StreamingTest` | 7 tests, 1 GiB under a 256 MiB heap | buffering, truncation, reordering — a byte diff of a 38-byte body cannot |
-| Multipart tests | `test/wire-diff/S3MultipartTest` | 7 tests, 20 MiB / 4 parts | reassembly, part loss, façade caveats |
+| Multipart tests (façade) | `test/wire-diff/S3MultipartTest` | 7 tests, 20 MiB / 4 parts | reassembly, part loss, façade caveats |
+| Async byte diff vs **stock async** | `test/wire-diff/S3AsyncWireDiffTest` | the same 9 operations via `S3AsyncClient`, goldens from published 2.46.10 | async-path wire corruption; 8 identical, 1 ledgered skip |
+| Async clients over real transports | `test/wire-diff/BridgedAsyncClientsTest` | 19 tests, **Netty and CRT** each, public builders only, S3 over HTTPS | streaming both ways, multipart via `multipartEnabled(true)`, error and future shape, part-retry rules, DynamoDB |
+| Async transport | `test/wire-diff/V2AsyncTransportBridgeTest` | 18 tests, Netty and CRT | returns on headers, 200 concurrent calls, framing, the 15.6 workaround |
+| Carrier pinning | JFR `jdk.VirtualThreadPinned`, 0 ms threshold | 458 virtual threads over the async suites | a `synchronized` block parking an envelope — **0 found** |
 | Fault injection | `standalone-e2e-benchmarks` + `error-behavior.sh` | 11 faults × 2 variants | retry and error behavior — 87 → 2 differences |
 | Paired A/B benchmark | `standalone-e2e-benchmarks` | 10 scenarios, 4 clients + strip arms | cost, with null experiments bounding the noise floor |
 
@@ -314,7 +382,8 @@ Two methodology points that earned their keep and would be worth keeping in a re
 - **The fault catalogue needed apparently-redundant faults.** A torn body and a connection reset look like
   the same test. One is retried and one is not, and only having both revealed finding #3.
 
-Currently green: 23/23 in `test/wire-diff` (1 skipped, a named known difference). The wire-diff suite runs
+Currently green: 70/70 in `test/wire-diff` (2 skipped: the same named known difference, `copy-object`, in
+the sync and async diffs). The wire-diff suite runs
 against the locally-installed bridged SDK, with a guard test that fails if it ever resolves a published
 one instead.
 
@@ -322,20 +391,19 @@ one instead.
 
 ## 7. Scope boundaries — what this prototype does not cover
 
-- **Sync clients only.** Only `SyncClientClass` is gated, so every generated async client is stock v2 and
-  touches no smithy-java. This is the largest single scope gap, and it is what makes multipart and
-  `S3TransferManager` unreachable on the bridge (ledger 14.1, open question 10).
+- **Async is built, but on a synchronous smithy-java.** The async clients park a virtual thread per call
+  because smithy-java 1.6.1 has no async API. That is cheap (bodies stay on the event loops, 0 pins
+  measured) but it is a bridge-side design, not smithy-java's; an upstream `callAsync` would change it.
+  `S3TransferManager` was not exercised, though it is built on the same `S3AsyncClient` that multipart
+  now runs on.
 - **Two services, two protocols.** DynamoDB (awsJson1_0) and S3 (rest-xml). restJson1, awsQuery and
   rpcv2 are untouched.
-- **Multipart works, through a façade that is a measurement device.** v2's `MultipartS3AsyncClient` runs
-  **unmodified** on the bridged pipeline and a 20 MiB 4-part upload reassembles byte-exactly — multipart
-  is not a porting problem. But it required a thread-pool `S3AsyncClient` shim, whose caveats are the real
-  findings: pool size rather than `MultipartConfiguration` is the concurrency ceiling and an undersized
-  pool **silently serializes** (14.2), and a retryable 500 on **one part** fails the **whole** upload
-  because split bodies permit one subscriber (14.3, confirmed with an injected fault). Unmeasured on
-  purpose: timing it would measure the shim, not smithy-java.
-- **Not measured at all:** async, multipart performance, checksum paths, event streams, presigning,
-  paginators, waiters, SigV4a, endpoint discovery.
+- **Multipart works through the public builder.** v2's `MultipartS3AsyncClient` runs **unmodified** on
+  the bridged async client, and a 20 MiB 4-part upload and download reassemble byte-exactly over Netty and
+  CRT. A retryable 500 on one part still fails the whole upload, as it does on stock v2 (split parts are
+  one-shot in both, 14.3/16.4); a `BufferedSplittableAsyncRequestBody` part is retried and succeeds.
+- **Async measured for DynamoDB only.** Not measured at all: async S3 streaming and multipart performance, checksum paths, event streams,
+  presigning, paginators, waiters, SigV4a, endpoint discovery.
 - **Not covered by fault injection:** client-side failures — `apiCallTimeout`/`apiCallAttemptTimeout`
   expiry, credential-resolution failure, DNS failure. A mock server cannot inject them.
 - **Single-threaded, loopback, mock server.** No real network latency, no throttling, and TLS only in the
@@ -353,15 +421,20 @@ Ordered by what each would settle, not by effort.
    services. Either the canonical-Smithy cutover is the plan (RFC §2.3) or the trait-fidelity problem
    needs an answer that isn't "guess"; the prototype has made this concrete and it should not stay in a
    §12 subsection.
-2. **Fix or escalate ledger 3.6 upstream.** A retry loop that cannot retry a transport failure is a
-   correctness defect in smithy-java, independent of this branch, and it is the one finding here that
-   would block adoption on its own.
-3. **Scope the async client** (open question 10). smithy-java is async underneath, so generated
-   `CompletableFuture` methods may be a *thinner* bridge than the sync ones — but v2's async surface
-   brings `AsyncRequestBody`/`AsyncResponseTransformer`, `SdkAsyncHttpClient` and the split-body retry
-   contract that 14.3 shows is not incidental. Until this is answered, §7's scope gap stands.
+2. **File the five smithy-java defects upstream** (3.6, 3.7, 15.6, 16.4, 16.8). All are worked around
+   here; 3.6 in particular affects native smithy-java clients and the fix is small — `V2TransportFailures` is
+   the argument for how small.
+3. **Decide who owns the async envelope.** The bridged async client parks one virtual thread per call on
+   a synchronous smithy-java (§2, ledger §16). It works, and it is cheap, but it means context
+   propagation (16.1), cancellation (16.5) and `apiCallTimeout` (8.1) all need a bridge-side answer that a
+   native `callAsync` in smithy-java would give for free. Worth raising with the smithy-java team
+   alongside 3.6, and filing 15.6, the one-line `asByteBuffer` fix, at the same time.
 
 **If the question is "how fast could it be":**
+
+0. **Hybrid signing.** Prove smithy-java's and v2's signers agree on requests with default signer
+   properties (a fixed-clock comparison), then sign those with smithy's. It recovers the ~20 µs/call that
+   §17 costs every DynamoDB call.
 
 4. **Allocation profile of `batch-get`**, to test the `SdkPojoDeserializer`/`BridgeStruct` hypothesis —
    the largest remaining performance question, since finding #2 says the veneer is where the gap lives.
@@ -392,7 +465,7 @@ Ordered by what each would settle, not by effort.
 | File | Contents |
 |---|---|
 | `RFC-smithy-java-runtime.md` | The proposal: why re-host, module disposition, phased plan, locked decisions. Predates all measurement. |
-| `compatability_issues.md` | The ledger. 69 entries in 14 sections + 10 open questions. §§1-11 pipeline and config, §12 rest-xml/S3 wire, §13 sync streaming, §14 multipart. |
+| `compatability_issues.md` | The ledger. 95 entries in 17 sections + 10 open questions (3 now answered). §§1-11 pipeline and config, §12 rest-xml/S3 wire, §13 sync streaming, §14 multipart (via the façade), §15 async transport, §16 async client, §17 schema traits and request overrides — start at §17.11 for what remains. |
 | `pipeline_benchmark2/RESULTS.md` | The measurements. 13 sections, raw-data pointers per collection, null experiments, 7 caveats, next measurements. |
 | `test/standalone-e2e-benchmarks/README.md` | How to reproduce: arms, scenarios, CLI, fault injection, provenance stamping. |
 | `pipeline_benchmark2/*/` | Raw data — manifests, `results.csv`, per-run logs, generated `summary.md`, archived jars. |

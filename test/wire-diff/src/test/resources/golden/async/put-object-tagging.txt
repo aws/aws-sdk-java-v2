@@ -1,0 +1,19 @@
+PUT /wirediff-bucket/logs/a.txt
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+tagging <valueless>
+--- headers ---
+amz-sdk-invocation-id: <normalized>
+amz-sdk-request: attempt=1; max=4
+authorization: SignedHeaders=amz-sdk-invocation-id;amz-sdk-request;content-length;content-type;host;x-amz-checksum-crc32;x-amz-content-sha256;x-amz-date;x-amz-sdk-checksum-algorithm
+content-length: 213
+content-type: application/xml
+host: s3.us-east-1.amazonaws.com
+user-agent: <normalized>
+x-amz-checksum-crc32: 4afhuQ==
+x-amz-content-sha256: UNSIGNED-PAYLOAD
+x-amz-date: <normalized>
+x-amz-sdk-checksum-algorithm: CRC32
+--- body (213 bytes) ---
+<?xml version="1.0" encoding="UTF-8"?><Tagging xmlns="http://s3.amazonaws.com/doc/2006-03-01/"><TagSet><Tag><Key>env</Key><Value>test</Value></Tag><Tag><Key>team</Key><Value>bridge</Value></Tag></TagSet></Tagging>

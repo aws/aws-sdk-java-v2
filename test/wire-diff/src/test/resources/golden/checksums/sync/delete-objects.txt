@@ -1,0 +1,15 @@
+POST /wirediff-bucket
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+delete <valueless>
+--- headers ---
+authorization: SignedHeaders=content-type;x-amz-checksum-crc32;x-amz-content-sha256;x-amz-date;x-amz-sdk-checksum-algorithm
+content-type: application/xml
+user-agent: <normalized>
+x-amz-checksum-crc32: WZcLHA==
+x-amz-content-sha256: UNSIGNED-PAYLOAD
+x-amz-date: <normalized>
+x-amz-sdk-checksum-algorithm: CRC32
+--- body (83 bytes) ---
+<Delete><Object><Key>a.txt</Key></Object><Object><Key>b.txt</Key></Object></Delete>

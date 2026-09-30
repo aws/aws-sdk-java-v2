@@ -1,0 +1,17 @@
+PUT /wirediff-bucket/logs/a.txt
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+--- headers ---
+amz-sdk-invocation-id: <normalized>
+amz-sdk-request: attempt=1; max=4
+authorization: SignedHeaders=amz-sdk-invocation-id;amz-sdk-request;content-length;content-type;host;x-amz-content-sha256;x-amz-date;x-amz-meta-origin
+content-length: 38
+content-type: text/plain
+host: s3.us-east-1.amazonaws.com
+user-agent: <normalized>
+x-amz-content-sha256: UNSIGNED-PAYLOAD
+x-amz-date: <normalized>
+x-amz-meta-origin: wirediff
+--- body (38 bytes) ---
+wire-diff streaming payload: 38 bytes.

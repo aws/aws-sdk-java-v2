@@ -1,0 +1,14 @@
+PUT /wirediff-bucket/big.bin
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+partNumber=2
+uploadId=upload-id-1
+--- headers ---
+authorization: SignedHeaders=content-type;x-amz-content-sha256;x-amz-date
+content-type: text/plain; charset=UTF-8
+user-agent: <normalized>
+x-amz-content-sha256: <payload-hash-or-unsigned>
+x-amz-date: <normalized>
+--- body (38 bytes) ---
+wire-diff streaming payload: 38 bytes.

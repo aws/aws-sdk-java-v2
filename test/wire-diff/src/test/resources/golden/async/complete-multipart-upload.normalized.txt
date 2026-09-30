@@ -1,0 +1,13 @@
+POST /wirediff-bucket/big.bin
+host: s3.us-east-1.amazonaws.com
+protocol: https
+--- query ---
+uploadId=upload-id-1
+--- headers ---
+authorization: SignedHeaders=content-type;x-amz-content-sha256;x-amz-date
+content-type: application/xml
+user-agent: <normalized>
+x-amz-content-sha256: <payload-hash-or-unsigned>
+x-amz-date: <normalized>
+--- body (171 bytes) ---
+<CompleteMultipartUpload><Part><ETag>"part-1"</ETag><PartNumber>1</PartNumber></Part><Part><ETag>"part-2"</ETag><PartNumber>2</PartNumber></Part></CompleteMultipartUpload>
