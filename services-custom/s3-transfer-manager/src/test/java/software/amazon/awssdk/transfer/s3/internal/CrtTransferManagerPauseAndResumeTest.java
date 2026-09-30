@@ -325,6 +325,41 @@ class CrtTransferManagerPauseAndResumeTest {
         assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
     }
 
+    @Test
+    void resumeDownloadFile_partNumberSet_shouldRestartFromBeginning() {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .partNumber(3)
+                                                            .build();
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        Instant s3ObjectLastModified = Instant.now();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(fileLastModified)
+                                    .s3ObjectLastModified(s3ObjectLastModified))
+          .completionFuture()
+          .join();
+
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
+        assertThat(actualRequest.partNumber()).isEqualTo(3);
+        assertThat(actualRequest.range()).isNull();
+    }
+
     private void stubGetObject() {
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(CompletableFuture.completedFuture(GetObjectResponse.builder().build()));
