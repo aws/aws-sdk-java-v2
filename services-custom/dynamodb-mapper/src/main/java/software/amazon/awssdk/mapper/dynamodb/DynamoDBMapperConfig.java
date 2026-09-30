@@ -95,6 +95,12 @@ public final class DynamoDBMapperConfig {
 
         /**
          * Creates a new builder initialized with the {@link #DEFAULT} values.
+         * <p>
+         * Use {@link DynamoDBMapperConfig#builder()} instead to build a config that is passed to a single mapper
+         * operation. Per-operation configs are merged over the mapper's config, and every value this builder seeds
+         * from {@link #DEFAULT} (for example the conversion schema and batch retry strategies) replaces the mapper's
+         * own setting for that operation. {@link DynamoDBMapperConfig#builder()} starts empty, so only the values you
+         * set override the mapper's config.
          */
         public Builder() {
             this(true);
