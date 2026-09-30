@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed `S3TransferManager.resumeDownloadFile` sending both `partNumber` and `Range` headers on resume, which caused S3 to reject with 400 InvalidRequest. Part-scoped downloads now restart from the beginning on resume."
+}
