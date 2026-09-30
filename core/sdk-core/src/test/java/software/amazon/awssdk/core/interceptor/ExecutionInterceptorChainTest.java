@@ -310,6 +310,33 @@ class ExecutionInterceptorChainTest {
     }
 
     @Test
+    void modifyHttpResponse_whenInterceptorReturnsEmptyAndLaterInterceptorThrows_closesOriginalResponseBody() {
+        RuntimeException interceptorException = new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+        TrackableInputStream originalResponseBody = new TrackableInputStream();
+        ExecutionInterceptor throwingInterceptor = new ExecutionInterceptor() {
+            @Override
+            public SdkHttpResponse modifyHttpResponse(Context.ModifyHttpResponse context,
+                                                      ExecutionAttributes executionAttributes) {
+                throw interceptorException;
+            }
+        };
+        ExecutionInterceptor emptyResponseBodyInterceptor = new ExecutionInterceptor() {
+            @Override
+            public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
+                                                                   ExecutionAttributes executionAttributes) {
+                return Optional.empty();
+            }
+        };
+        ExecutionInterceptorChain chain =
+            new ExecutionInterceptorChain(Arrays.asList(throwingInterceptor, emptyResponseBodyInterceptor));
+
+        assertThatThrownBy(() -> chain.modifyHttpResponse(contextWithBody(originalResponseBody),
+                                                          new ExecutionAttributes()))
+            .isSameAs(interceptorException);
+        assertThat(originalResponseBody.closed).isTrue();
+    }
+
+    @Test
     void modifyHttpResponse_whenLaterInterceptorThrows_closesLatestResponseBody() {
         TrackableInputStream originalResponseBody = new TrackableInputStream();
         TrackableInputStream modifiedResponseBody = new TrackableInputStream(originalResponseBody);

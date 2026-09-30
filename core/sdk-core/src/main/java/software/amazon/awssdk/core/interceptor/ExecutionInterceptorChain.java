@@ -116,7 +116,8 @@ public class ExecutionInterceptorChain {
     public InterceptorContext modifyHttpResponse(InterceptorContext context,
                                                  ExecutionAttributes executionAttributes) {
         InterceptorContext result = context;
-        InputStream responseBody = result.responseBody().orElse(null);
+        InputStream originalResponseBody = result.responseBody().orElse(null);
+        InputStream responseBody = originalResponseBody;
 
         try {
             for (int i = interceptors.size() - 1; i >= 0; i--) {
@@ -124,8 +125,9 @@ public class ExecutionInterceptorChain {
                     interceptors.get(i).modifyHttpResponse(result, executionAttributes);
                 InputStream interceptorResponseBody =
                     interceptors.get(i).modifyHttpResponseContent(result, executionAttributes).orElse(null);
-                // Track the current body for failure cleanup; an interceptor that replaces it owns the previous body.
-                responseBody = interceptorResponseBody;
+                // The response stage falls back to the original body when no replacement is returned, so failure cleanup
+                // must do the same. An interceptor that replaces the body owns the previous body.
+                responseBody = interceptorResponseBody != null ? interceptorResponseBody : originalResponseBody;
 
                 if (interceptorResult != result.httpResponse() ||
                     interceptorResponseBody != result.responseBody().orElse(null)) {
