@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon S3 Vectors",
-    "contributor": "",
-    "description": "Amazon S3 Vectors now supports metadata prefiltering, providing higher recall on filtered queries."
-}
