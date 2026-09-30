@@ -193,7 +193,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
         headFuture.thenAccept(headObjectResponse -> {
             boolean restartFromBeginning = !canResumeDownload(resumableFileDownload, headObjectResponse)
-                                           || hasCompletedParts(resumableFileDownload);
+                                           || hasCompletedParts(resumableFileDownload)
+                                           || getObjectRequest.partNumber() != null;
 
             DownloadFileRequest newDownloadFileRequest = toCrtDownloadFileRequest(resumableFileDownload, headObjectResponse,
                                                                                  originalDownloadRequest,

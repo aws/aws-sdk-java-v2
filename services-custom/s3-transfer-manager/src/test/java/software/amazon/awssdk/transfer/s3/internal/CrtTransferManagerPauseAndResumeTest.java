@@ -358,6 +358,7 @@ class CrtTransferManagerPauseAndResumeTest {
         GetObjectRequest actualRequest = capturedGetObjectRequest();
         assertThat(actualRequest.partNumber()).isEqualTo(3);
         assertThat(actualRequest.range()).isNull();
+        assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
     }
 
     private void stubGetObject() {
