@@ -154,22 +154,22 @@ class InputStreamResponseTransformerTest {
     }
 
     @Test
-    void onStream_whenCompatibilityEnabled_coercesAvailableAboveZeroWhileOpen() throws IOException {
-        assertThat(availableAfterHeader(AsyncResponseTransformer.toBlockingInputStream(true), gzipHeader()))
+    void onStream_whenGzipCompatibleTransformerAndGzip_coercesAvailableAboveZeroWhileOpen() throws IOException {
+        assertThat(availableAfterHeader(AsyncResponseTransformer.toGzipCompatibleBlockingInputStream(), gzipHeader()))
             .isGreaterThanOrEqualTo(1);
     }
 
     @Test
-    void onStream_whenCompatibilityEnabledAndContentIsNotGzip_preservesZeroAvailable() throws IOException {
-        assertThat(availableAfterHeader(AsyncResponseTransformer.toBlockingInputStream(true), new byte[] {1, 2, 3}))
-            .isZero();
+    void onStream_whenGzipCompatibleTransformerAndContentIsNotGzip_preservesZeroAvailable() throws IOException {
+        assertThat(availableAfterHeader(AsyncResponseTransformer.toGzipCompatibleBlockingInputStream(),
+                                        new byte[] {1, 2, 3})).isZero();
     }
 
     @Test
-    void onStream_whenCompatibilityEnabled_preservesAbort() {
+    void onStream_whenGzipCompatibleTransformerAborted_preservesAbort() {
         AtomicBoolean cancelled = new AtomicBoolean();
         AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer =
-            AsyncResponseTransformer.toBlockingInputStream(true);
+            AsyncResponseTransformer.toGzipCompatibleBlockingInputStream();
         CompletableFuture<ResponseInputStream<SdkResponse>> future = responseTransformer.prepare();
         responseTransformer.onResponse(VoidSdkResponse.builder().build());
         responseTransformer.onStream(SdkPublisher.adapt(subscriber -> subscriber.onSubscribe(new Subscription() {
@@ -189,9 +189,9 @@ class InputStreamResponseTransformerTest {
     }
 
     @Test
-    void split_whenCompatibilityEnabled_preservesCompatibilityOnCombinedStream() throws Exception {
+    void split_whenGzipCompatibleTransformer_preservesCompatibilityOnCombinedStream() throws Exception {
         AsyncResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> responseTransformer =
-            AsyncResponseTransformer.toBlockingInputStream(true);
+            AsyncResponseTransformer.toGzipCompatibleBlockingInputStream();
         AsyncResponseTransformer.SplitResult<SdkResponse, ResponseInputStream<SdkResponse>> splitResult =
             responseTransformer.split(SplittingTransformerConfiguration.builder().bufferSizeInBytes(16L).build());
         AtomicBoolean failed = new AtomicBoolean();

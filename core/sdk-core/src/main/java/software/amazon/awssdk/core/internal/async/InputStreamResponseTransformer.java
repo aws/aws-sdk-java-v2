@@ -31,7 +31,8 @@ import software.amazon.awssdk.http.async.AbortableInputStreamSubscriber;
 /**
  * A {@link AsyncResponseTransformer} that allows performing blocking reads on the response data.
  * <p>
- * Created with {@link AsyncResponseTransformer#toBlockingInputStream()}.
+ * Created with {@link AsyncResponseTransformer#toBlockingInputStream()} or
+ * {@link AsyncResponseTransformer#toGzipCompatibleBlockingInputStream()}.
  */
 @SdkInternalApi
 public class InputStreamResponseTransformer<ResponseT extends SdkResponse>

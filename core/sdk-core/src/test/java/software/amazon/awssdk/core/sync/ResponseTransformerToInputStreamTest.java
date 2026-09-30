@@ -42,26 +42,28 @@ class ResponseTransformerToInputStreamTest {
     }
 
     @Test
-    void toInputStream_whenCompatibilityEnabled_coercesAvailableForGzip() throws Exception {
-        assertThat(availableAfterHeader(ResponseTransformer.toInputStream(true), gzipHeader())).isEqualTo(1);
+    void toGzipCompatibleInputStream_whenGzip_coercesAvailable() throws Exception {
+        assertThat(availableAfterHeader(ResponseTransformer.toGzipCompatibleInputStream(), gzipHeader())).isEqualTo(1);
     }
 
     @Test
-    void toInputStreamWithTimeout_whenCompatibilityEnabled_coercesAvailableForGzip() throws Exception {
-        assertThat(availableAfterHeader(ResponseTransformer.toInputStream(Duration.ZERO, true), gzipHeader())).isEqualTo(1);
+    void toGzipCompatibleInputStreamWithTimeout_whenGzip_coercesAvailable() throws Exception {
+        assertThat(availableAfterHeader(ResponseTransformer.toGzipCompatibleInputStream(Duration.ZERO), gzipHeader()))
+            .isEqualTo(1);
     }
 
     @Test
-    void toInputStream_whenCompatibilityEnabled_preservesZeroAvailableForNonGzip() throws Exception {
-        assertThat(availableAfterHeader(ResponseTransformer.toInputStream(true), new byte[] {1, 2, 3})).isZero();
+    void toGzipCompatibleInputStream_whenContentIsNotGzip_preservesZeroAvailable() throws Exception {
+        assertThat(availableAfterHeader(ResponseTransformer.toGzipCompatibleInputStream(), new byte[] {1, 2, 3})).isZero();
     }
 
     @Test
-    void toInputStream_whenCompatibilityEnabled_preservesAbort() throws Exception {
+    void toGzipCompatibleInputStream_whenAborted_preservesAbort() throws Exception {
         AtomicBoolean aborted = new AtomicBoolean();
         AbortableInputStream content = AbortableInputStream.create(zeroAvailableStream(gzipHeader()),
                                                                    () -> aborted.set(true));
-        ResponseInputStream<String> result = ResponseTransformer.<String>toInputStream(true).transform("response", content);
+        ResponseInputStream<String> result =
+            ResponseTransformer.<String>toGzipCompatibleInputStream().transform("response", content);
 
         result.abort();
 
@@ -69,10 +71,11 @@ class ResponseTransformerToInputStreamTest {
     }
 
     @Test
-    void toInputStream_whenCompatibilityEnabled_decodesAllConcatenatedGzipMembers() throws Exception {
+    void toGzipCompatibleInputStream_whenConcatenatedGzip_decodesAllMembers() throws Exception {
         byte[] content = concatenatedGzip("member-1", "member-2", "member-3");
         AbortableInputStream body = AbortableInputStream.create(zeroAvailableStream(content));
-        ResponseInputStream<String> result = ResponseTransformer.<String>toInputStream(true).transform("response", body);
+        ResponseInputStream<String> result =
+            ResponseTransformer.<String>toGzipCompatibleInputStream().transform("response", body);
 
         assertThat(readAllGzip(result)).isEqualTo("member-1member-2member-3");
     }

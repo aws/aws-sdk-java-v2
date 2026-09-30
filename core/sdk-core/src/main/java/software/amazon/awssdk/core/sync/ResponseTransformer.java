@@ -262,30 +262,28 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @see #toInputStream(Duration)
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
-        return toInputStream(null, false);
+        return toInputStream(null);
     }
 
     /**
-     * Creates a response transformer that returns an unmanaged input stream with the response content. This input stream must
-     * be explicitly closed to release the connection.
+     * Creates a response transformer that returns an unmanaged input stream adapted for reading concatenated GZIP content with
+     * {@link java.util.zip.GZIPInputStream}. This input stream must be explicitly closed to release the connection.
+     * <p>
+     * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
+     * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP
+     * member boundary as the end of the complete stream. Because this can cause a read after {@code available()} to block, this
+     * transformer should only be used when the response will be read with {@code GZIPInputStream}.
+     * <p>
+     * The stream has the default first-read timeout of 60 seconds. Use
+     * {@link #toGzipCompatibleInputStream(Duration)} to specify a custom timeout.
      *
-     * <p>The stream has the default first-read timeout of 60 seconds. Use {@link #toInputStream(Duration, boolean)} to specify a
-     * custom timeout.
-     *
-     * <p>When enabled, gzip response streams are adapted so that {@link InputStream#available()} does not temporarily return
-     * {@code 0} while the stream is still open. This works around {@link java.util.zip.GZIPInputStream} treating a temporary
-     * {@code 0} at a concatenated gzip member boundary as the end of the complete stream. Because this can cause a read after
-     * {@code available()} to block, it should only be enabled when the response will be read with {@code GZIPInputStream}.
-     *
-     * @param gzipInputStreamCompatibilityEnabled Whether to enable {@code GZIPInputStream} compatibility for concatenated gzip.
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.
      * @see #toInputStream()
-     * @see #toInputStream(Duration, boolean)
+     * @see #toGzipCompatibleInputStream(Duration)
      */
-    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(
-        boolean gzipInputStreamCompatibilityEnabled) {
-        return toInputStream(null, gzipInputStreamCompatibilityEnabled);
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toGzipCompatibleInputStream() {
+        return toGzipCompatibleInputStream(null);
     }
 
     /**
@@ -303,32 +301,46 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @see #toInputStream()
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(Duration timeout) {
-        return toInputStream(timeout, false);
-    }
-
-    /**
-     * Creates a response transformer that returns an unmanaged input stream with the response content and a custom timeout.
-     * This input stream must be explicitly closed to release the connection.
-     *
-     * <p>When enabled, gzip response streams are adapted so that {@link InputStream#available()} does not temporarily return
-     * {@code 0} while the stream is still open. This works around {@link java.util.zip.GZIPInputStream} treating a temporary
-     * {@code 0} at a concatenated gzip member boundary as the end of the complete stream. Because this can cause a read after
-     * {@code available()} to block, it should only be enabled when the response will be read with {@code GZIPInputStream}.
-     *
-     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} or a negative
-     *                {@link Duration} to disable timeout.
-     * @param gzipInputStreamCompatibilityEnabled Whether to enable {@code GZIPInputStream} compatibility for concatenated gzip.
-     * @param <ResponseT> Type of unmarshalled response POJO.
-     * @return ResponseTransformer instance.
-     */
-    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(
-        Duration timeout, boolean gzipInputStreamCompatibilityEnabled) {
         return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
             @Override
             public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
-                AbortableInputStream content = gzipInputStreamCompatibilityEnabled
-                                               ? GzipAvailabilityInputStream.wrap(inputStream, inputStream)
-                                               : inputStream;
+                return new ResponseInputStream<>(response, inputStream, timeout);
+            }
+
+            @Override
+            public String name() {
+                return TransformerType.STREAM.getName();
+            }
+        });
+    }
+
+    /**
+     * Creates a response transformer that returns an unmanaged input stream adapted for reading concatenated GZIP content with
+     * {@link java.util.zip.GZIPInputStream} and a custom timeout. This input stream must be explicitly closed to release the
+     * connection.
+     * <p>
+     * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
+     * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP
+     * member boundary as the end of the complete stream. Because this can cause a read after {@code available()} to block, this
+     * transformer should only be used when the response will be read with {@code GZIPInputStream}.
+     * <p>
+     * The timeout starts when the response stream is ready. If no read operation occurs within the specified timeout, the
+     * connection will be automatically aborted. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
+     *
+     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} or a negative
+     *                {@link Duration} to disable timeout.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     * @see #toGzipCompatibleInputStream()
+     * @see #toInputStream(Duration)
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toGzipCompatibleInputStream(
+        Duration timeout) {
+        return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
+            @Override
+            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
+                AbortableInputStream content = GzipAvailabilityInputStream.wrap(inputStream, inputStream);
                 return new ResponseInputStream<>(response, content, timeout);
             }
 

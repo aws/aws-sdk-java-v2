@@ -390,23 +390,27 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
-     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an {@link InputStream}.
-     * You are responsible for performing blocking reads from this input stream and closing the stream when you are finished.
+     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an {@link InputStream}
+     * adapted for reading concatenated GZIP content with {@link java.util.zip.GZIPInputStream}. You are responsible for
+     * performing blocking reads from this input stream and closing the stream when you are finished.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
+     * <p>
+     * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
+     * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP
+     * member boundary as the end of the complete stream. Because this can cause a read after {@code available()} to block, this
+     * transformer should only be used when the response will be read with {@code GZIPInputStream}.
      *
-     * <p>When enabled, gzip response streams are adapted so that {@link InputStream#available()} does not temporarily return
-     * {@code 0} while the stream is still open. This works around {@link java.util.zip.GZIPInputStream} treating a temporary
-     * {@code 0} at a concatenated gzip member boundary as the end of the complete stream. Because this can cause a read after
-     * {@code available()} to block, it should only be enabled when the response will be read with {@code GZIPInputStream}.
-     *
-     * @param gzipInputStreamCompatibilityEnabled Whether to enable {@code GZIPInputStream} compatibility for concatenated gzip.
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return AsyncResponseTransformer instance.
      * @see #toBlockingInputStream()
      */
     static <ResponseT extends SdkResponse>
-        AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream(
-            boolean gzipInputStreamCompatibilityEnabled) {
-        return new InputStreamResponseTransformer<>(gzipInputStreamCompatibilityEnabled);
+        AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toGzipCompatibleBlockingInputStream() {
+        return new InputStreamResponseTransformer<>(true);
     }
 
     /**

@@ -75,6 +75,7 @@ public final class ResponseInputStream<ResponseT> extends SdkFilterInputStream i
         super(in);
         this.response = Validate.paramNotNull(resp, "response");
         this.abortable = Validate.paramNotNull(in, "abortableInputStream");
+        
         Duration resolvedTimeout = timeout != null ? timeout : DEFAULT_TIMEOUT;
         scheduleTimeoutTask(resolvedTimeout);
     }
