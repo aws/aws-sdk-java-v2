@@ -206,18 +206,58 @@ public final class ResumableRequestConverter {
                                                                   DownloadFileRequest downloadRequest,
                                                                   GetObjectRequest getObjectRequest,
                                                                   HeadObjectResponse headObjectResponse) {
-        DownloadFileRequest newDownloadFileRequest;
         long bytesTransferred = resumableFileDownload.bytesTransferred();
+        String resumedRange = computeResumedRange(getObjectRequest.range(), bytesTransferred,
+                                                  headObjectResponse.contentLength());
+
         GetObjectRequest newGetObjectRequest =
             getObjectRequest.toBuilder()
                             .ifUnmodifiedSince(headObjectResponse.lastModified())
-                            .range("bytes=" + bytesTransferred + "-" + headObjectResponse.contentLength())
+                            .range(resumedRange)
                             .build();
 
-        newDownloadFileRequest = downloadRequest.toBuilder()
-                                                .getObjectRequest(newGetObjectRequest)
-                                                .build();
-        return newDownloadFileRequest;
+        return downloadRequest.toBuilder()
+                              .getObjectRequest(newGetObjectRequest)
+                              .build();
+    }
+
+    /**
+     * If the original request had a range, resumes from (originalStart + bytesTransferred) to originalEnd.
+     * Otherwise, resumes from bytesTransferred to contentLength.
+     */
+    private static String computeResumedRange(String originalRange, long bytesTransferred, long contentLength) {
+        if (originalRange != null) {
+            long[] parsedRange = parseRange(originalRange);
+            if (parsedRange != null) {
+                long originalStart = parsedRange[0];
+                long originalEnd = parsedRange[1];
+                return "bytes=" + (originalStart + bytesTransferred) + "-" + originalEnd;
+            }
+        }
+        return "bytes=" + bytesTransferred + "-" + contentLength;
+    }
+
+    /**
+     * Parses a "bytes=start-end" range header value into a two-element array [start, end].
+     * Returns null if the range cannot be parsed (e.g., suffix ranges like "bytes=-500").
+     */
+    private static long[] parseRange(String range) {
+        if (range == null || !range.startsWith("bytes=")) {
+            return null;
+        }
+        String rangeValue = range.substring("bytes=".length());
+        int dashIndex = rangeValue.indexOf('-');
+        if (dashIndex <= 0) {
+            // Suffix range (bytes=-500) or malformed — cannot resume with offset, fall back to default
+            return null;
+        }
+        try {
+            long start = Long.parseLong(rangeValue.substring(0, dashIndex));
+            long end = Long.parseLong(rangeValue.substring(dashIndex + 1));
+            return new long[]{start, end};
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static DownloadFileRequest newDownloadFileRequest(DownloadFileRequest originalDownloadRequest,

@@ -325,6 +325,46 @@ class CrtTransferManagerPauseAndResumeTest {
         assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
     }
 
+    @Test
+    void resumeDownloadFile_rangedDownload_shouldSetCorrectResumedRange() {
+        long originalRangeStart = 2048;
+        long originalRangeEnd = 6143;
+        String originalRange = "bytes=" + originalRangeStart + "-" + originalRangeEnd;
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .range(originalRange)
+                                                            .build();
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        Instant s3ObjectLastModified = Instant.now();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
+
+        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                                                                  .downloadFileRequest(downloadFileRequest)
+                                                                                  .fileLastModified(fileLastModified)
+                                                                                  .s3ObjectLastModified(s3ObjectLastModified))
+                                                        .completionFuture()
+                                                        .join();
+        assertThat(completedFileDownload.response()).isEqualTo(response);
+
+        // file.length() is 1000 bytes. Resumed range should be (2048+1000)-6143 = bytes=3048-6143
+        String expectedRange = "bytes=" + (originalRangeStart + file.length()) + "-" + originalRangeEnd;
+        verifyActualGetObjectRequest(getObjectRequest, expectedRange);
+    }
+
     private void stubGetObject() {
         when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
             .thenReturn(CompletableFuture.completedFuture(GetObjectResponse.builder().build()));
