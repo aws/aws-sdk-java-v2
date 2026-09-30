@@ -574,7 +574,7 @@ else that reaches v2's retryable set by inheritance rather than by declaration.
 > **Update.** No longer blocked. A bridged transport now *defers* its failure into the retry loop instead
 > of throwing past it: it records the failure against the attempt and returns a marked stand-in response,
 > which deserialization turns into an attempt error, and `V2ErrorEnricher` swaps the real failure back in and
-> classifies it as v2 would (`V2TransportFailures`). Measured by the fault sweep: `connection-reset` now makes
+> classifies it as v2 would (`V2DeferredTransportFailure`). Measured by the fault sweep: `connection-reset` now makes
 > as many attempts as stock and differs only in the name of the cause, and an attempt timeout is retried four
 > times, as on stock. The analysis below of *why* smithy-java cannot retry these stands, and the fix still
 > belongs upstream — this is the argument that it is a one-throw change.
@@ -905,7 +905,7 @@ telemetry and any customer parsing it.
 
 ### 8.1 `RESOLVED` (§17.8) — `apiCallTimeout`
 
-> **Update.** Implemented in the bridge (`V2Timeouts`), client- and request-level, the way v2's timeout
+> **Update.** Implemented in the bridge (`V2Timeout`), client- and request-level, the way v2's timeout
 > stage does it: a timer that aborts the in-flight request and interrupts the wait, then v2's
 > `ApiCallTimeoutException`. Matches stock on sync and async against a stalled server.
 
@@ -1923,7 +1923,7 @@ retry strategy, but not the context — and `context()` is package-private, so a
 Found when request-level overrides were layered onto a streaming call's per-call config: the body and the
 response sink lived in the context, so multipart parts went out empty and downloads came back empty, on the
 façade and on the async client alike. Fixed by composing every per-call contributor into one builder that is
-built once (`V2RequestOverrides.apply` takes contributions, not a built config). Upstream: copy the context in
+built once (`V2RequestOverride.apply` takes contributions, not a built config). Upstream: copy the context in
 `toBuilder()`.
 
 ## 17. Schema traits and request overrides: what was addressable
@@ -1958,7 +1958,7 @@ operation-level traits go onto the generated `ApiOperation` as v2's own executio
 (`V2OperationMetadata`, emitted by the same generators as the stock client method), and the behavior comes
 from v2's signer, v2's checksum rules and v2's interceptors, driven from smithy-java's pipeline.
 
-### 17.2 v2's signer is bridged (4.3, 12.8, 13.2)
+### 17.2 v2's signer is bridged (4.3, 12.8, 13.2) — used only where required since 17.12
 
 `V2SigningAuthScheme`/`V2SignerBridge`: smithy's `aws.auth#sigv4` scheme, signing with `AwsV4HttpSigner` —
 `sign` for a content-provider body, `signAsync` for an `AsyncRequestBody` — with the signer properties v2's
@@ -2000,7 +2000,7 @@ Service-wide error registration per operation, as stock's generated mapping does
 
 ### 17.8 Request-level overrides and timeouts (2.2, 2.3, 2.4, 8.1, 8.2)
 
-`V2RequestOverrides` translates each field to the component that owns it; `V2Timeouts` implements both
+`V2RequestOverride` translates each field to the component that owns it; `V2Timeout` implements both
 timeouts with a timer that aborts the attempt through an action each transport registers. The client-level
 counterparts go through the same components — `overrideConfiguration().headers()`, the legacy `SIGNER`
 advanced option, `USER_AGENT_PREFIX`/`SUFFIX`. 32/32 lines against stock, sync and async.
@@ -2013,7 +2013,7 @@ which smithy-java only sets after signing, so the bridge applies them just befor
 
 ### 17.9 Transport failures reach the retry loop (3.6)
 
-`V2TransportFailures`: a transport defers its failure into the attempt as a marked stand-in response, and the
+`V2DeferredTransportFailure`: a transport defers its failure into the attempt as a marked stand-in response, and the
 enricher restores and classifies it. This retires the one `BLOCKED` finding that would have stopped adoption
 on its own — as a bridge workaround; the upstream change is small and still the right fix.
 
@@ -2022,6 +2022,36 @@ on its own — as a bridge workaround; the upstream change is small and still th
 All worked around in the bridge, all worth filing upstream: 15.6 (`PublisherDataStream.asByteBuffer()`
 always fails), 3.7 (an interceptor that does not override `modifyBeforeAttemptCompletion` disables every
 interceptor after it on the error path), 16.8 (`RequestOverrideConfig.toBuilder()` drops the context).
+
+### 17.12 Hybrid signing: v2's signer only when it is required
+
+v2's signer is required for what it does beyond SigV4 over the request as it stands — a flexible checksum, a
+streaming body (trailer or chunk signing), non-default signer properties (S3's `DOUBLE_URL_ENCODE=false`,
+`NORMALIZE_PATH=false`, unsigned payloads, chunk encoding), and a legacy `Signer` override. A call that needs
+none of those is signed by smithy-java's own `SigV4Signer` (`V2SignerBridge#smithyCanSign`), which recovers
+the per-call cost §17.2 added. In practice: every DynamoDB call takes smithy's signer, and no S3 call does.
+Anything unrecognized — a signer property the check does not know — goes to v2's signer.
+
+**Equivalence is verified, not assumed.** `-Dawssdk.bridge.verifySigners=true` signs every eligible call both
+ways at one fixed instant and fails it unless the signatures are byte-identical over the same headers; the
+whole `test/wire-diff` suite passes in that mode (93/93), including retries. Two differences had to be dealt
+with first:
+
+- `DIFFERENT` — **`Content-Length` is not in `SignedHeaders`** for a smithy-signed call. smithy-java's
+  signer excludes it by a fixed list; v2 signs it. Both are valid SigV4, and this is the one wire difference
+  from stock that hybrid signing introduces: verification therefore compares v2's signature over the request
+  *without* `Content-Length` against smithy's, and requires them to be identical.
+- matched — v2 always sends and signs `x-amz-content-sha256`; smithy's signer only hashes internally. The
+  bridge sets the header from the body before smithy signs, which smithy then uses rather than hashing twice.
+
+### 17.13 `FIXED` — v2's signer re-signed the previous attempt's signed request on a retry
+
+A defect introduced by §17.2 and found by signer verification. On a retry smithy-java hands the signer the
+previous attempt's *signed* request. smithy's own signer copes (it never signs `Authorization`), but v2's
+signs every header it is given: every retried call signed by v2's signer put the stale `Authorization` into
+`SignedHeaders` and carried a signature a real service rejects, and a retried `aws-chunked` trailer body
+would have been framed twice. No test caught it because a mock server does not check signatures. Fixed by
+signing each retry from the call's unsigned request; `RetrySigningTest` pins it for both signing paths.
 
 ### 17.11 What is left, and whether it is a real limit
 
@@ -2047,7 +2077,7 @@ The performance cost of this phase is in `pipeline_benchmark2/RESULTS.md` ("Fide
 2. Is `ClientPipeline`'s per-attempt endpoint/identity re-resolution a measurable cost at
    concurrency 1, or is it noise? (Benchmark: retry-free path, so probably invisible — but it shows
    up under throttling.)
-3. ~~`apiCallTimeout` (8.1) has no smithy concept at all. Would adding one upstream be accepted, or does the bridge have to own it?~~ **Answered (§17).** The bridge owns it (`V2Timeouts`), with a per-attempt abort registered by each transport; it matches stock on sync and async (8.1, 8.2).
+3. ~~`apiCallTimeout` (8.1) has no smithy concept at all. Would adding one upstream be accepted, or does the bridge have to own it?~~ **Answered (§17).** The bridge owns it (`V2Timeout`), with a per-attempt abort registered by each transport; it matches stock on sync and async (8.1, 8.2).
 4. Can `ClientPipeline` resolve the endpoint *before* `modifyBeforeSigning` (2.1)? Every alternative
    the bridge has is worse: showing interceptors a URI with no host, showing them the client endpoint
    and lying, or adding a second smithy hook after `setServiceEndpoint` that v2's chain has no

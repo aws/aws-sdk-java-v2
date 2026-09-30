@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
  * {@code golden/request-overrides.txt}, and the bridge must print the same, sync and async.
  *
  * <p>The attempt-timeout case also covers ledger 3.6: stock retries a timed-out attempt, which the bridge can
- * only do because it defers transport failures into smithy-java's retry loop ({@code V2TransportFailures}).
+ * only do because it defers transport failures into smithy-java's retry loop ({@code V2DeferredTransportFailure}).
  */
 class RequestOverridesTest {
 

@@ -24,13 +24,13 @@ import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.bridge.smithyjava.auth.V2IdentityResolver;
 import software.amazon.awssdk.bridge.smithyjava.auth.V2SigningAuthScheme;
 import software.amazon.awssdk.bridge.smithyjava.client.V2OperationMetadata;
-import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverrides;
+import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverride;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -185,8 +185,8 @@ public final class V2EndpointResolverBridge implements EndpointResolver {
     public Endpoint resolveEndpoint(EndpointResolverParams params) {
         ExecutionAttributes attributes = template.copy();
         // A request's own endpoint provider, auth-scheme provider and execution attributes replace the
-        // client's, as AwsExecutionContextBuilder resolves them on stock v2. See V2RequestOverrides.
-        RequestOverrideConfiguration overrides = params.context().get(V2RequestOverrides.KEY);
+        // client's, as AwsExecutionContextBuilder resolves them on stock v2. See V2RequestOverride.
+        RequestOverrideConfiguration overrides = params.context().get(V2RequestOverride.KEY);
         if (overrides != null) {
             overrides.endpointProvider()
                      .ifPresent(p -> attributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER, p));

@@ -45,11 +45,13 @@ argument — this document says so explicitly (§4).
    flattened away and the translator had to guess. See §4; this is the most consequential thing in this
    report.
 
-4b. **That fidelity has a price: about 20 µs per call.** Signing with v2's signer (needed for S3's checksums
-   and signing rules) takes the sync small-operation win from −36% to about −20% against stock, and async
-   small operations from −12% to parity. `stripSigner` recovers all of it; a hybrid that uses smithy's
-   signer where v2's adds nothing would recover it for DynamoDB, pending a signature-equivalence check
-   (`RESULTS.md`, "Fidelity cost").
+4b. **That fidelity costs little once v2's signer is used only where required.** Signing every call with
+   v2's signer (needed for S3's checksums and signing rules) cost ~20 µs per call. Hybrid signing — v2's for
+   calls that need it, smithy-java's for the rest, equivalence verified byte for byte — brings the sync
+   small-operation win back to −31% against stock (from −36% before this phase), async small to −5% to −9%,
+   with the one wire difference that `Content-Length` is not in a smithy-signed call's `SignedHeaders`
+   (`RESULTS.md`, "Fidelity cost"; ledger 17.12). Verification also found a real bug: retried calls were
+   re-signing the previous attempt's signed request (17.13).
 
 5. **The async client works on a synchronous smithy-java, and is cheaper than stock async too — by less
    than sync.** One virtual thread per call, parked on response headers, over Netty and CRT: 0 carrier
@@ -422,7 +424,7 @@ Ordered by what each would settle, not by effort.
    needs an answer that isn't "guess"; the prototype has made this concrete and it should not stay in a
    §12 subsection.
 2. **File the five smithy-java defects upstream** (3.6, 3.7, 15.6, 16.4, 16.8). All are worked around
-   here; 3.6 in particular affects native smithy-java clients and the fix is small — `V2TransportFailures` is
+   here; 3.6 in particular affects native smithy-java clients and the fix is small — `V2DeferredTransportFailure` is
    the argument for how small.
 3. **Decide who owns the async envelope.** The bridged async client parks one virtual thread per call on
    a synchronous smithy-java (§2, ledger §16). It works, and it is cheap, but it means context
@@ -431,10 +433,6 @@ Ordered by what each would settle, not by effort.
    alongside 3.6, and filing 15.6, the one-line `asByteBuffer` fix, at the same time.
 
 **If the question is "how fast could it be":**
-
-0. **Hybrid signing.** Prove smithy-java's and v2's signers agree on requests with default signer
-   properties (a fixed-clock comparison), then sign those with smithy's. It recovers the ~20 µs/call that
-   §17 costs every DynamoDB call.
 
 4. **Allocation profile of `batch-get`**, to test the `SdkPojoDeserializer`/`BridgeStruct` hypothesis —
    the largest remaining performance question, since finding #2 says the veneer is where the gap lives.
@@ -452,9 +450,9 @@ Ordered by what each would settle, not by effort.
    differences on its first run in the axis it *does* cover; there is no reason to expect this axis is
    clean, and nothing has looked.
 9. **Guard the two `FRAGILE` entries** (1.7, 3.5) before they regress silently.
-10. **Signature equivalence** (open question 1): does `SigV4Signer`'s canonical-header exclusion list
-    match v2's exactly? A fixed-clock, fixed-credentials comparison would settle it. Currently unknown,
-    and a mismatch is a production auth failure.
+10. ~~**Signature equivalence**~~ **Answered.** smithy-java's and v2's signers produce byte-identical
+    signatures over the same headers on every eligible call in the suite (`verifySigners`); smithy's never
+    signs `Content-Length`, the one remaining difference (ledger 17.12).
 11. **Broaden the byte diff past 9 operations** (open question 9). The checksum-required set alone is
     larger, and 200-with-error-body, `modifyException` and virtual-host addressing are unexercised.
 

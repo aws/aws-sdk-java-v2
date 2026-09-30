@@ -28,7 +28,7 @@ import java.util.concurrent.Flow;
 import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.bridge.smithyjava.client.V2Timeouts;
+import software.amazon.awssdk.bridge.smithyjava.client.V2Timeout;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -105,10 +105,10 @@ public final class V2AsyncTransportBridge implements ClientTransport<HttpRequest
     @Override
     public HttpResponse send(Context context, HttpRequest request) {
         try {
-            return V2Timeouts.attempt(V2Timeouts.attemptTimeout(context), () -> sendAttempt(request));
+            return V2Timeout.attempt(V2Timeout.attemptTimeout(context), () -> sendAttempt(request));
         } catch (RuntimeException e) {
-            // Into the retry loop rather than past it; see V2TransportFailures (ledger 3.6).
-            return V2TransportFailures.defer(context, e);
+            // Into the retry loop rather than past it; see V2DeferredTransportFailure (ledger 3.6).
+            return V2DeferredTransportFailure.defer(context, e);
         }
     }
 
@@ -136,7 +136,7 @@ public final class V2AsyncTransportBridge implements ClientTransport<HttpRequest
         exchange.whenComplete((ignored, error) -> signal.exchangeCompleted(error));
         // A timeout cancels the exchange, which is how v2's async clients abort a request in flight.
         CompletableFuture<Void> inFlight = exchange;
-        V2Timeouts.registerAbort(() -> inFlight.cancel(true));
+        V2Timeout.registerAbort(() -> inFlight.cancel(true));
 
         return signal.awaitResponse();
     }
@@ -283,7 +283,7 @@ public final class V2AsyncTransportBridge implements ClientTransport<HttpRequest
 
         /** Parks until headers arrive. Intended to park a virtual thread; see the class javadoc. */
         HttpResponse awaitResponse() {
-            // get(), not join(): a timeout interrupts this wait (V2Timeouts), and join() ignores interrupts.
+            // get(), not join(): a timeout interrupts this wait (V2Timeout), and join() ignores interrupts.
             try {
                 return response.get();
             } catch (java.util.concurrent.ExecutionException e) {

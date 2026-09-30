@@ -111,6 +111,7 @@ public final class DynamoDbBehaviorProbe {
                     }
                 }
             } catch (RuntimeException e) {
+                if (Boolean.getBoolean("probe.trace")) { e.printStackTrace(); }
                 return "FAIL " + innermostSdkType(e);
             }
         }

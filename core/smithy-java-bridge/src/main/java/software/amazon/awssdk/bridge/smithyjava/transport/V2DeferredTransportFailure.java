@@ -50,7 +50,7 @@ import software.amazon.smithy.java.io.datastream.DataStream;
  * existing retry strategy, by moving one throw.
  */
 @SdkProtectedApi
-public final class V2TransportFailures {
+public final class V2DeferredTransportFailure {
 
     /** Header on the stand-in response; its only purpose is to be recognized. */
     public static final String MARKER = "x-smithy-bridge-deferred-transport-failure";
@@ -66,7 +66,7 @@ public final class V2TransportFailures {
      */
     private static final int STATUS = 599;
 
-    private V2TransportFailures() {
+    private V2DeferredTransportFailure() {
     }
 
     /**

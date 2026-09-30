@@ -46,7 +46,7 @@ import software.amazon.smithy.java.context.Context;
  * with it.
  */
 @SdkProtectedApi
-public final class V2Timeouts {
+public final class V2Timeout {
 
     /** The client-level attempt timeout, in the client config context, for the transports to read. */
     public static final Context.Key<Duration> CLIENT_ATTEMPT_TIMEOUT = Context.key("v2 apiCallAttemptTimeout");
@@ -60,7 +60,7 @@ public final class V2Timeouts {
     /** The attempt currently in flight on this thread; set around each call, filled in by the transport. */
     private static final ThreadLocal<InFlight> CURRENT = new ThreadLocal<>();
 
-    private V2Timeouts() {
+    private V2Timeout() {
     }
 
     /**
@@ -77,7 +77,7 @@ public final class V2Timeouts {
 
     /** The attempt timeout for a call: the request's own, else the client's. */
     public static Duration attemptTimeout(Context context) {
-        RequestOverrideConfiguration overrides = context.get(V2RequestOverrides.KEY);
+        RequestOverrideConfiguration overrides = context.get(V2RequestOverride.KEY);
         if (overrides != null && overrides.apiCallAttemptTimeout().isPresent()) {
             return overrides.apiCallAttemptTimeout().get();
         }

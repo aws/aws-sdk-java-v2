@@ -25,15 +25,16 @@ import java.util.concurrent.CompletableFuture;
 import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverrides;
+import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverride;
 import software.amazon.awssdk.bridge.smithyjava.streaming.V2DataStreams;
+import software.amazon.awssdk.bridge.smithyjava.streaming.V2StreamingBridge;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
@@ -48,7 +49,10 @@ import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.smithy.java.auth.api.SignResult;
 import software.amazon.smithy.java.auth.api.Signer;
 import software.amazon.smithy.java.aws.auth.api.identity.AwsCredentialsIdentity;
+import software.amazon.smithy.java.aws.client.auth.scheme.sigv4.SigV4Settings;
+import software.amazon.smithy.java.aws.client.core.settings.RegionSetting;
 import software.amazon.smithy.java.client.core.CallContext;
+import software.amazon.smithy.java.client.core.settings.ClockSetting;
 import software.amazon.smithy.java.context.Context;
 import software.amazon.smithy.java.endpoints.Endpoint;
 import software.amazon.smithy.java.http.api.HttpRequest;
@@ -69,7 +73,18 @@ import software.amazon.smithy.java.io.datastream.DataStream;
 @SdkInternalApi
 final class V2SignerBridge implements Signer<HttpRequest, AwsCredentialsIdentity> {
 
+    /** Signs every eligible call both ways and fails on a difference; see {@link #smithyCanSign}. */
+    private static final boolean VERIFY = Boolean.getBoolean("awssdk.bridge.verifySigners");
+
+    private static final Context.Key<Signed> LAST_SIGNED = Context.key("v2 signer last signed request");
+
+    /** Headers a signing adds, removed from a request that arrives already signed. */
+    private static final List<String> SIGNING_HEADERS = List.of("authorization", "x-amz-date", "x-amz-security-token");
+
+    private static final String CONTENT_SHA256 = "x-amz-content-sha256";
+
     private final AwsV4HttpSigner v2Signer = AwsV4HttpSigner.create();
+    private final Signer<HttpRequest, AwsCredentialsIdentity> smithySigner;
     private final AuthSchemeOption fallbackOption;
 
     @SuppressWarnings("deprecation")
@@ -78,6 +93,8 @@ final class V2SignerBridge implements Signer<HttpRequest, AwsCredentialsIdentity
     @SuppressWarnings("deprecation")
     V2SignerBridge(String fallbackSigningName, String fallbackRegion, software.amazon.awssdk.core.signer.Signer clientSigner) {
         this.clientSigner = clientSigner;
+        this.smithySigner = new software.amazon.smithy.java.aws.client.auth.scheme.sigv4.SigV4AuthScheme(
+            fallbackSigningName == null ? "unused" : fallbackSigningName).signer();
         this.fallbackOption = AuthSchemeOption.builder()
                                               .schemeId(AwsV4HttpSigner.class.getName())
                                               .putSignerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME, fallbackSigningName)
@@ -87,6 +104,216 @@ final class V2SignerBridge implements Signer<HttpRequest, AwsCredentialsIdentity
 
     @Override
     public SignResult<HttpRequest> sign(HttpRequest request, AwsCredentialsIdentity identity, Context properties) {
+        Context callContext = properties.get(V2SigningAuthScheme.CALL_CONTEXT);
+        HttpRequest unsigned = unsigned(request, callContext);
+        SignResult<HttpRequest> result;
+        if (smithyCanSign(unsigned, callContext)) {
+            AuthSchemeOption option = signingInputs(callContext).authSchemeOption();
+            result = new SignResult<>(VERIFY ? signBothAndCompare(unsigned, identity, option)
+                                             : signWithSmithy(unsigned, identity, option, null));
+        } else {
+            result = signWithV2(unsigned, identity, properties);
+        }
+        remember(callContext, result.signedRequest(), unsigned);
+        return result;
+    }
+
+    /**
+     * The request as it was before any signing.
+     *
+     * <p>On a retry, smithy-java 1.6.1 hands the signer the previous attempt's <em>signed</em> request.
+     * smithy's own signer copes — it overwrites its headers and never signs {@code Authorization} — but v2's
+     * signer signs whatever headers it is given, so it signed the stale {@code Authorization} header and then
+     * replaced it: every retried call carried a signature a real service rejects, and a checksum trailer
+     * would have been framed a second time. Found by {@code verifySigners}; invisible against a mock server,
+     * which does not check signatures. The bridge remembers each call's unsigned request and signs a retry
+     * from it; without one, it strips the headers a previous signing adds. One consequence: a v2
+     * {@code modifyHttpRequest} that changes the request differently on a retry than on the first attempt
+     * has that change dropped, since the first attempt's unsigned request is what gets re-signed.
+     */
+    private static HttpRequest unsigned(HttpRequest request, Context callContext) {
+        if (!request.headers().hasHeader("authorization")) {
+            return request;
+        }
+        // Already signed, so this is a retry of this call. Not matched by identity: hooks after signing (the
+        // user agent before transmit, among them) hand back copies, so what arrives is the transmitted request.
+        Signed previous = callContext == null ? null : callContext.get(LAST_SIGNED);
+        if (previous != null) {
+            return previous.unsigned;
+        }
+        software.amazon.smithy.java.http.api.ModifiableHttpRequest stripped = request.toModifiableCopy();
+        for (String header : SIGNING_HEADERS) {
+            stripped.removeHeader(header);
+        }
+        return stripped;
+    }
+
+    private static void remember(Context callContext, HttpRequest signed, HttpRequest unsigned) {
+        if (callContext == null) {
+            return;
+        }
+        try {
+            callContext.put(LAST_SIGNED, new Signed(signed, unsigned));
+        } catch (UnsupportedOperationException readOnly) {
+            // Then the header strip in unsigned() is what protects a retry.
+        }
+    }
+
+    private record Signed(HttpRequest signed, HttpRequest unsigned) {
+        // signed is kept for debugging a retry; the lookup is by call, not by request identity.
+    }
+
+    /**
+     * Whether this call can be signed by smithy-java's own SigV4 signer with the same result as v2's.
+     *
+     * <p>v2's signer is only <em>required</em> for what it does beyond SigV4 over a request as it stands:
+     * computing a flexible checksum, framing or chunk-signing a streaming body, signing with non-default
+     * properties (S3's {@code DOUBLE_URL_ENCODE=false}, {@code NORMALIZE_PATH=false}, unsigned payloads,
+     * chunk encoding), and running a legacy {@code Signer} override. A call that needs none of those — every
+     * DynamoDB call, and S3 calls nowhere — is signed by smithy-java's signer, which is cheaper by the ~20 µs
+     * per call measured in {@code RESULTS.md} ("Fidelity cost"). The equivalence this rests on is checked,
+     * not assumed: {@code -Dawssdk.bridge.verifySigners=true} signs every such call both ways with the same
+     * instant and fails the call unless the signatures are byte-identical over the same headers, and the test
+     * suites run in that mode. The one wire difference from stock that remains is {@code Content-Length}
+     * being absent from {@code SignedHeaders}; see {@link #signWithSmithy}.
+     *
+     * <p>Deliberately conservative: anything unrecognized — a signer property this does not know, a call
+     * without signing inputs — goes to v2's signer, which is always correct, just slower.
+     */
+    private boolean smithyCanSign(HttpRequest request, Context callContext) {
+        if (clientSigner != null || callContext == null) {
+            return false;
+        }
+        RequestOverrideConfiguration overrides = callContext.get(V2RequestOverride.KEY);
+        if (overrides != null && overrides.signer().isPresent()) {
+            return false;
+        }
+        V2SigningAuthScheme.SigningInputs inputs = signingInputs(callContext);
+        if (inputs == null || callContext.get(V2StreamingBridge.REQUEST_BODY) != null) {
+            return false;
+        }
+        ExecutionAttributes attributes = inputs.attributes();
+        if (attributes.getAttribute(software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.HTTP_CHECKSUM) != null
+            || attributes.getAttribute(
+                   software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED) != null) {
+            return false;
+        }
+        DataStream body = request.body();
+        if (body != null && (!body.isReplayable() || !body.hasKnownLength() || body instanceof V2DataStreams.AsyncBody)) {
+            return false;
+        }
+        return hasOnlyDefaultSignerProperties(inputs.authSchemeOption());
+    }
+
+    /** The signer properties smithy's signer reproduces, with the values it reproduces them for. */
+    private static boolean hasOnlyDefaultSignerProperties(AuthSchemeOption option) {
+        boolean[] defaults = {true};
+        option.forEachSignerProperty(new AuthSchemeOption.SignerPropertyConsumer() {
+            @Override
+            public <T> void accept(software.amazon.awssdk.http.auth.spi.signer.SignerProperty<T> property, T value) {
+                boolean ok;
+                if (property == AwsV4HttpSigner.SERVICE_SIGNING_NAME || property == AwsV4HttpSigner.REGION_NAME) {
+                    ok = value != null;
+                } else if (property == AwsV4HttpSigner.DOUBLE_URL_ENCODE || property == AwsV4HttpSigner.NORMALIZE_PATH
+                           || property == AwsV4HttpSigner.PAYLOAD_SIGNING_ENABLED) {
+                    ok = !Boolean.FALSE.equals(value);
+                } else if (property == AwsV4HttpSigner.CHUNK_ENCODING_ENABLED) {
+                    ok = !Boolean.TRUE.equals(value);
+                } else if (property == AwsV4HttpSigner.CHECKSUM_ALGORITHM) {
+                    ok = value == null;
+                } else {
+                    ok = false;
+                }
+                defaults[0] &= ok;
+            }
+        });
+        return defaults[0];
+    }
+
+    private static V2SigningAuthScheme.SigningInputs signingInputs(Context callContext) {
+        Endpoint endpoint = callContext == null ? null : callContext.get(CallContext.ENDPOINT);
+        return endpoint == null ? null : endpoint.property(V2SigningAuthScheme.SIGNING_INPUTS);
+    }
+
+    /**
+     * smithy-java's signer, set up to sign what v2's would.
+     *
+     * <p>Two differences from v2's signer, measured against stock with {@code verifySigners}. v2 always sends
+     * and signs {@code x-amz-content-sha256}; smithy's signer only hashes the payload internally, so the
+     * header is set here from the body — smithy then takes the hash from the header rather than computing it
+     * a second time. And smithy's signer never signs {@code Content-Length} (it is on its fixed exclusion
+     * list), where v2 does; that one cannot be matched without an upstream change, so a request signed here
+     * differs from stock only in its {@code SignedHeaders} list. Both are valid SigV4.
+     */
+    private HttpRequest signWithSmithy(HttpRequest request, AwsCredentialsIdentity identity, AuthSchemeOption option,
+                                       java.time.Clock clock) {
+        // A copy: smithy's signer signs in place.
+        software.amazon.smithy.java.http.api.ModifiableHttpRequest copy = request.toModifiableCopy();
+        if (!copy.headers().hasHeader(CONTENT_SHA256)) {
+            copy.setHeader(CONTENT_SHA256, sha256Hex(request.body()));
+        }
+        request = copy;
+        Context signing = Context.create()
+                                 .put(SigV4Settings.SIGNING_NAME, option.signerProperty(AwsV4HttpSigner.SERVICE_SIGNING_NAME))
+                                 .put(RegionSetting.REGION, option.signerProperty(AwsV4HttpSigner.REGION_NAME));
+        if (clock != null) {
+            signing.put(ClockSetting.CLOCK, clock);
+        }
+        return smithySigner.sign(request, identity, signing).signedRequest();
+    }
+
+    /**
+     * Signs with both signers at one fixed instant and requires the same signature over the same headers.
+     * Verification mode only; the call proceeds with smithy's request, as it would without verification.
+     */
+    private HttpRequest signBothAndCompare(HttpRequest request, AwsCredentialsIdentity identity, AuthSchemeOption option) {
+        java.time.Clock clock = java.time.Clock.fixed(java.time.Instant.now(), java.time.ZoneOffset.UTC);
+        HttpRequest smithySigned = signWithSmithy(request, identity, option, clock);
+        AuthSchemeOption fixed = option.toBuilder()
+                                       .putSignerProperty(software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK,
+                                                          clock)
+                                       .build();
+        // v2 signs a copy without Content-Length -- the one header smithy's signer will not sign -- so the two
+        // signatures cover the same headers and must then be byte-identical. What is actually sent is the v2
+        // signature over the full request, as without verification.
+        software.amazon.smithy.java.http.api.ModifiableHttpRequest withoutLength = request.toModifiableCopy();
+        withoutLength.removeHeader("content-length");
+        HttpRequest v2Comparable = signSync(withoutLength, toV2(withoutLength), V2IdentityResolver.toV2(identity), fixed,
+                                            request.body());
+        java.util.Map<String, List<String>> a = normalizedHeaders(smithySigned);
+        java.util.Map<String, List<String>> b = normalizedHeaders(v2Comparable);
+        // The transport adds Host on the wire either way; v2's signer also puts it in the header map.
+        a.remove("host");
+        b.remove("host");
+        a.remove("content-length");
+        b.remove("content-length");
+        if (!a.equals(b) || !smithySigned.uri().toURI().equals(v2Comparable.uri().toURI())) {
+            throw new IllegalStateException("awssdk.bridge.verifySigners: smithy-java and v2 signed differently\n"
+                                            + "  smithy: " + smithySigned.uri() + " " + a + "\n"
+                                            + "  v2:     " + v2Comparable.uri() + " " + b);
+        }
+        return smithySigned;
+    }
+
+    private static String sha256Hex(DataStream body) {
+        try {
+            java.security.MessageDigest digest = java.security.MessageDigest.getInstance("SHA-256");
+            if (body != null && body.contentLength() != 0) {
+                digest.update(body.asByteBuffer().duplicate());
+            }
+            return software.amazon.awssdk.utils.BinaryUtils.toHex(digest.digest());
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
+    private static java.util.Map<String, List<String>> normalizedHeaders(HttpRequest request) {
+        java.util.Map<String, List<String>> out = new java.util.TreeMap<>();
+        request.headers().map().forEach((k, v) -> out.put(k.toLowerCase(java.util.Locale.ROOT), v));
+        return out;
+    }
+
+    private SignResult<HttpRequest> signWithV2(HttpRequest request, AwsCredentialsIdentity identity, Context properties) {
         software.amazon.awssdk.identity.spi.AwsCredentialsIdentity v2Identity = V2IdentityResolver.toV2(identity);
         SdkHttpFullRequest.Builder v2Request = toV2(request);
 
@@ -94,7 +321,7 @@ final class V2SignerBridge implements Signer<HttpRequest, AwsCredentialsIdentity
         DataStream body = request.body();
 
         Context call = properties.get(V2SigningAuthScheme.CALL_CONTEXT);
-        RequestOverrideConfiguration overrides = call == null ? null : call.get(V2RequestOverrides.KEY);
+        RequestOverrideConfiguration overrides = call == null ? null : call.get(V2RequestOverride.KEY);
         if (overrides != null && overrides.signer().isPresent()) {
             return new SignResult<>(signLegacy(request, v2Request, v2Identity, option, body, overrides.signer().get()));
         }

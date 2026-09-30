@@ -23,7 +23,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.bridge.smithyjava.streaming.V2StreamingBridge;
-import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportFailures;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2DeferredTransportFailure;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -76,6 +76,13 @@ public final class V2ErrorEnricher implements ClientInterceptor {
      */
     private static final String RETRY_AFTER = "retry-after";
 
+    /** The current attempt's error-response body, kept before smithy's deserializer consumes it. */
+    private static final software.amazon.smithy.java.context.Context.Key<RawBody> RAW_BODY =
+        software.amazon.smithy.java.context.Context.key("v2 raw error body");
+
+    /** Error bodies above this are not kept; v2 has no such cap, but an error document is never this big. */
+    private static final int LARGEST_RAW_ERROR_BODY = 64 * 1024;
+
     private final String serviceName;
     private final Supplier<? extends AwsServiceException.Builder> baseExceptionBuilder;
 
@@ -89,13 +96,6 @@ public final class V2ErrorEnricher implements ClientInterceptor {
         this.baseExceptionBuilder = baseExceptionBuilder;
     }
 
-    /** The current attempt's error-response body, kept before smithy's deserializer consumes it. */
-    private static final software.amazon.smithy.java.context.Context.Key<RawBody> RAW_BODY =
-        software.amazon.smithy.java.context.Context.key("v2 raw error body");
-
-    /** Error bodies above this are not kept; v2 has no such cap, but an error document is never this big. */
-    private static final int LARGEST_RAW_ERROR_BODY = 64 * 1024;
-
     /**
      * Keeps an error response's bytes, which v2 exposes as {@code awsErrorDetails().rawResponse()}.
      *
@@ -108,7 +108,7 @@ public final class V2ErrorEnricher implements ClientInterceptor {
     public <ResponseT> ResponseT modifyBeforeDeserialization(
             software.amazon.smithy.java.client.core.interceptors.ResponseHook<?, ?, ?, ResponseT> hook) {
         if (!(hook.response() instanceof HttpResponse response) || response.statusCode() < 300
-            || V2TransportFailures.isStandIn(response) || response.body() == null
+            || V2DeferredTransportFailure.isStandIn(response) || response.body() == null
             || response.body().contentLength() > LARGEST_RAW_ERROR_BODY) {
             return hook.response();
         }
@@ -174,8 +174,8 @@ public final class V2ErrorEnricher implements ClientInterceptor {
         // A transport failure a bridged transport deferred into the retry loop (ledger 3.6): the attempt's
         // error is the stand-in response's, so swap in the real failure and classify it the way v2's retry
         // conditions classify an exception with no response at all.
-        RuntimeException deferred = V2TransportFailures.deferredFailure(hook.context());
-        if (deferred != null && V2TransportFailures.isStandIn(hook.response())) {
+        RuntimeException deferred = V2DeferredTransportFailure.deferredFailure(hook.context());
+        if (deferred != null && V2DeferredTransportFailure.isStandIn(hook.response())) {
             if (retriedByV2(deferred, false)) {
                 throw new V2RetryableError(deferred);
             }

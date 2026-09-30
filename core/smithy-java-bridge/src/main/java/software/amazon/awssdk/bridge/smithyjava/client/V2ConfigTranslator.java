@@ -32,8 +32,8 @@ import software.amazon.awssdk.bridge.smithyjava.serde.V2Crc32Validation;
 import software.amazon.awssdk.bridge.smithyjava.serde.V2RestXmlBodyRules;
 import software.amazon.awssdk.bridge.smithyjava.streaming.V2StreamingBridge;
 import software.amazon.awssdk.bridge.smithyjava.transport.V2AsyncTransportBridge;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2DeferredTransportFailure;
 import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportBridge;
-import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportFailures;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -218,15 +218,15 @@ public final class V2ConfigTranslator {
             builder.endpointResolver(new V2EndpointResolverBridge(v2Config, endpointResolver,
                                                                   v2Signing ? authOptionsResolver : null));
         }
-        // Request-level overrides, and the timeouts smithy-java has no notion of. See V2RequestOverrides,
-        // V2Timeouts, ledger 2.3, 8.1, 8.2.
+        // Request-level overrides, and the timeouts smithy-java has no notion of. See V2RequestOverride,
+        // V2Timeout, ledger 2.3, 8.1, 8.2.
         builder.requestOverrideSupport(v2Config, stripped(STRIP_ENDPOINTS)
                                                  ? config -> null
                                                  : config -> new V2EndpointResolverBridge(
                                                      config, endpointResolver, v2Signing ? authOptionsResolver : null));
         builder.apiCallTimeout(v2Config.option(SdkClientOption.API_CALL_TIMEOUT));
         if (v2Config.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT) != null) {
-            builder.putConfig(V2Timeouts.CLIENT_ATTEMPT_TIMEOUT, v2Config.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT));
+            builder.putConfig(V2Timeout.CLIENT_ATTEMPT_TIMEOUT, v2Config.option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT));
         }
 
         // SigV4AuthScheme.getSignerProperties does context.expect(REGION), so the region must be present
@@ -273,8 +273,8 @@ public final class V2ConfigTranslator {
             builder.addInterceptor(new V2ErrorEnricher(v2Config.option(SdkClientOption.SERVICE_NAME),
                                                       baseExceptionBuilder));
             // The enricher is what reads a deferred transport failure back out, so deferral is only safe
-            // with it installed. See V2TransportFailures, ledger 3.6.
-            builder.putConfig(V2TransportFailures.ENABLED, Boolean.TRUE);
+            // with it installed. See V2DeferredTransportFailure, ledger 3.6.
+            builder.putConfig(V2DeferredTransportFailure.ENABLED, Boolean.TRUE);
         }
 
         // v2 validates a legacy x-amz-crc32 response header (DynamoDB) on sync and async clients alike,
@@ -305,7 +305,7 @@ public final class V2ConfigTranslator {
         }
         // After the interceptor bridge: v2 merges request-level headers and query parameters after
         // interceptors' modifyHttpRequest has run.
-        builder.addInterceptor(new V2RequestOverrides.Http(
+        builder.addInterceptor(new V2RequestOverride.Http(
             v2Config.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS),
             v2Config.option(SdkAdvancedClientOption.USER_AGENT_PREFIX),
             v2Config.option(SdkAdvancedClientOption.USER_AGENT_SUFFIX)));

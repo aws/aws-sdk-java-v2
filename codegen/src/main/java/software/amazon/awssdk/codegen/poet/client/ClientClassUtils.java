@@ -175,7 +175,7 @@ public final class ClientClassUtils {
         // The endpoint, then the operation's @endpoint host prefix, as the stock resolver interceptor does both.
         // The provider is read from the call's attributes rather than captured from the client, as the stock
         // interceptor reads it: that is where a request-level overrideConfiguration().endpointProvider(...)
-        // lands (V2RequestOverrides).
+        // lands (V2RequestOverride).
         builder.addCode("    (request, executionAttributes) -> $T.withHostPrefix((($T) executionAttributes.getAttribute("
                         + "$T.ENDPOINT_PROVIDER))\n"
                         + "        .resolveEndpoint($T.ruleParams(request, executionAttributes)).join(),\n"

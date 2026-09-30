@@ -40,6 +40,13 @@ public final class CapturingHttpClient implements SdkHttpClient {
 
     /** For a response body that is not text: an object's bytes, rather than an XML document. */
     private volatile long delayMillis;
+    private final java.util.concurrent.atomic.AtomicInteger failuresLeft = new java.util.concurrent.atomic.AtomicInteger();
+
+    /** Answers the first {@code n} requests with a 500, so the SDK retries; later ones get the canned response. */
+    public CapturingHttpClient failFirst(int n) {
+        failuresLeft.set(n);
+        return this;
+    }
 
     /** Delays every response, for the tests that need a call to be slow (timeouts). */
     public CapturingHttpClient withDelay(long millis) {
@@ -87,6 +94,17 @@ public final class CapturingHttpClient implements SdkHttpClient {
         return new ExecutableHttpRequest() {
             @Override
             public HttpExecuteResponse call() {
+                if (failuresLeft.getAndUpdate(n -> Math.max(0, n - 1)) > 0) {
+                    byte[] error = "<Error><Code>InternalError</Code><Message>injected</Message></Error>"
+                        .getBytes(StandardCharsets.UTF_8);
+                    return HttpExecuteResponse.builder()
+                                              .response(SdkHttpResponse.builder().statusCode(500)
+                                                                       .putHeader("Content-Type", "application/xml")
+                                                                       .putHeader("Content-Length", String.valueOf(error.length))
+                                                                       .build())
+                                              .responseBody(AbortableInputStream.create(new ByteArrayInputStream(error)))
+                                              .build();
+                }
                 if (delayMillis > 0) {
                     try {
                         Thread.sleep(delayMillis);

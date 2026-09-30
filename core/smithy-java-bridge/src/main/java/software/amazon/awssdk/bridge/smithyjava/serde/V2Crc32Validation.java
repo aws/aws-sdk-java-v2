@@ -31,8 +31,9 @@ import software.amazon.smithy.java.io.datastream.DataStream;
  * <p>DynamoDB returns a CRC32 of the response body in {@code x-amz-crc32}, and stock v2 fails the call with
  * {@code Crc32MismatchException} on a mismatch, without retrying — on the sync client through
  * {@code AwsSyncClientHandler}'s response-handler wrapper, and on the async client too, as
- * {@code DynamoDbBehaviorProbe} measured against published 2.46.10. It is not a trait and not an interceptor, so neither the schema layer
- * nor the interceptor bridge carried it, and the bridge accepted a corrupted response silently.
+ * {@code DynamoDbBehaviorProbe} measured against published 2.46.10. It is not a trait and not an interceptor,
+ * so neither the schema layer nor the interceptor bridge carried it, and the bridge accepted a corrupted
+ * response silently.
  *
  * <p>This runs v2's own {@link Crc32Validation#validate} over the response before smithy deserializes it,
  * which wraps the body in v2's validating stream — including v2's handling of a gzip-encoded body and the

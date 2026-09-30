@@ -76,7 +76,7 @@ public final class SmithyBridgeClient extends Client {
 
     private final Supplier<? extends AwsServiceException.Builder> baseExceptionBuilder;
     private final Executor completionExecutor;
-    private final V2RequestOverrides requestOverrides;
+    private final V2RequestOverride requestOverrides;
     private final Duration apiCallTimeout;
 
     private SmithyBridgeClient(Builder builder) {
@@ -86,7 +86,7 @@ public final class SmithyBridgeClient extends Client {
         this.apiCallTimeout = builder.apiCallTimeout;
         this.requestOverrides = builder.v2Configuration == null
                                 ? null
-                                : new V2RequestOverrides(builder.v2Configuration, builder.endpointResolverFactory,
+                                : new V2RequestOverride(builder.v2Configuration, builder.endpointResolverFactory,
                                                          builder.requestConfigurationUpdater);
     }
 
@@ -127,7 +127,7 @@ public final class SmithyBridgeClient extends Client {
             RequestOverrideConfig effective = requestOverrides == null
                                               ? (overrides == null ? null : build(overrides))
                                               : requestOverrides.apply(input, overrides);
-            return V2Timeouts.apiCall(apiCallTimeout(input), () -> call(input, operation, effective));
+            return V2Timeout.apiCall(apiCallTimeout(input), () -> call(input, operation, effective));
         } catch (RuntimeException e) {
             throw toV2(e);
         }
@@ -335,14 +335,17 @@ public final class SmithyBridgeClient extends Client {
         private Function<SdkClientConfiguration, EndpointResolver> endpointResolverFactory;
         private Function<SdkRequest, SdkClientConfiguration> requestConfigurationUpdater;
 
-        /** The client-level {@code apiCallTimeout}; see {@link V2Timeouts}. */
+        private Builder() {
+        }
+
+        /** The client-level {@code apiCallTimeout}; see {@link V2Timeout}. */
         public Builder apiCallTimeout(Duration apiCallTimeout) {
             this.apiCallTimeout = apiCallTimeout;
             return this;
         }
 
         /**
-         * What {@link V2RequestOverrides} needs to rebuild per-call components for a request whose plugins
+         * What {@link V2RequestOverride} needs to rebuild per-call components for a request whose plugins
          * change the configuration. Set by {@link V2ConfigTranslator}.
          */
         Builder requestOverrideSupport(SdkClientConfiguration v2Configuration,
@@ -359,9 +362,6 @@ public final class SmithyBridgeClient extends Client {
         public Builder requestConfigurationUpdater(Function<SdkRequest, SdkClientConfiguration> updater) {
             this.requestConfigurationUpdater = updater;
             return this;
-        }
-
-        private Builder() {
         }
 
         /**

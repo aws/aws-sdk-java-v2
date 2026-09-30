@@ -21,16 +21,18 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.reactivestreams.FlowAdapters;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.bridge.smithyjava.auth.V2SigningAuthScheme;
-import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverrides;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.bridge.smithyjava.client.V2RequestOverride;
 import software.amazon.awssdk.bridge.smithyjava.transport.ResponseBodyDataStream;
-import software.amazon.awssdk.bridge.smithyjava.transport.V2TransportFailures;
-import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.bridge.smithyjava.transport.V2DeferredTransportFailure;
 import software.amazon.awssdk.core.ClientEndpointProvider;
+import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.ServiceConfiguration;
@@ -49,8 +51,6 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
-import org.reactivestreams.FlowAdapters;
-import org.reactivestreams.Publisher;
 import software.amazon.smithy.java.client.core.CallContext;
 import software.amazon.smithy.java.client.core.interceptors.ClientInterceptor;
 import software.amazon.smithy.java.client.core.interceptors.InputHook;
@@ -187,7 +187,7 @@ public final class V2InterceptorBridge implements ClientInterceptor {
         attributes.putAttribute(SdkExecutionAttribute.OPERATION_NAME,
                                 hook.operation().schema().id().getName());
         // A request's own execution attributes, which stock v2 hands to every interceptor (ledger 2.4).
-        RequestOverrideConfiguration overrides = hook.context().get(V2RequestOverrides.KEY);
+        RequestOverrideConfiguration overrides = hook.context().get(V2RequestOverride.KEY);
         if (overrides != null && overrides.executionAttributes() != null) {
             attributes = overrides.executionAttributes().merge(attributes);
         }
@@ -248,7 +248,7 @@ public final class V2InterceptorBridge implements ClientInterceptor {
     public <ResponseT> ResponseT modifyBeforeDeserialization(ResponseHook<?, ?, ?, ResponseT> hook) {
         CallState state = hook.context().get(STATE);
         if (state == null || !(hook.response() instanceof HttpResponse response)
-            || V2TransportFailures.isStandIn(response)) {
+            || V2DeferredTransportFailure.isStandIn(response)) {
             // No response exists for a failed transport attempt; v2 runs no response hooks for one.
             return hook.response();
         }

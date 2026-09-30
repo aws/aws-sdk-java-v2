@@ -1,0 +1,11 @@
+READY port=19080 pid=20932 threads=200 selectors=1 tls=false (GetItem=470B PutItem=2B BatchGetItem=37808B BatchWriteItem=23B)
+pinning: client=[0,1] server=[4,5,6]
+SLF4J: Failed to load class "org.slf4j.impl.StaticLoggerBinder".
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See http://www.slf4j.org/codes.html#StaticLoggerBinder for further details.
+=== standalone-e2e-benchmark client=v2-sync transport=apache5 scenarios=small-get iterations=50,000 warmup=30,000/quiesce concurrency=1 driver=threads async-mode=n/a endpoint=http://127.0.0.1:19080 metrics=off pid=21055
+=== cpu-time source: oshi (Amazon Linux) user/system split: yes; application cpu (per-thread): yes
+=== build: phase=async-stock commit=c1d88972e18 sdkCommit=published-2.46.10 branch=smithy-java-bridge-alexwoo-full dirty=true built=2026-09-29T22:46:05Z sdkV2=2.46.10 sdkV1=1.12.797 smithy=1.6.1
+=== warmup small-get: ops=90,000 wall=24.2s jit=14118ms settled=true (compilation quiet for 3000ms)
+RESULT client=v2-sync transport=apache5 scenario=small-get iterations=50000 concurrency=1 async_mode=n/a wall_ms=8470 ops_per_wall_sec=5903.4 cpu_ms=6860 cpu_user_ms=5290 cpu_sys_ms=1570 ops_per_cpu_sec=7288.6 ops_per_user_cpu_sec=9451.8 cpu_us_per_op=137.2 app_cpu_ms=6685 app_cpu_us_per_op=133.7 unattributed_ms=175 avg_us_per_op=169.4 mean_lat_us=169.2 p50_us=162.6 p90_us=197.1 p99_us=287.1 p999_us=872.7 max_us=17032.1 jit_ms=91 gc_ms=33 gc_count=35 steady_state=true warmup_ops=90000 warmup_settled=true server_cpu_ms=4760 server_requests=50000
+DONE total_wall_s=33.3

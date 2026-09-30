@@ -308,14 +308,14 @@ This measures ledger §17 — v2's signer bridged in place of smithy-java's, v2'
 attempt, response hooks, CRC32 validation, request overrides and timeouts — which is what took the fault sweep
 from 19 behavioral differences to 1 and every checksum, override and binding probe to parity with stock.
 
-| app CPU/op vs stock | before §17 | after §17 | after trims |
-|---|---:|---:|---:|
-| sync small-get | −35.9% | −18.5% | **−21.5%** |
-| sync small-put | −36.6% | −19.8% | **−19.7%** |
-| async small-get | −11.5% | +1.5% | **+2.8%** |
-| async small-put | −13.6% | −0.3% | **+1.7%** |
-| sync batch-get / batch-put | −18.7% / −46.9% | −13.4% / −44.4% | — |
-| async batch-get / batch-put | −4.9% / −41.5% | −2.9% / −36.7% | — |
+| app CPU/op vs stock | before §17 | after §17 | after trims | **hybrid signing** |
+|---|---:|---:|---:|---:|
+| sync small-get | −35.9% | −18.5% | −21.5% | **−31.0%** |
+| sync small-put | −36.6% | −19.8% | −19.7% | **−30.6%** |
+| async small-get | −11.5% | +1.5% | +2.8% | **−4.7%** |
+| async small-put | −13.6% | −0.3% | +1.7% | **−9.1%** |
+| sync batch-get / batch-put | −18.7% / −46.9% | −13.4% / −44.4% | — | **−16.6% / −45.9%** |
+| async batch-get / batch-put | −4.9% / −41.5% | −2.9% / −36.7% | — | **−2.9% / −37.0%** |
 
 A fixed ~20 µs per call, so it moves small operations and barely touches batch-put. Latency is still lower
 than stock in every cell (sync small −14% to −18%, async small −2% to −3%, 4/4 or 3/4 wins).
@@ -328,7 +328,17 @@ bridge's new work (auth-option resolution, the larger attribute copy) another ~5
 afterwards — skipping checksum setup for operations with no checksum metadata, writing back only the headers
 signing changed — are inside the noise.
 
-**What it means.** The price of byte-for-byte S3 behavior (checksums, trailers, chunked signing, the
+**Hybrid signing recovers it** (`pipeline_benchmark2/paired-hybrid/merged/`, 4 reps, all four scenarios,
+4/4 wins in 31 of 32 cells, the other 3/4). v2's signer now signs only calls that need it — checksums, streaming
+bodies, non-default signer properties, a legacy signer override — and smithy-java's signs the rest, which is
+every DynamoDB call (ledger 17.12). Equivalence is verified by `verifySigners`, which requires byte-identical
+signatures over the same headers across the whole wire-diff suite; the one wire difference left on a
+smithy-signed call is `Content-Length` missing from `SignedHeaders`. Latency: sync small −25%, async small
+−10% to −14%, 4/4 everywhere. The residue against pre-§17 (sync small ~5 points) is the rest of §17's per-call
+work — the v2 auth-scheme resolution and the larger attribute set in the endpoint bridge, and the always-on
+interceptors — none of which is signing.
+
+**What it meant before hybrid signing.** The price of byte-for-byte S3 behavior (checksums, trailers, chunked signing, the
 endpoint's signing overrides) is paid on every call, including by DynamoDB, which needs none of it. The
 obvious recovery is to sign with smithy-java's signer when v2's would add nothing — no checksum metadata,
 default signer properties, no signer override — which would return DynamoDB to its pre-§17 numbers. It is

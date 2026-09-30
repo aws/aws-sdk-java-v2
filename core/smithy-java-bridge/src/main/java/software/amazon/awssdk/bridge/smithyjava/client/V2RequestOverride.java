@@ -59,7 +59,7 @@ import software.amazon.smithy.java.io.uri.SmithyUri;
  *   <tr><td>{@code endpointProvider}, {@code authSchemeProvider}</td><td>{@code V2EndpointResolverBridge}</td></tr>
  *   <tr><td>{@code executionAttributes}</td><td>{@code V2EndpointResolverBridge} and {@code V2InterceptorBridge}</td></tr>
  *   <tr><td>{@code signer}</td><td>{@code V2SignerBridge}</td></tr>
- *   <tr><td>{@code apiCallTimeout}, {@code apiCallAttemptTimeout}</td><td>{@code V2Timeouts}</td></tr>
+ *   <tr><td>{@code apiCallTimeout}, {@code apiCallAttemptTimeout}</td><td>{@code V2Timeout}</td></tr>
  *   <tr><td>{@code metricPublishers}</td><td>generated client code, as before</td></tr>
  * </table>
  *
@@ -67,7 +67,7 @@ import software.amazon.smithy.java.io.uri.SmithyUri;
  * produces no per-call config at all.
  */
 @SdkProtectedApi
-public final class V2RequestOverrides {
+public final class V2RequestOverride {
 
     /** The call's v2 request override configuration, for the components that honor its fields. */
     public static final Context.Key<RequestOverrideConfiguration> KEY = Context.key("v2 request override configuration");
@@ -76,7 +76,7 @@ public final class V2RequestOverrides {
     private final Function<SdkClientConfiguration, EndpointResolver> endpointResolverFactory;
     private final Function<SdkRequest, SdkClientConfiguration> configurationUpdater;
 
-    V2RequestOverrides(SdkClientConfiguration clientConfiguration,
+    V2RequestOverride(SdkClientConfiguration clientConfiguration,
                        Function<SdkClientConfiguration, EndpointResolver> endpointResolverFactory,
                        Function<SdkRequest, SdkClientConfiguration> configurationUpdater) {
         this.clientConfiguration = clientConfiguration;
