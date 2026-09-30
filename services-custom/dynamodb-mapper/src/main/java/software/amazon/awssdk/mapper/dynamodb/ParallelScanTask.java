@@ -15,7 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
-import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -33,8 +33,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-@SdkPublicApi
-public final class ParallelScanTask {
+/**
+ * Runs the segment scans behind {@link PaginatedParallelScanList}. Created by {@link DynamoDBMapper#parallelScan}.
+ */
+@SdkInternalApi
+final class ParallelScanTask {
 
     /**
      * The list of hard copies of ScanRequest with different segment number.
