@@ -230,8 +230,9 @@ class ResumableRequestConverterTest {
             toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
                                                 downloadFileRequest);
         GetObjectRequest actualRequest = actual.left().getObjectRequest();
+        verifyActualGetObjectRequest(getObjectRequest, actualRequest, null);
         assertThat(actualRequest.partNumber()).isEqualTo(3);
-        assertThat(actualRequest.range()).isNull();
+        assertThat(actualRequest.ifUnmodifiedSince()).isEqualTo(s3ObjectLastModified);
     }
 
     private static void verifyActualGetObjectRequest(GetObjectRequest originalRequest, GetObjectRequest actualRequest,
