@@ -148,10 +148,29 @@ public class LegacyMarshallerMigrationTest extends LocalDynamoDBTestBase {
 
         Map<String, AttributeValue> stored = getRaw(item.getKey());
 
+        // Byte-for-byte the same JSON the legacy JsonMarshaller writes, not just readable by it.
+        assertEquals(V1_PART_JSON.marshall(item.getPart()), stored.get("part").s());
+        PartList expectedParts = new PartList();
+        expectedParts.addAll(parts);
+        assertEquals(V1_PART_LIST_JSON.marshall(expectedParts), stored.get("parts").s());
+
         assertPart(V1_PART_JSON.unmarshall(Part.class, stored.get("part").s()), "a", 3, UPDATED);
         PartList v1Parts = V1_PART_LIST_JSON.unmarshall(PartList.class, stored.get("parts").s());
         assertEquals(1, v1Parts.size());
         assertPart(v1Parts.get(0), "b", 1, UPDATED);
+    }
+
+    /**
+     * Unlike the legacy {@code JsonMarshaller}, the replacement ignores JSON properties the class does not declare,
+     * for example ones added by a newer writer.
+     */
+    @Test
+    public void typeConvertedJson_withUnknownProperty_ignoresIt() {
+        String legacy = V1_PART_JSON.marshall(new Part("a", 3, UPDATED));
+        String withExtra = legacy.substring(0, legacy.length() - 1) + ",\"addedLater\":\"x\"}";
+        String key = putRaw("part", s(withExtra));
+
+        assertPart(mapper.load(Item.class, key).getPart(), "a", 3, UPDATED);
     }
 
     @Test

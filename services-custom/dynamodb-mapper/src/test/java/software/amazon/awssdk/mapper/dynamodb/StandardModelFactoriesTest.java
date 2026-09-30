@@ -1318,7 +1318,7 @@ public class StandardModelFactoriesTest {
         @DynamoDBVersionAttribute
         public Long getVersionedAttr() { return versionedAttr; }
         public void setVersionedAttr(Long versionedAttr) { this.versionedAttr = versionedAttr; }
-        @DynamoDBTypeConverted(converter=RandomUUIDMarshaller.class)
+        @DynamoDBTypeConverted(converter=RandomUUIDConverter.class)
         public String getMarshallingAttr() { return marshallingAttr; }
         public void setMarshallingAttr(String marshallingAttr) { this.marshallingAttr = marshallingAttr; }
         @DynamoDBIgnore
@@ -1344,7 +1344,7 @@ public class StandardModelFactoriesTest {
         private String annotatedAttr;
         @DynamoDBVersionAttribute
         private Long versionedAttr;
-        @DynamoDBTypeConverted(converter=RandomUUIDMarshaller.class)
+        @DynamoDBTypeConverted(converter=RandomUUIDConverter.class)
         private String marshallingAttr;
         @DynamoDBIgnore
         private String ignoredAttr;
@@ -1381,7 +1381,7 @@ public class StandardModelFactoriesTest {
         @DynamoDBAttribute(attributeName="actualAttrName")
         private String annotatedAttr;
         private Long versionedAttr;
-        @DynamoDBTypeConverted(converter=RandomUUIDMarshaller.class)
+        @DynamoDBTypeConverted(converter=RandomUUIDConverter.class)
         private String marshallingAttr;
         private String ignoredAttr;
         public String getHashKey() { return hashKey; }

@@ -20,7 +20,7 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBA
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConverted;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
-import software.amazon.awssdk.mapper.dynamodb.RandomUUIDMarshaller;
+import software.amazon.awssdk.mapper.dynamodb.RandomUUIDConverter;
 import software.amazon.awssdk.mapper.dynamodb.S3Link;
 
 import java.math.BigDecimal;
@@ -56,7 +56,7 @@ public class TestClass {
     public UUID getUuid() { return null; }
     public void setUuid(UUID u) { }
 
-    @DynamoDBTypeConverted(converter=RandomUUIDMarshaller.class)
+    @DynamoDBTypeConverted(converter=RandomUUIDConverter.class)
     public String getCustomString() { return null; }
     public void setCustomString(String s) { }
 

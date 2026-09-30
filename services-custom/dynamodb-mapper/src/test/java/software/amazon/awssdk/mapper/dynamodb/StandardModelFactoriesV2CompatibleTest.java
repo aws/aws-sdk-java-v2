@@ -76,7 +76,7 @@ public class StandardModelFactoriesV2CompatibleTest {
 
     @Test
     public void testCustomConverter() {
-        assertEquals(RandomUUIDMarshaller.randomUUID,
+        assertEquals(RandomUUIDConverter.randomUUID,
                 convert("getCustomString", "abc").s());
     }
 
