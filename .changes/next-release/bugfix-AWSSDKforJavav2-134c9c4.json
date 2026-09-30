@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "afarber",
+    "description": "Support leading-dot domain suffixes in the NO_PROXY environment variable."
+}
