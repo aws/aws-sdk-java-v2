@@ -17,7 +17,10 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.junit.Assert.assertEquals;
 
+import com.amazonaws.services.dynamodbv2.datamodeling.AbstractEnumMarshaller;
+import com.amazonaws.services.dynamodbv2.datamodeling.JsonMarshaller;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,14 +38,25 @@ import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
  * Verifies the migration path from the removed v1 marshaller layer ({@code DynamoDBMarshaller},
- * {@code @DynamoDBMarshalling}, {@code AbstractEnumMarshaller}, {@code JsonMarshaller}) to the converter layer:
- * items written by the legacy marshallers load unchanged through the replacement annotations, and a generic converter
- * receives the target type that the legacy {@code DynamoDBMarshaller.unmarshall(Class, String)} was passed.
+ * {@code @DynamoDBMarshalling}, {@code AbstractEnumMarshaller}, {@code JsonMarshaller}) to the converter layer.
+ * <p>
+ * Fixtures are produced by the real v1 marshallers ({@code com.amazonaws.services.dynamodbv2.datamodeling}), so the
+ * tests check that items written by v1 load unchanged through the replacement annotations, and that items written
+ * through the replacements are still readable by the v1 marshallers (for callers that roll back or run both versions
+ * side by side). A generic converter also receives the target type that the legacy
+ * {@code DynamoDBMarshaller.unmarshall(Class, String)} was passed.
  */
 public class LegacyMarshallerMigrationTest extends LocalDynamoDBTestBase {
 
     private static final String TABLE_NAME =
         LegacyMarshallerMigrationTest.class.getSimpleName() + "-" + System.currentTimeMillis();
+
+    // A fixed instant with non-zero milliseconds, to catch any precision loss in the JSON date encoding.
+    private static final Date UPDATED = new Date(1_700_000_000_123L);
+
+    private static final AbstractEnumMarshaller<Status> V1_ENUM = new AbstractEnumMarshaller<Status>() { };
+    private static final JsonMarshaller<Part> V1_PART_JSON = new JsonMarshaller<Part>(Part.class);
+    private static final JsonMarshaller<PartList> V1_PART_LIST_JSON = new JsonMarshaller<PartList>(PartList.class);
 
     private DynamoDbClient ddb;
     private DynamoDBMapper mapper;
@@ -72,78 +86,123 @@ public class LegacyMarshallerMigrationTest extends LocalDynamoDBTestBase {
     }
 
     @Test
-    public void typeConvertedEnum_readsAndWritesLegacyEnumMarshallerFormat() {
-        String key = putRaw("status", AttributeValue.builder().s("X").build());
+    public void typeConvertedEnum_readsV1EnumMarshallerOutput() {
+        String key = putRaw("status", s(V1_ENUM.marshall(Status.X)));
 
-        Item loaded = mapper.load(Item.class, key);
-        assertEquals(Status.X, loaded.getStatus());
-
-        loaded.setStatus(Status.Z);
-        mapper.save(loaded);
-        assertEquals("Z", getRaw(key).get("status").s());
+        assertEquals(Status.X, mapper.load(Item.class, key).getStatus());
     }
 
     @Test
-    public void genericConverterWithClassConstructor_receivesTargetType() {
-        String key = putRaw("genericStatus", AttributeValue.builder().s("Y").build());
+    public void typeConvertedEnum_writesFormatV1EnumMarshallerReads() {
+        Item item = newItem();
+        item.setStatus(Status.Z);
+        mapper.save(item);
+
+        String stored = getRaw(item.getKey()).get("status").s();
+
+        assertEquals(V1_ENUM.marshall(Status.Z), stored);
+        assertEquals(Status.Z, V1_ENUM.unmarshall(Status.class, stored));
+    }
+
+    @Test
+    public void genericConverterWithClassConstructor_readsV1EnumMarshallerOutput() {
+        String key = putRaw("genericStatus", s(V1_ENUM.marshall(Status.Y)));
 
         Item loaded = mapper.load(Item.class, key);
         assertEquals(Status.Y, loaded.getGenericStatus());
 
         loaded.setGenericStatus(Status.X);
         mapper.save(loaded);
-        assertEquals("X", getRaw(key).get("genericStatus").s());
+        String stored = getRaw(key).get("genericStatus").s();
+        assertEquals(Status.X, V1_ENUM.unmarshall(Status.class, stored));
         assertEquals(Status.X, mapper.load(Item.class, key).getGenericStatus());
     }
 
     @Test
-    public void typeConvertedJson_readsLegacyJsonMarshallerFormat() {
-        // Default Jackson output, which is what the legacy JsonMarshaller wrote.
-        String key = putRaw("part", AttributeValue.builder().s("{\"id\":\"a\",\"quantity\":3}").build());
-        Map<String, AttributeValue> update = new HashMap<String, AttributeValue>(getRaw(key));
-        update.put("parts", AttributeValue.builder().s("[{\"id\":\"b\",\"quantity\":1},{\"id\":\"c\",\"quantity\":2}]")
-                                          .build());
-        ddb.putItem(b -> b.tableName(TABLE_NAME).item(update));
+    public void typeConvertedJson_readsV1JsonMarshallerOutput() {
+        PartList parts = new PartList();
+        parts.add(new Part("b", 1, UPDATED));
+        parts.add(new Part("c", 2, null));
+        Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
+        item.put("part", s(V1_PART_JSON.marshall(new Part("a", 3, UPDATED))));
+        item.put("parts", s(V1_PART_LIST_JSON.marshall(parts)));
+        String key = putRaw(item);
 
         Item loaded = mapper.load(Item.class, key);
 
-        assertEquals("a", loaded.getPart().getId());
-        assertEquals(Integer.valueOf(3), loaded.getPart().getQuantity());
-        assertEquals(2, loaded.getParts().size());
+        assertPart(loaded.getPart(), "a", 3, UPDATED);
         assertEquals(PartList.class, loaded.getParts().getClass());
-        assertEquals("c", loaded.getParts().get(1).getId());
-        assertEquals(Integer.valueOf(2), loaded.getParts().get(1).getQuantity());
+        assertEquals(2, loaded.getParts().size());
+        assertPart(loaded.getParts().get(0), "b", 1, UPDATED);
+        assertPart(loaded.getParts().get(1), "c", 2, null);
+    }
+
+    @Test
+    public void typeConvertedJson_writesFormatV1JsonMarshallerReads() {
+        Item item = newItem();
+        item.setPart(new Part("a", 3, UPDATED));
+        List<Part> parts = new ArrayList<Part>();
+        parts.add(new Part("b", 1, UPDATED));
+        item.setParts(parts);
+        mapper.save(item);
+
+        Map<String, AttributeValue> stored = getRaw(item.getKey());
+
+        assertPart(V1_PART_JSON.unmarshall(Part.class, stored.get("part").s()), "a", 3, UPDATED);
+        PartList v1Parts = V1_PART_LIST_JSON.unmarshall(PartList.class, stored.get("parts").s());
+        assertEquals(1, v1Parts.size());
+        assertPart(v1Parts.get(0), "b", 1, UPDATED);
     }
 
     @Test
     public void typeConvertedJson_roundTrips() {
-        Item item = new Item();
-        item.setKey(UUID.randomUUID().toString());
-        item.setPart(new Part("a", 3));
+        Item item = newItem();
+        item.setPart(new Part("a", 3, UPDATED));
         List<Part> parts = new ArrayList<Part>();
-        parts.add(new Part("b", 1));
+        parts.add(new Part("b", 1, null));
         item.setParts(parts);
 
         mapper.save(item);
         Item loaded = mapper.load(Item.class, item.getKey());
 
-        assertEquals("a", loaded.getPart().getId());
+        assertPart(loaded.getPart(), "a", 3, UPDATED);
         assertEquals(1, loaded.getParts().size());
-        assertEquals("b", loaded.getParts().get(0).getId());
+        assertPart(loaded.getParts().get(0), "b", 1, null);
+    }
+
+    private static void assertPart(Part part, String id, int quantity, Date updated) {
+        assertEquals(id, part.getId());
+        assertEquals(Integer.valueOf(quantity), part.getQuantity());
+        assertEquals(updated, part.getUpdated());
+    }
+
+    private static AttributeValue s(String value) {
+        return AttributeValue.builder().s(value).build();
+    }
+
+    private static Item newItem() {
+        Item item = new Item();
+        item.setKey(UUID.randomUUID().toString());
+        return item;
     }
 
     private String putRaw(String attribute, AttributeValue value) {
-        String key = UUID.randomUUID().toString();
         Map<String, AttributeValue> item = new HashMap<String, AttributeValue>();
-        item.put("key", AttributeValue.builder().s(key).build());
         item.put(attribute, value);
+        return putRaw(item);
+    }
+
+    private String putRaw(Map<String, AttributeValue> attributes) {
+        String key = UUID.randomUUID().toString();
+        Map<String, AttributeValue> item = new HashMap<String, AttributeValue>(attributes);
+        item.put("key", s(key));
         ddb.putItem(b -> b.tableName(TABLE_NAME).item(item));
         return key;
     }
 
     private Map<String, AttributeValue> getRaw(String key) {
         Map<String, AttributeValue> itemKey = new HashMap<String, AttributeValue>();
-        itemKey.put("key", AttributeValue.builder().s(key).build());
+        itemKey.put("key", s(key));
         return ddb.getItem(b -> b.tableName(TABLE_NAME).key(itemKey).consistentRead(true)).item();
     }
 
@@ -181,13 +240,15 @@ public class LegacyMarshallerMigrationTest extends LocalDynamoDBTestBase {
     public static class Part {
         private String id;
         private Integer quantity;
+        private Date updated;
 
         public Part() {
         }
 
-        public Part(String id, Integer quantity) {
+        public Part(String id, Integer quantity, Date updated) {
             this.id = id;
             this.quantity = quantity;
+            this.updated = updated;
         }
 
         public String getId() {
@@ -204,6 +265,14 @@ public class LegacyMarshallerMigrationTest extends LocalDynamoDBTestBase {
 
         public void setQuantity(Integer quantity) {
             this.quantity = quantity;
+        }
+
+        public Date getUpdated() {
+            return updated;
+        }
+
+        public void setUpdated(Date updated) {
+            this.updated = updated;
         }
     }
 

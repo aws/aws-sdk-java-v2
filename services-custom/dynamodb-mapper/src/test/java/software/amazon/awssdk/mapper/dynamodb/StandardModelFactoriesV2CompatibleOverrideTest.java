@@ -18,6 +18,7 @@ package software.amazon.awssdk.mapper.dynamodb;
 import static org.junit.Assert.assertEquals;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 import org.junit.Test;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
@@ -59,6 +60,140 @@ public class StandardModelFactoriesV2CompatibleOverrideTest extends StandardMode
     public void typedBool_onNonBooleanProperty_keepsTypeBasedMarshaller() {
         DynamoDBMapperTableModel<TypedBoolItem> table = models.getTable(TypedBoolItem.class);
         assertEquals("abc", table.field("notABool").convert("abc").s());
+    }
+
+    /**
+     * A flattened property's getter belongs to the flattened type while {@code DeclaringReflect} reads and writes it
+     * through the owning object; the item converter must still resolve that getter and its setter.
+     */
+    @Test
+    public void flattenedProperty_roundTripsThroughItemConverter() {
+        DynamoDBMapperTableModel<FlattenedItem> table = models.getTable(FlattenedItem.class);
+        FlattenedItem item = new FlattenedItem();
+        item.setId("id");
+        item.setFlags(new Flags());
+        item.getFlags().setTyped(true);
+        item.getFlags().setPlain(true);
+        item.getFlags().setLabel("label");
+
+        Map<String, AttributeValue> converted = table.convert(item);
+
+        assertEquals(true, converted.get("typedFlag").bool());
+        assertEquals("1", converted.get("plainFlag").n());
+        assertEquals("label", converted.get("labelAttr").s());
+
+        FlattenedItem unconverted = table.unconvert(converted);
+
+        assertEquals(Boolean.TRUE, unconverted.getFlags().getTyped());
+        assertEquals(Boolean.TRUE, unconverted.getFlags().getPlain());
+        assertEquals("label", unconverted.getFlags().getLabel());
+    }
+
+    /**
+     * Members of a {@link DynamoDBDocument} class are converted by the item converter itself (not the standard rules),
+     * so {@code @DynamoDBTyped(BOOL)} must be honored there too.
+     */
+    @Test
+    public void nestedDocumentMember_typedBool_roundTripsThroughItemConverter() {
+        DynamoDBMapperTableModel<DocumentItem> table = models.getTable(DocumentItem.class);
+        Flags flags = new Flags();
+        flags.setTyped(true);
+        flags.setPlain(true);
+        flags.setLabel("label");
+
+        AttributeValue converted = table.<Flags>field("flags").convert(flags);
+
+        assertEquals(true, converted.m().get("typed").bool());
+        assertEquals("1", converted.m().get("plain").n());
+        assertEquals("label", converted.m().get("label").s());
+
+        Flags unconverted = table.<Flags>field("flags").unconvert(converted);
+
+        assertEquals(Boolean.TRUE, unconverted.getTyped());
+        assertEquals(Boolean.TRUE, unconverted.getPlain());
+        assertEquals("label", unconverted.getLabel());
+    }
+
+    @DynamoDBDocument
+    public static class Flags {
+        private Boolean typed;
+        private Boolean plain;
+        private String label;
+
+        @DynamoDBTyped(DynamoDBAttributeType.BOOL)
+        public Boolean getTyped() {
+            return typed;
+        }
+
+        public void setTyped(Boolean typed) {
+            this.typed = typed;
+        }
+
+        public Boolean getPlain() {
+            return plain;
+        }
+
+        public void setPlain(Boolean plain) {
+            this.plain = plain;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public void setLabel(String label) {
+            this.label = label;
+        }
+    }
+
+    @DynamoDBTable(tableName = "nonexisting-test-tablename")
+    public static class FlattenedItem {
+        private String id;
+        private Flags flags;
+
+        @DynamoDBHashKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDBFlattened(attributes = {
+            @DynamoDBAttribute(mappedBy = "typed", attributeName = "typedFlag"),
+            @DynamoDBAttribute(mappedBy = "plain", attributeName = "plainFlag"),
+            @DynamoDBAttribute(mappedBy = "label", attributeName = "labelAttr")})
+        public Flags getFlags() {
+            return flags;
+        }
+
+        public void setFlags(Flags flags) {
+            this.flags = flags;
+        }
+    }
+
+    @DynamoDBTable(tableName = "nonexisting-test-tablename")
+    public static class DocumentItem {
+        private String id;
+        private Flags flags;
+
+        @DynamoDBHashKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public Flags getFlags() {
+            return flags;
+        }
+
+        public void setFlags(Flags flags) {
+            this.flags = flags;
+        }
     }
 
     @DynamoDBTable(tableName = "nonexisting-test-tablename")
