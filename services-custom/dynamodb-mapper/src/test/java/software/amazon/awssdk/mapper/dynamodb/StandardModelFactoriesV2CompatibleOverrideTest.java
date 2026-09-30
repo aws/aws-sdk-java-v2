@@ -15,7 +15,11 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static org.junit.Assert.assertEquals;
+
 import java.lang.reflect.Method;
+import org.junit.Test;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -39,6 +43,56 @@ public class StandardModelFactoriesV2CompatibleOverrideTest extends StandardMode
     protected <T> AttributeValue convert(Class<T> clazz, Method getter, Object value) {
         final StandardAnnotationMaps.FieldMap<Object> map = StandardAnnotationMaps.of(getter, null);
         return models.getTable(clazz).field(map.attributeName()).convert(value);
+    }
+
+    @Test
+    public void typedBool_onBoxedBoolean_writesNativeBool() {
+        DynamoDBMapperTableModel<TypedBoolItem> table = models.getTable(TypedBoolItem.class);
+        assertEquals(true, table.field("boxedBool").convert(Boolean.TRUE).bool());
+    }
+
+    /**
+     * {@code @DynamoDBTyped(BOOL)} forces native BOOL only for boolean properties. Other types keep the marshaller
+     * chosen by Java type, as before {@code @DynamoDBTyped(BOOL)} was honored on this path.
+     */
+    @Test
+    public void typedBool_onNonBooleanProperty_keepsTypeBasedMarshaller() {
+        DynamoDBMapperTableModel<TypedBoolItem> table = models.getTable(TypedBoolItem.class);
+        assertEquals("abc", table.field("notABool").convert("abc").s());
+    }
+
+    @DynamoDBTable(tableName = "nonexisting-test-tablename")
+    public static class TypedBoolItem {
+        private String id;
+        private Boolean boxedBool;
+        private String notABool;
+
+        @DynamoDBHashKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDBTyped(DynamoDBAttributeType.BOOL)
+        public Boolean getBoxedBool() {
+            return boxedBool;
+        }
+
+        public void setBoxedBool(Boolean boxedBool) {
+            this.boxedBool = boxedBool;
+        }
+
+        @DynamoDBTyped(DynamoDBAttributeType.BOOL)
+        public String getNotABool() {
+            return notABool;
+        }
+
+        public void setNotABool(String notABool) {
+            this.notABool = notABool;
+        }
     }
 
 }

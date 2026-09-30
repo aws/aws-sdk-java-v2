@@ -112,13 +112,22 @@ import java.util.UUID;
  * <p>
  * <b>Custom schemas.</b> A schema built with {@link #v1Builder(String)}, {@link #v2CompatibleBuilder(String)} or
  * {@link #v2Builder(String)} converts each property that has no {@link DynamoDBTypeConverted} converter through its
- * {@link ItemConverter}, which chooses an {@link ArgumentMarshaller} by the property's Java type. The
- * {@link ItemConverter} does not apply {@link DynamoDBTypeConverted} converters itself. As a result, with a custom
- * schema a {@link DynamoDBTypeConverted} converter on a member of a {@link DynamoDBDocument} class is ignored, as it
- * is when calling the {@link ItemConverter} returned by {@link ConversionSchema#getConverter} directly. To customize
- * how such a type is stored, register it on the builder with
- * {@link Builder#addFirstType(Class, ArgumentMarshaller, ArgumentUnmarshaller)}, or use one of the predefined
- * schemas ({@link #V1}, {@link #V2_COMPATIBLE}, {@link #V2}), which apply converters at every level.
+ * {@link ItemConverter}. The {@link ItemConverter} chooses an {@link ArgumentMarshaller} by the property's Java type,
+ * except that a {@code boolean} or {@link Boolean} property annotated {@code @DynamoDBTyped(BOOL)} is always written
+ * as a native BOOL.
+ * <p>
+ * Two consequences matter when migrating a custom schema from the v1 mapper:
+ * <ul>
+ *     <li>The {@link ItemConverter} does not apply {@link DynamoDBTypeConverted} converters. With a custom schema, a
+ *     converter on a member of a {@link DynamoDBDocument} class is ignored, as it is when calling the
+ *     {@link ItemConverter} returned by {@link ConversionSchema#getConverter} directly. To customize how such a type
+ *     is stored, register it with {@link Builder#addFirstType(Class, ArgumentMarshaller, ArgumentUnmarshaller)}, or
+ *     use {@link #V2_COMPATIBLE} or {@link #V2}, which apply converters to document members.</li>
+ *     <li>The v1 mapper ignored {@code @DynamoDBTyped(BOOL)} on this path, so a {@link #v1Builder(String)} or
+ *     {@link #v2CompatibleBuilder(String)} schema wrote such properties as a DynamoDB number ({@code 1}/{@code 0}).
+ *     They are now written as BOOL. Both forms are read back, but a table can end up holding a mix of the two, and
+ *     filter or condition expressions that compare the attribute to a number no longer match rewritten items.</li>
+ * </ul>
  */
 @SdkPublicApi
 public final class ConversionSchemas {
@@ -1306,8 +1315,10 @@ public final class ConversionSchemas {
         @Override
         public ArgumentMarshaller getMarshaller(Method getter) {
             StandardAnnotationMaps.FieldMap<?> annotations = StandardAnnotationMaps.of(getter, null);
-            if (annotations.attributeType() == DynamoDBAttributeType.BOOL) {
-                // @DynamoDBTyped(BOOL) forces native BOOL, matching the standard schemas.
+            Class<?> type = getter.getReturnType();
+            boolean isBoolean = type == boolean.class || type == Boolean.class;
+            if (isBoolean && annotations.attributeType() == DynamoDBAttributeType.BOOL) {
+                // @DynamoDBTyped(BOOL) forces native BOOL on boolean properties, matching the standard schemas.
                 return BooleanToBooleanMarshaller.instance();
             }
             return wrapped.getMarshaller(getter);

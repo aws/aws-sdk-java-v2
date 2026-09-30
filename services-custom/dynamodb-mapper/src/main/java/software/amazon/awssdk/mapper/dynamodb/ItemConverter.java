@@ -27,8 +27,8 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * {@link ConversionSchema}.
  * <p>
  * The converters created by {@link ConversionSchemas} select an {@link ArgumentMarshaller} by the Java type of the
- * property and do not apply {@link DynamoDBTypeConverted} converters. See {@link ConversionSchemas} for how this
- * affects custom schemas.
+ * property (a boolean property annotated {@code @DynamoDBTyped(BOOL)} is always written as a native BOOL) and do not
+ * apply {@link DynamoDBTypeConverted} converters. See {@link ConversionSchemas} for how this affects custom schemas.
  */
 @SdkPublicApi
 public interface ItemConverter {
