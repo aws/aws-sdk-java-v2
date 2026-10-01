@@ -15,7 +15,10 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static org.junit.Assert.assertEquals;
+
 import java.lang.reflect.Method;
+import org.junit.Test;
 
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
@@ -27,6 +30,16 @@ public class V2MarshallerTest extends StandardModelFactoriesV2Test {
     @Override
     protected <T> AttributeValue convert(Class<T> clazz, Method getter, Object value) {
         return CONVERTER.convert(getter, value);
+    }
+
+    /**
+     * The {@link ItemConverter} selects a marshaller by Java type and does not apply {@code @DynamoDBTypeConverted}
+     * converters (see {@link ConversionSchemas}), so the raw string is stored.
+     */
+    @Override
+    @Test
+    public void testCustomConverter() {
+        assertEquals("abc", convert("getCustomString", "abc").s());
     }
 
 }

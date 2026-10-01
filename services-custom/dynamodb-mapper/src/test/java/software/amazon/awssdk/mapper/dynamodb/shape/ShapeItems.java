@@ -23,10 +23,11 @@ import software.amazon.awssdk.mapper.dynamodb.DynamoDBAttribute;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBDocument;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBFlattened;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBHashKey;
-import software.amazon.awssdk.mapper.dynamodb.DynamoDBNativeBoolean;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperFieldModel.DynamoDBAttributeType;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBRangeKey;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTable;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBTypeConvertedEnum;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBTyped;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBVersionAttribute;
 
 // Mapper-annotated test POJOs shared by ShapeRequestTest and ShapeResponseTest.
@@ -212,7 +213,7 @@ final class ShapeItems {
         }
 
         // Encoded as a native BOOL.
-        @DynamoDBNativeBoolean
+        @DynamoDBTyped(DynamoDBAttributeType.BOOL)
         @DynamoDBAttribute
         public Boolean getNativeBool() {
             return nativeBool;

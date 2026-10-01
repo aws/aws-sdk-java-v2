@@ -72,8 +72,11 @@ public class StandardModelFactoriesV2CompatibleTest {
     @Test
     public void testString() {
         assertEquals("abc", convert("getString", "abc").s());
+    }
 
-        assertEquals(RandomUUIDMarshaller.randomUUID,
+    @Test
+    public void testCustomConverter() {
+        assertEquals(RandomUUIDConverter.randomUUID,
                 convert("getCustomString", "abc").s());
     }
 
@@ -363,7 +366,7 @@ public class StandardModelFactoriesV2CompatibleTest {
                 convert("getS3Link", link).s());
     }
 
-    private AttributeValue convert(String getter, Object value) {
+    protected AttributeValue convert(String getter, Object value) {
         try {
 
             return convert(TestClass.class, TestClass.class.getMethod(getter), value);

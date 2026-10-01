@@ -33,7 +33,6 @@ import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * Map of DynamoDB annotations.
@@ -257,22 +256,6 @@ final class StandardAnnotationMaps {
          * {@inheritDoc}
          */
         @Override
-        public DynamoDBAttributeType attributeType() {
-            DynamoDBScalarAttribute annotation = actualOf(DynamoDBScalarAttribute.class);
-            if (annotation != null) {
-                if (Set.class.isAssignableFrom(targetType())) {
-                    return DynamoDBAttributeType.valueOf(annotation.type().name() + "S");
-                } else {
-                    return DynamoDBAttributeType.valueOf(annotation.type().name());
-                }
-            }
-            return super.attributeType();
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
         public String attributeName() {
             DynamoDBHashKey hashKey = actualOf(DynamoDBHashKey.class);
             if (hashKey != null && !hashKey.attributeName().isEmpty()) {
@@ -297,10 +280,6 @@ final class StandardAnnotationMaps {
             DynamoDBVersionAttribute versionAttribute = actualOf(DynamoDBVersionAttribute.class);
             if (versionAttribute != null && !versionAttribute.attributeName().isEmpty()) {
                 return versionAttribute.attributeName();
-            }
-            DynamoDBScalarAttribute scalarAttribute = actualOf(DynamoDBScalarAttribute.class);
-            if (scalarAttribute != null && !scalarAttribute.attributeName().isEmpty()) {
-                return scalarAttribute.attributeName();
             }
             DynamoDBNamed annotation = actualOf(DynamoDBNamed.class);
             if (annotation != null && !annotation.value().isEmpty()) {

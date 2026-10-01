@@ -73,22 +73,6 @@ public final class DynamoDBMapperFieldModel<T,V> implements DynamoDBAutoGenerato
     }
 
     /**
-     * @deprecated replaced by {@link DynamoDBMapperFieldModel#name}
-     */
-    @Deprecated
-    public String getDynamoDBAttributeName() {
-        return properties.attributeName();
-    }
-
-    /**
-     * @deprecated replaced by {@link DynamoDBMapperFieldModel#attributeType}
-     */
-    @Deprecated
-    public DynamoDBAttributeType getDynamoDBAttributeType() {
-        return attributeType;
-    }
-
-    /**
      * Gets the attribute name.
      * @return The attribute name.
      */

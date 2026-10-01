@@ -78,9 +78,7 @@ import com.amazonaws.services.s3.model.Region;
 
 import software.amazon.awssdk.utils.Logger;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -211,7 +209,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * @see DynamoDBAttribute
  * @see DynamoDBVersionAttribute
  * @see DynamoDBIgnore
- * @see DynamoDBMarshalling
+ * @see DynamoDBTypeConverted
  * @see DynamoDBMapperConfig
  */
 @SdkPublicApi
@@ -239,41 +237,6 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
     static final int BATCH_GET_MAX_RETRY_COUNT_ALL_KEYS = 5;
 
     private static final Logger log = Logger.loggerFor(DynamoDBMapper.class);
-
-    /**
-     * Fail fast when trying to create a subclass of the DynamoDBMapper that
-     * attempts to override one of the old {@code transformAttributes} methods.
-     */
-    private static void failFastOnIncompatibleSubclass(Class<?> clazz) {
-        while (clazz != DynamoDBMapper.class) {
-            Class<?>[] classOverride = new Class<?>[] {
-                    Class.class,
-                    Map.class
-            };
-            Class<?>[] nameOverride = new Class<?>[] {
-                    String.class,
-                    String.class,
-                    Map.class
-            };
-
-            for (Method method : clazz.getDeclaredMethods()) {
-                if (method.getName().equals("transformAttributes")) {
-                    Class<?>[] params = method.getParameterTypes();
-                    if (Arrays.equals(params, classOverride)
-                            || Arrays.equals(params, nameOverride)) {
-
-                        throw new IllegalStateException(
-                                "The deprecated transformAttributes method is "
-                                + "no longer supported as of 1.9.0. Use an "
-                                + "AttributeTransformer to inject custom "
-                                + "attribute transformation logic.");
-                    }
-                }
-            }
-
-            clazz = clazz.getSuperclass();
-        }
-    }
 
 
 
@@ -398,8 +361,6 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             final AttributeTransformer transformer,
             final AWSCredentialsProvider s3CredentialsProvider) {
         super(config);
-
-        failFastOnIncompatibleSubclass(getClass());
 
         this.db = dynamoDB;
         this.transformer = transformer;

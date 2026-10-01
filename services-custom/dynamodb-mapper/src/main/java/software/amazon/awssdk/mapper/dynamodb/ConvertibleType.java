@@ -37,14 +37,11 @@ final class ConvertibleType<T> {
     private final ConvertibleType<T>[] params;
     private final Class<T> targetType;
 
-    @Deprecated
-    private final Method getter, setter;
-
     /**
      * Constructs a new parameter type.
      */
     @SuppressWarnings("unchecked")
-    private ConvertibleType(Type genericType, TypedMap<T> annotations, Method getter) {
+    private ConvertibleType(Type genericType, TypedMap<T> annotations) {
         this.typeConverter = annotations.typeConverter();
         this.attributeType = annotations.attributeType();
 
@@ -63,9 +60,6 @@ final class ConvertibleType<T> {
             this.targetType = annotations.targetType();
             this.params = new ConvertibleType[0];
         }
-
-        this.setter = getter == null ? null : StandardBeanProperties.MethodReflect.setterOf(getter);
-        this.getter = getter;
     }
 
     /**
@@ -80,22 +74,6 @@ final class ConvertibleType<T> {
      */
     final DynamoDBAttributeType attributeType() {
         return this.attributeType;
-    }
-
-    /**
-     * Gets the getter method.
-     */
-    @Deprecated
-    final Method getter() {
-        return this.getter;
-    }
-
-    /**
-     * Gets the setter method.
-     */
-    @Deprecated
-    final Method setter() {
-        return this.setter;
     }
 
     /**
@@ -167,7 +145,7 @@ final class ConvertibleType<T> {
      * Returns the conversion type for the method and annotations.
      */
     static <T> ConvertibleType<T> of(Method getter, TypedMap<T> annotations) {
-        return new ConvertibleType<T>(getter.getGenericReturnType(), annotations, getter);
+        return new ConvertibleType<T>(getter.getGenericReturnType(), annotations);
     }
 
     /**
@@ -211,7 +189,7 @@ final class ConvertibleType<T> {
             targetType = (Class<T>)Object.class;
         }
         TypedMap<T> annotations = StandardAnnotationMaps.<T>of(targetType);
-        return new ConvertibleType<T>(genericType, annotations, null);
+        return new ConvertibleType<T>(genericType, annotations);
     }
 
 }

@@ -25,6 +25,10 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * The concrete realization of a strategy for converting between Java objects
  * and DynamoDB AttributeValues. Typically created by a
  * {@link ConversionSchema}.
+ * <p>
+ * The converters created by {@link ConversionSchemas} select an {@link ArgumentMarshaller} by the Java type of the
+ * property (a boolean property annotated {@code @DynamoDBTyped(BOOL)} is always written as a native BOOL) and do not
+ * apply {@link DynamoDBTypeConverted} converters. See {@link ConversionSchemas} for how this affects custom schemas.
  */
 @SdkPublicApi
 public interface ItemConverter {

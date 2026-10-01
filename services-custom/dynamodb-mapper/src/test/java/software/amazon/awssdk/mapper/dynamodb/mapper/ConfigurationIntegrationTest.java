@@ -49,7 +49,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
 
     @Test
     public void testClobber() throws Exception {
-        DynamoDBMapper util = new DynamoDBMapper(dynamo, new DynamoDBMapperConfig(SaveBehavior.CLOBBER));
+        DynamoDBMapper util = new DynamoDBMapper(dynamo, SaveBehavior.CLOBBER.config());
 
         NumberAttributeClassExtended obj = getUniqueObject();
         util.save(obj);
@@ -68,7 +68,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
         assertEquals(obj, util.load(obj.getClass(), obj.getKey()));
 
         copy = copy(obj);
-        util.save(copy, new DynamoDBMapperConfig(SaveBehavior.UPDATE));
+        util.save(copy, SaveBehavior.UPDATE.config());
         assertEquals(copy, util.load(copy.getClass(), obj.getKey()));
 
         // We shouldn't have lost any extra info
@@ -88,7 +88,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
         } catch ( Exception e ) {
         }
 
-        util.save(obj, new DynamoDBMapperConfig(new TableNameOverride("aws-java-sdk-util")));
+        util.save(obj, new TableNameOverride("aws-java-sdk-util").config());
 
         try {
             util.load(TableOverrideTestClass.class, obj.getKey());
@@ -96,7 +96,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
         } catch ( Exception e ) {
         }
 
-        Object loaded =  util.load(TableOverrideTestClass.class, obj.getKey(), new DynamoDBMapperConfig(TableNameOverride.withTableNamePrefix("aws-")));
+        Object loaded =  util.load(TableOverrideTestClass.class, obj.getKey(), TableNameOverride.withTableNamePrefix("aws-").config());
         assertEquals(loaded, obj);
 
         try {
@@ -105,7 +105,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
         } catch ( Exception e ) {
         }
 
-        util.delete(obj, new DynamoDBMapperConfig(TableNameOverride.withTableNamePrefix("aws-")));
+        util.delete(obj, TableNameOverride.withTableNamePrefix("aws-").config());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
         }
 
         // Use TableNameResolver to save to the real table
-        mapper.save(obj, new DynamoDBMapperConfig(new TableNameResolver() {
+        mapper.save(obj, DynamoDBMapperConfig.builder().withTableNameResolver(new TableNameResolver() {
             @Override
             public String getTableName(Class<?> clazz, DynamoDBMapperConfig config) {
                 if (clazz.equals(TableOverrideTestClass.class)) {
@@ -132,7 +132,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
                 }
                 throw new RuntimeException("Unexpected data object type.");
             }
-        }));
+        }).build());
 
         try {
             mapper.load(TableOverrideTestClass.class, obj.getKey());
@@ -142,7 +142,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
 
         // Use ObjectTableNameResolver to load from the real table
         Object loaded =  mapper.load(obj,
-                new DynamoDBMapperConfig(new ObjectTableNameResolver() {
+                DynamoDBMapperConfig.builder().withObjectTableNameResolver(new ObjectTableNameResolver() {
                     @Override
                     public String getTableName(Object objectToLoad, DynamoDBMapperConfig config) {
                         if (objectToLoad == obj) {
@@ -150,7 +150,7 @@ public class ConfigurationIntegrationTest extends DynamoDBMapperIntegrationTestB
                         }
                         throw new RuntimeException("Unexpected data object.");
                     }
-                }));
+                }).build());
         assertEquals(loaded, obj);
 
         try {

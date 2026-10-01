@@ -187,17 +187,17 @@ public class ShapeRequestTest {
 
         // CLOBBER vs PUT diverge only on a versioned item: PUT keeps the Expected version guard, CLOBBER suppresses it.
         c.add(new Case(Operation.PUT_ITEM, "clobber-suppresses-version-check",
-            m -> m.save(versionedItem(), new DynamoDBMapperConfig(SaveBehavior.CLOBBER))));
+            m -> m.save(versionedItem(), SaveBehavior.CLOBBER.config())));
         c.add(new Case(Operation.PUT_ITEM, "put-keeps-version-check",
-            m -> m.save(versionedItem(), new DynamoDBMapperConfig(SaveBehavior.PUT))));
+            m -> m.save(versionedItem(), SaveBehavior.PUT.config())));
         c.add(new Case(Operation.UPDATE_ITEM, "append-set-behavior",
-            m -> m.save(at().withStringSet(set("a", "b")), new DynamoDBMapperConfig(SaveBehavior.APPEND_SET))));
+            m -> m.save(at().withStringSet(set("a", "b")), SaveBehavior.APPEND_SET.config())));
 
         // UPDATE emits Action:DELETE for a null attribute; SKIP_NULL omits it.
         c.add(new Case(Operation.UPDATE_ITEM, "null-attr-delete",
-            m -> m.save(stringItem(null), new DynamoDBMapperConfig(SaveBehavior.UPDATE))));
+            m -> m.save(stringItem(null), SaveBehavior.UPDATE.config())));
         c.add(new Case(Operation.UPDATE_ITEM, "null-attr-skip",
-            m -> m.save(stringItem(null), new DynamoDBMapperConfig(SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES))));
+            m -> m.save(stringItem(null), SaveBehavior.UPDATE_SKIP_NULL_ATTRIBUTES.config())));
 
         c.add(new Case(Operation.GET_ITEM, "composite-key", m -> m.load(RangeItem.class, HASH_KEY, "r")));
 
@@ -403,7 +403,7 @@ public class ShapeRequestTest {
     }
 
     private static DynamoDBMapperConfig put() {
-        return new DynamoDBMapperConfig(SaveBehavior.PUT);
+        return SaveBehavior.PUT.config();
     }
 
     private static AllTypesItem at() {

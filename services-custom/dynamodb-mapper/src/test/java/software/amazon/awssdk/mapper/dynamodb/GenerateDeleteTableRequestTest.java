@@ -40,7 +40,7 @@ public class GenerateDeleteTableRequestTest {
     public void tableNameOverriddenInConfig_UsesPrefixedOverrideTableName() {
         DynamoDBMapperConfig.TableNameOverride tableNameOverride = DynamoDBMapperConfig.TableNameOverride
                 .withTableNamePrefix(TABLE_PREFIX);
-        DynamoDBMapperConfig config = new DynamoDBMapperConfig(tableNameOverride);
+        DynamoDBMapperConfig config = tableNameOverride.config();
         DynamoDBMapper dynamoDBMapper = new DynamoDBMapper(null, config);
 
         DeleteTableRequest deleteTableRequest = dynamoDBMapper.generateDeleteTableRequest(ObjectORMExample.class);

@@ -46,7 +46,10 @@ public final class PaginatedParallelScanList<T> extends PaginatedList<T> {
 
     private final DynamoDBMapperConfig config;
 
-    public PaginatedParallelScanList(
+    /**
+     * Created by {@link DynamoDBMapper#parallelScan}; not constructible by callers.
+     */
+    PaginatedParallelScanList(
             DynamoDBMapper mapper,
             Class<T> clazz,
             DynamoDbClient dynamo,

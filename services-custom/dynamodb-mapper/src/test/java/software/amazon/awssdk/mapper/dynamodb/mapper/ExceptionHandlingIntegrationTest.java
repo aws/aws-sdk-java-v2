@@ -371,7 +371,7 @@ public class ExceptionHandlingIntegrationTest extends DynamoDBMapperIntegrationT
     // Complex types are not supported by the V1 conversion schema
     @Test(expected = DynamoDBMappingException.class)
     public void testComplexTypeFailure() {
-        DynamoDBMapperConfig config = new DynamoDBMapperConfig(ConversionSchemas.V1);
+        DynamoDBMapperConfig config = DynamoDBMapperConfig.builder().withConversionSchema(ConversionSchemas.V1).build();
         DynamoDBMapper util = new DynamoDBMapper(dynamo, config);
 
         ComplexType complexType = new ComplexType("" + startKey++, new ComplexType("" + startKey++, null));
@@ -439,7 +439,7 @@ public class ExceptionHandlingIntegrationTest extends DynamoDBMapperIntegrationT
     // Lists are not supported by the V1 conversion schema.
     @Test(expected = DynamoDBMappingException.class)
     public void testNonSetCollection() {
-        DynamoDBMapperConfig config = new DynamoDBMapperConfig(ConversionSchemas.V1);
+        DynamoDBMapperConfig config = DynamoDBMapperConfig.builder().withConversionSchema(ConversionSchemas.V1).build();
         DynamoDBMapper mapper = new DynamoDBMapper(dynamo, config);
 
         NonSetCollectionType obj = new NonSetCollectionType();
