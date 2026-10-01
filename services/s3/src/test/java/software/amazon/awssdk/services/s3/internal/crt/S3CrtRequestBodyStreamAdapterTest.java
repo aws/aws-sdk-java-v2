@@ -15,14 +15,16 @@
 
 package software.amazon.awssdk.services.s3.internal.crt;
 
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
 import io.reactivex.Flowable;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
@@ -50,7 +52,7 @@ class S3CrtRequestBodyStreamAdapterTest {
 
         SdkHttpContentPublisher requestBody = requestBody(Flowable.fromIterable(data), 42L);
 
-        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, new CompletableFuture<>());
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
         adapter.sendRequestBody(inputBuffer);
@@ -66,7 +68,7 @@ class S3CrtRequestBodyStreamAdapterTest {
         RequestTrackingPublisher requestTrackingPublisher = new RequestTrackingPublisher();
         SdkHttpContentPublisher requestBody = requestBody(requestTrackingPublisher, minBytesBuffered);
 
-        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, new CompletableFuture<>());
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
         adapter.sendRequestBody(inputBuffer); // initiate the subscription, but no bytes available, makes 1 request
@@ -105,7 +107,7 @@ class S3CrtRequestBodyStreamAdapterTest {
 
         SdkHttpContentPublisher requestBody = requestBody(Flowable.just(data), 16L);
 
-        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, new CompletableFuture<>());
 
         ByteBuffer inputBuffer = ByteBuffer.allocate(1);
 
@@ -117,27 +119,33 @@ class S3CrtRequestBodyStreamAdapterTest {
     }
 
     @Test
-    public void getRequestData_publisherThrows_surfacesException() {
+    public void sendRequestBody_publisherThrows_failsFutureWithoutThrowing() {
         Publisher<ByteBuffer> errorPublisher = Flowable.error(new RuntimeException("Something wrong happened"));
 
         SdkHttpContentPublisher requestBody = requestBody(errorPublisher, 0L);
-        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, executeFuture);
 
-        assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
-            .isInstanceOf(RuntimeException.class)
-            .hasMessageContaining("Something wrong happened");
+        assertThatNoException().isThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)));
+
+        assertThat(executeFuture).hasFailedWithThrowableThat()
+                                 .isInstanceOf(RuntimeException.class)
+                                 .hasMessageContaining("Something wrong happened");
     }
 
     @Test
-    public void getRequestData_publisherThrows_wrapsExceptionIfNotRuntimeException() {
+    public void sendRequestBody_publisherThrowsCheckedException_failsFutureWithWrappedCause() {
         Publisher<ByteBuffer> errorPublisher = Flowable.error(new IOException("Some I/O error happened"));
 
         SdkHttpContentPublisher requestBody = requestBody(errorPublisher, 0L);
-        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody);
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        S3CrtRequestBodyStreamAdapter adapter = new S3CrtRequestBodyStreamAdapter(requestBody, executeFuture);
 
-        assertThatThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)))
-            .isInstanceOf(RuntimeException.class)
-            .hasCauseInstanceOf(IOException.class);
+        assertThatNoException().isThrownBy(() -> adapter.sendRequestBody(ByteBuffer.allocate(16)));
+
+        assertThat(executeFuture).hasFailedWithThrowableThat()
+                                 .isInstanceOf(UncheckedIOException.class)
+                                 .hasCauseInstanceOf(IOException.class);
     }
 
     private static class RequestTrackingPublisher implements Publisher<ByteBuffer> {

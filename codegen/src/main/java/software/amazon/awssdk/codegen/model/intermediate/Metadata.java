@@ -115,6 +115,8 @@ public class Metadata {
 
     private String serviceId;
 
+    private Long defaultReadWriteTimeoutMillis;
+
     private List<AuthType> auth;
 
     public List<AuthType> getAuth() {
@@ -707,6 +709,24 @@ public class Metadata {
 
     public Metadata withServiceId(String serviceId) {
         setServiceId(serviceId);
+        return this;
+    }
+
+    /**
+     * The default read/write inactivity timeout baked for this service by the exemption processor, in milliseconds, or
+     * {@code null} when the service is not listed in the exemption artifact. A value of {@code -1} marks a fully-exempt service
+     * (no default timeout); a positive value is the applied timeout in milliseconds.
+     */
+    public Long getDefaultReadWriteTimeoutMillis() {
+        return defaultReadWriteTimeoutMillis;
+    }
+
+    public void setDefaultReadWriteTimeoutMillis(Long defaultReadWriteTimeoutMillis) {
+        this.defaultReadWriteTimeoutMillis = defaultReadWriteTimeoutMillis;
+    }
+
+    public Metadata withDefaultReadWriteTimeoutMillis(Long defaultReadWriteTimeoutMillis) {
+        setDefaultReadWriteTimeoutMillis(defaultReadWriteTimeoutMillis);
         return this;
     }
 

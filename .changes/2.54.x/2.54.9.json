@@ -1,0 +1,12 @@
+{
+    "version": "2.54.9",
+    "date": "2026-08-31",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Agent Registry",
+            "contributor": "",
+            "description": "Release HTTP and AGUI descriptors to the dataplane model"
+        }
+    ]
+}

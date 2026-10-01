@@ -114,6 +114,24 @@
       "documentation":"<p>Deletes the specified feed. You can delete the feed at any time. Elemental Inference doesn't block you from deleting a feed when the calling application is calling PutMedia or GetMetadata on that feed, although both these calls will start to fail. For more information about managing inactive feeds, see the Elemental Inference User Guide. </p>",
       "idempotent":true
     },
+    "DeleteFeedPolicy":{
+      "name":"DeleteFeedPolicy",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/v1/feed/{id}/policy",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteFeedPolicyRequest"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"TooManyRequestException"}
+      ],
+      "documentation":"<p>Deletes the resource-based policy attached to the specified feed. After you delete the policy, the operation revokes the cross-account access that the policy granted. </p>",
+      "idempotent":true
+    },
     "DisassociateFeed":{
       "name":"DisassociateFeed",
       "http":{
@@ -190,6 +208,46 @@
       "documentation":"<p>Retrieves information about the specified feed.</p>",
       "readonly":true
     },
+    "GetFeedPolicy":{
+      "name":"GetFeedPolicy",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/feed/{id}/policy",
+        "responseCode":200
+      },
+      "input":{"shape":"GetFeedPolicyRequest"},
+      "output":{"shape":"GetFeedPolicyResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"TooManyRequestException"}
+      ],
+      "documentation":"<p>Retrieves the resource-based policy attached to the specified feed.</p>",
+      "readonly":true
+    },
+    "GetFixture":{
+      "name":"GetFixture",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/fixtures/{fixtureId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetFixtureRequest"},
+      "output":{"shape":"GetFixtureResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"TooManyRequestException"},
+        {"shape":"GatewayTimedOutException"}
+      ],
+      "documentation":"<p>Retrieves information about the specified fixture (a sports event, such as a specific basketball game). You obtain a fixtureId from SearchFixtures, or from the clipping output of a feed. </p>",
+      "readonly":true
+    },
     "ListDictionaries":{
       "name":"ListDictionaries",
       "http":{
@@ -245,6 +303,26 @@
       ],
       "documentation":"<p>List all tags that are on an Elemental Inference resource in the current region.</p>",
       "readonly":true
+    },
+    "PutFeedPolicy":{
+      "name":"PutFeedPolicy",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/v1/feed/{id}/policy",
+        "responseCode":200
+      },
+      "input":{"shape":"PutFeedPolicyRequest"},
+      "output":{"shape":"PutFeedPolicyResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerErrorException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"TooManyRequestException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Attaches or replaces a resource-based policy on the specified feed. A resource-based policy grants cross-account access to the feed. </p>",
+      "idempotent":true
     },
     "SearchFixtures":{
       "name":"SearchFixtures",
@@ -481,6 +559,20 @@
       "exception":true,
       "retryable":{"throttling":false}
     },
+    "ContextualMetadataConfig":{
+      "type":"structure",
+      "members":{
+        "summaryGeneration":{
+          "shape":"SummaryGenerationMode",
+          "documentation":"<p>Specifies whether Elemental Inference generates a descriptive summary of the media content for this output, along with the objects and actions that it detects. This setting is independent of <code>extendedAnalysis</code>. </p> <p>Valid values:</p> <ul> <li> <p>ENABLED (default) – Elemental Inference populates the summary, objects, and actions fields, along with the IAB taxonomy and GARM suitability classifications. </p> </li> <li> <p>DISABLED – Elemental Inference doesn't populate the summary, objects, and actions fields. </p> </li> </ul>"
+        },
+        "extendedAnalysis":{
+          "shape":"ExtendedAnalysisMode",
+          "documentation":"<p>Specifies whether Elemental Inference generates extended analysis of the media content for this output. Extended analysis identifies the people, environments, brands, and on-screen text in the media content. This setting is independent of <code>summaryGeneration</code>. </p> <p>Valid values:</p> <ul> <li> <p>ENABLED (default) – Elemental Inference populates the people, environments, brands, and on-screen text fields. </p> </li> <li> <p>DISABLED – Elemental Inference doesn't populate the people, environments, brands, and on-screen text fields. </p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>The output configuration settings for the contextual metadata feature. Use this structure when the feed output generates metadata that describes the media content. </p>"
+    },
     "CreateDictionaryRequest":{
       "type":"structure",
       "required":[
@@ -602,6 +694,10 @@
           "shape":"GetOutputList",
           "documentation":"<p>Repeats the outputs that you specified in the request.</p>"
         },
+        "accessRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role that you specified in the request. This property is absent if you didn't specify an IAM role. </p>"
+        },
         "status":{
           "shape":"FeedStatus",
           "documentation":"<p>The current status of the feed. After creation of the feed has succeeded, the status will be AVAILABLE. </p>"
@@ -706,6 +802,18 @@
         "status":{
           "shape":"DictionaryStatus",
           "documentation":"<p>The status of the dictionary after deletion.</p>"
+        }
+      }
+    },
+    "DeleteFeedPolicyRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"FeedId",
+          "documentation":"<p>The ID of the feed whose policy you want to delete.</p>",
+          "location":"uri",
+          "locationName":"id"
         }
       }
     },
@@ -874,6 +982,13 @@
           "documentation":"<p>The dictionary entries payload.</p>"
         }
       }
+    },
+    "ExtendedAnalysisMode":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
     },
     "FeedArn":{"type":"string"},
     "FeedAssociation":{
@@ -1071,6 +1186,28 @@
         }
       }
     },
+    "GetFeedPolicyRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"FeedId",
+          "documentation":"<p>The ID of the feed whose policy you want to retrieve.</p>",
+          "location":"uri",
+          "locationName":"id"
+        }
+      }
+    },
+    "GetFeedPolicyResponse":{
+      "type":"structure",
+      "required":["policy"],
+      "members":{
+        "policy":{
+          "shape":"PolicyDocument",
+          "documentation":"<p>The resource-based policy document attached to the feed.</p>"
+        }
+      }
+    },
     "GetFeedRequest":{
       "type":"structure",
       "required":["id"],
@@ -1114,6 +1251,10 @@
           "shape":"GetOutputList",
           "documentation":"<p>An array of the outputs in the feed.</p>"
         },
+        "accessRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an AWS Identity and Access Management (IAM) role that Elemental Inference assumes. Elemental Inference uses this role to access resources in your account on your behalf. This property is absent if the feed doesn't have an IAM role. </p>"
+        },
         "status":{
           "shape":"FeedStatus",
           "documentation":"<p>The status of the feed.</p>"
@@ -1125,6 +1266,53 @@
         "tags":{
           "shape":"TagMap",
           "documentation":"<p>A list of the tags, if any, for the feed.</p>"
+        }
+      }
+    },
+    "GetFixtureRequest":{
+      "type":"structure",
+      "required":["fixtureId"],
+      "members":{
+        "fixtureId":{
+          "shape":"FixtureId",
+          "documentation":"<p>The ID of the fixture to retrieve, as returned by SearchFixtures.</p>",
+          "location":"uri",
+          "locationName":"fixtureId"
+        }
+      }
+    },
+    "GetFixtureResponse":{
+      "type":"structure",
+      "required":[
+        "fixtureId",
+        "name",
+        "status",
+        "competitors"
+      ],
+      "members":{
+        "fixtureId":{
+          "shape":"FixtureId",
+          "documentation":"<p>The ID that you specified in the request.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the fixture, as provided by the data source. For example, the names of the two competing teams. </p>"
+        },
+        "fixtureGroup":{
+          "shape":"String",
+          "documentation":"<p>The group that the fixture belongs to, such as the competition, league, or tournament. The data source doesn't provide this information for every fixture. </p>"
+        },
+        "scheduledStart":{
+          "shape":"SyntheticTimestamp_date_time",
+          "documentation":"<p>The scheduled start time of the fixture, as provided by the data source. The actual start time might differ. </p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The status of the fixture in its lifecycle, as provided by the data source. For example, Scheduled or Completed. </p>"
+        },
+        "competitors":{
+          "shape":"CompetitorList",
+          "documentation":"<p>An array of the competitors (the teams or individuals) in the fixture.</p>"
         }
       }
     },
@@ -1294,6 +1482,10 @@
         "subtitling":{
           "shape":"SubtitlingConfig",
           "documentation":"<p>The output config type that applies to the smart subtitling feature.</p>"
+        },
+        "contextualMetadata":{
+          "shape":"ContextualMetadataConfig",
+          "documentation":"<p>The output config type that applies to the contextual metadata feature.</p>"
         }
       },
       "documentation":"<p>Contains one typed output. It is used in the CreateOutput, GetOutput, and Update Output structures.</p>",
@@ -1306,6 +1498,11 @@
         "DISABLED"
       ]
     },
+    "PolicyDocument":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
     "ProfanityFilterMode":{
       "type":"string",
       "enum":[
@@ -1313,6 +1510,29 @@
         "CENSOR",
         "DROP"
       ]
+    },
+    "PutFeedPolicyRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "policy"
+      ],
+      "members":{
+        "id":{
+          "shape":"FeedId",
+          "documentation":"<p>The ID of the feed to attach the policy to.</p>",
+          "location":"uri",
+          "locationName":"id"
+        },
+        "policy":{
+          "shape":"PolicyDocument",
+          "documentation":"<p>The resource-based policy document to attach to the feed.</p>"
+        }
+      }
+    },
+    "PutFeedPolicyResponse":{
+      "type":"structure",
+      "members":{}
     },
     "ResourceArn":{
       "type":"string",
@@ -1475,7 +1695,14 @@
           "documentation":"<p>Controls how profanity is handled in the generated subtitles. Valid values: DISABLED (no filtering, default), CENSOR (replace profanity with asterisks), DROP (remove profanity from the transcript). </p>"
         }
       },
-      "documentation":"<p>A type of OutputConfig, used when the output in a feed is for the smart subtitling feature. smart subtitling uses automatic speech recognition (ASR) to generate live TTML subtitles from the audio in your source media. </p>"
+      "documentation":"<p>A type of OutputConfig, used when the output in a feed is for the smart subtitling feature. Smart subtitling uses automatic speech recognition (ASR) to generate live TTML subtitles from the audio in your source media. </p>"
+    },
+    "SummaryGenerationMode":{
+      "type":"string",
+      "enum":[
+        "ENABLED",
+        "DISABLED"
+      ]
     },
     "SyntheticTimestamp_date_time":{
       "type":"timestamp",
@@ -1720,6 +1947,10 @@
         "outputs":{
           "shape":"GetOutputList",
           "documentation":"<p>The array of outputs in the feed. You might have left this array unchanged, or you might have changed it. </p>"
+        },
+        "accessRoleArn":{
+          "shape":"IamRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the AWS Identity and Access Management (IAM) role for the feed, after the update. This property is absent if the feed doesn't have an IAM role. </p>"
         },
         "status":{
           "shape":"FeedStatus",

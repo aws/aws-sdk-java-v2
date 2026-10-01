@@ -312,6 +312,13 @@ public final class SdkClientOption<T> extends ClientOption<T> {
     public static final SdkClientOption<Boolean> DEFAULT_NEW_RETRIES_2026 = new SdkClientOption<>(Boolean.class);
 
     /**
+     * Option to specify the default for the {@code AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026} feature gate for the SDK client.
+     * This option is not intended to be set by end users. It gates an interim rollout and is subject to removal in a future
+     * release.
+     */
+    public static final SdkClientOption<Boolean> DEFAULT_ENABLE_SOCKET_TIMEOUT_2026 = new SdkClientOption<>(Boolean.class);
+
+    /**
      * Whether retries 2.1 behavior is enabled.
      */
     public static final SdkClientOption<Boolean> NEW_RETRIES_2026_ENABLED = new SdkClientOption<>(Boolean.class);

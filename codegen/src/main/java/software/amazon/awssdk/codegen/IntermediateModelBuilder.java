@@ -21,6 +21,7 @@ import static software.amazon.awssdk.codegen.RemoveUnusedShapes.removeUnusedShap
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -37,8 +38,10 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.CustomOperationContextParam;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.Paginators;
@@ -65,6 +68,7 @@ public class IntermediateModelBuilder {
     private final Waiters waiters;
     private final EndpointRuleSetModel endpointRuleSet;
     private final EndpointTestSuiteModel endpointTestSuiteModel;
+    private final EndpointBddModel endpointBddModel;
 
     public IntermediateModelBuilder(C2jModels models) {
         this.customConfig = models.customizationConfig();
@@ -76,6 +80,7 @@ public class IntermediateModelBuilder {
         this.waiters = models.waitersModel();
         this.endpointRuleSet = models.endpointRuleSetModel();
         this.endpointTestSuiteModel = models.endpointTestSuiteModel();
+        this.endpointBddModel = models.endpointBddModel();
     }
 
 
@@ -138,7 +143,8 @@ public class IntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             constructMetadata(service, customConfig), operations, shapes,
             customConfig, endpointOperation, paginators.getPagination(), namingStrategy,
-            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel, service.getClientContextParams());
+            waiters.getWaiters(), endpointRuleSet, endpointTestSuiteModel, endpointBddModel,
+            service.getClientContextParams());
 
         customization.postprocess(fullModel);
 
@@ -158,8 +164,9 @@ public class IntermediateModelBuilder {
                                                                fullModel.getPaginators(),
                                                                namingStrategy,
                                                                fullModel.getWaiters(),
-                                                               fullModel.getEndpointRuleSetModel(),
+                                                               endpointRuleSet,
                                                                endpointTestSuiteModel,
+                                                               fullModel.getEndpointBddModel(),
                                                                service.getClientContextParams());
 
         linkMembersToShapes(trimmedModel);
@@ -170,7 +177,7 @@ public class IntermediateModelBuilder {
         setSimpleMethods(trimmedModel);
 
         namingStrategy.validateCustomerVisibleNaming(trimmedModel);
-        customizeEndpointParameters(fullModel, endpointRuleSet);
+        customizeEndpointParameters(trimmedModel);
         customizeOperationContextParams(trimmedModel, fullModel.getCustomizationConfig().getCustomOperationContextParams());
         return trimmedModel;
     }
@@ -196,15 +203,25 @@ public class IntermediateModelBuilder {
         });
     }
 
-    private void customizeEndpointParameters(IntermediateModel fullModel, EndpointRuleSetModel endpointRuleSet) {
-        if (fullModel.getCustomizationConfig().getEndpointParameters() != null) {
-            fullModel.getCustomizationConfig().getEndpointParameters().keySet().forEach(key -> {
-                if (endpointRuleSet.getParameters().containsKey(key)) {
-                    throw new IllegalStateException("Duplicate parameters found in customizationConfig");
-                }
-            });
-            fullModel.getCustomizationConfig().getEndpointParameters().forEach(endpointRuleSet.getParameters()::put);
+    /**
+     * Merges the parameters declared by {@code customizationConfig} into the ones the service's endpoint model
+     * declares. This is the only writer of {@link IntermediateModel#setEndpointParameters(Map)}, so the merged set is
+     * what every generated class sees.
+     */
+    private void customizeEndpointParameters(IntermediateModel model) {
+        Map<String, ParameterModel> customParameters = model.getCustomizationConfig().getEndpointParameters();
+        if (CollectionUtils.isNullOrEmpty(customParameters)) {
+            return;
         }
+
+        Map<String, ParameterModel> parameters = new LinkedHashMap<>(model.getEndpointParameters());
+        customParameters.forEach((name, parameter) -> {
+            if (parameters.containsKey(name)) {
+                throw new IllegalStateException("Duplicate parameters found in customizationConfig");
+            }
+            parameters.put(name, parameter);
+        });
+        model.setEndpointParameters(parameters);
     }
 
     /**

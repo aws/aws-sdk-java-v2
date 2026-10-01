@@ -1,0 +1,145 @@
+{
+    "version": "2.0",
+    "metadata": {
+        "apiVersion": "2024-01-01",
+        "endpointPrefix": "bddendpoints",
+        "jsonVersion": "1.1",
+        "protocol": "rest-json",
+        "serviceAbbreviation": "BddEndpoints",
+        "serviceFullName": "BDD Endpoint Resolution Test Service",
+        "serviceId": "BddEndpoints",
+        "signatureVersion": "v4",
+        "signingName": "bddendpoints",
+        "uid": "bddendpoints-2024-01-01",
+        "auth": [
+            "aws.auth#sigv4"
+        ]
+    },
+    "clientContextParams": {
+        "clientStringParam": {
+            "documentation": "A client-level string context parameter.",
+            "type": "string"
+        }
+    },
+    "operations": {
+        "TestOperation": {
+            "name": "TestOperation",
+            "http": {
+                "method": "POST",
+                "requestUri": "/"
+            },
+            "input": {
+                "shape": "TestOperationRequest"
+            },
+            "output": {
+                "shape": "TestOperationResponse"
+            }
+        },
+        "OperationWithStaticParam": {
+            "name": "OperationWithStaticParam",
+            "http": {
+                "method": "POST",
+                "requestUri": "/"
+            },
+            "staticContextParams": {
+                "staticStringParam": {
+                    "value": "static-value"
+                }
+            },
+            "input": {
+                "shape": "TestOperationRequest"
+            },
+            "output": {
+                "shape": "TestOperationResponse"
+            }
+        },
+        "OperationWithContextParam": {
+            "name": "OperationWithContextParam",
+            "http": {
+                "method": "POST",
+                "requestUri": "/"
+            },
+            "input": {
+                "shape": "ContextParamInput"
+            },
+            "output": {
+                "shape": "TestOperationResponse"
+            }
+        },
+        "OperationWithListContextParam": {
+            "name": "OperationWithListContextParam",
+            "http": {
+                "method": "POST",
+                "requestUri": "/"
+            },
+            "operationContextParams": {
+                "resourceArnList": {
+                    "path": "Items[*].Arn"
+                },
+                "wholeArnList": {
+                    "path": "Items[*].Arn"
+                }
+            },
+            "input": {
+                "shape": "ListContextParamInput"
+            },
+            "output": {
+                "shape": "TestOperationResponse"
+            }
+        }
+    },
+    "shapes": {
+        "TestOperationRequest": {
+            "type": "structure",
+            "members": {
+                "StringMember": {
+                    "shape": "String"
+                }
+            }
+        },
+        "TestOperationResponse": {
+            "type": "structure",
+            "members": {
+                "StringMember": {
+                    "shape": "String"
+                }
+            }
+        },
+        "ContextParamInput": {
+            "type": "structure",
+            "members": {
+                "RequestMember": {
+                    "shape": "String",
+                    "contextParam": {
+                        "name": "requestStringParam"
+                    }
+                }
+            }
+        },
+        "ListContextParamInput": {
+            "type": "structure",
+            "members": {
+                "Items": {
+                    "shape": "ItemList"
+                }
+            }
+        },
+        "ItemList": {
+            "type": "list",
+            "member": {
+                "shape": "Item"
+            }
+        },
+        "Item": {
+            "type": "structure",
+            "members": {
+                "Arn": {
+                    "shape": "String"
+                }
+            }
+        },
+        "String": {
+            "type": "string"
+        }
+    }
+}

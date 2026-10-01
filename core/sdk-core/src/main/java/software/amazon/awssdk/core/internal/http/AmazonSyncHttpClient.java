@@ -30,7 +30,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionI
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
@@ -206,7 +205,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(RetryableStage::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
-                               .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))
+                    // Note: API_CALL_DURATION is measured by BaseSyncClientHandler
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)

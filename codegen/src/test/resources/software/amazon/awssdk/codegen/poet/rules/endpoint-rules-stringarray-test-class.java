@@ -24,21 +24,21 @@ public class SampleSvcEndpointProviderTests extends BaseEndpointProviderTest {
 
     private static List<EndpointProviderTestCase> testCases() {
         List<EndpointProviderTestCase> testCases = new ArrayList<>();
-        testCases.add(new EndpointProviderTestCase(() -> {
+        testCases.add(new EndpointProviderTestCase("Default array values used", () -> {
             SampleSvcEndpointParams.Builder builder = SampleSvcEndpointParams.builder();
             return PROVIDER.resolveEndpoint(builder.build()).join();
         }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://example.com/defaultValue1")).build()).build()));
-        testCases.add(new EndpointProviderTestCase(() -> {
+        testCases.add(new EndpointProviderTestCase("Empty array", () -> {
             SampleSvcEndpointParams.Builder builder = SampleSvcEndpointParams.builder();
             builder.stringArrayParam(Arrays.asList());
             return PROVIDER.resolveEndpoint(builder.build()).join();
         }, Expect.builder().error("no array values set").build()));
-        testCases.add(new EndpointProviderTestCase(() -> {
+        testCases.add(new EndpointProviderTestCase("Static value", () -> {
             SampleSvcEndpointParams.Builder builder = SampleSvcEndpointParams.builder();
             builder.stringArrayParam(Arrays.asList("staticValue1"));
             return PROVIDER.resolveEndpoint(builder.build()).join();
         }, Expect.builder().endpoint(Endpoint.builder().url(URI.create("https://example.com/staticValue1")).build()).build()));
-        testCases.add(new EndpointProviderTestCase(() -> {
+        testCases.add(new EndpointProviderTestCase("bound value from input", () -> {
             SampleSvcEndpointParams.Builder builder = SampleSvcEndpointParams.builder();
             builder.stringArrayParam(Arrays.asList("key1"));
             return PROVIDER.resolveEndpoint(builder.build()).join();

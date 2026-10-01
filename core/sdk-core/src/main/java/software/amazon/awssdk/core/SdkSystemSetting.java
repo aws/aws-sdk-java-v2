@@ -276,7 +276,17 @@ public enum SdkSystemSetting implements SystemSetting {
      * defaults including STANDARD as the default retry mode, reduced base backoff delays, differentiated token bucket
      * costs, and other v2.1 retry specification changes. When {@code false} (the default), the SDK uses v2.0 retry behavior.
      */
-    AWS_NEW_RETRIES_2026("aws.newRetries2026", null);
+    AWS_NEW_RETRIES_2026("aws.newRetries2026", null),
+
+    /**
+     * Configure whether a default read/write inactivity timeout is applied to HTTP clients that do not enforce one of their
+     * own (currently the AWS CRT-based clients). When {@code true}, such clients shut down a connection that transfers no
+     * bytes for the resolved timeout window. When {@code false} (the default), no default read/write timeout is applied.
+     *
+     * <p>This setting is not intended to be used by end users. It gates an interim rollout and is subject to removal in a
+     * future release.
+     */
+    AWS_ENABLE_DEFAULT_SOCKET_TIMEOUT_2026("aws.enableDefaultSocketTimeout2026", null);
 
     private final String systemProperty;
     private final String defaultValue;

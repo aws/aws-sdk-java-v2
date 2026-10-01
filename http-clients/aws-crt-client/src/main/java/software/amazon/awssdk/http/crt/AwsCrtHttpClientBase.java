@@ -15,13 +15,13 @@
 
 package software.amazon.awssdk.http.crt;
 
-import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveHttpMonitoringOptions;
 import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildTlsConnectionOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMinTlsVersion;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMonitoringOptions;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
@@ -136,9 +136,9 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             this.readBufferSize = builder.getReadBufferSizeInBytes() == null ?
                                   DEFAULT_STREAM_WINDOW_SIZE : builder.getReadBufferSizeInBytes();
             this.maxStreamsPerEndpoint = config.get(SdkHttpConfigurationOption.MAX_CONNECTIONS);
-            this.monitoringOptions =
-                resolveHttpMonitoringOptions(builder.getConnectionHealthConfiguration())
-                    .orElse(null);
+            this.monitoringOptions = resolveMonitoringOptions(
+                builder.getConnectionHealthConfiguration(),
+                config.get(SdkHttpConfigurationOption.SDK_INTERNAL_FALLBACK_READ_WRITE_TIMEOUT));
             this.maxConnectionIdleInMilliseconds = config.get(SdkHttpConfigurationOption.CONNECTION_MAX_IDLE_TIMEOUT).toMillis();
             this.connectionAcquisitionTimeout = config.get(SdkHttpConfigurationOption.CONNECTION_ACQUIRE_TIMEOUT).toMillis();
             this.proxyOptions = resolveProxy(builder.getProxyConfiguration(), tlsContext).orElse(null);

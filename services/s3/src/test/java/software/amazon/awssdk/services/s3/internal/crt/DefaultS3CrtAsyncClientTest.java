@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -41,6 +43,7 @@ import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
+import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.MapUtils;
 
@@ -88,6 +91,40 @@ class DefaultS3CrtAsyncClientTest {
             assertThat(attributeMap.get(S3ClientContextParams.USE_ARN_REGION)).isFalse();
             assertThat(attributeMap.get(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS)).isFalse();
         }
+    }
+
+    @Test
+    void getObjectWithPath_shouldConfigureResponseFile() {
+        AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+        ExecutionInterceptor captor = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                capturedAttributes.set(
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                throw new RuntimeException("STOP");
+            }
+        };
+
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(captor);
+        Path destination = RandomTempFile.randomUncreatedFile().toPath();
+
+        try (S3AsyncClient client = builder.region(Region.US_EAST_1)
+                                           .credentialsProvider(StaticCredentialsProvider.create(
+                                               AwsBasicCredentials.create("key", "secret")))
+                                           .build()) {
+            assertThatThrownBy(() -> client.getObject(r -> r.bucket("bucket").key("key"), destination).join())
+                .hasMessageContaining("STOP");
+        }
+
+        SdkHttpExecutionAttributes attributes = capturedAttributes.get();
+        assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH))
+            .isEqualTo(destination);
+        assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION))
+            .isEqualTo(ResponseFileOption.CREATE_NEW);
+        assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE))
+            .isTrue();
     }
 
     @ParameterizedTest

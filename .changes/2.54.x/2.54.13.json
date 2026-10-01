@@ -1,0 +1,36 @@
+{
+    "version": "2.54.13",
+    "date": "2026-09-04",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add support for code generating Endpoint Resolvers based on BDD rather than rules. Adds single element endpoint cache to generated BDD based resolvers. BDD based Endpoint Resolvers are generated only when the BDD model is present on a service."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Adds support for ValidateSecurityGroupQuotasForInterface, an API that specifically authorized AWS services use to validate security group rule quotas before creating an elastic network interface."
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Elemental MediaTailor now supports two new Monetization Functions lifecycle hooks, Post Ads Response and Pre Manifest Insertion, and a VAST Request function type that calls a VAST or VMAP ad server. This release also adds Yield Optimization with demand from Amazon Publisher Services."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "New AWS REVIEW mode as supported data retention mode for Bedrock models"
+        },
+        {
+            "type": "feature",
+            "category": "Service Quotas",
+            "contributor": "",
+            "description": "Service Quotas adds the AdjustableAtLevel property to QuotaContext, indicating whether a quota is adjustable at the account or resource level."
+        }
+    ]
+}

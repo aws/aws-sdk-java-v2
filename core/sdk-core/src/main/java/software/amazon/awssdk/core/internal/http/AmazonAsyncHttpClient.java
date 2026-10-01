@@ -33,7 +33,6 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionI
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallAttemptMetricCollectionStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncExecutionFailureExceptionReportingStage;
@@ -214,8 +213,8 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                         .then(async(() -> new UnwrapResponseContainer<>()))
                                         .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
-                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)
-                                        .wrappedWith(AsyncApiCallMetricCollectionStage::new)::build)::build)
+                                        // Note: API_CALL_DURATION is measured by BaseAsyncClientHandler
+                                        .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)::build)::build)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
             } catch (RuntimeException e) {

@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -196,8 +197,8 @@ class EndpointResolutionStageTest {
                                                                 .host("custom.example.com")
                                                                 .port(8080)
                                                                 .encodedPath("/my-operation");
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
-                                         URI.create("https://myservice.amazonaws.com/my-operation"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+                                         preModifyEndpoint("https", "myservice.amazonaws.com", "/my-operation"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                                          ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
@@ -222,8 +223,8 @@ class EndpointResolutionStageTest {
                                                                 .host("example.com")
                                                                 .encodedPath("/my-key");
 
-        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_URI_BEFORE_MODIFY,
-                                         URI.create("https://s3.us-west-2.amazonaws.com/my-key"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+                                         preModifyEndpoint("https", "s3.us-west-2.amazonaws.com", "/my-key"));
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
         executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
                                          ClientEndpointProvider.forEndpointOverride(clientEndpoint));
@@ -233,6 +234,59 @@ class EndpointResolutionStageTest {
 
         assertThat(result.host()).isEqualTo("example.com");
         assertThat(result.encodedPath()).isEqualTo("/my-bucket/my-key");
+    }
+
+    @Test
+    void execute_explicitStandardPortUnmodified_appliesResolvedUrl() throws Exception {
+        // The snapshot always carries a resolved port, so an endpoint that explicitly specifies the protocol's
+        // standard port must not be mistaken for one an interceptor modified.
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                              .method(SdkHttpMethod.GET)
+                                                              .protocol("https")
+                                                              .host(CLIENT_ENDPOINT.getHost())
+                                                              .port(443)
+                                                              .encodedPath("/");
+        Endpoint endpoint = Endpoint.builder().url(RESOLVED_ENDPOINT).build();
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+                                         preModifyEndpoint("https", CLIENT_ENDPOINT.getHost(), "/"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
+        RequestExecutionContext context = createContext();
+
+        SdkHttpFullRequest.Builder result = stage.execute(request, context);
+
+        assertThat(result.host()).isEqualTo("resolved.us-west-2.amazonaws.com");
+    }
+
+    @Test
+    void execute_interceptorModifiedPortOnly_preservesCustomPort() throws Exception {
+        SdkHttpFullRequest.Builder request = SdkHttpFullRequest.builder()
+                                                              .method(SdkHttpMethod.GET)
+                                                              .protocol("https")
+                                                              .host(CLIENT_ENDPOINT.getHost())
+                                                              .port(8443)
+                                                              .encodedPath("/");
+        Endpoint endpoint = Endpoint.builder().url(RESOLVED_ENDPOINT).build();
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+                                         preModifyEndpoint("https", CLIENT_ENDPOINT.getHost(), "/"));
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER, (req, attrs) -> endpoint);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.CLIENT_ENDPOINT_PROVIDER,
+                                         ClientEndpointProvider.forEndpointOverride(CLIENT_ENDPOINT));
+        RequestExecutionContext context = createContext();
+
+        SdkHttpFullRequest.Builder result = stage.execute(request, context);
+
+        assertThat(result.host()).isEqualTo(CLIENT_ENDPOINT.getHost());
+        assertThat(result.port()).isEqualTo(8443);
+    }
+
+    /**
+     * Mirrors the snapshot {@code BaseClientHandler} records: endpoint components only, with the port resolved the
+     * way {@link software.amazon.awssdk.http.SdkHttpRequest#port()} resolves it.
+     */
+    private static EndpointUrl preModifyEndpoint(String scheme, String host, String encodedPath) {
+        return EndpointUrl.fromComponents(scheme, host, "https".equals(scheme) ? 443 : 80, encodedPath);
     }
 
     private SdkHttpFullRequest.Builder defaultRequest() {

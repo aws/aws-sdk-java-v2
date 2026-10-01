@@ -198,7 +198,9 @@ public class ParallelMultipartDownloaderSubscriber
             return;
         }
         this.subscription = s;
-        subscription.request(maxInFlightParts);
+        synchronized (subscriptionLock) {
+            subscription.request(maxInFlightParts);
+        }
     }
 
     @Override
@@ -352,7 +354,9 @@ public class ParallelMultipartDownloaderSubscriber
         if (response.partsCount() == null || response.partsCount() == 1) {
             // Single part object detected, skip multipart and complete everything now
             log.debug(() -> "Single Part object detected, skipping multipart download");
-            subscription.cancel();
+            synchronized (subscriptionLock) {
+                subscription.cancel();
+            }
             resultFuture.complete(response);
             return false;
         }

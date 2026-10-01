@@ -23,7 +23,6 @@ import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils.noOpResponseHandler;
 import static utils.HttpTestUtils.testAsyncClientBuilder;
 
-import java.time.Duration;
 import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -41,8 +40,8 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptorChain;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.AmazonAsyncHttpClient;
-import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -70,11 +69,16 @@ public class AsyncClientMetricCollectorExceptionTest {
     @Mock
     private SdkAsyncHttpClient asyncHttpClient;
 
+    /**
+     * This exercises the request pipeline directly rather than going through {@code BaseAsyncClientHandler}, so it
+     * throws from a metric that the pipeline itself reports. {@code API_CALL_DURATION} is reported by the client handler,
+     * above the pipeline, so it is not reachable from here.
+     */
     @Test
     public void exceptionInReportMetricReportedInFuture() {
         when(metricCollector.createChild(any())).thenReturn(metricCollector);
         Exception exception = new RuntimeException(MESSAGE);
-        doThrow(exception).when(metricCollector).reportMetric(eq(CoreMetric.API_CALL_DURATION), any(Duration.class));
+        doThrow(exception).when(metricCollector).reportMetric(eq(HttpMetric.HTTP_STATUS_CODE), any(Integer.class));
 
         CompletableFuture<SdkResponse> responseFuture = makeRequest();
 

@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
@@ -105,7 +106,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                 if (r.isZero() && Thread.currentThread().equals(caller)) {
                     attemptExecute(future);
                 } else {
-                    scheduledExecutor.schedule(() -> attemptExecute(future), r.toMillis(), MILLISECONDS);
+                    scheduleOrFail(() -> attemptExecute(future), r.toMillis(), MILLISECONDS, future);
                 }
             });
 
@@ -151,37 +152,41 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         }
 
         public void maybeAttemptExecute(CompletableFuture<Response<OutputT>> future) {
-            retryableStageHelper.tryRefreshTokenAsync(suggestedDelay()).whenComplete((backoffDelay, t) -> {
-                if (t != null) {
-                    future.completeExceptionally(t);
+            retryableStageHelper.tryRefreshTokenAsync(suggestedDelay()).whenComplete((backoffDelay, err) -> {
+                if (err != null) {
+                    future.completeExceptionally(err);
                     return;
                 }
 
-                Optional<Duration> acquireFailureDelay = backoffDelay.right();
-                if (acquireFailureDelay.isPresent()) {
-                    Duration delay = acquireFailureDelay.get();
-                    retryableStageHelper.logAcquireFailureBackingOff(delay);
-                    SdkException disallowedException = retryableStageHelper.retryPolicyDisallowedRetryException();
-                    // Avoid needless scheduling if we won't wait
-                    if (delay.isZero()) {
-                        future.completeExceptionally(disallowedException);
-                    } else {
-                        scheduledExecutor.schedule(() -> future.completeExceptionally(disallowedException),
-                                                   delay.toMillis(), MILLISECONDS);
+                try {
+                    Optional<Duration> acquireFailureDelay = backoffDelay.right();
+                    if (acquireFailureDelay.isPresent()) {
+                        Duration delay = acquireFailureDelay.get();
+                        retryableStageHelper.logAcquireFailureBackingOff(delay);
+                        SdkException disallowedException = retryableStageHelper.retryPolicyDisallowedRetryException();
+                        // Avoid needless scheduling if we won't wait
+                        if (delay.isZero()) {
+                            future.completeExceptionally(disallowedException);
+                        } else {
+                            scheduleOrFail(() -> future.completeExceptionally(disallowedException), delay.toMillis(),
+                                           MILLISECONDS, future);
+                        }
+                        return;
                     }
-                    return;
+                    // We failed the last attempt, but will retry. The response handler wants to know when that happens.
+                    responseHandler.onError(retryableStageHelper.getLastException());
+
+                    // Reset the request provider to the original one before retries, in case it was modified downstream.
+                    context.requestProvider(originalRequestBody);
+
+                    // get() is safe, Either requires left OR right to be present
+                    Duration successDelay = backoffDelay.left().get();
+                    retryableStageHelper.logBackingOff(successDelay);
+                    long totalDelayMillis = successDelay.toMillis();
+                    scheduleOrFail(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS, future);
+                } catch (Throwable t) {
+                    future.completeExceptionally(t);
                 }
-                // We failed the last attempt, but will retry. The response handler wants to know when that happens.
-                responseHandler.onError(retryableStageHelper.getLastException());
-
-                // Reset the request provider to the original one before retries, in case it was modified downstream.
-                context.requestProvider(originalRequestBody);
-
-                // get() is safe, Either requires left OR right to be present
-                Duration successDelay = backoffDelay.left().get();
-                retryableStageHelper.logBackingOff(successDelay);
-                long totalDelayMillis = successDelay.toMillis();
-                scheduledExecutor.schedule(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS);
             });
         }
 
@@ -229,5 +234,16 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         return executionContext.executionAttributes()
                                .getOptionalAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED)
                                .orElse(false);
+    }
+
+    /**
+     * Schedule the runnable on the scheduled executor, failing the future if the schedule() call fails.
+     */
+    private void scheduleOrFail(Runnable r, long delay, TimeUnit timeUnit, CompletableFuture<?> future) {
+        try {
+            scheduledExecutor.schedule(r, delay, timeUnit);
+        } catch (Throwable t) {
+            future.completeExceptionally(t);
+        }
     }
 }

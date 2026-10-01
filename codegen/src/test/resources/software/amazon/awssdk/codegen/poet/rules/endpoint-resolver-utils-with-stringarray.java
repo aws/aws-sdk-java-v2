@@ -1,7 +1,10 @@
 package software.amazon.awssdk.services.samplesvc.endpoints.internal;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -21,13 +24,23 @@ import software.amazon.awssdk.http.auth.aws.signer.RegionSet;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.services.samplesvc.endpoints.SampleSvcEndpointParams;
-import software.amazon.awssdk.services.samplesvc.jmespath.internal.JmesPathRuntime;
+import software.amazon.awssdk.services.samplesvc.model.Delete;
 import software.amazon.awssdk.services.samplesvc.model.ListOfObjectsOperationRequest;
+import software.amazon.awssdk.services.samplesvc.model.MapKeysOperationRequest;
+import software.amazon.awssdk.services.samplesvc.model.Nested;
+import software.amazon.awssdk.services.samplesvc.model.ObjectMember;
+import software.amazon.awssdk.services.samplesvc.model.Put;
+import software.amazon.awssdk.services.samplesvc.model.TransactItem;
+import software.amazon.awssdk.services.samplesvc.model.TransactionOperationRequest;
 import software.amazon.awssdk.utils.CollectionUtils;
 
 @Generated("software.amazon.awssdk:codegen")
 @SdkInternalApi
 public final class SampleSvcEndpointResolverUtils {
+  private static final List<String> STATIC_LIST_EMPTY_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.emptyList();
+
+  private static final List<String> STATIC_LIST_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM = Collections.unmodifiableList(Arrays.asList("staticValue1"));
+
   private SampleSvcEndpointResolverUtils() {
   }
 
@@ -57,12 +70,12 @@ public final class SampleSvcEndpointResolverUtils {
 
   private static void emptyStaticContextOperationStaticContextParams(
       SampleSvcEndpointParams.Builder params) {
-    params.stringArrayParam(Arrays.asList());
+    params.stringArrayParam(STATIC_LIST_EMPTY_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM);
   }
 
   private static void staticContextOperationStaticContextParams(
       SampleSvcEndpointParams.Builder params) {
-    params.stringArrayParam(Arrays.asList("staticValue1"));
+    params.stringArrayParam(STATIC_LIST_STATIC_CONTEXT_OPERATION_STRING_ARRAY_PARAM);
   }
 
   public static <T extends Identity> SelectedAuthScheme<T> authSchemeWithEndpointSignerProperties(
@@ -109,14 +122,68 @@ public final class SampleSvcEndpointResolverUtils {
     switch (operationName) {
       case "ListOfObjectsOperation":setOperationContextParams(params, (ListOfObjectsOperationRequest) request);
       break;
+      case "MapKeysOperation":setOperationContextParams(params, (MapKeysOperationRequest) request);
+      break;
+      case "TransactionOperation":setOperationContextParams(params, (TransactionOperationRequest) request);
+      break;
       default:break;
     }
   }
 
   private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
       ListOfObjectsOperationRequest request) {
-    JmesPathRuntime.Value input = new JmesPathRuntime.Value(request);
-    params.stringArrayParam(input.field("nested").field("listOfObjects").wildcard().field("key").stringValues());
+    List<String> stringArrayParam = Collections.emptyList();
+    Nested nested = request.nested();
+    if (nested != null) {
+      List<ObjectMember> listOfObjects = nested.listOfObjects();
+      stringArrayParam = new ArrayList<>(listOfObjects.size());
+      for (ObjectMember objectMember : listOfObjects) {
+        if (objectMember != null) {
+          String key = objectMember.key();
+          if (key != null) {
+            stringArrayParam.add(key);
+          }
+        }
+      }
+    }
+    params.stringArrayParam(stringArrayParam);
+  }
+
+  private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
+      MapKeysOperationRequest request) {
+    Map<String, String> requestItems = request.requestItems();
+    List<String> stringArrayParam = new ArrayList<>(requestItems.size());
+    for (String key : requestItems.keySet()) {
+      if (key != null) {
+        stringArrayParam.add(key);
+      }
+    }
+    params.stringArrayParam(stringArrayParam);
+  }
+
+  private static void setOperationContextParams(SampleSvcEndpointParams.Builder params,
+      TransactionOperationRequest request) {
+    List<TransactItem> transactItems = request.transactItems();
+    List<String> stringArrayParam = new ArrayList<>(transactItems.size());
+    for (TransactItem transactItem : transactItems) {
+      if (transactItem != null) {
+        Put put = transactItem.put();
+        if (put != null) {
+          String tableName = put.tableName();
+          if (tableName != null) {
+            stringArrayParam.add(tableName);
+          }
+        }
+        Delete delete = transactItem.delete();
+        if (delete != null) {
+          String tableName_ = delete.tableName();
+          if (tableName_ != null) {
+            stringArrayParam.add(tableName_);
+          }
+        }
+      }
+    }
+    params.stringArrayParam(stringArrayParam);
   }
 
   public static Optional<String> hostPrefix(String operationName, SdkRequest request) {

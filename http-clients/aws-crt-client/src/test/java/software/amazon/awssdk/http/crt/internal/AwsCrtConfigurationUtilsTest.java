@@ -30,11 +30,13 @@ import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
 import software.amazon.awssdk.crt.io.TlsContextOptions;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
 import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.AttributeMap;
 
 class AwsCrtConfigurationUtilsTest {
+
     @ParameterizedTest
     @MethodSource("cipherPreferences")
     void resolveCipherPreference_shouldResolveCorrectly(Boolean postQuantumTlsEnabled,
@@ -118,6 +120,65 @@ class AwsCrtConfigurationUtilsTest {
     void resolveMinTlsVersion_tls13_returnsTLSv1_3() {
         assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(TlsVersion.TLS_1_3))
             .isEqualTo(TlsContextOptions.TlsVersions.TLSv1_3);
+    }
+
+    @ParameterizedTest(name = "{0} inactivity timeout -> {1}s failure interval")
+    @MethodSource("readWriteTimeoutMappings")
+    void mapReadWriteTimeout_mapsToOneBytePerSecondMonitor(Duration readWriteTimeout, int expectedIntervalSeconds) {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.mapReadWriteTimeout(readWriteTimeout);
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(expectedIntervalSeconds);
+    }
+
+    private static Stream<Arguments> readWriteTimeoutMappings() {
+        return Stream.of(
+            Arguments.of(Duration.ofMinutes(5), 300),
+            Arguments.of(Duration.ofMinutes(15), 900),
+            Arguments.of(Duration.ofSeconds(2), 2),
+            Arguments.of(Duration.ofSeconds(1), 2),
+            Arguments.of(Duration.ZERO, 2),
+            Arguments.of(Duration.ofMillis(2999), 2),
+            Arguments.of(Duration.ofMillis(3999), 3)
+        );
+    }
+
+    @Test
+    void resolveMonitoringOptions_explicitConnectionHealthConfiguration_winsOverFallback() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(healthConfiguration(),
+                                                                                          Duration.ofMinutes(15));
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(500L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(10);
+    }
+
+    @Test
+    void resolveMonitoringOptions_explicitConnectionHealthConfigurationWithoutFallback_usesExplicitConfig() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(healthConfiguration(), null);
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(500L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(10);
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackZero_appliesNothing() {
+        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ZERO)).isNull();
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackPositive_mapped() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ofMinutes(15));
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(900);
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackAbsent_appliesNothing() {
+        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, null)).isNull();
+    }
+
+    private static ConnectionHealthConfiguration healthConfiguration() {
+        return ConnectionHealthConfiguration.builder()
+                                            .minimumThroughputInBps(500L)
+                                            .minimumThroughputTimeout(Duration.ofSeconds(10))
+                                            .build();
     }
 
 
