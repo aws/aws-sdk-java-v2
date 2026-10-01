@@ -278,6 +278,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         return responseHandlingInitiated && initialHeadersResponse.statusCode() != responseStatus;
     }
 
+    void initiateResponseHandlingForBorrowedResponse() {
+        initiateResponseHandling(initialHeadersResponse.build());
+    }
+
     private void initiateResponseHandling(SdkHttpResponse response) {
         if (!responseHandlingInitiated) {
             responseHandlingInitiated = true;
@@ -299,7 +303,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                          });
     }
 
-    private void failResponseHandlerAndFuture(Throwable exception) {
+    void failResponseHandlerAndFuture(Throwable exception) {
         notifyResponseHandlerOnError(exception);
         resultFuture.completeExceptionally(exception);
     }

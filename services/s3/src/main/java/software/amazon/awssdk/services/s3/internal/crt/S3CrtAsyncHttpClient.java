@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_STREAM_HANDLER;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH;
@@ -56,13 +57,16 @@ import software.amazon.awssdk.crt.s3.FileIoOptions;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
+import software.amazon.awssdk.crt.s3.S3DirectBufferPoolOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -134,7 +138,18 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .ifPresent(options::withHttpMonitoringOptions);
         Optional.ofNullable(s3NativeClientConfiguration.memoryBufferDisabled())
             .ifPresent(memoryBufferDisabled -> options.withFileIoOptions(new FileIoOptions(memoryBufferDisabled, 0.0, false)));
+        Optional.ofNullable(s3NativeClientConfiguration.directBufferPoolConfiguration())
+                .map(S3CrtAsyncHttpClient::toDirectBufferPoolOptions)
+                .ifPresent(options::withDirectBufferPoolOptions);
         return options;
+    }
+
+    private static S3DirectBufferPoolOptions toDirectBufferPoolOptions(
+        S3CrtDirectBufferPoolConfiguration configuration) {
+        if (configuration.memoryLimitInBytes() == null) {
+            return S3DirectBufferPoolOptions.auto();
+        }
+        return S3DirectBufferPoolOptions.fixed(configuration.memoryLimitInBytes());
     }
 
     @Override
@@ -164,12 +179,20 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
         Boolean responseFileDeleteOnFailure = httpExecutionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE);
 
-        S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(
-                executeFuture,
-                asyncRequest.responseHandler(),
-                httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                s3MetaRequestFuture);
+        S3CrtBorrowedBufferStreamHandler borrowedBufferStreamHandler =
+            httpExecutionAttributes.getAttribute(BORROWED_BUFFER_STREAM_HANDLER);
+        S3MetaRequestResponseHandler responseHandler = borrowedBufferStreamHandler == null
+                                                       ? new S3CrtResponseHandlerAdapter(
+                                                           executeFuture,
+                                                           asyncRequest.responseHandler(),
+                                                           httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                                                           s3MetaRequestFuture)
+                                                       : new S3CrtBorrowedBufferResponseHandlerAdapter(
+                                                           executeFuture,
+                                                           asyncRequest.responseHandler(),
+                                                           httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                                                           s3MetaRequestFuture,
+                                                           borrowedBufferStreamHandler);
 
         URI endpoint = getEndpoint(uri);
 

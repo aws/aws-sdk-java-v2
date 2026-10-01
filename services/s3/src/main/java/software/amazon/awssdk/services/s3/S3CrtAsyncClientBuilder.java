@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -140,6 +141,17 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     S3CrtAsyncClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes
 );
+
+    /**
+     * Configures the client-wide direct buffer pool used by the CRT-based S3 client.
+     *
+     * @param configuration the direct buffer pool configuration
+     * @return this builder for method chaining
+     */
+    default S3CrtAsyncClientBuilder directBufferPoolConfiguration(
+        S3CrtDirectBufferPoolConfiguration configuration) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * The target throughput for transfer requests. Higher value means more connections will be established with S3.

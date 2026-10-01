@@ -69,6 +69,7 @@ import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
 import software.amazon.awssdk.services.s3.internal.checksums.ChecksumsEnabledValidator;
@@ -83,6 +84,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
@@ -93,11 +95,15 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         new ExecutionAttribute<>("responseFileOption");
     public static final ExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
         new ExecutionAttribute<>("responseFileDeleteOnFailure");
+    static final ExecutionAttribute<S3CrtBorrowedBufferStreamHandler> BORROWED_BUFFER_STREAM_HANDLER =
+        new ExecutionAttribute<>("borrowedBufferStreamHandler");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
+    private final boolean directBufferPoolConfigured;
 
     private DefaultS3CrtAsyncClient(DefaultS3CrtClientBuilder builder) {
         super(initializeS3AsyncClient(builder));
+        this.directBufferPoolConfigured = builder.directBufferPoolConfiguration != null;
         long partSizeInBytes = builder.minimalPartSizeInBytes == null ? DEFAULT_PART_SIZE_IN_BYTES :
                                builder.minimalPartSizeInBytes;
         long thresholdInBytes = builder.thresholdInBytes == null ? partSizeInBytes : builder.thresholdInBytes;
@@ -135,6 +141,37 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                             .build();
 
         return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public <ReturnT> CompletableFuture<ReturnT> getObject(
+        GetObjectRequest getObjectRequest,
+        AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
+        if (!(asyncResponseTransformer instanceof S3CrtBorrowedBufferResponseTransformerMarker)) {
+            return super.getObject(getObjectRequest, asyncResponseTransformer);
+        }
+
+        if (!directBufferPoolConfigured) {
+            return CompletableFutureUtils.failedFuture(
+                new IllegalStateException(
+                    "A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using the borrowed "
+                    + "buffer response transformer"));
+        }
+
+        S3CrtBorrowedBufferBlockingResponseTransformer bridge =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        AwsRequestOverrideConfiguration overrideConfig =
+            getObjectRequest.overrideConfiguration()
+                            .map(AwsRequestOverrideConfiguration::toBuilder)
+                            .orElseGet(AwsRequestOverrideConfiguration::builder)
+                            .putExecutionAttribute(BORROWED_BUFFER_STREAM_HANDLER, bridge)
+                            .build();
+        GetObjectRequest requestWithBorrowedHandler =
+            getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build();
+
+        return (CompletableFuture<ReturnT>) (CompletableFuture<?>)
+            super.getObject(requestWithBorrowedHandler, bridge);
     }
 
     @Override
@@ -231,6 +268,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .httpConfiguration(builder.httpConfiguration)
                                        .thresholdInBytes(builder.thresholdInBytes)
                                        .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes)
+                                       .directBufferPoolConfiguration(builder.directBufferPoolConfiguration)
                                        .advancedOptions(builder.advancedOptions.build());
 
         if (builder.retryConfiguration != null) {
@@ -250,6 +288,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Long minimalPartSizeInBytes;
         private Double targetThroughputInGbps;
         private Long maxNativeMemoryLimitInBytes;
+        private S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration;
         private Integer maxConcurrency;
         private URI endpointOverride;
         private Boolean checksumValidationEnabled;
@@ -302,6 +341,13 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder maxNativeMemoryLimitInBytes(Long maxNativeMemoryLimitInBytes) {
             this.maxNativeMemoryLimitInBytes = maxNativeMemoryLimitInBytes;
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder directBufferPoolConfiguration(
+            S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration) {
+            this.directBufferPoolConfiguration = directBufferPoolConfiguration;
             return this;
         }
 
@@ -445,7 +491,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                    .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
                         executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
                    .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE,
-                        executionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE));
+                        executionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE))
+                   .put(S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_STREAM_HANDLER,
+                        executionAttributes.getAttribute(BORROWED_BUFFER_STREAM_HANDLER));
 
             SdkRequest request = context.request();
             if (request instanceof AwsRequest) {

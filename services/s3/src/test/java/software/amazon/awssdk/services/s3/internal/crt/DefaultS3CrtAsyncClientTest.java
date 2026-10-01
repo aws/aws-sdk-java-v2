@@ -31,6 +31,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -41,8 +42,11 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.MapUtils;
@@ -125,6 +129,62 @@ class DefaultS3CrtAsyncClientTest {
             .isEqualTo(ResponseFileOption.CREATE_NEW);
         assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE))
             .isTrue();
+    }
+
+    @Test
+    void borrowedTransformer_withoutPool_shouldFailBeforeDelegation() {
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder().build()) {
+            assertThatThrownBy(() -> client.getObject(
+                r -> r.bucket("bucket").key("key"),
+                S3AsyncResponseTransformer.toBlockingInputStreamWithBorrowedBuffers()).join())
+                .hasCauseInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("direct buffer pool");
+        }
+    }
+
+    @Test
+    void borrowedTransformer_withPool_shouldCopyRequestAndPropagateHandler() {
+        AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+        ExecutionInterceptor captor = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                capturedAttributes.set(
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                throw new RuntimeException("STOP");
+            }
+        };
+        ExecutionAttribute<String> callerAttribute = new ExecutionAttribute<>("callerAttribute");
+        GetObjectRequest request = GetObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(c -> c.putExecutionAttribute(callerAttribute, "value"))
+                                                   .build();
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(captor);
+
+        try (S3AsyncClient client = builder.region(Region.US_EAST_1)
+                                           .credentialsProvider(StaticCredentialsProvider.create(
+                                               AwsBasicCredentials.create("key", "secret")))
+                                           .directBufferPoolConfiguration(
+                                               S3CrtDirectBufferPoolConfiguration.fixed(
+                                                   S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES))
+                                           .build()) {
+            assertThatThrownBy(() -> client.getObject(
+                request, S3AsyncResponseTransformer.toBlockingInputStreamWithBorrowedBuffers()).join())
+                .hasMessageContaining("STOP");
+        }
+
+        S3CrtBorrowedBufferStreamHandler handler = capturedAttributes.get().getAttribute(
+            S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_STREAM_HANDLER);
+        assertThat(handler).isInstanceOf(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+        assertThat(((AsyncResponseTransformer<?, ?>) handler).name())
+            .isEqualTo(AsyncResponseTransformer.TransformerType.STREAM.getName());
+        assertThat(request.overrideConfiguration().get().executionAttributes().getAttribute(callerAttribute))
+            .isEqualTo("value");
+        assertThat(request.overrideConfiguration().get().executionAttributes()
+                          .getAttribute(DefaultS3CrtAsyncClient.BORROWED_BUFFER_STREAM_HANDLER))
+            .isNull();
     }
 
     @ParameterizedTest
