@@ -92,10 +92,10 @@ public class GenerationMojo extends AbstractMojo {
         this.resourcesDirectory = Paths.get(outputDirectory).resolve("generated-resources").resolve("sdk-resources");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
-        Path smithyBuildConfig = project.getBasedir().toPath().resolve(SMITHY_BUILD_FILE);
-        if (Files.exists(smithyBuildConfig)) {
+        Path smithyBuildFile = project.getBasedir().toPath().resolve(SMITHY_BUILD_FILE);
+        if (Files.exists(smithyBuildFile)) {
             new SmithyBuildGenerator(project, getLog())
-                .generate(smithyBuildConfig, Paths.get(outputDirectory).resolve(SMITHY_PROJECTIONS_DIR));
+                .generate(smithyBuildFile, Paths.get(outputDirectory).resolve(SMITHY_PROJECTIONS_DIR));
             return;
         }
 

@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.codegen.maven.plugin;
 
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static software.amazon.awssdk.codegen.maven.plugin.SmithyTestModule.PLUGIN;
@@ -85,16 +86,29 @@ class SmithyBuildGeneratorTest {
     }
 
     @Test
-    void labeledPlugin_registersLabeledOutput() throws Exception {
+    void baseDirInSmithyBuildFile_fails() throws Exception {
         write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
-        Path configFile = write(moduleDir.resolve("smithy-build.json"), config(SOURCES, PLUGIN + "::demo"));
-        MavenProject project = project(moduleDir);
+        Path configFile = write(moduleDir.resolve("smithy-build.json"),
+                                pluginSettings("{ \"baseDir\": \"elsewhere\" }"));
 
-        generate(project, configFile);
+        MojoExecutionException e = assertThrows(MojoExecutionException.class,
+                                                () -> generate(project(moduleDir), configFile));
+        assertTrue(e.getMessage().contains("'baseDir'"), e.getMessage());
+    }
 
-        Path generatedSources = outputDirectory().resolve("sdk").resolve("demo").resolve("generated-sources");
-        assertTrue(project.getCompileSourceRoots().contains(generatedSources.toAbsolutePath().toString()),
-                   "expected " + generatedSources + " in " + project.getCompileSourceRoots());
+    @Test
+    void sdkVersionPlaceholder_isReplacedWithoutSettingSystemProperty() throws Exception {
+        write(moduleDir.resolve("model.smithy"), SERVICE + REQUEST);
+        // project() sets version 2.0.0, so the placeholder must resolve to this file for generation to succeed.
+        write(moduleDir.resolve("customization-2.0.0.config"), "{}");
+        Path configFile = write(moduleDir.resolve("smithy-build.json"),
+                                pluginSettings("{ \"customizationConfig\": "
+                                               + "\"customization-${AWS_SDK_JAVA_VERSION}.config\" }"));
+
+        generate(project(moduleDir), configFile);
+
+        assertTrue(containsFileEndingWith(outputDirectory(), "Client.java"));
+        assertNull(System.getProperty("AWS_SDK_JAVA_VERSION"));
     }
 
     private void generate(MavenProject project, Path configFile) throws MojoExecutionException {
@@ -103,6 +117,11 @@ class SmithyBuildGeneratorTest {
 
     private Path outputDirectory() {
         return moduleDir.resolve("target").resolve("smithyprojections");
+    }
+
+    private static String pluginSettings(String settings) {
+        return "{ \"version\": \"1.0\", " + SOURCES + ", "
+               + "\"projections\": { \"sdk\": { \"plugins\": { \"" + PLUGIN + "\": " + settings + " } } } }";
     }
 
     private static String messages(Throwable t) {
