@@ -107,7 +107,7 @@
         <awsjavasdk.previous.version>2.55.9</awsjavasdk.previous.version>
         <awsjavasdk.previous-previous.version>2.55.8</awsjavasdk.previous-previous.version>
         <jackson.version>2.21.7</jackson.version>
-        <jackson.databind.version>2.21.6</jackson.databind.version>
+        <jackson.databind.version>2.21.7</jackson.databind.version>
         <jacksonjr.version>2.21.7</jacksonjr.version>
         <jackson.annotations.version>2.21</jackson.annotations.version>
         <eventstream.version>1.0.1</eventstream.version>
