@@ -28,6 +28,10 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
+import com.squareup.javapoet.WildcardTypeName;
+import java.lang.ref.Reference;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -189,15 +193,65 @@ public class RegionGenerator implements PoetClass {
     }
 
     private TypeSpec cache() {
-        ParameterizedTypeName mapOfStringRegion = ParameterizedTypeName.get(ClassName.get(ConcurrentHashMap.class),
-                                                                            ClassName.get(String.class),
-                                                                            className());
+        ClassName regionReference = className().nestedClass("RegionCache").nestedClass("RegionReference");
+        ParameterizedTypeName mapOfStringRegionReference =
+            ParameterizedTypeName.get(ClassName.get(ConcurrentHashMap.class), ClassName.get(String.class), regionReference);
+        ParameterizedTypeName queueOfRegion = ParameterizedTypeName.get(ClassName.get(ReferenceQueue.class), className());
+
+        CodeBlock putBody = CodeBlock.builder()
+                                     .addStatement("expungeStaleEntries()")
+                                     .beginControlFlow("while (true)")
+                                     .addStatement("$T existingRef = VALUES.get(value)", regionReference)
+                                     .beginControlFlow("if (existingRef != null)")
+                                     .addStatement("$T existing = existingRef.get()", className())
+                                     .beginControlFlow("if (existing != null)")
+                                     .addStatement("return existing")
+                                     .endControlFlow()
+                                     .endControlFlow()
+                                     .addStatement("$T newRegion = new $T(value, isGlobalRegion)", className(), className())
+                                     .addStatement("$T newRef = new $T(value, newRegion, QUEUE)",
+                                                   regionReference, regionReference)
+                                     .addStatement("boolean installed = existingRef == null ? VALUES.putIfAbsent(value, "
+                                                   + "newRef) == null : VALUES.replace(value, existingRef, newRef)")
+                                     .beginControlFlow("if (installed)")
+                                     .addStatement("return newRegion")
+                                     .endControlFlow()
+                                     .endControlFlow()
+                                     .build();
+
+        CodeBlock expungeBody = CodeBlock.builder()
+                                         .addStatement("$T<? extends $T> ref", Reference.class, className())
+                                         .beginControlFlow("while ((ref = QUEUE.poll()) != null)")
+                                         .addStatement("$T regionRef = ($T) ref", regionReference, regionReference)
+                                         .addStatement("VALUES.remove(regionRef.key, regionRef)")
+                                         .endControlFlow()
+                                         .build();
+
+        TypeSpec regionReferenceType =
+            TypeSpec.classBuilder("RegionReference")
+                    .addModifiers(PRIVATE, STATIC, FINAL)
+                    .superclass(ParameterizedTypeName.get(ClassName.get(WeakReference.class), className()))
+                    .addField(FieldSpec.builder(String.class, "key").addModifiers(PRIVATE, FINAL).build())
+                    .addMethod(MethodSpec.constructorBuilder()
+                                         .addParameter(String.class, "key")
+                                         .addParameter(className(), "referent")
+                                         .addParameter(ParameterizedTypeName.get(ClassName.get(ReferenceQueue.class),
+                                                                                 WildcardTypeName.supertypeOf(className())),
+                                                       "queue")
+                                         .addStatement("super(referent, queue)")
+                                         .addStatement("this.key = key")
+                                         .build())
+                    .build();
 
         return TypeSpec.classBuilder("RegionCache")
                        .addModifiers(PRIVATE, STATIC)
-                       .addField(FieldSpec.builder(mapOfStringRegion, "VALUES")
+                       .addField(FieldSpec.builder(mapOfStringRegionReference, "VALUES")
                                           .addModifiers(PRIVATE, STATIC, FINAL)
                                           .initializer("new $T<>()", ConcurrentHashMap.class)
+                                          .build())
+                       .addField(FieldSpec.builder(queueOfRegion, "QUEUE")
+                                          .addModifiers(PRIVATE, STATIC, FINAL)
+                                          .initializer("new $T<>()", ReferenceQueue.class)
                                           .build())
 
                        .addMethod(MethodSpec.constructorBuilder().addModifiers(PRIVATE).build())
@@ -206,10 +260,13 @@ public class RegionGenerator implements PoetClass {
                                             .addParameter(String.class, "value")
                                             .addParameter(boolean.class, "isGlobalRegion")
                                             .returns(className())
-                                            .addStatement("return $L.computeIfAbsent(value, v -> new $T(value, isGlobalRegion))",
-                                                          "VALUES",
-                                                          className())
+                                            .addCode(putBody)
                                             .build())
+                       .addMethod(MethodSpec.methodBuilder("expungeStaleEntries")
+                                            .addModifiers(PRIVATE, STATIC)
+                                            .addCode(expungeBody)
+                                            .build())
+                       .addType(regionReferenceType)
                        .build();
     }
 
