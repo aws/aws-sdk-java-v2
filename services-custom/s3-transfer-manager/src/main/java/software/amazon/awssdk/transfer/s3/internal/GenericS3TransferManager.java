@@ -532,15 +532,6 @@ class GenericS3TransferManager implements S3TransferManager {
                                        resumableFileDownload);
     }
 
-    DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
-                                                     DownloadFileRequest originalDownloadRequest) {
-        try {
-            return newDownloadFuture.getNow(originalDownloadRequest);
-        } catch (CompletionException e) {
-            return originalDownloadRequest;
-        }
-    }
-
     static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,
                                 CompletableFuture<TransferProgress> progressFuture,
                                 CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture,
