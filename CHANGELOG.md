@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.10__ __2026-10-01__
+## __AWS End User Messaging__
+  - ### Features
+    - AWS End User Messaging now supports Brand profiles and Notify code configurations. Brand profiles capture your sender details once to reuse across phone number registrations. Notify code configurations let you define your OTP policy and delivery settings to send passcodes in minutes.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds DescribeServiceLifecycle operation returning lifecycle information for AWS services, including end-of-support dates, version recommendations, and lifecycle events.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adds GetRemediationsV2 and ListExposuresByRemediationV2 APIs. This feature allows customers to see their highest priority remediations for their Exposure findings. Remediations target key changes customers can make to resources to drive finding resolution.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family Workflows adds support for the structuredLogDestinations option, enabling customers to specify a custom Amazon CloudWatch Logs log group for managed workflow execution logs.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Adds an optional textReadyAt field to ListIngestionJobs and GetIngestionJob for Managed Knowledge Bases data source sync jobs. The field denotes the timestamp at which all the documents in the scope of a sync job had their text content indexed and are available for retrieval.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Added always-amz-auth as a supported signing behavior for Origin Access Control (OAC), enabling CloudFront to authenticate requests to Lambda-Web origins.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release launches the AMI tag sharing feature, which lets AMI owners share tags alongside their AMIs, eliminating the need to build and maintain custom tag replication workflows.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds HierarchyFilter support for Amazon QuickSight analysis and dashboard and 2 legged OAuth for databricks datasources.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for c8a.16xlarge and m8a.16xlarge instance types for SageMaker HyperPod
+
+## __Lambda Web__
+  - ### Features
+    - Lambda Web Functions GA launch. Lambda Web Functions enable customers to run web applications and API backends
+
 # __2.55.9__ __2026-09-30__
 ## __AWS Account__
   - ### Features
