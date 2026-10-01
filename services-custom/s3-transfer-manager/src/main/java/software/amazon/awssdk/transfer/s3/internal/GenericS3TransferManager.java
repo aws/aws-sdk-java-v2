@@ -514,7 +514,7 @@ class GenericS3TransferManager implements S3TransferManager {
 
         return new DefaultFileDownload(returnFuture,
                                        new ResumeTransferProgress(progressFuture),
-                                       () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
+                                       () -> originalDownloadRequest,
                                        resumableFileDownload);
     }
 

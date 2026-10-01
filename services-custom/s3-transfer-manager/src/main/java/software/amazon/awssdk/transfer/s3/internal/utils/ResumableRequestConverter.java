@@ -227,7 +227,7 @@ public final class ResumableRequestConverter {
      */
     private static String computeResumedRange(String originalRange, long bytesTransferred, long contentLength) {
         if (originalRange != null) {
-            long[] parsedRange = parseRange(originalRange);
+            long[] parsedRange = parseRange(originalRange, contentLength);
             if (parsedRange != null) {
                 long originalStart = parsedRange[0];
                 long originalEnd = parsedRange[1];
@@ -238,22 +238,23 @@ public final class ResumableRequestConverter {
     }
 
     /**
-     * Parses a "bytes=start-end" range header value into a two-element array [start, end].
-     * Returns null if the range cannot be parsed (e.g., suffix ranges like "bytes=-500").
+     * Parses a "bytes=start-end" or "bytes=start-" range header into [start, end].
+     * Open-ended ranges use contentLength - 1 as the end.
+     * Returns null for suffix ranges ("bytes=-500") or malformed values.
      */
-    private static long[] parseRange(String range) {
+    private static long[] parseRange(String range, long contentLength) {
         if (range == null || !range.startsWith("bytes=")) {
             return null;
         }
         String rangeValue = range.substring("bytes=".length());
         int dashIndex = rangeValue.indexOf('-');
         if (dashIndex <= 0) {
-            // Suffix range (bytes=-500) or malformed — cannot resume with offset, fall back to default
             return null;
         }
         try {
             long start = Long.parseLong(rangeValue.substring(0, dashIndex));
-            long end = Long.parseLong(rangeValue.substring(dashIndex + 1));
+            String endPart = rangeValue.substring(dashIndex + 1);
+            long end = endPart.isEmpty() ? contentLength - 1 : Long.parseLong(endPart);
             return new long[]{start, end};
         } catch (NumberFormatException e) {
             return null;

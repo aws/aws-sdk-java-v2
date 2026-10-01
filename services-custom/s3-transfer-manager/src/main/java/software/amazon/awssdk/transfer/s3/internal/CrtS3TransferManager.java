@@ -221,8 +221,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         return new CrtFileDownload(returnFuture,
                                    new ResumeTransferProgress(progressFuture),
                                    observable,
-                                   () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture,
-                                                                      originalDownloadRequest),
+                                   () -> originalDownloadRequest,
                                    resumableFileDownload);
     }
 

@@ -229,8 +229,9 @@ class CrtTransferManagerPauseAndResumeTest {
         assertThat(newResumable.totalSizeInBytes()).isEqualTo(originalResumable.totalSizeInBytes());
         assertThat(newResumable.fileLastModified()).isEqualTo(originalResumable.fileLastModified());
 
-        // Download will be modified now that we finished the head request
-        assertThat(newResumable.downloadFileRequest()).isNotEqualTo(originalResumable.downloadFileRequest());
+        // The pause token should preserve the original download request so that
+        // double-resume computes the correct range offset
+        assertThat(newResumable.downloadFileRequest()).isEqualTo(originalResumable.downloadFileRequest());
 
         assertThat(fileDownload.completionFuture()).isCancelled();
         assertThat(getFuture).isCancelled();
