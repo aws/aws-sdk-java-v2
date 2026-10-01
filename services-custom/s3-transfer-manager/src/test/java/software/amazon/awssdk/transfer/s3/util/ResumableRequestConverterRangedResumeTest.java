@@ -24,10 +24,14 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.UUID;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -48,8 +52,6 @@ class ResumableRequestConverterRangedResumeTest {
     private static final long ORIGINAL_RANGE_END = 6 * 1024 * 1024 - 1;
     private static final String ORIGINAL_RANGE = "bytes=" + ORIGINAL_RANGE_START + "-" + ORIGINAL_RANGE_END;
     private static final long BYTES_TRANSFERRED = 1024 * 1024;
-    private static final long EXPECTED_RESUME_START = ORIGINAL_RANGE_START + BYTES_TRANSFERRED;
-    private static final String EXPECTED_RESUMED_RANGE = "bytes=" + EXPECTED_RESUME_START + "-" + ORIGINAL_RANGE_END;
 
     private File file;
     private Instant s3ObjectLastModified;
@@ -67,16 +69,42 @@ class ResumableRequestConverterRangedResumeTest {
         file.delete();
     }
 
-    @Test
-    void resumeRangedDownload_shouldComputeCorrectResumedRange() {
-        GetObjectRequest originalGetRequest = GetObjectRequest.builder()
-                                                              .bucket("test-bucket")
-                                                              .key("test-key")
-                                                              .range(ORIGINAL_RANGE)
-                                                              .build();
+    static Stream<Arguments> resumeRangeCases() {
+        long objectSize = 8 * 1024 * 1024;
+        long transferred = 1024 * 1024;
+        long rangeStart = 2 * 1024 * 1024;
+        long rangeEnd = 6 * 1024 * 1024 - 1;
+        return Stream.of(
+            // ranged: bytes=(start+transferred)-end
+            Arguments.of("bytes=" + rangeStart + "-" + rangeEnd,
+                         "bytes=" + (rangeStart + transferred) + "-" + rangeEnd),
+            // zero-offset range: bytes=(0+transferred)-end
+            Arguments.of("bytes=0-" + (4 * 1024 * 1024 - 1),
+                         "bytes=" + transferred + "-" + (4 * 1024 * 1024 - 1)),
+            // open-ended range: bytes=(start+transferred)-(contentLength-1)
+            Arguments.of("bytes=" + rangeStart + "-",
+                         "bytes=" + (rangeStart + transferred) + "-" + (objectSize - 1)),
+            // non-ranged: bytes=transferred-contentLength
+            Arguments.of(null,
+                         "bytes=" + transferred + "-" + objectSize),
+            // suffix range: falls back to non-ranged
+            Arguments.of("bytes=-500",
+                         "bytes=" + transferred + "-" + objectSize)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource("resumeRangeCases")
+    void resumeDownload_shouldComputeCorrectRange(String originalRange, String expectedRange) {
+        GetObjectRequest.Builder requestBuilder = GetObjectRequest.builder()
+                                                                  .bucket("test-bucket")
+                                                                  .key("test-key");
+        if (originalRange != null) {
+            requestBuilder.range(originalRange);
+        }
 
         DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(originalGetRequest)
+                                                                     .getObjectRequest(requestBuilder.build())
                                                                      .destination(file)
                                                                      .build();
 
@@ -97,44 +125,7 @@ class ResumableRequestConverterRangedResumeTest {
         Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
             toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
 
-        GetObjectRequest resumedRequest = result.left().getObjectRequest();
-
-        assertThat(resumedRequest.range())
-            .isEqualTo(EXPECTED_RESUMED_RANGE);
-    }
-
-    @Test
-    void resumeNonRangedDownload_shouldComputeRangeFromBytesTransferred() {
-        GetObjectRequest originalGetRequest = GetObjectRequest.builder()
-                                                              .bucket("test-bucket")
-                                                              .key("test-key")
-                                                              .build();
-
-        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(originalGetRequest)
-                                                                     .destination(file)
-                                                                     .build();
-
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
-                                                                           .bytesTransferred(BYTES_TRANSFERRED)
-                                                                           .s3ObjectLastModified(s3ObjectLastModified)
-                                                                           .fileLastModified(fileLastModified)
-                                                                           .downloadFileRequest(downloadFileRequest)
-                                                                           .build();
-
-        HeadObjectResponse headObjectResponse = HeadObjectResponse.builder()
-                                                                   .contentLength(WHOLE_OBJECT_SIZE)
-                                                                   .lastModified(s3ObjectLastModified)
-                                                                   .build();
-
-        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
-            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
-
-        GetObjectRequest resumedRequest = result.left().getObjectRequest();
-
-        String expectedRange = "bytes=" + BYTES_TRANSFERRED + "-" + WHOLE_OBJECT_SIZE;
-        assertThat(resumedRequest.range()).isEqualTo(expectedRange);
+        assertThat(result.left().getObjectRequest().range()).isEqualTo(expectedRange);
     }
 
     @Test
@@ -173,45 +164,6 @@ class ResumableRequestConverterRangedResumeTest {
         long rangeEnd = Long.parseLong(rangeValue.split("-")[1]);
 
         assertThat(rangeEnd).isEqualTo(ORIGINAL_RANGE_END);
-    }
-
-    @Test
-    void resumeRangedDownload_rangeStartingAtZero_shouldComputeCorrectRange() {
-        long rangeEnd = 4 * 1024 * 1024 - 1;
-        String originalRange = "bytes=0-" + rangeEnd;
-
-        GetObjectRequest originalGetRequest = GetObjectRequest.builder()
-                                                              .bucket("test-bucket")
-                                                              .key("test-key")
-                                                              .range(originalRange)
-                                                              .build();
-
-        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(originalGetRequest)
-                                                                     .destination(file)
-                                                                     .build();
-
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
-                                                                           .bytesTransferred(BYTES_TRANSFERRED)
-                                                                           .s3ObjectLastModified(s3ObjectLastModified)
-                                                                           .fileLastModified(fileLastModified)
-                                                                           .downloadFileRequest(downloadFileRequest)
-                                                                           .totalSizeInBytes(WHOLE_OBJECT_SIZE)
-                                                                           .build();
-
-        HeadObjectResponse headObjectResponse = HeadObjectResponse.builder()
-                                                                   .contentLength(WHOLE_OBJECT_SIZE)
-                                                                   .lastModified(s3ObjectLastModified)
-                                                                   .build();
-
-        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
-            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
-
-        GetObjectRequest resumedRequest = result.left().getObjectRequest();
-
-        String expectedRange = "bytes=" + BYTES_TRANSFERRED + "-" + rangeEnd;
-        assertThat(resumedRequest.range()).isEqualTo(expectedRange);
     }
 
     @Test
@@ -264,45 +216,6 @@ class ResumableRequestConverterRangedResumeTest {
     }
 
     @Test
-    void resumeRangedDownload_openEndedRange_shouldUseContentLengthAsEnd() {
-        long rangeStart = 2 * 1024 * 1024;
-        String originalRange = "bytes=" + rangeStart + "-";
-
-        GetObjectRequest originalGetRequest = GetObjectRequest.builder()
-                                                              .bucket("test-bucket")
-                                                              .key("test-key")
-                                                              .range(originalRange)
-                                                              .build();
-
-        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(originalGetRequest)
-                                                                     .destination(file)
-                                                                     .build();
-
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
-                                                                           .bytesTransferred(BYTES_TRANSFERRED)
-                                                                           .s3ObjectLastModified(s3ObjectLastModified)
-                                                                           .fileLastModified(fileLastModified)
-                                                                           .downloadFileRequest(downloadFileRequest)
-                                                                           .totalSizeInBytes(WHOLE_OBJECT_SIZE)
-                                                                           .build();
-
-        HeadObjectResponse headObjectResponse = HeadObjectResponse.builder()
-                                                                   .contentLength(WHOLE_OBJECT_SIZE)
-                                                                   .lastModified(s3ObjectLastModified)
-                                                                   .build();
-
-        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
-            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
-
-        GetObjectRequest resumedRequest = result.left().getObjectRequest();
-
-        String expectedRange = "bytes=" + (rangeStart + BYTES_TRANSFERRED) + "-" + (WHOLE_OBJECT_SIZE - 1);
-        assertThat(resumedRequest.range()).isEqualTo(expectedRange);
-    }
-
-    @Test
     void resumeNonRangedDownload_doubleResume_shouldNotDoubleCountOffset() throws IOException {
         long secondTransferred = 3000;
 
@@ -326,8 +239,6 @@ class ResumableRequestConverterRangedResumeTest {
                                                                        .lastModified(s3ObjectLastModified)
                                                                        .build();
 
-            // Simulate second resume: the token still has the original request (no range),
-            // but bytesTransferred is the total file size after two partial downloads.
             Instant fileLastModified = Instant.ofEpochMilli(doubleResumeFile.lastModified());
             ResumableFileDownload secondToken = ResumableFileDownload.builder()
                                                                      .bytesTransferred(secondTransferred)
@@ -363,7 +274,6 @@ class ResumableRequestConverterRangedResumeTest {
                                                                   .range(ORIGINAL_RANGE)
                                                                   .build();
 
-            // The original request is preserved in the token (not the resumed one)
             DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
                                                                          .getObjectRequest(originalGetRequest)
                                                                          .destination(doubleResumeFile)
@@ -393,40 +303,5 @@ class ResumableRequestConverterRangedResumeTest {
         } finally {
             doubleResumeFile.delete();
         }
-    }
-
-    @Test
-    void resumeRangedDownload_suffixRange_shouldFallBackToNonRangedResume() {
-        GetObjectRequest originalGetRequest = GetObjectRequest.builder()
-                                                              .bucket("test-bucket")
-                                                              .key("test-key")
-                                                              .range("bytes=-500")
-                                                              .build();
-
-        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
-                                                                     .getObjectRequest(originalGetRequest)
-                                                                     .destination(file)
-                                                                     .build();
-
-        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
-        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
-                                                                           .bytesTransferred(BYTES_TRANSFERRED)
-                                                                           .s3ObjectLastModified(s3ObjectLastModified)
-                                                                           .fileLastModified(fileLastModified)
-                                                                           .downloadFileRequest(downloadFileRequest)
-                                                                           .build();
-
-        HeadObjectResponse headObjectResponse = HeadObjectResponse.builder()
-                                                                   .contentLength(WHOLE_OBJECT_SIZE)
-                                                                   .lastModified(s3ObjectLastModified)
-                                                                   .build();
-
-        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
-            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
-
-        GetObjectRequest resumedRequest = result.left().getObjectRequest();
-
-        String expectedRange = "bytes=" + BYTES_TRANSFERRED + "-" + WHOLE_OBJECT_SIZE;
-        assertThat(resumedRequest.range()).isEqualTo(expectedRange);
     }
 }
