@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Health APIs and Notifications",
+    "contributor": "",
+    "description": "Adds DescribeServiceLifecycle operation returning lifecycle information for AWS services, including end-of-support dates, version recommendations, and lifecycle events."
+}
