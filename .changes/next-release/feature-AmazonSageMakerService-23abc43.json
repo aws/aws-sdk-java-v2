@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon SageMaker Service",
+    "contributor": "",
+    "description": "Release support for c8a.16xlarge and m8a.16xlarge instance types for SageMaker HyperPod"
+}
