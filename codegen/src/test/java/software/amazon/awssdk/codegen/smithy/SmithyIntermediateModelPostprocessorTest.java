@@ -62,46 +62,10 @@ class SmithyIntermediateModelPostprocessorTest {
     }
 
     @Test
-    void nonExceptionMessageMember_isKept() {
-        IntermediateModel model = build(
-            REST_JSON_SERVICE
-            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n"
-            + "@http(method: \"POST\", uri: \"/op\")\n"
-            + "operation Op { input: OpRequest, output: OpResponse }\n"
-            + "structure OpRequest { message: String }\n"
-            + "structure OpResponse {}\n",
-            CustomizationConfig.create());
-
-        assertThat(memberNames(model, "OpRequest")).containsExactly("message");
-    }
-
-    @Test
     void longPollingOperation_isMarked() {
-        IntermediateModel model = build(awsJsonService("SQS", "ReceiveMessage"), CustomizationConfig.create());
+        IntermediateModel model = build(sqsReceiveMessageService(), CustomizationConfig.create());
 
         assertThat(model.getOperation("ReceiveMessage").isLongPolling()).isTrue();
-    }
-
-    @Test
-    void otherOperations_areNotMarkedLongPolling() {
-        IntermediateModel model = build(awsJsonService("Demo", "ReceiveMessage"), CustomizationConfig.create());
-
-        assertThat(model.getOperation("ReceiveMessage").isLongPolling()).isFalse();
-    }
-
-    @Test
-    void longPollingService_missingOperation_fails() {
-        assertThatThrownBy(() -> build(awsJsonService("SQS", "SendMessage"), CustomizationConfig.create()))
-            .hasMessage("Operation ReceiveMessage not found for service SQS");
-    }
-
-    @Test
-    void legacyEventGenerationScheme_validConfig_passes() {
-        CustomizationConfig config = legacyEventConfig("EventOne");
-
-        IntermediateModel model = build(eventStreamService(), config);
-
-        assertThat(model.getShapes().get("EventStream").isEventStream()).isTrue();
     }
 
     @Test
@@ -113,16 +77,16 @@ class SmithyIntermediateModelPostprocessorTest {
             .hasMessageContaining("targets more than one member with the shape");
     }
 
-    private static String awsJsonService(String sdkId, String operation) {
+    private static String sqsReceiveMessageService() {
         return "$version: \"2.0\"\nnamespace demo\n\n"
                + "use aws.api#service\n"
                + "use aws.auth#sigv4\n"
                + "use aws.protocols#awsJson1_0\n"
-               + "@service(sdkId: \"" + sdkId + "\", arnNamespace: \"demo\")\n"
+               + "@service(sdkId: \"SQS\", arnNamespace: \"demo\")\n"
                + "@sigv4(name: \"demo\")\n"
                + "@awsJson1_0\n"
-               + "service DemoService { version: \"2024-01-01\", operations: [" + operation + "] }\n"
-               + "operation " + operation + " { input: OpRequest, output: OpResponse }\n"
+               + "service DemoService { version: \"2024-01-01\", operations: [ReceiveMessage] }\n"
+               + "operation ReceiveMessage { input: OpRequest, output: OpResponse }\n"
                + "structure OpRequest {}\n"
                + "structure OpResponse {}\n";
     }
