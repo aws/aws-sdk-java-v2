@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Apache HTTP Client",
+    "contributor": "",
+    "description": "Keep `ApacheHttpClient` and `Apache5HttpClient` usable after a `java.lang.Error` escapes a request. Apache deliberately shuts its connection manager down in that case (HTTPCLIENT-1924), so an `OutOfMemoryError` raised by unrelated application code while a request thread was inside the HTTP client would leave the client permanently broken: every later call failed with `IllegalStateException: Connection pool shut down` until the JVM was restarted, even though the application itself had recovered. The SDK now discards the affected pool, along with the connection leases Apache's Error path never released, and builds a replacement on the next request. Closing an SDK HTTP client remains permanent."
+}
