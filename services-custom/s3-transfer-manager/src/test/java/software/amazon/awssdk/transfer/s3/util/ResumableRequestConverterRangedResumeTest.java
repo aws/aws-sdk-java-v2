@@ -32,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -86,9 +87,6 @@ class ResumableRequestConverterRangedResumeTest {
                          "bytes=" + (rangeStart + transferred) + "-" + (objectSize - 1)),
             // non-ranged: bytes=transferred-contentLength
             Arguments.of(null,
-                         "bytes=" + transferred + "-" + objectSize),
-            // suffix range: falls back to non-ranged
-            Arguments.of("bytes=-500",
                          "bytes=" + transferred + "-" + objectSize)
         );
     }
@@ -213,6 +211,44 @@ class ResumableRequestConverterRangedResumeTest {
         } finally {
             smallFile.delete();
         }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"bytes=-500", "bytes=100-500,1000-2000", "bytes=0-0,-1"})
+    void resumeDownload_unparseableRange_shouldRestartFromBeginning(String unparseableRange) {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("test-bucket")
+                                                            .key("test-key")
+                                                            .range(unparseableRange)
+                                                            .build();
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                           .bytesTransferred(BYTES_TRANSFERRED)
+                                                                           .s3ObjectLastModified(s3ObjectLastModified)
+                                                                           .fileLastModified(fileLastModified)
+                                                                           .downloadFileRequest(downloadFileRequest)
+                                                                           .totalSizeInBytes(WHOLE_OBJECT_SIZE)
+                                                                           .build();
+
+        HeadObjectResponse headObjectResponse = HeadObjectResponse.builder()
+                                                                   .contentLength(WHOLE_OBJECT_SIZE)
+                                                                   .lastModified(s3ObjectLastModified)
+                                                                   .build();
+
+        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
+
+        // Unparseable ranges should restart from the beginning, preserving the original range
+        GetObjectRequest resumedRequest = result.left().getObjectRequest();
+        assertThat(resumedRequest.range()).isEqualTo(unparseableRange);
+        // ifUnmodifiedSince should be set for the restart request
+        assertThat(resumedRequest.ifUnmodifiedSince()).isEqualTo(s3ObjectLastModified);
     }
 
     @Test
