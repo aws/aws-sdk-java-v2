@@ -1,4 +1,37 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.11__ __2026-10-02__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Dynamic Multiview enables viewers to watch multiple live video streams in a single combined output. Static filter configuration allows users to configure endpoints with layouts and sources without using query parameters. The number of sources per multiview channel has been increased to 50.
+
+## __AWS Glue__
+  - ### Features
+    - Added refresh token grant type to Glue Connection supported OAuth 2.0 grant types
+
+## __AWS Invoicing__
+  - ### Features
+    - API and doc updates related to adding MarketplacePunchOutEnabled and MarketplacePunchOutPreference fields to ProcurementPortalPreferences related APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added opt-in GZIPInputStream compatibility for blocking response streams to prevent concatenated (multi-member) gzip responses from being truncated when available() temporarily returns 0 at a member boundary. Enable it with ResponseTransformer.toGzipCompatibleInputStream() or AsyncResponseTransformer.toGzipCompatibleBlockingInputStream().
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds trigger filters that control which pull request events, target branches, and labels start an automatic code review.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Amazon Cognito User Pools now supports the OIDC-standard authentication context class reference (ACR) and authentication methods reference (AMR) claims on issued access and Id tokens. Amazon Cognito User Pools also now supports step-up authentication via our existing authentication APIs.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging SMS CarrierLookup API now supports phone number cleansing on customer opt-in. when selected, the response includes the additional field "OriginalPhoneNumber". It can also return additional PhoneNumberType enums, VOIP and PREPAID.
+
+## __Lambda Web__
+  - ### Features
+    - Documentation update for AWS Lambda Web Functions, clarifies that the LambdaWeb APIs are experimental and not yet available to external customers.
+
 # __2.55.10__ __2026-10-01__
 ## __AWS End User Messaging__
   - ### Features

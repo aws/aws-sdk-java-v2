@@ -1,0 +1,54 @@
+{
+    "version": "2.55.11",
+    "date": "2026-10-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Security Agent",
+            "contributor": "",
+            "description": "Adds trigger filters that control which pull request events, target branches, and labels start an automatic code review."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Invoicing",
+            "contributor": "",
+            "description": "API and doc updates related to adding MarketplacePunchOutEnabled and MarketplacePunchOutPreference fields to ProcurementPortalPreferences related APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Added refresh token grant type to Glue Connection supported OAuth 2.0 grant types"
+        },
+        {
+            "type": "feature",
+            "category": "Lambda Web",
+            "contributor": "",
+            "description": "Documentation update for AWS Lambda Web Functions, clarifies that the LambdaWeb APIs are experimental and not yet available to external customers."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint SMS Voice V2",
+            "contributor": "",
+            "description": "AWS End User Messaging SMS CarrierLookup API now supports phone number cleansing on customer opt-in. when selected, the response includes the additional field \"OriginalPhoneNumber\". It can also return additional PhoneNumberType enums, VOIP and PREPAID."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Amazon Cognito User Pools now supports the OIDC-standard authentication context class reference (ACR) and authentication methods reference (AMR) claims on issued access and Id tokens. Amazon Cognito User Pools also now supports step-up authentication via our existing authentication APIs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "Dynamic Multiview enables viewers to watch multiple live video streams in a single combined output. Static filter configuration allows users to configure endpoints with layouts and sources without using query parameters. The number of sources per multiview channel has been increased to 50."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added opt-in GZIPInputStream compatibility for blocking response streams to prevent concatenated (multi-member) gzip responses from being truncated when available() temporarily returns 0 at a member boundary. Enable it with ResponseTransformer.toGzipCompatibleInputStream() or AsyncResponseTransformer.toGzipCompatibleBlockingInputStream()."
+        }
+    ]
+}

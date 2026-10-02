@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Pinpoint SMS Voice V2",
-    "contributor": "",
-    "description": "AWS End User Messaging SMS CarrierLookup API now supports phone number cleansing on customer opt-in. when selected, the response includes the additional field \"OriginalPhoneNumber\". It can also return additional PhoneNumberType enums, VOIP and PREPAID."
-}
