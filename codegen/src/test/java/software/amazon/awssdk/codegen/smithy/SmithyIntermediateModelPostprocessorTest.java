@@ -27,6 +27,8 @@ import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
 import software.amazon.smithy.model.Model;
 
 /**
@@ -75,6 +77,29 @@ class SmithyIntermediateModelPostprocessorTest {
         assertThatThrownBy(() -> build(eventStreamService(), config))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessageContaining("targets more than one member with the shape");
+    }
+
+    @Test
+    void eventSharedBetweenEventStreams_fails() {
+        String smithy =
+            REST_JSON_SERVICE
+            + "service DemoService { version: \"2024-01-01\", operations: [SubscribeA, SubscribeB] }\n"
+            + "@http(method: \"POST\", uri: \"/a\")\n"
+            + "operation SubscribeA { input: SubscribeARequest, output: SubscribeAResponse }\n"
+            + "structure SubscribeARequest {}\n"
+            + "structure SubscribeAResponse { @httpPayload events: StreamA }\n"
+            + "@http(method: \"POST\", uri: \"/b\")\n"
+            + "operation SubscribeB { input: SubscribeBRequest, output: SubscribeBResponse }\n"
+            + "structure SubscribeBRequest {}\n"
+            + "structure SubscribeBResponse { @httpPayload events: StreamB }\n"
+            + "@streaming union StreamA { Shared: SharedEvent }\n"
+            + "@streaming union StreamB { Shared: SharedEvent }\n"
+            + "structure SharedEvent { value: String }\n";
+
+        assertThatThrownBy(() -> build(smithy, CustomizationConfig.create()))
+            .isInstanceOf(ModelInvalidException.class)
+            .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getErrorId()
+                          == ValidationErrorId.SHARED_EVENTSTREAM_EVENT);
     }
 
     private static String sqsReceiveMessageService() {

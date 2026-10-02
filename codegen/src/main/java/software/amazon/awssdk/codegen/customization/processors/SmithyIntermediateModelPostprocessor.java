@@ -41,6 +41,7 @@ public final class SmithyIntermediateModelPostprocessor {
         List<CodegenCustomizationProcessor> processors = new ArrayList<>();
         processors.add(new RemoveExceptionMessagePropertyProcessor());
         processors.add(new UseLegacyEventGenerationSchemeProcessor());
+        processors.add(new EventStreamSharedEventProcessor(config.getDuplicateAndRenameSharedEvents()));
         processors.add(new LongPollingOperationProcessor());
         return new SmithyIntermediateModelPostprocessor(processors);
     }
