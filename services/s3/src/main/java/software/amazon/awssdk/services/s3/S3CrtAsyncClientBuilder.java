@@ -390,7 +390,11 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * several collections are published per transfer.
      *
      * <p>The SDK does not close these publishers when the client is closed; the caller retains ownership and is
-     * responsible for closing them.
+     * responsible for closing them. Metric publication is asynchronous and best effort. Closing the client initiates
+     * shutdown of metric publication, but may return while previously queued metric collections are being delivered.
+     * The SDK attempts to drain accepted collections for up to five seconds and then drops any that remain queued. If a
+     * publisher is closed concurrently with this delivery, those metric collections may not be published and a warning
+     * may be logged. This does not affect the outcome of the S3 operation.
      *
      * @param metricPublishers the metric publishers to use
      * @return this builder for method chaining.

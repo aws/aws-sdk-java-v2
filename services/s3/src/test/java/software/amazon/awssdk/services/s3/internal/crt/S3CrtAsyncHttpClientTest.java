@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.timeout;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.CRT_MEMORY_BUFFER_DISABLED;
@@ -97,6 +98,7 @@ public class S3CrtAsyncHttpClientTest {
     @BeforeEach
     public void methodSetup() {
         s3Client = Mockito.mock(S3Client.class);
+        when(s3Client.getShutdownCompleteFuture()).thenReturn(CompletableFuture.completedFuture(null));
         responseHandler = Mockito.mock(SdkAsyncHttpResponseHandler.class);
         contentPublisher = Mockito.mock(SdkHttpContentPublisher.class);
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
@@ -166,16 +168,21 @@ public class S3CrtAsyncHttpClientTest {
                                 .s3ClientConfiguration(s3NativeClientConfiguration)
                                 .metricPublishers(Collections.singletonList(publisher)));
 
-        S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
-        requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+        try {
+            S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+            requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
 
-        ArgumentCaptor<MetricCollection> metricCollectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
-        verify(publisher).publish(metricCollectionCaptor.capture());
-        MetricCollection attempt =
-            metricCollectionCaptor.getValue().childrenWithName("ApiCallAttempt").findFirst().orElseThrow(AssertionError::new);
-        MetricCollection httpClient =
-            attempt.childrenWithName("HttpClient").findFirst().orElseThrow(AssertionError::new);
-        assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(expectedMaxConcurrency);
+            ArgumentCaptor<MetricCollection> metricCollectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+            verify(publisher, timeout(1_000)).publish(metricCollectionCaptor.capture());
+            MetricCollection attempt =
+                metricCollectionCaptor.getValue().childrenWithName("ApiCallAttempt").findFirst()
+                                      .orElseThrow(AssertionError::new);
+            MetricCollection httpClient =
+                attempt.childrenWithName("HttpClient").findFirst().orElseThrow(AssertionError::new);
+            assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(expectedMaxConcurrency);
+        } finally {
+            asyncHttpClient.close();
+        }
     }
 
     @Test
