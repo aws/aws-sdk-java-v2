@@ -162,4 +162,72 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
 
         assertThat(cancellations).hasValue(1);
     }
+
+    @Test
+    void exceptionalFutureBeforeStreamStart_shouldReleaseAcceptedBufferWithoutCredit() {
+        AtomicInteger releases = new AtomicInteger();
+        AtomicLong credit = new AtomicLong();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
+        transformer.onBorrowedBuffer(new S3CrtBorrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                              3,
+                                                              releases::incrementAndGet,
+                                                              credit::addAndGet));
+
+        future.completeExceptionally(new RuntimeException("request failed"));
+
+        assertThat(releases).hasValue(1);
+        assertThat(credit).hasValue(0);
+    }
+
+    @Test
+    void failedFutureThenLateStreamStart_shouldKeepFutureFailedAndDiscardLateBuffers() {
+        AtomicInteger cancellations = new AtomicInteger();
+        AtomicInteger releases = new AtomicInteger();
+        AtomicLong credit = new AtomicLong();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+
+        future.completeExceptionally(new RuntimeException("request failed"));
+        transformer.onBorrowedStreamStart(cancellations::incrementAndGet);
+        assertThat(transformer.onBorrowedBuffer(new S3CrtBorrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                                         3,
+                                                                         releases::incrementAndGet,
+                                                                         credit::addAndGet))).isFalse();
+
+        assertThat(future).isCompletedExceptionally();
+        assertThat(cancellations).hasValue(1);
+        assertThat(releases).hasValue(1);
+        assertThat(credit).hasValue(0);
+    }
+
+    @Test
+    void remoteErrorAfterPublication_shouldLeaveAcceptedBytesReadableBeforeFailing() throws Exception {
+        AtomicInteger releases = new AtomicInteger();
+        AtomicLong credit = new AtomicLong();
+        RuntimeException failure = new RuntimeException("request failed");
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
+        transformer.onBorrowedStreamStart(() -> { });
+        transformer.onBorrowedBuffer(new S3CrtBorrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                              3,
+                                                              releases::incrementAndGet,
+                                                              credit::addAndGet));
+        transformer.onBorrowedStreamError(failure);
+
+        try (ResponseInputStream<GetObjectResponse> stream = future.join()) {
+            byte[] bytes = new byte[3];
+            assertThat(stream.read(bytes)).isEqualTo(3);
+            assertThat(bytes).isEqualTo("abc".getBytes(UTF_8));
+            assertThatThrownBy(stream::read).isInstanceOf(IOException.class).hasCause(failure);
+        }
+        assertThat(releases).hasValue(1);
+        assertThat(credit).hasValue(3);
+    }
 }

@@ -70,7 +70,7 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
     private static final String E_TAG = "\"upload-etag\"";
 
     @Test
-    void uploadBelowMultipartMinimum_withPool_shouldFailFastWithActionableMessage(WireMockRuntimeInfo wireMock) {
+    void multipartUploadBelowMultipartMinimum_withPool_shouldFailFastWithActionableMessage(WireMockRuntimeInfo wireMock) {
         stubUpload();
 
         try (S3AsyncClient client = newClient(wireMock, (long) SMALL_PART_SIZE, 64L * 1024 * 1024)) {
@@ -82,9 +82,25 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
         }
     }
 
+    @Test
+    void singlePartUpload_withPool_shouldSucceed(WireMockRuntimeInfo wireMock) throws Exception {
+        stubUpload();
+
+        try (S3AsyncClient client = newClient(wireMock,
+                                               (long) SMALL_PART_SIZE,
+                                               64L * 1024 * 1024,
+                                               (long) CONTENT.length + 1)) {
+            PutObjectResponse response = putContent(client).get(20, TimeUnit.SECONDS);
+            assertThat(response).isNotNull();
+        }
+
+        assertThat(findAll(anyRequestedFor(anyUrl())))
+            .extracting(request -> request.getMethod().getName())
+            .containsExactly("PUT");
+    }
+
     /**
-     * The same upload on the same configuration minus the pool. This is what makes the test above a behavior change
-     * rather than a misconfiguration: today this succeeds, because CRT silently raises the part size.
+     * The same multipart upload without a pool succeeds because CRT can raise the part size.
      */
     @Test
     void uploadBelowMultipartMinimum_withoutPool_shouldSucceed(WireMockRuntimeInfo wireMock) throws Exception {
@@ -152,18 +168,27 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
     }
 
     private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock, long partSize, long poolBytes) {
-        S3CrtAsyncClientBuilderShim builder = new S3CrtAsyncClientBuilderShim(wireMock, partSize);
+        return newClient(wireMock, partSize, poolBytes, null);
+    }
+
+    private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock,
+                                           long partSize,
+                                           long poolBytes,
+                                           Long thresholdInBytes) {
+        S3CrtAsyncClientBuilderShim builder = new S3CrtAsyncClientBuilderShim(wireMock, partSize, thresholdInBytes);
         return poolBytes > 0 ? builder.withPool(poolBytes) : builder.withoutPool();
     }
 
-    /** Keeps the two client variants byte-for-byte identical apart from the pool. */
+    /** Keeps the client variants identical apart from direct-pool configuration. */
     private static final class S3CrtAsyncClientBuilderShim {
         private final WireMockRuntimeInfo wireMock;
         private final long partSize;
+        private final Long thresholdInBytes;
 
-        private S3CrtAsyncClientBuilderShim(WireMockRuntimeInfo wireMock, long partSize) {
+        private S3CrtAsyncClientBuilderShim(WireMockRuntimeInfo wireMock, long partSize, Long thresholdInBytes) {
             this.wireMock = wireMock;
             this.partSize = partSize;
+            this.thresholdInBytes = thresholdInBytes;
         }
 
         private software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder base() {
@@ -173,6 +198,7 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
                                 .credentialsProvider(StaticCredentialsProvider.create(
                                     AwsBasicCredentials.create("key", "secret")))
                                 .minimumPartSizeInBytes(partSize)
+                                .thresholdInBytes(thresholdInBytes)
                                 .requestChecksumCalculation(RequestChecksumCalculation.WHEN_REQUIRED);
         }
 

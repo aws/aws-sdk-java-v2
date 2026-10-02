@@ -173,7 +173,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         CompletableFuture<ReturnT> result = (CompletableFuture<ReturnT>) (CompletableFuture<?>)
             super.getObject(requestWithBorrowedHandler, bridge);
         result.whenComplete((ignored, error) -> {
-            if (result.isCancelled()) {
+            if (error != null) {
                 bridge.abort();
             }
         });

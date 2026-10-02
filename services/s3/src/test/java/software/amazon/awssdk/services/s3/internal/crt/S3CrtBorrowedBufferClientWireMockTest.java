@@ -37,6 +37,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
@@ -149,6 +150,29 @@ class S3CrtBorrowedBufferClientWireMockTest {
         } finally {
             completionExecutor.release();
             client.close();
+        }
+    }
+
+    @Test
+    void afterExecutionFailureAfterStreamPublication_shouldReleasePoolForNextRequest(WireMockRuntimeInfo wireMock)
+        throws Exception {
+        stubMultipartObject(CONTENT);
+        AtomicInteger afterExecutionCalls = new AtomicInteger();
+        ExecutionInterceptor failFirstAfterExecution = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
+                if (afterExecutionCalls.getAndIncrement() == 0) {
+                    throw new IllegalStateException("after execution failed");
+                }
+            }
+        };
+
+        try (S3AsyncClient client = newClient(wireMock, null, failFirstAfterExecution)) {
+            assertThatThrownBy(() -> getObject(client)).hasRootCauseMessage("after execution failed");
+
+            try (ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
+                assertThat(readAll(stream)).containsExactly(CONTENT);
+            }
         }
     }
 

@@ -118,8 +118,7 @@ class S3CrtBorrowedBufferCrossRegionWireMockTest {
                                                          .withHeader("Content-Length", "0")));
         stubSuccessfulGet("127.0.0.1", port);
 
-        // A single-slot pool means the second download can only complete if the first one released every buffer it
-        // borrowed, including the buffers of the attempt that was redirected away.
+        // A single-slot pool verifies that each successful borrowed stream releases its buffer before the next download.
         try (S3AsyncClient client = newClient(wireMock, null)) {
             for (int request = 0; request < 2; request++) {
                 try (ResponseInputStream<GetObjectResponse> stream = getObject(client, wireMock, "key")) {

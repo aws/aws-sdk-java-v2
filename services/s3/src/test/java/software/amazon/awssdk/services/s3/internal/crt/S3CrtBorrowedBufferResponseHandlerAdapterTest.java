@@ -426,34 +426,25 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     }
 
     @Test
-    void borrowedCallback_whenStreamStartFailsAfterHandoff_shouldNotReleaseTheHandedOffBuffer() {
+    void borrowedCallback_whenStreamStartFailsAfterHandoff_shouldAbortAndReleaseAcceptedBuffer() {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
-        AtomicReference<S3CrtBorrowedBuffer> delivered = new AtomicReference<>();
-        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
-        // The stream takes the buffer, and only then does starting the stream fail.
-        when(streamHandler.onBorrowedBuffer(any())).thenAnswer(invocation -> {
-            delivered.set(invocation.getArgument(0));
-            return true;
-        });
-        doAnswer(invocation -> {
-            throw new IllegalStateException("stream start failed");
-        }).when(streamHandler).onBorrowedStreamStart(any());
+        S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
+        FailingStreamStartHandler streamHandler = new FailingStreamStartHandler();
         S3CrtBorrowedBufferResponseHandlerAdapter handler =
             new S3CrtBorrowedBufferResponseHandlerAdapter(executeFuture,
                                                           mock(SdkAsyncHttpResponseHandler.class),
                                                           null,
-                                                          CompletableFuture.completedFuture(
-                                                              mock(S3MetaRequestWrapper.class)),
+                                                          CompletableFuture.completedFuture(metaRequest),
                                                           new AtomicLong(),
                                                           streamHandler);
         S3BorrowedBuffer crtBuffer = directCrtBuffer(3);
 
         assertThat(handler.onResponseBody(crtBuffer, 0, 3)).isZero();
 
-        // The buffer is queued in the stream, where a reader can still reach it. Releasing it here too would hand the
-        // pooled memory back while it is still readable, so the release has to be left to the stream's own cleanup.
-        assertThat(delivered.get()).isNotNull();
-        verify(crtBuffer, never()).close();
+        assertThat(streamHandler.abortError).isInstanceOf(IllegalStateException.class)
+                                             .hasMessage("stream start failed");
+        verify(crtBuffer).close();
+        verify(metaRequest, never()).incrementReadWindow(anyLong());
         assertThat(executeFuture).isCompletedExceptionally();
     }
 
@@ -506,6 +497,48 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         }
 
         private void discardBuffer() {
+            S3CrtBorrowedBuffer borrowedBuffer = buffer.getAndSet(null);
+            if (borrowedBuffer != null) {
+                borrowedBuffer.discard();
+            }
+        }
+    }
+
+    private static final class FailingStreamStartHandler implements S3CrtBorrowedBufferStreamHandler {
+        private final AtomicReference<S3CrtBorrowedBuffer> buffer = new AtomicReference<>();
+        private Throwable abortError;
+
+        @Override
+        public void onBorrowedStreamStart(Runnable cancellationAction) {
+            throw new IllegalStateException("stream start failed");
+        }
+
+        @Override
+        public boolean onBorrowedBuffer(S3CrtBorrowedBuffer borrowedBuffer) {
+            buffer.set(borrowedBuffer);
+            return true;
+        }
+
+        @Override
+        public void onBorrowedStreamComplete() {
+        }
+
+        @Override
+        public void onBorrowedStreamError(Throwable error) {
+        }
+
+        @Override
+        public void onBorrowedStreamAbort() {
+            discard(null);
+        }
+
+        @Override
+        public void onBorrowedStreamAbort(Throwable error) {
+            discard(error);
+        }
+
+        private void discard(Throwable error) {
+            abortError = error;
             S3CrtBorrowedBuffer borrowedBuffer = buffer.getAndSet(null);
             if (borrowedBuffer != null) {
                 borrowedBuffer.discard();

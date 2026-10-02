@@ -81,16 +81,13 @@ class S3CrtBorrowedBufferTest {
         }, bytes -> {
         });
 
-        // CRT returns the lease's own ByteBuffer instance and may hand it out again after the lease is released, so
-        // reading here must not move its position.
+        crtView.get();
+        assertThat(buffer.buffer().remaining()).isEqualTo(4);
+
         buffer.buffer().get(new byte[4]);
         assertThat(buffer.buffer().hasRemaining()).isFalse();
-        assertThat(crtView.position()).isZero();
-        assertThat(crtView.remaining()).isEqualTo(4);
-
-        // The reverse direction too: CRT moving its own cursor must not shorten what we deliver.
-        crtView.get();
-        assertThat(buffer.byteCount()).isEqualTo(4);
+        assertThat(crtView.position()).isEqualTo(1);
+        assertThat(crtView.remaining()).isEqualTo(3);
     }
 
     @Test

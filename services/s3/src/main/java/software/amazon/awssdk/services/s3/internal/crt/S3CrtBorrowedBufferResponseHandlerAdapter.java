@@ -114,9 +114,14 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
             acceptedByStream = validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);
             initiateStream();
         } catch (Throwable t) {
-            // Once the stream has taken the buffer it owns the release, and the buffer is already queued where a reader
-            // can reach it. Releasing it here as well would return the pooled memory while it is still readable, so the
-            // cleanup is skipped and left to the stream's own close/discard path.
+            if (acceptedByStream) {
+                // initiateStream() threw before publication, so no reader can hold these bytes.
+                try {
+                    streamHandler.onBorrowedStreamAbort(t);
+                } catch (Throwable cleanupFailure) {
+                    addSuppressed(t, cleanupFailure);
+                }
+            }
             failBorrowedResponse(t, acceptedByStream ? null : sdkBuffer, acceptedByStream ? null : crtBuffer);
         }
         return 0;
@@ -158,9 +163,6 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
         return 0;
     }
 
-    /**
-     * @return true if the stream took ownership of the buffer, meaning the caller must not release it.
-     */
     private boolean validateAndAcceptBuffer(
         S3CrtBorrowedBuffer buffer,
         long objectRangeStart,

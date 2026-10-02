@@ -58,15 +58,9 @@ import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 /**
- * Interceptor behavior on a pool-enabled CRT client when the body is delivered as borrowed buffers.
+ * Interceptor behavior for pool-enabled borrowed downloads.
  *
- * <p>A borrowed body never becomes a {@code Publisher<ByteBuffer>}: the pooled buffers go straight to the blocking
- * stream, which is the whole point of the feature. {@code modifyAsyncHttpResponseContent} is still invoked — the
- * interceptor chain calls it once per response regardless — but it is handed <em>no</em> response publisher, so an
- * interceptor that inspects or rewrites body bytes silently sees nothing rather than failing. That is a real
- * behavioral difference callers need to know about, so it is pinned here rather than left implicit. Everything that
- * does not touch the body stream ({@code modifyResponse}, {@code afterExecution}, {@code onExecutionFailure}) must
- * still run normally.
+ * <p>The response-content publisher is present and subscribed, but emits no object-body events.
  */
 @WireMockTest
 @Timeout(20)
@@ -89,13 +83,10 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
             assertThat(stream.read()).isEqualTo(-1);
         }
 
-        // The hook runs and is even handed a publisher to wrap, so an interceptor has no way to tell from its own
-        // inputs that this download is different. But the pooled buffers go straight to the blocking stream, so
-        // nothing ever subscribes to that publisher: the interceptor's wrapper is installed and never invoked, and it
-        // observes zero of the 256 KiB it would see on an ordinary download. This is the caveat for borrowed
-        // downloads, and it is silent — which is exactly why it is pinned.
+        // The hook receives a publisher and subscribes to the wrapper, but borrowed bytes bypass it.
         assertThat(interceptor.modifyAsyncHttpResponseContentCalls).isEqualTo(1);
         assertThat(interceptor.responsePublisherPresentCalls).isEqualTo(1);
+        assertThat(interceptor.responsePublisherSubscribedCalls).isEqualTo(1);
         assertThat(interceptor.bodyBytesSeen).isZero();
 
         assertThat(interceptor.modifyResponseCalls).isPositive();
@@ -204,6 +195,7 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         private final List<String> order = new CopyOnWriteArrayList<>();
         private volatile int modifyAsyncHttpResponseContentCalls;
         private volatile int responsePublisherPresentCalls;
+        private volatile int responsePublisherSubscribedCalls;
         private volatile int modifyResponseCalls;
         private volatile int afterExecutionCalls;
         private volatile int onExecutionFailureCalls;
@@ -217,8 +209,10 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
             if (context.responsePublisher().isPresent()) {
                 responsePublisherPresentCalls++;
             }
-            return context.responsePublisher().map(publisher -> subscriber -> publisher.subscribe(
-                new CountingSubscriber(subscriber, read -> bodyBytesSeen += read)));
+            return context.responsePublisher().map(publisher -> subscriber -> {
+                responsePublisherSubscribedCalls++;
+                publisher.subscribe(new CountingSubscriber(subscriber, read -> bodyBytesSeen += read));
+            });
         }
 
         @Override
