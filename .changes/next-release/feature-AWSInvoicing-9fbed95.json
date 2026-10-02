@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS Invoicing",
-    "contributor": "",
-    "description": "API and doc updates related to adding MarketplacePunchOutEnabled and MarketplacePunchOutPreference fields to ProcurementPortalPreferences related APIs"
-}
