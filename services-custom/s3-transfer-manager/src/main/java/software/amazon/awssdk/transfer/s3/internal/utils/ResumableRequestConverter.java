@@ -206,6 +206,12 @@ public final class ResumableRequestConverter {
                                                                   DownloadFileRequest downloadRequest,
                                                                   GetObjectRequest getObjectRequest,
                                                                   HeadObjectResponse headObjectResponse) {
+        // partNumber and Range cannot coexist, S3 rejects with 400 InvalidRequest.
+        // When partNumber is set, restart the part from scratch.
+        if (getObjectRequest.partNumber() != null) {
+            return newDownloadFileRequest(downloadRequest, getObjectRequest, headObjectResponse);
+        }
+
         DownloadFileRequest newDownloadFileRequest;
         long bytesTransferred = resumableFileDownload.bytesTransferred();
         GetObjectRequest newGetObjectRequest =

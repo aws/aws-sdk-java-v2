@@ -207,6 +207,34 @@ class ResumableRequestConverterTest {
         verifyActualGetObjectRequest(getObjectRequest, actual.left().getObjectRequest(), null);
     }
 
+    @Test
+    void toDownloadFileAndTransformer_partNumberSet_shouldRestartFromBeginning() {
+        Instant s3ObjectLastModified = Instant.now();
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .partNumber(3)
+                                                            .build();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                           .bytesTransferred(file.length())
+                                                                           .s3ObjectLastModified(s3ObjectLastModified)
+                                                                           .fileLastModified(fileLastModified)
+                                                                           .downloadFileRequest(downloadFileRequest)
+                                                                           .build();
+        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> actual =
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
+                                                downloadFileRequest);
+        GetObjectRequest actualRequest = actual.left().getObjectRequest();
+        verifyActualGetObjectRequest(getObjectRequest, actualRequest, null);
+        assertThat(actualRequest.partNumber()).isEqualTo(3);
+        assertThat(actualRequest.ifUnmodifiedSince()).isEqualTo(s3ObjectLastModified);
+    }
+
     private static void verifyActualGetObjectRequest(GetObjectRequest originalRequest, GetObjectRequest actualRequest,
                                                      String range) {
         assertThat(actualRequest.bucket()).isEqualTo(originalRequest.bucket());
