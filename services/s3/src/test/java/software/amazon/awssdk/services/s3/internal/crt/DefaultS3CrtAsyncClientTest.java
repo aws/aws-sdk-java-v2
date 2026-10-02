@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -145,11 +146,13 @@ class DefaultS3CrtAsyncClientTest {
     @Test
     void borrowedTransformer_withPool_shouldCopyRequestAndPropagateHandler() {
         AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+        AtomicReference<AtomicLong> responseBytesRead = new AtomicReference<>();
         ExecutionInterceptor captor = new ExecutionInterceptor() {
             @Override
             public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
                 capturedAttributes.set(
                     executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                responseBytesRead.set(executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ));
                 throw new RuntimeException("STOP");
             }
         };
@@ -175,9 +178,12 @@ class DefaultS3CrtAsyncClientTest {
                 .hasMessageContaining("STOP");
         }
 
-        S3CrtBorrowedBufferStreamHandler handler = capturedAttributes.get().getAttribute(
+        S3CrtBorrowedBufferStreamHandlerFactory handler = capturedAttributes.get().getAttribute(
             S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_STREAM_HANDLER);
         assertThat(handler).isInstanceOf(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+        assertThat(responseBytesRead.get()).isNotNull();
+        assertThat(capturedAttributes.get().getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ))
+            .isSameAs(responseBytesRead.get());
         assertThat(((AsyncResponseTransformer<?, ?>) handler).name())
             .isEqualTo(AsyncResponseTransformer.TransformerType.STREAM.getName());
         assertThat(request.overrideConfiguration().get().executionAttributes().getAttribute(callerAttribute))

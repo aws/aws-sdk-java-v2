@@ -35,6 +35,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import software.amazon.awssdk.core.exception.SdkClientException;
 
 @Timeout(10)
 class S3CrtBorrowedBufferInputStreamTest {
@@ -142,6 +143,15 @@ class S3CrtBorrowedBufferInputStreamTest {
         assertThatThrownBy(stream::read)
             .isInstanceOf(IOException.class)
             .hasCause(failure);
+    }
+
+    @Test
+    void sdkClientFailure_isReportedWithoutWrapping() {
+        SdkClientException failure = SdkClientException.create("request failed");
+        S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
+        stream.onError(failure);
+
+        assertThatThrownBy(stream::read).isSameAs(failure);
     }
 
     @Test
@@ -326,7 +336,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(cancellations::incrementAndGet);
 
         stream.close();
-        stream.onBuffer(buffer("abc", releases::incrementAndGet, credited));
+        assertThat(stream.onBuffer(buffer("abc", releases::incrementAndGet, credited))).isFalse();
 
         assertThat(cancellations).hasValue(1);
         assertThat(releases).hasValue(1);
@@ -342,8 +352,8 @@ class S3CrtBorrowedBufferInputStreamTest {
         completed.onComplete();
         failed.onError(new RuntimeException("failed"));
 
-        completed.onBuffer(buffer("a", releases::incrementAndGet, credited));
-        failed.onBuffer(buffer("b", releases::incrementAndGet, credited));
+        assertThat(completed.onBuffer(buffer("a", releases::incrementAndGet, credited))).isFalse();
+        assertThat(failed.onBuffer(buffer("b", releases::incrementAndGet, credited))).isFalse();
 
         assertThat(releases).hasValue(2);
         assertThat(credited).hasValue(0);

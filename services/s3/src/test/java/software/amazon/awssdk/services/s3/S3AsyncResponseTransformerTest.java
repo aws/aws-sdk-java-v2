@@ -69,6 +69,26 @@ class S3AsyncResponseTransformerTest {
         }
     }
 
+    @Test
+    void borrowedFactory_withMultipartNonCrtClient_shouldFailBeforeHttpExecution() {
+        try (MockAsyncHttpClient httpClient = new MockAsyncHttpClient();
+             S3AsyncClient client = S3AsyncClient.builder()
+                                                 .region(Region.US_EAST_1)
+                                                 .httpClient(httpClient)
+                                                 .multipartEnabled(true)
+                                                 .build()) {
+            assertThatThrownBy(() -> client.getObject(GetObjectRequest.builder()
+                                                                     .bucket("bucket")
+                                                                     .key("key")
+                                                                     .build(),
+                                                       S3AsyncResponseTransformer
+                                                           .toBlockingInputStreamWithBorrowedBuffers()).join())
+                .hasCauseInstanceOf(UnsupportedOperationException.class)
+                .hasRootCauseMessage("This transformer requires an S3 CRT async client with a configured direct buffer pool");
+            assertThat(httpClient.getRequests()).isEmpty();
+        }
+    }
+
     private static void invokePrepare(Object transformer) {
         ((AsyncResponseTransformer<?, ?>) transformer).prepare();
     }

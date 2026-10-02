@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
@@ -67,9 +68,12 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
         new S3InternalSdkHttpExecutionAttribute<>(Boolean.class);
 
-    public static final S3InternalSdkHttpExecutionAttribute<S3CrtBorrowedBufferStreamHandler>
+    public static final S3InternalSdkHttpExecutionAttribute<S3CrtBorrowedBufferStreamHandlerFactory>
         BORROWED_BUFFER_STREAM_HANDLER =
-        new S3InternalSdkHttpExecutionAttribute<>(S3CrtBorrowedBufferStreamHandler.class);
+        new S3InternalSdkHttpExecutionAttribute<>(S3CrtBorrowedBufferStreamHandlerFactory.class);
+
+    public static final S3InternalSdkHttpExecutionAttribute<AtomicLong> RESPONSE_BYTES_READ =
+        new S3InternalSdkHttpExecutionAttribute<>(AtomicLong.class);
 
     public static final S3InternalSdkHttpExecutionAttribute<CrtCredentialsProviderAdapter> CRT_CREDENTIALS_PROVIDER_ADAPTER =
         new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);

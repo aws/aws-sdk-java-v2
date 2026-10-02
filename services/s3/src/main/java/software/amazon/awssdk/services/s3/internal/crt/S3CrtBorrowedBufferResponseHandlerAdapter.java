@@ -16,9 +16,11 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
+import java.util.Optional;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
@@ -30,27 +32,37 @@ import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.utils.ContentRangeParser;
+import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestResponseHandler {
+    private static final long USE_FIRST_CALLBACK_START = -1;
+
     private final S3CrtResponseHandlerAdapter delegate;
     private final CompletableFuture<Void> executeFuture;
     private final S3CrtBorrowedBufferStreamHandler streamHandler;
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
+    private final AtomicLong responseBytesRead;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
+    private final Object rangeLock = new Object();
+    private long expectedObjectRangeStart;
+    private boolean rangeStarted;
 
     S3CrtBorrowedBufferResponseHandlerAdapter(
         CompletableFuture<Void> executeFuture,
         SdkAsyncHttpResponseHandler responseHandler,
         PublisherListener<S3MetaRequestProgress> progressListener,
         CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
+        AtomicLong responseBytesRead,
         S3CrtBorrowedBufferStreamHandler streamHandler) {
         this.executeFuture = Validate.paramNotNull(executeFuture, "executeFuture");
         this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, responseHandler, progressListener,
                                                        metaRequestFuture);
         this.streamHandler = Validate.paramNotNull(streamHandler, "streamHandler");
         this.metaRequestFuture = Validate.paramNotNull(metaRequestFuture, "metaRequestFuture");
+        this.responseBytesRead = Validate.paramNotNull(responseBytesRead, "responseBytesRead");
         executeFuture.whenComplete((ignored, error) -> {
             if (error != null) {
                 try {
@@ -71,6 +83,11 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
 
     @Override
     public void onResponseHeaders(int statusCode, HttpHeader[] headers) {
+        synchronized (rangeLock) {
+            if (!rangeStarted) {
+                expectedObjectRangeStart = initialRangeStart(headers);
+            }
+        }
         delegate.onResponseHeaders(statusCode, headers);
     }
 
@@ -93,7 +110,7 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
                 directView.remaining(),
                 crtBuffer::close,
                 this::incrementReadWindow);
-            streamHandler.onBorrowedBuffer(sdkBuffer);
+            validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);
             initiateStream();
         } catch (Throwable t) {
             failBorrowedResponse(t, sdkBuffer, crtBuffer);
@@ -119,6 +136,63 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
     @Override
     public void onProgress(S3MetaRequestProgress progress) {
         delegate.onProgress(progress);
+    }
+
+    private static long initialRangeStart(HttpHeader[] headers) {
+        if (headers == null) {
+            return 0;
+        }
+        for (HttpHeader header : headers) {
+            if (header != null && "Content-Range".equalsIgnoreCase(header.getName())) {
+                Optional<Pair<Long, Long>> range = ContentRangeParser.range(header.getValue());
+                if (range.isPresent() && range.get().left() >= 0) {
+                    return range.get().left();
+                }
+                return USE_FIRST_CALLBACK_START;
+            }
+        }
+        return 0;
+    }
+
+    private void validateAndAcceptBuffer(
+        S3CrtBorrowedBuffer buffer,
+        long objectRangeStart,
+        long objectRangeEnd) {
+        synchronized (rangeLock) {
+            if (objectRangeStart < 0) {
+                throw new IllegalStateException(String.format(
+                    "CRT borrowed buffer started at object offset %d, but the expected offset was non-negative",
+                    objectRangeStart));
+            }
+            long expectedStart = expectedObjectRangeStart == USE_FIRST_CALLBACK_START
+                                 ? objectRangeStart
+                                 : expectedObjectRangeStart;
+            if (objectRangeStart != expectedStart) {
+                throw new IllegalStateException(String.format(
+                    "CRT borrowed buffer started at object offset %d, but the expected offset was %d",
+                    objectRangeStart, expectedStart));
+            }
+
+            long expectedEnd;
+            try {
+                expectedEnd = Math.addExact(objectRangeStart, buffer.byteCount());
+            } catch (ArithmeticException e) {
+                throw new IllegalStateException(String.format(
+                    "CRT borrowed buffer range overflowed at object offset %d with byte count %d",
+                    objectRangeStart, buffer.byteCount()), e);
+            }
+            if (objectRangeEnd != expectedEnd) {
+                throw new IllegalStateException(String.format(
+                    "CRT borrowed buffer ended at object offset %d, but the expected offset was %d",
+                    objectRangeEnd, expectedEnd));
+            }
+
+            if (streamHandler.onBorrowedBuffer(buffer)) {
+                expectedObjectRangeStart = objectRangeEnd;
+                rangeStarted = true;
+                responseBytesRead.addAndGet(buffer.byteCount());
+            }
+        }
     }
 
     private static Throwable findTimeout(Throwable error) {

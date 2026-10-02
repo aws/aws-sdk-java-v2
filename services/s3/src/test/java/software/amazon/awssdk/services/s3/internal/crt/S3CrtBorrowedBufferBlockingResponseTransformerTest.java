@@ -62,6 +62,66 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
     }
 
     @Test
+    void lateAttemptCallback_shouldNotAffectCurrentAttempt() throws Exception {
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> firstFuture = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().contentLength(1L).build());
+        S3CrtBorrowedBufferStreamHandler firstAttempt = transformer.currentAttempt();
+        firstAttempt.onBorrowedStreamStart(() -> {
+        });
+        ResponseInputStream<GetObjectResponse> firstStream = firstFuture.join();
+
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> secondFuture = transformer.prepare();
+        GetObjectResponse secondResponse = GetObjectResponse.builder().contentLength(3L).build();
+        transformer.onResponse(secondResponse);
+        S3CrtBorrowedBufferStreamHandler secondAttempt = transformer.currentAttempt();
+        secondAttempt.onBorrowedStreamStart(() -> {
+        });
+        ResponseInputStream<GetObjectResponse> secondStream = secondFuture.join();
+
+        firstAttempt.onBorrowedStreamError(new IOException("late attempt failure"));
+        secondAttempt.onBorrowedBuffer(new S3CrtBorrowedBuffer(ByteBuffer.wrap("abc".getBytes(UTF_8)),
+                                                               3,
+                                                               () -> {
+                                                               },
+                                                               ignored -> {
+                                                               }));
+        secondAttempt.onBorrowedStreamComplete();
+
+        try (ResponseInputStream<GetObjectResponse> ignoredFirst = firstStream;
+             ResponseInputStream<GetObjectResponse> ignoredSecond = secondStream) {
+            assertThat(secondStream.response()).isSameAs(secondResponse);
+            assertThat(secondStream.read()).isEqualTo('a');
+            assertThat(secondStream.read()).isEqualTo('b');
+            assertThat(secondStream.read()).isEqualTo('c');
+            assertThat(secondStream.read()).isEqualTo(-1);
+            assertThatThrownBy(firstStream::read).isInstanceOf(IOException.class)
+                                                        .hasMessageContaining("late attempt failure");
+        }
+    }
+
+    @Test
+    void abort_shouldCancelCurrentAndLaterAttempts() {
+        AtomicInteger cancellations = new AtomicInteger();
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+        S3CrtBorrowedBufferStreamHandler firstAttempt = transformer.currentAttempt();
+
+        transformer.abort();
+        firstAttempt.onBorrowedStreamStart(cancellations::incrementAndGet);
+
+        transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+        S3CrtBorrowedBufferStreamHandler secondAttempt = transformer.currentAttempt();
+        secondAttempt.onBorrowedStreamStart(cancellations::incrementAndGet);
+
+        assertThat(cancellations).hasValue(2);
+    }
+
+    @Test
     void timeout_shouldDiscardWithoutCreditAndRemainVisibleToReader() throws Exception {
         AtomicInteger cancellations = new AtomicInteger();
         AtomicInteger releases = new AtomicInteger();

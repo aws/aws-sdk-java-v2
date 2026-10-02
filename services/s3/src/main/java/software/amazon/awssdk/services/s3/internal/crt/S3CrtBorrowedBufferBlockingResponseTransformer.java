@@ -30,34 +30,25 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 final class S3CrtBorrowedBufferBlockingResponseTransformer
     implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>>,
-    S3CrtBorrowedBufferStreamHandler {
+    S3CrtBorrowedBufferStreamHandler,
+    S3CrtBorrowedBufferStreamHandlerFactory {
 
-    private volatile CompletableFuture<ResponseInputStream<GetObjectResponse>> future;
-    private volatile GetObjectResponse response;
-    private volatile S3CrtBorrowedBufferInputStream inputStream;
-    private volatile DeferredCancellation cancellation;
+    private final AtomicBoolean aborted = new AtomicBoolean();
+    private volatile Attempt currentAttempt;
 
     @Override
     public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
-        CompletableFuture<ResponseInputStream<GetObjectResponse>> result = new CompletableFuture<>();
-        DeferredCancellation deferredCancellation = new DeferredCancellation();
-        S3CrtBorrowedBufferInputStream stream =
-            new S3CrtBorrowedBufferInputStream(deferredCancellation::cancel);
-        result.whenComplete((ignored, error) -> {
-            if (result.isCancelled()) {
-                stream.abort();
-            }
-        });
-        this.response = null;
-        this.cancellation = deferredCancellation;
-        this.inputStream = stream;
-        this.future = result;
-        return result;
+        Attempt attempt = new Attempt();
+        currentAttempt = attempt;
+        if (aborted.get()) {
+            attempt.abort();
+        }
+        return attempt.future();
     }
 
     @Override
     public void onResponse(GetObjectResponse response) {
-        this.response = response;
+        currentAttemptState().onResponse(response);
     }
 
     @Override
@@ -66,69 +57,134 @@ final class S3CrtBorrowedBufferBlockingResponseTransformer
     }
 
     @Override
-    public void onBorrowedStreamStart(Runnable cancellationAction) {
-        CompletableFuture<ResponseInputStream<GetObjectResponse>> currentFuture = future;
-        S3CrtBorrowedBufferInputStream currentStream = inputStream;
-        DeferredCancellation currentCancellation = cancellation;
-        GetObjectResponse currentResponse = response;
-        Validate.validState(currentFuture != null, "prepare() must be called before borrowed delivery starts");
-        Validate.validState(currentStream != null, "prepare() must be called before borrowed delivery starts");
-        Validate.validState(currentCancellation != null, "prepare() must be called before borrowed delivery starts");
-        Validate.validState(currentResponse != null, "onResponse() must be called before borrowed delivery starts");
-        currentCancellation.set(cancellationAction);
-        currentFuture.complete(new ResponseInputStream<>(currentResponse, currentStream));
+    public S3CrtBorrowedBufferStreamHandler currentAttempt() {
+        return currentAttemptState();
     }
 
     @Override
-    public void onBorrowedBuffer(S3CrtBorrowedBuffer buffer) {
-        S3CrtBorrowedBufferInputStream currentStream = inputStream;
-        Validate.validState(currentStream != null, "prepare() must be called before borrowed buffers are delivered");
-        currentStream.onBuffer(buffer);
+    public void onBorrowedStreamStart(Runnable cancellationAction) {
+        currentAttemptState().onBorrowedStreamStart(cancellationAction);
+    }
+
+    @Override
+    public boolean onBorrowedBuffer(S3CrtBorrowedBuffer buffer) {
+        return currentAttemptState().onBorrowedBuffer(buffer);
     }
 
     @Override
     public void onBorrowedStreamComplete() {
-        S3CrtBorrowedBufferInputStream currentStream = inputStream;
-        Validate.validState(currentStream != null, "prepare() must be called before borrowed delivery completes");
-        currentStream.onComplete();
+        currentAttemptState().onBorrowedStreamComplete();
     }
 
     @Override
     public void onBorrowedStreamError(Throwable error) {
-        S3CrtBorrowedBufferInputStream currentStream = inputStream;
-        if (currentStream != null) {
-            currentStream.onError(error);
+        Attempt attempt = currentAttempt;
+        if (attempt != null) {
+            attempt.onBorrowedStreamError(error);
         }
     }
 
     @Override
     public void onBorrowedStreamAbort() {
-        S3CrtBorrowedBufferInputStream currentStream = inputStream;
-        if (currentStream != null) {
-            currentStream.abort();
+        Attempt attempt = currentAttempt;
+        if (attempt != null) {
+            attempt.onBorrowedStreamAbort();
         }
     }
 
     @Override
     public void onBorrowedStreamAbort(Throwable error) {
-        S3CrtBorrowedBufferInputStream currentStream = inputStream;
-        if (currentStream != null) {
-            currentStream.abort(error);
+        Attempt attempt = currentAttempt;
+        if (attempt != null) {
+            attempt.onBorrowedStreamAbort(error);
+        }
+    }
+
+    void abort() {
+        aborted.set(true);
+        Attempt attempt = currentAttempt;
+        if (attempt != null) {
+            attempt.abort();
         }
     }
 
     @Override
     public void exceptionOccurred(Throwable error) {
-        CompletableFuture<ResponseInputStream<GetObjectResponse>> currentFuture = future;
-        if (currentFuture != null) {
-            currentFuture.completeExceptionally(error);
+        Attempt attempt = currentAttempt;
+        if (attempt != null) {
+            attempt.future().completeExceptionally(error);
+            attempt.onBorrowedStreamError(error);
         }
-        onBorrowedStreamError(error);
     }
 
     @Override
     public String name() {
         return TransformerType.STREAM.getName();
+    }
+
+    private Attempt currentAttemptState() {
+        return Validate.notNull(currentAttempt, "prepare() must be called before borrowed delivery starts");
+    }
+
+    private static final class Attempt implements S3CrtBorrowedBufferStreamHandler {
+        private final CompletableFuture<ResponseInputStream<GetObjectResponse>> future = new CompletableFuture<>();
+        private final DeferredCancellation cancellation = new DeferredCancellation();
+        private final S3CrtBorrowedBufferInputStream inputStream =
+            new S3CrtBorrowedBufferInputStream(cancellation::cancel);
+        private volatile GetObjectResponse response;
+
+        private Attempt() {
+            future.whenComplete((ignored, error) -> {
+                if (future.isCancelled()) {
+                    inputStream.abort();
+                }
+            });
+        }
+
+        private CompletableFuture<ResponseInputStream<GetObjectResponse>> future() {
+            return future;
+        }
+
+        private void onResponse(GetObjectResponse response) {
+            this.response = response;
+        }
+
+        private void abort() {
+            inputStream.abort();
+        }
+
+        @Override
+        public void onBorrowedStreamStart(Runnable cancellationAction) {
+            GetObjectResponse currentResponse = response;
+            Validate.validState(currentResponse != null, "onResponse() must be called before borrowed delivery starts");
+            cancellation.set(cancellationAction);
+            future.complete(new ResponseInputStream<>(currentResponse, inputStream));
+        }
+
+        @Override
+        public boolean onBorrowedBuffer(S3CrtBorrowedBuffer buffer) {
+            return inputStream.onBuffer(buffer);
+        }
+
+        @Override
+        public void onBorrowedStreamComplete() {
+            inputStream.onComplete();
+        }
+
+        @Override
+        public void onBorrowedStreamError(Throwable error) {
+            inputStream.onError(error);
+        }
+
+        @Override
+        public void onBorrowedStreamAbort() {
+            inputStream.abort();
+        }
+
+        @Override
+        public void onBorrowedStreamAbort(Throwable error) {
+            inputStream.abort(error);
+        }
     }
 
     private static final class DeferredCancellation {

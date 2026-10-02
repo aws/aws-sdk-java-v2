@@ -24,6 +24,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
+import software.amazon.awssdk.core.exception.ApiCallTimeoutException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -74,7 +77,7 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
         this.cancellationAction = Validate.paramNotNull(cancellationAction, "cancellationAction");
     }
 
-    void onBuffer(S3CrtBorrowedBuffer buffer) {
+    boolean onBuffer(S3CrtBorrowedBuffer buffer) {
         Objects.requireNonNull(buffer, "buffer");
         boolean accepted;
         synchronized (stateLock) {
@@ -86,6 +89,7 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
         if (!accepted) {
             buffer.discard();
         }
+        return accepted;
     }
 
     void onError(Throwable error) {
@@ -317,6 +321,11 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
     private int throwFailure(Throwable failure) throws IOException {
         if (failure instanceof IOException) {
             throw (IOException) failure;
+        }
+        if (failure instanceof SdkClientException
+            && !(failure instanceof ApiCallTimeoutException)
+            && !(failure instanceof ApiCallAttemptTimeoutException)) {
+            throw (SdkClientException) failure;
         }
         throw new IOException("Failed to read borrowed response data", failure);
     }

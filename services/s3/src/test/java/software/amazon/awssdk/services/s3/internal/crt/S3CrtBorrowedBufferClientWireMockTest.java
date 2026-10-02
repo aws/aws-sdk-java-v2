@@ -37,15 +37,19 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncResponseTransformer;
-import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -66,6 +70,47 @@ class S3CrtBorrowedBufferClientWireMockTest {
              ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
             assertThat(readAll(stream)).containsExactly(CONTENT);
         }
+    }
+
+    @Test
+    void getObjectWithPartNumber_shouldUseResolvedContentRangeStart(WireMockRuntimeInfo wireMock) throws Exception {
+        int start = PART_SIZE;
+        int end = 2 * PART_SIZE - 1;
+        byte[] part = Arrays.copyOfRange(CONTENT, start, end + 1);
+        stubFor(get(anyUrl()).willReturn(aResponse().withStatus(206)
+                                                   .withHeader("Content-Length", Integer.toString(part.length))
+                                                   .withHeader("Content-Range",
+                                                               "bytes " + start + "-" + end + "/" + CONTENT.length)
+                                                   .withHeader("ETag", E_TAG)
+                                                   .withBody(part)));
+
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> stream =
+                 client.getObject(r -> r.bucket("bucket").key("key").partNumber(2),
+                                  S3AsyncResponseTransformer.toBlockingInputStreamWithBorrowedBuffers())
+                       .get(10, TimeUnit.SECONDS)) {
+            assertThat(stream.response().contentRange()).isEqualTo("bytes " + start + "-" + end + "/" + CONTENT.length);
+            assertThat(readAll(stream)).containsExactly(part);
+        }
+    }
+
+    @Test
+    void borrowedDownload_shouldRecordResponseBytes(WireMockRuntimeInfo wireMock) throws Exception {
+        stubMultipartObject(CONTENT);
+        AtomicLong responseBytesRead = new AtomicLong();
+        ExecutionInterceptor metricCaptor = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context, ExecutionAttributes executionAttributes) {
+                responseBytesRead.set(executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ).get());
+            }
+        };
+
+        try (S3AsyncClient client = newClient(wireMock, null, metricCaptor);
+             ResponseInputStream<GetObjectResponse> stream = getObject(client)) {
+            assertThat(readAll(stream)).containsExactly(CONTENT);
+        }
+
+        assertThat(responseBytesRead).hasValue(PART_SIZE);
     }
 
     @Test
@@ -156,8 +201,14 @@ class S3CrtBorrowedBufferClientWireMockTest {
     }
 
     private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock, Executor completionExecutor) {
-        S3CrtAsyncClientBuilder builder =
-            S3AsyncClient.crtBuilder()
+        return newClient(wireMock, completionExecutor, null);
+    }
+
+    private static S3AsyncClient newClient(WireMockRuntimeInfo wireMock,
+                                           Executor completionExecutor,
+                                           ExecutionInterceptor executionInterceptor) {
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3AsyncClient.crtBuilder()
                          .region(Region.US_EAST_1)
                          .endpointOverride(URI.create("http://localhost:" + wireMock.getHttpPort()))
                          .credentialsProvider(StaticCredentialsProvider.create(
@@ -167,6 +218,9 @@ class S3CrtBorrowedBufferClientWireMockTest {
                          .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.fixed(PART_SIZE));
         if (completionExecutor != null) {
             builder.futureCompletionExecutor(completionExecutor);
+        }
+        if (executionInterceptor != null) {
+            builder.addExecutionInterceptor(executionInterceptor);
         }
         return builder.build();
     }

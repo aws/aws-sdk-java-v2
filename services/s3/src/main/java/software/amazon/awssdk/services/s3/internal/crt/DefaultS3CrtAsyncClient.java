@@ -95,7 +95,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         new ExecutionAttribute<>("responseFileOption");
     public static final ExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
         new ExecutionAttribute<>("responseFileDeleteOnFailure");
-    static final ExecutionAttribute<S3CrtBorrowedBufferStreamHandler> BORROWED_BUFFER_STREAM_HANDLER =
+    static final ExecutionAttribute<S3CrtBorrowedBufferStreamHandlerFactory> BORROWED_BUFFER_STREAM_HANDLER =
         new ExecutionAttribute<>("borrowedBufferStreamHandler");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
@@ -170,8 +170,14 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         GetObjectRequest requestWithBorrowedHandler =
             getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build();
 
-        return (CompletableFuture<ReturnT>) (CompletableFuture<?>)
+        CompletableFuture<ReturnT> result = (CompletableFuture<ReturnT>) (CompletableFuture<?>)
             super.getObject(requestWithBorrowedHandler, bridge);
+        result.whenComplete((ignored, error) -> {
+            if (result.isCancelled()) {
+                bridge.abort();
+            }
+        });
+        return result;
     }
 
     @Override
@@ -528,6 +534,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                   .put(SIGNING_REGION, executionAttributes.getAttribute(
                                       AwsSignerExecutionAttribute.SIGNING_REGION))
                                   .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
+                                  .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ,
+                                       executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ))
                                   .build());
             }
         }
