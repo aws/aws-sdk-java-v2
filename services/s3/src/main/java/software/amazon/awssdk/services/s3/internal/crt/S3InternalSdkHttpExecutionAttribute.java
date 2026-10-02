@@ -80,6 +80,13 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<List<MetricPublisher>> METRIC_PUBLISHERS =
         new S3InternalSdkHttpExecutionAttribute<>((Class<List<MetricPublisher>>) (Class<?>) List.class);
 
+    /**
+     * The maximum number of active connections supported by the CRT S3 client. This value is fixed for the lifetime of
+     * the client and is copied into the request attributes so the response handler can include it in HTTP client metrics.
+     */
+    public static final S3InternalSdkHttpExecutionAttribute<Integer> CRT_MAX_CONCURRENCY =
+        new S3InternalSdkHttpExecutionAttribute<>(Integer.class);
+
     private S3InternalSdkHttpExecutionAttribute(Class<T> valueClass) {
         super(valueClass);
     }

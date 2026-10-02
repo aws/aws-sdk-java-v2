@@ -19,7 +19,9 @@ import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUES
 import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZ_ID_2_HEADER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
+import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
@@ -44,6 +46,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.crt.CRT;
 import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpHeader;
+import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
@@ -80,6 +83,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final Duration s3MetaRequestTimeout;
     private final List<MetricPublisher> metricPublishers;
+    private final Integer maxConcurrency;
 
     private volatile boolean responseHandlingInitiated;
 
@@ -109,6 +113,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         List<MetricPublisher> publishers =
             httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
         this.metricPublishers = publishers == null ? Collections.emptyList() : publishers;
+        this.maxConcurrency =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_MAX_CONCURRENCY);
         this.s3MetaRequestTimeout = s3MetaRequestTimeout;
 
         // Registered last: the callback reads responseHandler and s3MetaRequestTimeout, so all fields must be assigned
@@ -352,11 +358,12 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         }
         try {
             MetricCollector apiCall = MetricCollector.create("ApiCall");
-            apiCall.reportMetric(CoreMetric.SERVICE_ID, "S3");
+            report(apiCall, CoreMetric.SERVICE_ID, requestMetrics::getServiceId);
             report(apiCall, CoreMetric.OPERATION_NAME, requestMetrics::getOperationName);
             report(apiCall, CoreMetric.API_CALL_SUCCESSFUL, requestMetrics::isApiCallSuccessful);
             report(apiCall, CoreMetric.RETRY_COUNT, requestMetrics::getRetryCount);
             reportDuration(apiCall, CoreMetric.API_CALL_DURATION, requestMetrics::getApiCallDurationNs);
+            reportServiceEndpoint(apiCall, requestMetrics::getServiceEndpoint);
 
             MetricCollector attempt = apiCall.createChild("ApiCallAttempt");
             reportDuration(attempt, CoreMetric.SIGNING_DURATION, requestMetrics::getSigningDurationNs);
@@ -364,17 +371,53 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             reportDuration(attempt, CoreMetric.BACKOFF_DELAY_DURATION, requestMetrics::getBackoffDelayDurationNs);
             report(attempt, CoreMetric.AWS_REQUEST_ID, requestMetrics::getAwsRequestId);
             report(attempt, CoreMetric.AWS_EXTENDED_REQUEST_ID, requestMetrics::getAwsExtendedRequestId);
+            reportDuration(attempt, CoreMetric.TIME_TO_FIRST_BYTE, requestMetrics::getTimeToFirstByte);
+            reportDuration(attempt, CoreMetric.TIME_TO_LAST_BYTE, requestMetrics::getTimeToLastByte);
+            reportResponseStatus(attempt, requestMetrics.getResponseStatus());
 
             MetricCollector httpClient = attempt.createChild("HttpClient");
             httpClient.reportMetric(HttpMetric.HTTP_CLIENT_NAME, S3CrtAsyncHttpClient.CLIENT_NAME);
-
-            // TODO: map when CRT exposes them - HTTP status, endpoint URL, TTFB/TTLB, connection-pool metrics.
+            if (maxConcurrency != null) {
+                httpClient.reportMetric(HttpMetric.MAX_CONCURRENCY, maxConcurrency);
+            }
+            reportDuration(httpClient, HttpMetric.CONCURRENCY_ACQUIRE_DURATION,
+                           requestMetrics::getConnectionAcquisitionDurationNs);
+            reportHttpManagerMetrics(httpClient, requestMetrics.getHttpManagerMetrics());
 
             MetricCollection collection = apiCall.collect();
             metricPublishers.forEach(p -> p.publish(collection));
         } catch (RuntimeException e) {
             log.warn(() -> "Failed to publish CRT S3 request metrics", e);
         }
+    }
+
+    private void reportServiceEndpoint(MetricCollector collector, Supplier<String> getter) {
+        try {
+            String endpoint = getter.get();
+            if (endpoint != null) {
+                collector.reportMetric(CoreMetric.SERVICE_ENDPOINT, URI.create(endpoint));
+            }
+        } catch (CrtRuntimeException | IllegalArgumentException e) {
+            log.trace(() -> "CRT metric " + CoreMetric.SERVICE_ENDPOINT.name() + " unavailable: " + e.getMessage());
+        }
+    }
+
+    private void reportResponseStatus(MetricCollector collector, int responseStatus) {
+        if (responseStatus > 0) {
+            collector.reportMetric(HttpMetric.HTTP_STATUS_CODE, responseStatus);
+        }
+    }
+
+    private void reportHttpManagerMetrics(MetricCollector collector, HttpManagerMetrics managerMetrics) {
+        if (managerMetrics == null) {
+            return;
+        }
+        collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY,
+                               saturatedCast(managerMetrics.getAvailableConcurrency()));
+        collector.reportMetric(HttpMetric.LEASED_CONCURRENCY,
+                               saturatedCast(managerMetrics.getLeasedConcurrency()));
+        collector.reportMetric(HttpMetric.PENDING_CONCURRENCY_ACQUIRES,
+                               saturatedCast(managerMetrics.getPendingConcurrencyAcquires()));
     }
 
     /**

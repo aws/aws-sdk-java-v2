@@ -20,6 +20,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
+import java.net.URI;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -28,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.crt.CrtRuntimeException;
+import software.amazon.awssdk.crt.http.HttpManagerMetrics;
 import software.amazon.awssdk.crt.s3.S3RequestMetrics;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
@@ -47,6 +49,11 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
     private static final long API_CALL_NANOS = 98_000_000L;
     private static final long SIGNING_NANOS = 1_000_000L;
     private static final long SERVICE_CALL_NANOS = 35_000_000L;
+    private static final long TIME_TO_FIRST_BYTE_NANOS = 40_000_000L;
+    private static final long TIME_TO_LAST_BYTE_NANOS = 90_000_000L;
+    private static final long CONNECTION_ACQUISITION_NANOS = 2_000_000L;
+    private static final String SERVICE_ENDPOINT = "https://s3.us-west-2.amazonaws.com";
+    private static final int MAX_CONCURRENCY = 10;
 
     @Test
     public void onTelemetry_publishesApiCallTreeWithMappedValues() throws Exception {
@@ -61,6 +68,7 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         assertThat(apiCall.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
         assertThat(apiCall.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
         assertThat(apiCall.metricValues(CoreMetric.API_CALL_DURATION)).containsExactly(Duration.ofNanos(API_CALL_NANOS));
+        assertThat(apiCall.metricValues(CoreMetric.SERVICE_ENDPOINT)).containsExactly(URI.create(SERVICE_ENDPOINT));
 
         MetricCollection attempt = childNamed(apiCall, "ApiCallAttempt");
         assertThat(attempt.metricValues(CoreMetric.SIGNING_DURATION)).containsExactly(Duration.ofNanos(SIGNING_NANOS));
@@ -68,9 +76,20 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         assertThat(attempt.metricValues(CoreMetric.BACKOFF_DELAY_DURATION)).containsExactly(Duration.ofNanos(0));
         assertThat(attempt.metricValues(CoreMetric.AWS_REQUEST_ID)).containsExactly("REQ-123");
         assertThat(attempt.metricValues(CoreMetric.AWS_EXTENDED_REQUEST_ID)).containsExactly("EXT-456");
+        assertThat(attempt.metricValues(CoreMetric.TIME_TO_FIRST_BYTE))
+            .containsExactly(Duration.ofNanos(TIME_TO_FIRST_BYTE_NANOS));
+        assertThat(attempt.metricValues(CoreMetric.TIME_TO_LAST_BYTE))
+            .containsExactly(Duration.ofNanos(TIME_TO_LAST_BYTE_NANOS));
+        assertThat(attempt.metricValues(HttpMetric.HTTP_STATUS_CODE)).containsExactly(200);
 
         MetricCollection httpClient = childNamed(attempt, "HttpClient");
         assertThat(httpClient.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("s3crt");
+        assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(MAX_CONCURRENCY);
+        assertThat(httpClient.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION))
+            .containsExactly(Duration.ofNanos(CONNECTION_ACQUISITION_NANOS));
+        assertThat(httpClient.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).containsExactly(4);
+        assertThat(httpClient.metricValues(HttpMetric.LEASED_CONCURRENCY)).containsExactly(2);
+        assertThat(httpClient.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).containsExactly(1);
     }
 
     @Test
@@ -87,6 +106,32 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         assertThat(attempt.metricValues(CoreMetric.BACKOFF_DELAY_DURATION)).isEmpty();
         assertThat(attempt.metricValues(CoreMetric.SIGNING_DURATION)).isNotEmpty();
         assertThat(attempt.metricValues(CoreMetric.AWS_REQUEST_ID)).isNotEmpty();
+    }
+
+    @Test
+    public void onTelemetry_optionalHttpMetricsUnavailable_areSkipped() throws Exception {
+        S3RequestMetrics metrics = successfulGetObjectMetrics();
+        when(metrics.getTimeToFirstByte()).thenThrow(new CrtRuntimeException(AWS_ERROR_S3_METRIC_DATA_NOT_AVAILABLE));
+        when(metrics.getConnectionAcquisitionDurationNs())
+            .thenThrow(new CrtRuntimeException(AWS_ERROR_S3_METRIC_DATA_NOT_AVAILABLE));
+        when(metrics.getResponseStatus()).thenReturn(-1);
+        when(metrics.getHttpManagerMetrics()).thenReturn(null);
+
+        CapturingPublisher publisher = new CapturingPublisher();
+        adapterPublishingTo(publisher).onTelemetry(metrics);
+
+        assertThat(publisher.collections).hasSize(1);
+        MetricCollection attempt = childNamed(publisher.collections.get(0), "ApiCallAttempt");
+        assertThat(attempt.metricValues(CoreMetric.TIME_TO_FIRST_BYTE)).isEmpty();
+        assertThat(attempt.metricValues(CoreMetric.TIME_TO_LAST_BYTE)).isNotEmpty();
+        assertThat(attempt.metricValues(HttpMetric.HTTP_STATUS_CODE)).isEmpty();
+
+        MetricCollection httpClient = childNamed(attempt, "HttpClient");
+        assertThat(httpClient.metricValues(HttpMetric.HTTP_CLIENT_NAME)).containsExactly("s3crt");
+        assertThat(httpClient.metricValues(HttpMetric.CONCURRENCY_ACQUIRE_DURATION)).isEmpty();
+        assertThat(httpClient.metricValues(HttpMetric.AVAILABLE_CONCURRENCY)).isEmpty();
+        assertThat(httpClient.metricValues(HttpMetric.LEASED_CONCURRENCY)).isEmpty();
+        assertThat(httpClient.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).isEmpty();
     }
 
     @Test
@@ -148,6 +193,8 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
 
     private static S3RequestMetrics successfulGetObjectMetrics() throws Exception {
         S3RequestMetrics metrics = mock(S3RequestMetrics.class);
+        when(metrics.getServiceId()).thenReturn("S3");
+        when(metrics.getServiceEndpoint()).thenReturn(SERVICE_ENDPOINT);
         when(metrics.getOperationName()).thenReturn("GetObject");
         when(metrics.isApiCallSuccessful()).thenReturn(true);
         when(metrics.getRetryCount()).thenReturn(0);
@@ -157,6 +204,16 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         when(metrics.getBackoffDelayDurationNs()).thenReturn(0L);
         when(metrics.getAwsRequestId()).thenReturn("REQ-123");
         when(metrics.getAwsExtendedRequestId()).thenReturn("EXT-456");
+        when(metrics.getTimeToFirstByte()).thenReturn(TIME_TO_FIRST_BYTE_NANOS);
+        when(metrics.getTimeToLastByte()).thenReturn(TIME_TO_LAST_BYTE_NANOS);
+        when(metrics.getResponseStatus()).thenReturn(200);
+        when(metrics.getConnectionAcquisitionDurationNs()).thenReturn(CONNECTION_ACQUISITION_NANOS);
+
+        HttpManagerMetrics managerMetrics = mock(HttpManagerMetrics.class);
+        when(managerMetrics.getAvailableConcurrency()).thenReturn(4L);
+        when(managerMetrics.getLeasedConcurrency()).thenReturn(2L);
+        when(managerMetrics.getPendingConcurrencyAcquires()).thenReturn(1L);
+        when(metrics.getHttpManagerMetrics()).thenReturn(managerMetrics);
         return metrics;
     }
 
@@ -164,6 +221,7 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         SdkHttpExecutionAttributes attributes =
             SdkHttpExecutionAttributes.builder()
                                       .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS, Arrays.asList(publishers))
+                                      .put(S3InternalSdkHttpExecutionAttribute.CRT_MAX_CONCURRENCY, MAX_CONCURRENCY)
                                       .build();
         return new S3CrtResponseHandlerAdapter(new CompletableFuture<>(),
                                                mock(SdkAsyncHttpResponseHandler.class),
