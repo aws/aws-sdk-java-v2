@@ -46,11 +46,10 @@ jobs:
           # Look for new public methods in the changed base class files
           # Filter out obvious false positives: comments, string literals, javadoc
           NEW_METHODS=$(git diff remotes/origin/${{ github.base_ref }} -- $BASE_CLASS_FILES | \
-          
-          grep '^+.*public.*(' | \                # Find lines with new public methods
-          grep -v '^+[[:space:]]*//.*' | \        # Line comments  
-          grep -v '^+[[:space:]]*\*.*' | \        # Javadoc lines
-          grep -v '^+[[:space:]]*/\*.*' || true   # Block comments
+            grep '^+.*public.*(' | \
+            grep -v '^+[[:space:]]*//.*' | \
+            grep -v '^+[[:space:]]*\*.*' | \
+            grep -v '^+[[:space:]]*/\*.*' || true)
           
           if [ -n "$NEW_METHODS" ]; then
             echo "::warning::New public methods detected in base classes:"

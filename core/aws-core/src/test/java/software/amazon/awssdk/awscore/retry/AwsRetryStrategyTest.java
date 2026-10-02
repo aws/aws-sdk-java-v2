@@ -24,9 +24,11 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
+import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
 import software.amazon.awssdk.retries.internal.DefaultRetryToken;
@@ -87,6 +89,45 @@ public class AwsRetryStrategyTest {
 
             assertThat(delay).isBetween(Duration.ZERO, Duration.ofMillis(1000));
         }
+    }
+
+    @ParameterizedTest
+    @CsvSource({"STANDARD, false, ExpiredToken",
+                "STANDARD, false, InvalidToken",
+                "STANDARD, true, ExpiredToken",
+                "STANDARD, true, InvalidToken",
+                "ADAPTIVE_V2, false, ExpiredToken",
+                "ADAPTIVE_V2, true, InvalidToken",
+                "LEGACY, false, ExpiredToken",
+                "LEGACY, false, InvalidToken"})
+    void forRetryMode_authenticationErrorCode_isRetried(RetryMode mode, boolean newRetries2026Enabled, String errorCode) {
+        RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, newRetries2026Enabled);
+
+        RetryToken token = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("test")).token();
+        RefreshRetryTokenRequest refresh = RefreshRetryTokenRequest.builder()
+                                                                   .failure(createTestException(errorCode))
+                                                                   .token(token)
+                                                                   .build();
+
+        assertThat(strategy.refreshRetryToken(refresh).delay()).isGreaterThanOrEqualTo(Duration.ZERO);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"STANDARD, AccessDenied",
+                "STANDARD, AccessDeniedException",
+                "STANDARD, ExpiredTokenException",
+                "LEGACY, AccessDenied"})
+    void forRetryMode_errorCodeThatIsNotAnAuthenticationError_isNotRetried(RetryMode mode, String errorCode) {
+        RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, false);
+
+        RetryToken token = strategy.acquireInitialToken(AcquireInitialTokenRequest.create("test")).token();
+        RefreshRetryTokenRequest refresh = RefreshRetryTokenRequest.builder()
+                                                                   .failure(createTestException(errorCode))
+                                                                   .token(token)
+                                                                   .build();
+
+        assertThatThrownBy(() -> strategy.refreshRetryToken(refresh))
+            .isInstanceOf(TokenAcquisitionFailedException.class);
     }
 
     private static AwsServiceException createTestException(String errorCode) {

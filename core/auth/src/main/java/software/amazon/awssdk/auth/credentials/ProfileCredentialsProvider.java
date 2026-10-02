@@ -17,12 +17,14 @@ package software.amazon.awssdk.auth.credentials;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.internal.ProfileCredentialsUtils;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileFileSupplier;
 import software.amazon.awssdk.profiles.ProfileFileSystemSetting;
@@ -156,6 +158,16 @@ public final class ProfileCredentialsProvider
         // The delegate credentials provider may be closeable (eg. if it's an STS credentials provider). In this case, we should
         // clean it up when this credentials provider is closed.
         IoUtils.closeIfCloseable(credentialsProvider, null);
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        // Local copy to avoid TOCTOU race on the volatile field during concurrent profile reloads.
+        AwsCredentialsProvider provider = credentialsProvider;
+        if (provider != null) {
+            return provider.invalidate(identity);
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
