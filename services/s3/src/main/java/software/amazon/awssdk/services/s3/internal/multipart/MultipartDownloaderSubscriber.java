@@ -187,7 +187,7 @@ public class MultipartDownloaderSubscriber implements Subscriber<AsyncResponseTr
     }
 
     /**
-     * The method used by the Subscriber itself when error occured.
+     * The method used by the Subscriber itself when error occurred.
      */
     private void handleError(Throwable t) {
         CompletableFuture<GetObjectResponse> partFuture;
