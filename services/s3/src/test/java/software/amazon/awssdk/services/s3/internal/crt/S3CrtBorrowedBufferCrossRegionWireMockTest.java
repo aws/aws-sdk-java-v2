@@ -16,15 +16,18 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.headRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.services.s3.internal.crossregion.utils.CrossRegionUtils.AMZ_BUCKET_REGION_HEADER;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -93,6 +96,48 @@ class S3CrtBorrowedBufferCrossRegionWireMockTest {
         assertThat(requests).extracting(request -> request.getHeader("Host"))
                             .containsExactly("localhost:" + port, "127.0.0.1:" + port, "127.0.0.1:" + port);
         verify(0, headRequestedFor(anyUrl()));
+    }
+
+    @Test
+    void redirectWithoutRegionHeader_shouldDiscoverRegionViaHeadBucketAndStream(WireMockRuntimeInfo wireMock)
+        throws Exception {
+        int port = wireMock.getHttpPort();
+        byte[] errorBody = errorXml("PermanentRedirect");
+        // The redirect carries no x-amz-bucket-region, so the cross-region client cannot learn the region from the
+        // failure itself and has to fall back to HeadBucket. HeadBucket discovers the region only from a redirect
+        // response, so the stub answers it the way S3 does: a 301 whose headers carry the bucket's real region.
+        stubFor(get(anyUrl()).withHeader("Host", equalTo("localhost:" + port))
+                             .withHeader("Range", equalTo(RANGE))
+                             .willReturn(aResponse().withStatus(301)
+                                                        .withHeader("Content-Type", "application/xml")
+                                                        .withHeader("Content-Length", Integer.toString(errorBody.length))
+                                                        .withBody(errorBody)));
+        stubFor(head(anyUrl()).withHeader("Host", equalTo("localhost:" + port))
+                              .willReturn(aResponse().withStatus(301)
+                                                         .withHeader(AMZ_BUCKET_REGION_HEADER, REDIRECT_REGION.id())
+                                                         .withHeader("Content-Length", "0")));
+        stubSuccessfulGet("127.0.0.1", port);
+
+        // A single-slot pool means the second download can only complete if the first one released every buffer it
+        // borrowed, including the buffers of the attempt that was redirected away.
+        try (S3AsyncClient client = newClient(wireMock, null)) {
+            for (int request = 0; request < 2; request++) {
+                try (ResponseInputStream<GetObjectResponse> stream = getObject(client, wireMock, "key")) {
+                    assertThat(stream.response().sdkHttpResponse().statusCode()).isEqualTo(200);
+                    assertThat(readAll(stream)).containsExactly(CONTENT);
+                    assertThat(stream.read()).isEqualTo(-1);
+                }
+            }
+        }
+
+        // The redirected GET, then the region lookup, then the GET that is retried against the resolved region. The
+        // second download reuses the cached region, so it goes straight to the redirect endpoint.
+        assertThat(findAll(anyRequestedFor(anyUrl())))
+            .extracting(request -> request.getMethod().getName() + " " + request.getHeader("Host"))
+            .containsExactly("GET localhost:" + port,
+                             "HEAD localhost:" + port,
+                             "GET 127.0.0.1:" + port,
+                             "GET 127.0.0.1:" + port);
     }
 
     @Test
