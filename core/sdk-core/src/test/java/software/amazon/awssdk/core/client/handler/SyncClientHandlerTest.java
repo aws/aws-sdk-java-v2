@@ -23,7 +23,10 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,6 +38,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
@@ -180,6 +184,38 @@ public class SyncClientHandlerTest {
             .hasCauseInstanceOf(NonRetryableException.class);
     }
 
+    @Test
+    public void afterExecutionThrows_streamingResponse_closesResponseBody() throws Exception {
+        RuntimeException interceptorException = new RuntimeException("interceptor failure");
+        TrackableInputStream responseBody = new TrackableInputStream();
+        expectRetrievalFromMocks();
+        when(httpClientCall.call()).thenReturn(
+            HttpExecuteResponse.builder()
+                               .response(SdkHttpResponse.builder().statusCode(200).build())
+                               .responseBody(AbortableInputStream.create(responseBody))
+                               .build());
+        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
+
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context,
+                                       ExecutionAttributes executionAttributes) {
+                throw interceptorException;
+            }
+        };
+        SdkSyncClientHandler handler =
+            new SdkSyncClientHandler(clientConfiguration().toBuilder()
+                                                          .option(SdkClientOption.EXECUTION_INTERCEPTORS,
+                                                                  singletonList(interceptor))
+                                                          .build());
+        ResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> transformer =
+            ResponseTransformer.toInputStream(Duration.ZERO);
+
+        assertThatThrownBy(() -> handler.execute(clientExecutionParams(), transformer))
+            .isSameAs(interceptorException);
+        assertThat(responseBody.closed).isTrue();
+    }
+
     private void verifyResponseTransformerPropagateException(Exception exception) throws Exception {
         mockSuccessfulApiCall();
         when(responseTransformer.transform(any(SdkResponse.class), any(AbortableInputStream.class))).thenThrow(
@@ -279,5 +315,19 @@ public class SyncClientHandlerTest {
                             .option(SdkClientOption.SYNC_HTTP_CLIENT, httpClient)
                             .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
                             .build();
+    }
+
+    private static final class TrackableInputStream extends InputStream {
+        private boolean closed;
+
+        @Override
+        public int read() {
+            return -1;
+        }
+
+        @Override
+        public void close() throws IOException {
+            closed = true;
+        }
     }
 }
