@@ -27,6 +27,7 @@ import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.codegen.IntermediateModelShapeProcessor;
+import software.amazon.awssdk.codegen.customization.processors.SmithyIntermediateModelPostprocessor;
 import software.amazon.awssdk.codegen.internal.Constant;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.internal.Utils;
@@ -56,8 +57,8 @@ import software.amazon.smithy.rulesengine.traits.ClientContextParamsTrait;
  * Builds an {@link IntermediateModel} from a Smithy {@link Model}. Smithy counterpart to
  * {@link software.amazon.awssdk.codegen.IntermediateModelBuilder}.
  *
- * <p>Customizations, paginators, and waiters are not applied yet, so this is limited to services
- * that need none of them.
+ * <p>Source-model customizations are expected to have been applied to the model as smithy-build
+ * transforms. Paginators and waiters are not applied yet.
  */
 public final class SmithyIntermediateModelBuilder {
 
@@ -146,6 +147,8 @@ public final class SmithyIntermediateModelBuilder {
             operations, shapes, customConfig, endpointOperation,
             Collections.emptyMap(), namingStrategy, Collections.emptyMap(),
             endpointRuleSet, endpointTestSuiteModel, clientContextParams);
+
+        SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);
 
         Map<String, ShapeModel> trimmedShapes = removeUnusedShapes(fullModel);
         trimmedShapes.entrySet().removeIf(e -> customConfig.getDeprecatedShapes().contains(e.getKey()));
