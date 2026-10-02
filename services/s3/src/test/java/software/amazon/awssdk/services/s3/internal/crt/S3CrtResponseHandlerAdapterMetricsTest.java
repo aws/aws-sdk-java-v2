@@ -21,10 +21,14 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.crt.CrtRuntimeException;
@@ -47,11 +51,23 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
     private static final long API_CALL_NANOS = 98_000_000L;
     private static final long SIGNING_NANOS = 1_000_000L;
     private static final long SERVICE_CALL_NANOS = 35_000_000L;
+    private S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
+
+    @BeforeEach
+    public void setup() {
+        metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
+    }
+
+    @AfterEach
+    public void teardown() {
+        metricPublisherDispatcher.close();
+    }
 
     @Test
     public void onTelemetry_publishesApiCallTreeWithMappedValues() throws Exception {
-        CapturingPublisher publisher = new CapturingPublisher();
+        CapturingPublisher publisher = new CapturingPublisher(1);
         adapterPublishingTo(publisher).onTelemetry(successfulGetObjectMetrics());
+        publisher.awaitExpectedCollections();
 
         assertThat(publisher.collections).hasSize(1);
         MetricCollection apiCall = publisher.collections.get(0);
@@ -79,8 +95,9 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         // CRT throws this when a datum is not available for the request; only that one metric should be skipped.
         when(metrics.getBackoffDelayDurationNs()).thenThrow(new CrtRuntimeException(AWS_ERROR_S3_METRIC_DATA_NOT_AVAILABLE));
 
-        CapturingPublisher publisher = new CapturingPublisher();
+        CapturingPublisher publisher = new CapturingPublisher(1);
         adapterPublishingTo(publisher).onTelemetry(metrics);
+        publisher.awaitExpectedCollections();
 
         assertThat(publisher.collections).hasSize(1);
         MetricCollection attempt = childNamed(publisher.collections.get(0), "ApiCallAttempt");
@@ -94,8 +111,9 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         S3RequestMetrics metrics = successfulGetObjectMetrics();
         when(metrics.isApiCallSuccessful()).thenReturn(false);
 
-        CapturingPublisher publisher = new CapturingPublisher();
+        CapturingPublisher publisher = new CapturingPublisher(1);
         adapterPublishingTo(publisher).onTelemetry(metrics);
+        publisher.awaitExpectedCollections();
 
         MetricCollection apiCall = publisher.collections.get(0);
         assertThat(apiCall.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
@@ -112,20 +130,21 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
 
     @Test
     public void onTelemetry_calledPerAttempt_publishesOneCollectionEach() throws Exception {
-        CapturingPublisher publisher = new CapturingPublisher();
+        CapturingPublisher publisher = new CapturingPublisher(3);
         S3CrtResponseHandlerAdapter adapter = adapterPublishingTo(publisher);
         S3RequestMetrics metrics = successfulGetObjectMetrics();
 
         adapter.onTelemetry(metrics);
         adapter.onTelemetry(metrics);
         adapter.onTelemetry(metrics);
+        publisher.awaitExpectedCollections();
 
         assertThat(publisher.collections).hasSize(3);
     }
 
     @Test
     public void onTelemetry_retriedRequest_publishesSeparateCollectionsWithIncreasingRetryCount() throws Exception {
-        CapturingPublisher publisher = new CapturingPublisher();
+        CapturingPublisher publisher = new CapturingPublisher(2);
         S3CrtResponseHandlerAdapter adapter = adapterPublishingTo(publisher);
 
         // First attempt fails (retry count 0), the retry succeeds (retry count 1). CRT delivers these as two separate
@@ -138,6 +157,7 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         S3RequestMetrics retryAttempt = successfulGetObjectMetrics();
         when(retryAttempt.getRetryCount()).thenReturn(1);
         adapter.onTelemetry(retryAttempt);
+        publisher.awaitExpectedCollections();
 
         assertThat(publisher.collections).hasSize(2);
         assertThat(publisher.collections.get(0).metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(false);
@@ -160,7 +180,7 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         return metrics;
     }
 
-    private static S3CrtResponseHandlerAdapter adapterPublishingTo(MetricPublisher... publishers) {
+    private S3CrtResponseHandlerAdapter adapterPublishingTo(MetricPublisher... publishers) {
         SdkHttpExecutionAttributes attributes =
             SdkHttpExecutionAttributes.builder()
                                       .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS, Arrays.asList(publishers))
@@ -168,7 +188,8 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
         return new S3CrtResponseHandlerAdapter(new CompletableFuture<>(),
                                                mock(SdkAsyncHttpResponseHandler.class),
                                                attributes,
-                                               new CompletableFuture<>());
+                                               new CompletableFuture<>(),
+                                               metricPublisherDispatcher);
     }
 
     private static MetricCollection childNamed(MetricCollection parent, String name) {
@@ -176,15 +197,25 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
     }
 
     private static final class CapturingPublisher implements MetricPublisher {
-        private final List<MetricCollection> collections = new ArrayList<>();
+        private final List<MetricCollection> collections = new CopyOnWriteArrayList<>();
+        private final CountDownLatch expectedCollections;
+
+        private CapturingPublisher(int expectedCollections) {
+            this.expectedCollections = new CountDownLatch(expectedCollections);
+        }
 
         @Override
         public void publish(MetricCollection metricCollection) {
             collections.add(metricCollection);
+            expectedCollections.countDown();
         }
 
         @Override
         public void close() {
+        }
+
+        private void awaitExpectedCollections() throws InterruptedException {
+            assertThat(expectedCollections.await(5, TimeUnit.SECONDS)).isTrue();
         }
     }
 }

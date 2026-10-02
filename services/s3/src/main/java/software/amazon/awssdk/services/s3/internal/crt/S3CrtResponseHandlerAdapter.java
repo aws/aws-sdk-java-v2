@@ -80,6 +80,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final Duration s3MetaRequestTimeout;
     private final List<MetricPublisher> metricPublishers;
+    private final S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     private volatile boolean responseHandlingInitiated;
 
@@ -90,8 +91,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        SdkHttpExecutionAttributes httpExecutionAttributes,
-                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
-        this(executeFuture, responseHandler, httpExecutionAttributes, metaRequestFuture, META_REQUEST_TIMEOUT);
+                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
+                                       S3CrtMetricPublisherDispatcher metricPublisherDispatcher) {
+        this(executeFuture, responseHandler, httpExecutionAttributes, metaRequestFuture, META_REQUEST_TIMEOUT,
+             metricPublisherDispatcher);
     }
 
     @SdkTestInternalApi
@@ -99,7 +102,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        SdkHttpExecutionAttributes httpExecutionAttributes,
                                        CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
-                                       Duration s3MetaRequestTimeout) {
+                                       Duration s3MetaRequestTimeout,
+                                       S3CrtMetricPublisherDispatcher metricPublisherDispatcher) {
         this.resultFuture = executeFuture;
         this.metaRequestFuture = metaRequestFuture;
         this.responseHandler = responseHandler;
@@ -110,6 +114,7 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
         this.metricPublishers = publishers == null ? Collections.emptyList() : publishers;
         this.s3MetaRequestTimeout = s3MetaRequestTimeout;
+        this.metricPublisherDispatcher = metricPublisherDispatcher;
 
         // Registered last: the callback reads responseHandler and s3MetaRequestTimeout, so all fields must be assigned
         // first in case resultFuture is already complete and the callback runs synchronously here.
@@ -343,7 +348,8 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
      * Invoked by CRT once per underlying HTTP request (e.g. each ranged part GET / upload part) with that request's
      * telemetry. We publish each as its own nested ApiCall -> ApiCallAttempt -> HttpClient MetricCollection, mirroring
      * the node placement of the standard client so all metric publishers render it consistently. Runs on a CRT native
-     * thread; it only reads the metrics object and publishes, and never throws back into the native callback.
+     * thread; it reads and copies the metrics object before dispatching the completed collection to publisher-owned
+     * worker lanes, and never throws back into the native callback.
      */
     @Override
     public void onTelemetry(S3RequestMetrics requestMetrics) {
@@ -371,9 +377,9 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             // TODO: map when CRT exposes them - HTTP status, endpoint URL, TTFB/TTLB, connection-pool metrics.
 
             MetricCollection collection = apiCall.collect();
-            metricPublishers.forEach(p -> p.publish(collection));
+            metricPublisherDispatcher.dispatch(collection, metricPublishers);
         } catch (RuntimeException e) {
-            log.warn(() -> "Failed to publish CRT S3 request metrics", e);
+            log.warn(() -> "Failed to collect CRT S3 request metrics", e);
         }
     }
 

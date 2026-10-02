@@ -92,6 +92,7 @@ public class S3CrtAsyncHttpClientTest {
     @BeforeEach
     public void methodSetup() {
         s3Client = Mockito.mock(S3Client.class);
+        when(s3Client.getShutdownCompleteFuture()).thenReturn(CompletableFuture.completedFuture(null));
         responseHandler = Mockito.mock(SdkAsyncHttpResponseHandler.class);
         contentPublisher = Mockito.mock(SdkHttpContentPublisher.class);
         s3NativeClientConfiguration = S3NativeClientConfiguration.builder()
