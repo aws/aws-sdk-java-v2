@@ -1181,6 +1181,25 @@
       ],
       "documentation":"<p>Updates the integrated resources for an agent space, including their capabilities.</p>"
     },
+    "UpdateIntegration":{
+      "name":"UpdateIntegration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/UpdateIntegration",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateIntegrationInput"},
+      "output":{"shape":"UpdateIntegrationOutput"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Creates an integration's webhook, or rotates the HMAC signing secret of an existing one. The secret is returned only once, in this response, and cannot be retrieved again.</p>"
+    },
     "UpdatePentest":{
       "name":"UpdatePentest",
       "http":{
@@ -1723,6 +1742,96 @@
         "AWS_IAM_ROLE",
         "AWS_INTERNAL"
       ]
+    },
+    "AzureDevOpsIntegrationInput":{
+      "type":"structure",
+      "required":[
+        "code",
+        "state",
+        "organizationName"
+      ],
+      "members":{
+        "code":{
+          "shape":"AuthCode",
+          "documentation":"<p>The OAuth 2.0 authorization code returned to your redirect URL after the connection is authorized.</p>"
+        },
+        "state":{
+          "shape":"CsrfState",
+          "documentation":"<p>The CSRF state value returned by <code>InitiateProviderRegistration</code> and echoed back on the authorization redirect.</p>"
+        },
+        "organizationName":{
+          "shape":"String",
+          "documentation":"<p>The name of the Azure DevOps organization to connect, for example <code>my-org</code>.</p>"
+        }
+      },
+      "documentation":"<p>Connection details for an Azure DevOps integration.</p>"
+    },
+    "AzureDevOpsOrganization":{
+      "type":"string",
+      "documentation":"<p>An Azure DevOps organization name.</p>"
+    },
+    "AzureDevOpsRepositoryMetadata":{
+      "type":"structure",
+      "required":[
+        "name",
+        "providerResourceId",
+        "organization"
+      ],
+      "members":{
+        "name":{"shape":"ProviderResourceName"},
+        "providerResourceId":{"shape":"ProviderResourceId"},
+        "organization":{
+          "shape":"AzureDevOpsOrganization",
+          "documentation":"<p>The name of the Azure DevOps organization that owns the repository.</p>"
+        },
+        "project":{
+          "shape":"String",
+          "documentation":"<p>The name of the Azure DevOps project that contains the repository.</p>"
+        },
+        "projectId":{
+          "shape":"String",
+          "documentation":"<p>The GUID of the Azure DevOps project that contains the repository.</p>"
+        },
+        "accessType":{"shape":"AccessType"}
+      },
+      "documentation":"<p>Metadata for an integrated Azure DevOps repository.</p>"
+    },
+    "AzureDevOpsRepositoryResource":{
+      "type":"structure",
+      "required":[
+        "name",
+        "organization"
+      ],
+      "members":{
+        "name":{"shape":"ProviderResourceName"},
+        "organization":{
+          "shape":"AzureDevOpsOrganization",
+          "documentation":"<p>The name of the Azure DevOps organization that owns the repository.</p>"
+        },
+        "project":{
+          "shape":"String",
+          "documentation":"<p>The name of the Azure DevOps project that contains the repository.</p>"
+        }
+      },
+      "documentation":"<p>An Azure DevOps repository integrated as a resource.</p>"
+    },
+    "AzureDevOpsResourceCapabilities":{
+      "type":"structure",
+      "members":{
+        "triggerFilterGroups":{
+          "shape":"TriggerFilterGroups",
+          "documentation":"<p>The filter groups that control which pull request events start an automatic code review when <code>leaveComments</code> is enabled. A review starts when any group matches. If you omit this, a review starts on <code>PULL_REQUEST_READY_FOR_REVIEW</code> events.</p>"
+        },
+        "leaveComments":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to post code review comments on pull requests.</p>"
+        },
+        "remediateCode":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to create pull requests with automated fixes.</p>"
+        }
+      },
+      "documentation":"<p>Capabilities for an integrated Azure DevOps repository.</p>"
     },
     "BatchCreateSecurityRequirementResult":{
       "type":"structure",
@@ -2517,6 +2626,29 @@
         }
       }
     },
+    "BitbucketDataCenterIntegrationInput":{
+      "type":"structure",
+      "required":[
+        "targetUrl",
+        "code",
+        "state"
+      ],
+      "members":{
+        "targetUrl":{
+          "shape":"TargetUrl",
+          "documentation":"<p>The HTTPS URL of your Bitbucket Data Center instance, for example <code>https://bitbucket.example.com</code>.</p>"
+        },
+        "code":{
+          "shape":"AuthCode",
+          "documentation":"<p>The OAuth 2.0 authorization code returned to your redirect URL after the connection is authorized.</p>"
+        },
+        "state":{
+          "shape":"CsrfState",
+          "documentation":"<p>The CSRF state value returned by <code>InitiateProviderRegistration</code> and echoed back on the authorization redirect.</p>"
+        }
+      },
+      "documentation":"<p>Connection details for a self-managed Bitbucket Data Center integration.</p>"
+    },
     "BitbucketInstallationId":{
       "type":"string",
       "documentation":"<p>An Atlassian installation identifier for a Bitbucket integration.</p>"
@@ -2585,6 +2717,10 @@
     "BitbucketResourceCapabilities":{
       "type":"structure",
       "members":{
+        "triggerFilterGroups":{
+          "shape":"TriggerFilterGroups",
+          "documentation":"<p>The filter groups that control which pull request events start an automatic code review when <code>leaveComments</code> is enabled. A review starts when any group matches. If you omit this, a review starts on <code>PULL_REQUEST_READY_FOR_REVIEW</code> events.</p>"
+        },
         "leaveComments":{
           "shape":"Boolean",
           "documentation":"<p>Whether to post code review comments on pull requests.</p>"
@@ -2654,6 +2790,16 @@
       "documentation":"<p>A PEM-encoded certificate chain for a private connection.</p>",
       "sensitive":true
     },
+    "CiCdConfiguration":{
+      "type":"structure",
+      "members":{
+        "enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether CI/CD pentesting is enabled for this pentest.</p>"
+        }
+      },
+      "documentation":"<p>The configuration that enables a pentest to run as part of a CI/CD pipeline, scoped to the code changes in each pipeline run.</p>"
+    },
     "CleanUpStrategy":{
       "type":"string",
       "documentation":"<p>Strategy for handling resources created during a pentest.</p>",
@@ -2661,6 +2807,15 @@
         "BEST_EFFORT_DELETE",
         "RETAIN_ALL"
       ]
+    },
+    "ClientId":{
+      "type":"string",
+      "documentation":"<p>A client ID for an OAuth application registered on a self-managed provider instance.</p>"
+    },
+    "ClientSecret":{
+      "type":"string",
+      "documentation":"<p>A client secret for an OAuth application registered on a self-managed provider instance.</p>",
+      "sensitive":true
     },
     "CloudWatchLog":{
       "type":"structure",
@@ -3513,7 +3668,7 @@
       "members":{
         "provider":{
           "shape":"Provider",
-          "documentation":"<p>The integration provider. Currently, only GITHUB is supported.</p>"
+          "documentation":"<p>The integration provider.</p>"
         },
         "input":{
           "shape":"ProviderInput",
@@ -3642,6 +3797,10 @@
         "reportFilters":{
           "shape":"ReportFilters",
           "documentation":"<p>The report-generation filters applied when the report is exported.</p>"
+        },
+        "cicdConfiguration":{
+          "shape":"CiCdConfiguration",
+          "documentation":"<p>The CI/CD pentesting configuration to apply to the pentest.</p>"
         }
       },
       "documentation":"<p>Input for creating a new pentest.</p>"
@@ -3692,6 +3851,10 @@
         "reportFilters":{
           "shape":"ReportFilters",
           "documentation":"<p>The report-generation filters applied when the report is exported.</p>"
+        },
+        "cicdConfiguration":{
+          "shape":"CiCdConfiguration",
+          "documentation":"<p>The CI/CD pentesting configuration applied to the pentest.</p>"
         }
       },
       "documentation":"<p>Output for the CreatePentest operation.</p>"
@@ -5048,6 +5211,10 @@
           "shape":"TargetUrl",
           "documentation":"<p>The HTTPS URL of the customer self-hosted instance, such as a GitHub Enterprise Server or self-managed GitLab instance. This value is absent for SaaS integrations.</p>"
         },
+        "webhookUrl":{
+          "shape":"String",
+          "documentation":"<p>The payload URL of the integration's webhook, once it has been created. The signing secret is never returned on a read.</p>"
+        },
         "privateConnectionName":{
           "shape":"PrivateConnectionName",
           "documentation":"<p>The name of the private connection used to reach the integration's self-hosted instance over private networking, if one is configured.</p>"
@@ -5199,6 +5366,10 @@
     "GitHubResourceCapabilities":{
       "type":"structure",
       "members":{
+        "triggerFilterGroups":{
+          "shape":"TriggerFilterGroups",
+          "documentation":"<p>The filter groups that control which pull request events start an automatic code review when <code>leaveComments</code> is enabled. A review starts when any group matches. If you omit this, a review starts on <code>PULL_REQUEST_READY_FOR_REVIEW</code> events.</p>"
+        },
         "leaveComments":{
           "shape":"Boolean",
           "documentation":"<p>Indicates whether the integration can leave comments on pull requests.</p>"
@@ -5276,6 +5447,10 @@
     "GitLabResourceCapabilities":{
       "type":"structure",
       "members":{
+        "triggerFilterGroups":{
+          "shape":"TriggerFilterGroups",
+          "documentation":"<p>The filter groups that control which merge request events start an automatic code review when <code>leaveComments</code> is enabled. A review starts when any group matches. If you omit this, a review starts on <code>PULL_REQUEST_READY_FOR_REVIEW</code> events.</p>"
+        },
         "leaveComments":{
           "shape":"Boolean",
           "documentation":"<p>Whether to post code review comments on merge request discussions.</p>"
@@ -5390,7 +5565,23 @@
       "members":{
         "provider":{
           "shape":"Provider",
-          "documentation":"<p>The provider to initiate registration with. Currently, only GITHUB is supported.</p>"
+          "documentation":"<p>The provider to initiate registration with.</p>"
+        },
+        "targetUrl":{
+          "shape":"TargetUrl",
+          "documentation":"<p>The HTTPS URL of a self-managed provider instance. Omit for SaaS providers.</p>"
+        },
+        "organizationName":{
+          "shape":"String",
+          "documentation":"<p>The name of the organization to connect.</p>"
+        },
+        "clientId":{
+          "shape":"ClientId",
+          "documentation":"<p>The client ID of the OAuth application registered on your self-managed provider instance.</p>"
+        },
+        "clientSecret":{
+          "shape":"ClientSecret",
+          "documentation":"<p>The client secret of the OAuth application registered on your self-managed provider instance.</p>"
         }
       }
     },
@@ -5468,7 +5659,11 @@
         },
         "gitlabRepository":{"shape":"GitLabRepositoryResource"},
         "bitbucketRepository":{"shape":"BitbucketRepositoryResource"},
-        "confluenceDocument":{"shape":"ConfluenceDocumentResource"}
+        "confluenceDocument":{"shape":"ConfluenceDocumentResource"},
+        "azureDevOpsRepository":{
+          "shape":"AzureDevOpsRepositoryResource",
+          "documentation":"<p>The Azure DevOps repository resource information.</p>"
+        }
       },
       "documentation":"<p>Represents an integrated resource from a third-party provider. This is a union type that contains provider-specific resource information.</p>",
       "union":true
@@ -5502,7 +5697,11 @@
         },
         "gitlabRepository":{"shape":"GitLabRepositoryMetadata"},
         "bitbucketRepository":{"shape":"BitbucketRepositoryMetadata"},
-        "confluenceDocument":{"shape":"ConfluenceDocumentMetadata"}
+        "confluenceDocument":{"shape":"ConfluenceDocumentMetadata"},
+        "azureDevOpsRepository":{
+          "shape":"AzureDevOpsRepositoryMetadata",
+          "documentation":"<p>The Azure DevOps repository metadata.</p>"
+        }
       },
       "documentation":"<p>Contains metadata about an integrated resource. This is a union type that contains provider-specific metadata.</p>",
       "union":true
@@ -5587,6 +5786,10 @@
           "shape":"TargetUrl",
           "documentation":"<p>The HTTPS URL of the customer self-hosted instance, such as a GitHub Enterprise Server or self-managed GitLab instance. This value is absent for SaaS integrations.</p>"
         },
+        "webhookUrl":{
+          "shape":"String",
+          "documentation":"<p>The payload URL of the integration's webhook, once it has been created. The signing secret is never returned on a read.</p>"
+        },
         "privateConnectionName":{
           "shape":"PrivateConnectionName",
           "documentation":"<p>The name of the private connection used to reach the integration's self-hosted instance over private networking, if one is configured.</p>"
@@ -5638,7 +5841,8 @@
       "documentation":"<p>The type of pentest job execution.</p>",
       "enum":[
         "FULL",
-        "REVALIDATION"
+        "REVALIDATION",
+        "CICD"
       ]
     },
     "KmsKeyId":{
@@ -6189,6 +6393,10 @@
         "nextToken":{
           "shape":"NextToken",
           "documentation":"<p>A token to use for paginating results that are returned in the response. Set the value of this parameter to null for the first request. For subsequent calls, use the nextToken value returned from the previous request.</p>"
+        },
+        "jobType":{
+          "shape":"JobType",
+          "documentation":"<p>Filters the returned pentest jobs to only those of the specified job type.</p>"
         }
       },
       "documentation":"<p>Input for ListPentestJobsForPentest operation.</p>"
@@ -6819,6 +7027,10 @@
           "shape":"ReportFilters",
           "documentation":"<p>The report-generation filters applied when the report is exported.</p>"
         },
+        "cicdConfiguration":{
+          "shape":"CiCdConfiguration",
+          "documentation":"<p>The CI/CD pentesting configuration for this pentest. Present when the pentest is set up to run from a CI/CD pipeline.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time the pentest was created, in UTC format.</p>"
@@ -6939,7 +7151,7 @@
         },
         "jobType":{
           "shape":"JobType",
-          "documentation":"<p>The type of the pentest job. Valid values are FULL and REVALIDATION.</p>"
+          "documentation":"<p>The type of the pentest job. Valid values are FULL, REVALIDATION, and CICD.</p>"
         },
         "selectedFindingIds":{
           "shape":"StringList",
@@ -6949,6 +7161,19 @@
           "shape":"ReportDestination",
           "documentation":"<p>The destination for publishing scan reports to an integrated document provider.</p>"
         },
+        "reportUrl":{
+          "shape":"String",
+          "documentation":"<p>The URL to view this pentest job's findings report in the console.</p>"
+        },
+        "scopeResult":{
+          "shape":"ScopeResult",
+          "documentation":"<p>The scoping outcome for this CI/CD pentest job. Present only for jobs of type CICD.</p>"
+        },
+        "scopeChanges":{
+          "shape":"ScopeChangeList",
+          "documentation":"<p>The code changes that defined the scope of this CI/CD pentest job. Present only for jobs of type CICD.</p>"
+        },
+        "cicdConfiguration":{"shape":"CiCdConfiguration"},
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time the pentest job was created, in UTC format.</p>"
@@ -6998,6 +7223,14 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The date and time the pentest job was last updated, in UTC format.</p>"
+        },
+        "jobType":{
+          "shape":"JobType",
+          "documentation":"<p>The type of the pentest job. Valid values are FULL, REVALIDATION, and CICD.</p>"
+        },
+        "reportUrl":{
+          "shape":"String",
+          "documentation":"<p>The URL to view this pentest job's findings report in the console.</p>"
         }
       },
       "documentation":"<p>Contains summary information about a pentest job.</p>"
@@ -7181,7 +7414,8 @@
         "GITHUB",
         "GITLAB",
         "BITBUCKET",
-        "CONFLUENCE"
+        "CONFLUENCE",
+        "AZURE_DEVOPS"
       ]
     },
     "ProviderInput":{
@@ -7202,6 +7436,14 @@
         "confluence":{
           "shape":"ConfluenceIntegrationInput",
           "documentation":"<p>The configuration for a Confluence integration.</p>"
+        },
+        "azureDevOps":{
+          "shape":"AzureDevOpsIntegrationInput",
+          "documentation":"<p>The Azure DevOps-specific input for creating an integration.</p>"
+        },
+        "bitbucketDataCenter":{
+          "shape":"BitbucketDataCenterIntegrationInput",
+          "documentation":"<p>The Bitbucket Data Center-specific input for creating an integration.</p>"
         }
       },
       "documentation":"<p>The provider-specific input for creating an integration. This is a union type that contains provider-specific configuration.</p>",
@@ -7216,7 +7458,11 @@
         },
         "gitlab":{"shape":"GitLabResourceCapabilities"},
         "bitbucket":{"shape":"BitbucketResourceCapabilities"},
-        "confluence":{"shape":"ConfluenceResourceCapabilities"}
+        "confluence":{"shape":"ConfluenceResourceCapabilities"},
+        "azureDevOps":{
+          "shape":"AzureDevOpsResourceCapabilities",
+          "documentation":"<p>The Azure DevOps-specific resource capabilities.</p>"
+        }
       },
       "documentation":"<p>The capabilities for an integrated resource from a third-party provider. This is a union type that contains provider-specific capabilities.</p>",
       "union":true
@@ -7433,6 +7679,68 @@
     "S3BucketArns":{
       "type":"list",
       "member":{"shape":"S3BucketArn"}
+    },
+    "ScopeChange":{
+      "type":"structure",
+      "required":[
+        "integrationId",
+        "providerResourceId",
+        "headCommitSha"
+      ],
+      "members":{
+        "integrationId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the integration for the source-code provider that hosts the repository.</p>"
+        },
+        "providerResourceId":{
+          "shape":"String",
+          "documentation":"<p>The provider-specific identifier of the repository the change belongs to.</p>"
+        },
+        "baseCommitSha":{
+          "shape":"String",
+          "documentation":"<p>The commit SHA that the change is compared against. When omitted, the change is evaluated against the head commit alone.</p>"
+        },
+        "headCommitSha":{
+          "shape":"String",
+          "documentation":"<p>The commit SHA at the tip of the change to be tested.</p>"
+        },
+        "triggerRunId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the CI/CD pipeline run that triggered this pentest job.</p>"
+        }
+      },
+      "documentation":"<p>A code change in a CI/CD pipeline run that defines what a CI/CD pentest job tests. Each scope change identifies an integrated repository and the commit range for the change.</p>"
+    },
+    "ScopeChangeList":{
+      "type":"list",
+      "member":{"shape":"ScopeChange"}
+    },
+    "ScopeDecision":{
+      "type":"string",
+      "documentation":"<p>The scoping decision for a CI/CD pentest job, indicating whether the supplied code changes are tested.</p>",
+      "enum":[
+        "IN_SCOPE",
+        "SCOPED_OUT",
+        "SCOPE_CONFLICT"
+      ]
+    },
+    "ScopeResult":{
+      "type":"structure",
+      "required":[
+        "decision",
+        "reason"
+      ],
+      "members":{
+        "decision":{
+          "shape":"ScopeDecision",
+          "documentation":"<p>The scoping decision for the job's code changes.</p>"
+        },
+        "reason":{
+          "shape":"String",
+          "documentation":"<p>A human-readable explanation of the scoping decision.</p>"
+        }
+      },
+      "documentation":"<p>The outcome of scoping a CI/CD pentest job's code changes, including the decision and the reason for it.</p>"
     },
     "SecretArn":{
       "type":"string",
@@ -7841,11 +8149,15 @@
         },
         "jobType":{
           "shape":"JobType",
-          "documentation":"<p>The type of pentest job to start. Valid values are FULL and REVALIDATION. When set to REVALIDATION, the selectedFindingIds parameter is required.</p>"
+          "documentation":"<p>The type of pentest job to start. Valid values are FULL, REVALIDATION, and CICD. When set to REVALIDATION, the selectedFindingIds parameter is required. When set to CICD, the scopeChanges parameter defines the code changes to test.</p>"
         },
         "selectedFindingIds":{
           "shape":"StringList",
           "documentation":"<p>The list of finding identifiers to revalidate. Required when jobType is REVALIDATION. Each finding must belong to the same agent space and pentest.</p>"
+        },
+        "scopeChanges":{
+          "shape":"ScopeChangeList",
+          "documentation":"<p>The code changes that define the scope of a CI/CD pentest job. Provide this when starting a job with jobType CICD to test only the changes in the current pipeline run.</p>"
         }
       },
       "documentation":"<p>Input for starting the execution of a pentest.</p>"
@@ -8931,6 +9243,102 @@
       },
       "exception":true
     },
+    "TriggerEvent":{
+      "type":"string",
+      "documentation":"<p>A pull request event that can start an automatic code review. For GitLab repositories, pull request refers to a merge request.</p>",
+      "enum":[
+        "PULL_REQUEST_READY_FOR_REVIEW",
+        "PULL_REQUEST_DRAFT",
+        "PULL_REQUEST_LABEL_ADDED"
+      ]
+    },
+    "TriggerEventList":{
+      "type":"list",
+      "member":{"shape":"TriggerEvent"},
+      "documentation":"<p>A list of pull request events that start an automatic code review.</p>",
+      "max":10,
+      "min":1
+    },
+    "TriggerFilter":{
+      "type":"structure",
+      "required":[
+        "type",
+        "patterns"
+      ],
+      "members":{
+        "type":{
+          "shape":"TriggerFilterType",
+          "documentation":"<p>The pull request value to match.</p>"
+        },
+        "patterns":{
+          "shape":"TriggerRegexPatternList",
+          "documentation":"<p>The regular expressions to match against the value.</p>"
+        },
+        "matchMode":{
+          "shape":"TriggerFilterMatchMode",
+          "documentation":"<p>Whether the value must match the patterns. The default is <code>INCLUDE</code>.</p>"
+        }
+      },
+      "documentation":"<p>A condition on a pull request value.</p>"
+    },
+    "TriggerFilterGroup":{
+      "type":"structure",
+      "members":{
+        "events":{
+          "shape":"TriggerEventList",
+          "documentation":"<p>Passes when the pull request event is one of the listed events. If you omit this, the group matches <code>PULL_REQUEST_READY_FOR_REVIEW</code> and <code>PULL_REQUEST_DRAFT</code> events only.</p>"
+        },
+        "filters":{
+          "shape":"TriggerFilterList",
+          "documentation":"<p>Passes when every filter passes. If you omit this, the group matches its events on any target branch and with any labels.</p>"
+        }
+      },
+      "documentation":"<p>A set of conditions that start an automatic code review when they all pass. A filter group must include <code>events</code>, <code>filters</code>, or both.</p>"
+    },
+    "TriggerFilterGroups":{
+      "type":"list",
+      "member":{"shape":"TriggerFilterGroup"},
+      "documentation":"<p>A list of filter groups. An automatic code review starts when any group matches. The filters across all groups can contain at most 100 patterns in total.</p>",
+      "max":5,
+      "min":1
+    },
+    "TriggerFilterList":{
+      "type":"list",
+      "member":{"shape":"TriggerFilter"},
+      "documentation":"<p>A list of filters that must all pass.</p>",
+      "max":5,
+      "min":1
+    },
+    "TriggerFilterMatchMode":{
+      "type":"string",
+      "documentation":"<p>Whether a filter's value must match its patterns.</p>",
+      "enum":[
+        "INCLUDE",
+        "EXCLUDE"
+      ]
+    },
+    "TriggerFilterType":{
+      "type":"string",
+      "documentation":"<p>A pull request value that a filter matches.</p>",
+      "enum":[
+        "TARGET_BRANCH",
+        "LABEL"
+      ]
+    },
+    "TriggerRegexPattern":{
+      "type":"string",
+      "documentation":"<p>A regular expression in RE2 syntax that must match the entire value, for example <code>main</code> or <code>release/.*</code>.</p>",
+      "max":256,
+      "min":1,
+      "pattern":"[^\\x00-\\x1F\\x7F-\\x9F]+"
+    },
+    "TriggerRegexPatternList":{
+      "type":"list",
+      "member":{"shape":"TriggerRegexPattern"},
+      "documentation":"<p>A list of regular expressions.</p>",
+      "max":20,
+      "min":1
+    },
     "TrustedCaCertificate":{
       "type":"structure",
       "required":["source"],
@@ -9273,6 +9681,43 @@
       "type":"structure",
       "members":{}
     },
+    "UpdateIntegrationInput":{
+      "type":"structure",
+      "required":[
+        "integrationId",
+        "webhookAction"
+      ],
+      "members":{
+        "integrationId":{
+          "shape":"IntegrationId",
+          "documentation":"<p>The ID of the integration whose webhook you want to create or rotate.</p>"
+        },
+        "webhookAction":{
+          "shape":"WebhookAction",
+          "documentation":"<p>The action to perform on the integration's webhook.</p>"
+        }
+      },
+      "documentation":"<p>Input for creating or rotating an integration's webhook.</p>"
+    },
+    "UpdateIntegrationOutput":{
+      "type":"structure",
+      "required":["integrationId"],
+      "members":{
+        "integrationId":{
+          "shape":"IntegrationId",
+          "documentation":"<p>The ID of the integration.</p>"
+        },
+        "webhookUrl":{
+          "shape":"String",
+          "documentation":"<p>The payload URL to configure on your provider instance. Returned when a webhook is created; unchanged by a rotate.</p>"
+        },
+        "secret":{
+          "shape":"WebhookSecret",
+          "documentation":"<p>The HMAC signing secret for the webhook. Returned only once, in this response; it is never returned again.</p>"
+        }
+      },
+      "documentation":"<p>Output for the UpdateIntegration operation.</p>"
+    },
     "UpdatePentestInput":{
       "type":"structure",
       "required":[
@@ -9335,6 +9780,10 @@
         "reportFilters":{
           "shape":"ReportFilters",
           "documentation":"<p>The report-generation filters applied when the report is exported.</p>"
+        },
+        "cicdConfiguration":{
+          "shape":"CiCdConfiguration",
+          "documentation":"<p>The updated CI/CD pentesting configuration to apply to the pentest.</p>"
         }
       },
       "documentation":"<p>Input for updating an existing pentest.</p>"
@@ -9385,6 +9834,10 @@
         "reportFilters":{
           "shape":"ReportFilters",
           "documentation":"<p>The report-generation filters applied when the report is exported.</p>"
+        },
+        "cicdConfiguration":{
+          "shape":"CiCdConfiguration",
+          "documentation":"<p>The CI/CD pentesting configuration applied to the pentest.</p>"
         }
       },
       "documentation":"<p>Output for the UpdatePentest operation.</p>"
@@ -10081,6 +10534,19 @@
     "VpcConfigs":{
       "type":"list",
       "member":{"shape":"VpcConfig"}
+    },
+    "WebhookAction":{
+      "type":"string",
+      "documentation":"<p>The action to perform on an integration's webhook.</p>",
+      "enum":[
+        "CREATE_IF_ABSENT",
+        "ROTATE"
+      ]
+    },
+    "WebhookSecret":{
+      "type":"string",
+      "documentation":"<p>An HMAC signing secret for a provider webhook.</p>",
+      "sensitive":true
     }
   },
   "documentation":"<p>AWS Security Agent is a frontier agent that proactively secures your applications throughout the development lifecycle. It conducts automated security reviews tailored to your organizational requirements and delivers context-aware penetration testing on demand. By continuously validating security from design to deployment, AWS Security Agent helps prevent vulnerabilities early across all your environments. Key capabilities include design security review for architecture documents, code security review for pull requests in connected repositories, and on-demand penetration testing that discovers, validates, and remediates security vulnerabilities through tailored multi-step attack scenarios. For more information, see the <a href=\"https://docs.aws.amazon.com/securityagent/latest/userguide/what-is.html\">AWS Security Agent User Guide</a>.</p>"

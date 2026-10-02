@@ -47,7 +47,8 @@
         {"shape":"InternalServiceException"},
         {"shape":"EntityNotFoundException"},
         {"shape":"OperationTimeoutException"},
-        {"shape":"GlueEncryptionException"}
+        {"shape":"GlueEncryptionException"},
+        {"shape":"ConcurrentModificationException"}
       ],
       "documentation":"<p>Creates one or more partitions in a batch operation.</p>"
     },
@@ -77,7 +78,8 @@
         {"shape":"InvalidInputException"},
         {"shape":"EntityNotFoundException"},
         {"shape":"InternalServiceException"},
-        {"shape":"OperationTimeoutException"}
+        {"shape":"OperationTimeoutException"},
+        {"shape":"ConcurrentModificationException"}
       ],
       "documentation":"<p>Deletes one or more partitions in a batch operation.</p>"
     },
@@ -95,7 +97,8 @@
         {"shape":"InternalServiceException"},
         {"shape":"OperationTimeoutException"},
         {"shape":"GlueEncryptionException"},
-        {"shape":"ResourceNotReadyException"}
+        {"shape":"ResourceNotReadyException"},
+        {"shape":"ConcurrentModificationException"}
       ],
       "documentation":"<p>Deletes multiple tables at once.</p> <note> <p>After completing this operation, you no longer have access to the table versions and partitions that belong to the deleted table. Glue deletes these \"orphaned\" resources asynchronously in a timely manner, at the discretion of the service.</p> <p>To ensure the immediate deletion of all related resources, before calling <code>BatchDeleteTable</code>, use <code>DeleteTableVersion</code> or <code>BatchDeleteTableVersion</code>, and <code>DeletePartition</code> or <code>BatchDeletePartition</code>, to delete any resources that belong to the table.</p> </note>"
     },
@@ -348,7 +351,8 @@
         {"shape":"EntityNotFoundException"},
         {"shape":"OperationTimeoutException"},
         {"shape":"InternalServiceException"},
-        {"shape":"GlueEncryptionException"}
+        {"shape":"GlueEncryptionException"},
+        {"shape":"ConcurrentModificationException"}
       ],
       "documentation":"<p>Updates one or more partitions in a batch operation.</p>"
     },
@@ -9677,6 +9681,10 @@
         "LakeFormationConfiguration":{
           "shape":"LakeFormationConfiguration",
           "documentation":"<p>Specifies whether the crawler should use Lake Formation credentials for the crawler instead of the IAM role credentials.</p>"
+        },
+        "CatalogId":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog in which the crawler's output is stored.</p>"
         }
       },
       "documentation":"<p>Specifies a crawler program that examines a data source and uses classifiers to try to determine its schema. If successful, the crawler records metadata concerning the data source in the Glue Data Catalog.</p>"
@@ -10033,7 +10041,7 @@
           "documentation":"<p>The percentage of data to sample.</p>"
         },
         "CatalogID":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog in which the database resides.</p>"
         },
         "SecurityConfiguration":{
@@ -10144,6 +10152,10 @@
         "Tags":{
           "shape":"TagsMap",
           "documentation":"<p>The tags to use with this crawler request. You may use tags to limit access to the crawler. For more information about tags in Glue, see <a href=\"https://docs.aws.amazon.com/glue/latest/dg/monitor-tags.html\">Amazon Web Services Tags in Glue</a> in the developer guide.</p>"
+        },
+        "CatalogId":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog in which to store the crawler's output. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -13238,6 +13250,10 @@
         "TableName":{
           "shape":"NameString",
           "documentation":"<p>The name of the table for which to delete column statistics.</p>"
+        },
+        "CatalogID":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -16258,6 +16274,10 @@
         "NextToken":{
           "shape":"Token",
           "documentation":"<p>A continuation token, if this is a continuation call.</p>"
+        },
+        "CatalogID":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -16288,6 +16308,10 @@
         "TableName":{
           "shape":"NameString",
           "documentation":"<p>The name of the table for which to retrieve column statistics.</p>"
+        },
+        "CatalogID":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -17684,7 +17708,7 @@
       ],
       "members":{
         "CatalogId":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the account ID is used by default.</p>"
         },
         "MaterializedViewRefreshTaskRunId":{
@@ -22651,7 +22675,7 @@
       "required":["CatalogId"],
       "members":{
         "CatalogId":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the account ID is used by default.</p>"
         },
         "DatabaseName":{
@@ -23981,7 +24005,8 @@
       "enum":[
         "AUTHORIZATION_CODE",
         "CLIENT_CREDENTIALS",
-        "JWT_BEARER"
+        "JWT_BEARER",
+        "REFRESH_TOKEN"
       ]
     },
     "OAuth2Properties":{
@@ -23989,7 +24014,7 @@
       "members":{
         "OAuth2GrantType":{
           "shape":"OAuth2GrantType",
-          "documentation":"<p>The OAuth2 grant type. For example, <code>AUTHORIZATION_CODE</code>, <code>JWT_BEARER</code>, or <code>CLIENT_CREDENTIALS</code>.</p>"
+          "documentation":"<p>The OAuth2 grant type. For example, <code>AUTHORIZATION_CODE</code>, <code>JWT_BEARER</code>, <code>REFRESH_TOKEN</code>, or <code>CLIENT_CREDENTIALS</code>.</p>"
         },
         "OAuth2ClientApplication":{
           "shape":"OAuth2ClientApplication",
@@ -24011,7 +24036,7 @@
       "members":{
         "OAuth2GrantType":{
           "shape":"OAuth2GrantType",
-          "documentation":"<p>The OAuth2 grant type in the CreateConnection request. For example, <code>AUTHORIZATION_CODE</code>, <code>JWT_BEARER</code>, or <code>CLIENT_CREDENTIALS</code>.</p>"
+          "documentation":"<p>The OAuth2 grant type in the CreateConnection request. For example, <code>AUTHORIZATION_CODE</code>, <code>JWT_BEARER</code>, <code>REFRESH_TOKEN</code>, or <code>CLIENT_CREDENTIALS</code>.</p>"
         },
         "OAuth2ClientApplication":{
           "shape":"OAuth2ClientApplication",
@@ -25542,7 +25567,7 @@
           "documentation":"<p>An opaque string-string map passed by the query engine.</p>"
         }
       },
-      "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p>"
+      "documentation":"<p>A structure used as a protocol between query engines and Lake Formation or Glue. Contains both a Lake Formation generated authorization identifier and information from the request's authorization context.</p> <p>For more information about how to utilize QuerySessionContext, see <a href=\"https://docs.aws.amazon.com/lake-formation/latest/dg/api-overview.html\">Lake Formation workflow for application integration API operations</a> in the developer guide.</p>"
     },
     "QuoteChar":{
       "type":"string",
@@ -28867,7 +28892,7 @@
           "documentation":"<p>The percentage of rows used to generate statistics. If none is supplied, the entire table will be used to generate stats.</p>"
         },
         "CatalogID":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the table reside. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         },
         "SecurityConfiguration":{
@@ -28899,6 +28924,10 @@
         "TableName":{
           "shape":"NameString",
           "documentation":"<p>The name of the table for which to start a column statistic task run schedule.</p>"
+        },
+        "CatalogID":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -29219,7 +29248,7 @@
       ],
       "members":{
         "CatalogId":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the table reside. If none is supplied, the account ID is used by default.</p>"
         },
         "DatabaseName":{
@@ -29562,6 +29591,10 @@
         "TableName":{
           "shape":"NameString",
           "documentation":"<p>The name of the table.</p>"
+        },
+        "CatalogID":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -29583,6 +29616,10 @@
         "TableName":{
           "shape":"NameString",
           "documentation":"<p>The name of the table for which to stop a column statistic task run schedule.</p>"
+        },
+        "CatalogID":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog where the table resides. If none is supplied, the Amazon Web Services account ID is used by default.</p>"
         }
       }
     },
@@ -29627,7 +29664,7 @@
       ],
       "members":{
         "CatalogId":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog where the table reside. If none is supplied, the account ID is used by default.</p>"
         },
         "DatabaseName":{
@@ -31412,7 +31449,7 @@
           "documentation":"<p>The percentage of data to sample.</p>"
         },
         "CatalogID":{
-          "shape":"NameString",
+          "shape":"CatalogIdString",
           "documentation":"<p>The ID of the Data Catalog in which the database resides.</p>"
         },
         "SecurityConfiguration":{
@@ -31509,6 +31546,10 @@
         "CrawlerSecurityConfiguration":{
           "shape":"CrawlerSecurityConfiguration",
           "documentation":"<p>The name of the <code>SecurityConfiguration</code> structure to be used by this crawler.</p>"
+        },
+        "CatalogId":{
+          "shape":"CatalogIdString",
+          "documentation":"<p>The ID of the Data Catalog in which to store the crawler's output. If you omit this value, the existing value on the crawler is preserved.</p>"
         }
       }
     },
@@ -32644,6 +32685,10 @@
           "shape":"NullableBoolean",
           "documentation":"<p>You can set this flag as true to instruct the engine not to push user-provided operations into the logical plan of the view during query planning. However, setting this flag does not guarantee that the engine will comply. Refer to the engine's documentation to understand the guarantees provided, if any.</p>"
         },
+        "IsManaged":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether the materialized view is managed by Glue.</p>"
+        },
         "Definer":{
           "shape":"ArnString",
           "documentation":"<p>The definer of a view in SQL.</p>"
@@ -32693,6 +32738,10 @@
         "IsProtected":{
           "shape":"NullableBoolean",
           "documentation":"<p>You can set this flag as true to instruct the engine not to push user-provided operations into the logical plan of the view during query planning. However, setting this flag does not guarantee that the engine will comply. Refer to the engine's documentation to understand the guarantees provided, if any.</p>"
+        },
+        "IsManaged":{
+          "shape":"NullableBoolean",
+          "documentation":"<p>Specifies whether the materialized view is managed by Glue.</p>"
         },
         "Definer":{
           "shape":"ArnString",

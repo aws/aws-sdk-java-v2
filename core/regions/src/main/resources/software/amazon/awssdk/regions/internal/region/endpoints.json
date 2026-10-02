@@ -31949,7 +31949,8 @@
       },
       "codestar-connections" : {
         "endpoints" : {
-          "us-gov-east-1" : { }
+          "us-gov-east-1" : { },
+          "us-gov-west-1" : { }
         }
       },
       "cognito-identity" : {
@@ -32329,6 +32330,12 @@
           "us-gov-west-1" : {
             "hostname" : "datazone.us-gov-west-1.api.aws"
           }
+        }
+      },
+      "dax" : {
+        "endpoints" : {
+          "us-gov-east-1" : { },
+          "us-gov-west-1" : { }
         }
       },
       "directconnect" : {
