@@ -100,15 +100,15 @@ class CrtFileDownloadTest {
     }
 
     @Test
-    void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredIsAbsoluteObjectOffset() {
-        // A resumed download issues a ranged GET, so CRT reports the gap-free prefix relative to the range start rather than
-        // to the start of the object.
+    void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredMatchesFileSize() {
+        // CRT reports the gap-free prefix relative to the range start. bytesTransferred should match the
+        // number of bytes on disk (getContinuesDownloadedBytes).
         ResumeToken token = downloadResumeToken(2000, 1500);
         when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
 
         ResumableFileDownload resumable = fileDownload(null).pause();
 
-        assertThat(resumable.bytesTransferred()).isEqualTo(3500L);
+        assertThat(resumable.bytesTransferred()).isEqualTo(1500L);
     }
 
     @Test
