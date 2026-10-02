@@ -213,8 +213,57 @@ class ResumableRequestConverterRangedResumeTest {
         }
     }
 
+    @Test
+    void resumeSuffixRangeDownload_shouldComputeCorrectResumedRange() throws IOException {
+        long suffixLength = 4 * 1024 * 1024;
+        String suffixRange = "bytes=-" + suffixLength;
+        long transferred = 1024 * 1024;
+        // Resolved: start = 8M - 4M = 4M, end = 8M - 1
+        long expectedStart = WHOLE_OBJECT_SIZE - suffixLength + transferred;
+        long expectedEnd = WHOLE_OBJECT_SIZE - 1;
+        String expectedRange = "bytes=" + expectedStart + "-" + expectedEnd;
+
+        File suffixFile = RandomTempFile.createTempFile("test-suffix", UUID.randomUUID().toString());
+        try {
+            Files.write(suffixFile.toPath(), RandomStringUtils.randomAlphanumeric((int) transferred)
+                                                               .getBytes(StandardCharsets.UTF_8));
+
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                                .bucket("test-bucket")
+                                                                .key("test-key")
+                                                                .range(suffixRange)
+                                                                .build();
+
+            DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                         .getObjectRequest(getObjectRequest)
+                                                                         .destination(suffixFile)
+                                                                         .build();
+
+            Instant fileLastModified = Instant.ofEpochMilli(suffixFile.lastModified());
+            ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                               .bytesTransferred(transferred)
+                                                                               .s3ObjectLastModified(s3ObjectLastModified)
+                                                                               .fileLastModified(fileLastModified)
+                                                                               .downloadFileRequest(downloadFileRequest)
+                                                                               .totalSizeInBytes(WHOLE_OBJECT_SIZE)
+                                                                               .build();
+
+            HeadObjectResponse headObjectResponse = HeadObjectResponse.builder()
+                                                                       .contentLength(WHOLE_OBJECT_SIZE)
+                                                                       .lastModified(s3ObjectLastModified)
+                                                                       .build();
+
+            Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> result =
+                toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse, downloadFileRequest);
+
+            assertThat(result.left().getObjectRequest().range()).isEqualTo(expectedRange);
+        } finally {
+            suffixFile.delete();
+        }
+    }
+
     @ParameterizedTest
-    @ValueSource(strings = {"bytes=-500", "bytes=100-500,1000-2000", "bytes=0-0,-1"})
+    @ValueSource(strings = {"bytes=100-500,1000-2000", "bytes=0-0,-1"})
     void resumeDownload_unparseableRange_shouldRestartFromBeginning(String unparseableRange) {
         GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                                                             .bucket("test-bucket")

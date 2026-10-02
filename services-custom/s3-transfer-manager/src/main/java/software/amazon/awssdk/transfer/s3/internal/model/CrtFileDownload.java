@@ -153,12 +153,10 @@ public final class CrtFileDownload implements FileDownload {
                                  .fileLastModified(Instant.ofEpochMilli(destination.lastModified()));
 
         if (isDownloadResumeToken(token)) {
-            // getContinuesDownloadedBytes() is the length of the gap-free prefix that CRT has downloaded, relative to the
-            // start of this request's range, so offsetting it by the range start gives the absolute offset in the object,
-            // which is also the number of bytes that should be in the destination file. If parts landed out of order the
-            // file may be longer than that, in which case the file-modified check on resume fails and the download
-            // correctly starts over rather than appending onto a gap.
-            builder.bytesTransferred(token.getObjectRangeStart() + token.getContinuesDownloadedBytes())
+            // getContinuesDownloadedBytes() is the number of bytes CRT has written to the destination file.
+            // If parts landed out of order the file may be longer, in which case fileNotModified fails
+            // and the download correctly starts over.
+            builder.bytesTransferred(token.getContinuesDownloadedBytes())
                    .s3ObjectEtag(emptyToNull(token.getEtag()))
                    .s3ObjectLastModified(s3ObjectLastModified(token))
                    .totalSizeInBytes(positiveOrNull(token.getObjectSize()));

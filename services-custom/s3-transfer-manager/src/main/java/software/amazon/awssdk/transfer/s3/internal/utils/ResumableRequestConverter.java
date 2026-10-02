@@ -259,9 +259,13 @@ public final class ResumableRequestConverter {
             if (parsedRange != null) {
                 long originalStart = parsedRange[0];
                 long originalEnd = parsedRange[1];
-                return "bytes=" + (originalStart + bytesTransferred) + "-" + originalEnd;
+                long resumedStart = originalStart + bytesTransferred;
+                if (resumedStart > originalEnd) {
+                    return null;
+                }
+                return "bytes=" + resumedStart + "-" + originalEnd;
             }
-            // Range was present but could not be parsed (suffix range, multi-range, or malformed).
+            // Range was present but could not be parsed (multi-range or malformed).
             // We cannot safely compute the resumed offset, so signal the caller to restart from the beginning.
             return null;
         }
@@ -269,9 +273,10 @@ public final class ResumableRequestConverter {
     }
 
     /**
-     * Parses a "bytes=start-end" or "bytes=start-" range header into [start, end].
+     * Parses a "bytes=start-end", "bytes=start-", or "bytes=-suffix" range header into [start, end].
      * Open-ended ranges use contentLength - 1 as the end.
-     * Returns null for suffix ranges ("bytes=-500") or malformed values.
+     * Suffix ranges are resolved to absolute offsets using contentLength.
+     * Returns null for multi-range values or malformed input.
      */
     private static long[] parseRange(String range, long contentLength) {
         if (range == null || !range.startsWith("bytes=")) {
@@ -279,8 +284,20 @@ public final class ResumableRequestConverter {
         }
         String rangeValue = range.substring("bytes=".length());
         int dashIndex = rangeValue.indexOf('-');
-        if (dashIndex <= 0) {
+        if (dashIndex < 0) {
             return null;
+        }
+        if (dashIndex == 0) {
+            try {
+                long suffixLength = Long.parseLong(rangeValue.substring(1));
+                if (suffixLength <= 0) {
+                    return null;
+                }
+                long start = contentLength - suffixLength;
+                return new long[]{Math.max(0, start), contentLength - 1};
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
         try {
             long start = Long.parseLong(rangeValue.substring(0, dashIndex));
