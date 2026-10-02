@@ -21,6 +21,8 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
+import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
+import software.amazon.awssdk.enhanced.dynamodb.internal.EnhancedClientUtils;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 /**
@@ -54,11 +56,17 @@ public class DocumentAttributeConverter<T> implements AttributeConverter<T> {
 
     @Override
     public AttributeValue transformFrom(T input) {
+        if (input == null) {
+            return AttributeValues.nullAttributeValue();
+        }
         return AttributeValue.createM(tableSchema.itemToMap(input, ignoreNulls));
     }
 
     @Override
     public T transformTo(AttributeValue input) {
+        if (input == null || EnhancedClientUtils.isNullAttributeValue(input)) {
+            return null;
+        }
         return tableSchema.mapToItem(input.m(), preserveEmptyObject);
     }
 
