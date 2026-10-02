@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "The internal cache used by `Region.of` now holds regions weakly, so regions with no remaining references are garbage collected."
+}
