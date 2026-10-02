@@ -242,6 +242,14 @@ public final class ResumableRequestConverter {
     }
 
     /**
+     * Returns {@code true} if the original request has a range header that cannot be parsed for resume
+     */
+    public static boolean hasUnparseableRange(DownloadFileRequest downloadRequest, long contentLength) {
+        String range = downloadRequest.getObjectRequest().range();
+        return range != null && parseRange(range, contentLength) == null;
+    }
+
+    /**
      * Computes the Range header for a resumed download. Returns {@code null} if the original range
      * cannot be parsed and the download should restart from the beginning.
      */
