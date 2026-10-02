@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Improve missing converter error handling in DynamoDB Enhanced Client"
+}
