@@ -58,7 +58,7 @@ public GetItemResponse getItem(GetItemRequest getItemRequest) throws ... {
 `GetItemOperation` is a generated smithy `ApiOperation`.
 
 Streaming operations go through `V2StreamingInvoker`, because v2 strips the streaming member from the POJO
-and the body has to travel beside the shape, in the per-call `RequestOverrideConfig`:
+and the body has to travel beside the shape, in the per-call `RequestOverrideConfig` (section 8):
 
 ```java
 // DefaultS3Client (generated)
@@ -557,7 +557,7 @@ if (overrides != null && overrides.signer().isPresent()) {
     return new SignResult<>(signLegacy(..., overrides.signer().get()));        // request-level legacy Signer
 }
 if (body instanceof V2DataStreams.AsyncBody asyncBody) {
-    return new SignResult<>(signAsync(request, v2Request, v2Identity, option, asyncBody));   // §7
+    return new SignResult<>(signAsync(request, v2Request, v2Identity, option, asyncBody));   // §8
 }
 return new SignResult<>(signSync(request, v2Request, v2Identity, option, body));
 
@@ -812,54 +812,8 @@ The response body is a `ResponseBodyDataStream` over the transport's publisher, 
 `asByteBuffer()`, and that's how the codecs read every non-streaming response (ledger 15.6). Send
 failures are deferred into the retry loop exactly as in the sync bridge (section 4).
 
-### Streaming bodies: `V2DataStreams` and `V2AsyncStreamingInvoker`
-
-Both directions are interface adaptation only, with no extra thread and no copy:
-
-```java
-// AsyncRequestBody -> DataStream, keeping the v2 body reachable for the signer
-public static DataStream toDataStream(AsyncRequestBody body) {
-    return new AsyncBody(body, isReplayable(body));    // subscribe() -> body.subscribe(FlowAdapters.toSubscriber(s))
-}
-
-// DataStream -> what an AsyncResponseTransformer consumes
-public static SdkPublisher<ByteBuffer> toSdkPublisher(DataStream body) {
-    return SdkPublisher.adapt(FlowAdapters.toPublisher(body));
-}
-```
-
-`V2AsyncStreamingInvoker` drives the caller's `AsyncResponseTransformer` in v2's order, inside the
-envelope:
-
-```java
-return client.runAsync(() -> {
-    AtomicReference<DataStream> sink = new AtomicReference<>();
-    Consumer<RequestOverrideConfig.Builder> overrides = body == null
-            ? V2StreamingBridge.forResponseBody(sink)
-            : V2StreamingBridge.forBoth(V2DataStreams.toDataStream(body), sink);
-    CompletableFuture<ReturnT> transformed = transformer.prepare();
-    O response;
-    try {
-        response = client.invoke(input, operation, overrides);
-    } catch (RuntimeException e) {
-        transformer.exceptionOccurred(e);              // lets toFile() delete a partial file
-        throw e;
-    }
-    transformer.onResponse(response);
-    transformer.onStream(V2DataStreams.toSdkPublisher(sink.get() == null ? DataStream.ofEmpty() : sink.get()));
-    return transformed;                                // envelope exits; the caller drains the event loop
-});
-```
-
-The same bridges handle async bodies in their own form:
-
-- **Signing.** `V2SignerBridge` sees an `AsyncBody` and calls v2's `signAsync`. That frames a checksum
-  trailer by wrapping the publisher, so the body never becomes a blocking stream.
-- **Interceptors.** `V2InterceptorBridge` hands response interceptors a publisher rather than an
-  `InputStream`.
-- **Retries.** smithy's own retry guard only checks modeled stream members, so it can't see a one-shot
-  body passed beside the shape. When the body isn't replayable, `V2ErrorEnricher` wraps the failure in
-  `V2NonReplayableError`, and the call fails with the real error instead of re-sending (ledger 16.4).
+Async streaming bodies (`AsyncRequestBody`, `AsyncResponseTransformer`) are covered with the sync ones
+in section 8.
 
 ### Where async differs from stock (ledger 16)
 
@@ -872,3 +826,249 @@ The same bridges handle async bodies in their own form:
   running and the v2 exchange isn't aborted. Timeouts do abort the exchange.
 - **Performance.** For DynamoDB at concurrency 1, the bridged async client measured 4–42% cheaper in app
   CPU than stock async, about half the sync client's margin.
+
+---
+
+## 8. Streaming operations
+
+v2's code generator removes a streaming member from the shape. `PutObjectRequest` has no `Body` field and
+`GetObjectResponse` has none either. The caller passes the request body beside the request and receives
+the response body through a transformer. So `SdkSchemaFactory` has no `SdkField` to turn into an
+`@httpPayload @streaming` member, and the POJO has no value to serialize. The bridge moves bodies out of
+band, as v2 does, and adapts each v2 body type to smithy's `DataStream` without copying:
+
+| | Sync client | Async client |
+|---|---|---|
+| Caller's request body | `RequestBody` | `AsyncRequestBody` |
+| As a smithy `DataStream` | `RequestBodyDataStream`, over the body's `ContentStreamProvider` | `AsyncBody`, over the publisher via `FlowAdapters` |
+| Response body handed to the caller as | `AbortableInputStream` → `ResponseTransformer` | `SdkPublisher<ByteBuffer>` → `AsyncResponseTransformer` |
+| Generated entry point | `V2StreamingInvoker.invoke` | `V2AsyncStreamingInvoker.invoke` |
+| Transport | `V2TransportBridge` (blocking streams) | `V2AsyncTransportBridge` (publishers on the event loop) |
+
+Event-stream operations aren't bridged. v2 sync clients don't have them, and on the async client they
+stay on the stock pipeline (section 7).
+
+### Getting bodies past the schema layer: `V2StreamingBridge`
+
+The invoker puts the body, or an empty holder for the response body, into the call's per-call config.
+It also adds `V2StreamingBridge` as an interceptor for that call only, so non-streaming operations never
+run it:
+
+```java
+// V2StreamingBridge
+public static Consumer<RequestOverrideConfig.Builder> forRequestBody(DataStream requestBody) {
+    return b -> b.putConfig(REQUEST_BODY, requestBody).addInterceptor(INSTANCE);
+}
+public static Consumer<RequestOverrideConfig.Builder> forResponseBody(AtomicReference<DataStream> sink) {
+    return b -> b.putConfig(RESPONSE_BODY_SINK, sink).addInterceptor(INSTANCE);
+}
+// forBoth(...) does both, for an operation that streams in each direction
+```
+
+On the request side, the interceptor swaps the caller's body in for the empty serialized one. It does
+this in `modifyBeforeRetryLoop`, which runs once per call, before any v2 interceptor's
+`modifyHttpRequest` and before signing:
+
+```java
+public <RequestT> RequestT modifyBeforeRetryLoop(RequestHook<?, ?, RequestT> hook) {
+    DataStream body = hook.context().get(REQUEST_BODY);
+    if (body == null) return hook.request();
+    ModifiableHttpRequest modifiable = request.toModifiableCopy();
+    modifiable.setBody(body);
+    if (!Boolean.TRUE.equals(hook.context().get(V2_SIGNER))) {
+        modifiable.setHeader("x-amz-content-sha256", "UNSIGNED-PAYLOAD");   // only for smithy's own signer
+    }
+    if (body.hasKnownLength()) {
+        modifiable.setHeader("content-length", Long.toString(body.contentLength()));
+    }
+    return (RequestT) modifiable;
+}
+```
+
+Attaching the body this early means v2 interceptors see the `Content-Length`. S3's
+`StreamingRequestInterceptor` decides `Expect: 100-continue` from that header (ledger 13.5). The body
+isn't reset between attempts, so a retry re-sends the same replayable `DataStream`.
+
+On the response side, a 2xx response's body goes into the caller's holder, and the deserializer gets an
+empty body. Header-bound members (`contentLength`, `contentType`, metadata) still bind onto
+`GetObjectResponse`. Error responses are left alone, so the XML error document can still become
+`NoSuchKeyException`:
+
+```java
+public <ResponseT> ResponseT modifyBeforeDeserialization(ResponseHook<?, ?, ?, ResponseT> hook) {
+    AtomicReference<DataStream> sink = hook.context().get(RESPONSE_BODY_SINK);
+    if (sink == null || response.statusCode() < 200 || response.statusCode() >= 300) {
+        return hook.response();
+    }
+    sink.set(response.body());
+    return (ResponseT) HttpResponse.of(response.httpVersion(), response.statusCode(), response.headers(),
+                                       DataStream.ofEmpty());
+}
+```
+
+smithy-java appends per-call interceptors after the client's. So `V2InterceptorBridge` runs v2's
+response hooks first, and `HttpChecksumValidationInterceptor` or S3's trailing-MD5 stripper can wrap the
+body before the holder receives it. The caller then reads through the validating wrapper, as on stock v2.
+
+### Request bodies
+
+Sync: every v2 `RequestBody` is backed by a `ContentStreamProvider`, which opens a fresh stream on each
+call, so the adapter reports itself replayable:
+
+```java
+// V2DataStreams
+public static DataStream toDataStream(RequestBody requestBody) {
+    return new RequestBodyDataStream(requestBody.contentStreamProvider(), requestBody.contentType(),
+                                     requestBody.optionalContentLength().orElse(-1L));
+}
+private static final class RequestBodyDataStream implements DataStream {
+    public boolean isReplayable()      { return true; }
+    public InputStream asInputStream() { return provider.newStream(); }   // a fresh stream per read
+    ...
+}
+```
+
+Async: an `AsyncRequestBody` is a reactive-streams publisher and a `DataStream` is a `Flow.Publisher`, so
+the adapter is `FlowAdapters`. It keeps the original body reachable, so the signer can tell that it's
+async:
+
+```java
+public static DataStream toDataStream(AsyncRequestBody body) {
+    return new AsyncBody(body, isReplayable(body));
+}
+public static final class AsyncBody implements DataStream {
+    public AsyncRequestBody asyncRequestBody() { return body; }       // for V2SignerBridge.signAsync
+    public void subscribe(Flow.Subscriber<? super ByteBuffer> s) { body.subscribe(FlowAdapters.toSubscriber(s)); }
+    ...
+}
+private static boolean isReplayable(AsyncRequestBody body) {
+    // One-shot only when known to be: a split multipart part, or a Stream-typed body (fromInputStream,
+    // the blocking input/output-stream bodies). Bytes, files and caller publishers are assumed replayable.
+    return !(body instanceof NonRetryableSubAsyncRequestBody)
+           && !AsyncRequestBody.BodyType.STREAM.getName().equals(body.body());
+}
+```
+
+From there the body passes through two more bridges.
+
+**Signing.** `V2SignerBridge` passes the body to v2's signer. The signer decides the payload hash
+(`UNSIGNED-PAYLOAD` over HTTPS, chunked signing over HTTP), and it may re-frame the body as `aws-chunked`
+with a checksum trailer. A re-framed payload replaces the body on the smithy request:
+
+```java
+// sync: ContentStreamProvider in, ContentStreamProvider out
+SignedRequest signed = v2Signer.sign(SignRequest.builder(v2Identity).request(...).payload(toContentStreamProvider(body))...);
+DataStream signedBody = V2DataStreams.fromContentStreamProvider(signed.payload().get(), contentType, contentLength);
+
+// async: Publisher in, Publisher out; never turned into a blocking stream
+AsyncSignedRequest signed = v2Signer.signAsync(AsyncSignRequest.builder(v2Identity).payload(body.asyncRequestBody())...).join();
+DataStream signedBody = DataStream.ofPublisher(FlowAdapters.toFlowPublisher(signed.payload().get()),
+                                               contentType, contentLength, body.isReplayable());
+```
+
+`signAsync(...).join()` doesn't block on I/O. It runs on the envelope's virtual thread, and v2 transforms
+the payload lazily.
+
+If the client signs with smithy's own `SigV4AuthScheme` instead (stripped config), `V2StreamingBridge`
+sets `UNSIGNED-PAYLOAD` itself. It also refuses plain HTTP, because smithy-java can't chunk-sign.
+
+**Transport.**
+- **Sync:** `V2TransportBridge` turns the `DataStream` back into a v2 `ContentStreamProvider`. A replayable
+  stream becomes `fromInputStreamSupplier(body::asInputStream)`, so the v2 HTTP client can reopen it.
+- **Async:** `V2AsyncTransportBridge` exposes it as an `SdkHttpContentPublisher` through `FlowAdapters`.
+  It adds `Transfer-Encoding: chunked` when the length is unknown, because neither Netty nor CRT frames
+  such a body (ledger 15.1).
+
+**Retries.** smithy-java's own guard against re-sending a one-shot body only checks modeled stream
+members, and these bodies travel in the context. So `V2ErrorEnricher` checks `REQUEST_BODY` itself. If
+the body isn't replayable, it substitutes `V2NonReplayableError`. The call then fails with the real error
+after one attempt instead of re-subscribing a body that can't be read twice (ledger 16.4). Sync bodies are
+always replayable, so this only applies to async.
+
+### Response bodies
+
+**Sync.** `V2TransportBridge` hands the v2 HTTP client's `AbortableInputStream` to smithy as
+`DataStream.ofInputStream(...)`. After the call returns, `V2StreamingInvoker` runs the caller's
+`ResponseTransformer` and owns the stream's lifecycle:
+
+```java
+// V2StreamingInvoker.invoke (sync)
+AtomicReference<DataStream> sink = new AtomicReference<>();
+O response = client.invoke(input, operation, body == null
+        ? V2StreamingBridge.forResponseBody(sink) : V2StreamingBridge.forBoth(body, sink));
+
+AbortableInputStream stream = sink.get() == null
+        ? AbortableInputStream.createEmpty()                       // 204 / HEAD-shaped success
+        : V2DataStreams.toAbortableInputStream(sink.get());        // v2's own stream, passed through if possible
+boolean leaveOpen = transformer.needsConnectionLeftOpen();
+boolean transformed = false;
+try {
+    ReturnT result = transform(transformer, response, stream);    // mirrors BaseSyncClientHandler.transformResponse
+    transformed = true;
+    return result;
+} finally {
+    if (!leaveOpen || !transformed) closeQuietly(stream);         // toInputStream() keeps it open; a throw never does
+}
+```
+
+`toAbortableInputStream` returns the stream unchanged when it's already an `AbortableInputStream`, so
+`abort()` reaches the real connection. Otherwise `abort()` maps to `close()`, because `DataStream` has no
+abort concept. `transform` matches v2's exception handling:
+
+- interrupt checks on either side of the transformer call
+- `RetryableException` and `AbortedException` rethrown as-is
+- `InterruptedException` becomes `AbortedException`
+- anything else is wrapped in `NonRetryableException`
+
+**Async.** `V2AsyncTransportBridge` wraps the transport's body publisher as a `ResponseBodyDataStream`
+and returns on headers. `V2AsyncStreamingInvoker` then calls the caller's transformer in v2's order,
+inside the envelope:
+
+```java
+// V2AsyncStreamingInvoker.invoke
+return client.runAsync(() -> {
+    AtomicReference<DataStream> sink = new AtomicReference<>();
+    Consumer<RequestOverrideConfig.Builder> overrides = body == null
+            ? V2StreamingBridge.forResponseBody(sink)
+            : V2StreamingBridge.forBoth(V2DataStreams.toDataStream(body), sink);
+    CompletableFuture<ReturnT> transformed = transformer.prepare();   // before the request, as v2 does
+    O response;
+    try {
+        response = client.invoke(input, operation, overrides);
+    } catch (RuntimeException e) {
+        transformer.exceptionOccurred(e);                              // lets toFile() delete a partial file
+        throw e;
+    }
+    transformer.onResponse(response);
+    transformer.onStream(V2DataStreams.toSdkPublisher(sink.get() == null ? DataStream.ofEmpty() : sink.get()));
+    return transformed;
+});
+
+public static SdkPublisher<ByteBuffer> toSdkPublisher(DataStream body) {
+    return SdkPublisher.adapt(FlowAdapters.toPublisher(body));        // the transport's own publisher
+}
+```
+
+After `onStream` the envelope thread exits. The transformer is fed on Netty's or CRT's event loop, as on
+stock v2. A deferred-consumption transformer like `toBlockingInputStream()` therefore holds no thread
+while the caller reads (ledger 14.4).
+
+### What's verified, and the gaps
+
+Verified:
+- `S3StreamingTest` moves 1 GiB in each direction under a 256 MiB heap. It checks position-dependent CRCs,
+  so buffering, truncation or reordering would fail it.
+- `put-object` and `upload-part` are byte-identical to stock v2 on sync and async. With checksums on, the
+  `aws-chunked` trailers match stock too (`S3ChecksumWireDiffTest`).
+- Multipart upload and download via `multipartEnabled(true)` reassemble byte-exactly over Netty and CRT
+  (`BridgedAsyncClientsTest`).
+
+Remaining differences:
+- **The transformer runs after `Client.call` returns, outside the retry loop.** A `RetryableException`
+  from a sync `ResponseTransformer` doesn't retry the call, and async `prepare()` runs once per call
+  (ledger 13.4, 16.3).
+- **v2 interceptors never see the request body.** `modifyHttpContent` can't replace a streaming body,
+  and an interceptor that reads the body sees nothing (ledger 13.7).
+- **`requiresLength` isn't enforced on async.** v2 fails fast with a client-side error for an
+  unknown-length body on such operations (S3 `UploadPart`). The bridge sends it chunked and lets the
+  service reject it (ledger 15.1).
