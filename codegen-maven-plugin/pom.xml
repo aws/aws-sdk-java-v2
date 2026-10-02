@@ -68,6 +68,19 @@
             <version>${smithy.version}</version>
         </dependency>
         <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-build</artifactId>
+            <version>${smithy.version}</version>
+        </dependency>
+        <dependency>
+            <artifactId>maven-model</artifactId>
+            <groupId>org.apache.maven</groupId>
+        </dependency>
+        <dependency>
+            <artifactId>maven-artifact</artifactId>
+            <groupId>org.apache.maven</groupId>
+        </dependency>
+        <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
             <scope>compile</scope>

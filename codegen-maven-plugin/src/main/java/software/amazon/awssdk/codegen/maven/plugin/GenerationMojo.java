@@ -33,6 +33,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.apache.maven.project.MavenProject;
 import software.amazon.awssdk.codegen.C2jModels;
 import software.amazon.awssdk.codegen.CodeGenerator;
@@ -46,21 +47,19 @@ import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Waiters;
-import software.amazon.awssdk.codegen.smithy.SmithyIntermediateModelBuilder;
-import software.amazon.awssdk.codegen.smithy.SmithyModels;
 import software.amazon.awssdk.codegen.utils.ModelLoaderUtils;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
 import software.amazon.awssdk.codegen.validation.ModelValidationReport;
 import software.amazon.awssdk.utils.StringUtils;
-import software.amazon.smithy.model.Model;
 
 /**
  * The Maven mojo to generate Java client code using software.amazon.awssdk:codegen module.
  */
-@Mojo(name = "generate")
+@Mojo(name = "generate", requiresDependencyResolution = ResolutionScope.COMPILE)
 public class GenerationMojo extends AbstractMojo {
     private static final String MODEL_FILE = "service-2.json";
-    private static final String SMITHY_MODEL_FILE = "model.json";
+    private static final String SMITHY_BUILD_FILE = "smithy-build.json";
+    private static final String SMITHY_PROJECTIONS_DIR = "smithyprojections";
     private static final String CUSTOMIZATION_CONFIG_FILE = "customization.config";
     private static final String WAITERS_FILE = "waiters-2.json";
     private static final String PAGINATORS_FILE = "paginators-1.json";
@@ -93,6 +92,17 @@ public class GenerationMojo extends AbstractMojo {
         this.resourcesDirectory = Paths.get(outputDirectory).resolve("generated-resources").resolve("sdk-resources");
         this.testsDirectory = Paths.get(outputDirectory).resolve("generated-test-sources").resolve("sdk-tests");
 
+        Path smithyBuildFile = project.getBasedir().toPath().resolve(SMITHY_BUILD_FILE);
+        if (Files.exists(smithyBuildFile)) {
+            new SmithyBuildGenerator(project, getLog())
+                .generate(smithyBuildFile, Paths.get(outputDirectory).resolve(SMITHY_PROJECTIONS_DIR));
+            return;
+        }
+
+        generateFromC2jModels();
+    }
+
+    private void generateFromC2jModels() throws MojoExecutionException {
         List<GenerationParams> generationParams;
 
         try {
@@ -140,12 +150,7 @@ public class GenerationMojo extends AbstractMojo {
         List<ModelRoot> modelRoots = findModelRoots().collect(Collectors.toList());
 
         return modelRoots.stream().map(r -> {
-            Path modelRootPath = r.modelRoot;
-            getLog().info("Loading from: " + modelRootPath.toString());
-            // Generate from Smithy when a model.json sits alongside service-2.json, otherwise C2J.
-            if (Files.isRegularFile(modelRootPath.resolve(SMITHY_MODEL_FILE))) {
-                return smithyGenerationParams(r);
-            }
+            getLog().info("Loading from: " + r.modelRoot.toString());
             return c2jGenerationParams(r);
         }).collect(Collectors.toList());
     }
@@ -164,26 +169,6 @@ public class GenerationMojo extends AbstractMojo {
         IntermediateModel intermediateModel = new IntermediateModelBuilder(c2jModels).build();
         return new GenerationParams().withIntermediateModel(intermediateModel)
                                      .withIntermediateModelFileNamePrefix(intermediateModelFileNamePrefix);
-    }
-
-    private GenerationParams smithyGenerationParams(ModelRoot r) {
-        Path modelRootPath = r.modelRoot;
-        getLog().info("Detected " + SMITHY_MODEL_FILE + "; generating from the Smithy model.");
-        // The plugin's own classloader carries the Smithy trait jars; Maven's thread context
-        // classloader does not reliably point at the plugin realm.
-        ClassLoader classLoader = GenerationMojo.class.getClassLoader();
-        Model model = Model.assembler(classLoader)
-                           .discoverModels(classLoader)
-                           .addImport(modelRootPath.resolve(SMITHY_MODEL_FILE))
-                           .assemble()
-                           .unwrap();
-        SmithyModels smithyModels = SmithyModels.builder()
-                                                .model(model)
-                                                .customizationConfig(r.customizationConfig)
-                                                .build();
-        IntermediateModel intermediateModel = new SmithyIntermediateModelBuilder(smithyModels).build();
-        return new GenerationParams().withIntermediateModel(intermediateModel)
-                                     .withIntermediateModelFileNamePrefix(null);
     }
 
     private Stream<ModelRoot> findModelRoots() throws MojoExecutionException {
