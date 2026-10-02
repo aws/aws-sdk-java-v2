@@ -179,6 +179,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             adapterAttributes = httpExecutionAttributes.toBuilder()
                                                        .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS,
                                                             effectivePublishers)
+                                                       .put(S3InternalSdkHttpExecutionAttribute.CRT_MAX_CONCURRENCY,
+                                                            crtS3Client.getMaxActiveConnections())
                                                        .build();
         }
 
