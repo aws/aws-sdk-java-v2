@@ -18,6 +18,7 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
@@ -39,6 +40,7 @@ import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
@@ -55,11 +57,13 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.ChecksumMode;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -294,6 +298,58 @@ public class S3CrtClientWiremockTest {
 
             verify(mockExecutor).execute(any(Runnable.class));
         }
+    }
+
+    @Test
+    void getObject_fullObjectChecksumMismatch_shouldThrowException(WireMockRuntimeInfo wiremock) {
+        int partSize = 256 * 1024;
+        byte[] firstPart = new byte[partSize];
+        byte[] secondPart = new byte[partSize];
+        Arrays.fill(firstPart, (byte) 'a');
+        Arrays.fill(secondPart, (byte) 'b');
+        int objectSize = 2 * partSize;
+        String checksumEtag = "\"checksum-etag\"";
+        // CRC32 of an object that is not the one the stubs return, so CRT's whole-object validation has to reject it.
+        String wrongFullObjectCrc32 = "+NNMYw==";
+
+        stubFor(head(anyUrl()).withHeader("x-amz-checksum-mode", equalTo("enabled"))
+                              .willReturn(aResponse().withStatus(200)
+                                                     .withHeader("Content-Length", Integer.toString(objectSize))
+                                                     .withHeader("ETag", checksumEtag)
+                                                     .withHeader("x-amz-checksum-crc32", wrongFullObjectCrc32)
+                                                     .withHeader("x-amz-checksum-type", "FULL_OBJECT")));
+        stubRangedPart(0, firstPart, partSize, objectSize, checksumEtag);
+        stubRangedPart(1, secondPart, partSize, objectSize, checksumEtag);
+
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder()
+                                                .region(Region.US_EAST_1)
+                                                .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                                                .credentialsProvider(StaticCredentialsProvider.create(
+                                                    AwsBasicCredentials.create("key", "secret")))
+                                                .minimumPartSizeInBytes((long) partSize)
+                                                .initialReadBufferSizeInBytes((long) partSize)
+                                                .maxConcurrency(1)
+                                                .responseChecksumValidation(ResponseChecksumValidation.WHEN_SUPPORTED)
+                                                .build()) {
+            assertThatThrownBy(() -> client.getObject(r -> r.bucket(BUCKET).key(KEY).checksumMode(ChecksumMode.ENABLED),
+                                                      AsyncResponseTransformer.toBytes())
+                                           .get(10, TimeUnit.SECONDS))
+                .hasCauseInstanceOf(SdkClientException.class)
+                .hasMessageContaining("checksum");
+        }
+    }
+
+    private static void stubRangedPart(int part, byte[] body, int partSize, int objectSize, String eTag) {
+        int start = part * partSize;
+        int end = start + body.length - 1;
+        stubFor(get(anyUrl()).withHeader("x-amz-checksum-mode", equalTo("enabled"))
+                             .withHeader("Range", equalTo("bytes=" + start + "-" + end))
+                             .willReturn(aResponse().withStatus(206)
+                                                    .withHeader("Content-Length", Integer.toString(body.length))
+                                                    .withHeader("Content-Range",
+                                                                "bytes " + start + "-" + end + "/" + objectSize)
+                                                    .withHeader("ETag", eTag)
+                                                    .withBody(body)));
     }
 
     private static class SpyableExecutor implements Executor {

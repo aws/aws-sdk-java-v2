@@ -42,6 +42,7 @@ import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -195,11 +196,29 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
 
-        if (isServiceError(responseStatus) && errorPayload != null) {
+        if (hasServiceErrorResponse(responseStatus, errorPayload)) {
             handleServiceError(responseStatus, headers, errorPayload);
         } else {
             handleIoError(context, crtCode);
         }
+    }
+
+    /**
+     * Whether the CRT failure carries an S3 error response for the SDK response pipeline to unmarshall.
+     *
+     * <p>CRT reports a successful response status together with an empty error payload when the HTTP exchange itself
+     * succeeded but the meta request failed for another reason, such as a full-object checksum mismatch. There is no
+     * error document to unmarshall in that case, so the failure has to surface as a client-side error instead of being
+     * handed to the response pipeline, which would see a successful response and complete the request normally.
+     *
+     * <p>A failing status still goes through the response pipeline when the payload is empty, because S3 returns
+     * bodiless error responses for operations such as HeadObject.
+     */
+    private static boolean hasServiceErrorResponse(int responseStatus, byte[] errorPayload) {
+        if (!isServiceError(responseStatus) || errorPayload == null) {
+            return false;
+        }
+        return errorPayload.length > 0 || !HttpStatusFamily.of(responseStatus).isOneOf(HttpStatusFamily.SUCCESSFUL);
     }
 
     private void handleIoError(S3FinishedResponseContext context, int crtCode) {

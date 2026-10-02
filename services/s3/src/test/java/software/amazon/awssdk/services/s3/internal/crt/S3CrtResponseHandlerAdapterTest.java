@@ -242,6 +242,27 @@ public class S3CrtResponseHandlerAdapterTest {
     }
 
     @Test
+    public void errorWithHttp200StatusAndEmptyPayload_shouldCompleteFutureExceptionally() {
+        // CRT reports a successful response status with an empty error payload when the HTTP exchange succeeded but the
+        // meta request failed for another reason, such as a full-object checksum mismatch. There is no error document to
+        // unmarshall, so the failure has to surface as a client-side error rather than be handed to the response
+        // pipeline, which would see a successful response and complete the request normally.
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1, 200, new byte[0]);
+        responseHandlerAdapter.onFinished(errorContext);
+
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        assertThat(exceptionFromResponseHandler).isInstanceOf(SdkClientException.class)
+                                                .hasMessageContaining("Failed to send the request");
+        assertThat(sdkResponseHandler.subscriber.error).isEqualTo(exceptionFromResponseHandler);
+        assertThat(future).isCompletedExceptionally();
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
     public void requestFailedWithCause_shouldCompleteFutureExceptionallyWithCause() {
         RuntimeException cause = new RuntimeException("error");
         S3FinishedResponseContext s3FinishedResponseContext = stubResponseContext(1, 0, null);
