@@ -1,0 +1,54 @@
+{
+    "version": "2.31.63",
+    "date": "2025-06-12",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS IoT FleetWise",
+            "contributor": "",
+            "description": "Add new status READY_FOR_CHECKIN used for vehicle synchronisation"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "AWS KMS announces the support of ML-DSA key pairs that creates post-quantum safe digital signatures."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Parallel Computing Service",
+            "contributor": "",
+            "description": "Fixed regex patterns for ARN fields."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon API Gateway",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "contributor": "",
+            "description": "Documentation updates for Amazon API Gateway"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonConnectCampaignServiceV2",
+            "contributor": "",
+            "description": "Added PutInstanceCommunicationLimits and GetInstanceCommunicationLimits APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This Amazon ECS release supports updating the capacityProviderStrategy parameter in update-service."
+        },
+        {
+            "type": "feature",
+            "category": "EMR Serverless",
+            "contributor": "",
+            "description": "This release adds support for retrieval of the optional executionIamPolicy field in the GetJobRun API response."
+        }
+    ]
+}

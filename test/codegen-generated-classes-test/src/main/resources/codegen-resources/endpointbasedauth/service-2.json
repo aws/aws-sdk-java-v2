@@ -20,7 +20,7 @@
         "method":"POST",
         "requestUri":"/2016-03-11/allSigv4aAuthPropertiesPresent"
       },
-      "input":{"shape":"sampleRequest"},
+      "input":{"shape":"SampleRequest"},
       "staticContextParams":{
         "ApiType":{"value":"AllSigv4aAuthPropertiesPresent"}
       }
@@ -31,7 +31,7 @@
         "method":"POST",
         "requestUri":"/2016-03-11/regionsetAbsentInSigv4aPropertiesInEndpointRules"
       },
-      "input":{"shape":"sampleRequest"},
+      "input":{"shape":"SampleRequest"},
       "staticContextParams":{
         "ApiType":{"value":"RegionsetAbsentInSigv4aPropertiesInEndpointRules"}
       }
@@ -44,7 +44,7 @@
         "responseCode": 200
       },
       "input": {
-        "shape": "sampleRequest"
+        "shape": "SampleRequest"
       },
       "documentation": "<p>Operation with EndpointParams w</p>",
       "staticContextParams": {
@@ -55,7 +55,7 @@
     }
   },
   "shapes": {
-    "sampleRequest": {
+    "SampleRequest": {
       "type": "structure",
       "members": {
         "StringMember": {

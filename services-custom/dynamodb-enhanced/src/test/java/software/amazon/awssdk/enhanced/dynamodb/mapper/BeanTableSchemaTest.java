@@ -15,14 +15,9 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static java.util.Collections.emptyMap;
 import static java.util.Collections.singletonMap;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.contains;
-import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.is;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.binaryValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.nullAttributeValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
@@ -30,40 +25,62 @@ import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import org.apache.logging.log4j.core.LogEvent;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.event.Level;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
-import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
+import software.amazon.awssdk.enhanced.dynamodb.LogCaptor;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbFlatten;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbPartitionKey;
+import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AbstractNestedImmutable;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.AttributeConverterNoConstructorBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CommonTypesBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.CompositeKeyMaxBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DocumentBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.DuplicateOrderBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersInvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EmptyConverterProvidersValidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.EnumBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ExtendedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedBeanBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedFirstNestedBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedFirstNestedBean.FlattenedSecondNestedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmutableBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedNestedImmutableBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FluentSetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedCompositeBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MixedOrderingBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InlineFilterOnlyVectorBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultiVectorIndexBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MultipleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NestedBeanIgnoreNulls;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NoConstructorConverterProvidersBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.NonSequentialOrderBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedAbstractBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ParameterizedDocumentBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.PrimitiveTypesBean;
@@ -74,6 +91,15 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SetterAnnotated
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ThreeSortKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TwoPartitionKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorAndGsiBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorIndexBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorWithNestingBean;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElement;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -82,50 +108,55 @@ public class BeanTableSchemaTest {
     @Rule
     public ExpectedException exception = ExpectedException.none();
 
+    @After
+    public void tearDown() {
+        BeanTableSchema.clearSchemaCache();
+    }
+
     @Test
     public void simpleBean_correctlyAssignsPrimaryPartitionKey() {
         BeanTableSchema<SimpleBean> beanTableSchema = BeanTableSchema.create(SimpleBean.class);
-        assertThat(beanTableSchema.tableMetadata().primaryPartitionKey(), is("id"));
+        assertThat(beanTableSchema.tableMetadata().primaryPartitionKey()).isEqualTo("id");
     }
 
     @Test
     public void sortKeyBean_correctlyAssignsSortKey() {
         BeanTableSchema<SortKeyBean> beanTableSchema = BeanTableSchema.create(SortKeyBean.class);
-        assertThat(beanTableSchema.tableMetadata().primarySortKey(), is(Optional.of("sort")));
+        assertThat(beanTableSchema.tableMetadata().primarySortKey()).isEqualTo(Optional.of("sort"));
     }
 
     @Test
     public void simpleBean_hasNoSortKey() {
         BeanTableSchema<SimpleBean> beanTableSchema = BeanTableSchema.create(SimpleBean.class);
-        assertThat(beanTableSchema.tableMetadata().primarySortKey(), is(Optional.empty()));
+        assertThat(beanTableSchema.tableMetadata().primarySortKey()).isEqualTo(Optional.empty());
     }
 
     @Test
     public void simpleBean_hasNoAdditionalKeys() {
         BeanTableSchema<SimpleBean> beanTableSchema = BeanTableSchema.create(SimpleBean.class);
-        assertThat(beanTableSchema.tableMetadata().allKeys(), contains("id"));
+        assertThat(beanTableSchema.tableMetadata().allKeys()).containsExactly("id");
     }
 
     @Test
     public void sortKeyBean_hasNoAdditionalKeys() {
         BeanTableSchema<SortKeyBean> beanTableSchema = BeanTableSchema.create(SortKeyBean.class);
-        assertThat(beanTableSchema.tableMetadata().allKeys(), containsInAnyOrder("id", "sort"));
+        assertThat(beanTableSchema.tableMetadata().allKeys()).containsExactlyInAnyOrder("id", "sort");
     }
 
     @Test
     public void secondaryIndexBean_definesGsiCorrectly() {
         BeanTableSchema<SecondaryIndexBean> beanTableSchema = BeanTableSchema.create(SecondaryIndexBean.class);
 
-        assertThat(beanTableSchema.tableMetadata().indexPartitionKey("gsi"), is("sort"));
-        assertThat(beanTableSchema.tableMetadata().indexSortKey("gsi"), is(Optional.of("attribute")));
+        assertThat(beanTableSchema.tableMetadata().indexPartitionKey("gsi")).isEqualTo("sort");
+        assertThat(beanTableSchema.tableMetadata().indexSortKey("gsi")).isEqualTo(Optional.of("attribute"));
     }
 
     @Test
     public void secondaryIndexBean_definesLsiCorrectly() {
         BeanTableSchema<SecondaryIndexBean> beanTableSchema = BeanTableSchema.create(SecondaryIndexBean.class);
 
-        assertThat(beanTableSchema.tableMetadata().indexPartitionKey("lsi"), is("id"));
-        assertThat(beanTableSchema.tableMetadata().indexSortKey("lsi"), is(Optional.of("attribute")));
+        assertThat(beanTableSchema.tableMetadata().indexPartitionKey("lsi")).isEqualTo("id");
+        assertThat(beanTableSchema.tableMetadata().indexSortKey("lsi")).isEqualTo(Optional.of("attribute"));
     }
 
     @Test
@@ -137,8 +168,8 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false);
 
-        assertThat(itemMap.size(), is(1));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap.size()).isEqualTo(1);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
     }
 
     @Test
@@ -150,8 +181,8 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(ignoredAttributeBean, false);
 
-        assertThat(itemMap.size(), is(1));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap.size()).isEqualTo(1);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
     }
 
     @Test
@@ -162,18 +193,18 @@ public class BeanTableSchemaTest {
         setterAnnotatedBean.setIntegerAttribute(123);
         setterAnnotatedBean.setInteger2Attribute(123);
 
-        assertThat(beanTableSchema.tableMetadata().primaryPartitionKey(), is("id"));
+        assertThat(beanTableSchema.tableMetadata().primaryPartitionKey()).isEqualTo("id");
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(setterAnnotatedBean, false);
-        assertThat(itemMap.size(), is(1));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap.size()).isEqualTo(1);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
     }
 
     @Test
     public void dynamoDbAttribute_remapsAttributeName() {
         BeanTableSchema<RemappedAttributeBean> beanTableSchema = BeanTableSchema.create(RemappedAttributeBean.class);
 
-        assertThat(beanTableSchema.tableMetadata().primaryPartitionKey(), is("remappedAttribute"));
+        assertThat(beanTableSchema.tableMetadata().primaryPartitionKey()).isEqualTo("remappedAttribute");
     }
 
     @Test
@@ -187,10 +218,10 @@ public class BeanTableSchemaTest {
         flattenedBeanBean.setAbstractBean(abstractBean);
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedBeanBean, false);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("attribute2", stringValue("two"));
     }
 
     @Test
@@ -203,7 +234,7 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
         NestedBean nestedBean = beanTableSchema.mapToItem(itemMap);
-        assertThat(nestedBean.getInnerBean(), is(innerPreserveEmptyBean));
+        assertThat(nestedBean.getInnerBean()).isEqualTo(innerPreserveEmptyBean);
     }
 
     @Test
@@ -217,9 +248,9 @@ public class BeanTableSchemaTest {
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
         AttributeValue expectedMapForInnerBean1 = AttributeValue.builder().m(new HashMap<>()).build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("innerBean1", expectedMapForInnerBean1));
-        assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute2", nullAttributeValue()));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("innerBean1", expectedMapForInnerBean1);
+        assertThat(itemMap.get("innerBean2").m()).containsEntry("attribute2", nullAttributeValue());
     }
 
     @Test
@@ -236,9 +267,9 @@ public class BeanTableSchemaTest {
                                                                 .l(l -> l.m(singletonMap("attribute2", nullAttributeValue())))
                                                                 .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("innerBeanList1", expectedMapForInnerBean1));
-        assertThat(itemMap, hasEntry("innerBeanList2", expectedMapForInnerBean2));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("innerBeanList1", expectedMapForInnerBean1);
+        assertThat(itemMap).containsEntry("innerBeanList2", expectedMapForInnerBean2);
     }
 
     @Test
@@ -251,10 +282,132 @@ public class BeanTableSchemaTest {
         flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("attribute2", stringValue("two"));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNullImmutableAttributes() {
+        BeanTableSchema<FlattenedImmutableBean> beanTableSchema = BeanTableSchema.create(FlattenedImmutableBean.class);
+        AbstractImmutable abstractImmutable = AbstractImmutable.builder().build();
+        FlattenedImmutableBean flattenedImmutableBean = new FlattenedImmutableBean();
+        flattenedImmutableBean.setId("id-value");
+        flattenedImmutableBean.setAbstractImmutable(abstractImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedImmutableBean, false);
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", AttributeValue.fromNul(true));
+        assertThat(itemMap).containsEntry("attribute2", AttributeValue.fromNul(true));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNestedImmutableAttributes() {
+        BeanTableSchema<FlattenedNestedImmutableBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedNestedImmutableBean.class);
+        AbstractNestedImmutable abstractNestedImmutable2 =
+            AbstractNestedImmutable.builder().attribute2("nested-two").build();
+        AbstractNestedImmutable abstractNestedImmutable1 =
+            AbstractNestedImmutable.builder().attribute2("two").abstractNestedImmutableOne(abstractNestedImmutable2).build();
+        FlattenedNestedImmutableBean flattenedNestedImmutableBean = new FlattenedNestedImmutableBean();
+        flattenedNestedImmutableBean.setId("id-value");
+        flattenedNestedImmutableBean.setAttribute1("one");
+        flattenedNestedImmutableBean.setAbstractNestedImmutable(abstractNestedImmutable1);
+
+        Map<String, AttributeValue> nestedAttributesMap = new HashMap<>();
+        nestedAttributesMap.put("abstractNestedImmutableOne", AttributeValue.fromNul(true));
+        nestedAttributesMap.put("attribute2", stringValue("nested-two"));
+
+        AttributeValue expectedNestedAttribute =
+            AttributeValue.builder().m(Collections.unmodifiableMap(nestedAttributesMap)).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedNestedImmutableBean, false);
+        assertThat(itemMap.size()).isEqualTo(4);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("attribute2", stringValue("two"));
+        assertThat(itemMap).containsEntry("abstractNestedImmutableOne", expectedNestedAttribute);
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensNullNestedImmutableAttributes() {
+        BeanTableSchema<FlattenedNestedImmutableBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedNestedImmutableBean.class);
+        AbstractNestedImmutable abstractNestedImmutable = AbstractNestedImmutable.builder().build();
+        FlattenedNestedImmutableBean flattenedNestedImmutableBean = new FlattenedNestedImmutableBean();
+        flattenedNestedImmutableBean.setId("id-value");
+        flattenedNestedImmutableBean.setAttribute1("one");
+        flattenedNestedImmutableBean.setAbstractNestedImmutable(abstractNestedImmutable);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedNestedImmutableBean, false);
+        assertThat(itemMap.size()).isEqualTo(4);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("attribute2", AttributeValue.fromNul(true));
+        assertThat(itemMap).containsEntry("abstractNestedImmutableOne", AttributeValue.fromNul(true));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensSecondNullNestedAttributes_IgnoreNullsFalse() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, false);
+        assertThat(itemMap.size()).isEqualTo(4);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("secondId", AttributeValue.fromNul(true));
+        assertThat(itemMap).containsEntry("thirdId", AttributeValue.fromNul(true));
+        assertThat(itemMap).containsEntry("flattenedFourthBean", AttributeValue.fromNul(true));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensSecondNullNestedAttributes_IgnoreNullsTrue() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, true);
+        assertThat(itemMap.size()).isEqualTo(1);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensThirdNullNestedAttributes_IgnoreNullsFalse() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedSecondNestedBean flattenedSecondNestedBean = new FlattenedSecondNestedBean();
+        flattenedSecondNestedBean.setSecondId("second-id-value");
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+        flattenedFirstNestedBean.setFlattenedSecondNestedBean(flattenedSecondNestedBean);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, false);
+        assertThat(itemMap.size()).isEqualTo(4);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("secondId", stringValue("second-id-value"));
+        assertThat(itemMap).containsEntry("thirdId", AttributeValue.fromNul(true));
+        assertThat(itemMap).containsEntry("flattenedFourthBean", AttributeValue.fromNul(true));
+    }
+
+    @Test
+    public void dynamoDbFlatten_correctlyFlattensThirdNullNestedAttributes_IgnoreNullsTrue() {
+        BeanTableSchema<FlattenedFirstNestedBean> beanTableSchema =
+            BeanTableSchema.create(FlattenedFirstNestedBean.class);
+        FlattenedSecondNestedBean flattenedSecondNestedBean = new FlattenedSecondNestedBean();
+        flattenedSecondNestedBean.setSecondId("second-id-value");
+        FlattenedFirstNestedBean flattenedFirstNestedBean = new FlattenedFirstNestedBean();
+        flattenedFirstNestedBean.setId("id-value");
+        flattenedFirstNestedBean.setFlattenedSecondNestedBean(flattenedSecondNestedBean);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(flattenedFirstNestedBean, true);
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("secondId", stringValue("second-id-value"));
     }
 
     @Test
@@ -272,10 +425,10 @@ public class BeanTableSchemaTest {
                                                         .build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractBean", expectedDocument));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractBean", expectedDocument);
     }
 
     @Test
@@ -299,10 +452,10 @@ public class BeanTableSchemaTest {
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractBeanList", expectedList));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractBeanList", expectedList);
     }
 
     @Test
@@ -333,10 +486,10 @@ public class BeanTableSchemaTest {
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractBeanMap", expectedMap));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractBeanMap", expectedMap);
     }
 
     @Test
@@ -353,10 +506,10 @@ public class BeanTableSchemaTest {
                                                         .build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractImmutable", expectedDocument));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractImmutable", expectedDocument);
     }
 
     @Test
@@ -378,10 +531,10 @@ public class BeanTableSchemaTest {
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractImmutableList", expectedList));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractImmutableList", expectedList);
     }
 
     @Test
@@ -410,10 +563,10 @@ public class BeanTableSchemaTest {
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractImmutableMap", expectedMap));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractImmutableMap", expectedMap);
     }
 
     @Test
@@ -431,10 +584,10 @@ public class BeanTableSchemaTest {
                                                         .build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractBean", expectedDocument));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractBean", expectedDocument);
     }
 
     @Test
@@ -458,10 +611,10 @@ public class BeanTableSchemaTest {
         AttributeValue expectedList = AttributeValue.builder().l(expectedDocument1, expectedDocument2).build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractBeanList", expectedList));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractBeanList", expectedList);
     }
 
     @Test
@@ -492,10 +645,10 @@ public class BeanTableSchemaTest {
         AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, true);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("abstractBeanMap", expectedMap));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("abstractBeanMap", expectedMap);
     }
 
     @Test
@@ -507,10 +660,10 @@ public class BeanTableSchemaTest {
         extendedBean.setAttribute2("two");
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(extendedBean, false);
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("attribute1", stringValue("one")));
-        assertThat(itemMap, hasEntry("attribute2", stringValue("two")));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("attribute1", stringValue("one"));
+        assertThat(itemMap).containsEntry("attribute2", stringValue("two"));
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -526,8 +679,8 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, true);
 
-        assertThat(itemMap.size(), is(1));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
+        assertThat(itemMap.size()).isEqualTo(1);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
     }
 
     @Test
@@ -538,9 +691,9 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, false);
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("integerAttribute", AttributeValues.nullAttributeValue()));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("integerAttribute", nullAttributeValue());
     }
 
     @Test
@@ -552,9 +705,9 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(simpleBean, false);
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(123)));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(123));
     }
 
     @Test
@@ -569,7 +722,7 @@ public class BeanTableSchemaTest {
 
         SimpleBean result = beanTableSchema.mapToItem(itemMap);
 
-        assertThat(result, is(expectedBean));
+        assertThat(result).isEqualTo(expectedBean);
     }
 
     @Test
@@ -579,7 +732,7 @@ public class BeanTableSchemaTest {
         simpleBean.setId("id-value");
         simpleBean.setIntegerAttribute(123);
 
-        assertThat(beanTableSchema.attributeValue(simpleBean, "integerAttribute"), is(numberValue(123)));
+        assertThat(beanTableSchema.attributeValue(simpleBean, "integerAttribute")).isEqualTo(numberValue(123));
     }
 
     @Test
@@ -605,12 +758,12 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(enumBean, true);
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("testEnum", stringValue("ONE")));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("testEnum", stringValue("ONE"));
 
         EnumBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(enumBean)));
+        assertThat(reverse).isEqualTo(enumBean);
     }
 
     @Test
@@ -626,12 +779,12 @@ public class BeanTableSchemaTest {
                                                               .l(stringValue("ONE"),
                                                                  stringValue("TWO"))
                                                               .build();
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("testEnumList", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("testEnumList", expectedAttributeValue);
 
         EnumBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(enumBean)));
+        assertThat(reverse).isEqualTo(enumBean);
     }
 
     @Test
@@ -649,12 +802,12 @@ public class BeanTableSchemaTest {
                                                                  stringValue("three"))
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("stringList", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("stringList", expectedAttributeValue);
 
         ListBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(listBean)));
+        assertThat(reverse).isEqualTo(listBean);
     }
 
     @Test
@@ -672,12 +825,12 @@ public class BeanTableSchemaTest {
                                                               .l(list1, list2)
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("stringListList", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("stringListList", expectedAttributeValue);
 
         ListBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(listBean)));
+        assertThat(reverse).isEqualTo(listBean);
     }
 
     @Test
@@ -697,12 +850,12 @@ public class BeanTableSchemaTest {
                                                               .ss("one", "two", "three")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("stringSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("stringSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -722,12 +875,12 @@ public class BeanTableSchemaTest {
                                                               .ns("1", "2", "3")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("integerSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("integerSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -747,12 +900,12 @@ public class BeanTableSchemaTest {
                                                               .ns("1", "2", "3")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("longSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("longSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -772,12 +925,12 @@ public class BeanTableSchemaTest {
                                                               .ns("1", "2", "3")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("shortSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("shortSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -797,12 +950,12 @@ public class BeanTableSchemaTest {
                                                               .ns("1", "2", "3")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("byteSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("byteSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -822,12 +975,12 @@ public class BeanTableSchemaTest {
                                                               .ns("1.1", "2.2", "3.3")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("doubleSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("doubleSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -847,12 +1000,12 @@ public class BeanTableSchemaTest {
                                                               .ns("1.1", "2.2", "3.3")
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("floatSet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("floatSet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -876,12 +1029,12 @@ public class BeanTableSchemaTest {
                                                               .bs(buffer1, buffer2, buffer3)
                                                               .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("binarySet", expectedAttributeValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("binarySet", expectedAttributeValue);
 
         SetBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(setBean)));
+        assertThat(reverse).isEqualTo(setBean);
     }
 
     @Test
@@ -905,12 +1058,12 @@ public class BeanTableSchemaTest {
                                                         .m(expectedMap)
                                                         .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("stringMap", expectedMapValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("stringMap", expectedMapValue);
 
         MapBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(mapBean)));
+        assertThat(reverse).isEqualTo(mapBean);
     }
 
     @Test
@@ -928,18 +1081,18 @@ public class BeanTableSchemaTest {
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(mapBean, true);
 
         Map<String, AttributeValue> expectedMap = new HashMap<>();
-        expectedMap.put("one", AttributeValues.nullAttributeValue());
+        expectedMap.put("one", nullAttributeValue());
         expectedMap.put("three", stringValue("four"));
         AttributeValue expectedMapValue = AttributeValue.builder()
                                                         .m(expectedMap)
                                                         .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("stringMap", expectedMapValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("stringMap", expectedMapValue);
 
         MapBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(mapBean)));
+        assertThat(reverse).isEqualTo(mapBean);
     }
 
     @Test
@@ -964,12 +1117,12 @@ public class BeanTableSchemaTest {
                                                         .m(expectedMap)
                                                         .build();
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("nestedStringMap", expectedMapValue));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("nestedStringMap", expectedMapValue);
 
         MapBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(mapBean)));
+        assertThat(reverse).isEqualTo(mapBean);
     }
 
     @Test
@@ -990,19 +1143,19 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(commonTypesBean, true);
 
-        assertThat(itemMap.size(), is(9));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("booleanAttribute", AttributeValue.builder().bool(true).build()));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(123)));
-        assertThat(itemMap, hasEntry("longAttribute", numberValue(234)));
-        assertThat(itemMap, hasEntry("shortAttribute", numberValue(345)));
-        assertThat(itemMap, hasEntry("byteAttribute", numberValue(45)));
-        assertThat(itemMap, hasEntry("doubleAttribute", numberValue(56.7)));
-        assertThat(itemMap, hasEntry("floatAttribute", numberValue(67.8)));
-        assertThat(itemMap, hasEntry("binaryAttribute", binaryValue(binaryLiteral)));
+        assertThat(itemMap.size()).isEqualTo(9);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("booleanAttribute", AttributeValue.builder().bool(true).build());
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(123));
+        assertThat(itemMap).containsEntry("longAttribute", numberValue(234));
+        assertThat(itemMap).containsEntry("shortAttribute", numberValue(345));
+        assertThat(itemMap).containsEntry("byteAttribute", numberValue(45));
+        assertThat(itemMap).containsEntry("doubleAttribute", numberValue(56.7));
+        assertThat(itemMap).containsEntry("floatAttribute", numberValue(67.8));
+        assertThat(itemMap).containsEntry("binaryAttribute", binaryValue(binaryLiteral));
 
         CommonTypesBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(commonTypesBean)));
+        assertThat(reverse).isEqualTo(commonTypesBean);
     }
 
     @Test
@@ -1021,18 +1174,18 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(primitiveTypesBean, true);
 
-        assertThat(itemMap.size(), is(8));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("booleanAttribute", AttributeValue.builder().bool(true).build()));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(123)));
-        assertThat(itemMap, hasEntry("longAttribute", numberValue(234)));
-        assertThat(itemMap, hasEntry("shortAttribute", numberValue(345)));
-        assertThat(itemMap, hasEntry("byteAttribute", numberValue(45)));
-        assertThat(itemMap, hasEntry("doubleAttribute", numberValue(56.7)));
-        assertThat(itemMap, hasEntry("floatAttribute", numberValue(67.8)));
+        assertThat(itemMap.size()).isEqualTo(8);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("booleanAttribute", AttributeValue.builder().bool(true).build());
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(123));
+        assertThat(itemMap).containsEntry("longAttribute", numberValue(234));
+        assertThat(itemMap).containsEntry("shortAttribute", numberValue(345));
+        assertThat(itemMap).containsEntry("byteAttribute", numberValue(45));
+        assertThat(itemMap).containsEntry("doubleAttribute", numberValue(56.7));
+        assertThat(itemMap).containsEntry("floatAttribute", numberValue(67.8));
 
         PrimitiveTypesBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(primitiveTypesBean)));
+        assertThat(reverse).isEqualTo(primitiveTypesBean);
     }
 
     @Test
@@ -1048,16 +1201,16 @@ public class BeanTableSchemaTest {
         Map<String, AttributeValue> itemMap =
             beanTableSchema.itemToMap(commonTypesBean, Arrays.asList("longAttribute", "floatAttribute"));
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("longAttribute", numberValue(234)));
-        assertThat(itemMap, hasEntry("floatAttribute", numberValue(67.8)));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("longAttribute", numberValue(234));
+        assertThat(itemMap).containsEntry("floatAttribute", numberValue(67.8));
     }
 
     @Test
     public void itemType_returnsCorrectClass() {
         BeanTableSchema<SimpleBean> beanTableSchema = BeanTableSchema.create(SimpleBean.class);
 
-        assertThat(beanTableSchema.itemType(), is(equalTo(EnhancedType.of(SimpleBean.class))));
+        assertThat(beanTableSchema.itemType()).isEqualTo(EnhancedType.of(SimpleBean.class));
     }
 
     @Test
@@ -1081,13 +1234,13 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
 
-        assertThat(itemMap.size(), is(3));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value")));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(123)));
-        assertThat(itemMap, hasEntry("attributeItem", stringValue("inner-value")));
+        assertThat(itemMap.size()).isEqualTo(3);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(123));
+        assertThat(itemMap).containsEntry("attributeItem", stringValue("inner-value"));
 
         AttributeConverterBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse, is(equalTo(converterBean)));
+        assertThat(reverse).isEqualTo(converterBean);
     }
 
     @Test
@@ -1107,13 +1260,13 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value-custom"));
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(133));
 
         SingleConverterProvidersBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
-        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+        assertThat(reverse.getId()).isEqualTo("id-value-custom");
+        assertThat(reverse.getIntegerAttribute()).isEqualTo(133);
     }
 
     @Test
@@ -1127,13 +1280,13 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value-custom"));
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(133));
 
         MultipleConverterProvidersBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
-        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+        assertThat(reverse.getId()).isEqualTo("id-value-custom");
+        assertThat(reverse.getIntegerAttribute()).isEqualTo(133);
     }
 
     @Test
@@ -1153,13 +1306,13 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(converterBean, false);
 
-        assertThat(itemMap.size(), is(2));
-        assertThat(itemMap, hasEntry("id", stringValue("id-value-custom")));
-        assertThat(itemMap, hasEntry("integerAttribute", numberValue(133)));
+        assertThat(itemMap.size()).isEqualTo(2);
+        assertThat(itemMap).containsEntry("id", stringValue("id-value-custom"));
+        assertThat(itemMap).containsEntry("integerAttribute", numberValue(133));
 
         EmptyConverterProvidersValidBean reverse = beanTableSchema.mapToItem(itemMap);
-        assertThat(reverse.getId(), is(equalTo("id-value-custom")));
-        assertThat(reverse.getIntegerAttribute(), is(equalTo(133)));
+        assertThat(reverse.getId()).isEqualTo("id-value-custom");
+        assertThat(reverse.getIntegerAttribute()).isEqualTo(133);
     }
 
     @Test
@@ -1174,6 +1327,373 @@ public class BeanTableSchemaTest {
 
         Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(fluentSetterBean, false);
 
-        assertThat(beanTableSchema.mapToItem(itemMap), is(equalTo(fluentSetterBean)));
+        assertThat(beanTableSchema.mapToItem(itemMap)).isEqualTo(fluentSetterBean);
+    }
+
+    @Test
+    public void create_withMultipleFlattenMaps_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Multiple @DynamoDbFlatten Map<String, String> properties found. "
+                                + "Only one flattened map per class is supported.");
+        BeanTableSchema.create(MultipleFlattenMapsBean.class);
+    }
+
+    @Test
+    public void create_withInvalidMapType_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
+        BeanTableSchema.create(InvalidMapTypeBean.class);
+    }
+
+    @Test
+    public void create_withValidFlattenMap_succeeds() {
+        BeanTableSchema.create(ValidFlattenMapBean.class);
+    }
+
+    @Test
+    public void create_withNonMapFlatten_succeeds() {
+        BeanTableSchema.create(NonMapFlattenBean.class);
+    }
+
+    @Test
+    public void compositeKeyMaxBean_fourPartitionAndFourSortKeys_correctOrder() {
+        BeanTableSchema<CompositeKeyMaxBean> beanTableSchema = BeanTableSchema.create(CompositeKeyMaxBean.class);
+
+        List<String> partitionKeys = beanTableSchema.tableMetadata().indexPartitionKeys("gsi1");
+        assertThat(partitionKeys).hasSize(4);
+        assertThat(partitionKeys.get(0)).isEqualTo("gsiPk1");
+        assertThat(partitionKeys.get(1)).isEqualTo("gsiPk2");
+        assertThat(partitionKeys.get(2)).isEqualTo("gsiPk3");
+        assertThat(partitionKeys.get(3)).isEqualTo("gsiPk4");
+
+        List<String> sortKeys = beanTableSchema.tableMetadata().indexSortKeys("gsi1");
+        assertThat(sortKeys).hasSize(4);
+        assertThat(sortKeys.get(0)).isEqualTo("gsiSk1");
+        assertThat(sortKeys.get(1)).isEqualTo("gsiSk2");
+        assertThat(sortKeys.get(2)).isEqualTo("gsiSk3");
+        assertThat(sortKeys.get(3)).isEqualTo("gsiSk4");
+    }
+
+    @Test
+    public void compositeKeyBean_twoPartitionKeys_correctOrder() {
+        BeanTableSchema<TwoPartitionKeyBean> beanTableSchema = BeanTableSchema.create(TwoPartitionKeyBean.class);
+
+        List<String> partitionKeys = beanTableSchema.tableMetadata().indexPartitionKeys("gsi1");
+        assertThat(partitionKeys).hasSize(2);
+        assertThat(partitionKeys).containsExactly("key2", "key1");
+    }
+
+    @Test
+    public void compositeKeyBean_threeSortKeys_correctOrder() {
+        BeanTableSchema<ThreeSortKeyBean> beanTableSchema = BeanTableSchema.create(ThreeSortKeyBean.class);
+
+        List<String> sortKeys = beanTableSchema.tableMetadata().indexSortKeys("gsi1");
+        assertThat(sortKeys).hasSize(3);
+        assertThat(sortKeys).containsExactly("sort2", "sort3", "sort1");
+    }
+
+    @Test
+    public void compositeKeyBean_mixedComposite_twoPartitionThreeSort() {
+        BeanTableSchema<MixedCompositeBean> beanTableSchema = BeanTableSchema.create(MixedCompositeBean.class);
+
+        List<String> partitionKeys = beanTableSchema.tableMetadata().indexPartitionKeys("gsi1");
+        assertThat(partitionKeys).hasSize(2);
+        assertThat(partitionKeys).containsExactly("pk1", "pk2");
+
+        List<String> sortKeys = beanTableSchema.tableMetadata().indexSortKeys("gsi1");
+        assertThat(sortKeys).hasSize(3);
+        assertThat(sortKeys).containsExactly("sk2", "sk1", "sk3");
+    }
+
+    @Test
+    public void compositeKeyBean_duplicateOrderValues_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Duplicate partition key order 0 for index 'gsi1'");
+        BeanTableSchema.create(DuplicateOrderBean.class);
+    }
+
+    @Test
+    public void compositeKeyBean_nonSequentialOrders_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Non-sequential partition key orders for index 'gsi1'. Expected: 0,1,2,3 but got: [0, 2]");
+        BeanTableSchema.create(NonSequentialOrderBean.class);
+    }
+
+    @Test
+    public void compositeKeyBean_mixedExplicitImplicitOrdering_throwsException() {
+        exception.expect(IllegalArgumentException.class);
+        exception.expectMessage("Composite partition keys for index 'gsi1' must all have explicit ordering (0,1,2,3)");
+        BeanTableSchema.create(MixedOrderingBean.class);
+    }
+
+    @Test
+    public void rootSchema_areCached_but_flattenedAreNot() {
+        BeanTableSchema<CompositeKeyMaxBean> root1 = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.ROOT);
+        BeanTableSchema<CompositeKeyMaxBean> root2 = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.ROOT);
+        assertThat(root1).isEqualTo(root2);
+
+        BeanTableSchema<CompositeKeyMaxBean> flattened = BeanTableSchema.create(CompositeKeyMaxBean.class, ExecutionContext.FLATTENED);
+        assertThat(root1).isNotEqualTo(flattened);
+    }
+
+    @Test
+    public void whenCreatingBeanTableSchema_logsDebugMessage() {
+        try (LogCaptor logCaptor = new LogCaptor("software.amazon.awssdk.enhanced.dynamodb.beans", Level.DEBUG)) {
+
+            BeanTableSchema.create(SimpleBean.class);
+
+            List<LogEvent> logEvents = logCaptor.loggedEvents();
+            Assertions.assertThat(logEvents.get(0).getLevel().name()).isEqualTo(Level.DEBUG.name());
+            Assertions.assertThat(logEvents.get(0).getMessage().getFormattedMessage())
+                      .contains("software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean - Creating bean schema");
+        }
+    }
+
+    @Test
+    public void vectorIndexBean_producesCorrectVectorIndexMetadata() {
+        BeanTableSchema<VectorIndexBean> beanTableSchema = BeanTableSchema.create(VectorIndexBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactlyInAnyOrder(
+            SearchSchemaElement.builder().attributeName("category").searchSchemaElementType(SearchSchemaElementType.HASH).build(),
+            SearchSchemaElement.builder().attributeName("brand").searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER).build()
+        );
+    }
+
+    @Test
+    public void vectorIndexBean_vectorIndexNotInIndices() {
+        BeanTableSchema<VectorIndexBean> beanTableSchema = BeanTableSchema.create(VectorIndexBean.class);
+
+        assertThat(beanTableSchema.tableMetadata().indices().stream()
+                                  .filter(i -> "embedding-index".equals(i.name()))
+                                  .findAny()).isEmpty();
+    }
+
+    @Test
+    public void multiVectorIndexBean_producesFiveVectorIndices() {
+        BeanTableSchema<MultiVectorIndexBean> beanTableSchema = BeanTableSchema.create(MultiVectorIndexBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(5);
+        Map<String, VectorIndexMetadata> byName = vectorIndices.stream()
+                                                               .collect(java.util.stream.Collectors.toMap(VectorIndexMetadata::indexName, v -> v));
+
+        assertThat(byName.get("cosine-idx").dimensions()).isEqualTo(128);
+        assertThat(byName.get("cosine-idx").distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(byName.get("cosine-idx").vectorAttributeName()).isEqualTo("embeddingCosine");
+
+        assertThat(byName.get("dot-idx").dimensions()).isEqualTo(256);
+        assertThat(byName.get("dot-idx").distanceFunction()).isEqualTo(DistanceFunction.DOT_PRODUCT);
+        assertThat(byName.get("dot-idx").vectorAttributeName()).isEqualTo("embeddingDot");
+
+        assertThat(byName.get("euclidean-idx").dimensions()).isEqualTo(512);
+        assertThat(byName.get("euclidean-idx").distanceFunction()).isEqualTo(DistanceFunction.EUCLIDEAN);
+        assertThat(byName.get("euclidean-idx").vectorAttributeName()).isEqualTo("embeddingEuclidean");
+
+        assertThat(byName.get("cosine-idx-2").dimensions()).isEqualTo(1024);
+        assertThat(byName.get("cosine-idx-2").distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(byName.get("cosine-idx-2").vectorAttributeName()).isEqualTo("embeddingCosine2");
+
+        assertThat(byName.get("dot-idx-2").dimensions()).isEqualTo(1536);
+        assertThat(byName.get("dot-idx-2").distanceFunction()).isEqualTo(DistanceFunction.DOT_PRODUCT);
+        assertThat(byName.get("dot-idx-2").vectorAttributeName()).isEqualTo("embeddingDot2");
+    }
+
+    @Test
+    public void multiVectorIndexBean_sharedHashKeyAppliedToAllIndices() {
+        BeanTableSchema<MultiVectorIndexBean> beanTableSchema = BeanTableSchema.create(MultiVectorIndexBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        SearchSchemaElement expectedHash = SearchSchemaElement.builder()
+                                                              .attributeName("category")
+                                                              .searchSchemaElementType(SearchSchemaElementType.HASH)
+                                                              .build();
+        for (VectorIndexMetadata vi : vectorIndices) {
+            assertThat(vi.searchSchemaElements()).contains(expectedHash);
+        }
+    }
+
+    @Test
+    public void vectorIndexBean_withGsiAnnotations_gsiStillWorksCorrectly() {
+        BeanTableSchema<VectorAndGsiBean> beanTableSchema = BeanTableSchema.create(VectorAndGsiBean.class);
+        TableMetadata tableMetadata = beanTableSchema.tableMetadata();
+
+        assertThat(tableMetadata.indexPartitionKey("gsi-category")).isEqualTo("category");
+        assertThat(tableMetadata.indexSortKey("gsi-category")).isEqualTo(Optional.of("sortValue"));
+
+        assertThat(tableMetadata.indices().stream()
+                                .filter(i -> "embedding-index".equals(i.name()))
+                                .findAny()).isEmpty();
+
+        Collection<VectorIndexMetadata> vectorIndices = tableMetadata.vectorIndices();
+        assertThat(vectorIndices).hasSize(1);
+        assertThat(vectorIndices.iterator().next().indexName()).isEqualTo("embedding-index");
+    }
+
+    @Test
+    public void inlineFilterOnlyVectorBean_createsValidIndexWithoutHashKey() {
+        BeanTableSchema<InlineFilterOnlyVectorBean> beanTableSchema = BeanTableSchema.create(InlineFilterOnlyVectorBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER)
+                               .build()
+        );
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedBeanPresent_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build()
+        );
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedImmutablePresent_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build());
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedBeanNull_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build());
+    }
+
+    @Test
+    public void vectorWithNestingBean_nestedImmutableNull_vectorMetadataCorrect() {
+        BeanTableSchema<VectorWithNestingBean> beanTableSchema = BeanTableSchema.create(VectorWithNestingBean.class);
+        Collection<VectorIndexMetadata> vectorIndices = beanTableSchema.tableMetadata().vectorIndices();
+
+        assertThat(vectorIndices).hasSize(1);
+        VectorIndexMetadata metadata = vectorIndices.iterator().next();
+        assertThat(metadata.indexName()).isEqualTo("embedding-index");
+        assertThat(metadata.vectorAttributeName()).isEqualTo("embedding");
+        assertThat(metadata.dimensions()).isEqualTo(1536);
+        assertThat(metadata.distanceFunction()).isEqualTo(DistanceFunction.COSINE);
+        assertThat(metadata.searchSchemaElements()).containsExactly(
+            SearchSchemaElement.builder()
+                               .attributeName("category")
+                               .searchSchemaElementType(SearchSchemaElementType.HASH)
+                               .build());
+    }
+
+    @DynamoDbBean
+    public static class MultipleFlattenMapsBean {
+        private String id;
+        private Map<String, String> map1;
+        private Map<String, String> map2;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getMap1() { return map1; }
+        public void setMap1(Map<String, String> map1) { this.map1 = map1; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getMap2() { return map2; }
+        public void setMap2(Map<String, String> map2) { this.map2 = map2; }
+    }
+
+    @DynamoDbBean
+    public static class InvalidMapTypeBean {
+        private String id;
+        private Map<String, Integer> invalidMap;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, Integer> getInvalidMap() { return invalidMap; }
+        public void setInvalidMap(Map<String, Integer> invalidMap) { this.invalidMap = invalidMap; }
+    }
+
+    @DynamoDbBean
+    public static class ValidFlattenMapBean {
+        private String id;
+        private Map<String, String> validMap;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public Map<String, String> getValidMap() { return validMap; }
+        public void setValidMap(Map<String, String> validMap) { this.validMap = validMap; }
+    }
+
+    @DynamoDbBean
+    public static class NonMapFlattenBean {
+        private String id;
+        private NestedObject nested;
+
+        @DynamoDbPartitionKey
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        @DynamoDbFlatten
+        public NestedObject getNested() { return nested; }
+        public void setNested(NestedObject nested) { this.nested = nested; }
+    }
+
+    @DynamoDbBean
+    public static class NestedObject {
+        private String value;
+
+        public String getValue() { return value; }
+        public void setValue(String value) { this.value = value; }
     }
 }

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.codegen.model.intermediate;
 
+import java.util.Objects;
+
 /**
  * Represents a single enum field in a enum.
  */
@@ -49,4 +51,23 @@ public class EnumModel {
         return value;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        EnumModel enumModel = (EnumModel) o;
+        return Objects.equals(value, enumModel.value) && Objects.equals(name, enumModel.name);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = Objects.hashCode(value);
+        result = 31 * result + Objects.hashCode(name);
+        return result;
+    }
 }

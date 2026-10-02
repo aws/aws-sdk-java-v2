@@ -65,12 +65,15 @@ public final class StringAttributeConverter implements AttributeConverter<String
 
     @Override
     public AttributeValue transformFrom(String input) {
-        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.builder().s(input).build();
+        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.createS(input);
     }
 
     @Override
     public String transformTo(AttributeValue input) {
-        return Visitor.toString(input);
+        if (input.s() != null) {
+            return input.s();
+        }
+        return EnhancedAttributeValue.fromAttributeValue(input).convert(Visitor.INSTANCE);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<String> {
@@ -125,8 +128,14 @@ public final class StringAttributeConverter implements AttributeConverter<String
             };
 
             return value.entrySet().stream()
-                        .collect(Collectors.toMap(Map.Entry::getKey, i -> toString(i.getValue()),
-                                                  throwingMerger, LinkedHashMap::new))
+                        .collect(Collectors.toMap(
+                            Map.Entry::getKey,
+                            i -> {
+                                String converted = toString(i.getValue());
+                                return converted == null ? "null" : converted;
+                            },
+                            throwingMerger,
+                            LinkedHashMap::new))
                         .toString();
         }
 

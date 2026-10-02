@@ -17,8 +17,8 @@ package software.amazon.awssdk.core.internal.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static software.amazon.awssdk.core.internal.async.SplittingPublisherTestUtils.verifyIndividualAsyncRequestBody;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.io.ByteArrayOutputStream;
@@ -31,6 +31,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
@@ -38,12 +40,10 @@ import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.BinaryUtils;
 
@@ -132,7 +132,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File size changed after reading started");
     }
 
     @Test
@@ -158,7 +159,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File size changed after reading started");
     }
 
     @Test
@@ -184,7 +186,8 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File size changed after reading started");
     }
 
     @Test
@@ -208,7 +211,61 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File last-modified time changed after reading started");
+    }
+
+    @Test
+    public void preset_modifiedTime_failsBecauseUpdatedModificationTime() throws Exception {
+        FileTime initialModifiedTime = Files.getLastModifiedTime(testFile);
+        // Change the file to be updated
+        Thread.sleep(1_000); // Wait for 1 second so that we are definitely in a different second than when the file was created
+        Files.setLastModifiedTime(testFile, FileTime.from(Instant.now()));
+
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(testFile)
+                                                                .modifiedTimeAtStart(initialModifiedTime)
+                                                                .build();
+        ControllableSubscriber subscriber = new ControllableSubscriber();
+
+        // Start reading file
+        asyncRequestBody.subscribe(subscriber);
+        subscriber.sub.request(Long.MAX_VALUE);
+
+        assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File last-modified time changed after reading started");
+    }
+
+    @Test
+    public void split_changingFile_fileGetsTouched_failsBecauseUpdatedModificationTime() throws Exception {
+        AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
+                                                                .path(testFile)
+                                                                .build();
+        List<AsyncRequestBody> splits = new ArrayList<>();
+        asyncRequestBody.splitCloseable(s -> s.chunkSizeInBytes(8 * MiB)).subscribe(splits::add);
+        assertEquals(2, splits.size());
+
+        ControllableSubscriber subscriber1 = new ControllableSubscriber();
+
+        // read the first chunk fully
+        splits.get(0).subscribe(subscriber1);
+        subscriber1.sub.request(Long.MAX_VALUE);
+        assertTrue(subscriber1.onNextSemaphore.tryAcquire(5, TimeUnit.SECONDS));
+
+        // Change the file to be updated
+        Thread.sleep(1_000); // Wait for 1 second so that we are definitely in a different second than when the file was created
+        Files.setLastModifiedTime(testFile, FileTime.from(Instant.now()));
+
+
+        // read the second chunk which should now detect the file modification
+        ControllableSubscriber subscriber2 = new ControllableSubscriber();
+        splits.get(1).subscribe(subscriber2);
+        subscriber2.sub.request(Long.MAX_VALUE);
+
+        assertThatThrownBy(() -> subscriber2.completed.get(5, TimeUnit.SECONDS))
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("File last-modified time changed after reading started");
     }
 
     @Test
@@ -231,12 +288,13 @@ public class FileAsyncRequestBodyTest {
         subscriber.sub.request(Long.MAX_VALUE);
 
         assertThatThrownBy(() -> subscriber.completed.get(5, TimeUnit.SECONDS))
-            .hasCauseInstanceOf(IOException.class);
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Unable to check file status after read. Was the file deleted");
     }
 
     @Test
     public void positionNotZero_shouldReadFromPosition() throws Exception {
-        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         long position = 20L;
         AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
                                                                 .path(smallFile)
@@ -249,7 +307,9 @@ public class FileAsyncRequestBodyTest {
         asyncRequestBody.subscribe(baosSubscriber);
         assertThat(asyncRequestBody.contentLength()).contains(80L);
 
-        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+        ByteBuffer buffer = future.get(1, TimeUnit.SECONDS);
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
 
         byte[] expected = new byte[80];
         try(FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
@@ -262,7 +322,7 @@ public class FileAsyncRequestBodyTest {
 
     @Test
     public void bothPositionAndNumBytesToReadConfigured_shouldHonor() throws Exception {
-        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         long position = 20L;
         long numBytesToRead = 5L;
         AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
@@ -277,7 +337,9 @@ public class FileAsyncRequestBodyTest {
         asyncRequestBody.subscribe(baosSubscriber);
         assertThat(asyncRequestBody.contentLength()).contains(numBytesToRead);
 
-        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+        ByteBuffer buffer = future.get(1, TimeUnit.SECONDS);
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
 
         byte[] expected = new byte[5];
         try (FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {
@@ -290,7 +352,7 @@ public class FileAsyncRequestBodyTest {
 
     @Test
     public void numBytesToReadConfigured_shouldHonor() throws Exception {
-        CompletableFuture<byte[]> future = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> future = new CompletableFuture<>();
         AsyncRequestBody asyncRequestBody = FileAsyncRequestBody.builder()
                                                                 .path(smallFile)
                                                                 .numBytesToRead(5L)
@@ -302,7 +364,9 @@ public class FileAsyncRequestBodyTest {
         asyncRequestBody.subscribe(baosSubscriber);
         assertThat(asyncRequestBody.contentLength()).contains(5L);
 
-        byte[] bytes = future.get(1, TimeUnit.SECONDS);
+        ByteBuffer buffer = future.get(1, TimeUnit.SECONDS);
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
 
         byte[] expected = new byte[5];
         try (FileInputStream inputStream = new FileInputStream(smallFile.toFile())) {

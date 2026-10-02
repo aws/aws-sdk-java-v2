@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.core.SdkBytes;
@@ -266,6 +267,11 @@ public class JsonProtocolUnmarshaller {
         return (T) unmarshallingParser.parse(sdkPojo, inputStream);
     }
 
+    @SuppressWarnings("unchecked")
+    private <T extends SdkPojo> T unmarshallMemberFromJson(Supplier<SdkPojo> constructor, InputStream inputStream) {
+        return (T) unmarshallingParser.parseMember(constructor, inputStream);
+    }
+
     private <TypeT extends SdkPojo> TypeT unmarshallResponse(SdkPojo sdkPojo,
                                                              SdkHttpFullResponse response) throws IOException {
         JsonUnmarshallerContext context = JsonUnmarshallerContext.builder()
@@ -290,7 +296,7 @@ public class JsonProtocolUnmarshaller {
             } else if (isExplicitPayloadMember(field) && field.marshallingType() == MarshallingType.SDK_POJO) {
                 Optional<AbortableInputStream> responseContent = context.response().content();
                 if (responseContent.isPresent()) {
-                    field.set(sdkPojo, unmarshallFromJson(field.constructor().get(), responseContent.get()));
+                    field.set(sdkPojo, unmarshallMemberFromJson(field.constructor(), responseContent.get()));
                 } else {
                     field.set(sdkPojo, null);
                 }

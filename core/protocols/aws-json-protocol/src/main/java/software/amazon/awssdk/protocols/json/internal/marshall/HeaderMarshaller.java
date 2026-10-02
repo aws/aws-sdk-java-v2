@@ -20,6 +20,7 @@ import static software.amazon.awssdk.utils.CollectionUtils.isNullOrEmpty;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SdkField;
@@ -36,7 +37,7 @@ import software.amazon.awssdk.utils.StringUtils;
 public final class HeaderMarshaller {
 
     public static final JsonMarshaller<String> STRING = new SimpleHeaderMarshaller<>(
-        (val, field) -> field.containsTrait(JsonValueTrait.class, TraitType.JSON_VALUE_TRAIT) ?
+        (val, field) -> field != null && field.containsTrait(JsonValueTrait.class, TraitType.JSON_VALUE_TRAIT) ?
                         BinaryUtils.toBase64(val.getBytes(StandardCharsets.UTF_8)) : val);
 
     public static final JsonMarshaller<Integer> INTEGER = new SimpleHeaderMarshaller<>(ValueToStringConverter.FROM_INTEGER);
@@ -69,6 +70,19 @@ public final class HeaderMarshaller {
             }
             JsonMarshaller marshaller = context.marshallerRegistry().getMarshaller(MarshallLocation.HEADER, listValue);
             marshaller.marshall(listValue, context, paramName, memberFieldInfo);
+        }
+    };
+
+    @SuppressWarnings("unchecked")
+    public static final JsonMarshaller<Map<String, ?>> MAP = (map, context, paramName, sdkField) -> {
+        if (isNullOrEmpty(map)) {
+            return;
+        }
+        for (Map.Entry<String, ?> entry : map.entrySet()) {
+            String key = entry.getKey().startsWith(paramName) ? entry.getKey()
+                                                              : paramName + entry.getKey();
+            JsonMarshaller marshaller = context.marshallerRegistry().getMarshaller(MarshallLocation.HEADER, entry.getValue());
+            marshaller.marshall(entry.getValue(), context, key, null);
         }
     };
 

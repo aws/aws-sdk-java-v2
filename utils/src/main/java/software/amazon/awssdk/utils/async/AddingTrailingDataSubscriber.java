@@ -72,6 +72,7 @@ public class AddingTrailingDataSubscriber<T> extends DelegatingSubscriber<T, T> 
         if (upstreamSubscription != null) {
             log.warn(() -> "Received duplicate subscription, cancelling the duplicate.", new IllegalStateException());
             subscription.cancel();
+            onError(new IllegalStateException("Received duplicate subscription."));
             return;
         }
 

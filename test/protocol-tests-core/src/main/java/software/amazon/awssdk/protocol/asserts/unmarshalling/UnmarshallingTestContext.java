@@ -26,6 +26,7 @@ public class UnmarshallingTestContext {
     private IntermediateModel model;
     private String operationName;
     private String streamedResponse;
+    private String errorName;
 
     public UnmarshallingTestContext withModel(IntermediateModel model) {
         this.model = model;
@@ -58,4 +59,12 @@ public class UnmarshallingTestContext {
         return streamedResponse;
     }
 
+    public UnmarshallingTestContext withErrorName(String errorName) {
+        this.errorName = errorName;
+        return this;
+    }
+
+    public String getErrorName() {
+        return errorName;
+    }
 }

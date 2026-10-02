@@ -166,4 +166,15 @@ public class AwsJsonAsyncCrc32ChecksumTests {
         assertThatThrownBy(() -> jsonRpcAsync.allTypes(AllTypesRequest.builder().build()).get())
             .hasRootCauseInstanceOf(Crc32MismatchException.class);
     }
+
+    @Test
+    public void emptyBody_WhenCrc32HeaderIsNonZero_ThrowsCrc32Mismatch() {
+        stubFor(post(urlEqualTo("/")).willReturn(aResponse()
+                                                     .withStatus(200)
+                                                     .withHeader("x-amz-crc32", JSON_BODY_Crc32_CHECKSUM)
+                                                     .withHeader("Content-Length", "0")));
+
+        assertThatThrownBy(() -> jsonRpcAsync.allTypes(AllTypesRequest.builder().build()).get())
+            .hasRootCauseInstanceOf(Crc32MismatchException.class);
+    }
 }

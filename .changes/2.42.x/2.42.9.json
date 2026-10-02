@@ -1,0 +1,36 @@
+{
+    "version": "2.42.9",
+    "date": "2026-03-09",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Implement reset() for XxHashChecksum to allow checksum reuse."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Added support for CloudWatch Logs long-term API keys, currently available in Preview"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Service",
+            "contributor": "",
+            "description": "This change enables cross-account and cross-region access for DataSources. Customers can now define access policies on their datasources to allow other AWS accounts to access and query their data."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Route 53 Global Resolver",
+            "contributor": "",
+            "description": "Adds support for dual stack Global Resolvers and Dictionary-based Domain Generation Firewall Advanced Protection."
+        },
+        {
+            "type": "feature",
+            "category": "Application Migration Service",
+            "contributor": "",
+            "description": "Adds support for new storeSnapshotOnLocalZone field in ReplicationConfiguration and updateReplicationConfiguration"
+        }
+    ]
+}

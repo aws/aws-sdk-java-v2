@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.crt.CrtResource;
@@ -26,7 +28,7 @@ import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
  * Stability tests for {@link S3CrtAsyncClient}
  */
 public class S3CrtAsyncClientStabilityTest extends S3AsyncBaseStabilityTest {
-    private static final String BUCKET_NAME = String.format("s3crtasyncclinetstabilitytests%d", System.currentTimeMillis());
+    private static final String BUCKET_NAME = temporaryBucketName(S3CrtAsyncClientStabilityTest.class);
     private static final S3AsyncClient s3CrtAsyncClient;
 
     static {
@@ -42,7 +44,8 @@ public class S3CrtAsyncClientStabilityTest extends S3AsyncBaseStabilityTest {
     @BeforeAll
     public static void setup() {
         System.setProperty("aws.crt.debugnative", "true");
-        s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME));
+        s3ApacheClient.createBucket(b -> b.bucket(BUCKET_NAME)
+                                          .createBucketConfiguration(cfg -> cfg.tags(integTestTag())));
     }
 
     @AfterAll

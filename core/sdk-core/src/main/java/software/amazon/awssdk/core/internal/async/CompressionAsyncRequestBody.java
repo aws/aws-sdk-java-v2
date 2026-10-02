@@ -70,6 +70,11 @@ public class CompressionAsyncRequestBody implements AsyncRequestBody {
         return wrapped.contentType();
     }
 
+    @Override
+    public String body() {
+        return wrapped.body();
+    }
+
     private SdkPublisher<Iterable<ByteBuffer>> split(SdkPublisher<ByteBuffer> source) {
         return subscriber -> source.subscribe(new SplittingSubscriber(subscriber));
     }

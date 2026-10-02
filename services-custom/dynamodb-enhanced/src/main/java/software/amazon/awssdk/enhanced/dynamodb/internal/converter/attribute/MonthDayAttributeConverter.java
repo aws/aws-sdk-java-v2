@@ -77,7 +77,7 @@ public final class MonthDayAttributeConverter implements AttributeConverter<Mont
 
     @Override
     public AttributeValue transformFrom(MonthDay input) {
-        return AttributeValue.builder().s(input.toString()).build();
+        return AttributeValue.createS(input.toString());
     }
 
     @Override

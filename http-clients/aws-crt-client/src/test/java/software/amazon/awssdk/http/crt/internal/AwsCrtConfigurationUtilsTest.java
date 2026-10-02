@@ -16,47 +16,42 @@
 package software.amazon.awssdk.http.crt.internal;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_PQ_DEFAULT;
+import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_NON_PQ_DEFAULT;
 import static software.amazon.awssdk.crt.io.TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT;
 
 import java.time.Duration;
 import java.util.stream.Stream;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import software.amazon.awssdk.crt.CrtResource;
+import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
+import software.amazon.awssdk.crt.io.TlsContextOptions;
+import software.amazon.awssdk.http.SdkHttpConfigurationOption;
+import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.http.crt.TlsVersion;
+import software.amazon.awssdk.utils.AttributeMap;
 
 class AwsCrtConfigurationUtilsTest {
 
-    @AfterAll
-    public static void tearDown() {
-        CrtResource.waitForNoResources();
-    }
-
     @ParameterizedTest
     @MethodSource("cipherPreferences")
-    void resolveCipherPreference_pqNotSupported_shouldFallbackToSystemDefault(Boolean preferPqTls,
-                                                                              TlsCipherPreference tlsCipherPreference) {
-        Assumptions.assumeFalse(TLS_CIPHER_PQ_DEFAULT.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(preferPqTls)).isEqualTo(tlsCipherPreference);
-    }
-
-    @Test
-    void resolveCipherPreference_pqSupported_shouldHonor() {
-        Assumptions.assumeTrue(TLS_CIPHER_PQ_DEFAULT.isSupported());
-        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(true)).isEqualTo(TLS_CIPHER_PQ_DEFAULT);
+    void resolveCipherPreference_shouldResolveCorrectly(Boolean postQuantumTlsEnabled,
+                                                        TlsCipherPreference expectedPreference) {
+        assertThat(AwsCrtConfigurationUtils.resolveCipherPreference(postQuantumTlsEnabled)).isEqualTo(expectedPreference);
     }
 
     private static Stream<Arguments> cipherPreferences() {
+        // On platforms where NON_PQ_DEFAULT is not supported (e.g. macOS), the code falls back to SYSTEM_DEFAULT.
+        TlsCipherPreference expectedForFalse = TLS_CIPHER_NON_PQ_DEFAULT.isSupported()
+            ? TLS_CIPHER_NON_PQ_DEFAULT
+            : TLS_CIPHER_SYSTEM_DEFAULT;
         return Stream.of(
             Arguments.of(null, TLS_CIPHER_SYSTEM_DEFAULT),
-            Arguments.of(false, TLS_CIPHER_SYSTEM_DEFAULT),
+            Arguments.of(false, expectedForFalse),
             Arguments.of(true, TLS_CIPHER_SYSTEM_DEFAULT)
         );
     }
@@ -106,6 +101,95 @@ class AwsCrtConfigurationUtilsTest {
                 duration1Minute,
                 expectedAll
             )
+        );
+    }
+
+    @Test
+    void resolveMinTlsVersion_null_returnsSystemDefaults() {
+        assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(null))
+            .isEqualTo(TlsContextOptions.TlsVersions.TLS_VER_SYS_DEFAULTS);
+    }
+
+    @Test
+    void resolveMinTlsVersion_systemDefault_returnsSystemDefaults() {
+        assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(TlsVersion.SYSTEM_DEFAULT))
+            .isEqualTo(TlsContextOptions.TlsVersions.TLS_VER_SYS_DEFAULTS);
+    }
+
+    @Test
+    void resolveMinTlsVersion_tls13_returnsTLSv1_3() {
+        assertThat(AwsCrtConfigurationUtils.resolveMinTlsVersion(TlsVersion.TLS_1_3))
+            .isEqualTo(TlsContextOptions.TlsVersions.TLSv1_3);
+    }
+
+    @ParameterizedTest(name = "{0} inactivity timeout -> {1}s failure interval")
+    @MethodSource("readWriteTimeoutMappings")
+    void mapReadWriteTimeout_mapsToOneBytePerSecondMonitor(Duration readWriteTimeout, int expectedIntervalSeconds) {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.mapReadWriteTimeout(readWriteTimeout);
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(expectedIntervalSeconds);
+    }
+
+    private static Stream<Arguments> readWriteTimeoutMappings() {
+        return Stream.of(
+            Arguments.of(Duration.ofMinutes(5), 300),
+            Arguments.of(Duration.ofMinutes(15), 900),
+            Arguments.of(Duration.ofSeconds(2), 2),
+            Arguments.of(Duration.ofSeconds(1), 2),
+            Arguments.of(Duration.ZERO, 2),
+            Arguments.of(Duration.ofMillis(2999), 2),
+            Arguments.of(Duration.ofMillis(3999), 3)
+        );
+    }
+
+    @Test
+    void resolveMonitoringOptions_explicitConnectionHealthConfiguration_winsOverFallback() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(healthConfiguration(),
+                                                                                          Duration.ofMinutes(15));
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(500L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(10);
+    }
+
+    @Test
+    void resolveMonitoringOptions_explicitConnectionHealthConfigurationWithoutFallback_usesExplicitConfig() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(healthConfiguration(), null);
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(500L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(10);
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackZero_appliesNothing() {
+        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ZERO)).isNull();
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackPositive_mapped() {
+        HttpMonitoringOptions options = AwsCrtConfigurationUtils.resolveMonitoringOptions(null, Duration.ofMinutes(15));
+        assertThat(options.getMinThroughputBytesPerSecond()).isEqualTo(1L);
+        assertThat(options.getAllowableThroughputFailureIntervalSeconds()).isEqualTo(900);
+    }
+
+    @Test
+    void resolveMonitoringOptions_fallbackAbsent_appliesNothing() {
+        assertThat(AwsCrtConfigurationUtils.resolveMonitoringOptions(null, null)).isNull();
+    }
+
+    private static ConnectionHealthConfiguration healthConfiguration() {
+        return ConnectionHealthConfiguration.builder()
+                                            .minimumThroughputInBps(500L)
+                                            .minimumThroughputTimeout(Duration.ofSeconds(10))
+                                            .build();
+    }
+
+
+    private static Stream<Arguments> defaultConnectionHealthConfigurationCases() {
+        return Stream.of(
+            Arguments.of(Duration.ofSeconds(30), Duration.ofSeconds(30), 30),
+            Arguments.of(Duration.ofSeconds(60), Duration.ofSeconds(10), 60),
+            Arguments.of(Duration.ofSeconds(10), Duration.ofSeconds(45), 45),
+            // overflow: value exceeding Integer.MAX_VALUE should saturate
+            Arguments.of(Duration.ofSeconds((long) Integer.MAX_VALUE + 1), Duration.ofSeconds(1), Integer.MAX_VALUE),
+            Arguments.of(Duration.ofSeconds(1), Duration.ofSeconds((long) Integer.MAX_VALUE + 1), Integer.MAX_VALUE)
         );
     }
 

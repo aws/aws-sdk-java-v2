@@ -18,9 +18,11 @@ package software.amazon.awssdk.awscore.retry;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsErrorCode;
+import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.retry.RetryPolicyAdapter;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.core.retry.RetryUtils;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
@@ -63,17 +65,29 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added. This is equivalent to
+     * {@code forRetryMode(mode, false)}.
      *
      * @param mode The retry mode for which we want to create a retry strategy.
      * @return A retry strategy for the given retry mode.
      */
     public static RetryStrategy forRetryMode(RetryMode mode) {
+        return forRetryMode(mode, false);
+    }
+
+    /**
+     * Retrieve the appropriate retry strategy for the retry mode with AWS-specific conditions added.
+     *
+     * @param mode The retry mode for which we want to create a retry strategy.
+     * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
+     * @return A retry strategy for the given retry mode.
+     */
+    public static RetryStrategy forRetryMode(RetryMode mode, Boolean newRetries2026Enabled) {
         switch (mode) {
             case STANDARD:
-                return standardRetryStrategy();
+                return standardRetryStrategy(newRetries2026Enabled);
             case ADAPTIVE_V2:
-                return adaptiveRetryStrategy();
+                return adaptiveRetryStrategy(newRetries2026Enabled);
             case LEGACY:
                 return legacyRetryStrategy();
             case ADAPTIVE:
@@ -82,6 +96,7 @@ public final class AwsRetryStrategy {
                 throw new IllegalArgumentException("unknown retry mode: " + mode);
         }
     }
+
 
     /**
      * Update the provided {@link RetryStrategy} to add AWS-specific conditions.
@@ -105,13 +120,24 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added.
+     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added. This is equivalent to {@code
+     * standardRetryStrategy(false)}.
      *
      * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
      */
     public static StandardRetryStrategy standardRetryStrategy() {
-        StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder();
-        return configure(builder).build();
+        return standardRetryStrategy(false);
+    }
+
+    /**
+     * Returns a {@link StandardRetryStrategy} with AWS-specific conditions added.
+     *
+     * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
+     * @return A {@link StandardRetryStrategy} with AWS-specific conditions added.
+     */
+    public static StandardRetryStrategy standardRetryStrategy(Boolean newRetries2026Enabled) {
+        StandardRetryStrategy.Builder builder = SdkDefaultRetryStrategy.standardRetryStrategyBuilder(newRetries2026Enabled);
+        return configure(builder, newRetries2026Enabled).build();
     }
 
     /**
@@ -126,13 +152,24 @@ public final class AwsRetryStrategy {
     }
 
     /**
-     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added. This is equivalent to {@code
+     * adaptiveRetryStrategy(false)}.
      *
      * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
      */
     public static AdaptiveRetryStrategy adaptiveRetryStrategy() {
-        AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder();
-        return configure(builder)
+        return adaptiveRetryStrategy(false);
+    }
+
+    /**
+     * Returns an {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     *
+     * @param newRetries2026Enabled Whether retries 2.1 behavior is enabled.
+     * @return An {@link AdaptiveRetryStrategy} with AWS-specific conditions added.
+     */
+    public static AdaptiveRetryStrategy adaptiveRetryStrategy(Boolean newRetries2026Enabled) {
+        AdaptiveRetryStrategy.Builder builder = SdkDefaultRetryStrategy.adaptiveRetryStrategyBuilder(newRetries2026Enabled);
+        return configure(builder, newRetries2026Enabled)
             .build();
     }
 
@@ -144,7 +181,22 @@ public final class AwsRetryStrategy {
      * @return The given builder
      */
     public static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder) {
+        return configure(builder, false);
+    }
+
+    /**
+     * Configures a retry strategy using its builder to add AWS-specific retry exceptions.
+     *
+     * @param builder The builder to add the AWS-specific retry exceptions
+     * @param <T>     The type of the builder extending {@link RetryStrategy.Builder}
+     * @return The given builder
+     */
+    private static <T extends RetryStrategy.Builder<T, ?>> T configure(T builder, Boolean newRetries2026Enabled) {
         builder.retryOnException(AwsRetryStrategy::retryOnAwsRetryableErrors);
+        if (Boolean.TRUE.equals(newRetries2026Enabled)) {
+            builder.retryOnException(AwsRetryStrategy::isLimitExceededErrorCode);
+            builder.treatAsThrottling(AwsRetryStrategy::treatAsThrottlingV21);
+        }
         markDefaultsAdded(builder);
         return builder;
     }
@@ -168,6 +220,25 @@ public final class AwsRetryStrategy {
             return AwsErrorCode.RETRYABLE_ERROR_CODES.contains(exception.awsErrorDetails().errorCode());
         }
         return false;
+    }
+
+    /**
+     * Additionally, check for LimitExceededException as it was not previously treated as a throttling exception.
+     */
+    private static boolean treatAsThrottlingV21(Throwable ex) {
+        if (!(ex instanceof SdkException)) {
+            return false;
+        }
+
+        SdkException sdkException = (SdkException) ex;
+
+        return RetryUtils.isThrottlingException(sdkException)
+               || isLimitExceededErrorCode(sdkException);
+    }
+
+    private static boolean isLimitExceededErrorCode(Throwable ex) {
+        return ex instanceof AwsServiceException
+               && "LimitExceededException".equals(((AwsServiceException) ex).awsErrorDetails().errorCode());
     }
 
     /**

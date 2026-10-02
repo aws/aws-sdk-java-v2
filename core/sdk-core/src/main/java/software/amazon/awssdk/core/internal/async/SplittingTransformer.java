@@ -19,12 +19,15 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.UnaryOperator;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
@@ -111,16 +114,18 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
 
     private final Object cancelLock = new Object();
 
-    private SplittingTransformer(AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer,
-                                 Long maximumBufferSizeInBytes,
-                                 CompletableFuture<ResultT> resultFuture) {
+    private final UnaryOperator<SdkResponse> responseMapper;
+
+    private SplittingTransformer(Builder<ResponseT, ResultT> builder) {
         this.upstreamResponseTransformer = Validate.paramNotNull(
-            upstreamResponseTransformer, "upstreamResponseTransformer");
-        this.resultFuture = Validate.paramNotNull(
-            resultFuture, "resultFuture");
-        Validate.notNull(maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+            builder.upstreamResponseTransformer, "upstreamResponseTransformer");
+        this.resultFuture = Validate.paramNotNull(builder.returnFuture, "resultFuture");
+        Validate.notNull(builder.maximumBufferSize, "maximumBufferSizeInBytes");
         this.maximumBufferInBytes = Validate.isPositive(
-            maximumBufferSizeInBytes, "maximumBufferSizeInBytes");
+            builder.maximumBufferSize, "maximumBufferSizeInBytes");
+        this.responseMapper = builder.responseMapper != null
+            ? builder.responseMapper
+            : UnaryOperator.identity();
 
         this.resultFuture.whenComplete((r, e) -> {
             if (e == null) {
@@ -130,6 +135,14 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 handleFutureCancel(e);
             }
         });
+    }
+
+    @SuppressWarnings("unchecked")
+    private ResponseT mapResponse(ResponseT response) {
+        if (!(response instanceof SdkResponse)) {
+            return response;
+        }
+        return (ResponseT) responseMapper.apply((SdkResponse) response);
     }
 
     /**
@@ -279,7 +292,9 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
                 if (e == null) {
                     return;
                 }
-                individualFuture.completeExceptionally(e);
+
+                individualFuture.completeExceptionally(NonRetryableException.create(
+                    "Error occurred during multipart download. Request will not be retried.", e));
             });
             individualFuture.whenComplete((r, e) -> {
                 if (isCancelled.get()) {
@@ -293,7 +308,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         public void onResponse(ResponseT response) {
             if (onResponseCalled.compareAndSet(false, true)) {
                 log.trace(() -> "calling onResponse on the upstream transformer");
-                upstreamResponseTransformer.onResponse(response);
+                upstreamResponseTransformer.onResponse(mapResponse(response));
             }
             this.response = response;
         }
@@ -390,6 +405,7 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
         private Long maximumBufferSize;
         private CompletableFuture<ResultT> returnFuture;
         private AsyncResponseTransformer<ResponseT, ResultT> upstreamResponseTransformer;
+        private UnaryOperator<SdkResponse> responseMapper;
 
         private Builder() {
         }
@@ -434,10 +450,13 @@ public class SplittingTransformer<ResponseT, ResultT> implements SdkPublisher<As
             return this;
         }
 
+        public Builder<ResponseT, ResultT> responseMapper(UnaryOperator<SdkResponse> responseMapper) {
+            this.responseMapper = responseMapper;
+            return this;
+        }
+
         public SplittingTransformer<ResponseT, ResultT> build() {
-            return new SplittingTransformer<>(this.upstreamResponseTransformer,
-                                              this.maximumBufferSize,
-                                              this.returnFuture);
+            return new SplittingTransformer<>(this);
         }
     }
 }

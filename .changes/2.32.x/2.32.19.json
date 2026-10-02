@@ -1,0 +1,150 @@
+{
+    "version": "2.32.19",
+    "date": "2025-08-08",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fix a bug in the Java based multipart client with GetObject incorrect retry behavior"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Backup Search",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Pricing Calculator",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Invoicing",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Data Plane",
+            "contributor": "",
+            "description": "Adding DeleteConnection API to IoT Data Plane"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Multi-party Approval",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS User Notifications",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS User Notifications Contacts",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Aurora DSQL",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Signals",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "This release adds a new API GetContactMetrics for Amazon Connect."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift Streams",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces Streams",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3 Vectors",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adds support for GB200 UltraServers in Amazon SageMaker training jobs, training plans, and HyperPod clusters"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Update documentation to use key ARN only in OutputEncryptionKMSKeyId request parameter"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Workspaces Instances",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "Add CVSSV4 to Vulnerability Search API and update enable/disable account id list length to 5"
+        },
+        {
+            "type": "feature",
+            "category": "Managed integrations for AWS IoT Device Management",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Network Flow Monitor",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Partner Central Selling API",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Security Incident Response",
+            "contributor": "",
+            "description": "Removed incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

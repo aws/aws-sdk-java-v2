@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.stability.tests.s3;
 
+import static software.amazon.awssdk.testutils.service.S3BucketUtils.temporaryBucketName;
+
 import java.time.Duration;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -23,7 +25,7 @@ import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 public class S3MultipartJavaBasedStabilityTest extends S3AsyncBaseStabilityTest {
-    private static final String BUCKET_NAME = String.format("s3multipartjavabasedstabilitytest%d", System.currentTimeMillis());
+    private static final String BUCKET_NAME = temporaryBucketName(S3MultipartJavaBasedStabilityTest.class);
     private static final S3AsyncClient multipartJavaBasedClient;
 
     static {
@@ -46,7 +48,8 @@ public class S3MultipartJavaBasedStabilityTest extends S3AsyncBaseStabilityTest 
 
     @BeforeAll
     public static void setup() {
-        multipartJavaBasedClient.createBucket(b -> b.bucket(BUCKET_NAME)).join();
+        multipartJavaBasedClient.createBucket(b -> b.bucket(BUCKET_NAME)
+                                                    .createBucketConfiguration(cfg -> cfg.tags(integTestTag()))).join();
         multipartJavaBasedClient.waiter().waitUntilBucketExists(b -> b.bucket(BUCKET_NAME)).join();
     }
 

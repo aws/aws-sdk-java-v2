@@ -73,7 +73,7 @@ public final class WriteBatch {
     }
 
     /**
-     * Returns the collection of write requests in this writek batch.
+     * Returns the collection of write requests in this write batch.
      */
     public Collection<WriteRequest> writeRequests() {
         return writeRequests;

@@ -25,8 +25,8 @@ import software.amazon.awssdk.profiles.Profile;
  * provider via the 'software.amazon.awssdk.services.sts.internal.StsProfileCredentialsProviderFactory', assuming STS is on the
  * classpath.
  */
-@FunctionalInterface
 @SdkProtectedApi
+@FunctionalInterface
 public interface ChildProfileCredentialsProviderFactory {
     /**
      * Create a credentials provider for the provided profile, using the provided source credentials provider to authenticate
@@ -41,4 +41,70 @@ public interface ChildProfileCredentialsProviderFactory {
      * @return The credentials provider with permissions derived from the source credentials provider and profile.
      */
     AwsCredentialsProvider create(AwsCredentialsProvider sourceCredentialsProvider, Profile profile);
+
+    /**
+     * Create a credentials provider for the provided profile, using the provided source credentials provider to authenticate
+     * with AWS. In the case of STS, the returned credentials provider is for a role that has been assumed, and the provided
+     * source credentials provider is the credentials that should be used to authenticate that the user is allowed to assume
+     * that role.
+     *
+     * @param request The request containing all parameters needed to create the child credentials provider.
+     * @return The credentials provider with permissions derived from the request parameters.
+     */
+    default AwsCredentialsProvider create(ChildProfileCredentialsRequest request) {
+        return create(request.sourceCredentialsProvider(), request.profile());
+    }
+
+    final class ChildProfileCredentialsRequest {
+        private final AwsCredentialsProvider sourceCredentialsProvider;
+        private final Profile profile;
+        private final String sourceChain;
+
+        private ChildProfileCredentialsRequest(Builder builder) {
+            this.sourceCredentialsProvider = builder.sourceCredentialsProvider;
+            this.profile = builder.profile;
+            this.sourceChain = builder.sourceChain;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public AwsCredentialsProvider sourceCredentialsProvider() {
+            return sourceCredentialsProvider;
+        }
+
+        public Profile profile() {
+            return profile;
+        }
+
+        public String sourceChain() {
+            return sourceChain;
+        }
+
+        public static final class Builder {
+            private AwsCredentialsProvider sourceCredentialsProvider;
+            private Profile profile;
+            private String sourceChain;
+
+            public Builder sourceCredentialsProvider(AwsCredentialsProvider sourceCredentialsProvider) {
+                this.sourceCredentialsProvider = sourceCredentialsProvider;
+                return this;
+            }
+
+            public Builder profile(Profile profile) {
+                this.profile = profile;
+                return this;
+            }
+
+            public Builder sourceChain(String sourceChain) {
+                this.sourceChain = sourceChain;
+                return this;
+            }
+
+            public ChildProfileCredentialsRequest build() {
+                return new ChildProfileCredentialsRequest(this);
+            }
+        }
+    }
 }

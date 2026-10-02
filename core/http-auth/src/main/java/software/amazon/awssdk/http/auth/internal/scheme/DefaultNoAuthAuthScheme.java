@@ -43,6 +43,9 @@ public final class DefaultNoAuthAuthScheme implements NoAuthAuthScheme {
     private static final HttpSigner<AnonymousIdentity> DEFAULT_SIGNER = noAuthSigner();
     private static final AnonymousIdentity ANONYMOUS_IDENTITY = anonymousIdentity();
 
+    private DefaultNoAuthAuthScheme() {
+    }
+
     /**
      * Returns an instance of the {@link NoAuthAuthScheme}.
      */

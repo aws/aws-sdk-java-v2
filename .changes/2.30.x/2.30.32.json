@@ -1,0 +1,60 @@
+{
+    "version": "2.30.32",
+    "date": "2025-03-03",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Improving codegen error message when shapes have lowercased names."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Fixed DynamoDbEnhancedClient TableSchema::itemToMap to return a map that contains a consistent representation of null top-level (non-flattened) attributes and flattened attributes when their enclosing member is null and ignoreNulls is set to false."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Added the capacity to return available challenges in admin authentication and to set version 3 of the pre token generation event for M2M ATC."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Update the DescribeVpcs response"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Add DomainId to CreateDomainResponse"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Updating documentation for post call analytics job queueing."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch RUM",
+            "contributor": "",
+            "description": "Add support for PutResourcePolicy, GetResourcePolicy and DeleteResourcePolicy to support resource based policies for AWS CloudWatch RUM"
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "Adds support for the ingestion of audio and video files by Q Business, which can be configured with the mediaExtractionConfiguration parameter."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

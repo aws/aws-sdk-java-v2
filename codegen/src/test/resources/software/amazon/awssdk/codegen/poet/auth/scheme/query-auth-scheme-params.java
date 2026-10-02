@@ -46,6 +46,14 @@ public interface QueryAuthSchemeParams extends ToCopyableBuilder<QueryAuthScheme
     Region region();
 
     /**
+     * Returns the region ID as a string. Returns null if region is not set.
+     */
+    default String regionId() {
+        Region region = region();
+        return region == null ? null : region.id();
+    }
+
+    /**
      * Returns a {@link Builder} to customize the parameters.
      */
     Builder toBuilder();

@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -24,6 +25,8 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.AtomicCounterTag;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.UpdateBehaviorTag;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
 
 /**
  * Common implementations of {@link StaticAttributeTag}. These tags can be used to mark your attributes as having certain
@@ -74,6 +77,20 @@ public final class StaticAttributeTags {
     }
 
     /**
+     * Marks an attribute as being part of a composite partition key for a secondary index.
+     *
+     * @param indexName The name of the index this key participates in.
+     * @param order     the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondaryPartitionKey(String indexName, Order order) {
+        return new KeyAttributeTag((tableMetadataBuilder, attribute) ->
+                                       tableMetadataBuilder.addIndexPartitionKey(indexName,
+                                                                                 attribute.getAttributeName(),
+                                                                                 attribute.getAttributeValueType(),
+                                                                                 order));
+    }
+
+    /**
      * Marks an attribute as being a partition key for multiple secondary indices.
      * @param indexNames The names of the indices this key participates in.
      */
@@ -84,6 +101,22 @@ public final class StaticAttributeTags {
                     indexName -> tableMetadataBuilder.addIndexPartitionKey(indexName,
                                                                            attribute.getAttributeName(),
                                                                            attribute.getAttributeValueType())));
+    }
+
+    /**
+     * Marks an attribute as being part of a composite partition key for multiple secondary indices.
+     *
+     * @param indexNames The names of the indices this key participates in.
+     * @param order      the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondaryPartitionKey(Collection<String> indexNames, Order order) {
+        return new KeyAttributeTag(
+            (tableMetadataBuilder, attribute) ->
+                indexNames.forEach(
+                    indexName -> tableMetadataBuilder.addIndexPartitionKey(indexName,
+                                                                           attribute.getAttributeName(),
+                                                                           attribute.getAttributeValueType(),
+                                                                           order)));
     }
 
     /**
@@ -98,6 +131,20 @@ public final class StaticAttributeTags {
     }
 
     /**
+     * Marks an attribute as being part of a composite sort key for a secondary index.
+     *
+     * @param indexName The name of the index this key participates in.
+     * @param order     the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondarySortKey(String indexName, Order order) {
+        return new KeyAttributeTag((tableMetadataBuilder, attribute) ->
+                                       tableMetadataBuilder.addIndexSortKey(indexName,
+                                                                            attribute.getAttributeName(),
+                                                                            attribute.getAttributeValueType(),
+                                                                            order));
+    }
+
+    /**
      * Marks an attribute as being a sort key for multiple secondary indices.
      * @param indexNames The names of the indices this key participates in.
      */
@@ -108,6 +155,22 @@ public final class StaticAttributeTags {
                     indexName -> tableMetadataBuilder.addIndexSortKey(indexName,
                                                                       attribute.getAttributeName(),
                                                                       attribute.getAttributeValueType())));
+    }
+
+    /**
+     * Marks an attribute as being part of a composite sort key for multiple secondary indices.
+     *
+     * @param indexNames The names of the indices this key participates in.
+     * @param order      the order of this key in the composite key (0-based)
+     */
+    public static StaticAttributeTag secondarySortKey(Collection<String> indexNames, Order order) {
+        return new KeyAttributeTag(
+            (tableMetadataBuilder, attribute) ->
+                indexNames.forEach(
+                    indexName -> tableMetadataBuilder.addIndexSortKey(indexName,
+                                                                      attribute.getAttributeName(),
+                                                                      attribute.getAttributeValueType(),
+                                                                      order)));
     }
 
     /**
@@ -137,6 +200,84 @@ public final class StaticAttributeTags {
      * */
     public static StaticAttributeTag atomicCounter() {
         return AtomicCounterTag.create();
+    }
+
+    /**
+     * Marks an attribute as a HASH partition key in the search schema for the specified vector index.
+     *
+     * @param indexName the name of the vector index
+     */
+    public static StaticAttributeTag searchVectorsHashKey(String indexName) {
+        return searchVectorsHashKey(Collections.singletonList(indexName));
+    }
+
+    /**
+     * Marks an attribute as a HASH partition key in the search schema for multiple vector indexes.
+     *
+     * @param indexNames the names of the vector indexes
+     */
+    public static StaticAttributeTag searchVectorsHashKey(Collection<String> indexNames) {
+        return (attributeName, attributeValueType) ->
+            metadata -> indexNames.forEach(
+                indexName -> metadata.addSearchVectorsHashKey(indexName, attributeName));
+    }
+
+    /**
+     * Marks an attribute as an INLINE_FILTER element in the search schema for the specified vector index.
+     *
+     * @param indexName the name of the vector index
+     */
+    public static StaticAttributeTag searchVectorsInlineFilterKey(String indexName) {
+        return searchVectorsInlineFilterKey(Collections.singletonList(indexName));
+    }
+
+    /**
+     * Marks an attribute as an INLINE_FILTER element in the search schema for multiple vector indexes.
+     *
+     * @param indexNames the names of the vector indexes
+     */
+    public static StaticAttributeTag searchVectorsInlineFilterKey(Collection<String> indexNames) {
+        return (attributeName, attributeValueType) ->
+            metadata -> indexNames.forEach(
+                indexName -> metadata.addSearchVectorsInlineFilterKey(indexName, attributeName));
+    }
+
+    /**
+     * Marks an attribute as the vector embedding attribute for the specified vector index, setting its dimensions and distance
+     * function.
+     *
+     * @param indexName        the name of the vector index
+     * @param dimensions       the number of vector dimensions
+     * @param distanceFunction the distance function for similarity search
+     */
+    public static StaticAttributeTag vectorAttribute(String indexName, int dimensions,
+                                                     DistanceFunction distanceFunction) {
+        return (attributeName, attributeValueType) ->
+            metadata -> metadata.setVectorAttribute(indexName, attributeName, dimensions, distanceFunction);
+    }
+
+    /**
+     * Associates one or more vector indexes with a {@link StaticTableSchema}. Vector indexes are distinct from global and local
+     * secondary indexes.
+     *
+     * @param vectorIndexes the vector index definitions to associate with the table
+     */
+    public static StaticTableTag vectorIndexes(EnhancedVectorIndex... vectorIndexes) {
+        return () -> metadata -> {
+            for (EnhancedVectorIndex vectorIndex : vectorIndexes) {
+                metadata.addVectorIndex(vectorIndex);
+            }
+        };
+    }
+
+    /**
+     * Associates one or more vector indexes with a {@link StaticTableSchema}. Vector indexes are distinct from global and local
+     * secondary indexes.
+     *
+     * @param vectorIndexes the vector index definitions to associate with the table
+     */
+    public static StaticTableTag vectorIndexes(Collection<EnhancedVectorIndex> vectorIndexes) {
+        return () -> metadata -> vectorIndexes.forEach(metadata::addVectorIndex);
     }
 
     private static class KeyAttributeTag implements StaticAttributeTag {

@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.http.auth.aws.crt.internal.signer;
 
+import java.nio.ByteBuffer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.http.ContentStreamProvider;
 
@@ -25,6 +27,11 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 public class DefaultV4aPayloadSigner implements V4aPayloadSigner {
     @Override
     public ContentStreamProvider sign(ContentStreamProvider payload, V4aRequestSigningResult requestSigningResult) {
+        return payload;
+    }
+
+    @Override
+    public Publisher<ByteBuffer> signAsync(Publisher<ByteBuffer> payload, V4aRequestSigningResult requestSigningResult) {
         return payload;
     }
 }

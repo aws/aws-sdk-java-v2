@@ -66,4 +66,33 @@ public class RegionTest {
         Region region = Region.of("http://my-host.com/?");
         assertThat(region.id()).isEqualTo("http%3A%2F%2Fmy-host.com%2F%3F");
     }
+
+    @Test
+    public void globalRegionIsRecognized() {
+        Region globalRegion = Region.of("aws-global");
+        assertThat(globalRegion.id()).isEqualTo("aws-global");
+        assertSame(Region.AWS_GLOBAL, globalRegion);
+    }
+
+    @Test
+    public void multipleGlobalRegionsAreSupported() {
+        Region awsGlobal = Region.of("aws-global");
+        Region s3Global = Region.of("s3-global");
+
+        assertThat(awsGlobal.id()).isEqualTo("aws-global");
+        assertThat(s3Global.id()).isEqualTo("s3-global");
+
+        assertSame(Region.of("aws-global"), awsGlobal);
+        assertSame(Region.of("s3-global"), s3Global);
+    }
+
+    @Test
+    public void allPartitionGlobalRegionsAreRecognized() {
+        assertThat(Region.of("aws-global").id()).isEqualTo("aws-global");
+        assertThat(Region.of("aws-cn-global").id()).isEqualTo("aws-cn-global");
+        assertThat(Region.of("aws-us-gov-global").id()).isEqualTo("aws-us-gov-global");
+        assertThat(Region.of("aws-iso-global").id()).isEqualTo("aws-iso-global");
+        assertThat(Region.of("aws-iso-b-global").id()).isEqualTo("aws-iso-b-global");
+        assertThat(Region.of("aws-iso-f-global").id()).isEqualTo("aws-iso-f-global");
+    }
 }

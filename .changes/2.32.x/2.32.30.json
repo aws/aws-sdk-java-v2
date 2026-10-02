@@ -1,0 +1,564 @@
+{
+    "version": "2.32.30",
+    "date": "2025-08-25",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS AI Ops",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS AppSync",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS B2B Data Interchange",
+            "contributor": "",
+            "description": "Updated APIs to support custom validation rules."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Chatbot",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cloud Control API",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudTrail Data Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CodeStar Notifications",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Control Tower",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Cost and Usage Report Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Device Farm",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds support for input rendition selection for HLS input, adds new Share API to enable sharing jobs with AWS Support for support investigations, and adds INCLUDE_AS_TS to iFrameOnlyManifest setting for HLS outputs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage VOD",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaStore",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Ground Station",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health APIs and Notifications",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Data Plane",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT Fleet Hub",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT SiteWise",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWSKendraFrontendService",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS License Manager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Catalog Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS OpsWorks CM",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Outposts",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resilience Hub",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Resource Groups Tagging API",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWSServerlessApplicationRepository",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Service Catalog",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Shield",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Storage Gateway",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Support",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Support App",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Well-Architected Tool",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS re:Post Private",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Agents for Amazon Bedrock",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Appflow",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Athena",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Media Pipelines",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Chime SDK Messaging",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudSearch",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Events",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CodeGuru Security",
+            "contributor": "",
+            "description": "Documentation update to notify users of the discontinuation of Amazon CodeGuru Security."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DataZone",
+            "contributor": "",
+            "description": "Releasing the following features - Asset classification that lets users use restricted terms for classifying assets if they have the right permissions. Also adding a new enum value \"Moving\" to project status."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DevOps Guru",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DocumentDB Elastic Clusters",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Accelerator (DAX)",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR Containers",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added IPv6 support for AWS Client VPN."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon FSx",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Forecast Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Import/Export Snowball",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Analytics",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Video Streams Archived Media",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building V2",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Add retry support for Java based S3 multipart client download to Byte array"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Feature Store Runtime",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Translate",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Sagemaker Edge Manager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Queue Service",
+            "contributor": "",
+            "description": "Documentation update for Amazon SQS Supports Large Payload Message feature"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Transcribe Streaming Service",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Thin Client",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Braket",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "CodeArtifact",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Data Automation for Amazon Bedrock",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Migration Hub Strategy Recommendations",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "PcaConnectorAd",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "QBusiness",
+            "contributor": "",
+            "description": "The Amazon Q Business GetDocumentContent operation now supports retrieval of the extracted text content in JSON format."
+        },
+        {
+            "type": "feature",
+            "category": "Redshift Serverless",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Runtime for Amazon Bedrock Data Automation",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Tax Settings",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "Timestream InfluxDB",
+            "contributor": "",
+            "description": "Add MAINTENANCE status for DbInstance and DbCluster"
+        },
+        {
+            "type": "feature",
+            "category": "odb",
+            "contributor": "",
+            "description": "Remove incorrect endpoint tests"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Revert problematic change from [#6349](https://github.com/aws/aws-sdk-java-v2/issues/6349)."
+        }
+    ]
+}

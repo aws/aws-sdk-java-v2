@@ -70,7 +70,7 @@ public final class EndpointParamsKnowledgeIndex {
 
     private EndpointParamsKnowledgeIndex(IntermediateModel intermediateModel) {
         this.intermediateModel = intermediateModel;
-        this.parametersToGenerate = builtInsForClientBuilder(intermediateModel.getEndpointRuleSetModel().getParameters());
+        this.parametersToGenerate = builtInsForClientBuilder(intermediateModel.getEndpointParameters());
     }
 
     /**
@@ -191,7 +191,11 @@ public final class EndpointParamsKnowledgeIndex {
                              + ".ifPresent(m -> executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric(m))",
                              BusinessMetricsUtils.class, SdkInternalExecutionAttribute.class);
 
-        builder.addStatement("return mode.name().toLowerCase()");
+        // Use value() rather than name().toLowerCase() so that the returned String is an interned compile-time
+        // literal. That keeps the reference stable across calls and removes a per-request allocation. It also
+        // avoids name().toLowerCase()'s dependence on the default locale, which mangles the value under a
+        // Turkish locale.
+        builder.addStatement("return mode.value()");
 
         return builder.build();
     }
@@ -204,8 +208,11 @@ public final class EndpointParamsKnowledgeIndex {
         builder.addStatement("$T accountId = accountIdFromIdentity(executionAttributes.getAttribute($T.SELECTED_AUTH_SCHEME))",
                              String.class, SdkInternalExecutionAttribute.class);
 
-        builder.addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric($T.RESOLVED_ACCOUNT_ID.value())",
-                             SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class);
+        builder
+            .beginControlFlow("if (accountId != null)")
+            .addStatement("executionAttributes.getAttribute($T.BUSINESS_METRICS).addMetric($T.RESOLVED_ACCOUNT_ID.value())",
+                             SdkInternalExecutionAttribute.class, BusinessMetricFeatureId.class)
+            .endControlFlow();
 
         builder.addStatement("return accountId");
 

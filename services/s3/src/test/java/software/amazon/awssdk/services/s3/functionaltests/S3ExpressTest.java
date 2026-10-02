@@ -54,7 +54,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.rules.testing.BaseRuleSetClientTest;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -76,8 +76,10 @@ import software.amazon.awssdk.utils.http.SdkHttpUtils;
 @WireMockTest(httpsEnabled = true)
 public class S3ExpressTest extends BaseRuleSetClientTest {
     private static final Logger log = Logger.loggerFor(S3ExpressTest.class);
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT = wm -> URI.create(wm.getHttpBaseUrl());
-    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT = wm -> URI.create(wm.getHttpsBaseUrl());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTP_ENDPOINT =
+        wm -> URI.create("http://127.0.0.1:" + wm.getHttpPort());
+    private static final Function<WireMockRuntimeInfo, URI> WM_HTTPS_ENDPOINT =
+        wm -> URI.create("https://127.0.0.1:" + wm.getHttpsPort());
     private static final AwsCredentialsProvider CREDENTIALS_PROVIDER =
         StaticCredentialsProvider.create(AwsBasicCredentials.create("akid", "skid"));
     private static final PathStyleEnforcingInterceptor PATH_STYLE_INTERCEPTOR = new PathStyleEnforcingInterceptor();
@@ -356,10 +358,10 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
             s3ClientBuilder.endpointOverride(WM_HTTP_ENDPOINT.apply(wm));
         } else {
             s3ClientBuilder.endpointOverride(WM_HTTPS_ENDPOINT.apply(wm))
-                           .httpClient(ApacheHttpClient.builder()
-                                                       .buildWithDefaults(AttributeMap.builder()
-                                                                                      .put(TRUST_ALL_CERTIFICATES, TRUE)
-                                                                                      .build()));
+                           .httpClient(Apache5HttpClient.builder()
+                                                        .buildWithDefaults(AttributeMap.builder()
+                                                                                       .put(TRUST_ALL_CERTIFICATES, TRUE)
+                                                                                       .build()));
         }
         if (s3ExpressSessionAuth == S3ExpressSessionAuth.DISABLE_AUTH) {
             s3ClientBuilder.disableS3ExpressSessionAuth(true);
@@ -411,7 +413,11 @@ public class S3ExpressTest extends BaseRuleSetClientTest {
         public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
             SdkHttpRequest sdkHttpRequest = context.httpRequest();
             String host = sdkHttpRequest.host();
-            String bucket = host.substring(0, host.indexOf(".localhost"));
+            int idx = host.indexOf(".localhost");
+            if (idx < 0) {
+                return sdkHttpRequest;
+            }
+            String bucket = host.substring(0, idx);
 
             return sdkHttpRequest.toBuilder().host("localhost")
                                  .encodedPath(SdkHttpUtils.appendUri(bucket, sdkHttpRequest.encodedPath()))

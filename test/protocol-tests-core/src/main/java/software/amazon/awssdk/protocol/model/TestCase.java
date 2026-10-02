@@ -17,11 +17,20 @@ package software.amazon.awssdk.protocol.model;
 
 public class TestCase {
 
+    private String id;
     private String description;
     // Given is optional
     private Given given = new Given();
     private When when;
     private Then then;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getDescription() {
         return description;
@@ -57,7 +66,11 @@ public class TestCase {
 
     @Override
     public String toString() {
-        return description;
+        if (id != null) {
+            return id + ": " + description;
+        } else {
+            return description;
+        }
     }
 
 }

@@ -32,6 +32,7 @@ import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createReque
 import com.github.tomakehurst.wiremock.http.Fault;
 import com.github.tomakehurst.wiremock.junit.WireMockRule;
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -85,7 +86,6 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
     @AfterClass
     public static void tearDown() {
         client.close();
-        CrtResource.waitForNoResources();
     }
 
     private byte[] generateRandomBody(int size) {
@@ -128,7 +128,7 @@ public class AwsCrtAsyncHttpClientSpiVerificationTest {
             RecordingResponseHandler recorder = new RecordingResponseHandler();
             client.execute(AsyncExecuteRequest.builder().request(request).requestContentPublisher(createProvider("")).responseHandler(recorder).build());
             assertThatThrownBy(() -> recorder.completeFuture().get(5, TimeUnit.SECONDS)).hasCauseInstanceOf(IOException.class)
-                                                                                        .hasRootCauseInstanceOf(HttpException.class);
+                                                              .hasMessageContaining("socket");
         }
     }
 

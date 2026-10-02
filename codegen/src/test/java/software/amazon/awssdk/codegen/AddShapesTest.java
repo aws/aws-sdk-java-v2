@@ -84,8 +84,37 @@ class AddShapesTest {
         MemberModel requiredMemberModel = requestShapeModel.findMemberModelByC2jName(queryParamName);
 
         assertThat(requestShapeModel.getRequired()).contains(queryParamName);
-        assertThat(requiredMemberModel.getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(requiredMemberModel.getHttp().getLocation()).isNull();
         assertThat(requiredMemberModel.isRequired()).isTrue();
+    }
+
+    @Test
+    void generateShapeModel_locationOnNestedShape_isIgnored() {
+        ShapeModel nestedShape = intermediateModel.getShapes().get("NestedQueryParameterOperation");
+        MemberModel queryParam = nestedShape.findMemberModelByC2jName("QueryParamOne");
+        assertThat(queryParam.getHttp().getLocation()).isNull();
+    }
+
+    @Test
+    void generateShapeModel_locationOnDirectInputShape_isPreserved() {
+        ShapeModel inputShape = intermediateModel.getShapes().get("QueryParameterOperationRequest");
+        assertThat(inputShape.findMemberModelByC2jName("PathParam").getHttp().getLocation()).isEqualTo(Location.URI);
+        assertThat(inputShape.findMemberModelByC2jName("QueryParamOne").getHttp().getLocation()).isEqualTo(Location.QUERY_STRING);
+        assertThat(inputShape.findMemberModelByC2jName("StringHeaderMember").getHttp().getLocation()).isEqualTo(Location.HEADER);
+    }
+
+    @Test
+    void generateShapeModel_locationNameOnNestedShape_usesMemberNameForMarshalling() {
+        ShapeModel inputShape = intermediateModel.getShapes().get("NestedQueryParameterOperation");
+        assertThat(inputShape.findMemberModelByC2jName("NestedHeaderMember").getHttp().getMarshallLocationName()).isEqualTo("NestedHeaderMember");
+    }
+
+    @Test
+    void generateShapeModel_locationNameOnTopLevelShape_honorsLocationName() {
+        ShapeModel inputShape = intermediateModel.getShapes().get("QueryParameterOperationRequest");
+        MemberModel member = inputShape.findMemberModelByC2jName("PayloadMemberWithCustomName");
+        assertThat(member.getHttp().getLocation()).isNull();
+        assertThat(member.getHttp().getMarshallLocationName()).isEqualTo("CustomWireName");
     }
 
 }

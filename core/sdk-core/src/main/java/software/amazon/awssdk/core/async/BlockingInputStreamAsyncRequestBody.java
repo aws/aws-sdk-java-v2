@@ -25,11 +25,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.exception.NonRetryableException;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.core.internal.util.NoopSubscription;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.InputStreamConsumingPublisher;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 /**
  * An implementation of {@link AsyncRequestBody} that allows performing a blocking write of an input stream to a downstream
@@ -89,7 +89,7 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
         try {
             waitForSubscriptionIfNeeded();
             if (contentLength != null) {
-                return delegate.doBlockingWrite(new SdkLengthAwareInputStream(inputStream, contentLength));
+                return delegate.doBlockingWrite(new LengthAwareInputStream(inputStream, contentLength));
             }
 
             return delegate.doBlockingWrite(inputStream);
@@ -118,6 +118,11 @@ public final class BlockingInputStreamAsyncRequestBody implements AsyncRequestBo
                                                    + "support retries. Consider using AsyncRequestBody.fromInputStream with an "
                                                    + "input stream that supports mark/reset to get retry support."));
         }
+    }
+
+    @Override
+    public String body() {
+        return BodyType.STREAM.getName();
     }
 
     private void waitForSubscriptionIfNeeded() throws InterruptedException {

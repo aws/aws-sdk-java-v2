@@ -15,15 +15,12 @@
 
 package software.amazon.awssdk.profiles;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.profiles.internal.AggregateProfileFileSupplier;
 import software.amazon.awssdk.profiles.internal.ProfileFileRefresher;
 
 /**
@@ -38,7 +35,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
 
     /**
      * Creates a {@link ProfileFileSupplier} capable of producing multiple profile objects by aggregating the default
-     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} abd
+     * credentials and configuration files as determined by {@link ProfileFileLocation#credentialsFileLocation()} and
      * {@link ProfileFileLocation#configurationFileLocation()}. This supplier will return a new ProfileFile instance only once
      * either disk file has been modified. Multiple calls to the supplier while both disk files are unchanged will return the
      * same object.
@@ -55,13 +52,15 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
             = ProfileFileLocation.configurationFileLocation()
                                  .map(path -> reloadWhenModified(path, ProfileFile.Type.CONFIGURATION));
 
-        ProfileFileSupplier supplier = () -> ProfileFile.builder().build();
+        ProfileFileSupplier supplier;
         if (credentialsSupplierOptional.isPresent() && configurationSupplierOptional.isPresent()) {
             supplier = aggregate(credentialsSupplierOptional.get(), configurationSupplierOptional.get());
         } else if (credentialsSupplierOptional.isPresent()) {
             supplier = credentialsSupplierOptional.get();
         } else if (configurationSupplierOptional.isPresent()) {
             supplier = configurationSupplierOptional.get();
+        } else {
+            supplier = fixedProfileFile(ProfileFile.empty());
         }
 
         return supplier;
@@ -79,13 +78,17 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
      */
     static ProfileFileSupplier reloadWhenModified(Path path, ProfileFile.Type type) {
         return new ProfileFileSupplier() {
-
-            final ProfileFile.Builder builder = ProfileFile.builder()
-                                                           .content(path)
-                                                           .type(type);
+            Supplier<ProfileFile> profileFileSupplier = () -> {
+                if (Files.isRegularFile(path) && Files.isReadable(path)) {
+                    return ProfileFile.builder()
+                                      .content(path)
+                                      .type(type).build();
+                }
+                return ProfileFile.empty();
+            };
 
             final ProfileFileRefresher refresher = ProfileFileRefresher.builder()
-                                                                       .profileFile(builder::build)
+                                                                       .profileFile(profileFileSupplier)
                                                                        .profileFilePath(path)
                                                                        .build();
 
@@ -118,46 +121,7 @@ public interface ProfileFileSupplier extends Supplier<ProfileFile> {
      */
     static ProfileFileSupplier aggregate(ProfileFileSupplier... suppliers) {
 
-        return new ProfileFileSupplier() {
-
-            final AtomicReference<ProfileFile> currentAggregateProfileFile = new AtomicReference<>();
-            final Map<Supplier<ProfileFile>, ProfileFile> currentValuesBySupplier
-                = Collections.synchronizedMap(new LinkedHashMap<>());
-
-            @Override
-            public ProfileFile get() {
-                boolean refreshAggregate = false;
-                for (ProfileFileSupplier supplier : suppliers) {
-                    if (didSuppliedValueChange(supplier)) {
-                        refreshAggregate = true;
-                    }
-                }
-
-                if (refreshAggregate) {
-                    refreshCurrentAggregate();
-                }
-
-                return  currentAggregateProfileFile.get();
-            }
-
-            private boolean didSuppliedValueChange(Supplier<ProfileFile> supplier) {
-                ProfileFile next = supplier.get();
-                ProfileFile current = currentValuesBySupplier.put(supplier, next);
-
-                return !Objects.equals(next, current);
-            }
-
-            private void refreshCurrentAggregate() {
-                ProfileFile.Aggregator aggregator = ProfileFile.aggregator();
-                currentValuesBySupplier.values().forEach(aggregator::addFile);
-                ProfileFile current = currentAggregateProfileFile.get();
-                ProfileFile next = aggregator.build();
-                if (!Objects.equals(current, next)) {
-                    currentAggregateProfileFile.compareAndSet(current, next);
-                }
-            }
-
-        };
+        return new AggregateProfileFileSupplier(suppliers);
     }
 
 }

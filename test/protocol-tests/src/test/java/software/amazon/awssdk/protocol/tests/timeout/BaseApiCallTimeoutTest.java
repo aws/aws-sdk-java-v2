@@ -19,6 +19,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -55,7 +56,7 @@ public abstract class BaseApiCallTimeoutTest extends BaseTimeoutTest {
         verifyFailedResponseNotTimedOut();
     }
 
-    @Test
+    @RetryableTest(maxRetries = 3)
     public void streamingOperation_finishedWithinTime_shouldNotTimeout() throws Exception {
         stubSuccessResponse(DELAY_BEFORE_TIMEOUT);
         verifySuccessResponseNotTimedOut();

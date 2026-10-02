@@ -497,14 +497,12 @@
     },
     "AmplitudeConnectorProfileProperties":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector-specific profile properties required when using Amplitude. </p>"
     },
     "AmplitudeMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Amplitude. </p>"
     },
     "AmplitudeSourceProperties":{
@@ -758,6 +756,13 @@
       "type":"string",
       "max":512,
       "pattern":"\\S+"
+    },
+    "CodeVerifier":{
+      "type":"string",
+      "max":128,
+      "min":43,
+      "pattern":"^[A-Za-z0-9\\-._~]+$",
+      "sensitive":true
     },
     "ConflictException":{
       "type":"structure",
@@ -1135,7 +1140,7 @@
         },
         "CustomerProfiles":{
           "shape":"CustomerProfilesMetadata",
-          "documentation":"<p> The connector metadata specific to Amazon Connect Customer Profiles. </p>"
+          "documentation":"<p> The connector metadata specific to Connect Customer Customer Profiles. </p>"
         },
         "Honeycode":{
           "shape":"HoneycodeMetadata",
@@ -1173,6 +1178,10 @@
         "redirectUri":{
           "shape":"RedirectUri",
           "documentation":"<p> The URL to which the authentication server redirects the browser after authorization has been granted. </p>"
+        },
+        "codeVerifier":{
+          "shape":"CodeVerifier",
+          "documentation":"<p> The code verifier used in the PKCE (Proof Key for Code Exchange) OAuth flow. </p>"
         }
       },
       "documentation":"<p> Used by select connectors for which the OAuth workflow is supported, such as Salesforce, Google Analytics, Marketo, Zendesk, and Slack. </p>"
@@ -1903,20 +1912,19 @@
       "members":{
         "domainName":{
           "shape":"DomainName",
-          "documentation":"<p> The unique name of the Amazon Connect Customer Profiles domain. </p>"
+          "documentation":"<p> The unique name of the Connect Customer Customer Profiles domain. </p>"
         },
         "objectTypeName":{
           "shape":"ObjectTypeName",
-          "documentation":"<p> The object specified in the Amazon Connect Customer Profiles flow destination. </p>"
+          "documentation":"<p> The object specified in the Connect Customer Customer Profiles flow destination. </p>"
         }
       },
-      "documentation":"<p> The properties that are applied when Amazon Connect Customer Profiles is used as a destination. </p>"
+      "documentation":"<p> The properties that are applied when Connect Customer Customer Profiles is used as a destination. </p>"
     },
     "CustomerProfilesMetadata":{
       "type":"structure",
-      "members":{
-      },
-      "documentation":"<p> The connector metadata specific to Amazon Connect Customer Profiles. </p>"
+      "members":{},
+      "documentation":"<p> The connector metadata specific to Connect Customer Customer Profiles. </p>"
     },
     "DataApiRoleArn":{
       "type":"string",
@@ -2018,8 +2026,7 @@
     },
     "DatadogMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Datadog. </p>"
     },
     "DatadogSourceProperties":{
@@ -2055,8 +2062,7 @@
     },
     "DeleteConnectorProfileResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteFlowRequest":{
       "type":"structure",
@@ -2074,8 +2080,7 @@
     },
     "DeleteFlowResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeConnectorEntityRequest":{
       "type":"structure",
@@ -2368,7 +2373,7 @@
         },
         "CustomerProfiles":{
           "shape":"CustomerProfilesDestinationProperties",
-          "documentation":"<p> The properties required to query Amazon Connect Customer Profiles. </p>"
+          "documentation":"<p> The properties required to query Connect Customer Customer Profiles. </p>"
         },
         "Zendesk":{
           "shape":"ZendeskDestinationProperties",
@@ -2509,8 +2514,7 @@
     },
     "DynatraceMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Dynatrace. </p>"
     },
     "DynatraceSourceProperties":{
@@ -2585,8 +2589,7 @@
     },
     "EventBridgeMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Amazon EventBridge. </p>"
     },
     "ExecutionDetails":{
@@ -2939,8 +2942,7 @@
     },
     "GoogleAnalyticsConnectorProfileProperties":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector-specific profile properties required by Google Analytics. </p>"
     },
     "GoogleAnalyticsMetadata":{
@@ -2986,8 +2988,7 @@
     },
     "HoneycodeConnectorProfileProperties":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector-specific properties required when using Amazon Honeycode. </p>"
     },
     "HoneycodeDestinationProperties":{
@@ -3094,8 +3095,7 @@
     },
     "InforNexusMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Infor Nexus. </p>"
     },
     "InforNexusSourceProperties":{
@@ -3291,8 +3291,7 @@
     "Long":{"type":"long"},
     "LookoutMetricsDestinationProperties":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The properties that are applied when Amazon Lookout for Metrics is used as a destination. </p>"
     },
     "MarketoConnectorOperator":{
@@ -3367,8 +3366,7 @@
     },
     "MarketoMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Marketo. </p>"
     },
     "MarketoSourceProperties":{
@@ -3770,8 +3768,7 @@
     },
     "PardotMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The connector metadata specific to Salesforce Pardot.</p>"
     },
     "PardotSourceProperties":{
@@ -3883,6 +3880,13 @@
         "PENDING",
         "CREATED"
       ]
+    },
+    "PrivateKey":{
+      "type":"string",
+      "max":8192,
+      "min":1,
+      "pattern":".*",
+      "sensitive":true
     },
     "PrivateLinkServiceName":{
       "type":"string",
@@ -4019,8 +4023,7 @@
     },
     "RedshiftMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Amazon Redshift. </p>"
     },
     "RefreshToken":{
@@ -4100,11 +4103,11 @@
       "members":{
         "connectorProfileName":{
           "shape":"ConnectorProfileName",
-          "documentation":"<p>The name of the connector profile that you want to reset cached metadata for.</p> <p>You can omit this parameter if you're resetting the cache for any of the following connectors: Amazon Connect, Amazon EventBridge, Amazon Lookout for Metrics, Amazon S3, or Upsolver. If you're resetting the cache for any other connector, you must include this parameter in your request.</p>"
+          "documentation":"<p>The name of the connector profile that you want to reset cached metadata for.</p> <p>You can omit this parameter if you're resetting the cache for any of the following connectors: Connect Customer, Amazon EventBridge, Amazon Lookout for Metrics, Amazon S3, or Upsolver. If you're resetting the cache for any other connector, you must include this parameter in your request.</p>"
         },
         "connectorType":{
           "shape":"ConnectorType",
-          "documentation":"<p>The type of connector to reset cached metadata for.</p> <p>You must include this parameter in your request if you're resetting the cache for any of the following connectors: Amazon Connect, Amazon EventBridge, Amazon Lookout for Metrics, Amazon S3, or Upsolver. If you're resetting the cache for any other connector, you can omit this parameter from your request. </p>"
+          "documentation":"<p>The type of connector to reset cached metadata for.</p> <p>You must include this parameter in your request if you're resetting the cache for any of the following connectors: Connect Customer, Amazon EventBridge, Amazon Lookout for Metrics, Amazon S3, or Upsolver. If you're resetting the cache for any other connector, you can omit this parameter from your request. </p>"
         },
         "connectorEntityName":{
           "shape":"EntityName",
@@ -4122,8 +4125,7 @@
     },
     "ResetConnectorMetadataCacheResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ResourceNotFoundException":{
       "type":"structure",
@@ -4199,8 +4201,7 @@
     },
     "S3Metadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Amazon S3. </p>"
     },
     "S3OutputFormatConfig":{
@@ -4353,8 +4354,7 @@
     },
     "SAPODataMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to SAPOData. </p>"
     },
     "SAPODataPaginationConfig":{
@@ -4682,8 +4682,7 @@
     },
     "ServiceNowMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to ServiceNow. </p>"
     },
     "ServiceNowSourceProperties":{
@@ -4738,14 +4737,12 @@
     },
     "SingularConnectorProfileProperties":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector-specific profile properties required when using Singular. </p>"
     },
     "SingularMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Singular. </p>"
     },
     "SingularSourceProperties":{
@@ -4843,10 +4840,7 @@
     },
     "SnowflakeConnectorProfileCredentials":{
       "type":"structure",
-      "required":[
-        "username",
-        "password"
-      ],
+      "required":["username"],
       "members":{
         "username":{
           "shape":"Username",
@@ -4855,6 +4849,10 @@
         "password":{
           "shape":"Password",
           "documentation":"<p> The password that corresponds to the user name. </p>"
+        },
+        "privateKey":{
+          "shape":"PrivateKey",
+          "documentation":"<p> The RSA private key used for key pair authentication with Snowflake. Provide this instead of a password when your Snowflake account uses key pair authentication. </p>"
         }
       },
       "documentation":"<p> The connector-specific profile credentials required when using Snowflake. </p>"
@@ -5220,8 +5218,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -5344,14 +5341,12 @@
     },
     "TrendmicroConnectorProfileProperties":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector-specific profile properties required when using Trend Micro. </p>"
     },
     "TrendmicroMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Trend Micro. </p>"
     },
     "TrendmicroSourceProperties":{
@@ -5418,8 +5413,7 @@
     },
     "UnregisterConnectorResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UnsupportedOperationException":{
       "type":"structure",
@@ -5453,8 +5447,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateConnectorProfileRequest":{
       "type":"structure",
@@ -5607,8 +5600,7 @@
     },
     "UpsolverMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Upsolver. </p>"
     },
     "UpsolverS3OutputFormatConfig":{
@@ -5700,8 +5692,7 @@
     },
     "VeevaMetadata":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> The connector metadata specific to Veeva. </p>"
     },
     "VeevaSourceProperties":{

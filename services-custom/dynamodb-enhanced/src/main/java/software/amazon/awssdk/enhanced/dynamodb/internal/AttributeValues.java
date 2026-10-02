@@ -28,7 +28,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  */
 @SdkInternalApi
 public final class AttributeValues {
-    private static final AttributeValue NULL_ATTRIBUTE_VALUE = AttributeValue.builder().nul(true).build();
+    private static final AttributeValue NULL_ATTRIBUTE_VALUE = AttributeValue.createNul(true);
 
     private AttributeValues() {
     }
@@ -47,7 +47,7 @@ public final class AttributeValues {
      * @return An {@link AttributeValue} of type S that represents the string literal.
      */
     public static AttributeValue stringValue(String value) {
-        return AttributeValue.builder().s(value).build();
+        return AttributeValue.createS(value);
     }
 
     /**
@@ -56,7 +56,7 @@ public final class AttributeValues {
      * @return An {@link AttributeValue} of type n that represents the numeric literal.
      */
     public static AttributeValue numberValue(Number value) {
-        return AttributeValue.builder().n(value.toString()).build();
+        return AttributeValue.createN(value.toString());
     }
 
     /**
@@ -65,6 +65,6 @@ public final class AttributeValues {
      * @return An {@link AttributeValue} of type B that represents the binary literal.
      */
     public static AttributeValue binaryValue(SdkBytes value) {
-        return AttributeValue.builder().b(value).build();
+        return AttributeValue.createB(value);
     }
 }

@@ -20,13 +20,16 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.eventnotifications.s3.model.EventHoldDuration;
 import software.amazon.awssdk.eventnotifications.s3.model.GlacierEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.IntelligentTieringEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.LifecycleEventData;
+import software.amazon.awssdk.eventnotifications.s3.model.ObjectRetentionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.ReplicationEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.RequestParameters;
 import software.amazon.awssdk.eventnotifications.s3.model.ResponseElements;
@@ -36,6 +39,7 @@ import software.amazon.awssdk.eventnotifications.s3.model.S3Bucket;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotification;
 import software.amazon.awssdk.eventnotifications.s3.model.S3EventNotificationRecord;
 import software.amazon.awssdk.eventnotifications.s3.model.S3Object;
+import software.amazon.awssdk.eventnotifications.s3.model.S3ObjectAnnotation;
 import software.amazon.awssdk.eventnotifications.s3.model.TransitionEventData;
 import software.amazon.awssdk.eventnotifications.s3.model.UserIdentity;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
@@ -101,7 +105,7 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         eventNotificationRecord.setEventSource(eventSource);
 
         String eventTime = expectStringOrNull(recordNode, "eventTime");
-        eventNotificationRecord.setEventTime(eventName != null ? Instant.parse(eventTime) : null);
+        eventNotificationRecord.setEventTime(eventTime != null ? Instant.parse(eventTime) : null);
 
         RequestParameters requestParameters = readRequestParameters(recordNode.get("requestParameters"));
         eventNotificationRecord.setRequestParameters(requestParameters);
@@ -129,7 +133,36 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         ReplicationEventData replicationEventData = readReplicationEventData(recordNode.get("replicationEventData"));
         eventNotificationRecord.setReplicationEventData(replicationEventData);
 
+        ObjectRetentionEventData objectRetentionEventData =
+            readObjectRetentionEventData(recordNode.get("objectRetentionEventData"));
+        eventNotificationRecord.setObjectRetentionEventData(objectRetentionEventData);
+
         return eventNotificationRecord;
+    }
+
+    private ObjectRetentionEventData readObjectRetentionEventData(JsonNode jsonNode) {
+        Map<String, JsonNode> retentionNode = expectObjectOrNull(jsonNode, "objectRetentionEventData");
+        if (retentionNode == null) {
+            return null;
+        }
+        String mode = expectStringOrNull(retentionNode, "mode");
+        String retainUntilDate = expectStringOrNull(retentionNode, "retainUntilDate");
+        String eventHold = expectStringOrNull(retentionNode, "eventHold");
+        EventHoldDuration eventHoldDuration = readEventHoldDuration(retentionNode.get("eventHoldDuration"));
+        return new ObjectRetentionEventData(mode, retainUntilDate, eventHold, eventHoldDuration);
+    }
+
+    private EventHoldDuration readEventHoldDuration(JsonNode jsonNode) {
+        Map<String, JsonNode> durationNode = expectObjectOrNull(jsonNode, "eventHoldDuration");
+        if (durationNode == null || durationNode.isEmpty()) {
+            return null;
+        }
+        // The duration is a single {unit: value} pair (e.g. {"days": 90} or {"years": 1}). Read whichever
+        // unit the service emits, so a new unit does not require an SDK change.
+        Map.Entry<String, JsonNode> entry = durationNode.entrySet().iterator().next();
+        String unit = entry.getKey();
+        Long value = expectLong(entry.getValue(), unit);
+        return new EventHoldDuration(unit, value);
     }
 
     private ReplicationEventData readReplicationEventData(JsonNode jsonNode) {
@@ -213,7 +246,8 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         S3Bucket bucket = readBucket(s3.get("bucket"));
         S3Object object = readObject(s3.get("object"));
         String s3SchemaVersion = expectStringOrNull(s3, "s3SchemaVersion");
-        return new S3(configurationId, bucket, object, s3SchemaVersion);
+        List<S3ObjectAnnotation> objectAnnotation = readObjectAnnotations(s3.get("objectAnnotation"));
+        return new S3(configurationId, bucket, object, s3SchemaVersion, objectAnnotation);
     }
 
     private S3Object readObject(JsonNode jsonNode) {
@@ -226,7 +260,10 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         String eTag = expectStringOrNull(objectNode, "eTag");
         String versionId = expectStringOrNull(objectNode, "versionId");
         String sequencer = expectStringOrNull(objectNode, "sequencer");
-        return new S3Object(key, size, eTag, versionId, sequencer);
+        JsonNode hasObjectAnnotationNode = objectNode.get("hasObjectAnnotation");
+        Boolean hasObjectAnnotation = isNull(hasObjectAnnotationNode) ? null 
+                                     : expectBoolean(hasObjectAnnotationNode, "hasObjectAnnotation");
+        return new S3Object(key, size, eTag, versionId, sequencer, hasObjectAnnotation);
     }
 
     private S3Bucket readBucket(JsonNode jsonNode) {
@@ -237,7 +274,29 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         String name = expectStringOrNull(bucketNode, "name");
         UserIdentity ownerIdentity = readOwnerIdentity(bucketNode.get("ownerIdentity"));
         String arn = expectStringOrNull(bucketNode, "arn");
-        return new S3Bucket(name, ownerIdentity, arn);
+        Map<String, String> awsGeneratedTags = readStringMapOrNull(bucketNode.get("awsGeneratedTags"), "awsGeneratedTags");
+        return new S3Bucket(name, ownerIdentity, arn, awsGeneratedTags);
+    }
+
+    private Map<String, String> readStringMapOrNull(JsonNode jsonNode, String name) {
+        Map<String, JsonNode> mapNode = expectObjectOrNull(jsonNode, name);
+        if (mapNode == null) {
+            return null;
+        }
+        Map<String, String> result = new LinkedHashMap<>();
+        mapNode.forEach((tagKey, tagValueNode) ->
+                            result.put(tagKey, readTagStringValueOrNull(name, tagKey, tagValueNode)));
+        return result;
+    }
+
+    private String readTagStringValueOrNull(String mapName, String tagKey, JsonNode tagValue) {
+        if (isNull(tagValue)) {
+            return null;
+        }
+        Validate.isTrue(tagValue.isString(),
+                        "The value of tag '%s' in '%s' was not a string, but was: %s",
+                        tagKey, mapName, tagValue);
+        return tagValue.asString();
     }
 
     private UserIdentity readOwnerIdentity(JsonNode jsonNode) {
@@ -311,5 +370,29 @@ public final class DefaultS3EventNotificationReader implements S3EventNotificati
         }
         Validate.isTrue(node.isNumber(), "expected '%s' to be numeric, but was not", name);
         return Long.parseLong(node.asNumber());
+    }
+
+    private List<S3ObjectAnnotation> readObjectAnnotations(JsonNode jsonNode) {
+        List<JsonNode> annotationArray = expectArrayOrNull(jsonNode, "objectAnnotation");
+        if (annotationArray == null) {
+            return null;
+        }
+        return annotationArray.stream().map(this::readObjectAnnotation).collect(Collectors.toList());
+    }
+
+    private S3ObjectAnnotation readObjectAnnotation(JsonNode jsonNode) {
+        Map<String, JsonNode> node = expectObjectOrNull(jsonNode, "objectAnnotation[]");
+        if (node == null) {
+            return null;
+        }
+        String name = expectStringOrNull(node, "name");
+        Long size = expectLong(node.get("size"), "size");
+        String eTag = expectStringOrNull(node, "eTag");
+        return new S3ObjectAnnotation(name, size, eTag);
+    }
+
+    private Boolean expectBoolean(JsonNode node, String name) {
+        Validate.isTrue(node.isBoolean(), "expected '%s' to be boolean, but was not", name);
+        return node.asBoolean();
     }
 }

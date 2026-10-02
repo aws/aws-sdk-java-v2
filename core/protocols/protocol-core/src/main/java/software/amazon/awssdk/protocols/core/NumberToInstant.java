@@ -51,7 +51,7 @@ public final class NumberToInstant {
         TimestampFormatTrait.Format format = resolveTimestampFormat(field);
         switch (format) {
             case UNIX_TIMESTAMP:
-                return Instant.ofEpochMilli((long) (value.doubleValue() * 1_000d));
+                return Instant.ofEpochMilli(Math.round(value.doubleValue() * 1_000d));
             case UNIX_TIMESTAMP_MILLIS:
                 return Instant.ofEpochMilli(value.longValue());
             default:

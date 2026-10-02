@@ -1,0 +1,60 @@
+{
+    "version": "2.32.25",
+    "date": "2025-08-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix DynamoDB Enhanced Client immutable class introspection fails for \"is\" prefix fields. Fixes [#4446](https://github.com/aws/aws-sdk-java-v2/issues/4446)."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add duplicateAndRenameSharedEvents customization to support event shapes shared with multiple evenstreams."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Added default_x86_64 and default_arm64 as values to the instanceTypes field."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Dashboards",
+            "contributor": "",
+            "description": "Billing and Cost Management Dashboards enables users to create dashboards that combine multiple visualizations of cost and usage data. Users can create, manage, and share dashboards. Tags are also available for dashboards."
+        },
+        {
+            "type": "feature",
+            "category": "AWS S3 Control",
+            "contributor": "",
+            "description": "Adds support for Compute checksum functionality in Amazon S3 Batch Operations. You can now calculate checksums for a list of objects using supported algorithms in Amazon S3, without requiring a restore or download"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update netty to 4.1.124"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Participant Service",
+            "contributor": "",
+            "description": "Amazon Connect Service Feature: Add support to enable multi-user in-app, web, and video calling."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect Service Feature: Add support to enable multi-user in-app, web, and video calling."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Customer managed keys now available for volume encryption of SageMaker HyperPod clusters."
+        }
+    ]
+}

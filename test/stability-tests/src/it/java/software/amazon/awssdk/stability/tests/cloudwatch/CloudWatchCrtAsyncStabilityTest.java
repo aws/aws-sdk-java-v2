@@ -24,7 +24,7 @@ import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.retries.DefaultRetryStrategy;
 import software.amazon.awssdk.services.cloudwatch.CloudWatchAsyncClient;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 
 public class CloudWatchCrtAsyncStabilityTest extends CloudWatchBaseStabilityTest {
     private static String namespace;

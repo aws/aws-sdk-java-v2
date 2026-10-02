@@ -8,14 +8,15 @@
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- TODO: change this to the Java version you use in your application -->
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <maven.shade.plugin.version>3.2.1</maven.shade.plugin.version>
-        <maven.compiler.plugin.version>3.6.1</maven.compiler.plugin.version>
-        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
+        <maven.shade.plugin.version>3.6.1</maven.shade.plugin.version>
+        <maven.compiler.plugin.version>3.14.1</maven.compiler.plugin.version>
         <aws.java.sdk.version>2.21.0</aws.java.sdk.version>
-        <aws.lambda.java.version>1.2.3</aws.lambda.java.version>
+        <aws.lambda.java.version>1.4.0</aws.lambda.java.version>
         <junit5.version>5.10.1</junit5.version>
+        <aws.crt.version>0.40.3</aws.crt.version>
     </properties>
 
     <dependencyManagement>
@@ -49,8 +50,20 @@
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>aws-crt-client</artifactId>
+            <exclusions>
+                <exclusion>
+                    <groupId>software.amazon.awssdk.crt</groupId>
+                    <artifactId>aws-crt</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
+        <dependency>
+            <groupId>software.amazon.awssdk.crt</groupId>
+            <artifactId>aws-crt</artifactId>
+            <version>${aws.crt.version}</version>
+            <classifier>linux-x86_64</classifier>
+        </dependency>
         <dependency>
             <groupId>com.amazonaws</groupId>
             <artifactId>aws-lambda-java-core</artifactId>

@@ -65,11 +65,13 @@ public class SsoAccessTokenProviderTest {
                            "}";
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> provider.resolveToken().token())
+            .hasMessageContaining("expired or is otherwise invalid")
+            .hasCauseInstanceOf(NullPointerException.class);
     }
 
     @Test
-    void cachedTokenFile_expiresAtMissing_throwNullPointerException() throws IOException {
+    void cachedTokenFile_expiresAtMissing_throwsExpiredTokenException() throws IOException {
         String tokenFile = "{\n" +
                            "\"accessToken\": \"base64string\",\n" +
                            "\"region\": \"us-west-2\", \n" +
@@ -78,7 +80,8 @@ public class SsoAccessTokenProviderTest {
 
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(
             prepareTestCachedTokenFile(tokenFile, GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> provider.resolveToken().token())
+            .hasMessageContaining("expired or is otherwise invalid");
     }
 
     @Test
@@ -128,7 +131,9 @@ public class SsoAccessTokenProviderTest {
         prepareTestCachedTokenFile(tokenFile, WRONG_TOKEN_FILE_NAME);
         SsoAccessTokenProvider provider = new SsoAccessTokenProvider(createTestCachedTokenFilePath(
             Jimfs.newFileSystem(Configuration.unix()).getPath("./foo"), GENERATED_TOKEN_FILE_NAME));
-        assertThatThrownBy(() -> provider.resolveToken().token()).isInstanceOf(UncheckedIOException.class);
+        assertThatThrownBy(() -> provider.resolveToken().token())
+            .hasMessageContaining("expired or is otherwise invalid")
+            .hasCauseInstanceOf(UncheckedIOException.class);
     }
 
     @Test

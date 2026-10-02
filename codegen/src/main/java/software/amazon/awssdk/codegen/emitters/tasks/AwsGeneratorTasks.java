@@ -28,6 +28,7 @@ public class AwsGeneratorTasks extends CompositeGeneratorTask {
               new EventStreamGeneratorTasks(params),
               new WaitersGeneratorTasks(params),
               new EndpointProviderTasks(params),
-              new AuthSchemeGeneratorTasks(params));
+              new AuthSchemeGeneratorTasks(params),
+              new WarmUpProviderTasks(params));
     }
 }

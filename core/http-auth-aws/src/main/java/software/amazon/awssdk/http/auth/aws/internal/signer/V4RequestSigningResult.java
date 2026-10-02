@@ -22,8 +22,6 @@ import software.amazon.awssdk.http.SdkHttpRequest;
  * A container for data produced during and as a result of the SigV4 request signing process.
  */
 @SdkInternalApi
-// TODO(sra-identity-auth): This is currently not @Immutable because signedRequest is a Builder. Is Builder needed? If it could
-//  hold reference to SdkHttpRequest instead, this class would be @Immutable.
 public final class V4RequestSigningResult {
     private final String contentHash;
     private final byte[] signingKey;

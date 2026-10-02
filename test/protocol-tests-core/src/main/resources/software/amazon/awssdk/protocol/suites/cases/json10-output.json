@@ -1,0 +1,727 @@
+[
+  {
+    "id": "AwsJson10EmptyInputAndEmptyOutputSendJsonObject",
+    "description": "A service will always return a JSON object for operations with modeled output.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "EmptyInputAndEmptyOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10InvalidGreetingError",
+    "description": "Parses simple JSON errors",
+    "given": {
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#InvalidGreeting\",\n    \"Message\": \"Hi\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "InvalidGreeting"
+    },
+    "then": {
+      "deserializedAs": {
+        "Message": "Hi"
+      }
+    }
+  },
+  {
+    "id": "AwsJson10ComplexError",
+    "description": "Parses a complex error with no message member",
+    "given": {
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#ComplexError\",\n    \"TopLevel\": \"Top level\",\n    \"Nested\": {\n        \"Foo\": \"bar\"\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "ComplexError"
+    },
+    "then": {
+      "deserializedAs": {
+        "TopLevel": "Top level",
+        "Nested": {
+          "Foo": "bar"
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10EmptyComplexError",
+    "description": "Parses a complex error with an empty body",
+    "given": {
+      "response": {
+        "status_code": 400,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#ComplexError\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "ComplexError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorUsingXAmznErrorType",
+    "description": "Serializes the X-Amzn-ErrorType header. For an example service, see Amazon EKS.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "X-Amzn-Errortype": "FooError"
+        }
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorUsingXAmznErrorTypeWithUri",
+    "description": "Some X-Amzn-Errortype headers contain URLs. Clients need to split the URL on ':' and take only the first half of the string. For example, 'ValidationException:http://internal.amazon.com/coral/com.amazon.coral.validate/'\nis to be interpreted as 'ValidationException'.\n\nFor an example service see Amazon Polly.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "X-Amzn-Errortype": "FooError:http://internal.amazon.com/coral/com.amazon.coral.validate/"
+        }
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorUsingXAmznErrorTypeWithUriAndNamespace",
+    "description": "X-Amzn-Errortype might contain a URL and a namespace. Client should extract only the shape name. This is a pathalogical case that might not actually happen in any deployed AWS service.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "X-Amzn-Errortype": "aws.protocoltests.json10#FooError:http://internal.amazon.com/coral/com.amazon.coral.validate/"
+        }
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorUsingCode",
+    "description": "This example uses the 'code' property in the output rather than X-Amzn-Errortype. Some services do this though it's preferable to send the X-Amzn-Errortype. Client implementations must first check for the X-Amzn-Errortype and then check for a top-level 'code' property.\n\nFor example service see Amazon S3 Glacier.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"code\": \"FooError\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorUsingCodeAndNamespace",
+    "description": "Some services serialize errors using code, and it might contain a namespace. Clients should just take the last part of the string after '#'.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"code\": \"aws.protocoltests.json10#FooError\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorUsingCodeUriAndNamespace",
+    "description": "Some services serialize errors using code, and it might contain a namespace. It also might contain a URI. Clients should just take the last part of the string after '#' and before \":\". This is a pathalogical case that might not occur in any deployed AWS service.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"code\": \"aws.protocoltests.json10#FooError:http://internal.amazon.com/coral/com.amazon.coral.validate/\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorWithDunderType",
+    "description": "Some services serialize errors using __type.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"FooError\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorWithDunderTypeAndNamespace",
+    "description": "Some services serialize errors using __type, and it might contain a namespace. Clients should just take the last part of the string after '#'.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#FooError\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10FooErrorWithDunderTypeUriAndNamespace",
+    "description": "Some services serialize errors using __type, and it might contain a namespace. It also might contain a URI. Clients should just take the last part of the string after '#' and before \":\". This is a pathalogical case that might not occur in any deployed AWS service.",
+    "given": {
+      "response": {
+        "status_code": 500,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"__type\": \"aws.protocoltests.json10#FooError:http://internal.amazon.com/coral/com.amazon.coral.validate/\"\n}"
+      }
+    },
+    "when": {
+      "action": "errorUnmarshall",
+      "operation": "GreetingWithErrors",
+      "error": "FooError"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeStringUnionValue",
+    "description": "Deserializes a string union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"stringValue\": \"foo\"\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "stringValue": "foo"
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeBooleanUnionValue",
+    "description": "Deserializes a boolean union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"booleanValue\": true\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "booleanValue": true
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeNumberUnionValue",
+    "description": "Deserializes a number union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"numberValue\": 1\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "numberValue": 1
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeBlobUnionValue",
+    "description": "Deserializes a blob union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"blobValue\": \"Zm9v\"\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "blobValue": "foo"
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeTimestampUnionValue",
+    "description": "Deserializes a timestamp union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"timestampValue\": 1398796238\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "timestampValue": 1398796238
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeEnumUnionValue",
+    "description": "Deserializes an enum union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"enumValue\": \"Foo\"\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "enumValue": "Foo"
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeIntEnumUnionValue",
+    "description": "Deserializes an intEnum union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"intEnumValue\": 1\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "intEnumValue": 1
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeListUnionValue",
+    "description": "Deserializes a list union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"listValue\": [\"foo\", \"bar\"]\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "listValue": [
+            "foo",
+            "bar"
+          ]
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeMapUnionValue",
+    "description": "Deserializes a map union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"mapValue\": {\n            \"foo\": \"bar\",\n            \"spam\": \"eggs\"\n        }\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "mapValue": {
+            "foo": "bar",
+            "spam": "eggs"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeStructureUnionValue",
+    "description": "Deserializes a structure union value",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"structureValue\": {\n            \"hi\": \"hello\"\n        }\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "structureValue": {
+            "hi": "hello"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeIgnoreType",
+    "description": "Ignores an unrecognized __type property",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n        \"__type\": \"aws.protocoltests.json10#MyUnion\",\n        \"structureValue\": {\n            \"hi\": \"hello\"\n        }\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "structureValue": {
+            "hi": "hello"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10DeserializeAllowNulls",
+    "description": "Allows for `: null` to be set for all unset fields",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"contents\": {\n      \"stringValue\": null,\n      \"booleanValue\": null,\n      \"numberValue\": null,\n      \"blobValue\": null,\n      \"timestampValue\": null,\n      \"enumValue\": null,\n      \"intEnumValue\": null,\n      \"listValue\": null,\n      \"mapValue\": null,\n      \"structureValue\": {\n          \"hi\": \"hello\"\n      }\n    }\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "JsonUnions"
+    },
+    "then": {
+      "deserializedAs": {
+        "contents": {
+          "structureValue": {
+            "hi": "hello"
+          }
+        }
+      }
+    }
+  },
+  {
+    "id": "AwsJson10HandlesEmptyOutputShape",
+    "description": "When no output is defined, the service is expected to return\nan empty payload, however, client must ignore a JSON payload\nif one is returned. This ensures that if output is added later,\nthen it will not break the client.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "NoInputAndNoOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10HandlesUnexpectedJsonOutput",
+    "description": "This client-only test builds on handles_empty_output_shape,\nby including unexpected fields in the JSON. A client\nneeds to ignore JSON output that is empty or that contains\nJSON object data.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"foo\": true\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "NoInputAndNoOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10ServiceRespondsWithNoPayload",
+    "description": "When no output is defined, the service is expected to return\nan empty payload. Despite the lack of a payload, the service\nis expected to always send a Content-Type header. Clients must\nhandle cases where a service returns a JSON object and where\na service returns no JSON at all.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": ""
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "NoInputAndNoOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10NoInputAndOutput",
+    "description": "Empty output always serializes an empty object payload.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "NoInputAndOutput"
+    },
+    "then": {
+      "deserializedAs": {}
+    }
+  },
+  {
+    "id": "AwsJson10SupportsNaNFloatInputs",
+    "description": "Supports handling NaN float values.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"floatValue\": \"NaN\",\n    \"doubleValue\": \"NaN\"\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "floatValue": "NaN",
+        "doubleValue": "NaN"
+      }
+    }
+  },
+  {
+    "id": "AwsJson10SupportsInfinityFloatInputs",
+    "description": "Supports handling Infinity float values.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"floatValue\": \"Infinity\",\n    \"doubleValue\": \"Infinity\"\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "floatValue": "Infinity",
+        "doubleValue": "Infinity"
+      }
+    }
+  },
+  {
+    "id": "AwsJson10SupportsNegativeInfinityFloatInputs",
+    "description": "Supports handling -Infinity float values.",
+    "given": {
+      "response": {
+        "status_code": 200,
+        "headers": {
+          "Content-Type": "application/x-amz-json-1.0"
+        },
+        "body": "{\n    \"floatValue\": \"-Infinity\",\n    \"doubleValue\": \"-Infinity\"\n}"
+      }
+    },
+    "when": {
+      "action": "unmarshall",
+      "operation": "SimpleScalarProperties"
+    },
+    "then": {
+      "deserializedAs": {
+        "floatValue": "-Infinity",
+        "doubleValue": "-Infinity"
+      }
+    }
+  }
+]

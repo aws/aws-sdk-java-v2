@@ -41,11 +41,16 @@ public class HttpChecksumTrait {
 
     private static final Map<String, Integer> CHECKSUM_ALGORITHM_PRIORITY =
         ImmutableMap.<String, Integer>builder()
-                    .put(DefaultChecksumAlgorithm.CRC32C.algorithmId(), 1)
-                    .put(DefaultChecksumAlgorithm.CRC32.algorithmId(), 2)
+                    .put(DefaultChecksumAlgorithm.XXHASH3.algorithmId(), 1)
+                    .put(DefaultChecksumAlgorithm.XXHASH128.algorithmId(), 2)
                     .put(DefaultChecksumAlgorithm.CRC64NVME.algorithmId(), 3)
-                    .put(DefaultChecksumAlgorithm.SHA1.algorithmId(), 4)
-                    .put(DefaultChecksumAlgorithm.SHA256.algorithmId(), 5)
+                    .put(DefaultChecksumAlgorithm.CRC32C.algorithmId(), 4)
+                    .put(DefaultChecksumAlgorithm.CRC32.algorithmId(), 5)
+                    .put(DefaultChecksumAlgorithm.XXHASH64.algorithmId(), 6)
+                    .put(DefaultChecksumAlgorithm.SHA512.algorithmId(), 7)
+                    .put(DefaultChecksumAlgorithm.SHA256.algorithmId(), 8)
+                    .put(DefaultChecksumAlgorithm.SHA1.algorithmId(), 9)
+                    .put(DefaultChecksumAlgorithm.MD5.algorithmId(), 10)
                     .build();
 
     private HttpChecksumTrait() {

@@ -30,6 +30,7 @@ import software.amazon.awssdk.core.internal.pagination.async.ItemsSubscription;
  * @param <ItemT> The type of paginated member in a response page
  */
 @SdkProtectedApi
+@Deprecated
 public final class PaginatedItemsPublisher<ResponseT, ItemT> implements SdkPublisher<ItemT> {
 
     private final AsyncPageFetcher<ResponseT> nextPageFetcher;

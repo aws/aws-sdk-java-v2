@@ -1,0 +1,48 @@
+{
+    "version": "2.41.12",
+    "date": "2026-01-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Config",
+            "contributor": "",
+            "description": "AWS Config Conformance Packs now support tag-on-create through PutConformancePack API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2 Bundle",
+            "contributor": "",
+            "description": "Include `aws-lakeformation-accessgrants-java-plugin` in the bundle."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Supports custom browser extensions for AgentCore Browser and increased message payloads up to 100KB per message in an Event for AgentCore Memory"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added support of multiple EBS cards. New EbsCardIndex parameter enables attaching volumes to specific EBS cards on supported instance types for improved storage performance."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Added documentation and model for sheet layout groups - allows sheet elements to be grouped, Added documentation and the feature enables admins to have granular control over connectors under actions, Updated API documentation for PDF Export in Snapshot Export APIs"
+        },
+        {
+            "type": "feature",
+            "category": "Apache5 HTTP Client",
+            "contributor": "",
+            "description": "Update `httpclient5` to 5.6 and `httpcore5` to 5.4."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

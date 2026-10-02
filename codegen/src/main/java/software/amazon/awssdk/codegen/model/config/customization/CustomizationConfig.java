@@ -211,6 +211,12 @@ public class CustomizationConfig {
     private Map<String, List<String>> useLegacyEventGenerationScheme = new HashMap<>();
 
     /**
+     * Customization to instruct the code generator to duplicate and rename an event that is shared
+     * by multiple EventStreams.
+     */
+    private Map<String, Map<String, String>> duplicateAndRenameSharedEvents = new HashMap<>();
+
+    /**
      * How the code generator should behave when it encounters shapes with underscores in the name.
      */
     private UnderscoresInNameBehavior underscoresInNameBehavior;
@@ -218,6 +224,16 @@ public class CustomizationConfig {
     private String userAgent;
 
     private RetryMode defaultRetryMode;
+
+    /**
+     * Whether the client will use retry 2.1 behavior by default.
+     */
+    private Boolean defaultNewRetries2026;
+
+    /**
+     * Whether the client will apply a default read/write timeout by default.
+     */
+    private Boolean defaultEnableSocketTimeout2026;
 
     /**
      * Whether to generate an abstract decorator class that delegates to the async service client
@@ -282,11 +298,6 @@ public class CustomizationConfig {
     private boolean requiredTraitValidationEnabled = false;
 
     /**
-     * Whether SRA based auth logic should be used.
-     */
-    private boolean useSraAuth = true;
-
-    /**
      * Whether to generate auth scheme params based on endpoint params.
      */
     private boolean enableEndpointAuthSchemeParams = false;
@@ -307,11 +318,6 @@ public class CustomizationConfig {
     private Map<String, ClientContextParam> customClientContextParams;
 
     private boolean s3ExpressAuthSupport;
-
-    /**
-     * Set to true to enable compiled endpoint rules. Currently defaults to false.
-     */
-    private boolean enableGenerateCompiledEndpointRules = false;
 
     /**
      * Customization related to auth scheme derived from endpoints.
@@ -346,9 +352,36 @@ public class CustomizationConfig {
     private boolean batchManagerSupported;
 
     /**
+     * A boolean flag to indicate if Presigned URL Extension is supported.
+     */
+    private boolean presignedUrlExtensionSupported;
+
+    /**
      * A boolean flag to indicate if the fast unmarshaller code path is enabled.
      */
     private boolean enableFastUnmarshaller;
+
+    /**
+     * A boolean flag to indicate if support for configuring a bearer token sourced from the environment should be added to the
+     * generated service. When enabled, the generated client will use bearer auth with the token sourced from the
+     * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
+     */
+    private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * List of union shape names for which to generate per-member direct static factories (createX) that bypass the builder.
+     */
+    private List<String> generateDirectUnionConstructors = Collections.emptyList();
+
+    /**
+     * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
+     */
+    private boolean enableEndpointProviderUriCaching;
+
+    /**
+     * List of specific shape or member names that are allowed to contain underscores.
+     */
+    private List<String> allowedUnderscoreNames = new ArrayList<>();
 
     private CustomizationConfig() {
     }
@@ -654,6 +687,14 @@ public class CustomizationConfig {
         this.useLegacyEventGenerationScheme = useLegacyEventGenerationScheme;
     }
 
+    public Map<String, Map<String, String>> getDuplicateAndRenameSharedEvents() {
+        return duplicateAndRenameSharedEvents;
+    }
+
+    public void  setDuplicateAndRenameSharedEvents(Map<String, Map<String, String>> duplicateAndRenameSharedEvents) {
+        this.duplicateAndRenameSharedEvents = duplicateAndRenameSharedEvents;
+    }
+
     public UnderscoresInNameBehavior getUnderscoresInNameBehavior() {
         return underscoresInNameBehavior;
     }
@@ -686,6 +727,22 @@ public class CustomizationConfig {
 
     public void setDefaultRetryMode(RetryMode defaultRetryMode) {
         this.defaultRetryMode = defaultRetryMode;
+    }
+
+    public Boolean getDefaultNewRetries2026() {
+        return defaultNewRetries2026;
+    }
+
+    public void setDefaultNewRetries2026(Boolean defaultNewRetries2026) {
+        this.defaultNewRetries2026 = defaultNewRetries2026;
+    }
+
+    public Boolean getDefaultEnableSocketTimeout2026() {
+        return defaultEnableSocketTimeout2026;
+    }
+
+    public void setDefaultEnableSocketTimeout2026(Boolean defaultEnableSocketTimeout2026) {
+        this.defaultEnableSocketTimeout2026 = defaultEnableSocketTimeout2026;
     }
 
     public ServiceConfig getServiceConfig() {
@@ -768,14 +825,6 @@ public class CustomizationConfig {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
     }
 
-    public boolean isEnableGenerateCompiledEndpointRules() {
-        return enableGenerateCompiledEndpointRules;
-    }
-
-    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
-        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
-    }
-
     public Map<String, String> getSkipEndpointTests() {
         return skipEndpointTests;
     }
@@ -806,16 +855,6 @@ public class CustomizationConfig {
 
     public void setRequiredTraitValidationEnabled(boolean requiredTraitValidationEnabled) {
         this.requiredTraitValidationEnabled = requiredTraitValidationEnabled;
-    }
-
-    public void setUseSraAuth(boolean useSraAuth) {
-        this.useSraAuth = useSraAuth;
-    }
-
-    // TODO(post-sra-identity-auth): Remove this customization and all related switching logic, keeping only the
-    //  useSraAuth==true branch going forward.
-    public boolean useSraAuth() {
-        return useSraAuth;
     }
 
     public void setEnableEndpointAuthSchemeParams(boolean enableEndpointAuthSchemeParams) {
@@ -917,11 +956,51 @@ public class CustomizationConfig {
         this.batchManagerSupported = batchManagerSupported;
     }
 
+    public boolean getPresignedUrlExtensionSupported() {
+        return presignedUrlExtensionSupported;
+    }
+
+    public void setPresignedUrlExtensionSupported(boolean presignedUrlExtensionSupported) {
+        this.presignedUrlExtensionSupported = presignedUrlExtensionSupported;
+    }
+
     public boolean getEnableFastUnmarshaller() {
         return enableFastUnmarshaller;
     }
 
     public void setEnableFastUnmarshaller(boolean enableFastUnmarshaller) {
         this.enableFastUnmarshaller = enableFastUnmarshaller;
+    }
+
+    public boolean isEnableEnvironmentBearerToken() {
+        return enableEnvironmentBearerToken;
+    }
+
+    public void setEnableEnvironmentBearerToken(boolean enableEnvironmentBearerToken) {
+        this.enableEnvironmentBearerToken = enableEnvironmentBearerToken;
+    }
+
+    public boolean getEnableEndpointProviderUriCaching() {
+        return enableEndpointProviderUriCaching;
+    }
+
+    public void setEnableEndpointProviderUriCaching(boolean enableEndpointProviderUriCaching) {
+        this.enableEndpointProviderUriCaching = enableEndpointProviderUriCaching;
+    }
+
+    public List<String> getAllowedUnderscoreNames() {
+        return allowedUnderscoreNames;
+    }
+
+    public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
+        this.allowedUnderscoreNames = allowedUnderscoreNames;
+    }
+
+    public List<String> getGenerateDirectUnionConstructors() {
+        return generateDirectUnionConstructors;
+    }
+
+    public void setGenerateDirectUnionConstructors(List<String> generateDirectUnionConstructors) {
+        this.generateDirectUnionConstructors = generateDirectUnionConstructors;
     }
 }

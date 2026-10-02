@@ -1,0 +1,48 @@
+{
+    "version": "2.50.3",
+    "date": "2026-08-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "CloudWatch Observability Admin Service",
+            "contributor": "",
+            "description": "Launch CMK support for Telemetry Enablement Organization and Account Rules."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Firewall",
+            "contributor": "",
+            "description": "This launch allows customers to use Network Firewall as an explicit Proxy and protect their workloads against threat of data exfiltration."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "Updates Kantar server URL validation to accept Fifty5Blue domain. Adds support for output to S3 Glacier Instant Retrieval."
+        },
+        {
+            "type": "feature",
+            "category": "Timestream InfluxDB",
+            "contributor": "",
+            "description": "This release adds support for customer-managed backup restore, and encryption of new DbInstances and DbClusters using customer-managed KMS keys."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "Added route visibility support for AWS Direct Connect, allowing customers to call ListVirtualInterfaceRoutes to view the BGP routes including AS path and BGP communities advertised over their virtual interfaces."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EKS Auth",
+            "contributor": "",
+            "description": "Added eksNodeName, instanceId, and zone optional parameters to the AssumeRoleForPodIdentity API."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "Updated descriptions for number of PreParseTextTransformations allowed per rule statement"
+        }
+    ]
+}

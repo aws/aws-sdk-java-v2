@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.client;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
@@ -26,6 +28,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbAsyncTable;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedAsyncClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.extensions.VersionedRecordExtension;
@@ -116,5 +120,23 @@ public class DefaultDynamoDbEnhancedAsyncClientTest {
         DefaultDynamoDbEnhancedAsyncClient copiedObject = dynamoDbEnhancedAsyncClient.toBuilder().build();
 
         assertThat(copiedObject, is(dynamoDbEnhancedAsyncClient));
+    }
+
+    @Test
+    public void dynamoDbAsyncClient_viaInterface_returnsSameInstance() {
+        DynamoDbEnhancedAsyncClient client = dynamoDbEnhancedAsyncClient;
+        assertThat(client.dynamoDbAsyncClient()).isSameAs(mockDynamoDbAsyncClient);
+    }
+
+    @Test
+    public void dynamoDbAsyncClient_defaultMethod_throwsUnsupportedOperationException() {
+        DynamoDbEnhancedAsyncClient bareClient = new DynamoDbEnhancedAsyncClient() {
+            @Override
+            public <T> DynamoDbAsyncTable<T> table(String tableName, TableSchema<T> tableSchema) {
+                return null;
+            }
+        };
+        assertThatThrownBy(() -> bareClient.dynamoDbAsyncClient())
+            .isInstanceOf(UnsupportedOperationException.class);
     }
 }

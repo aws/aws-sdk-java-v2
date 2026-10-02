@@ -2,10 +2,18 @@ package software.amazon.awssdk.services.smithyrpcv2protocol;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
@@ -13,6 +21,7 @@ import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -20,8 +29,13 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -31,6 +45,13 @@ import software.amazon.awssdk.protocols.json.BaseAwsJsonProtocolFactory;
 import software.amazon.awssdk.protocols.json.JsonOperationMetadata;
 import software.amazon.awssdk.protocols.rpcv2.SmithyRpcV2CborProtocolFactory;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.SmithyRpcV2ProtocolAuthSchemeParams;
+import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.SmithyRpcV2ProtocolAuthSchemeProvider;
+import software.amazon.awssdk.services.smithyrpcv2protocol.auth.scheme.internal.DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
+import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.SmithyRpcV2ProtocolEndpointParams;
+import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.SmithyRpcV2ProtocolEndpointProvider;
+import software.amazon.awssdk.services.smithyrpcv2protocol.endpoints.internal.SmithyRpcV2ProtocolEndpointResolverUtils;
+import software.amazon.awssdk.services.smithyrpcv2protocol.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.smithyrpcv2protocol.internal.SmithyRpcV2ProtocolServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.smithyrpcv2protocol.model.ComplexErrorException;
 import software.amazon.awssdk.services.smithyrpcv2protocol.model.EmptyInputOutputRequest;
@@ -76,6 +97,7 @@ import software.amazon.awssdk.services.smithyrpcv2protocol.transform.RpcV2CborSp
 import software.amazon.awssdk.services.smithyrpcv2protocol.transform.SimpleScalarPropertiesRequestMarshaller;
 import software.amazon.awssdk.services.smithyrpcv2protocol.transform.SparseNullsOperationRequestMarshaller;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal implementation of {@link SmithyRpcV2ProtocolClient}.
@@ -88,7 +110,7 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
     private static final Logger log = Logger.loggerFor(DefaultSmithyRpcV2ProtocolClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-            .serviceProtocol(AwsServiceProtocol.SMITHY_RPC_V2_CBOR).build();
+                                                                                   .serviceProtocol(AwsServiceProtocol.SMITHY_RPC_V2_CBOR).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -96,9 +118,31 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper = errorCode -> {
+        if (errorCode == null) {
+            return Optional.empty();
+        }
+        switch (errorCode) {
+            case "ValidationException":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ValidationException")
+                                                    .exceptionBuilderSupplier(ValidationException::builder).build());
+            case "InvalidGreeting":
+                return Optional.of(ExceptionMetadata.builder().errorCode("InvalidGreeting")
+                                                    .exceptionBuilderSupplier(InvalidGreetingException::builder).build());
+            case "ComplexError":
+                return Optional.of(ExceptionMetadata.builder().errorCode("ComplexError")
+                                                    .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+            default:
+                return Optional.empty();
+        }
+    };
+
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
+
     protected DefaultSmithyRpcV2ProtocolClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "SmithyRpcV2Protocol" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init(SmithyRpcV2CborProtocolFactory.builder()).build();
     }
 
@@ -120,33 +164,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public EmptyInputOutputResponse emptyInputOutput(EmptyInputOutputRequest emptyInputOutputRequest) throws AwsServiceException,
-            SdkClientException, SmithyRpcV2ProtocolException {
+                                                                                                             SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<EmptyInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                EmptyInputOutputResponse::builder);
-
+                                                                                                              EmptyInputOutputResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(emptyInputOutputRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, emptyInputOutputRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "EmptyInputOutput");
 
             return clientHandler.execute(new ClientExecutionParams<EmptyInputOutputRequest, EmptyInputOutputResponse>()
-                    .withOperationName("EmptyInputOutput").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(emptyInputOutputRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new EmptyInputOutputRequestMarshaller(protocolFactory)));
+                                             .withOperationName("EmptyInputOutput").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(emptyInputOutputRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new EmptyInputOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -168,31 +213,32 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public Float16Response float16(Float16Request float16Request) throws AwsServiceException, SdkClientException,
-            SmithyRpcV2ProtocolException {
+                                                                         SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<Float16Response> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                Float16Response::builder);
-
+                                                                                                     Float16Response::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(float16Request, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, float16Request
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "Float16");
 
             return clientHandler.execute(new ClientExecutionParams<Float16Request, Float16Response>()
-                    .withOperationName("Float16").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
-                    .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
-                    .withInput(float16Request).withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new Float16RequestMarshaller(protocolFactory)));
+                                             .withOperationName("Float16").withProtocolMetadata(protocolMetadata).withResponseHandler(responseHandler)
+                                             .withErrorResponseHandler(errorResponseHandler).withRequestConfiguration(clientConfiguration)
+                                             .withInput(float16Request).withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new Float16RequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -214,33 +260,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public FractionalSecondsResponse fractionalSeconds(FractionalSecondsRequest fractionalSecondsRequest)
-            throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<FractionalSecondsResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                FractionalSecondsResponse::builder);
-
+                                                                                                               FractionalSecondsResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(fractionalSecondsRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, fractionalSecondsRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "FractionalSeconds");
 
             return clientHandler.execute(new ClientExecutionParams<FractionalSecondsRequest, FractionalSecondsResponse>()
-                    .withOperationName("FractionalSeconds").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(fractionalSecondsRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new FractionalSecondsRequestMarshaller(protocolFactory)));
+                                             .withOperationName("FractionalSeconds").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(fractionalSecondsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new FractionalSecondsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -264,34 +311,35 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public GreetingWithErrorsResponse greetingWithErrors(GreetingWithErrorsRequest greetingWithErrorsRequest)
-            throws ComplexErrorException, InvalidGreetingException, AwsServiceException, SdkClientException,
-            SmithyRpcV2ProtocolException {
+        throws ComplexErrorException, InvalidGreetingException, AwsServiceException, SdkClientException,
+               SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<GreetingWithErrorsResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, GreetingWithErrorsResponse::builder);
-
+            operationMetadata, GreetingWithErrorsResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(greetingWithErrorsRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, greetingWithErrorsRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GreetingWithErrors");
 
             return clientHandler.execute(new ClientExecutionParams<GreetingWithErrorsRequest, GreetingWithErrorsResponse>()
-                    .withOperationName("GreetingWithErrors").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(greetingWithErrorsRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new GreetingWithErrorsRequestMarshaller(protocolFactory)));
+                                             .withOperationName("GreetingWithErrors").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(greetingWithErrorsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new GreetingWithErrorsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -313,32 +361,33 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public NoInputOutputResponse noInputOutput(NoInputOutputRequest noInputOutputRequest) throws AwsServiceException,
-            SdkClientException, SmithyRpcV2ProtocolException {
+                                                                                                 SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<NoInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                NoInputOutputResponse::builder);
-
+                                                                                                           NoInputOutputResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(noInputOutputRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, noInputOutputRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "NoInputOutput");
 
             return clientHandler.execute(new ClientExecutionParams<NoInputOutputRequest, NoInputOutputResponse>()
-                    .withOperationName("NoInputOutput").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(noInputOutputRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new NoInputOutputRequestMarshaller(protocolFactory)));
+                                             .withOperationName("NoInputOutput").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(noInputOutputRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new NoInputOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -361,33 +410,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public OperationWithDefaultsResponse operationWithDefaults(OperationWithDefaultsRequest operationWithDefaultsRequest)
-            throws ValidationException, AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws ValidationException, AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<OperationWithDefaultsResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, OperationWithDefaultsResponse::builder);
-
+            operationMetadata, OperationWithDefaultsResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithDefaultsRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithDefaultsRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithDefaults");
 
             return clientHandler.execute(new ClientExecutionParams<OperationWithDefaultsRequest, OperationWithDefaultsResponse>()
-                    .withOperationName("OperationWithDefaults").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(operationWithDefaultsRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new OperationWithDefaultsRequestMarshaller(protocolFactory)));
+                                             .withOperationName("OperationWithDefaults").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(operationWithDefaultsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new OperationWithDefaultsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -409,33 +459,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public OptionalInputOutputResponse optionalInputOutput(OptionalInputOutputRequest optionalInputOutputRequest)
-            throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<OptionalInputOutputResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, OptionalInputOutputResponse::builder);
-
+            operationMetadata, OptionalInputOutputResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(optionalInputOutputRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, optionalInputOutputRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OptionalInputOutput");
 
             return clientHandler.execute(new ClientExecutionParams<OptionalInputOutputRequest, OptionalInputOutputResponse>()
-                    .withOperationName("OptionalInputOutput").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(optionalInputOutputRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new OptionalInputOutputRequestMarshaller(protocolFactory)));
+                                             .withOperationName("OptionalInputOutput").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(optionalInputOutputRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new OptionalInputOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -457,33 +508,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public RecursiveShapesResponse recursiveShapes(RecursiveShapesRequest recursiveShapesRequest) throws AwsServiceException,
-            SdkClientException, SmithyRpcV2ProtocolException {
+                                                                                                         SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<RecursiveShapesResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                RecursiveShapesResponse::builder);
-
+                                                                                                             RecursiveShapesResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(recursiveShapesRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, recursiveShapesRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "RecursiveShapes");
 
             return clientHandler.execute(new ClientExecutionParams<RecursiveShapesRequest, RecursiveShapesResponse>()
-                    .withOperationName("RecursiveShapes").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(recursiveShapesRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new RecursiveShapesRequestMarshaller(protocolFactory)));
+                                             .withOperationName("RecursiveShapes").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(recursiveShapesRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new RecursiveShapesRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -506,33 +558,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public RpcV2CborDenseMapsResponse rpcV2CborDenseMaps(RpcV2CborDenseMapsRequest rpcV2CborDenseMapsRequest)
-            throws ValidationException, AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws ValidationException, AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<RpcV2CborDenseMapsResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, RpcV2CborDenseMapsResponse::builder);
-
+            operationMetadata, RpcV2CborDenseMapsResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(rpcV2CborDenseMapsRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, rpcV2CborDenseMapsRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "RpcV2CborDenseMaps");
 
             return clientHandler.execute(new ClientExecutionParams<RpcV2CborDenseMapsRequest, RpcV2CborDenseMapsResponse>()
-                    .withOperationName("RpcV2CborDenseMaps").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborDenseMapsRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new RpcV2CborDenseMapsRequestMarshaller(protocolFactory)));
+                                             .withOperationName("RpcV2CborDenseMaps").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborDenseMapsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new RpcV2CborDenseMapsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -555,32 +608,33 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public RpcV2CborListsResponse rpcV2CborLists(RpcV2CborListsRequest rpcV2CborListsRequest) throws ValidationException,
-            AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+                                                                                                     AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<RpcV2CborListsResponse> responseHandler = protocolFactory.createResponseHandler(operationMetadata,
-                RpcV2CborListsResponse::builder);
-
+                                                                                                            RpcV2CborListsResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(rpcV2CborListsRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, rpcV2CborListsRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "RpcV2CborLists");
 
             return clientHandler.execute(new ClientExecutionParams<RpcV2CborListsRequest, RpcV2CborListsResponse>()
-                    .withOperationName("RpcV2CborLists").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborListsRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new RpcV2CborListsRequestMarshaller(protocolFactory)));
+                                             .withOperationName("RpcV2CborLists").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborListsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new RpcV2CborListsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -603,33 +657,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public RpcV2CborSparseMapsResponse rpcV2CborSparseMaps(RpcV2CborSparseMapsRequest rpcV2CborSparseMapsRequest)
-            throws ValidationException, AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws ValidationException, AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<RpcV2CborSparseMapsResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, RpcV2CborSparseMapsResponse::builder);
-
+            operationMetadata, RpcV2CborSparseMapsResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(rpcV2CborSparseMapsRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, rpcV2CborSparseMapsRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "RpcV2CborSparseMaps");
 
             return clientHandler.execute(new ClientExecutionParams<RpcV2CborSparseMapsRequest, RpcV2CborSparseMapsResponse>()
-                    .withOperationName("RpcV2CborSparseMaps").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborSparseMapsRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new RpcV2CborSparseMapsRequestMarshaller(protocolFactory)));
+                                             .withOperationName("RpcV2CborSparseMaps").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(rpcV2CborSparseMapsRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new RpcV2CborSparseMapsRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -651,34 +706,35 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public SimpleScalarPropertiesResponse simpleScalarProperties(SimpleScalarPropertiesRequest simpleScalarPropertiesRequest)
-            throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<SimpleScalarPropertiesResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, SimpleScalarPropertiesResponse::builder);
-
+            operationMetadata, SimpleScalarPropertiesResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(simpleScalarPropertiesRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, simpleScalarPropertiesRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "SimpleScalarProperties");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<SimpleScalarPropertiesRequest, SimpleScalarPropertiesResponse>()
-                            .withOperationName("SimpleScalarProperties").withProtocolMetadata(protocolMetadata)
-                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withRequestConfiguration(clientConfiguration).withInput(simpleScalarPropertiesRequest)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .withMarshaller(new SimpleScalarPropertiesRequestMarshaller(protocolFactory)));
+                .execute(new ClientExecutionParams<SimpleScalarPropertiesRequest, SimpleScalarPropertiesResponse>()
+                             .withOperationName("SimpleScalarProperties").withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration).withInput(simpleScalarPropertiesRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withMarshaller(new SimpleScalarPropertiesRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -700,33 +756,34 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
      */
     @Override
     public SparseNullsOperationResponse sparseNullsOperation(SparseNullsOperationRequest sparseNullsOperationRequest)
-            throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
+        throws AwsServiceException, SdkClientException, SmithyRpcV2ProtocolException {
         JsonOperationMetadata operationMetadata = JsonOperationMetadata.builder().hasStreamingSuccessResponse(false)
-                .isPayloadJson(true).build();
+                                                                       .isPayloadJson(true).build();
 
         HttpResponseHandler<SparseNullsOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                operationMetadata, SparseNullsOperationResponse::builder);
-
+            operationMetadata, SparseNullsOperationResponse::builder);
         HttpResponseHandler<AwsServiceException> errorResponseHandler = createErrorResponseHandler(protocolFactory,
-                operationMetadata);
+                                                                                                   operationMetadata, exceptionMetadataMapper);
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(sparseNullsOperationRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, sparseNullsOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "SmithyRpcV2Protocol");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "SparseNullsOperation");
 
             return clientHandler.execute(new ClientExecutionParams<SparseNullsOperationRequest, SparseNullsOperationResponse>()
-                    .withOperationName("SparseNullsOperation").withProtocolMetadata(protocolMetadata)
-                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                    .withRequestConfiguration(clientConfiguration).withInput(sparseNullsOperationRequest)
-                    .withMetricCollector(apiCallMetricCollector)
-                    .withMarshaller(new SparseNullsOperationRequestMarshaller(protocolFactory)));
+                                             .withOperationName("SparseNullsOperation").withProtocolMetadata(protocolMetadata)
+                                             .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                                             .withRequestConfiguration(clientConfiguration).withInput(sparseNullsOperationRequest)
+                                             .withMetricCollector(apiCallMetricCollector)
+                                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new SparseNullsOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -736,7 +793,7 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-            RequestOverrideConfiguration requestOverrideConfiguration) {
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -750,9 +807,83 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
         return publishers;
     }
 
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request,
+            ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
+        SmithyRpcV2ProtocolAuthSchemeProvider requestAuthSchemeProvider = request
+            .overrideConfiguration()
+            .flatMap(c -> c.authSchemeProvider())
+            .map(p -> Validate.isInstanceOf(SmithyRpcV2ProtocolAuthSchemeProvider.class, p,
+                                            "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider")).orElse(null);
+        SmithyRpcV2ProtocolAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider
+                                                                                                     : Validate.isInstanceOf(SmithyRpcV2ProtocolAuthSchemeProvider.class,
+                                                                                                                             executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
+                                                                                                                             "Expected an instance of SmithyRpcV2ProtocolAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultSmithyRpcV2ProtocolAuthSchemeProvider;
+        String cacheKey = String.valueOf(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
+        SmithyRpcV2ProtocolAuthSchemeParams.Builder paramsBuilder = SmithyRpcV2ProtocolAuthSchemeParams.builder().operation(
+            operationName);
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
+        return options;
+    }
+
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
+        SmithyRpcV2ProtocolEndpointProvider provider = (SmithyRpcV2ProtocolEndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+        try {
+            SmithyRpcV2ProtocolEndpointParams endpointParams = SmithyRpcV2ProtocolEndpointResolverUtils.ruleParams(request,
+                                                                                                                   executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
+            if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                Optional<String> hostPrefix = SmithyRpcV2ProtocolEndpointResolverUtils.hostPrefix(operationName, request);
+                if (hostPrefix.isPresent()) {
+                    endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
+                }
+            }
+            List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+            SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+                selectedAuthScheme = SmithyRpcV2ProtocolEndpointResolverUtils.authSchemeWithEndpointSignerProperties(
+                    endpointAuthSchemes, selectedAuthScheme);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            SmithyRpcV2ProtocolEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
+            return endpoint;
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
+    }
+
     private HttpResponseHandler<AwsServiceException> createErrorResponseHandler(BaseAwsJsonProtocolFactory protocolFactory,
-            JsonOperationMetadata operationMetadata) {
-        return protocolFactory.createErrorResponseHandler(operationMetadata);
+                                                                                JsonOperationMetadata operationMetadata, Function<String, Optional<ExceptionMetadata>> exceptionMetadataMapper) {
+        return protocolFactory.createErrorResponseHandler(operationMetadata, exceptionMetadataMapper);
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
@@ -780,12 +911,12 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
         List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
-        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         if (plugins.isEmpty()) {
-            return configuration.build();
+            return clientConfiguration;
         }
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         SmithyRpcV2ProtocolServiceClientConfigurationBuilder serviceConfigBuilder = new SmithyRpcV2ProtocolServiceClientConfigurationBuilder(
-                configuration);
+            configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
         }
@@ -794,20 +925,9 @@ final class DefaultSmithyRpcV2ProtocolClient implements SmithyRpcV2ProtocolClien
     }
 
     private <T extends BaseAwsJsonProtocolFactory.Builder<T>> T init(T builder) {
-        return builder
-                .clientConfiguration(clientConfiguration)
-                .defaultServiceExceptionSupplier(SmithyRpcV2ProtocolException::builder)
-                .protocol(AwsJsonProtocol.SMITHY_RPC_V2_CBOR)
-                .protocolVersion("1.1")
-                .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("ValidationException")
-                                .exceptionBuilderSupplier(ValidationException::builder).build())
-                .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("InvalidGreeting")
-                                .exceptionBuilderSupplier(InvalidGreetingException::builder).build())
-                .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("ComplexError")
-                                .exceptionBuilderSupplier(ComplexErrorException::builder).build());
+        return builder.clientConfiguration(clientConfiguration)
+                      .defaultServiceExceptionSupplier(SmithyRpcV2ProtocolException::builder)
+                      .protocol(AwsJsonProtocol.SMITHY_RPC_V2_CBOR).protocolVersion("1.1");
     }
 
     @Override

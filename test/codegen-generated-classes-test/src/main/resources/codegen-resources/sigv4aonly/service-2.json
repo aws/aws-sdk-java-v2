@@ -20,7 +20,7 @@
         "method":"POST",
         "requestUri":"/2016-03-11/simpleOperationWithNoEndpointParams"
       },
-      "input":{"shape":"sampleRequest"},
+      "input":{"shape":"SampleRequest"},
       "staticContextParams":{
         "ApiType":{"value":"NoEndpointSigningProperties"}
       }
@@ -31,14 +31,14 @@
         "method":"POST",
         "requestUri":"/2016-03-11/multiAuthWithOnlySigv4aAndSigv4"
       },
-      "input":{"shape":"sampleRequest"},
+      "input":{"shape":"SampleRequest"},
       "staticContextParams":{
         "ApiType":{"value":"onlySigv4a"}
       }
     }
   },
   "shapes": {
-    "sampleRequest": {
+    "SampleRequest": {
       "type": "structure",
       "members": {
         "StringMember": {

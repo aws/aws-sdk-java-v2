@@ -37,11 +37,14 @@ import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
+import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 
 /**
  * Tests for HTTP proxy functionality in the Netty client.
  */
 public class ProxyWireMockTest {
+    private static final EnvironmentVariableHelper ENVIRONMENT_VARIABLE_HELPER = new EnvironmentVariableHelper();
+
     private static SdkAsyncHttpClient client;
 
     private static ProxyConfiguration proxyCfg;
@@ -79,6 +82,7 @@ public class ProxyWireMockTest {
             client.close();
         }
         client = null;
+        ENVIRONMENT_VARIABLE_HELPER.reset();
     }
 
     @Test(expected = IOException.class)
@@ -142,6 +146,32 @@ public class ProxyWireMockTest {
         client = NettyNioAsyncHttpClient.builder()
                                         .proxyConfiguration(cfg)
                                         .useNonBlockingDnsResolver(true)
+                                        .build();
+
+        client.execute(req).join();
+
+        responseHandler.completeFuture.join();
+        assertThat(responseHandler.fullResponseAsString()).isEqualTo("hello");
+    }
+
+    @Test
+    public void proxyConfigured_hostInCommaSpaceNoProxyEnv_doesNotConnect() {
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", "example.com, localhost");
+
+        RecordingResponseHandler responseHandler = new RecordingResponseHandler();
+        AsyncExecuteRequest req = AsyncExecuteRequest.builder()
+                                                     .request(testSdkRequest())
+                                                     .responseHandler(responseHandler)
+                                                     .requestContentPublisher(new EmptyPublisher())
+                                                     .build();
+
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .host("localhost")
+                                                   .port(mockProxy.port())
+                                                   .build();
+
+        client = NettyNioAsyncHttpClient.builder()
+                                        .proxyConfiguration(cfg)
                                         .build();
 
         client.execute(req).join();

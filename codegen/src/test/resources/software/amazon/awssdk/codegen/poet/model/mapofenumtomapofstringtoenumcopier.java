@@ -43,14 +43,14 @@ final class MapOfEnumToMapOfStringToEnumCopier {
         } else {
             Map<String, Map<String, String>> modifiableMap = new LinkedHashMap<>(mapOfEnumToMapOfStringToEnumParam.size());
             mapOfEnumToMapOfStringToEnumParam.forEach((key, value) -> {
-                String result = key.toString();
+                String result = key == null ? null : key.toString();
                 Map<String, String> map1;
                 if (value == null || value instanceof SdkAutoConstructMap) {
                     map1 = DefaultSdkAutoConstructMap.getInstance();
                 } else {
                     Map<String, String> modifiableMap1 = new LinkedHashMap<>(value.size());
                     value.forEach((key1, value1) -> {
-                        String result1 = value1.toString();
+                        String result1 = value1 == null ? null : value1.toString();
                         modifiableMap1.put(key1, result1);
                     });
                     map1 = Collections.unmodifiableMap(modifiableMap1);

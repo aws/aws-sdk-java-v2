@@ -1,0 +1,78 @@
+{
+    "version": "2.42.11",
+    "date": "2026-03-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed misleading checksum mismatch error message for S3 GetObject that incorrectly referenced uploading. See [#6324](https://github.com/aws/aws-sdk-java-v2/issues/6324)."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS CRT-based S3 Client",
+            "contributor": "bsmelo",
+            "description": "Only log `SSL Certificate verification is disabled` warning if trustAllCertificatesEnabled is set to true."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updating Lakeformation Access Grants Plugin version to 1.4"
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2 Migration Tool",
+            "contributor": "",
+            "description": "Strip quotes in getETag response"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Today, Amazon Connect is announcing the ability to filter (include or exclude) recommendations based on properties of items and interactions."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Improved performance by adding a fast path avoiding wrapping of String and Byte types"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Kubernetes Service",
+            "contributor": "",
+            "description": "Adds support for a new tier in controlPlaneScalingConfig on EKS Clusters."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Added support for the new voices - Ambre (fr-FR), Beatrice (it-IT), Florian (fr-FR), Lennart (de-DE), Lorenzo (it-IT) and Tiffany (en-US). They are available as a Generative voices only."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "SageMaker training plans allow you to extend your existing training plans to avoid workload interruptions without workload reconfiguration. When a training plan is approaching expiration, you can extend it directly through the SageMaker AI console or programmatically using the API or AWS CLI."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SimpleDB v2",
+            "contributor": "",
+            "description": "Introduced Amazon SimpleDB export functionality enabling domain data export to S3 in JSON format. Added three new APIs StartDomainExport, GetExport, and ListExports via SimpleDBv2 service. Supports cross-region exports and KMS encryption."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces",
+            "contributor": "",
+            "description": "Added WINDOWS SERVER 2025 OperatingSystemName."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

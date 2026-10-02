@@ -20,8 +20,11 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
 import software.amazon.awssdk.core.checksums.SdkChecksum;
+import software.amazon.awssdk.core.internal.checksums.NoOpPayloadChecksumStore;
 import software.amazon.awssdk.core.internal.chunked.AwsChunkedEncodingConfig;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -45,7 +48,9 @@ public abstract class AwsChunkedEncodingInputStream extends AwsChunkedInputStrea
     protected boolean isTrailingTerminated = true;
     private final int chunkSize;
     private final int maxBufferSize;
+    private final ChecksumAlgorithm checksumAlgorithm;
     private final SdkChecksum sdkChecksum;
+    private final PayloadChecksumStore checksumStore;
     private boolean isLastTrailingCrlf;
 
     /**
@@ -58,7 +63,10 @@ public abstract class AwsChunkedEncodingInputStream extends AwsChunkedInputStrea
      *                        See {@link AwsChunkedEncodingConfig} for default values.
      */
     protected AwsChunkedEncodingInputStream(InputStream in,
-                                            SdkChecksum sdkChecksum, String checksumHeaderForTrailer,
+                                            ChecksumAlgorithm checksumAlgorithm,
+                                            SdkChecksum sdkChecksum,
+                                            PayloadChecksumStore checksumStore,
+                                            String checksumHeaderForTrailer,
                                             AwsChunkedEncodingConfig config) {
         AwsChunkedEncodingConfig awsChunkedEncodingConfig = config == null ? AwsChunkedEncodingConfig.create() : config;
 
@@ -78,14 +86,18 @@ public abstract class AwsChunkedEncodingInputStream extends AwsChunkedInputStrea
         if (maxBufferSize < chunkSize) {
             throw new IllegalArgumentException("Max buffer size should not be less than chunk size");
         }
+        this.checksumAlgorithm = checksumAlgorithm;
         this.sdkChecksum = sdkChecksum;
+        this.checksumStore = checksumStore == null ? NoOpPayloadChecksumStore.create() : checksumStore;
         this.checksumHeaderForTrailer = checksumHeaderForTrailer;
     }
 
     protected abstract static class Builder<T extends Builder> {
 
         protected InputStream inputStream;
+        protected ChecksumAlgorithm checksumAlgorithm;
         protected SdkChecksum sdkChecksum;
+        protected PayloadChecksumStore checksumStore;
         protected String checksumHeaderForTrailer;
         protected AwsChunkedEncodingConfig awsChunkedEncodingConfig;
 
@@ -110,6 +122,11 @@ public abstract class AwsChunkedEncodingInputStream extends AwsChunkedInputStrea
             return (T) this;
         }
 
+        public T checksumAlgorithm(ChecksumAlgorithm checksumAlgorithm) {
+            this.checksumAlgorithm = checksumAlgorithm;
+            return (T) this;
+        }
+
         /**
          *
          * @param sdkChecksum  Instance of SdkChecksum, this can be null if we do not want to calculate Checksum
@@ -117,6 +134,11 @@ public abstract class AwsChunkedEncodingInputStream extends AwsChunkedInputStrea
          */
         public T sdkChecksum(SdkChecksum sdkChecksum) {
             this.sdkChecksum = sdkChecksum;
+            return (T) this;
+        }
+
+        public T checksumStore(PayloadChecksumStore checksumStore) {
+            this.checksumStore = checksumStore;
             return (T) this;
         }
 
@@ -166,7 +188,11 @@ public abstract class AwsChunkedEncodingInputStream extends AwsChunkedInputStrea
             return true;
         }
         if (calculatedChecksum == null) {
-            calculatedChecksum = sdkChecksum.getChecksumBytes();
+            calculatedChecksum = checksumStore.getChecksumValue(checksumAlgorithm);
+            if (calculatedChecksum == null) {
+                calculatedChecksum = sdkChecksum.getChecksumBytes();
+                checksumStore.putChecksumValue(checksumAlgorithm, calculatedChecksum);
+            }
             currentChunkIterator = new ChunkContentIterator(createChecksumChunkHeader());
             return false;
         } else if (!isLastTrailingCrlf) {

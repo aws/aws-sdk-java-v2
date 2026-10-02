@@ -1,0 +1,53 @@
+{
+    "version": "2.0",
+    "metadata": {
+        "apiVersion": "2023-06-08",
+        "endpointPrefix": "foobar-service-endpoint",
+        "globalEndpoint": "foobar-service.amazonaws.com",
+        "protocol": "rest-json",
+        "serviceAbbreviation": "Foo Bar Service",
+        "serviceFullName": "Foo Bar Service",
+        "serviceId": "Foo Bar",
+        "signingName": "foobar-service",
+        "signatureVersion": "v4",
+        "uid": "database-service-2023-06-08"
+    },
+    "operations": {
+        "GetDatabaseVersion": {
+            "name": "GetDatabaseVersion",
+            "http": {
+                "method": "GET",
+                "requestUri": "/get-version/"
+            },
+            "input": {
+                "shape": "GetDatabaseVersionRequest"
+            },
+            "output": {
+                "shape": "GetDatabaseVersionResponse"
+            },
+            "documentation": "<p>Performs a get database version operation</p>"
+        }
+    },
+    "shapes": {
+        "GetDatabaseVersionRequest": {
+            "type": "structure",
+            "members": {
+                "StringMember": {
+                    "shape": "String",
+                    "documentation": "<p>A string Member</p>"
+                }
+            }
+        },
+        "GetDatabaseVersionResponse": {
+            "type": "structure",
+            "members": {
+                "StringMember": {
+                    "shape": "String",
+                    "documentation": "<p>A string Member</p>"
+                }
+            }
+        },
+        "String":{"type":"string"}
+    },
+    "documentation": "A Database Service with no auth on the service at all"
+}

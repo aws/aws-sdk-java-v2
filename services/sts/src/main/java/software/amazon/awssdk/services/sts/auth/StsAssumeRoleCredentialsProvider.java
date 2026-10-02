@@ -25,9 +25,11 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sts.StsClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
@@ -49,8 +51,10 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 public final class StsAssumeRoleCredentialsProvider
     extends StsCredentialsProvider
     implements ToCopyableBuilder<StsAssumeRoleCredentialsProvider.Builder, StsAssumeRoleCredentialsProvider> {
-    private static final String PROVIDER_NAME = "StsAssumeRoleCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_STS_ASSUME_ROLE.value();
     private final Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
+    private final String sourceChain;
+    private final String providerName;
 
     /**
      * @see #builder()
@@ -60,6 +64,10 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(builder.assumeRoleRequestSupplier, "Assume role request must not be null.");
 
         this.assumeRoleRequestSupplier = builder.assumeRoleRequestSupplier;
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
+            ? PROVIDER_NAME 
+            : builder.sourceChain + "," + PROVIDER_NAME;
     }
 
     /**
@@ -75,7 +83,7 @@ public final class StsAssumeRoleCredentialsProvider
         Validate.notNull(assumeRoleRequest, "Assume role request must not be null.");
         AssumeRoleResponse assumeRoleResponse = stsClient.assumeRole(assumeRoleRequest);
         return fromStsCredentials(assumeRoleResponse.credentials(),
-                                  PROVIDER_NAME,
+                                  providerName(),
                                   accountIdFromArn(assumeRoleResponse.assumedRoleUser()));
     }
 
@@ -93,7 +101,7 @@ public final class StsAssumeRoleCredentialsProvider
 
     @Override
     String providerName() {
-        return PROVIDER_NAME;
+        return this.providerName;
     }
 
     /**
@@ -103,6 +111,7 @@ public final class StsAssumeRoleCredentialsProvider
     @NotThreadSafe
     public static final class Builder extends BaseBuilder<Builder, StsAssumeRoleCredentialsProvider> {
         private Supplier<AssumeRoleRequest> assumeRoleRequestSupplier;
+        private String sourceChain;
 
         private Builder() {
             super(StsAssumeRoleCredentialsProvider::new);
@@ -111,6 +120,7 @@ public final class StsAssumeRoleCredentialsProvider
         private Builder(StsAssumeRoleCredentialsProvider provider) {
             super(StsAssumeRoleCredentialsProvider::new, provider);
             this.assumeRoleRequestSupplier = provider.assumeRoleRequestSupplier;
+            this.sourceChain = provider.sourceChain;
         }
 
         /**
@@ -143,6 +153,21 @@ public final class StsAssumeRoleCredentialsProvider
          */
         public Builder refreshRequest(Consumer<AssumeRoleRequest.Builder> assumeRoleRequest) {
             return refreshRequest(AssumeRoleRequest.builder().applyMutation(assumeRoleRequest).build());
+        }
+
+        /**
+         * Configure the source of this credentials provider. This is used for business metrics tracking
+         * to identify the credential provider chain.
+         *
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         *
+         * @param sourceChain The source identifier for business metrics tracking.
+         * @return This object for chained calls.
+         */
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
+            return this;
         }
 
         @Override

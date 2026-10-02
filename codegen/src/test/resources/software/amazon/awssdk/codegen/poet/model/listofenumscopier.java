@@ -33,7 +33,7 @@ final class ListOfEnumsCopier {
         } else {
             List<String> modifiableList = new ArrayList<>(listOfEnumsParam.size());
             listOfEnumsParam.forEach(entry -> {
-                String result = entry.toString();
+                String result = entry == null ? null : entry.toString();
                 modifiableList.add(result);
             });
             list = Collections.unmodifiableList(modifiableList);

@@ -62,6 +62,17 @@ public interface DynamoDbAsyncTable<T> extends MappedTableResource<T> {
     DynamoDbAsyncIndex<T> index(String indexName);
 
     /**
+     * Returns a mapped vector index that can be used to execute vector search commands against a vector index belonging to the
+     * table being mapped by this object.
+     *
+     * @param indexName The name of the vector index to build the command interface for.
+     * @return A {@link DynamoDbAsyncVectorIndex} object that can be used to execute vector search commands against.
+     */
+    default DynamoDbAsyncVectorIndex<T> vectorIndex(String indexName) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
      * Creates a new table in DynamoDb with the name and schema already defined for this DynamoDbTable
      * together with additional parameters specified in the supplied request object, {@link CreateTableEnhancedRequest}.
      * <p>

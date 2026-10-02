@@ -38,7 +38,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@link StandardRetryStrategy}.
+     * Create a new builder for a {@link StandardRetryStrategy}. This is equivalent to {@code standardStrategyBuilder(false)}.
      *
      * <p>Example Usage
      * {@snippet
@@ -50,7 +50,25 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static StandardRetryStrategy.Builder standardStrategyBuilder() {
-        return StandardRetryStrategy.builder();
+        return standardStrategyBuilder(false);
+    }
+
+    /**
+     * Create a new builder for a {@link StandardRetryStrategy}. This is equivalent to {@code standardStrategyBuilder(false)}.
+     *
+     * <p>Example Usage
+     * {@snippet
+         * StandardRetryStrategy retryStrategy =
+     *     DefaultRetryStrategy.standardStrategyBuilder(true)
+     *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
+     *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
+     *                    .build();
+     * }
+     *
+     * @param retries2026Enabled Whether retries 2.1 behavior is used.
+     */
+    public static StandardRetryStrategy.Builder standardStrategyBuilder(Boolean retries2026Enabled) {
+        return StandardRetryStrategy.builder(retries2026Enabled);
     }
 
     /**
@@ -70,7 +88,7 @@ public final class DefaultRetryStrategy {
     }
 
     /**
-     * Create a new builder for a {@link AdaptiveRetryStrategy}.
+     * Create a new builder for a {@link AdaptiveRetryStrategy}. This is equivalent to {@code adaptiveStrategyBuilder(false)}.
      *
      * <p>Example Usage
      * {@snippet
@@ -82,16 +100,42 @@ public final class DefaultRetryStrategy {
      * }
      */
     public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder() {
-        return AdaptiveRetryStrategy.builder();
+        return adaptiveStrategyBuilder(false);
+    }
+
+    /**
+     * Create a new builder for a {@link AdaptiveRetryStrategy}.
+     *
+     * <p>Example Usage
+     * {@snippet
+         * AdaptiveRetryStrategy retryStrategy =
+     *     DefaultRetryStrategy.adaptiveStrategyBuilder(true)
+     *                    .retryOnExceptionInstanceOf(IllegalArgumentException.class)
+     *                    .retryOnExceptionInstanceOf(IllegalStateException.class)
+     *                    .build();
+     * }
+     *
+     * @param retries2026Enabled Whether retries 2.1 behavior is used.
+     */
+    public static AdaptiveRetryStrategy.Builder adaptiveStrategyBuilder(Boolean retries2026Enabled) {
+        return AdaptiveRetryStrategy.builder(retries2026Enabled);
     }
 
     static final class Standard {
         static final int MAX_ATTEMPTS = 3;
-        static final Duration BASE_DELAY = Duration.ofMillis(100);
+
+        // v2.1 constants
+        static final Duration BASE_DELAY_V21 = Duration.ofMillis(50);
+        static final int DEFAULT_EXCEPTION_TOKEN_COST_V21 = 14;
+        static final int THROTTLING_EXCEPTION_TOKEN_COST_V21 = 5;
+
+        // v2.0 constants
+        static final Duration BASE_DELAY_V20 = Duration.ofMillis(100);
+        static final int DEFAULT_EXCEPTION_TOKEN_COST_V20 = 5;
+
         static final Duration THROTTLED_BASE_DELAY = Duration.ofSeconds(1);
         static final Duration MAX_BACKOFF = Duration.ofSeconds(20);
         static final int TOKEN_BUCKET_SIZE = 500;
-        static final int DEFAULT_EXCEPTION_TOKEN_COST = 5;
 
         private Standard() {
         }

@@ -17,6 +17,7 @@ package foo.bar;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.AmazonServiceException;
+import com.amazonaws.services.cloudwatch.model.GetMetricStatisticsRequest;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -27,12 +28,14 @@ import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.AmazonSQSException;
 import com.amazonaws.services.sqs.model.ListQueuesRequest;
 import com.amazonaws.services.sqs.model.ListQueuesResult;
+import com.amazonaws.services.sqs.model.SendMessageRequest;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Date;
 
 public class Application {
 
@@ -99,5 +102,21 @@ public class Application {
         PutObjectResult result = s3.putObject(bucket, key, content);
 
         return result;
+    }
+
+    void dateToInstant(Date start, Date end) {
+        GetMetricStatisticsRequest getMetricStatisticsRequest = new GetMetricStatisticsRequest()
+            .withStartTime(start)
+            .withEndTime(end);
+
+        GetMetricStatisticsRequest getMetricStatisticsRequest2 = new GetMetricStatisticsRequest();
+        getMetricStatisticsRequest2.setStartTime(start);
+        getMetricStatisticsRequest2.setEndTime(end);
+    }
+
+    void pojoSettersAfterCreation() {
+        SendMessageRequest sendMessageRequest = new SendMessageRequest();
+        sendMessageRequest.setMessageGroupId("groupId");
+        sendMessageRequest.setQueueUrl("queueUrl");
     }
 }

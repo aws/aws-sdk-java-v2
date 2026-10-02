@@ -15,11 +15,8 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.internal.operations;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static java.util.Collections.singletonList;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.never;
@@ -68,6 +65,17 @@ public class GetItemOperationTest {
     private DynamoDbEnhancedClientExtension mockDynamoDbEnhancedClientExtension;
 
     @Test
+    public void returnsCorrectOperationName() {
+        FakeItem keyItem = createUniqueFakeItem();
+        GetItemOperation<FakeItem> operation =
+            GetItemOperation.create(GetItemEnhancedRequest.builder()
+                                                          .key(k -> k.partitionValue(keyItem.getId()))
+                                                          .consistentRead(true).build());
+
+        assertThat(operation.operationName().label()).isEqualTo("GetItem");
+    }
+
+    @Test
     public void getServiceCall_makesTheRightCallAndReturnsResponse() {
         FakeItem keyItem = createUniqueFakeItem();
         GetItemOperation<FakeItem> getItemOperation =
@@ -78,7 +86,7 @@ public class GetItemOperationTest {
 
         GetItemResponse response = getItemOperation.serviceCall(mockDynamoDbClient).apply(getItemRequest);
 
-        assertThat(response, sameInstance(expectedResponse));
+        assertThat(response).isSameAs(expectedResponse);
         verify(mockDynamoDbClient).getItem(getItemRequest);
     }
 
@@ -110,7 +118,7 @@ public class GetItemOperationTest {
                                                        .key(expectedKeyMap)
                                                        .consistentRead(true)
                                                        .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -129,7 +137,7 @@ public class GetItemOperationTest {
             .tableName(TABLE_NAME)
             .key(expectedKeyMap)
             .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -152,7 +160,7 @@ public class GetItemOperationTest {
                                                        .tableName(TABLE_NAME)
                                                        .key(expectedKeyMap)
                                                        .build();
-        assertThat(request, is(expectedRequest));
+        assertThat(request).isEqualTo(expectedRequest);
     }
 
     @Test
@@ -204,7 +212,7 @@ public class GetItemOperationTest {
         GetItemEnhancedResponse<FakeItem> result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(result.attributes(), is(nullValue()));
+        assertThat(result.attributes()).isNull();
     }
 
     @Test
@@ -222,8 +230,8 @@ public class GetItemOperationTest {
         GetItemEnhancedResponse<FakeItem> result = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                                PRIMARY_CONTEXT, null);
 
-        assertThat(result.attributes().getId(), is(keyItem.getId()));
-        assertThat(result.attributes().getSubclassAttribute(), is("test-value"));
+        assertThat(result.attributes().getId()).isEqualTo(keyItem.getId());
+        assertThat(result.attributes().getSubclassAttribute()).isEqualTo("test-value");
     }
 
     @Test
@@ -237,7 +245,7 @@ public class GetItemOperationTest {
                                                                   PRIMARY_CONTEXT,
                                                                   mockDynamoDbEnhancedClientExtension);
 
-        assertThat(request.key(), is(keyMap));
+        assertThat(request.key()).isEqualTo(keyMap);
         verify(mockDynamoDbEnhancedClientExtension, never()).beforeWrite(any(DynamoDbExtensionContext.BeforeWrite.class));
     }
 
@@ -258,7 +266,7 @@ public class GetItemOperationTest {
         GetItemEnhancedResponse<FakeItem> resultItem = getItemOperation.transformResponse(response, FakeItem.getTableSchema(),
                                                                  PRIMARY_CONTEXT, mockDynamoDbEnhancedClientExtension);
 
-        assertThat(resultItem.attributes(), is(fakeItem));
+        assertThat(resultItem.attributes()).isEqualTo(fakeItem);
         verify(mockDynamoDbEnhancedClientExtension).afterRead(DefaultDynamoDbExtensionContext.builder()
                                                               .tableMetadata(FakeItem.getTableMetadata())
                                                               .operationContext(PRIMARY_CONTEXT)

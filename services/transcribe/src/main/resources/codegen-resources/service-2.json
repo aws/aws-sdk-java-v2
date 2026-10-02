@@ -536,7 +536,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Transcribes the audio from a customer service call and applies any additional Request Parameters you choose to include in your request.</p> <p>In addition to many standard transcription features, Call Analytics provides you with call characteristics, call summarization, speaker sentiment, and optional redaction of your text transcript and your audio file. You can also apply custom categories to flag specified conditions. To learn more about these features and insights, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Analyzing call center audio with Call Analytics</a>.</p> <p>If you want to apply categories to your Call Analytics job, you must create them before submitting your job request. Categories cannot be retroactively applied to a job. To create a new category, use the operation. To learn more about Call Analytics categories, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-categories-batch.html\">Creating categories for post-call transcriptions</a> and <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-categories-stream.html\">Creating categories for real-time transcriptions</a>.</p> <p>To make a <code>StartCallAnalyticsJob</code> request, you must first upload your media file into an Amazon S3 bucket; you can then specify the Amazon S3 location of the file using the <code>Media</code> parameter.</p> <p>Note that job queuing is enabled by default for Call Analytics jobs.</p> <p>You must include the following parameters in your <code>StartCallAnalyticsJob</code> request:</p> <ul> <li> <p> <code>region</code>: The Amazon Web Services Region where you are making your request. For a list of Amazon Web Services Regions supported with Amazon Transcribe, refer to <a href=\"https://docs.aws.amazon.com/general/latest/gr/transcribe.html\">Amazon Transcribe endpoints and quotas</a>.</p> </li> <li> <p> <code>CallAnalyticsJobName</code>: A custom name that you create for your transcription job that's unique within your Amazon Web Services account.</p> </li> <li> <p> <code>DataAccessRoleArn</code>: The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files.</p> </li> <li> <p> <code>Media</code> (<code>MediaFileUri</code> or <code>RedactedMediaFileUri</code>): The Amazon S3 location of your media file.</p> </li> </ul> <note> <p>With Call Analytics, you can redact the audio contained in your media file by including <code>RedactedMediaFileUri</code>, instead of <code>MediaFileUri</code>, to specify the location of your input audio. If you choose to redact your audio, you can find your redacted media at the location specified in the <code>RedactedMediaFileUri</code> field of your response.</p> </note>"
+      "documentation":"<p>Transcribes the audio from a customer service call and applies any additional Request Parameters you choose to include in your request.</p> <p>In addition to many standard transcription features, Call Analytics provides you with call characteristics, call summarization, speaker sentiment, and optional redaction of your text transcript and your audio file. You can also apply custom categories to flag specified conditions. To learn more about these features and insights, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/call-analytics.html\">Analyzing call center audio with Call Analytics</a>.</p> <p>If you want to apply categories to your Call Analytics job, you must create them before submitting your job request. Categories cannot be retroactively applied to a job. To create a new category, use the operation. To learn more about Call Analytics categories, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-categories-batch.html\">Creating categories for post-call transcriptions</a> and <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tca-categories-stream.html\">Creating categories for real-time transcriptions</a>.</p> <p>To make a <code>StartCallAnalyticsJob</code> request, you must first upload your media file into an Amazon S3 bucket; you can then specify the Amazon S3 location of the file using the <code>Media</code> parameter.</p> <p>Job queuing is available for Call Analytics jobs. If you pass a <code>DataAccessRoleArn</code> in your request and you exceed your Concurrent Job Limit, your job will automatically be added to a queue to be processed once your concurrent job count is below the limit.</p> <p>You must include the following parameters in your <code>StartCallAnalyticsJob</code> request:</p> <ul> <li> <p> <code>region</code>: The Amazon Web Services Region where you are making your request. For a list of Amazon Web Services Regions supported with Amazon Transcribe, refer to <a href=\"https://docs.aws.amazon.com/general/latest/gr/transcribe.html\">Amazon Transcribe endpoints and quotas</a>.</p> </li> <li> <p> <code>CallAnalyticsJobName</code>: A custom name that you create for your transcription job that's unique within your Amazon Web Services account.</p> </li> <li> <p> <code>Media</code> (<code>MediaFileUri</code> or <code>RedactedMediaFileUri</code>): The Amazon S3 location of your media file.</p> </li> </ul> <note> <p>With Call Analytics, you can redact the audio contained in your media file by including <code>RedactedMediaFileUri</code>, instead of <code>MediaFileUri</code>, to specify the location of your input audio. If you choose to redact your audio, you can find your redacted media at the location specified in the <code>RedactedMediaFileUri</code> field of your response.</p> </note>"
     },
     "StartMedicalScribeJob":{
       "name":"StartMedicalScribeJob",
@@ -552,7 +552,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Transcribes patient-clinician conversations and generates clinical notes. </p> <p>Amazon Web Services HealthScribe automatically provides rich conversation transcripts, identifies speaker roles, classifies dialogues, extracts medical terms, and generates preliminary clinical notes. To learn more about these features, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe.html\">Amazon Web Services HealthScribe</a>.</p> <p>To make a <code>StartMedicalScribeJob</code> request, you must first upload your media file into an Amazon S3 bucket; you can then specify the Amazon S3 location of the file using the <code>Media</code> parameter.</p> <p>You must include the following parameters in your <code>StartMedicalTranscriptionJob</code> request:</p> <ul> <li> <p> <code>DataAccessRoleArn</code>: The ARN of an IAM role with the these minimum permissions: read permission on input file Amazon S3 bucket specified in <code>Media</code>, write permission on the Amazon S3 bucket specified in <code>OutputBucketName</code>, and full permissions on the KMS key specified in <code>OutputEncryptionKMSKeyId</code> (if set). The role should also allow <code>transcribe.amazonaws.com</code> to assume it. </p> </li> <li> <p> <code>Media</code> (<code>MediaFileUri</code>): The Amazon S3 location of your media file.</p> </li> <li> <p> <code>MedicalScribeJobName</code>: A custom name you create for your MedicalScribe job that is unique within your Amazon Web Services account.</p> </li> <li> <p> <code>OutputBucketName</code>: The Amazon S3 bucket where you want your output files stored.</p> </li> <li> <p> <code>Settings</code>: A <code>MedicalScribeSettings</code> obect that must set exactly one of <code>ShowSpeakerLabels</code> or <code>ChannelIdentification</code> to true. If <code>ShowSpeakerLabels</code> is true, <code>MaxSpeakerLabels</code> must also be set. </p> </li> <li> <p> <code>ChannelDefinitions</code>: A <code>MedicalScribeChannelDefinitions</code> array should be set if and only if the <code>ChannelIdentification</code> value of <code>Settings</code> is set to true. </p> </li> </ul>"
+      "documentation":"<p>Transcribes patient-clinician conversations and generates clinical notes. </p> <p>Amazon Web Services HealthScribe automatically provides rich conversation transcripts, identifies speaker roles, classifies dialogues, extracts medical terms, and generates preliminary clinical notes. To learn more about these features, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/health-scribe.html\">Amazon Web Services HealthScribe</a>.</p> <p>To make a <code>StartMedicalScribeJob</code> request, you must first upload your media file into an Amazon S3 bucket; you can then specify the Amazon S3 location of the file using the <code>Media</code> parameter.</p> <p>You must include the following parameters in your <code>StartMedicalTranscriptionJob</code> request:</p> <ul> <li> <p> <code>DataAccessRoleArn</code>: The ARN of an IAM role with the these minimum permissions: read permission on input file Amazon S3 bucket specified in <code>Media</code>, write permission on the Amazon S3 bucket specified in <code>OutputBucketName</code>, and full permissions on the KMS key specified in <code>OutputEncryptionKMSKeyId</code> (if set). The role should also allow <code>transcribe.amazonaws.com</code> to assume it. </p> </li> <li> <p> <code>Media</code> (<code>MediaFileUri</code>): The Amazon S3 location of your media file.</p> </li> <li> <p> <code>MedicalScribeJobName</code>: A custom name you create for your MedicalScribe job that is unique within your Amazon Web Services account.</p> </li> <li> <p> <code>OutputBucketName</code>: The Amazon S3 bucket where you want your output files stored.</p> </li> <li> <p> <code>Settings</code>: A <code>MedicalScribeSettings</code> object that must set exactly one of <code>ShowSpeakerLabels</code> or <code>ChannelIdentification</code> to true. If <code>ShowSpeakerLabels</code> is true, <code>MaxSpeakerLabels</code> must also be set. </p> </li> <li> <p> <code>ChannelDefinitions</code>: A <code>MedicalScribeChannelDefinitions</code> array should be set if and only if the <code>ChannelIdentification</code> value of <code>Settings</code> is set to true. </p> </li> </ul>"
     },
     "StartMedicalTranscriptionJob":{
       "name":"StartMedicalTranscriptionJob",
@@ -637,6 +637,23 @@
       ],
       "documentation":"<p>Updates the specified Call Analytics category with new rules. Note that the <code>UpdateCallAnalyticsCategory</code> operation overwrites all existing rules contained in the specified category. You cannot append additional rules onto an existing category.</p> <p>To create a new category, see .</p>"
     },
+    "UpdateLanguageModel":{
+      "name":"UpdateLanguageModel",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"UpdateLanguageModelRequest"},
+      "output":{"shape":"UpdateLanguageModelResponse"},
+      "errors":[
+        {"shape":"BadRequestException"},
+        {"shape":"LimitExceededException"},
+        {"shape":"InternalFailureException"},
+        {"shape":"NotFoundException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Updates the encryption configuration for an existing custom language model. You can use this operation to change the KMS key used to encrypt your model artifacts. The model artifacts are re-encrypted in place. No model training is required.</p> <p>Your custom language model must not be in the <code>IN_PROGRESS</code> state when you call this operation. You cannot submit another update while a previous update is in progress. Use to check the current state of your model.</p> <p>Your custom language model remains available for transcription jobs while the update is being processed.</p>"
+    },
     "UpdateMedicalVocabulary":{
       "name":"UpdateMedicalVocabulary",
       "http":{
@@ -669,7 +686,7 @@
         {"shape":"NotFoundException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Updates an existing custom vocabulary with new values. This operation overwrites all existing information with your new values; you cannot append new terms onto an existing custom vocabulary.</p>"
+      "documentation":"<p>Updates an existing custom vocabulary with new values. This operation overwrites all existing information with your new values; you cannot append new terms onto an existing custom vocabulary.</p> <p>Your custom vocabulary must be in a terminal state (<code>READY</code> or <code>FAILED</code>) before you can update it. You must include either <code>Phrases</code> or <code>VocabularyFileUri</code> in your request.</p>"
     },
     "UpdateVocabularyFilter":{
       "name":"UpdateVocabularyFilter",
@@ -683,9 +700,10 @@
         {"shape":"BadRequestException"},
         {"shape":"LimitExceededException"},
         {"shape":"InternalFailureException"},
-        {"shape":"NotFoundException"}
+        {"shape":"NotFoundException"},
+        {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Updates an existing custom vocabulary filter with a new list of words. The new list you provide overwrites all previous entries; you cannot append new terms onto an existing custom vocabulary filter.</p>"
+      "documentation":"<p>Updates an existing custom vocabulary filter with a new list of words. The new list you provide overwrites all previous entries; you cannot append new terms onto an existing custom vocabulary filter.</p> <p>You must include either <code>Words</code> or <code>VocabularyFilterFileUri</code> in your request.</p>"
     }
   },
   "shapes":{
@@ -1015,7 +1033,7 @@
       "members":{
         "NoteTemplate":{
           "shape":"MedicalScribeNoteTemplate",
-          "documentation":"<p>Specify one of the following templates to use for the clinical note summary. The default is <code>HISTORY_AND_PHYSICAL</code>.</p> <ul> <li> <p>HISTORY_AND_PHYSICAL: Provides summaries for key sections of the clinical documentation. Sections include Chief Complaint, History of Present Illness, Review of Systems, Past Medical History, Assessment, and Plan.</p> </li> <li> <p>GIRPP: Provides summaries based on the patients progress toward goals. Sections include Goal, Intervention, Response, Progress, and Plan.</p> </li> </ul>"
+          "documentation":"<p>Specify one of the following templates to use for the clinical note summary. The default is <code>HISTORY_AND_PHYSICAL</code>.</p> <ul> <li> <p>HISTORY_AND_PHYSICAL: Provides summaries for key sections of the clinical documentation. Examples of sections include Chief Complaint, History of Present Illness, Review of Systems, Past Medical History, Assessment, and Plan. </p> </li> <li> <p>GIRPP: Provides summaries based on the patients progress toward goals. Examples of sections include Goal, Intervention, Response, Progress, and Plan.</p> </li> <li> <p>BIRP: Focuses on the patient's behavioral patterns and responses. Examples of sections include Behavior, Intervention, Response, and Plan.</p> </li> <li> <p>SIRP: Emphasizes the situational context of therapy. Examples of sections include Situation, Intervention, Response, and Plan.</p> </li> <li> <p>DAP: Provides a simplified format for clinical documentation. Examples of sections include Data, Assessment, and Plan.</p> </li> <li> <p>BEHAVIORAL_SOAP: Behavioral health focused documentation format. Examples of sections include Subjective, Objective, Assessment, and Plan.</p> </li> <li> <p>PHYSICAL_SOAP: Physical health focused documentation format. Examples of sections include Subjective, Objective, Assessment, and Plan.</p> </li> </ul>"
         }
       },
       "documentation":"<p>The output configuration for clinical note generation.</p>"
@@ -1108,6 +1126,10 @@
         "InputDataConfig":{
           "shape":"InputDataConfig",
           "documentation":"<p>Contains the Amazon S3 location of the training data you want to use to create a new custom language model, and permissions to access this location.</p> <p>When using <code>InputDataConfig</code>, you must include these sub-parameters: <code>S3Uri</code>, which is the Amazon S3 location of your training data, and <code>DataAccessRoleArn</code>, which is the Amazon Resource Name (ARN) of the role that has permission to access your specified Amazon S3 location. You can optionally include <code>TuningDataS3Uri</code>, which is the Amazon S3 location of your tuning data. If you specify different Amazon S3 locations for training and tuning data, the ARN you use must have permissions to access both locations.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Specifies the encryption configuration for your custom language model. Your model artifacts are encrypted with the specified KMS key or with an AWS-owned key if a key is not supplied.</p>"
         },
         "Tags":{
           "shape":"TagList",
@@ -1220,7 +1242,11 @@
         },
         "DataAccessRoleArn":{
           "shape":"DataAccessRoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary filter). If the role that you specify doesn’t have the appropriate permissions to access the specified Amazon S3 location, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary filter). If you include <code>EncryptionConfiguration</code> in your request, this role must also have permissions to access the specified KMS key. If the role that you specify doesn’t have the appropriate permissions, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Specifies the encryption configuration for your custom vocabulary filter. Your vocabulary filter artifacts are encrypted with the specified KMS key or with an AWS-owned key if a key is not supplied.</p>"
         }
       }
     },
@@ -1270,7 +1296,11 @@
         },
         "DataAccessRoleArn":{
           "shape":"DataAccessRoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary). If the role that you specify doesn’t have the appropriate permissions to access the specified Amazon S3 location, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary). If you include <code>EncryptionConfiguration</code> in your request, this role must also have permissions to access the specified KMS key. If the role that you specify doesn’t have the appropriate permissions, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Specifies the encryption configuration for your custom vocabulary. Your vocabulary artifacts are encrypted with the specified KMS key or with an AWS-owned key if a key is not supplied.</p>"
         }
       }
     },
@@ -1318,8 +1348,7 @@
     },
     "DeleteCallAnalyticsCategoryResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCallAnalyticsJobRequest":{
       "type":"structure",
@@ -1333,8 +1362,7 @@
     },
     "DeleteCallAnalyticsJobResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteLanguageModelRequest":{
       "type":"structure",
@@ -1426,6 +1454,21 @@
       }
     },
     "DurationInSeconds":{"type":"float"},
+    "EncryptionConfiguration":{
+      "type":"structure",
+      "required":["KMSKey"],
+      "members":{
+        "KMSEncryptionContext":{
+          "shape":"KMSEncryptionContextMap",
+          "documentation":"<p>A map of plain text, non-secret key:value pairs, known as encryption context pairs, that provide an added layer of security for your data. For more information, see <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/key-management.html#kms-context\">KMS encryption context</a>.</p>"
+        },
+        "KMSKey":{
+          "shape":"KMSKeyId",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key you want to use to encrypt your resource artifacts. Only full KMS key ARN format is supported.</p> <p>KMS key ARNs have the format <code>arn:partition:kms:region:account:key/key-id</code>. For example: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-id-key-ARN\">KMS key ARNs</a>.</p>"
+        }
+      },
+      "documentation":"Encryption configuration for the invocation"
+    },
     "FailureReason":{"type":"string"},
     "GetCallAnalyticsCategoryRequest":{
       "type":"structure",
@@ -1589,6 +1632,14 @@
         "DownloadUri":{
           "shape":"Uri",
           "documentation":"<p>The Amazon S3 location where the custom vocabulary filter is stored; use this URI to view or download the custom vocabulary filter.</p>"
+        },
+        "DataAccessRoleArn":{
+          "shape":"DataAccessRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role used to access the Amazon S3 bucket that contains your input files and, if applicable, the KMS key specified in <code>EncryptionConfiguration</code>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>The encryption configuration used for your custom vocabulary filter.</p>"
         }
       }
     },
@@ -1628,6 +1679,14 @@
         "DownloadUri":{
           "shape":"Uri",
           "documentation":"<p>The Amazon S3 location where the custom vocabulary is stored; use this URI to view or download the custom vocabulary.</p>"
+        },
+        "DataAccessRoleArn":{
+          "shape":"DataAccessRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role used to access the Amazon S3 bucket that contains your input files and, if applicable, the KMS key specified in <code>EncryptionConfiguration</code>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>The encryption configuration used for your custom vocabulary.</p>"
         }
       }
     },
@@ -1712,8 +1771,8 @@
     },
     "KMSEncryptionContextMap":{
       "type":"map",
-      "key":{"shape":"NonEmptyString"},
-      "value":{"shape":"NonEmptyString"},
+      "key":{"shape":"PrintableNonEmptyString"},
+      "value":{"shape":"PrintableNonEmptyString"},
       "max":10,
       "min":1
     },
@@ -1729,6 +1788,8 @@
         "af-ZA",
         "ar-AE",
         "ar-SA",
+        "am-ET",
+        "cy-GB",
         "da-DK",
         "de-CH",
         "de-DE",
@@ -1740,16 +1801,24 @@
         "en-US",
         "en-WL",
         "es-ES",
+        "es-MX",
         "es-US",
+        "fa-AF",
         "fa-IR",
         "fr-CA",
         "fr-FR",
+        "ga-IE",
+        "gd-GB",
         "he-IL",
         "hi-IN",
+        "ht-HT",
         "id-ID",
         "it-IT",
         "ja-JP",
+        "jv-ID",
+        "km-KH",
         "ko-KR",
+        "my-MM",
         "ms-MY",
         "nl-NL",
         "pt-BR",
@@ -1779,6 +1848,7 @@
         "cs-CZ",
         "cy-WL",
         "el-GR",
+        "et-EE",
         "et-ET",
         "eu-ES",
         "fi-FI",
@@ -1805,6 +1875,7 @@
         "mr-IN",
         "mt-MT",
         "no-NO",
+        "ne-NP",
         "or-IN",
         "pa-IN",
         "pl-PL",
@@ -1815,6 +1886,7 @@
         "sk-SK",
         "sl-SI",
         "so-SO",
+        "sq-AL",
         "sr-RS",
         "su-ID",
         "sw-BI",
@@ -1828,6 +1900,7 @@
         "uk-UA",
         "uz-UZ",
         "wo-SN",
+        "zh-HK",
         "zu-ZA"
       ]
     },
@@ -1912,6 +1985,10 @@
         "InputDataConfig":{
           "shape":"InputDataConfig",
           "documentation":"<p>The Amazon S3 location of the input files used to train and tune your custom language model, in addition to the data access role ARN (Amazon Resource Name) that has permissions to access these data.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>The encryption configuration used for your custom language model.</p>"
         }
       },
       "documentation":"<p>Provides information about a custom language model, including:</p> <ul> <li> <p>The base model name</p> </li> <li> <p>When the model was created</p> </li> <li> <p>The location of the files used to train the model</p> </li> <li> <p>When the model was last modified</p> </li> <li> <p>The name you chose for the model</p> </li> <li> <p>The model's language</p> </li> <li> <p>The model's processing state</p> </li> <li> <p>Any available upgrades for the base model</p> </li> </ul>"
@@ -2355,6 +2432,16 @@
       "max":1,
       "min":0
     },
+    "MedicalScribeContext":{
+      "type":"structure",
+      "members":{
+        "PatientContext":{
+          "shape":"MedicalScribePatientContext",
+          "documentation":"<p>Contains patient-specific information.</p>"
+        }
+      },
+      "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information used to generate customized clinical notes.</p>"
+    },
     "MedicalScribeJob":{
       "type":"structure",
       "members":{
@@ -2403,9 +2490,13 @@
           "shape":"MedicalScribeChannelDefinitions",
           "documentation":"<p>Makes it possible to specify which speaker is on which channel. For example, if the clinician is the first participant to speak, you would set <code>ChannelId</code> of the first <code>ChannelDefinition</code> in the list to <code>0</code> (to indicate the first channel) and <code>ParticipantRole</code> to <code>CLINICIAN</code> (to indicate that it's the clinician speaking). Then you would set the <code>ChannelId</code> of the second <code>ChannelDefinition</code> in the list to <code>1</code> (to indicate the second channel) and <code>ParticipantRole</code> to <code>PATIENT</code> (to indicate that it's the patient speaking). </p>"
         },
+        "MedicalScribeContextProvided":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the <code>MedicalScribeContext</code> object was provided when the Medical Scribe job was started.</p>"
+        },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Adds one or more custom tags, each in the form of a key:value pair, to the Medica Scribe job.</p> <p>To learn more about using tags with Amazon Transcribe, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tagging.html\">Tagging resources</a>.</p>"
+          "documentation":"<p>Adds one or more custom tags, each in the form of a key:value pair, to the Medical Scribe job.</p> <p>To learn more about using tags with Amazon Transcribe, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tagging.html\">Tagging resources</a>.</p>"
         }
       },
       "documentation":"<p>Provides detailed information about a Medical Scribe job.</p> <p>To view the status of the specified Medical Scribe job, check the <code>MedicalScribeJobStatus</code> field. If the status is <code>COMPLETED</code>, the job is finished and you can find the results at the locations specified in <code>MedicalScribeOutput</code>. If the status is <code>FAILED</code>, <code>FailureReason</code> provides details on why your Medical Scribe job failed.</p>"
@@ -2465,7 +2556,12 @@
       "type":"string",
       "enum":[
         "HISTORY_AND_PHYSICAL",
-        "GIRPP"
+        "GIRPP",
+        "BIRP",
+        "SIRP",
+        "DAP",
+        "BEHAVIORAL_SOAP",
+        "PHYSICAL_SOAP"
       ]
     },
     "MedicalScribeOutput":{
@@ -2492,6 +2588,16 @@
         "PATIENT",
         "CLINICIAN"
       ]
+    },
+    "MedicalScribePatientContext":{
+      "type":"structure",
+      "members":{
+        "Pronouns":{
+          "shape":"Pronouns",
+          "documentation":"<p>The patient's preferred pronouns that the user wants to provide as a context for clinical note generation.</p>"
+        }
+      },
+      "documentation":"<p>Contains patient-specific information used to customize the clinical note generation.</p>"
     },
     "MedicalScribeSettings":{
       "type":"structure",
@@ -2811,14 +2917,47 @@
         "NAME",
         "PHONE",
         "SSN",
+        "DATE_TIME",
+        "PASSPORT_NUMBER",
+        "DRIVER_ID",
+        "URL",
+        "AGE",
+        "USERNAME",
+        "PASSWORD",
+        "AWS_ACCESS_KEY",
+        "AWS_SECRET_KEY",
+        "IP_ADDRESS",
+        "MAC_ADDRESS",
+        "LICENSE_PLATE",
+        "VEHICLE_IDENTIFICATION_NUMBER",
+        "US_INDIVIDUAL_TAX_IDENTIFICATION_NUMBER",
+        "CA_HEALTH_NUMBER",
+        "CA_SOCIAL_INSURANCE_NUMBER",
+        "INTERNATIONAL_BANK_ACCOUNT_NUMBER",
+        "SWIFT_CODE",
         "ALL"
       ]
     },
     "PiiEntityTypes":{
       "type":"list",
       "member":{"shape":"PiiEntityType"},
-      "max":11,
+      "max":29,
       "min":0
+    },
+    "PrintableNonEmptyString":{
+      "type":"string",
+      "max":2000,
+      "min":1,
+      "pattern":"^[\\x20-\\x7E]+$"
+    },
+    "Pronouns":{
+      "type":"string",
+      "enum":[
+        "HE_HIM",
+        "SHE_HER",
+        "THEY_THEM"
+      ],
+      "sensitive":true
     },
     "RedactionOutput":{
       "type":"string",
@@ -2987,7 +3126,7 @@
         },
         "OutputEncryptionKMSKeyId":{
           "shape":"KMSKeyId",
-          "documentation":"<p>The KMS key you want to use to encrypt your Call Analytics output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>If you specify a KMS key to encrypt your output, you must also specify an output location using the <code>OutputLocation</code> parameter.</p> <p>Note that the role making the request must have permission to use the specified KMS key.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a KMS key that you want to use to encrypt your Call Analytics output.</p> <p>KMS key ARNs have the format <code>arn:partition:kms:region:account:key/key-id</code>. For example: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-id-key-ARN\"> KMS key ARNs</a>.</p> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>Note that the role making the request and the role specified in the <code>DataAccessRoleArn</code> request parameter (if present) must have permission to use the specified KMS key.</p>"
         },
         "DataAccessRoleArn":{
           "shape":"DataAccessRoleArn",
@@ -3037,7 +3176,7 @@
         },
         "OutputEncryptionKMSKeyId":{
           "shape":"KMSKeyId",
-          "documentation":"<p>The KMS key you want to use to encrypt your Medical Scribe output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>Note that the role specified in the <code>DataAccessRoleArn</code> request parameter must have permission to use the specified KMS key.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a KMS key that you want to use to encrypt your Medical Scribe output.</p> <p>KMS key ARNs have the format <code>arn:partition:kms:region:account:key/key-id</code>. For example: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-id-key-ARN\"> KMS key ARNs</a>.</p> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>Note that the role making the request and the role specified in the <code>DataAccessRoleArn</code> request parameter (if present) must have permission to use the specified KMS key.</p>"
         },
         "KMSEncryptionContext":{
           "shape":"KMSEncryptionContextMap",
@@ -3057,7 +3196,11 @@
         },
         "Tags":{
           "shape":"TagList",
-          "documentation":"<p>Adds one or more custom tags, each in the form of a key:value pair, to the Medica Scribe job.</p> <p>To learn more about using tags with Amazon Transcribe, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tagging.html\">Tagging resources</a>.</p>"
+          "documentation":"<p>Adds one or more custom tags, each in the form of a key:value pair, to the Medical Scribe job.</p> <p>To learn more about using tags with Amazon Transcribe, refer to <a href=\"https://docs.aws.amazon.com/transcribe/latest/dg/tagging.html\">Tagging resources</a>.</p>"
+        },
+        "MedicalScribeContext":{
+          "shape":"MedicalScribeContext",
+          "documentation":"<p>The <code>MedicalScribeContext</code> object that contains contextual information which is used during clinical note generation to add relevant context to the note.</p>"
         }
       }
     },
@@ -3108,7 +3251,7 @@
         },
         "OutputEncryptionKMSKeyId":{
           "shape":"KMSKeyId",
-          "documentation":"<p>The KMS key you want to use to encrypt your medical transcription output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>If you specify a KMS key to encrypt your output, you must also specify an output location using the <code>OutputLocation</code> parameter.</p> <p>Note that the role making the request must have permission to use the specified KMS key.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a KMS key that you want to use to encrypt your medical transcription output.</p> <p>KMS key ARNs have the format <code>arn:partition:kms:region:account:key/key-id</code>. For example: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-id-key-ARN\"> KMS key ARNs</a>.</p> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>Note that the role making the request and the role specified in the <code>DataAccessRoleArn</code> request parameter (if present) must have permission to use the specified KMS key.</p>"
         },
         "KMSEncryptionContext":{
           "shape":"KMSEncryptionContextMap",
@@ -3182,7 +3325,7 @@
         },
         "OutputEncryptionKMSKeyId":{
           "shape":"KMSKeyId",
-          "documentation":"<p>The KMS key you want to use to encrypt your transcription output.</p> <p>If using a key located in the <b>current</b> Amazon Web Services account, you can specify your KMS key in one of four ways:</p> <ol> <li> <p>Use the KMS key ID itself. For example, <code>1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use an alias for the KMS key ID. For example, <code>alias/ExampleAlias</code>.</p> </li> <li> <p>Use the Amazon Resource Name (ARN) for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If using a key located in a <b>different</b> Amazon Web Services account than the current Amazon Web Services account, you can specify your KMS key in one of two ways:</p> <ol> <li> <p>Use the ARN for the KMS key ID. For example, <code>arn:aws:kms:region:account-ID:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>.</p> </li> <li> <p>Use the ARN for the KMS key alias. For example, <code>arn:aws:kms:region:account-ID:alias/ExampleAlias</code>.</p> </li> </ol> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>If you specify a KMS key to encrypt your output, you must also specify an output location using the <code>OutputLocation</code> parameter.</p> <p>Note that the role making the request must have permission to use the specified KMS key.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of a KMS key that you want to use to encrypt your transcription output.</p> <p>KMS key ARNs have the format <code>arn:partition:kms:region:account:key/key-id</code>. For example: <code>arn:aws:kms:us-west-2:111122223333:key/1234abcd-12ab-34cd-56ef-1234567890ab</code>. For more information, see <a href=\"https://docs.aws.amazon.com/kms/latest/developerguide/concepts.html#key-id-key-ARN\"> KMS key ARNs</a>.</p> <p>If you do not specify an encryption key, your output is encrypted with the default Amazon S3 key (SSE-S3).</p> <p>Note that the role making the request and the role specified in the <code>DataAccessRoleArn</code> request parameter (if present) must have permission to use the specified KMS key.</p>"
         },
         "KMSEncryptionContext":{
           "shape":"KMSEncryptionContextMap",
@@ -3366,8 +3509,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -3674,8 +3816,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateCallAnalyticsCategoryRequest":{
       "type":"structure",
@@ -3704,6 +3845,41 @@
         "CategoryProperties":{
           "shape":"CategoryProperties",
           "documentation":"<p>Provides you with the properties of the Call Analytics category you specified in your <code>UpdateCallAnalyticsCategory</code> request.</p>"
+        }
+      }
+    },
+    "UpdateLanguageModelRequest":{
+      "type":"structure",
+      "required":["ModelName"],
+      "members":{
+        "ModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>The name of the custom language model you want to update. Model names are case sensitive.</p>"
+        },
+        "DataAccessRoleArn":{
+          "shape":"DataAccessRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role. If you include <code>EncryptionConfiguration</code> in your request, this role must have permissions to access the specified KMS key. If the role that you specify doesn't have the appropriate permissions, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Specifies the new encryption configuration for your custom language model. The model artifacts are re-encrypted in place using the specified KMS key or with an AWS-owned key if a key is not supplied.</p>"
+        }
+      }
+    },
+    "UpdateLanguageModelResponse":{
+      "type":"structure",
+      "members":{
+        "ModelName":{
+          "shape":"ModelName",
+          "documentation":"<p>The name of the custom language model that was updated.</p>"
+        },
+        "ModelStatus":{
+          "shape":"ModelStatus",
+          "documentation":"<p>The status of the specified custom language model.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"DateTime",
+          "documentation":"<p>The date and time the specified custom language model was last modified.</p>"
         }
       }
     },
@@ -3768,7 +3944,11 @@
         },
         "DataAccessRoleArn":{
           "shape":"DataAccessRoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary filter). If the role that you specify doesn’t have the appropriate permissions to access the specified Amazon S3 location, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary filter). If you include <code>EncryptionConfiguration</code> in your request, this role must also have permissions to access the specified KMS key. If the role that you specify doesn’t have the appropriate permissions, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Specifies the new encryption configuration for your custom vocabulary filter. The vocabulary filter artifacts are re-encrypted in place using the specified KMS key or with an AWS-owned key if a key is not supplied.</p>"
         }
       }
     },
@@ -3814,7 +3994,11 @@
         },
         "DataAccessRoleArn":{
           "shape":"DataAccessRoleArn",
-          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary). If the role that you specify doesn’t have the appropriate permissions to access the specified Amazon S3 location, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of an IAM role that has permissions to access the Amazon S3 bucket that contains your input files (in this case, your custom vocabulary). If you include <code>EncryptionConfiguration</code> in your request, this role must also have permissions to access the specified KMS key. If the role that you specify doesn’t have the appropriate permissions, your request fails.</p> <p>IAM role ARNs have the format <code>arn:partition:iam::account:role/role-name-with-path</code>. For example: <code>arn:aws:iam::111122223333:role/Admin</code>.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html#identifiers-arns\">IAM ARNs</a>.</p>"
+        },
+        "EncryptionConfiguration":{
+          "shape":"EncryptionConfiguration",
+          "documentation":"<p>Specifies the new encryption configuration for your custom vocabulary. The vocabulary artifacts are re-encrypted in place using the specified KMS key or with an AWS-owned key if a key is not supplied.</p>"
         }
       }
     },

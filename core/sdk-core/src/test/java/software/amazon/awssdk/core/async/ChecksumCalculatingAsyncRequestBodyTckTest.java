@@ -20,7 +20,7 @@ public class ChecksumCalculatingAsyncRequestBodyTckTest extends PublisherVerific
     private static final int MAX_ELEMENTS = 1000;
     private final FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
     private final Path rootDir = fs.getRootDirectories().iterator().next();
-    private static final int CHUNK_SIZE = 16 * 1024;
+    private static final int CHUNK_SIZE = 128 * 1024;
     private final byte[] chunkData = new byte[CHUNK_SIZE];
 
     public ChecksumCalculatingAsyncRequestBodyTckTest() throws IOException {

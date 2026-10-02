@@ -127,7 +127,16 @@
         "method":"DELETE",
         "requestUri":"/2016-03-11/queryParameterOperation/{PathParam}"
       },
-      "input":{"shape":"QueryParameterOperationRequest"}
+      "input":{"shape":"QueryParameterOperationRequest"},
+      "output":{"shape":"QueryParameterOperationResponse"}
+    },
+    "OperationWithReservedKeywordMember": {
+      "name": "DeprecatedRename",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "OperationWithReservedKeywordMemberRequest"}
     }
   },
   "shapes":{
@@ -213,6 +222,18 @@
         "AllTypesUnionStructure":{"shape":"AllTypesUnionStructure"}
       }
     },
+    "UnionWithTypeMember": {
+      "type": "structure",
+      "union": true,
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        },
+        "Type": {
+          "shape": "String"
+        }
+      }
+    },
     "BaseType":{
       "type":"structure",
       "members":{
@@ -263,6 +284,15 @@
         },
         "MemberModifiedAsDeprecated":{"shape": "String"},
         "UndeprecatedMember": {"shape": "String"}
+      }
+    },
+    "OperationWithReservedKeywordMemberRequest": {
+      "type": "structure",
+      "members": {
+        "ReservedKeywordMember": {
+          "shape": "ContainsReservedKeyword"
+        },
+        "UnionWithTypeMember": {"shape": "UnionWithTypeMember"}
       }
     },
     "Double":{"type":"double"},
@@ -611,6 +641,15 @@
           "shape":"String",
           "location":"querystring",
           "locationName":"QueryParamTwo"
+        },
+        "NestedHeaderMember":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-nested-header"
+        },
+        "NestedStatusCode":{
+          "shape":"Integer",
+          "location":"statusCode"
         }
       }
     },
@@ -653,9 +692,49 @@
         "OptionalListQueryParams":{
           "shape":"ListOfIntegers",
           "location":"querystring"
+        },
+        "StatusCodeOnInput":{
+          "shape":"Integer",
+          "location":"statusCode"
+        },
+        "PayloadMemberWithCustomName":{
+          "shape":"String",
+          "locationName":"CustomWireName"
         }
       },
       "payload":"NestedQueryParameterOperation"
+    },
+    "QueryParameterOperationResponse":{
+      "type":"structure",
+      "members":{
+        "ResponseHeaderMember":{
+          "shape":"String",
+          "location":"header",
+          "locationName":"x-amz-response-header"
+        },
+        "ResponseStatusCode":{
+          "shape":"Integer",
+          "location":"statusCode"
+        },
+        "UriMemberOnOutput":{
+          "shape":"String",
+          "location":"uri",
+          "locationName":"UriMemberOnOutput"
+        },
+        "QueryMemberOnOutput":{
+          "shape":"String",
+          "location":"querystring",
+          "locationName":"QueryMemberOnOutput"
+        }
+      }
+    },
+    "ContainsReservedKeyword": {
+      "type": "structure",
+      "members": {
+        "NULL": {
+          "shape": "String"
+        }
+      }
     }
   }
 }

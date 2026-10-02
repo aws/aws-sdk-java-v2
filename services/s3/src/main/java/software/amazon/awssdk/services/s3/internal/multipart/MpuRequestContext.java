@@ -22,6 +22,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.model.CompletedPart;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.utils.Pair;
+import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class MpuRequestContext {
@@ -32,6 +33,7 @@ public class MpuRequestContext {
     private final Long numPartsCompleted;
     private final String uploadId;
     private final Map<Integer, CompletedPart> existingParts;
+    private final int expectedNumParts;
 
     protected MpuRequestContext(Builder builder) {
         this.request = builder.request;
@@ -40,6 +42,8 @@ public class MpuRequestContext {
         this.uploadId = builder.uploadId;
         this.existingParts = builder.existingParts;
         this.numPartsCompleted = builder.numPartsCompleted;
+        this.expectedNumParts = Validate.paramNotNull(builder.expectedNumParts,
+                                                      "expectedNumParts");
     }
 
     public static Builder builder() {
@@ -56,9 +60,13 @@ public class MpuRequestContext {
         }
         MpuRequestContext that = (MpuRequestContext) o;
 
-        return Objects.equals(request, that.request) && Objects.equals(contentLength, that.contentLength)
-               && Objects.equals(partSize, that.partSize) && Objects.equals(numPartsCompleted, that.numPartsCompleted)
-               && Objects.equals(uploadId, that.uploadId) && Objects.equals(existingParts, that.existingParts);
+        return expectedNumParts == that.expectedNumParts
+               && Objects.equals(request, that.request) 
+               && Objects.equals(contentLength, that.contentLength)
+               && Objects.equals(partSize, that.partSize) 
+               && Objects.equals(numPartsCompleted, that.numPartsCompleted)
+               && Objects.equals(uploadId, that.uploadId) 
+               && Objects.equals(existingParts, that.existingParts);
     }
 
     @Override
@@ -69,6 +77,7 @@ public class MpuRequestContext {
         result = 31 * result + (contentLength != null ? contentLength.hashCode() : 0);
         result = 31 * result + (partSize != null ? partSize.hashCode() : 0);
         result = 31 * result + (numPartsCompleted != null ? numPartsCompleted.hashCode() : 0);
+        result = 31 * result + expectedNumParts;
         return result;
     }
 
@@ -92,6 +101,10 @@ public class MpuRequestContext {
         return uploadId;
     }
 
+    public int expectedNumParts() {
+        return expectedNumParts;
+    }
+
     public Map<Integer, CompletedPart> existingParts() {
         return existingParts;
     }
@@ -103,6 +116,7 @@ public class MpuRequestContext {
         private Long numPartsCompleted;
         private String uploadId;
         private Map<Integer, CompletedPart> existingParts;
+        private Integer expectedNumParts;
 
         private Builder() {
         }
@@ -134,6 +148,11 @@ public class MpuRequestContext {
 
         public Builder existingParts(Map<Integer, CompletedPart> existingParts) {
             this.existingParts = existingParts;
+            return this;
+        }
+
+        public Builder expectedNumParts(Integer expectedNumParts) {
+            this.expectedNumParts = expectedNumParts;
             return this;
         }
 

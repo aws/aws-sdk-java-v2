@@ -133,6 +133,18 @@
       "documentation":"<p>The channel policy to delete.</p>",
       "idempotent":true
     },
+    "DeleteFunction":{
+      "name":"DeleteFunction",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/function/{FunctionId}",
+        "responseCode":204
+      },
+      "input":{"shape":"DeleteFunctionRequest"},
+      "output":{"shape":"DeleteFunctionResponse"},
+      "documentation":"<p>Deletes a function. MediaTailor prevents deletion of a function that is still referenced by a playback configuration or by another function. Remove all references before deleting. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "idempotent":true
+    },
     "DeleteLiveSource":{
       "name":"DeleteLiveSource",
       "http":{
@@ -214,7 +226,8 @@
       },
       "input":{"shape":"DescribeChannelRequest"},
       "output":{"shape":"DescribeChannelResponse"},
-      "documentation":"<p>Describes a channel. For information about MediaTailor channels, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-channels.html\">Working with channels</a> in the <i>MediaTailor User Guide</i>.</p>"
+      "documentation":"<p>Describes a channel. For information about MediaTailor channels, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-channels.html\">Working with channels</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "readonly":true
     },
     "DescribeLiveSource":{
       "name":"DescribeLiveSource",
@@ -225,7 +238,8 @@
       },
       "input":{"shape":"DescribeLiveSourceRequest"},
       "output":{"shape":"DescribeLiveSourceResponse"},
-      "documentation":"<p>The live source to describe.</p>"
+      "documentation":"<p>The live source to describe.</p>",
+      "readonly":true
     },
     "DescribeProgram":{
       "name":"DescribeProgram",
@@ -236,7 +250,8 @@
       },
       "input":{"shape":"DescribeProgramRequest"},
       "output":{"shape":"DescribeProgramResponse"},
-      "documentation":"<p>Describes a program within a channel. For information about programs, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-programs.html\">Working with programs</a> in the <i>MediaTailor User Guide</i>.</p>"
+      "documentation":"<p>Describes a program within a channel. For information about programs, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-programs.html\">Working with programs</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "readonly":true
     },
     "DescribeSourceLocation":{
       "name":"DescribeSourceLocation",
@@ -247,7 +262,8 @@
       },
       "input":{"shape":"DescribeSourceLocationRequest"},
       "output":{"shape":"DescribeSourceLocationResponse"},
-      "documentation":"<p>Describes a source location. A source location is a container for sources. For more information about source locations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-source-locations.html\">Working with source locations</a> in the <i>MediaTailor User Guide</i>.</p>"
+      "documentation":"<p>Describes a source location. A source location is a container for sources. For more information about source locations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/channel-assembly-source-locations.html\">Working with source locations</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "readonly":true
     },
     "DescribeVodSource":{
       "name":"DescribeVodSource",
@@ -258,7 +274,8 @@
       },
       "input":{"shape":"DescribeVodSourceRequest"},
       "output":{"shape":"DescribeVodSourceResponse"},
-      "documentation":"<p>Provides details about a specific video on demand (VOD) source in a specific source location.</p>"
+      "documentation":"<p>Provides details about a specific video on demand (VOD) source in a specific source location.</p>",
+      "readonly":true
     },
     "GetChannelPolicy":{
       "name":"GetChannelPolicy",
@@ -269,7 +286,8 @@
       },
       "input":{"shape":"GetChannelPolicyRequest"},
       "output":{"shape":"GetChannelPolicyResponse"},
-      "documentation":"<p>Returns the channel's IAM policy. IAM policies are used to control access to your channel.</p>"
+      "documentation":"<p>Returns the channel's IAM policy. IAM policies are used to control access to your channel.</p>",
+      "readonly":true
     },
     "GetChannelSchedule":{
       "name":"GetChannelSchedule",
@@ -280,7 +298,20 @@
       },
       "input":{"shape":"GetChannelScheduleRequest"},
       "output":{"shape":"GetChannelScheduleResponse"},
-      "documentation":"<p>Retrieves information about your channel's schedule.</p>"
+      "documentation":"<p>Retrieves information about your channel's schedule.</p>",
+      "readonly":true
+    },
+    "GetFunction":{
+      "name":"GetFunction",
+      "http":{
+        "method":"GET",
+        "requestUri":"/function/{FunctionId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetFunctionRequest"},
+      "output":{"shape":"GetFunctionResponse"},
+      "documentation":"<p>Retrieves the configuration and metadata for a function. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "readonly":true
     },
     "GetPlaybackConfiguration":{
       "name":"GetPlaybackConfiguration",
@@ -291,7 +322,8 @@
       },
       "input":{"shape":"GetPlaybackConfigurationRequest"},
       "output":{"shape":"GetPlaybackConfigurationResponse"},
-      "documentation":"<p>Retrieves a playback configuration. For information about MediaTailor configurations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/configurations.html\">Working with configurations in AWS Elemental MediaTailor</a>.</p>"
+      "documentation":"<p>Retrieves a playback configuration. For information about MediaTailor configurations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/configurations.html\">Working with configurations in AWS Elemental MediaTailor</a>.</p>",
+      "readonly":true
     },
     "GetPrefetchSchedule":{
       "name":"GetPrefetchSchedule",
@@ -302,7 +334,8 @@
       },
       "input":{"shape":"GetPrefetchScheduleRequest"},
       "output":{"shape":"GetPrefetchScheduleResponse"},
-      "documentation":"<p>Retrieves a prefetch schedule for a playback configuration. A prefetch schedule allows you to tell MediaTailor to fetch and prepare certain ads before an ad break happens. For more information about ad prefetching, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/prefetching-ads.html\">Using ad prefetching</a> in the <i>MediaTailor User Guide</i>.</p>"
+      "documentation":"<p>Retrieves a prefetch schedule for a playback configuration. A prefetch schedule allows you to tell MediaTailor to fetch and prepare certain ads before an ad break happens. For more information about ad prefetching, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/prefetching-ads.html\">Using ad prefetching</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "readonly":true
     },
     "ListAlerts":{
       "name":"ListAlerts",
@@ -313,7 +346,8 @@
       },
       "input":{"shape":"ListAlertsRequest"},
       "output":{"shape":"ListAlertsResponse"},
-      "documentation":"<p>Lists the alerts that are associated with a MediaTailor channel assembly resource.</p>"
+      "documentation":"<p>Lists the alerts that are associated with a MediaTailor channel assembly resource.</p>",
+      "readonly":true
     },
     "ListChannels":{
       "name":"ListChannels",
@@ -324,7 +358,20 @@
       },
       "input":{"shape":"ListChannelsRequest"},
       "output":{"shape":"ListChannelsResponse"},
-      "documentation":"<p>Retrieves information about the channels that are associated with the current AWS account.</p>"
+      "documentation":"<p>Retrieves information about the channels that are associated with the current AWS account.</p>",
+      "readonly":true
+    },
+    "ListFunctions":{
+      "name":"ListFunctions",
+      "http":{
+        "method":"GET",
+        "requestUri":"/functions",
+        "responseCode":200
+      },
+      "input":{"shape":"ListFunctionsRequest"},
+      "output":{"shape":"ListFunctionsResponse"},
+      "documentation":"<p>Retrieves all functions associated with your AWS account in the current Region. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "readonly":true
     },
     "ListLiveSources":{
       "name":"ListLiveSources",
@@ -335,7 +382,8 @@
       },
       "input":{"shape":"ListLiveSourcesRequest"},
       "output":{"shape":"ListLiveSourcesResponse"},
-      "documentation":"<p>Lists the live sources contained in a source location. A source represents a piece of content.</p>"
+      "documentation":"<p>Lists the live sources contained in a source location. A source represents a piece of content.</p>",
+      "readonly":true
     },
     "ListPlaybackConfigurations":{
       "name":"ListPlaybackConfigurations",
@@ -346,7 +394,8 @@
       },
       "input":{"shape":"ListPlaybackConfigurationsRequest"},
       "output":{"shape":"ListPlaybackConfigurationsResponse"},
-      "documentation":"<p>Retrieves existing playback configurations. For information about MediaTailor configurations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/configurations.html\">Working with Configurations in AWS Elemental MediaTailor</a>.</p>"
+      "documentation":"<p>Retrieves existing playback configurations. For information about MediaTailor configurations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/configurations.html\">Working with Configurations in AWS Elemental MediaTailor</a>.</p>",
+      "readonly":true
     },
     "ListPrefetchSchedules":{
       "name":"ListPrefetchSchedules",
@@ -357,7 +406,8 @@
       },
       "input":{"shape":"ListPrefetchSchedulesRequest"},
       "output":{"shape":"ListPrefetchSchedulesResponse"},
-      "documentation":"<p>Lists the prefetch schedules for a playback configuration.</p>"
+      "documentation":"<p>Lists the prefetch schedules for a playback configuration.</p>",
+      "readonly":true
     },
     "ListSourceLocations":{
       "name":"ListSourceLocations",
@@ -368,7 +418,8 @@
       },
       "input":{"shape":"ListSourceLocationsRequest"},
       "output":{"shape":"ListSourceLocationsResponse"},
-      "documentation":"<p>Lists the source locations for a channel. A source location defines the host server URL, and contains a list of sources.</p>"
+      "documentation":"<p>Lists the source locations for a channel. A source location defines the host server URL, and contains a list of sources.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -382,7 +433,8 @@
       "errors":[
         {"shape":"BadRequestException"}
       ],
-      "documentation":"<p>A list of tags that are associated with this resource. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>"
+      "documentation":"<p>A list of tags that are associated with this resource. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+      "readonly":true
     },
     "ListVodSources":{
       "name":"ListVodSources",
@@ -393,7 +445,8 @@
       },
       "input":{"shape":"ListVodSourcesRequest"},
       "output":{"shape":"ListVodSourcesResponse"},
-      "documentation":"<p>Lists the VOD sources contained in a source location. A source represents a piece of content.</p>"
+      "documentation":"<p>Lists the VOD sources contained in a source location. A source represents a piece of content.</p>",
+      "readonly":true
     },
     "PutChannelPolicy":{
       "name":"PutChannelPolicy",
@@ -405,6 +458,18 @@
       "input":{"shape":"PutChannelPolicyRequest"},
       "output":{"shape":"PutChannelPolicyResponse"},
       "documentation":"<p>Creates an IAM policy for the channel. IAM policies are used to control access to your channel.</p>",
+      "idempotent":true
+    },
+    "PutFunction":{
+      "name":"PutFunction",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/function/{FunctionId}",
+        "responseCode":200
+      },
+      "input":{"shape":"PutFunctionRequest"},
+      "output":{"shape":"PutFunctionResponse"},
+      "documentation":"<p>Creates or updates a function. A function defines reusable logic that MediaTailor executes at lifecycle hooks during ad insertion. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>",
       "idempotent":true
     },
     "PutPlaybackConfiguration":{
@@ -611,10 +676,24 @@
       "members":{
         "StreamingMediaFileConditioning":{
           "shape":"StreamingMediaFileConditioning",
-          "documentation":"<p>For ads that have media files with streaming delivery and supported file extensions, indicates what transcoding action MediaTailor takes when it first receives these ads from the ADS. <code>TRANSCODE</code> indicates that MediaTailor must transcode the ads. <code>NONE</code> indicates that you have already transcoded the ads outside of MediaTailor and don't need them transcoded as part of the ad insertion workflow. For more information about ad conditioning see <a href=\"https://docs.aws.amazon.com/precondition-ads.html\">https://docs.aws.amazon.com/precondition-ads.html</a>.</p>"
+          "documentation":"<p>For ads that have media files with streaming delivery and supported file extensions, indicates what transcoding action MediaTailor takes when it first receives these ads from the ADS. <code>TRANSCODE</code> indicates that MediaTailor must transcode the ads. <code>NONE</code> indicates that you have already transcoded the ads outside of MediaTailor and don't need them transcoded as part of the ad insertion workflow. For more information about ad conditioning see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/precondition-ads.html\">Using preconditioned ads</a> in the Elemental MediaTailor user guide.</p>"
         }
       },
       "documentation":"<p>The setting that indicates what conditioning MediaTailor will perform on ads that the ad decision server (ADS) returns.</p>"
+    },
+    "AdDecisionServerConfiguration":{
+      "type":"structure",
+      "members":{
+        "HttpRequest":{
+          "shape":"HttpRequest",
+          "documentation":"<p>The HTTP request configuration parameters for the ad decision server.</p>"
+        },
+        "VastResponse":{
+          "shape":"VastResponse",
+          "documentation":"<p>The settings that control how MediaTailor processes VAST responses from the ad decision server.</p>"
+        }
+      },
+      "documentation":"<p>Configuration parameters for customizing HTTP requests sent to the ad decision server (ADS). This allows you to specify the HTTP method, headers, request body, and compression settings for ADS requests.</p>"
     },
     "AdMarkerPassthrough":{
       "type":"structure",
@@ -632,6 +711,139 @@
         "DATERANGE",
         "SCTE35_ENHANCED"
       ]
+    },
+    "AdSequencingMode":{
+      "type":"string",
+      "enum":[
+        "FOLLOW_AD_SEQUENCE",
+        "IGNORE_AD_SEQUENCE",
+        "FOLLOW_AD_SEQUENCE_ONLY_LIVE",
+        "FOLLOW_AD_SEQUENCE_ONLY_VOD"
+      ]
+    },
+    "AdsInteractionExcludeEventType":{
+      "type":"string",
+      "documentation":"<p>An ADS interaction log event type that MediaTailor emits by default and that you can suppress. For descriptions of each event type, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/ads-log-format.html\">MediaTailor ADS logs description and event types</a> in Elemental MediaTailor User Guide.</p>",
+      "enum":[
+        "AD_MARKER_FOUND",
+        "NON_AD_MARKER_FOUND",
+        "MAKING_ADS_REQUEST",
+        "MODIFIED_TARGET_URL",
+        "VAST_REDIRECT",
+        "EMPTY_VAST_RESPONSE",
+        "EMPTY_VMAP_RESPONSE",
+        "VAST_RESPONSE",
+        "REDIRECTED_VAST_RESPONSE",
+        "FILLED_AVAIL",
+        "FILLED_OVERLAY_AVAIL",
+        "BEACON_FIRED",
+        "WARNING_NO_ADVERTISEMENTS",
+        "WARNING_VPAID_AD_DROPPED",
+        "WARNING_URL_VARIABLE_SUBSTITUTION_FAILED",
+        "ERROR_UNKNOWN",
+        "ERROR_UNKNOWN_HOST",
+        "ERROR_DISALLOWED_HOST",
+        "ERROR_ADS_IO",
+        "ERROR_ADS_TIMEOUT",
+        "ERROR_ADS_RESPONSE_PARSE",
+        "ERROR_ADS_RESPONSE_UNKNOWN_ROOT_ELEMENT",
+        "ERROR_ADS_INVALID_RESPONSE",
+        "ERROR_VAST_REDIRECT_EMPTY_RESPONSE",
+        "ERROR_VAST_REDIRECT_MULTIPLE_VAST",
+        "ERROR_VAST_REDIRECT_FAILED",
+        "ERROR_VAST_MISSING_MEDIAFILES",
+        "ERROR_VAST_MISSING_CREATIVES",
+        "ERROR_VAST_MISSING_OVERLAYS",
+        "ERROR_VAST_MISSING_IMPRESSION",
+        "ERROR_VAST_INVALID_VAST_AD_TAG_URI",
+        "ERROR_VAST_MULTIPLE_TRACKING_EVENTS",
+        "ERROR_VAST_MULTIPLE_LINEAR",
+        "ERROR_VAST_INVALID_MEDIA_FILE",
+        "ERROR_FIRING_BEACON_FAILED",
+        "ERROR_PERSONALIZATION_DISABLED",
+        "VOD_TIME_BASED_AVAIL_PLAN_VAST_RESPONSE_FOR_OFFSET",
+        "VOD_TIME_BASED_AVAIL_PLAN_SUCCESS",
+        "VOD_TIME_BASED_AVAIL_PLAN_WARNING_NO_ADVERTISEMENTS",
+        "INTERSTITIAL_VOD_SUCCESS",
+        "INTERSTITIAL_VOD_FAILURE",
+        "PRE_ADS_REQUEST_HOOK_ERROR",
+        "PRE_ADS_REQUEST_FUNCTION_ERROR",
+        "BEACON_RECEIVED",
+        "POST_ADS_RESPONSE_HOOK_ERROR",
+        "POST_ADS_RESPONSE_FUNCTION_ERROR",
+        "PRE_MANIFEST_INSERTION_HOOK_ERROR",
+        "PRE_MANIFEST_INSERTION_FUNCTION_ERROR"
+      ]
+    },
+    "AdsInteractionLog":{
+      "type":"structure",
+      "members":{
+        "PublishOptInEventTypes":{
+          "shape":"__adsInteractionPublishOptInEventTypesList",
+          "documentation":"<p>Indicates that MediaTailor will emit the selected events in the logs for playback sessions that are initialized with this configuration. These events are not emitted by default and must be explicitly opted in. For descriptions of each event type, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/ads-log-format.html\">MediaTailor ADS logs description and event types</a> in Elemental MediaTailor User Guide.</p>"
+        },
+        "ExcludeEventTypes":{
+          "shape":"__adsInteractionExcludeEventTypesList",
+          "documentation":"<p>Indicates that MediaTailor won't emit the selected events in the logs for playback sessions that are initialized with this configuration.</p>"
+        }
+      },
+      "documentation":"<p>Settings for customizing what events are included in logs for interactions with the ad decision server (ADS).</p> <p>For more information about ADS logs, inlcuding descriptions of the event types, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/ads-log-format.html\">MediaTailor ADS logs description and event types</a> in Elemental MediaTailor User Guide.</p>"
+    },
+    "AdsInteractionPublishOptInEventType":{
+      "type":"string",
+      "documentation":"<p>An ADS interaction log event type that MediaTailor emits only when you opt in to it. For descriptions of each event type, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/ads-log-format.html\">MediaTailor ADS logs description and event types</a> in Elemental MediaTailor User Guide.</p>",
+      "enum":[
+        "RAW_ADS_RESPONSE",
+        "RAW_ADS_REQUEST",
+        "RAW_BID_REQUEST",
+        "RAW_BID_RESPONSE",
+        "PRE_ADS_REQUEST_HOOK_SUMMARY",
+        "PRE_ADS_REQUEST_FUNCTION_COMPLETED",
+        "POST_ADS_RESPONSE_HOOK_SUMMARY",
+        "POST_ADS_RESPONSE_FUNCTION_COMPLETED",
+        "PRE_MANIFEST_INSERTION_HOOK_SUMMARY",
+        "PRE_MANIFEST_INSERTION_FUNCTION_COMPLETED"
+      ]
+    },
+    "AdsPersonalizationConcurrency":{
+      "type":"structure",
+      "members":{
+        "MaxConcurrentAdsRequests":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum number of simultaneous requests that MediaTailor makes to the ad decision server per manifest request. The default is 1.</p>"
+        },
+        "EnableVodVastParallelization":{
+          "shape":"__boolean",
+          "documentation":"<p>Enables parallel processing of ad decision server requests in VOD workflows when the ADS returns VAST responses. The default is false.</p>"
+        }
+      },
+      "documentation":"<p>The concurrency settings for ad decision server interactions during ad personalization.</p>"
+    },
+    "AdsPersonalizationTimeouts":{
+      "type":"structure",
+      "members":{
+        "AdsRequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a single ad decision server response during live or VOD playback. The default is 3000.</p>"
+        },
+        "LiveMaximumAdsPersonalizationTimeMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum total time, in milliseconds, that MediaTailor spends on ad decision server activity for live manifests, including making requests, waiting for responses, and following VAST wrapper redirects. The default is 10000.</p>"
+        },
+        "VodMaximumAdsPersonalizationTimeMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum total time, in milliseconds, that MediaTailor spends on ad decision server activity for VOD manifests, including making requests, waiting for responses, and following VAST wrapper redirects. The default is 10000.</p>"
+        },
+        "PrefetchAdsRequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a single ad decision server response during prefetch retrieval. If not set, the value of AdsRequestTimeoutMilliseconds is used.</p>"
+        },
+        "PrefetchMaximumAdsPersonalizationTimeMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum total time, in milliseconds, that MediaTailor spends on ad decision server activity during prefetch retrieval, including making requests, waiting for responses, and following VAST wrapper redirects.</p>"
+        }
+      },
+      "documentation":"<p>The timeout settings for ad decision server interactions during ad personalization.</p>"
     },
     "Alert":{
       "type":"structure",
@@ -709,6 +921,21 @@
       },
       "documentation":"<p>A playlist of media (VOD and/or live) to be played instead of the default media on a particular program.</p>"
     },
+    "ApsPublisherId":{
+      "type":"string",
+      "max":36,
+      "min":1,
+      "pattern":"[a-z0-9-]+"
+    },
+    "ApsRegion":{
+      "type":"string",
+      "documentation":"<p>Supported Amazon Publisher Services regions for yield optimization integration. The region selection affects latency and ad inventory availability, so choose the region closest to your primary audience.</p>",
+      "enum":[
+        "AMERICAS",
+        "EUROPE",
+        "ASIA_PACIFIC"
+      ]
+    },
     "AudienceMedia":{
       "type":"structure",
       "members":{
@@ -763,6 +990,67 @@
       },
       "documentation":"<p>The configuration for avail suppression, also known as ad suppression. For more information about ad suppression, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/ad-behavior.html\">Ad Suppression</a>.</p>"
     },
+    "AwsServiceRequestConfiguration":{
+      "type":"structure",
+      "required":[
+        "Runtime",
+        "MethodType",
+        "RequestTimeoutMilliseconds",
+        "Url",
+        "TargetService",
+        "TargetRegion"
+      ],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. The only supported value is <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of output bindings. Each key is a namespaced output path, such as <code>player_params.device_type</code>. Each value is an expression that MediaTailor evaluates at runtime and can reference the <code>response</code> object from the target service. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-jsonata.html\">JSONata expression reference</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "MethodType":{
+          "shape":"MethodType",
+          "documentation":"<p>Specifies how the function sends the request to the target service. The value must match what the target service operation requires. Valid values:</p> <ul> <li> <p> <code>GET</code> – Retrieves data from the target service.</p> </li> <li> <p> <code>POST</code> – Submits a request body to the target service.</p> </li> </ul>"
+        },
+        "RequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a response from the AWS service. If the call exceeds this timeout, MediaTailor sets the response status code to <code>null</code> and proceeds with output expression evaluation. Valid values: <code>100</code> to <code>2000</code>.</p>"
+        },
+        "Url":{
+          "shape":"__string",
+          "documentation":"<p>An expression that evaluates to the endpoint URL for the target AWS service API operation. Use <code>{%...%}</code> delimiters for dynamic expressions. The URL must correspond to a valid endpoint for the service specified in <code>TargetService</code>. The maximum length after evaluation is 2,048 characters.</p>"
+        },
+        "Body":{
+          "shape":"__string",
+          "documentation":"<p>An expression that evaluates to the request body for the AWS service API call. The body must conform to the input format that the target service operation expects. Applies only when the target operation accepts a request body. The maximum size after evaluation is 64 KB.</p>"
+        },
+        "Headers":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of HTTP header names to expression values. MediaTailor evaluates each header value expression at runtime and includes the result in the outbound request to the AWS service. Use this to pass any headers required by the target service operation. You can include a maximum of 50 headers.</p>"
+        },
+        "TargetService":{
+          "shape":"AwsTargetService",
+          "documentation":"<p>The AWS service to call. Valid value: <code>elemental-inference</code> (AWS Elemental Inference).</p>"
+        },
+        "TargetRegion":{
+          "shape":"AwsServiceRequestConfigurationTargetRegionString",
+          "documentation":"<p>The AWS Region for the target service. Specify a static Region code (for example, <code>us-east-1</code>) or a JSONata expression that resolves to a Region code at runtime (for example, <code>{%inference.region%}</code>).</p>"
+        }
+      },
+      "documentation":"<p>The configuration for an <code>AWS_SERVICE_REQUEST</code> function. Contains the target service, target Region, and request parameters that the function uses to call an AWS service API. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types-aws-service-request.html\">AWS_SERVICE_REQUEST</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
+    "AwsServiceRequestConfigurationTargetRegionString":{
+      "type":"string",
+      "max":256,
+      "min":1
+    },
+    "AwsTargetService":{
+      "type":"string",
+      "max":63,
+      "min":1,
+      "pattern":"[a-z0-9-]+"
+    },
     "BadRequestException":{
       "type":"structure",
       "members":{
@@ -774,6 +1062,30 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "BeaconEventType":{
+      "type":"string",
+      "documentation":"<p>A player operation event that MediaTailor can report on. Only the player can detect when a viewer performs this action, so MediaTailor doesn't send these beacons itself.</p>",
+      "enum":[
+        "MUTE",
+        "UNMUTE",
+        "PAUSE",
+        "SKIP"
+      ]
+    },
+    "BeaconEventTypeList":{
+      "type":"list",
+      "member":{"shape":"BeaconEventType"}
+    },
+    "BeaconingConfiguration":{
+      "type":"structure",
+      "members":{
+        "ClientSide":{
+          "shape":"ClientSideBeaconingConfiguration",
+          "documentation":"<p>The beaconing settings for client-side reporting sessions. If you omit this object, MediaTailor uses <code>INSIGHTS</code> reporting mode.</p>"
+        }
+      },
+      "documentation":"<p>The beaconing configuration for a playback configuration. Beaconing controls whether MediaTailor includes its own beacons in the ad tracking response, in addition to the ad server beacons.</p>"
     },
     "Bumper":{
       "type":"structure",
@@ -874,6 +1186,28 @@
         "STOPPED"
       ]
     },
+    "ClientSideBeaconingConfiguration":{
+      "type":"structure",
+      "required":["ReportingMode"],
+      "members":{
+        "ReportingMode":{
+          "shape":"ClientSideBeaconingMode",
+          "documentation":"<p>Specifies whether MediaTailor includes its beacons in the ad tracking response. Valid values, which are case-sensitive:</p> <ul> <li> <p> <code>INSIGHTS</code> – MediaTailor includes its beacons in the ad tracking response.</p> </li> <li> <p> <code>DISABLED</code> – MediaTailor doesn't include its beacons in the ad tracking response.</p> </li> </ul> <p>If you send a <code>ClientSide</code> object, this setting is required. If you omit <code>BeaconingConfiguration</code> or <code>ClientSide</code> entirely, MediaTailor uses <code>INSIGHTS</code>.</p> <p> <code>PutPlaybackConfiguration</code> replaces the whole playback configuration. To keep beaconing off, include <code>DISABLED</code> in every subsequent write.</p>"
+        },
+        "AdditionalEventTypes":{
+          "shape":"BeaconEventTypeList",
+          "documentation":"<p>The player operation events to report on, in addition to the ad progress events that MediaTailor always reports on. The default is an empty list. This parameter is valid only when <code>ReportingMode</code> is <code>INSIGHTS</code>. MediaTailor rejects the request if you specify a value while <code>ReportingMode</code> is <code>DISABLED</code>, or if you specify duplicate values.</p>"
+        }
+      },
+      "documentation":"<p>The beaconing settings that apply to client-side reporting sessions: whether MediaTailor includes its beacons in the ad tracking response, and which player operation events it reports on.</p>"
+    },
+    "ClientSideBeaconingMode":{
+      "type":"string",
+      "enum":[
+        "DISABLED",
+        "INSIGHTS"
+      ]
+    },
     "ClipRange":{
       "type":"structure",
       "members":{
@@ -888,6 +1222,46 @@
         }
       },
       "documentation":"<p>Clip range configuration for the VOD source associated with the program.</p>"
+    },
+    "CompressionMethod":{
+      "type":"string",
+      "enum":[
+        "NONE",
+        "GZIP"
+      ]
+    },
+    "ConcurrentExecutorConfiguration":{
+      "type":"structure",
+      "required":[
+        "Runtime",
+        "Output",
+        "FunctionList",
+        "TimeoutMilliseconds",
+        "MaxConcurrency"
+      ],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. Set this to <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of output bindings that controls which bindings the executor commits to the session state after all child functions complete. Each key is a namespaced output path, and each value is an expression that MediaTailor evaluates against the combined results of the child functions.</p>"
+        },
+        "FunctionList":{
+          "shape":"__listOfFunctionsRef",
+          "documentation":"<p>The list of child functions that MediaTailor runs in parallel. Each entry specifies a child function to execute and an optional run condition expression that controls whether the function runs.</p>"
+        },
+        "TimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, for all child functions to complete. This timeout covers every function in the list, including any HTTP calls the child functions make. If the executor exceeds this timeout, MediaTailor discards all output from the executor and proceeds with default behavior.</p>"
+        },
+        "MaxConcurrency":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum number of child functions that MediaTailor runs simultaneously. When the list contains more functions than <code>MaxConcurrency</code>, MediaTailor starts additional functions as running ones complete, so that no more than <code>MaxConcurrency</code> functions run at the same time.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function. A <code>CONCURRENT_EXECUTOR</code> runs a set of child functions in parallel, up to a maximum concurrency, and combines their output when all functions complete. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>"
     },
     "ConfigurationAliasesRequest":{
       "type":"map",
@@ -961,6 +1335,14 @@
         "EnabledLoggingStrategies":{
           "shape":"__listOfLoggingStrategies",
           "documentation":"<p>The method used for collecting logs from AWS Elemental MediaTailor. To configure MediaTailor to send logs directly to Amazon CloudWatch Logs, choose <code>LEGACY_CLOUDWATCH</code>. To configure MediaTailor to send logs to CloudWatch, which then vends the logs to your destination of choice, choose <code>VENDED_LOGS</code>. Supported destinations are CloudWatch Logs log group, Amazon S3 bucket, and Amazon Data Firehose stream.</p> <p>To use vended logs, you must configure the delivery destination in Amazon CloudWatch, as described in <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html#AWS-vended-logs-permissions-V2\">Enable logging from AWS services, Logging that requires additional permissions [V2]</a>.</p>"
+        },
+        "AdsInteractionLog":{
+          "shape":"AdsInteractionLog",
+          "documentation":"<p>The event types that MediaTailor emits in logs for interactions with the ADS.</p>"
+        },
+        "ManifestServiceInteractionLog":{
+          "shape":"ManifestServiceInteractionLog",
+          "documentation":"<p>The event types that MediaTailor emits in logs for interactions with the origin server.</p>"
         }
       },
       "documentation":"<p>Configures Amazon CloudWatch log settings for a playback configuration.</p>"
@@ -980,6 +1362,14 @@
         "EnabledLoggingStrategies":{
           "shape":"__listOfLoggingStrategies",
           "documentation":"<p>The method used for collecting logs from AWS Elemental MediaTailor. <code>LEGACY_CLOUDWATCH</code> indicates that MediaTailor is sending logs directly to Amazon CloudWatch Logs. <code>VENDED_LOGS</code> indicates that MediaTailor is sending logs to CloudWatch, which then vends the logs to your destination of choice. Supported destinations are CloudWatch Logs log group, Amazon S3 bucket, and Amazon Data Firehose stream. </p>"
+        },
+        "AdsInteractionLog":{
+          "shape":"AdsInteractionLog",
+          "documentation":"<p>The event types that MediaTailor emits in logs for interactions with the ADS.</p>"
+        },
+        "ManifestServiceInteractionLog":{
+          "shape":"ManifestServiceInteractionLog",
+          "documentation":"<p>The event types that MediaTailor emits in logs for interactions with the origin server.</p>"
         }
       }
     },
@@ -1150,15 +1540,13 @@
     "CreatePrefetchScheduleRequest":{
       "type":"structure",
       "required":[
-        "Consumption",
         "Name",
-        "PlaybackConfigurationName",
-        "Retrieval"
+        "PlaybackConfigurationName"
       ],
       "members":{
         "Consumption":{
           "shape":"PrefetchConsumption",
-          "documentation":"<p>The configuration settings for MediaTailor's <i>consumption</i> of the prefetched ads from the ad decision server. Each consumption configuration contains an end time and an optional start time that define the <i>consumption window</i>. Prefetch schedules automatically expire no earlier than seven days after the end time.</p>"
+          "documentation":"<p>The configuration settings for how and when MediaTailor consumes prefetched ads from the ad decision server for single prefetch schedules. Each consumption configuration contains an end time and an optional start time that define the <i>consumption window</i>. Prefetch schedules automatically expire no earlier than seven days after the end time.</p>"
         },
         "Name":{
           "shape":"__string",
@@ -1176,9 +1564,22 @@
           "shape":"PrefetchRetrieval",
           "documentation":"<p>The configuration settings for retrieval of prefetched ads from the ad decision server. Only one set of prefetched ads will be retrieved and subsequently consumed for each ad break.</p>"
         },
+        "RecurringPrefetchConfiguration":{
+          "shape":"RecurringPrefetchConfiguration",
+          "documentation":"<p>The configuration that defines how and when MediaTailor performs ad prefetching in a live event.</p>"
+        },
+        "ScheduleType":{
+          "shape":"PrefetchScheduleType",
+          "documentation":"<p>The frequency that MediaTailor creates prefetch schedules. <code>SINGLE</code> indicates that this schedule applies to one ad break. <code>RECURRING</code> indicates that MediaTailor automatically creates a schedule for each ad avail in a live event.</p> <p>For more information about the prefetch types and when you might use each, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/prefetching-ads.html\">Prefetching ads in Elemental MediaTailor.</a> </p>"
+        },
         "StreamId":{
           "shape":"__string",
           "documentation":"<p>An optional stream identifier that MediaTailor uses to prefetch ads for multiple streams that use the same playback configuration. If <code>StreamId</code> is specified, MediaTailor returns all of the prefetch schedules with an exact match on <code>StreamId</code>. If not specified, MediaTailor returns all of the prefetch schedules for the playback configuration, regardless of <code>StreamId</code>.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags to assign to the prefetch schedule. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -1191,7 +1592,7 @@
         },
         "Consumption":{
           "shape":"PrefetchConsumption",
-          "documentation":"<p>The configuration settings for MediaTailor's <i>consumption</i> of the prefetched ads from the ad decision server. Each consumption configuration contains an end time and an optional start time that define the <i>consumption window</i>. Prefetch schedules automatically expire no earlier than seven days after the end time.</p>"
+          "documentation":"<p>The configuration settings for how and when MediaTailor consumes prefetched ads from the ad decision server for single prefetch schedules. Each consumption configuration contains an end time and an optional start time that define the <i>consumption window</i>. Prefetch schedules automatically expire no earlier than seven days after the end time.</p>"
         },
         "Name":{
           "shape":"__string",
@@ -1205,9 +1606,22 @@
           "shape":"PrefetchRetrieval",
           "documentation":"<p>The configuration settings for retrieval of prefetched ads from the ad decision server. Only one set of prefetched ads will be retrieved and subsequently consumed for each ad break.</p>"
         },
+        "RecurringPrefetchConfiguration":{
+          "shape":"RecurringPrefetchConfiguration",
+          "documentation":"<p>The configuration that defines how MediaTailor performs recurring prefetch. </p>"
+        },
+        "ScheduleType":{
+          "shape":"PrefetchScheduleType",
+          "documentation":"<p>The frequency that MediaTailor creates prefetch schedules. <code>SINGLE</code> indicates that this schedule applies to one ad break. <code>RECURRING</code> indicates that MediaTailor automatically creates a schedule for each ad avail in a live event.</p>"
+        },
         "StreamId":{
           "shape":"__string",
           "documentation":"<p>An optional stream identifier that MediaTailor uses to prefetch ads for multiple streams that use the same playback configuration. If <code>StreamId</code> is specified, MediaTailor returns all of the prefetch schedules with an exact match on <code>StreamId</code>. If not specified, MediaTailor returns all of the prefetch schedules for the playback configuration, regardless of <code>StreamId</code>.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the prefetch schedule. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -1255,6 +1669,11 @@
         "AudienceMedia":{
           "shape":"__listOfAudienceMedia",
           "documentation":"<p>The list of AudienceMedia defined in program.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags to assign to the program. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -1308,6 +1727,11 @@
         "AudienceMedia":{
           "shape":"__listOfAudienceMedia",
           "documentation":"<p>The list of AudienceMedia defined in program.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the program. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -1454,12 +1878,31 @@
         }
       }
     },
+    "CustomOutputConfiguration":{
+      "type":"structure",
+      "required":["Runtime"],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. Set this to <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of output bindings. Each key is a namespaced output path (such as <code>player_params.device_type</code> or <code>temp.variant</code>), and each value is an expression that MediaTailor evaluates at runtime against the current session state. For more information about expression syntax, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-jsonata.html\">JSONata expression reference</a> in the <i>MediaTailor User Guide</i>.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function. MediaTailor evaluates the output expressions against the current session state and commits the results as output bindings. <code>CUSTOM_OUTPUT</code> functions do not make external calls. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types-custom-output.html\">CUSTOM_OUTPUT</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
     "DashConfiguration":{
       "type":"structure",
       "members":{
         "ManifestEndpointPrefix":{
           "shape":"__string",
-          "documentation":"<p>The URL generated by MediaTailor to initiate a playback session. The session uses server-side reporting. This setting is ignored in PUT operations.</p>"
+          "documentation":"<p>The URL that MediaTailor generates to initiate a playback session. The session uses server-side reporting.</p>"
+        },
+        "DualStackManifestEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that MediaTailor generates to initiate a playback session. The session uses server-side reporting.</p>"
         },
         "MpdLocation":{
           "shape":"__string",
@@ -1532,8 +1975,7 @@
     },
     "DeleteChannelPolicyResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteChannelRequest":{
       "type":"structure",
@@ -1549,8 +1991,23 @@
     },
     "DeleteChannelResponse":{
       "type":"structure",
+      "members":{}
+    },
+    "DeleteFunctionRequest":{
+      "type":"structure",
+      "required":["FunctionId"],
       "members":{
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the function to delete.</p>",
+          "location":"uri",
+          "locationName":"FunctionId"
+        }
       }
+    },
+    "DeleteFunctionResponse":{
+      "type":"structure",
+      "members":{}
     },
     "DeleteLiveSourceRequest":{
       "type":"structure",
@@ -1575,8 +2032,7 @@
     },
     "DeleteLiveSourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePlaybackConfigurationRequest":{
       "type":"structure",
@@ -1592,8 +2048,7 @@
     },
     "DeletePlaybackConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePrefetchScheduleRequest":{
       "type":"structure",
@@ -1618,8 +2073,7 @@
     },
     "DeletePrefetchScheduleResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteProgramRequest":{
       "type":"structure",
@@ -1644,8 +2098,7 @@
     },
     "DeleteProgramResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteSourceLocationRequest":{
       "type":"structure",
@@ -1661,8 +2114,7 @@
     },
     "DeleteSourceLocationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteVodSourceRequest":{
       "type":"structure",
@@ -1687,8 +2139,7 @@
     },
     "DeleteVodSourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeChannelRequest":{
       "type":"structure",
@@ -1887,6 +2338,11 @@
         "AudienceMedia":{
           "shape":"__listOfAudienceMedia",
           "documentation":"<p>The list of AudienceMedia defined in program.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the program. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -2003,11 +2459,110 @@
         }
       }
     },
+    "EventName":{
+      "type":"string",
+      "enum":[
+        "PRE_SESSION_INITIALIZATION",
+        "PRE_ADS_REQUEST",
+        "POST_ADS_RESPONSE",
+        "PRE_MANIFEST_INSERTION"
+      ]
+    },
     "FillPolicy":{
       "type":"string",
       "enum":[
         "FULL_AVAIL_ONLY",
         "PARTIAL_AVAIL"
+      ]
+    },
+    "Function":{
+      "type":"structure",
+      "required":[
+        "FunctionId",
+        "FunctionType"
+      ],
+      "members":{
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the function.</p>"
+        },
+        "FunctionType":{
+          "shape":"FunctionType",
+          "documentation":"<p>The type of the function.</p>"
+        },
+        "Description":{
+          "shape":"__string",
+          "documentation":"<p>A description of the function.</p>"
+        },
+        "HttpRequestConfiguration":{
+          "shape":"HttpRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>HTTP_REQUEST</code> function.</p>"
+        },
+        "AwsServiceRequestConfiguration":{
+          "shape":"AwsServiceRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>AWS_SERVICE_REQUEST</code> function. Specifies the target service, target Region, and request parameters.</p>"
+        },
+        "CustomOutputConfiguration":{
+          "shape":"CustomOutputConfiguration",
+          "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function.</p>"
+        },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function.</p>"
+        },
+        "SequentialExecutorConfiguration":{
+          "shape":"SequentialExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function.</p>"
+        },
+        "VastRequestConfiguration":{
+          "shape":"VastRequestConfiguration",
+          "documentation":"<p>The configuration for a <code>VAST_REQUEST</code> function.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the function. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
+        },
+        "Arn":{
+          "shape":"__string",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the function.</p>"
+        }
+      },
+      "documentation":"<p>Defines reusable logic that MediaTailor executes at lifecycle hooks during ad insertion. The <code>FunctionType</code> determines the function's runtime behavior. For more information about functions, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions.html\">Working with functions</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
+    "FunctionMapping":{
+      "type":"map",
+      "key":{"shape":"EventName"},
+      "value":{"shape":"__string"}
+    },
+    "FunctionRef":{
+      "type":"structure",
+      "members":{
+        "RunCondition":{
+          "shape":"__string",
+          "documentation":"<p>An optional expression that evaluates to a boolean. MediaTailor evaluates this expression immediately before running the step, using the accumulated state at that point in the sequence. If the expression evaluates to <code>false</code>, MediaTailor skips the step and moves to the next one. If omitted, the step always runs.</p>"
+        },
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the child function to execute in this step.</p>"
+        },
+        "Alias":{
+          "shape":"__string",
+          "documentation":"<p>An optional alternate name for the function within the executor. If omitted, MediaTailor uses the function identifier.</p>"
+        }
+      },
+      "documentation":"<p>A reference to a child function within a <code>SEQUENTIAL_EXECUTOR</code> function.</p>"
+    },
+    "FunctionType":{
+      "type":"string",
+      "documentation":"<p>The type of a function, which determines what the function can do at runtime. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types.html\">Function types and composition</a> in the <i>MediaTailor User Guide</i>.</p>",
+      "enum":[
+        "HTTP_REQUEST",
+        "AWS_SERVICE_REQUEST",
+        "CUSTOM_OUTPUT",
+        "CONCURRENT_EXECUTOR",
+        "SEQUENTIAL_EXECUTOR",
+        "VAST_REQUEST"
       ]
     },
     "GetChannelPolicyRequest":{
@@ -2079,6 +2634,74 @@
           "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>"
         }
       }
+    },
+    "GetFunctionRequest":{
+      "type":"structure",
+      "required":["FunctionId"],
+      "members":{
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the function.</p>",
+          "location":"uri",
+          "locationName":"FunctionId"
+        }
+      },
+      "documentation":"<p>-- Request/Response DataStructures --</p>"
+    },
+    "GetFunctionResponse":{
+      "type":"structure",
+      "required":[
+        "FunctionId",
+        "FunctionType"
+      ],
+      "members":{
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the function.</p>"
+        },
+        "FunctionType":{
+          "shape":"FunctionType",
+          "documentation":"<p>The type of the function.</p>"
+        },
+        "Description":{
+          "shape":"__string",
+          "documentation":"<p>A description of the function.</p>"
+        },
+        "HttpRequestConfiguration":{
+          "shape":"HttpRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>HTTP_REQUEST</code> function.</p>"
+        },
+        "AwsServiceRequestConfiguration":{
+          "shape":"AwsServiceRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>AWS_SERVICE_REQUEST</code> function. Specifies the target service, target Region, and request parameters.</p>"
+        },
+        "CustomOutputConfiguration":{
+          "shape":"CustomOutputConfiguration",
+          "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function.</p>"
+        },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function.</p>"
+        },
+        "SequentialExecutorConfiguration":{
+          "shape":"SequentialExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function.</p>"
+        },
+        "VastRequestConfiguration":{
+          "shape":"VastRequestConfiguration",
+          "documentation":"<p>The configuration for a <code>VAST_REQUEST</code> function.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the function. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
+        },
+        "Arn":{
+          "shape":"__string",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the function.</p>"
+        }
+      },
+      "documentation":"<p>-- Define Mixin --</p>"
     },
     "GetPlaybackConfigurationRequest":{
       "type":"structure",
@@ -2153,11 +2776,19 @@
         },
         "PlaybackEndpointPrefix":{
           "shape":"__string",
-          "documentation":"<p>The URL that the player accesses to get a manifest from AWS Elemental MediaTailor. This session will use server-side reporting.</p>"
+          "documentation":"<p>The URL that your player accesses to get a manifest from AWS Elemental MediaTailor. The session uses server-side reporting.</p>"
+        },
+        "DualStackPlaybackEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that your player accesses to get a manifest from AWS Elemental MediaTailor. The session uses server-side reporting.</p>"
         },
         "SessionInitializationEndpointPrefix":{
           "shape":"__string",
-          "documentation":"<p>The URL that the player uses to initialize a session that uses client-side reporting.</p>"
+          "documentation":"<p>The URL that your player uses to initialize a session that uses client-side reporting.</p>"
+        },
+        "DualStackSessionInitializationEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that your player uses to initialize a session that uses client-side reporting.</p>"
         },
         "SlateAdUrl":{
           "shape":"__string",
@@ -2179,6 +2810,30 @@
         "AdConditioningConfiguration":{
           "shape":"AdConditioningConfiguration",
           "documentation":"<p>The setting that indicates what conditioning MediaTailor will perform on ads that the ad decision server (ADS) returns, and what priority MediaTailor uses when inserting ads. </p>"
+        },
+        "AdDecisionServerConfiguration":{
+          "shape":"AdDecisionServerConfiguration",
+          "documentation":"<p>The configuration for customizing HTTP requests to the ad decision server (ADS). This includes settings for request method, headers, body content, and compression options.</p>"
+        },
+        "YieldOptimizationConfiguration":{
+          "shape":"YieldOptimizationConfiguration",
+          "documentation":"<p>Configuration for Yield Optimization, which fills unsold ad inventory in ad breaks with programmatic ads from Amazon Publisher Services (APS).</p>"
+        },
+        "FunctionMapping":{
+          "shape":"FunctionMapping",
+          "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code>, <code>PRE_ADS_REQUEST</code>, <code>POST_ADS_RESPONSE</code>, and <code>PRE_MANIFEST_INSERTION</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
+        },
+        "BeaconingConfiguration":{
+          "shape":"BeaconingConfiguration",
+          "documentation":"<p>The beaconing configuration for this playback configuration, which controls whether MediaTailor includes beacons of its own in the ad tracking response. MediaTailor always returns this setting. If you created the playback configuration before this setting existed, MediaTailor reports <code>ReportingMode</code> as <code>INSIGHTS</code>. This is also the value MediaTailor uses for that configuration at playback time.</p>"
         }
       }
     },
@@ -2212,7 +2867,7 @@
         },
         "Consumption":{
           "shape":"PrefetchConsumption",
-          "documentation":"<p>Consumption settings determine how, and when, MediaTailor places the prefetched ads into ad breaks. Ad consumption occurs within a span of time that you define, called a <i>consumption window</i>. You can designate which ad breaks that MediaTailor fills with prefetch ads by setting avail matching criteria.</p>"
+          "documentation":"<p>The configuration settings for how and when MediaTailor consumes prefetched ads from the ad decision server for single prefetch schedules. Each consumption configuration contains an end time and an optional start time that define the <i>consumption window</i>. Prefetch schedules automatically expire no earlier than seven days after the end time.</p>"
         },
         "Name":{
           "shape":"__string",
@@ -2226,9 +2881,22 @@
           "shape":"PrefetchRetrieval",
           "documentation":"<p>A complex type that contains settings for prefetch retrieval from the ad decision server (ADS).</p>"
         },
+        "ScheduleType":{
+          "shape":"PrefetchScheduleType",
+          "documentation":"<p>The frequency that MediaTailor creates prefetch schedules. <code>SINGLE</code> indicates that this schedule applies to one ad break. <code>RECURRING</code> indicates that MediaTailor automatically creates a schedule for each ad avail in a live event.</p>"
+        },
+        "RecurringPrefetchConfiguration":{
+          "shape":"RecurringPrefetchConfiguration",
+          "documentation":"<p>The configuration that defines how and when MediaTailor performs ad prefetching in a live event.</p>"
+        },
         "StreamId":{
           "shape":"__string",
           "documentation":"<p>An optional stream identifier that you can specify in order to prefetch for multiple streams that use the same playback configuration.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the prefetch schedule. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -2237,7 +2905,11 @@
       "members":{
         "ManifestEndpointPrefix":{
           "shape":"__string",
-          "documentation":"<p>The URL that is used to initiate a playback session for devices that support Apple HLS. The session uses server-side reporting.</p>"
+          "documentation":"<p>The URL that MediaTailor generates to initiate a playback session for devices that support Apple HLS. The session uses server-side reporting.</p>"
+        },
+        "DualStackManifestEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that MediaTailor generates to initiate a playback session for devices that support Apple HLS. The session uses server-side reporting.</p>"
         }
       },
       "documentation":"<p>The configuration for HLS content.</p>"
@@ -2295,6 +2967,68 @@
       "member":{"shape":"HttpPackageConfiguration"},
       "documentation":"<p>The VOD source's HTTP package configuration settings.</p>"
     },
+    "HttpRequest":{
+      "type":"structure",
+      "members":{
+        "Method":{
+          "shape":"Method",
+          "documentation":"<p>The HTTP method to use when making requests to the ad decision server. Supported values are <code>GET</code> and <code>POST</code>.</p>"
+        },
+        "Body":{
+          "shape":"__string",
+          "documentation":"<p>The request body content to send with HTTP requests to the ad decision server. This value is only eligible for <code>POST</code> requests.</p>"
+        },
+        "Headers":{
+          "shape":"StringMap",
+          "documentation":"<p>Custom HTTP headers to include in requests to the ad decision server. Specify headers as key-value pairs. This value is only eligible for <code>POST</code> requests.</p>"
+        },
+        "CompressRequest":{
+          "shape":"CompressionMethod",
+          "documentation":"<p>The compression method to apply to requests sent to the ad decision server. Supported values are <code>NONE</code> and <code>GZIP</code>. This value is only eligible for <code>POST</code> requests.</p>"
+        }
+      },
+      "documentation":"<p>HTTP request configuration parameters that define how MediaTailor communicates with the ad decision server.</p>"
+    },
+    "HttpRequestConfiguration":{
+      "type":"structure",
+      "required":[
+        "Runtime",
+        "MethodType",
+        "RequestTimeoutMilliseconds",
+        "Url"
+      ],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. Set this to <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of output bindings. Each key is a namespaced output path (such as <code>player_params.device_type</code> or <code>temp.identity</code>), and each value is an expression that MediaTailor evaluates at runtime. Output expressions in an <code>HTTP_REQUEST</code> function can reference the <code>response</code> object returned by the HTTP call. For more information about expression syntax, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-jsonata.html\">JSONata expression reference</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "MethodType":{
+          "shape":"MethodType",
+          "documentation":"<p>The HTTP method for the request. Valid values: <code>GET</code> and <code>POST</code>.</p>"
+        },
+        "RequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a response from the external service. If the call exceeds this timeout, MediaTailor sets the response status code to <code>null</code> and proceeds with output expression evaluation. Valid values: <code>100</code> to <code>2000</code>.</p>"
+        },
+        "Url":{
+          "shape":"__string",
+          "documentation":"<p>An expression that evaluates to the request URL. Use <code>{%...%}</code> delimiters for dynamic expressions. The maximum length after evaluation is 2,048 characters.</p>"
+        },
+        "Body":{
+          "shape":"__string",
+          "documentation":"<p>An expression that evaluates to the request body. Used with <code>POST</code> requests. The maximum size after evaluation is 64 KB.</p>"
+        },
+        "Headers":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of HTTP header names to expression values. MediaTailor evaluates each header value expression at runtime and includes the result in the outbound HTTP request. Maximum 50 headers.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for an <code>HTTP_REQUEST</code> function. Specifies the HTTP method, URL, headers, body, timeout, and output expressions for the request. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types-http-request.html\">HTTP_REQUEST</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
     "InsertionMode":{
       "type":"string",
       "documentation":"<p>Insertion Mode controls whether players can use stitched or guided ad insertion.</p>",
@@ -2331,13 +3065,13 @@
       "members":{
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of alerts that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> alerts, use the value of <code>NextToken</code> in the response to get the next page of results.</p>",
+          "documentation":"<p>The maximum number of alerts that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> alerts, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
           "location":"querystring",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListAlerts</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
           "location":"querystring",
           "locationName":"nextToken"
         },
@@ -2367,13 +3101,13 @@
       "members":{
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of channels that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> channels, use the value of <code>NextToken</code> in the response to get the next page of results.</p>",
+          "documentation":"<p>The maximum number of channels that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> channels, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
           "location":"querystring",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListChannels</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
           "location":"querystring",
           "locationName":"nextToken"
         }
@@ -2392,19 +3126,49 @@
         }
       }
     },
+    "ListFunctionsRequest":{
+      "type":"structure",
+      "members":{
+        "MaxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of functions that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> functions, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses token-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        },
+        "NextToken":{
+          "shape":"__string",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListFunctions</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        }
+      }
+    },
+    "ListFunctionsResponse":{
+      "type":"structure",
+      "members":{
+        "Items":{
+          "shape":"__listOfFunctionsResponse",
+          "documentation":"<p>A list of functions associated with your account in the current Region.</p>"
+        },
+        "NextToken":{
+          "shape":"__string",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListFunctions</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>"
+        }
+      }
+    },
     "ListLiveSourcesRequest":{
       "type":"structure",
       "required":["SourceLocationName"],
       "members":{
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of live sources that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> live sources, use the value of <code>NextToken</code> in the response to get the next page of results.</p>",
+          "documentation":"<p>The maximum number of live sources that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> live sources, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
           "location":"querystring",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListLiveSources</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
           "location":"querystring",
           "locationName":"nextToken"
         },
@@ -2434,13 +3198,13 @@
       "members":{
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>The maximum number of playback configurations that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> playback configurations, use the value of <code>NextToken</code> in the response to get the next page of results.</p>",
+          "documentation":"<p>The maximum number of playback configurations that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> playback configurations, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
           "location":"querystring",
           "locationName":"MaxResults"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListPlaybackConfigurations</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
           "location":"querystring",
           "locationName":"NextToken"
         }
@@ -2459,23 +3223,35 @@
         }
       }
     },
+    "ListPrefetchScheduleType":{
+      "type":"string",
+      "enum":[
+        "SINGLE",
+        "RECURRING",
+        "ALL"
+      ]
+    },
     "ListPrefetchSchedulesRequest":{
       "type":"structure",
       "required":["PlaybackConfigurationName"],
       "members":{
         "MaxResults":{
           "shape":"__integerMin1Max100",
-          "documentation":"<p>The maximum number of prefetch schedules that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> prefetch schedules, use the value of <code>NextToken</code> in the response to get the next page of results.</p>"
+          "documentation":"<p>The maximum number of prefetch schedules that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> prefetch schedules, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>(Optional) If the playback configuration has more than <code>MaxResults</code> prefetch schedules, use <code>NextToken</code> to get the second and subsequent pages of results.</p> <p> For the first <code>ListPrefetchSchedulesRequest</code> request, omit this value.</p> <p> For the second and subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request.</p> <p> If the previous response didn't include a <code>NextToken</code> element, there are no more prefetch schedules to get.</p>"
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListPrefetchSchedules</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>"
         },
         "PlaybackConfigurationName":{
           "shape":"__string",
           "documentation":"<p>Retrieves the prefetch schedule(s) for a specific playback configuration.</p>",
           "location":"uri",
           "locationName":"PlaybackConfigurationName"
+        },
+        "ScheduleType":{
+          "shape":"ListPrefetchScheduleType",
+          "documentation":"<p>The type of prefetch schedules that you want to list. <code>SINGLE</code> indicates that you want to list the configured single prefetch schedules. <code>RECURRING</code> indicates that you want to list the configured recurring prefetch schedules. <code>ALL</code> indicates that you want to list all configured prefetch schedules.</p>"
         },
         "StreamId":{
           "shape":"__string",
@@ -2501,13 +3277,13 @@
       "members":{
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p> The maximum number of source locations that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> source locations, use the value of <code>NextToken</code> in the response to get the next page of results.</p>",
+          "documentation":"<p> The maximum number of source locations that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> source locations, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
           "location":"querystring",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListSourceLocations</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
           "location":"querystring",
           "locationName":"nextToken"
         }
@@ -2554,13 +3330,13 @@
       "members":{
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p> The maximum number of VOD sources that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> VOD sources, use the value of <code>NextToken</code> in the response to get the next page of results.</p>",
+          "documentation":"<p> The maximum number of VOD sources that you want MediaTailor to return in response to the current request. If there are more than <code>MaxResults</code> VOD sources, use the value of <code>NextToken</code> in the response to get the next page of results.</p> <p>The default value is 100. MediaTailor uses DynamoDB-based pagination, which means that a response might contain fewer than <code>MaxResults</code> items, including 0 items, even when more results are available. To retrieve all results, you must continue making requests using the <code>NextToken</code> value from each response until the response no longer includes a <code>NextToken</code> value.</p>",
           "location":"querystring",
           "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"__string",
-          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p>",
+          "documentation":"<p>Pagination token returned by the list request when results exceed the maximum allowed. Use the token to fetch the next page of results.</p> <p>For the first <code>ListVodSources</code> request, omit this value. For subsequent requests, get the value of <code>NextToken</code> from the previous response and specify that value for <code>NextToken</code> in the request. Continue making requests until the response no longer includes a <code>NextToken</code> value, which indicates that all results have been retrieved.</p>",
           "location":"querystring",
           "locationName":"nextToken"
         },
@@ -2595,6 +3371,10 @@
         "MaxDurationSeconds":{
           "shape":"__integer",
           "documentation":"<p>The maximum allowed duration for the pre-roll ad avail. AWS Elemental MediaTailor won't play pre-roll ads to exceed this duration, regardless of the total duration of ads that the ADS returns.</p>"
+        },
+        "AdDecisionServerConfiguration":{
+          "shape":"PreRollAdDecisionServerConfiguration",
+          "documentation":"<p>The configuration for the ad decision server (ADS) for live pre-roll ads. The configuration contains settings that control how MediaTailor processes VAST responses for pre-roll ad breaks.</p>"
         }
       },
       "documentation":"<p>The configuration for pre-roll ad insertion.</p>"
@@ -2642,7 +3422,10 @@
     },
     "LogConfiguration":{
       "type":"structure",
-      "required":["PercentEnabled"],
+      "required":[
+        "PercentEnabled",
+        "EnabledLoggingStrategies"
+      ],
       "members":{
         "PercentEnabled":{
           "shape":"__integer",
@@ -2651,6 +3434,14 @@
         "EnabledLoggingStrategies":{
           "shape":"__listOfLoggingStrategies",
           "documentation":"<p>The method used for collecting logs from AWS Elemental MediaTailor. <code>LEGACY_CLOUDWATCH</code> indicates that MediaTailor is sending logs directly to Amazon CloudWatch Logs. <code>VENDED_LOGS</code> indicates that MediaTailor is sending logs to CloudWatch, which then vends the logs to your destination of choice. Supported destinations are CloudWatch Logs log group, Amazon S3 bucket, and Amazon Data Firehose stream. </p>"
+        },
+        "AdsInteractionLog":{
+          "shape":"AdsInteractionLog",
+          "documentation":"<p>Settings for customizing what events are included in logs for interactions with the ad decision server (ADS).</p>"
+        },
+        "ManifestServiceInteractionLog":{
+          "shape":"ManifestServiceInteractionLog",
+          "documentation":"<p>Settings for customizing what events are included in logs for interactions with the origin server.</p>"
         }
       },
       "documentation":"<p>Defines where AWS Elemental MediaTailor sends logs for the playback configuration.</p>"
@@ -2694,6 +3485,66 @@
       },
       "documentation":"<p>The configuration for manifest processing rules. Manifest processing rules enable customization of the personalized manifests created by MediaTailor.</p>"
     },
+    "ManifestServiceExcludeEventType":{
+      "type":"string",
+      "enum":[
+        "GENERATED_MANIFEST",
+        "ORIGIN_MANIFEST",
+        "SESSION_INITIALIZED",
+        "TRACKING_RESPONSE",
+        "CONFIG_SYNTAX_ERROR",
+        "CONFIG_SECURITY_ERROR",
+        "UNKNOWN_HOST",
+        "TIMEOUT_ERROR",
+        "CONNECTION_ERROR",
+        "IO_ERROR",
+        "UNKNOWN_ERROR",
+        "HOST_DISALLOWED",
+        "PARSING_ERROR",
+        "MANIFEST_ERROR",
+        "NO_MASTER_OR_MEDIA_PLAYLIST",
+        "NO_MASTER_PLAYLIST",
+        "NO_MEDIA_PLAYLIST",
+        "INCOMPATIBLE_HLS_VERSION",
+        "SCTE35_PARSING_ERROR",
+        "INVALID_SINGLE_PERIOD_DASH_MANIFEST",
+        "UNSUPPORTED_SINGLE_PERIOD_DASH_MANIFEST",
+        "LAST_PERIOD_MISSING_AUDIO",
+        "LAST_PERIOD_MISSING_AUDIO_WARNING",
+        "ERROR_ORIGIN_PREFIX_INTERPOLATION",
+        "ERROR_ADS_INTERPOLATION",
+        "ERROR_LIVE_PRE_ROLL_ADS_INTERPOLATION",
+        "ERROR_CDN_AD_SEGMENT_INTERPOLATION",
+        "ERROR_CDN_CONTENT_SEGMENT_INTERPOLATION",
+        "ERROR_SLATE_AD_URL_INTERPOLATION",
+        "ERROR_PROFILE_NAME_INTERPOLATION",
+        "ERROR_BUMPER_START_INTERPOLATION",
+        "ERROR_BUMPER_END_INTERPOLATION",
+        "PRE_SESSION_INIT_HOOK_ERROR",
+        "PRE_SESSION_INIT_FUNCTION_ERROR"
+      ]
+    },
+    "ManifestServiceInteractionLog":{
+      "type":"structure",
+      "members":{
+        "PublishOptInEventTypes":{
+          "shape":"__manifestServicePublishOptInEventTypesList",
+          "documentation":"<p>Indicates that MediaTailor will emit the selected events in the logs for playback sessions that are initialized with this configuration. These events are not emitted by default and must be explicitly opted in.</p>"
+        },
+        "ExcludeEventTypes":{
+          "shape":"__manifestServiceExcludeEventTypesList",
+          "documentation":"<p>Indicates that MediaTailor won't emit the selected events in the logs for playback sessions that are initialized with this configuration.</p>"
+        }
+      },
+      "documentation":"<p>Settings for customizing what events are included in logs for interactions with the origin server.</p> <p>For more information about manifest service logs, including descriptions of the event types, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/log-types.html\">MediaTailor manifest logs description and event types</a> in Elemental MediaTailor User Guide.</p>"
+    },
+    "ManifestServicePublishOptInEventType":{
+      "type":"string",
+      "enum":[
+        "PRE_SESSION_INIT_HOOK_SUMMARY",
+        "PRE_SESSION_INIT_FUNCTION_COMPLETED"
+      ]
+    },
     "MaxResults":{
       "type":"integer",
       "box":true,
@@ -2707,6 +3558,26 @@
         "TIME_SIGNAL"
       ]
     },
+    "Method":{
+      "type":"string",
+      "enum":[
+        "GET",
+        "POST"
+      ]
+    },
+    "MethodType":{
+      "type":"string",
+      "enum":[
+        "GET",
+        "POST"
+      ]
+    },
+    "MinimumUnfilledDurationSeconds":{
+      "type":"integer",
+      "box":true,
+      "max":3600,
+      "min":6
+    },
     "Mode":{
       "type":"string",
       "enum":[
@@ -2714,6 +3585,11 @@
         "BEHIND_LIVE_EDGE",
         "AFTER_LIVE_EDGE"
       ]
+    },
+    "OpenRtbTemplateString":{
+      "type":"string",
+      "max":102400,
+      "min":1
     },
     "Operator":{
       "type":"string",
@@ -2787,11 +3663,19 @@
         },
         "PlaybackEndpointPrefix":{
           "shape":"__string",
-          "documentation":"<p>The URL that the player accesses to get a manifest from AWS Elemental MediaTailor.</p>"
+          "documentation":"<p>The URL that your player accesses to get a manifest from AWS Elemental MediaTailor.</p>"
+        },
+        "DualStackPlaybackEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that your player accesses to get a manifest from AWS Elemental MediaTailor.</p>"
         },
         "SessionInitializationEndpointPrefix":{
           "shape":"__string",
-          "documentation":"<p>The URL that the player uses to initialize a session that uses client-side reporting.</p>"
+          "documentation":"<p>The URL that your player uses to initialize a session that uses client-side reporting.</p>"
+        },
+        "DualStackSessionInitializationEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that your player uses to initialize a session that uses client-side reporting.</p>"
         },
         "SlateAdUrl":{
           "shape":"__string",
@@ -2813,6 +3697,27 @@
         "AdConditioningConfiguration":{
           "shape":"AdConditioningConfiguration",
           "documentation":"<p>The setting that indicates what conditioning MediaTailor will perform on ads that the ad decision server (ADS) returns, and what priority MediaTailor uses when inserting ads.</p>"
+        },
+        "AdDecisionServerConfiguration":{"shape":"AdDecisionServerConfiguration"},
+        "YieldOptimizationConfiguration":{
+          "shape":"YieldOptimizationConfiguration",
+          "documentation":"<p>Configuration for Yield Optimization, which fills unsold ad inventory in ad breaks with programmatic ads from Amazon Publisher Services (APS).</p>"
+        },
+        "FunctionMapping":{
+          "shape":"FunctionMapping",
+          "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code>, <code>PRE_ADS_REQUEST</code>, <code>POST_ADS_RESPONSE</code>, and <code>PRE_MANIFEST_INSERTION</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
+        },
+        "BeaconingConfiguration":{
+          "shape":"BeaconingConfiguration",
+          "documentation":"<p>The beaconing configuration for this playback configuration, which controls whether MediaTailor includes beacons of its own in the ad tracking response.</p>"
         }
       },
       "documentation":"<p>A playback configuration. For information about MediaTailor configurations, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/configurations.html\">Working with configurations in AWS Elemental MediaTailor</a>.</p>"
@@ -2823,6 +3728,33 @@
         "LOOP",
         "LINEAR"
       ]
+    },
+    "PreRollAdDecisionServerConfiguration":{
+      "type":"structure",
+      "members":{
+        "VastResponse":{
+          "shape":"PreRollVastResponse",
+          "documentation":"<p>The settings that control how MediaTailor processes VAST responses for live pre-roll ad breaks.</p>"
+        }
+      },
+      "documentation":"<p>The ad decision server configuration for live pre-roll ads. It contains settings that control how MediaTailor processes VAST responses for pre-roll ad breaks.</p>"
+    },
+    "PreRollAdSequencingMode":{
+      "type":"string",
+      "enum":[
+        "FOLLOW_AD_SEQUENCE",
+        "IGNORE_AD_SEQUENCE"
+      ]
+    },
+    "PreRollVastResponse":{
+      "type":"structure",
+      "members":{
+        "AdSequencingMode":{
+          "shape":"PreRollAdSequencingMode",
+          "documentation":"<p>The ad sequencing mode for live pre-roll ads. <code>FOLLOW_AD_SEQUENCE</code> inserts sequenced ads in increasing order and uses standalone ads only as replacements when a sequenced ad fails. <code>IGNORE_AD_SEQUENCE</code> inserts ads in the order they appear in the VAST response, regardless of sequence attributes. The default behavior is <code>IGNORE_AD_SEQUENCE</code>.</p>"
+        }
+      },
+      "documentation":"<p>The settings that control how MediaTailor processes VAST responses from the ad decision server for live pre-roll ad breaks.</p>"
     },
     "PrefetchConsumption":{
       "type":"structure",
@@ -2841,7 +3773,7 @@
           "documentation":"<p>The time when prefetched ads are considered for use in an ad break. If you don't specify <code>StartTime</code>, the prefetched ads are available after MediaTailor retrieves them from the ad decision server.</p>"
         }
       },
-      "documentation":"<p>A complex type that contains settings that determine how and when that MediaTailor places prefetched ads into upcoming ad breaks.</p>"
+      "documentation":"<p>For single prefetch, describes how and when that MediaTailor places prefetched ads into upcoming ad breaks.</p>"
     },
     "PrefetchRetrieval":{
       "type":"structure",
@@ -2858,6 +3790,18 @@
         "StartTime":{
           "shape":"__timestampUnix",
           "documentation":"<p>The time when prefetch retrievals can start for this break. Ad prefetching will be attempted for manifest requests that occur at or after this time. Defaults to the current time. If not specified, the prefetch retrieval starts as soon as possible.</p>"
+        },
+        "TrafficShapingType":{
+          "shape":"TrafficShapingType",
+          "documentation":"<p>Indicates the type of traffic shaping used to limit the number of requests to the ADS at one time.</p>"
+        },
+        "TrafficShapingRetrievalWindow":{
+          "shape":"TrafficShapingRetrievalWindow",
+          "documentation":"<p>The configuration that tells Elemental MediaTailor how many seconds to spread out requests to the ad decision server (ADS). Instead of sending ADS requests for all sessions at the same time, MediaTailor spreads the requests across the amount of time specified in the retrieval window.</p>"
+        },
+        "TrafficShapingTpsConfiguration":{
+          "shape":"TrafficShapingTpsConfiguration",
+          "documentation":"<p>The configuration for TPS-based traffic shaping. This approach limits requests to the ad decision server (ADS) based on transactions per second and concurrent users.</p>"
         }
       },
       "documentation":"<p>A complex type that contains settings governing when MediaTailor prefetches ads, and which dynamic variables that MediaTailor includes in the request to the ad decision server.</p>"
@@ -2866,10 +3810,8 @@
       "type":"structure",
       "required":[
         "Arn",
-        "Consumption",
         "Name",
-        "PlaybackConfigurationName",
-        "Retrieval"
+        "PlaybackConfigurationName"
       ],
       "members":{
         "Arn":{
@@ -2878,7 +3820,7 @@
         },
         "Consumption":{
           "shape":"PrefetchConsumption",
-          "documentation":"<p>Consumption settings determine how, and when, MediaTailor places the prefetched ads into ad breaks. Ad consumption occurs within a span of time that you define, called a <i>consumption window</i>. You can designate which ad breaks that MediaTailor fills with prefetch ads by setting avail matching criteria.</p>"
+          "documentation":"<p>Consumption settings determine how, and when, MediaTailor places the prefetched ads into ad breaks for single prefetch schedules. Ad consumption occurs within a span of time that you define, called a <i>consumption window</i>. You can designate which ad breaks that MediaTailor fills with prefetch ads by setting avail matching criteria.</p>"
         },
         "Name":{
           "shape":"__string",
@@ -2892,12 +3834,32 @@
           "shape":"PrefetchRetrieval",
           "documentation":"<p>A complex type that contains settings for prefetch retrieval from the ad decision server (ADS).</p>"
         },
+        "ScheduleType":{
+          "shape":"PrefetchScheduleType",
+          "documentation":"<p>The frequency that MediaTailor creates prefetch schedules. <code>SINGLE</code> indicates that this schedule applies to one ad break. <code>RECURRING</code> indicates that MediaTailor automatically creates a schedule for each ad avail in a live event.</p> <p>For more information about the prefetch types and when you might use each, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/prefetching-ads.html\">Prefetching ads in Elemental MediaTailor.</a> </p>"
+        },
+        "RecurringPrefetchConfiguration":{
+          "shape":"RecurringPrefetchConfiguration",
+          "documentation":"<p>The settings that determine how and when MediaTailor prefetches ads and inserts them into ad breaks.</p>"
+        },
         "StreamId":{
           "shape":"__string",
           "documentation":"<p>An optional stream identifier that you can specify in order to prefetch for multiple streams that use the same playback configuration.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the prefetch schedule. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       },
       "documentation":"<p>A prefetch schedule allows you to tell MediaTailor to fetch and prepare certain ads before an ad break happens. For more information about ad prefetching, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/prefetching-ads.html\">Using ad prefetching</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
+    "PrefetchScheduleType":{
+      "type":"string",
+      "enum":[
+        "SINGLE",
+        "RECURRING"
+      ]
     },
     "PutChannelPolicyRequest":{
       "type":"structure",
@@ -2920,8 +3882,115 @@
     },
     "PutChannelPolicyResponse":{
       "type":"structure",
+      "members":{}
+    },
+    "PutFunctionRequest":{
+      "type":"structure",
+      "required":[
+        "FunctionId",
+        "FunctionType"
+      ],
       "members":{
-      }
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the function. The identifier must be unique within your account.</p>",
+          "location":"uri",
+          "locationName":"FunctionId"
+        },
+        "FunctionType":{
+          "shape":"FunctionType",
+          "documentation":"<p>The type of the function, which determines what the function can do at runtime. Valid values:</p> <ul> <li> <p> <code>CUSTOM_OUTPUT</code> – Evaluates expressions and produces output bindings with no external calls.</p> </li> <li> <p> <code>HTTP_REQUEST</code> – Makes an HTTP call to an external service and evaluates output expressions that can reference the response.</p> </li> <li> <p> <code>AWS_SERVICE_REQUEST</code> – Makes an authenticated request to a supported AWS service API and evaluates output expressions that can reference the response.</p> </li> <li> <p> <code>VAST_REQUEST</code> – Calls a VAST endpoint, parses the response as VAST, and makes the parsed ads available to output expressions.</p> </li> <li> <p> <code>SEQUENTIAL_EXECUTOR</code> – Runs a sequence of child functions in order, passing data between steps through temporary data.</p> </li> <li> <p> <code>CONCURRENT_EXECUTOR</code> – Runs a set of child functions in parallel, up to a maximum concurrency, and combines their output when all functions complete.</p> </li> </ul> <p>For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types.html\">Function types and composition</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "Description":{
+          "shape":"__string",
+          "documentation":"<p>A description of the function.</p>"
+        },
+        "HttpRequestConfiguration":{
+          "shape":"HttpRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>HTTP_REQUEST</code> function. Specifies the HTTP method, URL, headers, body, timeout, and output expressions. Required when <code>FunctionType</code> is <code>HTTP_REQUEST</code>.</p>"
+        },
+        "AwsServiceRequestConfiguration":{
+          "shape":"AwsServiceRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>AWS_SERVICE_REQUEST</code> function. You must specify this parameter when <code>FunctionType</code> is <code>AWS_SERVICE_REQUEST</code>.</p>"
+        },
+        "CustomOutputConfiguration":{
+          "shape":"CustomOutputConfiguration",
+          "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function. Specifies the runtime and output expressions. Required when <code>FunctionType</code> is <code>CUSTOM_OUTPUT</code>.</p>"
+        },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function. Specifies the list of child functions to run in parallel, the maximum concurrency, an optional output block, and a timeout. Required when <code>FunctionType</code> is <code>CONCURRENT_EXECUTOR</code>.</p>"
+        },
+        "SequentialExecutorConfiguration":{
+          "shape":"SequentialExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function. Specifies the ordered list of child functions to execute, an optional output block, and a timeout. Required when <code>FunctionType</code> is <code>SEQUENTIAL_EXECUTOR</code>.</p>"
+        },
+        "VastRequestConfiguration":{
+          "shape":"VastRequestConfiguration",
+          "documentation":"<p>The configuration for a <code>VAST_REQUEST</code> function. Specifies the HTTP method, URL, headers, body, timeout, and output expressions. Required when <code>FunctionType</code> is <code>VAST_REQUEST</code>.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags to assign to the function. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
+        }
+      },
+      "documentation":"<p>-- Define Mixin --</p>"
+    },
+    "PutFunctionResponse":{
+      "type":"structure",
+      "required":[
+        "FunctionId",
+        "FunctionType"
+      ],
+      "members":{
+        "FunctionId":{
+          "shape":"__string",
+          "documentation":"<p>The identifier of the function.</p>"
+        },
+        "FunctionType":{
+          "shape":"FunctionType",
+          "documentation":"<p>The type of the function.</p>"
+        },
+        "Description":{
+          "shape":"__string",
+          "documentation":"<p>A description of the function.</p>"
+        },
+        "HttpRequestConfiguration":{
+          "shape":"HttpRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>HTTP_REQUEST</code> function.</p>"
+        },
+        "AwsServiceRequestConfiguration":{
+          "shape":"AwsServiceRequestConfiguration",
+          "documentation":"<p>The configuration for an <code>AWS_SERVICE_REQUEST</code> function. Specifies the target service, target Region, and request parameters.</p>"
+        },
+        "CustomOutputConfiguration":{
+          "shape":"CustomOutputConfiguration",
+          "documentation":"<p>The configuration for a <code>CUSTOM_OUTPUT</code> function.</p>"
+        },
+        "ConcurrentExecutorConfiguration":{
+          "shape":"ConcurrentExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>CONCURRENT_EXECUTOR</code> function.</p>"
+        },
+        "SequentialExecutorConfiguration":{
+          "shape":"SequentialExecutorConfiguration",
+          "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function.</p>"
+        },
+        "VastRequestConfiguration":{
+          "shape":"VastRequestConfiguration",
+          "documentation":"<p>The configuration for a <code>VAST_REQUEST</code> function.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the function. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
+        },
+        "Arn":{
+          "shape":"__string",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the function.</p>"
+        }
+      },
+      "documentation":"<p>-- Define Mixin --</p>"
     },
     "PutPlaybackConfigurationRequest":{
       "type":"structure",
@@ -2991,6 +4060,30 @@
         "AdConditioningConfiguration":{
           "shape":"AdConditioningConfiguration",
           "documentation":"<p>The setting that indicates what conditioning MediaTailor will perform on ads that the ad decision server (ADS) returns, and what priority MediaTailor uses when inserting ads. </p>"
+        },
+        "AdDecisionServerConfiguration":{
+          "shape":"AdDecisionServerConfiguration",
+          "documentation":"<p>The configuration for customizing HTTP requests to the ad decision server (ADS). This includes settings for request method, headers, body content, and compression options.</p>"
+        },
+        "YieldOptimizationConfiguration":{
+          "shape":"YieldOptimizationConfiguration",
+          "documentation":"<p>Configuration for Yield Optimization, which fills unsold ad inventory in ad breaks with programmatic ads from Amazon Publisher Services (APS).</p>"
+        },
+        "FunctionMapping":{
+          "shape":"FunctionMapping",
+          "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code>, <code>PRE_ADS_REQUEST</code>, <code>POST_ADS_RESPONSE</code>, and <code>PRE_MANIFEST_INSERTION</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
+        },
+        "BeaconingConfiguration":{
+          "shape":"BeaconingConfiguration",
+          "documentation":"<p>The beaconing configuration for this playback configuration, which controls whether MediaTailor includes beacons of its own in the ad tracking response. If you omit this setting, MediaTailor uses <code>INSIGHTS</code>.</p>"
         }
       }
     },
@@ -3057,9 +4150,17 @@
           "shape":"__string",
           "documentation":"<p>The playback endpoint prefix associated with the playback configuration.</p>"
         },
+        "DualStackPlaybackEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) playback endpoint prefix associated with the playback configuration.</p>"
+        },
         "SessionInitializationEndpointPrefix":{
           "shape":"__string",
           "documentation":"<p>The session initialization endpoint prefix associated with the playback configuration.</p>"
+        },
+        "DualStackSessionInitializationEndpointPrefix":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) session initialization endpoint prefix associated with the playback configuration.</p>"
         },
         "SlateAdUrl":{
           "shape":"__string",
@@ -3081,8 +4182,99 @@
         "AdConditioningConfiguration":{
           "shape":"AdConditioningConfiguration",
           "documentation":"<p>The setting that indicates what conditioning MediaTailor will perform on ads that the ad decision server (ADS) returns, and what priority MediaTailor uses when inserting ads. </p>"
+        },
+        "AdDecisionServerConfiguration":{
+          "shape":"AdDecisionServerConfiguration",
+          "documentation":"<p>The configuration for customizing HTTP requests to the ad decision server (ADS). This includes settings for request method, headers, body content, and compression options.</p>"
+        },
+        "YieldOptimizationConfiguration":{
+          "shape":"YieldOptimizationConfiguration",
+          "documentation":"<p>Configuration for Yield Optimization, which fills unsold ad inventory in ad breaks with programmatic ads from Amazon Publisher Services (APS).</p>"
+        },
+        "FunctionMapping":{
+          "shape":"FunctionMapping",
+          "documentation":"<p>A map of lifecycle hook event names to function identifiers. The function mapping specifies which function MediaTailor executes at each lifecycle hook during ad insertion. Valid keys are <code>PRE_SESSION_INITIALIZATION</code>, <code>PRE_ADS_REQUEST</code>, <code>POST_ADS_RESPONSE</code>, and <code>PRE_MANIFEST_INSERTION</code>. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-hooks.html\">Functions lifecycle hooks</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "AdsPersonalizationTimeouts":{
+          "shape":"AdsPersonalizationTimeouts",
+          "documentation":"<p>The timeout settings for ad decision server interactions. These settings control how long MediaTailor waits for ADS responses and the total time budget for ad personalization across live, VOD, and prefetch workflows.</p>"
+        },
+        "AdsPersonalizationConcurrency":{
+          "shape":"AdsPersonalizationConcurrency",
+          "documentation":"<p>The concurrency settings for ad decision server interactions. These settings control how many simultaneous ADS requests MediaTailor makes per manifest request.</p>"
+        },
+        "BeaconingConfiguration":{
+          "shape":"BeaconingConfiguration",
+          "documentation":"<p>The beaconing configuration for this playback configuration, which controls whether MediaTailor includes beacons of its own in the ad tracking response.</p>"
         }
       }
+    },
+    "RecurringConsumption":{
+      "type":"structure",
+      "members":{
+        "RetrievedAdExpirationSeconds":{
+          "shape":"__integer",
+          "documentation":"<p>The number of seconds that an ad is available for insertion after it was prefetched.</p>"
+        },
+        "AvailMatchingCriteria":{
+          "shape":"__listOfAvailMatchingCriteria",
+          "documentation":"<p>The configuration for the dynamic variables that determine which ad breaks that MediaTailor inserts prefetched ads in.</p>"
+        }
+      },
+      "documentation":"<p>The settings that determine how and when MediaTailor places prefetched ads into upcoming ad breaks for recurring prefetch scedules.</p>"
+    },
+    "RecurringPrefetchConfiguration":{
+      "type":"structure",
+      "required":[
+        "EndTime",
+        "RecurringConsumption",
+        "RecurringRetrieval"
+      ],
+      "members":{
+        "StartTime":{
+          "shape":"__timestampUnix",
+          "documentation":"<p>The start time for the window that MediaTailor prefetches and inserts ads in a live event. </p>"
+        },
+        "EndTime":{
+          "shape":"__timestampUnix",
+          "documentation":"<p>The end time for the window that MediaTailor prefetches and inserts ads in a live event. </p>"
+        },
+        "RecurringConsumption":{
+          "shape":"RecurringConsumption",
+          "documentation":"<p>The settings that determine how and when MediaTailor places prefetched ads into upcoming ad breaks for recurring prefetch scedules.</p>"
+        },
+        "RecurringRetrieval":{
+          "shape":"RecurringRetrieval",
+          "documentation":"<p>The configuration for prefetch ad retrieval from the ADS.</p>"
+        }
+      },
+      "documentation":"<p>The configuration that defines how MediaTailor performs recurring prefetch. </p>"
+    },
+    "RecurringRetrieval":{
+      "type":"structure",
+      "members":{
+        "DynamicVariables":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The dynamic variables to use for substitution during prefetch requests to the ADS.</p>"
+        },
+        "DelayAfterAvailEndSeconds":{
+          "shape":"__integer",
+          "documentation":"<p>The number of seconds that MediaTailor waits after an ad avail before prefetching ads for the next avail. If not set, the default is 0 (no delay).</p>"
+        },
+        "TrafficShapingType":{
+          "shape":"TrafficShapingType",
+          "documentation":"<p>Indicates the type of traffic shaping used to limit the number of requests to the ADS at one time.</p>"
+        },
+        "TrafficShapingRetrievalWindow":{
+          "shape":"TrafficShapingRetrievalWindow",
+          "documentation":"<p>The configuration that tells Elemental MediaTailor how many seconds to spread out requests to the ad decision server (ADS). Instead of sending ADS requests for all sessions at the same time, MediaTailor spreads the requests across the amount of time specified in the retrieval window.</p>"
+        },
+        "TrafficShapingTpsConfiguration":{
+          "shape":"TrafficShapingTpsConfiguration",
+          "documentation":"<p>The configuration for TPS-based traffic shaping. This approach limits requests to the ad decision server (ADS) based on transactions per second and concurrent users.</p>"
+        }
+      },
+      "documentation":"<p>With recurring prefetch, MediaTailor automatically prefetches ads for every avail that occurs during the retrieval window. The following configurations describe the MediaTailor behavior when prefetching ads for a live event.</p>"
     },
     "RelativePosition":{
       "type":"string",
@@ -3144,7 +4336,11 @@
         },
         "PlaybackUrl":{
           "shape":"__string",
-          "documentation":"<p>The URL used for playback by content players.</p>"
+          "documentation":"<p>The URL that your player uses for playback.</p>"
+        },
+        "DualStackPlaybackUrl":{
+          "shape":"__string",
+          "documentation":"<p>The dual-stack (IPv4 and IPv6) URL that your player uses for playback.</p>"
         },
         "SourceGroup":{
           "shape":"__string",
@@ -3156,6 +4352,10 @@
     "ResponseOutputs":{
       "type":"list",
       "member":{"shape":"ResponseOutputItem"}
+    },
+    "RuntimeType":{
+      "type":"string",
+      "enum":["JSONATA"]
     },
     "ScheduleAdBreak":{
       "type":"structure",
@@ -3332,6 +4532,33 @@
       "type":"list",
       "member":{"shape":"SegmentationDescriptor"}
     },
+    "SequentialExecutorConfiguration":{
+      "type":"structure",
+      "required":[
+        "Runtime",
+        "FunctionList",
+        "TimeoutMilliseconds"
+      ],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. Set this to <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>An optional map of output bindings that controls which bindings the sequence commits to the session state after all steps complete. If omitted, MediaTailor commits all accumulated output bindings from all child steps.</p>"
+        },
+        "FunctionList":{
+          "shape":"__listOfFunctionsRef",
+          "documentation":"<p>An ordered list of 1 to 10 steps. Each step specifies a child function to execute and an optional run condition expression that controls whether the step runs. MediaTailor executes steps in order, passing data between steps through temporary data.</p>"
+        },
+        "TimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, for the entire sequence to complete. This timeout covers all steps, including any HTTP calls made by child functions. If the sequence exceeds this timeout, MediaTailor discards all output from the sequence and proceeds with default behavior.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for a <code>SEQUENTIAL_EXECUTOR</code> function. A <code>SEQUENTIAL_EXECUTOR</code> runs a sequence of child functions in order, passing data between steps through temporary data. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types-sequential-executor.html\">SEQUENTIAL_EXECUTOR</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
     "SlateSource":{
       "type":"structure",
       "members":{
@@ -3430,8 +4657,7 @@
     },
     "StartChannelResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StopChannelRequest":{
       "type":"structure",
@@ -3447,8 +4673,7 @@
     },
     "StopChannelResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StreamingMediaFileConditioning":{
       "type":"string",
@@ -3458,6 +4683,11 @@
       ]
     },
     "String":{"type":"string"},
+    "StringMap":{
+      "type":"map",
+      "key":{"shape":"__string"},
+      "value":{"shape":"__string"}
+    },
     "TagResourceRequest":{
       "type":"structure",
       "required":[
@@ -3505,6 +4735,37 @@
         }
       },
       "documentation":"<p>The SCTE-35 <code>time_signal</code> message can be sent with one or more <code>segmentation_descriptor</code> messages. A <code>time_signal</code> message can be sent only if a single <code>segmentation_descriptor</code> message is sent.</p> <p>The <code>time_signal</code> message contains only the <code>splice_time</code> field which is constructed using a given presentation timestamp. When sending a <code>time_signal</code> message, the <code>splice_command_type</code> field in the <code>splice_info_section</code> message is set to 6 (0x06).</p> <p>See the <code>time_signal()</code> table of the 2022 SCTE-35 specification for more information.</p>"
+    },
+    "TrafficShapingRetrievalWindow":{
+      "type":"structure",
+      "members":{
+        "RetrievalWindowDurationSeconds":{
+          "shape":"__integer",
+          "documentation":"<p>The amount of time, in seconds, that MediaTailor spreads prefetch requests to the ADS. </p>"
+        }
+      },
+      "documentation":"<p>The configuration that tells Elemental MediaTailor how many seconds to spread out requests to the ad decision server (ADS). Instead of sending ADS requests for all sessions at the same time, MediaTailor spreads the requests across the amount of time specified in the retrieval window.</p>"
+    },
+    "TrafficShapingTpsConfiguration":{
+      "type":"structure",
+      "members":{
+        "PeakTps":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum number of transactions per second (TPS) that your ad decision server (ADS) can handle. MediaTailor uses this value along with concurrent users and headroom multiplier to calculate optimal traffic distribution and prevent ADS overload.</p>"
+        },
+        "PeakConcurrentUsers":{
+          "shape":"__integer",
+          "documentation":"<p>The expected peak number of concurrent viewers for your content. MediaTailor uses this value along with peak TPS to determine how to distribute prefetch requests across the available capacity without exceeding your ADS limits.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for TPS-based traffic shaping. This approach limits requests to the ad decision server (ADS) based on transactions per second and concurrent users.</p>"
+    },
+    "TrafficShapingType":{
+      "type":"string",
+      "enum":[
+        "RETRIEVAL_WINDOW",
+        "TPS"
+      ]
     },
     "Transition":{
       "type":"structure",
@@ -3793,6 +5054,11 @@
         "AudienceMedia":{
           "shape":"__listOfAudienceMedia",
           "documentation":"<p>The list of AudienceMedia defined in program.</p>"
+        },
+        "Tags":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>The tags assigned to the program. Tags are key-value pairs that you can associate with Amazon resources to help with organization, access control, and cost tracking. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/tagging.html\">Tagging AWS Elemental MediaTailor Resources</a>.</p>",
+          "locationName":"tags"
         }
       }
     },
@@ -3957,6 +5223,56 @@
         }
       }
     },
+    "VastRequestConfiguration":{
+      "type":"structure",
+      "required":[
+        "Runtime",
+        "MethodType",
+        "RequestTimeoutMilliseconds",
+        "Url"
+      ],
+      "members":{
+        "Runtime":{
+          "shape":"RuntimeType",
+          "documentation":"<p>The expression language used to evaluate expressions in the function configuration. Set this to <code>JSONata</code>.</p>"
+        },
+        "Output":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of output bindings. Each key is a namespaced output path (such as <code>temp.wrappedAds</code>), and each value is an expression that MediaTailor evaluates at runtime. Output expressions in a <code>VAST_REQUEST</code> function can reference the <code>response</code> object, which exposes <code>response.parsedAds</code> — the ads parsed from the VAST response after schema validation and wrapper resolution — and <code>response.statusCode</code>. For more information about expression syntax, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-jsonata.html\">JSONata expression reference</a> in the <i>MediaTailor User Guide</i>.</p>"
+        },
+        "MethodType":{
+          "shape":"MethodType",
+          "documentation":"<p>The HTTP method for the request to the VAST endpoint. Valid values: <code>GET</code> and <code>POST</code>. Use <code>POST</code> to send a bid request body, such as an OpenRTB payload.</p>"
+        },
+        "RequestTimeoutMilliseconds":{
+          "shape":"__integer",
+          "documentation":"<p>The maximum time, in milliseconds, that MediaTailor waits for a response from the VAST endpoint. The timeout covers the entire response, including any wrapper redirects that MediaTailor follows. If the call exceeds this timeout, MediaTailor proceeds with an empty ad list and continues output expression evaluation. Valid values: <code>100</code> to <code>2000</code>.</p>"
+        },
+        "Url":{
+          "shape":"__string",
+          "documentation":"<p>An expression that evaluates to the VAST endpoint URL. Use <code>{%...%}</code> delimiters for dynamic expressions. A literal value must be an <code>https://</code> URL. The expression can be up to 25,000 characters, and the URL after evaluation can be up to 2,048 characters.</p>"
+        },
+        "Body":{
+          "shape":"__string",
+          "documentation":"<p>An expression that evaluates to the request body, for example to send an OpenRTB bid request. The expression can be up to 100,000 characters, and the body after evaluation can be up to 64 KB.</p>"
+        },
+        "Headers":{
+          "shape":"__mapOf__string",
+          "documentation":"<p>A map of HTTP header names to expression values. MediaTailor evaluates each header value expression at runtime and includes the result in the outbound request. Headers beginning with <code>X-Amz-</code> are reserved by the service, and method override headers are not allowed.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for a <code>VAST_REQUEST</code> function. Specifies the HTTP method, URL, headers, body, timeout, and output expressions for a request to a VAST endpoint. MediaTailor parses the response as VAST and resolves wrapper redirects, then makes the parsed ads available to the function's output expressions. For more information, see <a href=\"https://docs.aws.amazon.com/mediatailor/latest/ug/monetization-functions-types.html\">Function types and composition</a> in the <i>MediaTailor User Guide</i>.</p>"
+    },
+    "VastResponse":{
+      "type":"structure",
+      "members":{
+        "AdSequencingMode":{
+          "shape":"AdSequencingMode",
+          "documentation":"<p>The ad sequencing mode that controls how MediaTailor handles sequenced and standalone ads in VAST responses. <code>FOLLOW_AD_SEQUENCE</code> inserts sequenced ads in increasing order for both live and VOD workflows, using standalone ads only as replacements when a sequenced ad fails. <code>FOLLOW_AD_SEQUENCE_ONLY_LIVE</code> enables ad sequencing for live workflows only. <code>FOLLOW_AD_SEQUENCE_ONLY_VOD</code> enables ad sequencing for VOD workflows only. <code>IGNORE_AD_SEQUENCE</code> inserts ads in the order they appear in the VAST response, regardless of sequence attributes. The default behavior is <code>IGNORE_AD_SEQUENCE</code>.</p>"
+        }
+      },
+      "documentation":"<p>The settings that control how MediaTailor processes VAST responses from the ad decision server.</p>"
+    },
     "VodSource":{
       "type":"structure",
       "required":[
@@ -3997,6 +5313,42 @@
         }
       },
       "documentation":"<p>VOD source configuration parameters.</p>"
+    },
+    "YieldOptimizationConfiguration":{
+      "type":"structure",
+      "required":[
+        "MinimumUnfilledDuration",
+        "PublisherId",
+        "Region",
+        "OpenRtbTemplate"
+      ],
+      "members":{
+        "MinimumUnfilledDuration":{
+          "shape":"MinimumUnfilledDurationSeconds",
+          "documentation":"<p>The minimum unfilled duration, in seconds, that must remain in an ad break before MediaTailor requests additional ads from Amazon Publisher Services (APS). For example, if set to 6 seconds, yield optimization triggers only when at least 6 seconds of unfilled time remains after the primary ad server response.</p>"
+        },
+        "PublisherId":{
+          "shape":"ApsPublisherId",
+          "documentation":"<p>Publisher ID for an existing Amazon Publisher Services configuration. This ID must be obtained by registering with APS prior to using the Yield Optimization feature. The Publisher ID identifies your account in the APS system and is required for all bid requests.</p>"
+        },
+        "Region":{
+          "shape":"ApsRegion",
+          "documentation":"<p>The Amazon Publisher Services (APS) region that MediaTailor sends bid requests to. Choose the region closest to your primary audience, because the selection affects both latency and the ad inventory available to you. This setting applies to the entire playback configuration, not to individual viewers. If you serve traffic across multiple regions, create a separate playback configuration for each APS region.</p>"
+        },
+        "OpenRtbTemplate":{
+          "shape":"OpenRtbTemplateString",
+          "documentation":"<p>The OpenRTB bid request template, in JSON, that MediaTailor sends to Amazon Publisher Services (APS). The template must include an <code>imp</code> array with one impression specifying <code>bidfloor</code>, an <code>app</code> object specifying <code>bundle</code> and <code>storeurl</code>, and a <code>device</code> object specifying <code>ua</code> and <code>ip</code>. Use double curly braces (for example, <code>{{player_params.user_agent}}</code>) to insert session variables and player parameters.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for Yield Optimization, which fills unsold ad inventory in ad breaks with programmatic ads from Amazon Publisher Services (APS).</p>"
+    },
+    "__adsInteractionExcludeEventTypesList":{
+      "type":"list",
+      "member":{"shape":"AdsInteractionExcludeEventType"}
+    },
+    "__adsInteractionPublishOptInEventTypesList":{
+      "type":"list",
+      "member":{"shape":"AdsInteractionPublishOptInEventType"}
     },
     "__boolean":{
       "type":"boolean",
@@ -4041,6 +5393,14 @@
       "type":"list",
       "member":{"shape":"Channel"}
     },
+    "__listOfFunctionsRef":{
+      "type":"list",
+      "member":{"shape":"FunctionRef"}
+    },
+    "__listOfFunctionsResponse":{
+      "type":"list",
+      "member":{"shape":"Function"}
+    },
     "__listOfLiveSource":{
       "type":"list",
       "member":{"shape":"LiveSource"}
@@ -4084,6 +5444,14 @@
     "__long":{
       "type":"long",
       "box":true
+    },
+    "__manifestServiceExcludeEventTypesList":{
+      "type":"list",
+      "member":{"shape":"ManifestServiceExcludeEventType"}
+    },
+    "__manifestServicePublishOptInEventTypesList":{
+      "type":"list",
+      "member":{"shape":"ManifestServicePublishOptInEventType"}
     },
     "__mapOf__string":{
       "type":"map",

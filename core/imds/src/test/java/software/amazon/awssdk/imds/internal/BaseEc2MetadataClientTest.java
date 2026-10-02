@@ -50,6 +50,7 @@ import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
 import software.amazon.awssdk.imds.Ec2MetadataClientBuilder;
+import software.amazon.awssdk.imds.Ec2MetadataClientException;
 import software.amazon.awssdk.imds.Ec2MetadataResponse;
 import software.amazon.awssdk.imds.Ec2MetadataRetryPolicy;
 import software.amazon.awssdk.imds.EndpointMode;
@@ -355,5 +356,50 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
             verify(exactly(1), getRequestedFor(urlPathEqualTo(AMI_ID_RESOURCE))
                 .withHeader(TOKEN_HEADER, equalTo("some-token")));
         });
+    }
+
+    @Test
+    void clientError_throwsEc2MetadataClientExceptionWithFullResponse() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                                    .willReturn(aResponse()
+                                    .withBody("token")
+                                    .withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
+
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE))
+                                    .willReturn(aResponse()
+                                    .withStatus(400)
+                                    .withHeader("x-custom-header", "custom-value")
+                                    .withBody("Bad Request")));
+
+        failureAssertions(
+            AMI_ID_RESOURCE,
+            Ec2MetadataClientException.class,
+            exception -> {
+                assertThat(exception.statusCode()).isEqualTo(400);
+                assertThat(exception.sdkHttpResponse().firstMatchingHeader("x-custom-header"))
+                    .hasValue("custom-value");
+                assertThat(exception.rawResponse().asUtf8String()).isEqualTo("Bad Request");
+            }
+        );
+    }
+
+    @Test
+    void tokenRequest_clientError_throwsEc2MetadataClientExceptionWithFullResponse() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH))
+                    .willReturn(aResponse()
+                                    .withStatus(403)
+                                    .withHeader("x-error-type", "AccessDenied")
+                                    .withBody("Forbidden")));
+
+        failureAssertions(
+            AMI_ID_RESOURCE,
+            Ec2MetadataClientException.class,
+            exception -> {
+                assertThat(exception.statusCode()).isEqualTo(403);
+                assertThat(exception.sdkHttpResponse().firstMatchingHeader("x-error-type"))
+                    .hasValue("AccessDenied");
+                assertThat(exception.rawResponse().asUtf8String()).isEqualTo("Forbidden");
+            }
+        );
     }
 }

@@ -1,0 +1,48 @@
+{
+    "version": "2.31.2",
+    "date": "2025-03-17",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "AWS WAF now lets you inspect fragments of request URIs. You can specify the scope of the URI to inspect and narrow the set of URI fragments."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Signals",
+            "contributor": "",
+            "description": "This release adds support for adding, removing, and listing SLO time exclusion windows with the BatchUpdateExclusionWindows and ListServiceLevelObjectiveExclusionWindows APIs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Maps V2",
+            "contributor": "",
+            "description": "Provide support for vector map styles in the GetStaticMap operation."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch RUM",
+            "contributor": "",
+            "description": "CloudWatch RUM now supports unminification of JS error stack traces."
+        },
+        {
+            "type": "feature",
+            "category": "Tax Settings",
+            "contributor": "",
+            "description": "Adjust Vietnam PaymentVoucherNumber regex and minor API change."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        },
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Copy bytes written to OutputStream of BlockingOutputStreamAsyncRequestBody"
+        }
+    ]
+}

@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.poet.rules;
 import com.fasterxml.jackson.core.TreeNode;
 import com.fasterxml.jackson.jr.stree.JrsArray;
 import com.fasterxml.jackson.jr.stree.JrsBoolean;
+import com.fasterxml.jackson.jr.stree.JrsNumber;
 import com.fasterxml.jackson.jr.stree.JrsString;
 import com.fasterxml.jackson.jr.stree.JrsValue;
 import com.squareup.javapoet.ClassName;
@@ -29,7 +30,12 @@ import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -52,6 +58,7 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
 
 public class EndpointRulesSpecUtils {
+    private static final String RULES_ENGINE_RESOURCE_FILES_PREFIX = "software/amazon/awssdk/codegen/rules/";
     private final IntermediateModel intermediateModel;
 
     public EndpointRulesSpecUtils(IntermediateModel intermediateModel) {
@@ -85,6 +92,16 @@ public class EndpointRulesSpecUtils {
         Metadata md = intermediateModel.getMetadata();
         return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
                              md.getServiceName() + "ResolveEndpointInterceptor");
+    }
+
+    public ClassName endpointResolverUtilsName() {
+        Metadata md = intermediateModel.getMetadata();
+        return ClassName.get(md.getFullInternalEndpointRulesPackageName(),
+                             md.getServiceName() + "EndpointResolverUtils");
+    }
+
+    public ClassName sharedAwsEndpointProviderUtilsName() {
+        return ClassName.get("software.amazon.awssdk.awscore.endpoints", "AwsEndpointProviderUtils");
     }
 
     public ClassName requestModifierInterceptorName() {
@@ -183,6 +200,12 @@ public class EndpointRulesSpecUtils {
             case VALUE_FALSE:
                 b.add("$L", Validate.isInstanceOf(JrsBoolean.class, treeNode, "Expected boolean").booleanValue());
                 break;
+            case VALUE_NUMBER_INT:
+                b.add("$L", Validate.isInstanceOf(JrsNumber.class, treeNode, "Expected number").getValue().intValue());
+                break;
+            case VALUE_NUMBER_FLOAT:
+                b.add("$L", Validate.isInstanceOf(JrsNumber.class, treeNode, "Expected number").getValue().doubleValue());
+                break;
             case START_ARRAY:
                 handleArrayDefaultValue(b, "stringarray",
                                         Validate.isInstanceOf(JrsArray.class, treeNode, "Expected string array"));
@@ -213,35 +236,55 @@ public class EndpointRulesSpecUtils {
 
     public List<String> rulesEngineResourceFiles() {
         URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
+
+        // This would happen if the classes aren't loaded from a JAR, e.g. when unit testing
+        if (!currentJarUrl.toString().endsWith(".jar")) {
+            return rulesEngineFilesFromDirectory(currentJarUrl);
+        }
+
         try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
             return jarFile.stream()
                           .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules/"))
+                          .filter(e -> e.startsWith(RULES_ENGINE_RESOURCE_FILES_PREFIX))
                           .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public List<String> rulesEngineResourceFiles2() {
-        URL currentJarUrl = EndpointRulesSpecUtils.class.getProtectionDomain().getCodeSource().getLocation();
-        try (JarFile jarFile = new JarFile(currentJarUrl.getFile())) {
-            return jarFile.stream()
-                          .map(ZipEntry::getName)
-                          .filter(e -> e.startsWith("software/amazon/awssdk/codegen/rules2/"))
-                          .collect(Collectors.toList());
+    public List<String> rulesEngineFilesFromDirectory(URL location) {
+        return rulesEngineFilesFromDirectory(location, RULES_ENGINE_RESOURCE_FILES_PREFIX);
+    }
+
+    public List<String> rulesEngineFilesFromDirectory(URL location, String prefix) {
+        URI locationUri;
+        try {
+            locationUri = location.toURI();
+            if (!"file".equals(locationUri.getScheme())) {
+                throw new RuntimeException("Expected location to be a directory");
+            }
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+
+        try {
+            Path directory = Paths.get(locationUri);
+            return Files.walk(directory)
+                        // Remove the root directory if the classes, paths are expected to be relative to this directory
+                        .map(f -> directory.relativize(f).toString())
+                        .filter(f -> f.startsWith(prefix))
+                        .collect(Collectors.toList());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
     public Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 
     public boolean isDeclaredParam(String paramName) {
-        Map<String, ParameterModel> parameters = intermediateModel.getEndpointRuleSetModel().getParameters();
-        return parameters.containsKey(paramName);
+        return intermediateModel.getEndpointParameters().containsKey(paramName);
     }
 
     /**

@@ -16,26 +16,35 @@
 package software.amazon.awssdk.awscore.internal;
 
 import static software.amazon.awssdk.auth.signer.internal.util.SignerMethodResolver.resolveSigningMethodUsed;
+import static software.amazon.awssdk.awscore.internal.AwsServiceProtocol.SMITHY_RPC_V2_CBOR;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.NEW_RETRIES_2026_ENABLED;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_POLICY;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.RETRY_STRATEGY;
 import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS;
 import static software.amazon.awssdk.core.internal.useragent.BusinessMetricsUtils.resolveRetryMode;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategy;
 import software.amazon.awssdk.awscore.internal.authcontext.AuthorizationStrategyFactory;
+import software.amazon.awssdk.awscore.internal.identity.AwsRequestIdentityProviderResolver;
 import software.amazon.awssdk.awscore.util.SignerOverrideUtils;
 import software.amazon.awssdk.core.HttpChecksumConstant;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
+import software.amazon.awssdk.core.SdkProtocolMetadata;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
 import software.amazon.awssdk.core.SelectedAuthScheme;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -49,8 +58,12 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumResolver;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
@@ -69,7 +82,7 @@ public final class AwsExecutionContextBuilder {
      */
     public static <InputT extends SdkRequest, OutputT extends SdkResponse> ExecutionContext
         invokeInterceptorsAndCreateExecutionContext(ClientExecutionParams<InputT, OutputT> executionParams,
-                                                    SdkClientConfiguration clientConfig) {
+                                                SdkClientConfiguration clientConfig) {
         // Note: This is currently copied to DefaultS3Presigner and other presigners.
         // Don't edit this without considering those
 
@@ -93,6 +106,8 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(AwsExecutionAttribute.ENDPOINT_PREFIX, clientConfig.option(AwsClientOption.ENDPOINT_PREFIX))
             .putAttribute(AwsSignerExecutionAttribute.SIGNING_REGION, clientConfig.option(AwsClientOption.SIGNING_REGION))
             .putAttribute(SdkInternalExecutionAttribute.IS_FULL_DUPLEX, executionParams.isFullDuplex())
+            .putAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING, executionParams.isLongPolling())
+            .putAttribute(SdkInternalExecutionAttribute.NEW_RETRIES_2026_ENABLED, clientConfig.option(NEW_RETRIES_2026_ENABLED))
             .putAttribute(SdkInternalExecutionAttribute.HAS_INITIAL_REQUEST_EVENT, executionParams.hasInitialRequestEvent())
             .putAttribute(SdkExecutionAttribute.CLIENT_TYPE, clientConfig.option(SdkClientOption.CLIENT_TYPE))
             .putAttribute(SdkExecutionAttribute.SERVICE_NAME, clientConfig.option(SdkClientOption.SERVICE_NAME))
@@ -126,21 +141,39 @@ public final class AwsExecutionContextBuilder {
                           clientConfig.option(SdkClientOption.REQUEST_CHECKSUM_CALCULATION))
             .putAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION,
                           clientConfig.option(SdkClientOption.RESPONSE_CHECKSUM_VALIDATION))
-            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, resolveUserAgentBusinessMetrics(clientConfig))
+            .putAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS, 
+                          resolveUserAgentBusinessMetrics(clientConfig, executionParams))
             .putAttribute(AwsExecutionAttribute.AWS_SIGV4A_SIGNING_REGION_SET,
                           clientConfig.option(AwsClientOption.AWS_SIGV4A_SIGNING_REGION_SET));
 
         // Auth Scheme resolution related attributes
         putAuthSchemeResolutionAttributes(executionAttributes, clientConfig, originalRequest);
 
+        if (executionParams.authSchemeOptionsResolver() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+                                             executionParams.authSchemeOptionsResolver());
+        }
+
+        if (executionParams.endpointResolver() != null) {
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.ENDPOINT_RESOLVER,
+                                             executionParams.endpointResolver());
+        }
+
+        // Set the identity provider resolver for the pipeline stage to use
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDER_RESOLVER,
+                                         AwsRequestIdentityProviderResolver.create());
+
         ExecutionInterceptorChain executionInterceptorChain =
-                new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+            new ExecutionInterceptorChain(clientConfig.option(SdkClientOption.EXECUTION_INTERCEPTORS));
+
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS,
+                                         executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
 
         InterceptorContext interceptorContext = InterceptorContext.builder()
-                                                     .request(originalRequest)
-                                                     .asyncRequestBody(executionParams.getAsyncRequestBody())
-                                                     .requestBody(executionParams.getRequestBody())
-                                                     .build();
+                                                                  .request(originalRequest)
+                                                                  .asyncRequestBody(executionParams.getAsyncRequestBody())
+                                                                  .requestBody(executionParams.getRequestBody())
+                                                                  .build();
         interceptorContext = runInitialInterceptors(interceptorContext, executionAttributes, executionInterceptorChain);
 
         SdkRequest modifiedRequests = interceptorContext.request();
@@ -159,6 +192,16 @@ public final class AwsExecutionContextBuilder {
                                              signer, executionAttributes, executionAttributes.getOptionalAttribute(
                                                  AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null)));
 
+        Signer resolvedSigner = signer;
+        AwsCredentials capturedCredentials = executionAttributes.getOptionalAttribute(
+            AwsSignerExecutionAttribute.AWS_CREDENTIALS).orElse(null);
+        executionAttributes.putAttribute(SdkInternalExecutionAttribute.SIGNING_METHOD_UPDATER, attrs ->
+            attrs.putAttribute(HttpChecksumConstant.SIGNING_METHOD,
+                               resolveSigningMethodUsed(resolvedSigner, attrs, capturedCredentials)));
+
+        putStreamingInputOutputTypesMetadata(executionAttributes, executionParams);
+        putHttpClientConfigTypeMetadata(executionAttributes, clientConfig);
+
         return ExecutionContext.builder()
                                .interceptorChain(executionInterceptorChain)
                                .interceptorContext(interceptorContext)
@@ -166,6 +209,62 @@ public final class AwsExecutionContextBuilder {
                                .signer(signer)
                                .metricCollector(metricCollector)
                                .build();
+    }
+
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> void putStreamingInputOutputTypesMetadata(
+        ExecutionAttributes executionAttributes, ClientExecutionParams<InputT, OutputT> executionParams) {
+
+        if (executionParams.getRequestBody() != null) {
+            addUserAgentMetadata(executionAttributes, "rb",
+                ContentStreamProvider.ProviderType.shortValueFromName(
+                    executionParams.getRequestBody().contentStreamProvider().name()));
+        }
+
+        if (executionParams.getAsyncRequestBody() != null) {
+            addUserAgentMetadata(executionAttributes, "rb",
+                AsyncRequestBody.BodyType.shortValueFromName(
+                    executionParams.getAsyncRequestBody().body()));
+        }
+
+        if (executionParams.getResponseTransformer() != null) {
+            addUserAgentMetadata(executionAttributes, "rt",
+                ResponseTransformer.TransformerType.shortValueFromName(
+                    executionParams.getResponseTransformer().name()));
+        }
+
+        if (executionParams.getAsyncResponseTransformer() != null) {
+            addUserAgentMetadata(executionAttributes, "rt",
+                AsyncResponseTransformer.TransformerType.shortValueFromName(
+                    executionParams.getAsyncResponseTransformer().name()));
+        }
+    }
+
+    private static void putHttpClientConfigTypeMetadata(ExecutionAttributes executionAttributes,
+                                                        SdkClientConfiguration clientConfig) {
+        BusinessMetricFeatureId httpClientConfigType = clientConfig.option(SdkClientOption.HTTP_CLIENT_CONFIG_TYPE);
+        if (httpClientConfigType == null) {
+            return;
+        }
+        BusinessMetricCollection businessMetrics = executionAttributes.getAttribute(
+            SdkInternalExecutionAttribute.BUSINESS_METRICS);
+        if (businessMetrics != null) {
+            businessMetrics.addMetric(httpClientConfigType.value());
+        }
+    }
+
+    private static void addUserAgentMetadata(ExecutionAttributes executionAttributes, String name, String value) {
+        List<AdditionalMetadata> metadata = executionAttributes.getAttribute(
+            SdkInternalExecutionAttribute.USER_AGENT_METADATA);
+        if (metadata == null) {
+            metadata = new ArrayList<>();
+            executionAttributes.putAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA, metadata);
+        }
+        metadata.add(
+            AdditionalMetadata
+                .builder()
+                .name(name)
+                .value(value)
+                .build());
     }
 
     /**
@@ -199,14 +298,14 @@ public final class AwsExecutionContextBuilder {
                                                           SdkClientConfiguration clientConfig,
                                                           SdkRequest originalRequest) {
 
-        // TODO(sra-identity-and-auth): When request-level auth scheme provider is added, use the request-level auth scheme
-        //  provider if the customer specified an override, otherwise fall back to the one on the client.
-        AuthSchemeProvider authSchemeProvider = clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER);
+        // Use the request-level auth scheme provider if the customer specified an override, otherwise fall back to the one
+        // on the client.
+        AuthSchemeProvider authSchemeProvider = resolveAuthSchemeProvider(originalRequest, clientConfig);
 
         // Use auth schemes that the user specified at the request level with
         // preference over those on the client.
-        // TODO(sra-identity-and-auth): The request level schemes should be "merged" with client level, with request preferred
-        //  over client.
+        // TODO(request-override auth scheme feature): The request level schemes should be "merged" with client level, with
+        //  request preferred over client.
         Map<String, AuthScheme<?>> authSchemes = clientConfig.option(SdkClientOption.AUTH_SCHEMES);
 
         IdentityProviders identityProviders = resolveIdentityProviders(originalRequest, clientConfig);
@@ -217,13 +316,9 @@ public final class AwsExecutionContextBuilder {
             .putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
     }
 
-    // TODO(sra-identity-and-auth): This is hard coding the logic for the credentialsIdentityProvider from
-    //  AwsRequestOverrideConfiguration. Currently, AwsRequestOverrideConfiguration does not support overriding the
-    //  tokenIdentityProvider. When adding that support this method will need to be updated.
     private static IdentityProviders resolveIdentityProviders(SdkRequest originalRequest,
                                                               SdkClientConfiguration clientConfig) {
-        IdentityProviders identityProviders =
-            clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
+        IdentityProviders identityProviders = clientConfig.option(SdkClientOption.IDENTITY_PROVIDERS);
 
         // identityProviders can be null, for new core with old client. In this case, even if AwsRequestOverrideConfiguration
         // has credentialsIdentityProvider set (because it is in new core), it is ok to not setup IDENTITY_PROVIDERS, as old
@@ -232,13 +327,15 @@ public final class AwsExecutionContextBuilder {
             return null;
         }
 
-        return originalRequest.overrideConfiguration()
-                              .filter(c -> c instanceof AwsRequestOverrideConfiguration)
-                              .map(c -> (AwsRequestOverrideConfiguration) c)
-                              .flatMap(AwsRequestOverrideConfiguration::credentialsIdentityProvider)
-                              .map(identityProvider ->
-                                       identityProviders.copy(b -> b.putIdentityProvider(identityProvider)))
-                              .orElse(identityProviders);
+        return originalRequest
+            .overrideConfiguration()
+            .filter(c -> c instanceof AwsRequestOverrideConfiguration)
+            .map(c -> (AwsRequestOverrideConfiguration) c)
+            .map(c -> identityProviders.copy(b -> {
+                c.credentialsIdentityProvider().ifPresent(b::putIdentityProvider);
+                c.tokenIdentityProvider().ifPresent(b::putIdentityProvider);
+            }))
+            .orElse(identityProviders);
     }
 
     /**
@@ -277,22 +374,49 @@ public final class AwsExecutionContextBuilder {
     }
 
     /**
-     * Resolves the endpoint provider, with the request override configuration taking precedence over the
-     * provided default client clientConfig.
+     * Resolves the endpoint provider, with the request override configuration taking precedence over the provided client
+     * configuration.
+     *
      * @return The endpoint provider that will be used by the SDK to resolve endpoints.
      */
     private static EndpointProvider resolveEndpointProvider(SdkRequest request,
-                                                           SdkClientConfiguration clientConfig) {
+                                                            SdkClientConfiguration clientConfig) {
         return request.overrideConfiguration()
                       .flatMap(RequestOverrideConfiguration::endpointProvider)
                       .orElse(clientConfig.option(SdkClientOption.ENDPOINT_PROVIDER));
     }
 
-    private static BusinessMetricCollection resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig) {
+    /**
+     * Resolves the auth scheme provider, with the request override configuration taking precedence over the provided client
+     * configuration.
+     *
+     * @return The auth scheme provider that will be used by the SDK to resolve auth schemes.
+     */
+    private static AuthSchemeProvider resolveAuthSchemeProvider(SdkRequest request,
+                                                               SdkClientConfiguration clientConfig) {
+        return request.overrideConfiguration()
+                      .flatMap(RequestOverrideConfiguration::authSchemeProvider)
+                      .orElse(clientConfig.option(SdkClientOption.AUTH_SCHEME_PROVIDER));
+    }
+
+    private static <InputT extends SdkRequest, OutputT extends SdkResponse> BusinessMetricCollection
+        resolveUserAgentBusinessMetrics(SdkClientConfiguration clientConfig,
+                                        ClientExecutionParams<InputT, OutputT> executionParams) {
         BusinessMetricCollection businessMetrics = new BusinessMetricCollection();
         Optional<String> retryModeMetric = resolveRetryMode(clientConfig.option(RETRY_POLICY),
                                                             clientConfig.option(RETRY_STRATEGY));
         retryModeMetric.ifPresent(businessMetrics::addMetric);
+
+        if (isRpcV2CborProtocol(executionParams.getProtocolMetadata())) {
+            businessMetrics.addMetric(BusinessMetricFeatureId.PROTOCOL_RPC_V2_CBOR.value());
+        }
+        
         return businessMetrics;
     }
+
+    private static boolean isRpcV2CborProtocol(SdkProtocolMetadata protocolMetadata) {
+        return protocolMetadata != null &&
+               SMITHY_RPC_V2_CBOR.toString().equals(protocolMetadata.serviceProtocol());
+    }
+
 }

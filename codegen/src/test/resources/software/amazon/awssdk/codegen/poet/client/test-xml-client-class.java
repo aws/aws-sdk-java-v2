@@ -2,12 +2,17 @@ package software.amazon.awssdk.services.xml;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.token.signer.aws.BearerTokenSigner;
-import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.awscore.AwsExecutionAttribute;
 import software.amazon.awssdk.awscore.client.handler.AwsSyncClientHandler;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointProviderUtils;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
@@ -18,6 +23,7 @@ import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -25,6 +31,8 @@ import software.amazon.awssdk.core.client.handler.ClientExecutionParams;
 import software.amazon.awssdk.core.client.handler.SyncClientHandler;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
@@ -32,9 +40,10 @@ import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.runtime.transform.StreamingRequestMarshaller;
-import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.metrics.NoOpMetricCollector;
@@ -42,6 +51,13 @@ import software.amazon.awssdk.protocols.core.ExceptionMetadata;
 import software.amazon.awssdk.protocols.xml.AwsXmlProtocolFactory;
 import software.amazon.awssdk.protocols.xml.XmlOperationMetadata;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.xml.auth.scheme.XmlAuthSchemeParams;
+import software.amazon.awssdk.services.xml.auth.scheme.XmlAuthSchemeProvider;
+import software.amazon.awssdk.services.xml.auth.scheme.internal.DefaultXmlAuthSchemeProvider;
+import software.amazon.awssdk.services.xml.endpoints.XmlEndpointParams;
+import software.amazon.awssdk.services.xml.endpoints.XmlEndpointProvider;
+import software.amazon.awssdk.services.xml.endpoints.internal.XmlEndpointResolverUtils;
+import software.amazon.awssdk.services.xml.internal.ServiceVersionInfo;
 import software.amazon.awssdk.services.xml.internal.XmlServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.xml.model.APostOperationRequest;
 import software.amazon.awssdk.services.xml.model.APostOperationResponse;
@@ -65,7 +81,6 @@ import software.amazon.awssdk.services.xml.model.StreamingInputOperationResponse
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationRequest;
 import software.amazon.awssdk.services.xml.model.StreamingOutputOperationResponse;
 import software.amazon.awssdk.services.xml.model.XmlException;
-import software.amazon.awssdk.services.xml.model.XmlRequest;
 import software.amazon.awssdk.services.xml.transform.APostOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.APostOperationWithOutputRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.BearerAuthOperationRequestMarshaller;
@@ -77,6 +92,7 @@ import software.amazon.awssdk.services.xml.transform.PutOperationWithChecksumReq
 import software.amazon.awssdk.services.xml.transform.StreamingInputOperationRequestMarshaller;
 import software.amazon.awssdk.services.xml.transform.StreamingOutputOperationRequestMarshaller;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Internal implementation of {@link XmlClient}.
@@ -89,7 +105,7 @@ final class DefaultXmlClient implements XmlClient {
     private static final Logger log = Logger.loggerFor(DefaultXmlClient.class);
 
     private static final AwsProtocolMetadata protocolMetadata = AwsProtocolMetadata.builder()
-            .serviceProtocol(AwsServiceProtocol.REST_XML).build();
+                                                                                   .serviceProtocol(AwsServiceProtocol.REST_XML).build();
 
     private final SyncClientHandler clientHandler;
 
@@ -97,9 +113,12 @@ final class DefaultXmlClient implements XmlClient {
 
     private final SdkClientConfiguration clientConfiguration;
 
+    private final ConcurrentHashMap<String, List<AuthSchemeOption>> authSchemeCache = new ConcurrentHashMap<>();
+
     protected DefaultXmlClient(SdkClientConfiguration clientConfiguration) {
         this.clientHandler = new AwsSyncClientHandler(clientConfiguration);
-        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this).build();
+        this.clientConfiguration = clientConfiguration.toBuilder().option(SdkClientOption.SDK_CLIENT, this)
+                                                      .option(SdkClientOption.API_METADATA, "Xml_Service" + "#" + ServiceVersionInfo.VERSION).build();
         this.protocolFactory = init();
     }
 
@@ -125,15 +144,15 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public APostOperationResponse aPostOperation(APostOperationRequest aPostOperationRequest) throws InvalidInputException,
-            AwsServiceException, SdkClientException, XmlException {
+                                                                                                     AwsServiceException, SdkClientException, XmlException {
 
         HttpResponseHandler<Response<APostOperationResponse>> responseHandler = protocolFactory.createCombinedResponseHandler(
-                APostOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            APostOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationRequest, this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperation");
@@ -141,12 +160,14 @@ final class DefaultXmlClient implements XmlClient {
             String resolvedHostExpression = "foo-";
 
             return clientHandler.execute(new ClientExecutionParams<APostOperationRequest, APostOperationResponse>()
-                    .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
-                    .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                    .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
-                    .withInput(aPostOperationRequest).withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
+                                             .withOperationName("APostOperation").withProtocolMetadata(protocolMetadata)
+                                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                                             .hostPrefixExpression(resolvedHostExpression).withRequestConfiguration(clientConfiguration)
+                                             .withInput(aPostOperationRequest).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new APostOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -172,30 +193,32 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public APostOperationWithOutputResponse aPostOperationWithOutput(
-            APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
-            SdkClientException, XmlException {
+        APostOperationWithOutputRequest aPostOperationWithOutputRequest) throws InvalidInputException, AwsServiceException,
+                                                                                SdkClientException, XmlException {
 
         HttpResponseHandler<Response<APostOperationWithOutputResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(APostOperationWithOutputResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(APostOperationWithOutputResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(aPostOperationWithOutputRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, aPostOperationWithOutputRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "APostOperationWithOutput");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
-                            .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
-                            .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                            .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
-                            .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
+                .execute(new ClientExecutionParams<APostOperationWithOutputRequest, APostOperationWithOutputResponse>()
+                             .withOperationName("APostOperationWithOutput").withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration).withInput(aPostOperationWithOutputRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withMarshaller(new APostOperationWithOutputRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -217,30 +240,30 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public BearerAuthOperationResponse bearerAuthOperation(BearerAuthOperationRequest bearerAuthOperationRequest)
-            throws AwsServiceException, SdkClientException, XmlException {
-        bearerAuthOperationRequest = applySignerOverride(bearerAuthOperationRequest, BearerTokenSigner.create());
+        throws AwsServiceException, SdkClientException, XmlException {
 
         HttpResponseHandler<Response<BearerAuthOperationResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(BearerAuthOperationResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(bearerAuthOperationRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, bearerAuthOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "BearerAuthOperation");
 
             return clientHandler.execute(new ClientExecutionParams<BearerAuthOperationRequest, BearerAuthOperationResponse>()
-                    .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
-                    .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                    .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
-                    .withInput(bearerAuthOperationRequest)
-                    .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
+                                             .withOperationName("BearerAuthOperation").withProtocolMetadata(protocolMetadata)
+                                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                                             .credentialType(CredentialType.TOKEN).withRequestConfiguration(clientConfiguration)
+                                             .withInput(bearerAuthOperationRequest).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                                             .withEndpointResolver(this::resolveEndpoint)
+                                             .withMarshaller(new BearerAuthOperationRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -262,38 +285,40 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public GetOperationWithChecksumResponse getOperationWithChecksum(
-            GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
-            XmlException {
+        GetOperationWithChecksumRequest getOperationWithChecksumRequest) throws AwsServiceException, SdkClientException,
+                                                                                XmlException {
 
         HttpResponseHandler<Response<GetOperationWithChecksumResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(GetOperationWithChecksumResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(GetOperationWithChecksumResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(getOperationWithChecksumRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, getOperationWithChecksumRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "GetOperationWithChecksum");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
-                            .withOperationName("GetOperationWithChecksum")
-                            .withProtocolMetadata(protocolMetadata)
-                            .withCombinedResponseHandler(responseHandler)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .withRequestConfiguration(clientConfiguration)
-                            .withInput(getOperationWithChecksumRequest)
-                            .putExecutionAttribute(
-                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
-                                            .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
-                                            .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
-                            .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
+                .execute(new ClientExecutionParams<GetOperationWithChecksumRequest, GetOperationWithChecksumResponse>()
+                             .withOperationName("GetOperationWithChecksum")
+                             .withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withInput(getOperationWithChecksumRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .putExecutionAttribute(
+                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                 HttpChecksum.builder().requestChecksumRequired(true).isRequestStreaming(false)
+                                             .requestAlgorithm(getOperationWithChecksumRequest.checksumAlgorithmAsString())
+                                             .requestAlgorithmHeader("x-amz-sdk-checksum-algorithm").build())
+                             .withMarshaller(new GetOperationWithChecksumRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -315,35 +340,37 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public OperationWithChecksumRequiredResponse operationWithChecksumRequired(
-            OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
-            SdkClientException, XmlException {
+        OperationWithChecksumRequiredRequest operationWithChecksumRequiredRequest) throws AwsServiceException,
+                                                                                          SdkClientException, XmlException {
 
         HttpResponseHandler<Response<OperationWithChecksumRequiredResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(OperationWithChecksumRequiredResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(OperationWithChecksumRequiredResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithChecksumRequiredRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
+                                                                         operationWithChecksumRequiredRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithChecksumRequired");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
-                            .withOperationName("OperationWithChecksumRequired")
-                            .withProtocolMetadata(protocolMetadata)
-                            .withCombinedResponseHandler(responseHandler)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .withRequestConfiguration(clientConfiguration)
-                            .withInput(operationWithChecksumRequiredRequest)
-                            .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
-                                    HttpChecksumRequired.create())
-                            .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
+                .execute(new ClientExecutionParams<OperationWithChecksumRequiredRequest, OperationWithChecksumRequiredResponse>()
+                             .withOperationName("OperationWithChecksumRequired")
+                             .withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withInput(operationWithChecksumRequiredRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM_REQUIRED,
+                                                    HttpChecksumRequired.create())
+                             .withMarshaller(new OperationWithChecksumRequiredRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -365,31 +392,32 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public OperationWithNoneAuthTypeResponse operationWithNoneAuthType(
-            OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
-            XmlException {
+        OperationWithNoneAuthTypeRequest operationWithNoneAuthTypeRequest) throws AwsServiceException, SdkClientException,
+                                                                                  XmlException {
 
         HttpResponseHandler<Response<OperationWithNoneAuthTypeResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(OperationWithNoneAuthTypeResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(OperationWithNoneAuthTypeResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithNoneAuthTypeRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, operationWithNoneAuthTypeRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithNoneAuthType");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
-                            .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
-                            .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
-                            .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
-                            .putExecutionAttribute(SdkInternalExecutionAttribute.IS_NONE_AUTH_TYPE_REQUEST, false)
-                            .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
+                .execute(new ClientExecutionParams<OperationWithNoneAuthTypeRequest, OperationWithNoneAuthTypeResponse>()
+                             .withOperationName("OperationWithNoneAuthType").withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler).withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration).withInput(operationWithNoneAuthTypeRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withMarshaller(new OperationWithNoneAuthTypeRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -411,35 +439,37 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public OperationWithRequestCompressionResponse operationWithRequestCompression(
-            OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
-            SdkClientException, XmlException {
+        OperationWithRequestCompressionRequest operationWithRequestCompressionRequest) throws AwsServiceException,
+                                                                                              SdkClientException, XmlException {
 
         HttpResponseHandler<Response<OperationWithRequestCompressionResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(OperationWithRequestCompressionResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(OperationWithRequestCompressionResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(operationWithRequestCompressionRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration,
-                operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
+                                                                         operationWithRequestCompressionRequest.overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "OperationWithRequestCompression");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
-                            .withOperationName("OperationWithRequestCompression")
-                            .withProtocolMetadata(protocolMetadata)
-                            .withCombinedResponseHandler(responseHandler)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .withRequestConfiguration(clientConfiguration)
-                            .withInput(operationWithRequestCompressionRequest)
-                            .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
-                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
-                            .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
+                .execute(new ClientExecutionParams<OperationWithRequestCompressionRequest, OperationWithRequestCompressionResponse>()
+                             .withOperationName("OperationWithRequestCompression")
+                             .withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withInput(operationWithRequestCompressionRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .putExecutionAttribute(SdkInternalExecutionAttribute.REQUEST_COMPRESSION,
+                                                    RequestCompression.builder().encodings("gzip").isStreaming(false).build())
+                             .withMarshaller(new OperationWithRequestCompressionRequestMarshaller(protocolFactory)));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -487,49 +517,55 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public <ReturnT> ReturnT putOperationWithChecksum(PutOperationWithChecksumRequest putOperationWithChecksumRequest,
-            RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
-            throws AwsServiceException, SdkClientException, XmlException {
+                                                      RequestBody requestBody, ResponseTransformer<PutOperationWithChecksumResponse, ReturnT> responseTransformer)
+        throws AwsServiceException, SdkClientException, XmlException {
 
         HttpResponseHandler<PutOperationWithChecksumResponse> responseHandler = protocolFactory.createResponseHandler(
-                PutOperationWithChecksumResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
+            PutOperationWithChecksumResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(putOperationWithChecksumRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, putOperationWithChecksumRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "PutOperationWithChecksum");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
-                            .withOperationName("PutOperationWithChecksum")
-                            .withProtocolMetadata(protocolMetadata)
-                            .withResponseHandler(responseHandler)
-                            .withErrorResponseHandler(errorResponseHandler)
-                            .withRequestConfiguration(clientConfiguration)
-                            .withInput(putOperationWithChecksumRequest)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .putExecutionAttribute(
-                                    SdkInternalExecutionAttribute.HTTP_CHECKSUM,
-                                    HttpChecksum
-                                            .builder()
-                                            .requestChecksumRequired(false)
-                                            .isRequestStreaming(true)
-                                            .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
-                                            .responseAlgorithmsV2(DefaultChecksumAlgorithm.CRC32C,
-                                                    DefaultChecksumAlgorithm.CRC32, DefaultChecksumAlgorithm.SHA1,
-                                                    DefaultChecksumAlgorithm.SHA256).build())
-                            .withRequestBody(requestBody)
-                            .withMarshaller(
-                                    StreamingRequestMarshaller.builder()
-                                            .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
-                                            .requestBody(requestBody).build()));
+                .execute(new ClientExecutionParams<PutOperationWithChecksumRequest, PutOperationWithChecksumResponse>()
+                             .withOperationName("PutOperationWithChecksum")
+                             .withProtocolMetadata(protocolMetadata)
+                             .withResponseHandler(responseHandler)
+                             .withErrorResponseHandler(errorResponseHandler)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withInput(putOperationWithChecksumRequest)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .putExecutionAttribute(
+                                 SdkInternalExecutionAttribute.HTTP_CHECKSUM,
+                                 HttpChecksum
+                                     .builder()
+                                     .requestChecksumRequired(false)
+                                     .isRequestStreaming(true)
+                                     .requestValidationMode(putOperationWithChecksumRequest.checksumModeAsString())
+                                     .responseAlgorithmsV2(DefaultChecksumAlgorithm.XXHASH3,
+                                                           DefaultChecksumAlgorithm.XXHASH128, DefaultChecksumAlgorithm.CRC64NVME,
+                                                           DefaultChecksumAlgorithm.CRC32C, DefaultChecksumAlgorithm.CRC32,
+                                                           DefaultChecksumAlgorithm.XXHASH64, DefaultChecksumAlgorithm.SHA512,
+                                                           DefaultChecksumAlgorithm.SHA256, DefaultChecksumAlgorithm.SHA1,
+                                                           DefaultChecksumAlgorithm.MD5).build())
+                             .withResponseTransformer(responseTransformer)
+                             .withRequestBody(requestBody)
+                             .withMarshaller(
+                                 StreamingRequestMarshaller.builder()
+                                                           .delegateMarshaller(new PutOperationWithChecksumRequestMarshaller(protocolFactory))
+                                                           .requestBody(requestBody).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -562,36 +598,38 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public StreamingInputOperationResponse streamingInputOperation(StreamingInputOperationRequest streamingInputOperationRequest,
-            RequestBody requestBody) throws AwsServiceException, SdkClientException, XmlException {
+                                                                   RequestBody requestBody) throws AwsServiceException, SdkClientException, XmlException {
 
         HttpResponseHandler<Response<StreamingInputOperationResponse>> responseHandler = protocolFactory
-                .createCombinedResponseHandler(StreamingInputOperationResponse::builder,
-                        new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
+            .createCombinedResponseHandler(StreamingInputOperationResponse::builder,
+                                           new XmlOperationMetadata().withHasStreamingSuccessResponse(false));
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingInputOperationRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingInputOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingInputOperation");
 
             return clientHandler
-                    .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
-                            .withOperationName("StreamingInputOperation")
-                            .withProtocolMetadata(protocolMetadata)
-                            .withCombinedResponseHandler(responseHandler)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .withRequestConfiguration(clientConfiguration)
-                            .withInput(streamingInputOperationRequest)
-                            .withRequestBody(requestBody)
-                            .withMarshaller(
-                                    StreamingRequestMarshaller.builder()
-                                            .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
-                                            .requestBody(requestBody).build()));
+                .execute(new ClientExecutionParams<StreamingInputOperationRequest, StreamingInputOperationResponse>()
+                             .withOperationName("StreamingInputOperation")
+                             .withProtocolMetadata(protocolMetadata)
+                             .withCombinedResponseHandler(responseHandler)
+                             .withMetricCollector(apiCallMetricCollector)
+                             .withRequestConfiguration(clientConfiguration)
+                             .withInput(streamingInputOperationRequest)
+                             .withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                             .withEndpointResolver(this::resolveEndpoint)
+                             .withRequestBody(requestBody)
+                             .withMarshaller(
+                                 StreamingRequestMarshaller.builder()
+                                                           .delegateMarshaller(new StreamingInputOperationRequestMarshaller(protocolFactory))
+                                                           .requestBody(requestBody).build()));
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
     }
 
@@ -620,44 +658,34 @@ final class DefaultXmlClient implements XmlClient {
      */
     @Override
     public <ReturnT> ReturnT streamingOutputOperation(StreamingOutputOperationRequest streamingOutputOperationRequest,
-            ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
-            SdkClientException, XmlException {
+                                                      ResponseTransformer<StreamingOutputOperationResponse, ReturnT> responseTransformer) throws AwsServiceException,
+                                                                                                                                                 SdkClientException, XmlException {
 
         HttpResponseHandler<StreamingOutputOperationResponse> responseHandler = protocolFactory.createResponseHandler(
-                StreamingOutputOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
+            StreamingOutputOperationResponse::builder, new XmlOperationMetadata().withHasStreamingSuccessResponse(true));
 
         HttpResponseHandler<AwsServiceException> errorResponseHandler = protocolFactory.createErrorResponseHandler();
         SdkClientConfiguration clientConfiguration = updateSdkClientConfiguration(streamingOutputOperationRequest,
-                this.clientConfiguration);
+                                                                                  this.clientConfiguration);
         List<MetricPublisher> metricPublishers = resolveMetricPublishers(clientConfiguration, streamingOutputOperationRequest
-                .overrideConfiguration().orElse(null));
+            .overrideConfiguration().orElse(null));
         MetricCollector apiCallMetricCollector = metricPublishers.isEmpty() ? NoOpMetricCollector.create() : MetricCollector
-                .create("ApiCall");
+            .create("ApiCall");
         try {
             apiCallMetricCollector.reportMetric(CoreMetric.SERVICE_ID, "Xml Service");
             apiCallMetricCollector.reportMetric(CoreMetric.OPERATION_NAME, "StreamingOutputOperation");
 
             return clientHandler.execute(
-                    new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
-                            .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
-                            .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
-                            .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
-                            .withMetricCollector(apiCallMetricCollector)
-                            .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
+                new ClientExecutionParams<StreamingOutputOperationRequest, StreamingOutputOperationResponse>()
+                    .withOperationName("StreamingOutputOperation").withProtocolMetadata(protocolMetadata)
+                    .withResponseHandler(responseHandler).withErrorResponseHandler(errorResponseHandler)
+                    .withRequestConfiguration(clientConfiguration).withInput(streamingOutputOperationRequest)
+                    .withMetricCollector(apiCallMetricCollector).withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)
+                    .withEndpointResolver(this::resolveEndpoint).withResponseTransformer(responseTransformer)
+                    .withMarshaller(new StreamingOutputOperationRequestMarshaller(protocolFactory)), responseTransformer);
         } finally {
-            metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()));
+            publishMetrics(metricPublishers, apiCallMetricCollector);
         }
-    }
-
-    private <T extends XmlRequest> T applySignerOverride(T request, Signer signer) {
-        if (request.overrideConfiguration().flatMap(c -> c.signer()).isPresent()) {
-            return request;
-        }
-        Consumer<AwsRequestOverrideConfiguration.Builder> signerOverride = b -> b.signer(signer).build();
-        AwsRequestOverrideConfiguration overrideConfiguration = request.overrideConfiguration()
-                .map(c -> c.toBuilder().applyMutation(signerOverride).build())
-                .orElse((AwsRequestOverrideConfiguration.builder().applyMutation(signerOverride).build()));
-        return (T) request.toBuilder().overrideConfiguration(overrideConfiguration).build();
     }
 
     @Override
@@ -666,7 +694,7 @@ final class DefaultXmlClient implements XmlClient {
     }
 
     private static List<MetricPublisher> resolveMetricPublishers(SdkClientConfiguration clientConfiguration,
-            RequestOverrideConfiguration requestOverrideConfiguration) {
+                                                                 RequestOverrideConfiguration requestOverrideConfiguration) {
         List<MetricPublisher> publishers = null;
         if (requestOverrideConfiguration != null) {
             publishers = requestOverrideConfiguration.metricPublishers();
@@ -678,6 +706,75 @@ final class DefaultXmlClient implements XmlClient {
             publishers = Collections.emptyList();
         }
         return publishers;
+    }
+
+    /**
+     * Publishes the collected API call metrics to each configured publisher.
+     */
+    private static void publishMetrics(List<MetricPublisher> metricPublishers, MetricCollector apiCallMetricCollector) {
+        for (MetricPublisher metricPublisher : metricPublishers) {
+            metricPublisher.publish(apiCallMetricCollector.collect());
+        }
+    }
+
+    private List<AuthSchemeOption> resolveAuthSchemeOptions(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
+        XmlAuthSchemeProvider requestAuthSchemeProvider = request.overrideConfiguration().flatMap(c -> c.authSchemeProvider())
+                                                                 .map(p -> Validate.isInstanceOf(XmlAuthSchemeProvider.class, p, "Expected an instance of XmlAuthSchemeProvider"))
+                                                                 .orElse(null);
+        XmlAuthSchemeProvider authSchemeProvider = requestAuthSchemeProvider != null ? requestAuthSchemeProvider : Validate
+            .isInstanceOf(XmlAuthSchemeProvider.class,
+                          executionAttributes.getAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_RESOLVER),
+                          "Expected an instance of XmlAuthSchemeProvider");
+        boolean useCache = requestAuthSchemeProvider == null
+                && authSchemeProvider instanceof DefaultXmlAuthSchemeProvider;
+        String cacheKey = operationName + ":" + executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION);
+        if (useCache) {
+            List<AuthSchemeOption> cached = authSchemeCache.get(cacheKey);
+            if (cached != null) {
+                return cached;
+            }
+        }
+        XmlAuthSchemeParams.Builder paramsBuilder = XmlAuthSchemeParams.builder().operation(operationName);
+        paramsBuilder.region(executionAttributes.getAttribute(AwsExecutionAttribute.AWS_REGION));
+        List<AuthSchemeOption> options = authSchemeProvider.resolveAuthScheme(paramsBuilder.build());
+        if (useCache) {
+            options = Collections.unmodifiableList(options);
+            authSchemeCache.put(cacheKey, options);
+        }
+        return options;
+    }
+
+    private Endpoint resolveEndpoint(SdkRequest request, ExecutionAttributes executionAttributes) {
+        String operationName = executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME);
+        XmlEndpointProvider provider = (XmlEndpointProvider) executionAttributes
+            .getAttribute(SdkInternalExecutionAttribute.ENDPOINT_PROVIDER);
+        try {
+            XmlEndpointParams endpointParams = XmlEndpointResolverUtils.ruleParams(request, executionAttributes);
+            Endpoint endpoint = provider.resolveEndpoint(endpointParams).join();
+            if (!AwsEndpointProviderUtils.disableHostPrefixInjection(executionAttributes)) {
+                Optional<String> hostPrefix = XmlEndpointResolverUtils.hostPrefix(operationName, request);
+                if (hostPrefix.isPresent()) {
+                    endpoint = AwsEndpointProviderUtils.addHostPrefix(endpoint, hostPrefix.get());
+                }
+            }
+            List<EndpointAuthScheme> endpointAuthSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+            SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
+                .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+            if (endpointAuthSchemes != null && selectedAuthScheme != null) {
+                selectedAuthScheme = XmlEndpointResolverUtils.authSchemeWithEndpointSignerProperties(endpointAuthSchemes,
+                                                                                                     selectedAuthScheme);
+                executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
+            }
+            XmlEndpointResolverUtils.setMetricValues(endpoint, executionAttributes);
+            return endpoint;
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof SdkClientException) {
+                throw (SdkClientException) cause;
+            }
+            throw SdkClientException.create("Endpoint resolution failed: " + cause.getMessage(), cause);
+        }
     }
 
     private void updateRetryStrategyClientConfiguration(SdkClientConfiguration.Builder configuration) {
@@ -705,10 +802,10 @@ final class DefaultXmlClient implements XmlClient {
 
     private SdkClientConfiguration updateSdkClientConfiguration(SdkRequest request, SdkClientConfiguration clientConfiguration) {
         List<SdkPlugin> plugins = request.overrideConfiguration().map(c -> c.plugins()).orElse(Collections.emptyList());
-        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         if (plugins.isEmpty()) {
-            return configuration.build();
+            return clientConfiguration;
         }
+        SdkClientConfiguration.Builder configuration = clientConfiguration.toBuilder();
         XmlServiceClientConfigurationBuilder serviceConfigBuilder = new XmlServiceClientConfigurationBuilder(configuration);
         for (SdkPlugin plugin : plugins) {
             plugin.configureClient(serviceConfigBuilder);
@@ -719,11 +816,11 @@ final class DefaultXmlClient implements XmlClient {
 
     private AwsXmlProtocolFactory init() {
         return AwsXmlProtocolFactory
-                .builder()
-                .registerModeledException(
-                        ExceptionMetadata.builder().errorCode("InvalidInput")
-                                .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
-                .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(XmlException::builder).build();
+            .builder()
+            .registerModeledException(
+                ExceptionMetadata.builder().errorCode("InvalidInput")
+                                 .exceptionBuilderSupplier(InvalidInputException::builder).httpStatusCode(400).build())
+            .clientConfiguration(clientConfiguration).defaultServiceExceptionSupplier(XmlException::builder).build();
     }
 
     @Override

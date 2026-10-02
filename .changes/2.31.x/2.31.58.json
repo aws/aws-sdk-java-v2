@@ -1,0 +1,48 @@
+{
+    "version": "2.31.58",
+    "date": "2025-06-05",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Fixed DynamoDbEnhancedClient DefaultDynamoDbAsyncTable::createTable() to create secondary indices that are defined on annotations of the POJO class, similar to DefaultDynamoDbTable::createTable()."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Pricing Calculator",
+            "contributor": "",
+            "description": "Updating the minimum for List APIs to be 1 (instead of 0)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS CloudFormation",
+            "contributor": "",
+            "description": "Add new warning type 'EXCLUDED_PROPERTIES'"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "AWS KMS announces the support for on-demand rotation of symmetric-encryption KMS keys with imported key material (EXTERNAL origin)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added ability to configure preferred authentication schemes when multiple auth options are available."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "AWS WAF adds support for ASN-based traffic filtering and support for ASN-based rate limiting."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

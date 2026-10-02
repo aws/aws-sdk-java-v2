@@ -15,7 +15,6 @@
 
 package software.amazon.awssdk.services.docdb.internal;
 
-import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME;
 
 import java.net.URI;
 import java.time.Clock;
@@ -25,17 +24,15 @@ import java.time.ZoneOffset;
 import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsExecutionAttribute;
-import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
 import software.amazon.awssdk.core.ClientEndpointProvider;
-import software.amazon.awssdk.core.Protocol;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.http.auth.AuthSchemeResolver;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
-import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
@@ -48,6 +45,7 @@ import software.amazon.awssdk.http.auth.spi.signer.SignedRequest;
 import software.amazon.awssdk.identity.spi.Identity;
 import software.amazon.awssdk.protocols.query.AwsQueryProtocolFactory;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.docdb.endpoints.DocDbEndpointProvider;
 import software.amazon.awssdk.services.docdb.model.DocDbRequest;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 
@@ -72,7 +70,6 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
                                                    .build())
         .build();
 
-    private static final String SERVICE_NAME = "rds";
     private static final String PARAM_SOURCE_REGION = "SourceRegion";
     private static final String PARAM_DESTINATION_REGION = "DestinationRegion";
     private static final String PARAM_PRESIGNED_URL = "PreSignedUrl";
@@ -106,10 +103,10 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
             return request.toBuilder().removeQueryParameter(PARAM_SOURCE_REGION).build();
         }
 
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
+        SelectedAuthScheme<?> selectedAuthScheme = resolveAuthScheme(context.request(), executionAttributes);
         String sourceRegion = presignableRequest.getSourceRegion();
         String destinationRegion = selectedAuthScheme.authSchemeOption().signerProperty(AwsV4HttpSigner.REGION_NAME);
-        URI endpoint = createEndpoint(sourceRegion, SERVICE_NAME, executionAttributes);
+        URI endpoint = createEndpoint(sourceRegion, executionAttributes);
         SdkHttpFullRequest.Builder marshalledRequest = presignableRequest.marshall().toBuilder().uri(endpoint);
 
         SdkHttpFullRequest requestToPresign =
@@ -118,7 +115,7 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
                              .removeQueryParameter(PARAM_SOURCE_REGION)
                              .build();
 
-        requestToPresign = sraPresignRequest(executionAttributes, requestToPresign, sourceRegion);
+        requestToPresign = sraPresignRequest(selectedAuthScheme, requestToPresign, sourceRegion);
 
         String presignedUrl = requestToPresign.getUri().toString();
 
@@ -127,6 +124,14 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
                       // Remove the unmodeled params to stop them getting onto the wire
                       .removeQueryParameter(PARAM_SOURCE_REGION)
                       .build();
+    }
+
+    /**
+     * Resolves the auth scheme from execution attributes, applying any request-level credential overrides.
+     */
+    private SelectedAuthScheme<? extends Identity> resolveAuthScheme(SdkRequest request,
+                                                                     ExecutionAttributes executionAttributes) {
+        return AuthSchemeResolver.resolveAuthScheme(request, executionAttributes);
     }
 
     /**
@@ -159,11 +164,8 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
     /**
      * Presign the provided HTTP request using SRA HttpSigner
      */
-    private SdkHttpFullRequest sraPresignRequest(ExecutionAttributes executionAttributes, SdkHttpFullRequest request,
+    private SdkHttpFullRequest sraPresignRequest(SelectedAuthScheme<?> selectedAuthScheme, SdkHttpFullRequest request,
                                                  String signingRegion) {
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes.getAttribute(SELECTED_AUTH_SCHEME);
-
-
         Instant signingInstant;
         if (signingClockOverride != null) {
             signingInstant = signingClockOverride.instant();
@@ -218,17 +220,14 @@ public abstract class RdsPresignInterceptor<T extends DocDbRequest> implements E
                                  .build();
     }
 
-    private URI createEndpoint(String regionName, String serviceName, ExecutionAttributes attributes) {
-        return AwsClientEndpointProvider.builder()
-                                        .serviceEndpointPrefix(SERVICE_NAME)
-                                        .defaultProtocol(Protocol.HTTPS.toString())
-                                        .region(Region.of(regionName))
-                                        .profileFile(attributes.getAttribute(SdkExecutionAttribute.PROFILE_FILE_SUPPLIER))
-                                        .profileName(attributes.getAttribute(SdkExecutionAttribute.PROFILE_NAME))
-                                        .dualstackEnabled(
-                                            attributes.getAttribute(AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
-                                        .fipsEnabled(attributes.getAttribute(AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED))
-                                        .build()
-                                        .clientEndpoint();
+    private URI createEndpoint(String regionName, ExecutionAttributes attributes) {
+        return CompletableFutureUtils.joinLikeSync(
+            DocDbEndpointProvider.defaultProvider()
+                                 .resolveEndpoint(p -> p.region(Region.of(regionName))
+                                                        .useDualStack(attributes.getAttribute(
+                                                            AwsExecutionAttribute.DUALSTACK_ENDPOINT_ENABLED))
+                                                        .useFips(attributes.getAttribute(
+                                                            AwsExecutionAttribute.FIPS_ENDPOINT_ENABLED)))
+        ).url();
     }
 }

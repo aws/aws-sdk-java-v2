@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,7 +32,7 @@ import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgr
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferListenerContext;
 
-public class LoggingTransferListenerTest {
+class LoggingTransferListenerTest {
 
     private static final long TRANSFER_SIZE_IN_BYTES = 1024L;
 
@@ -54,52 +55,61 @@ public class LoggingTransferListenerTest {
     }
 
     @Test
-    public void test_defaultListener_successfulTransfer() {
+    void test_defaultListener_successfulTransfer() {
         try (LogCaptor logCaptor = LogCaptor.create()) {
             invokeSuccessfulLifecycle();
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertLogged(events, Level.INFO, "Transfer initiated...");
-            assertLogged(events, Level.INFO, "|                    | 0.0%");
-            assertLogged(events, Level.INFO, "|=                   | 5.0%");
-            assertLogged(events, Level.INFO, "|==                  | 10.0%");
-            assertLogged(events, Level.INFO, "|===                 | 15.0%");
-            assertLogged(events, Level.INFO, "|====                | 20.0%");
-            assertLogged(events, Level.INFO, "|=====               | 25.0%");
-            assertLogged(events, Level.INFO, "|======              | 30.0%");
-            assertLogged(events, Level.INFO, "|=======             | 35.0%");
-            assertLogged(events, Level.INFO, "|========            | 40.0%");
-            assertLogged(events, Level.INFO, "|=========           | 45.0%");
-            assertLogged(events, Level.INFO, "|==========          | 50.0%");
-            assertLogged(events, Level.INFO, "|===========         | 55.0%");
-            assertLogged(events, Level.INFO, "|============        | 60.0%");
-            assertLogged(events, Level.INFO, "|=============       | 65.0%");
-            assertLogged(events, Level.INFO, "|==============      | 70.0%");
-            assertLogged(events, Level.INFO, "|===============     | 75.0%");
-            assertLogged(events, Level.INFO, "|================    | 80.0%");
-            assertLogged(events, Level.INFO, "|=================   | 85.0%");
-            assertLogged(events, Level.INFO, "|==================  | 90.0%");
-            assertLogged(events, Level.INFO, "|=================== | 95.0%");
-            assertLogged(events, Level.INFO, "|====================| 100.0%");
-            assertLogged(events, Level.INFO, "Transfer complete!");
-            assertThat(events).isEmpty();
+            String loggerName = LoggingTransferListener.class.getName();
+            List<LogEvent> filteredEvents = events.stream()
+                                                  .filter(e -> e.getLoggerName().equals(loggerName))
+                                                  .collect(Collectors.toList());
+            assertLogged(filteredEvents, Level.INFO, "Transfer initiated...");
+            assertLogged(filteredEvents, Level.INFO, "|                    | 0.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=                   | 5.0%");
+            assertLogged(filteredEvents, Level.INFO, "|==                  | 10.0%");
+            assertLogged(filteredEvents, Level.INFO, "|===                 | 15.0%");
+            assertLogged(filteredEvents, Level.INFO, "|====                | 20.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=====               | 25.0%");
+            assertLogged(filteredEvents, Level.INFO, "|======              | 30.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=======             | 35.0%");
+            assertLogged(filteredEvents, Level.INFO, "|========            | 40.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=========           | 45.0%");
+            assertLogged(filteredEvents, Level.INFO, "|==========          | 50.0%");
+            assertLogged(filteredEvents, Level.INFO, "|===========         | 55.0%");
+            assertLogged(filteredEvents, Level.INFO, "|============        | 60.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=============       | 65.0%");
+            assertLogged(filteredEvents, Level.INFO, "|==============      | 70.0%");
+            assertLogged(filteredEvents, Level.INFO, "|===============     | 75.0%");
+            assertLogged(filteredEvents, Level.INFO, "|================    | 80.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=================   | 85.0%");
+            assertLogged(filteredEvents, Level.INFO, "|==================  | 90.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=================== | 95.0%");
+            assertLogged(filteredEvents, Level.INFO, "|====================| 100.0%");
+            assertLogged(filteredEvents, Level.INFO, "Transfer complete!");
+            assertThat(filteredEvents).isEmpty();
         }
     }
 
     @Test
-    public void test_customTicksListener_successfulTransfer() {
+    void test_customTicksListener_successfulTransfer() {
         try (LogCaptor logCaptor = LogCaptor.create()) {
             listener = LoggingTransferListener.create(5);
             invokeSuccessfulLifecycle();
             List<LogEvent> events = logCaptor.loggedEvents();
-            assertLogged(events, Level.INFO, "Transfer initiated...");
-            assertLogged(events, Level.INFO, "|     | 0.0%");
-            assertLogged(events, Level.INFO, "|=    | 20.0%");
-            assertLogged(events, Level.INFO, "|==   | 40.0%");
-            assertLogged(events, Level.INFO, "|===  | 60.0%");
-            assertLogged(events, Level.INFO, "|==== | 80.0%");
-            assertLogged(events, Level.INFO, "|=====| 100.0%");
-            assertLogged(events, Level.INFO, "Transfer complete!");
-            assertThat(events).isEmpty();
+            String loggerName = LoggingTransferListener.class.getName();
+            List<LogEvent> filteredEvents = events.stream()
+                                                  .filter(e -> e.getLoggerName().equals(loggerName))
+                                                  .collect(Collectors.toList());
+
+            assertLogged(filteredEvents, Level.INFO, "Transfer initiated...");
+            assertLogged(filteredEvents, Level.INFO, "|     | 0.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=    | 20.0%");
+            assertLogged(filteredEvents, Level.INFO, "|==   | 40.0%");
+            assertLogged(filteredEvents, Level.INFO, "|===  | 60.0%");
+            assertLogged(filteredEvents, Level.INFO, "|==== | 80.0%");
+            assertLogged(filteredEvents, Level.INFO, "|=====| 100.0%");
+            assertLogged(filteredEvents, Level.INFO, "Transfer complete!");
+            assertThat(filteredEvents).isEmpty();
         }
     }
 

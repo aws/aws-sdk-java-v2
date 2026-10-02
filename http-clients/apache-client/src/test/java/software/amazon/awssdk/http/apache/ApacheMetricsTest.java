@@ -18,18 +18,17 @@ package software.amazon.awssdk.http.apache;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.http.HttpMetric.CONCURRENCY_ACQUIRE_DURATION;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.junit5.WireMockExtension;
+import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import java.io.IOException;
-import org.junit.After;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.ExpectedException;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -40,30 +39,21 @@ import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricCollector;
 
 
+@WireMockTest
 public class ApacheMetricsTest {
-    private static WireMockServer wireMockServer;
     private SdkHttpClient client;
 
-    @Rule
-    public ExpectedException thrown = ExpectedException.none();
+    @RegisterExtension
+    static WireMockExtension wireMockServer = WireMockExtension.newInstance()
+                                                               .options(wireMockConfig().dynamicPort().dynamicPort())
+                                                               .build();
 
-    @BeforeClass
-    public static void setUp() throws IOException {
-        wireMockServer = new WireMockServer();
-        wireMockServer.start();
-    }
-
-    @Before
+    @BeforeEach
     public void methodSetup() {
         wireMockServer.stubFor(any(urlMatching(".*")).willReturn(aResponse().withStatus(200).withBody("{}")));
     }
 
-    @AfterClass
-    public static void teardown() throws IOException {
-        wireMockServer.stop();
-    }
-
-    @After
+    @AfterEach
     public void methodTeardown() {
         if (client != null) {
             client.close();
@@ -86,7 +76,7 @@ public class ApacheMetricsTest {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                                                        .method(SdkHttpMethod.GET)
                                                        .protocol("http")
-                                                       .host("localhost:" + wireMockServer.port())
+                                                       .host("localhost:" + wireMockServer.getPort())
                                                        .build();
 
         HttpExecuteRequest request = HttpExecuteRequest.builder()

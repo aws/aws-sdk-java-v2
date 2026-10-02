@@ -1,0 +1,53 @@
+{
+  "version": "1.0",
+  "parameters": {
+    "stringArrayParam": {
+      "type": "StringArray",
+      "required": true,
+      "default": ["defaultValue1", "defaultValue2"],
+      "documentation": "StringArray test parameters"
+    },
+    "Region": {
+      "builtIn": "AWS::Region",
+      "required": true,
+      "documentation": "The AWS region used to dispatch the request.",
+      "type": "String"
+    }
+  },
+  "rules": [
+    {
+      "documentation": "Template first array value into URI if set",
+      "conditions": [
+        {
+          "fn": "getAttr",
+          "argv": [
+            {
+              "ref": "stringArrayParam"
+            },
+            "[0]"
+          ],
+          "assign": "arrayValue"
+        }
+      ],
+      "endpoint": {
+        "url": "https://example.com/{arrayValue}",
+        "properties": {
+          "authSchemes": [
+            {
+              "name": "sigv4",
+              "signingRegion": "{Region}",
+              "signingName": "stringarray"
+            }
+          ]
+        }
+      },
+      "type": "endpoint"
+    },
+    {
+      "conditions": [],
+      "documentation": "error fallthrough",
+      "error": "no array values set",
+      "type": "error"
+    }
+  ]
+}

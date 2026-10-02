@@ -39,6 +39,7 @@ import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.SdkChecksum;
 import software.amazon.awssdk.core.internal.sync.BufferingContentStreamProvider;
 import software.amazon.awssdk.core.internal.util.Mimetype;
+import software.amazon.awssdk.testutils.RandomInputStream;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -161,6 +162,17 @@ public class RequestBodyTest {
 
         assertThat(getCrc32(requestBody.contentStreamProvider().newStream())).isEqualTo(streamCrc32);
         assertThat(getCrc32(requestBody.contentStreamProvider().newStream())).isEqualTo(streamCrc32);
+    }
+
+    @Test
+    public void fromInputStream_streamNotSupportReset_shouldThrowException() {
+        RandomInputStream stream = new RandomInputStream(100);
+        assertThat(stream.markSupported()).isFalse();
+        RequestBody requestBody = RequestBody.fromInputStream(stream, 100);
+        IoUtils.drainInputStream(requestBody.contentStreamProvider().newStream());
+        assertThatThrownBy(() -> requestBody.contentStreamProvider().newStream())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Content input stream does not support mark/reset");
     }
 
     private static String getCrc32(InputStream inputStream) {

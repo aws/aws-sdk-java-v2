@@ -43,6 +43,11 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.conditional.SingleKeyIt
 public interface QueryConditional {
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is equal to a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and "=" operator will be applied on all of them.
+     * The sort keys are optional but if are provided, "=" operator will be applied only to the provided ones.
      * @param key the literal key used to compare the value of the index against
      */
     static QueryConditional keyEqualTo(Key key) {
@@ -51,6 +56,11 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is equal to a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and "=" operator will be applied on all of them.
+     * The sort keys are optional but if are provided, "=" operator will be applied only to the provided ones.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
     static QueryConditional keyEqualTo(Consumer<Key.Builder> keyConsumer) {
@@ -61,6 +71,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is greater than a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the ">" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param key the literal key used to compare the value of the index against
      */
     static QueryConditional sortGreaterThan(Key key) {
@@ -69,6 +85,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is greater than a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the ">" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
     static QueryConditional sortGreaterThan(Consumer<Key.Builder> keyConsumer) {
@@ -80,6 +102,12 @@ public interface QueryConditional {
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is greater than or equal to a specific
      * value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the ">=" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param key the literal key used to compare the value of the index against
      */
     static QueryConditional sortGreaterThanOrEqualTo(Key key) {
@@ -89,6 +117,12 @@ public interface QueryConditional {
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is greater than or equal to a specific
      * value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the ">=" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
     static QueryConditional sortGreaterThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
@@ -99,6 +133,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is less than a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "<" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param key the literal key used to compare the value of the index against
      */
     static QueryConditional sortLessThan(Key key) {
@@ -107,6 +147,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is less than a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "<" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
     static QueryConditional sortLessThan(Consumer<Key.Builder> keyConsumer) {
@@ -118,6 +164,12 @@ public interface QueryConditional {
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is less than or equal to a specific
      * value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "<=" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param key the literal key used to compare the value of the index against
      */
     static QueryConditional sortLessThanOrEqualTo(Key key) {
@@ -127,6 +179,12 @@ public interface QueryConditional {
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is less than or equal to a specific
      * value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "<=" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param keyConsumer 'builder consumer' for the literal key used to compare the value of the index against
      */
     static QueryConditional sortLessThanOrEqualTo(Consumer<Key.Builder> keyConsumer) {
@@ -137,6 +195,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is between two specific values.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "between" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param keyFrom the literal key used to compare the start of the range to compare the value of the index against
      * @param keyTo the literal key used to compare the end of the range to compare the value of the index against
      */
@@ -146,6 +210,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index is between two specific values.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "between" operator will be applied only to the rightmost provided one, but all the preceding sort
+     * keys must also be provided and equality condition will be applied on them.
      * @param keyFromConsumer 'builder consumer' for the literal key used to compare the start of the range to compare
      *                        the value of the index against
      * @param keyToConsumer 'builder consumer' for the literal key used to compare the end of the range to compare the
@@ -161,6 +231,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index begins with a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "begins_with" operator will be applied only to the rightmost provided one, but all the preceding
+     * sort keys must also be provided and equality condition will be applied on them.
      * @param key the literal key used to compare the start of the value of the index against
      */
     static QueryConditional sortBeginsWith(Key key) {
@@ -169,6 +245,12 @@ public interface QueryConditional {
 
     /**
      * Creates a {@link QueryConditional} that matches when the key of an index begins with a specific value.
+     * Supports both single keys and composite keys with up to {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS}
+     * partition and {@value software.amazon.awssdk.enhanced.dynamodb.Key#MAX_KEYS} sort keys.
+     * <p>
+     * In case of composite keys, all the partition keys must be provided and equality condition will be applied on all of them.
+     * For the sort keys, the "begins_with" operator will be applied only to the rightmost provided one, but all the preceding
+     * sort keys must also be provided and equality condition will be applied on them.
      * @param keyConsumer 'builder consumer'  the literal key used to compare the start of the value of the index
      *                    against
      */

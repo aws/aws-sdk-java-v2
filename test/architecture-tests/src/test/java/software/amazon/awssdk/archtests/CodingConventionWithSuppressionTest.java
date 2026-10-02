@@ -32,9 +32,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.internal.async.RetryableSubAsyncRequestBody;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.MakeHttpRequestStage;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.publishers.emf.EmfMetricLoggingPublisher;
 import software.amazon.awssdk.metrics.publishers.emf.internal.MetricEmfConverter;
+import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
+import software.amazon.awssdk.services.s3.internal.multipart.KnownContentLengthAsyncRequestBodySubscriber;
+import software.amazon.awssdk.services.s3.internal.multipart.UnknownContentLengthAsyncRequestBodySubscriber;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -48,10 +53,29 @@ public class CodingConventionWithSuppressionTest {
     private static final Set<Pattern> ALLOWED_WARN_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
                       ArchUtils.classNameToPattern(MetricEmfConverter.class),
-                      ArchUtils.classNameToPattern(MakeHttpRequestStage.class)));
+                      ArchUtils.classNameToPattern(MakeHttpRequestStage.class),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.services.s3.internal.crt.S3CrtResponseHandlerAdapter"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.AwsCrtHttpClientBase"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.crtcore.CrtConfigurationUtils"),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.http.crt.internal.response.CrtResponseAdapter"),
+                      ArchUtils.classNameToPattern(RetryableSubAsyncRequestBody.class),
+                      ArchUtils.classNameToPattern(KnownContentLengthAsyncRequestBodySubscriber.class),
+                      ArchUtils.classNameToPattern(UnknownContentLengthAsyncRequestBodySubscriber.class),
+                      ArchUtils.classNameToPattern(
+                          "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload"),
+                      ArchUtils.classNameToPattern(CopyObjectHelper.class),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.WarmUpDiscovery"),
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker")));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
-        Arrays.asList(ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class)));
+        Arrays.asList(
+            ArchUtils.classNameToPattern(EmfMetricLoggingPublisher.class),
+            ArchUtils.classNameToPattern("software.amazon.awssdk.http.crt.internal.CrtAsyncRequestExecutor"),
+            ArchUtils.classWithInnerClassesToPattern(ResponseTransformer.class)));
 
     @Test
     void shouldNotAbuseWarnLog() {

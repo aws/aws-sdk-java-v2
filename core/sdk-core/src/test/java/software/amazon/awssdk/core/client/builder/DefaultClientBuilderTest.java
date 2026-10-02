@@ -32,6 +32,7 @@ import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL
 import static software.amazon.awssdk.core.client.config.SdkClientOption.API_CALL_TIMEOUT;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.EXECUTION_INTERCEPTORS;
+import static software.amazon.awssdk.core.client.config.SdkClientOption.HTTP_CLIENT_CONFIG_TYPE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.METRIC_PUBLISHERS;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE;
 import static software.amazon.awssdk.core.client.config.SdkClientOption.PROFILE_FILE_SUPPLIER;
@@ -44,8 +45,12 @@ import com.google.common.collect.ImmutableSet;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +64,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Supplier;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.Mockito;
@@ -75,6 +82,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -99,6 +107,9 @@ public class DefaultClientBuilderTest {
     private static final URI DEFAULT_ENDPOINT = URI.create("https://defaultendpoint.com");
     private static final URI ENDPOINT = URI.create("https://example.com");
     private static final NoOpSigner TEST_SIGNER = new NoOpSigner();
+
+    @Rule
+    public TemporaryFolder tempFolder = new TemporaryFolder();
 
     @Mock
     private SdkHttpClient.Builder defaultHttpClientFactory;
@@ -379,6 +390,96 @@ public class DefaultClientBuilderTest {
     }
 
     @Test
+    public void noHttpClientProvided_httpClientConfigTypeIsAuto() {
+        TestClient client = testClientBuilder().build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void noAsyncHttpClientProvided_httpClientConfigTypeIsAuto() {
+        TestAsyncClient client = testAsyncClientBuilder().build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void explicitSyncHttpClientProvided_httpClientConfigTypeIsExplicitInstance() {
+        TestClient client = testClientBuilder()
+                .httpClient(mock(SdkHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE);
+    }
+
+    @Test
+    public void explicitSyncHttpClientBuilderProvided_httpClientConfigTypeIsExplicitFactory() {
+        TestClient client = testClientBuilder()
+                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> mock(SdkHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY);
+    }
+
+    @Test
+    public void explicitAsyncHttpClientProvided_httpClientConfigTypeIsExplicitInstance() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClient(mock(SdkAsyncHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_INSTANCE);
+    }
+
+    @Test
+    public void explicitAsyncHttpClientBuilderProvided_httpClientConfigTypeIsExplicitFactory() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> mock(SdkAsyncHttpClient.class))
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_EXPLICIT_FACTORY);
+    }
+
+    @Test
+    public void syncHttpClientSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestClient client = testClientBuilder()
+                .httpClient(mock(SdkHttpClient.class))
+                .httpClient((SdkHttpClient) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void syncHttpClientBuilderSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestClient client = testClientBuilder()
+                .httpClientBuilder((SdkHttpClient.Builder) serviceDefaults -> mock(SdkHttpClient.class))
+                .httpClientBuilder((SdkHttpClient.Builder) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void asyncHttpClientSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClient(mock(SdkAsyncHttpClient.class))
+                .httpClient((SdkAsyncHttpClient) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
+    public void asyncHttpClientBuilderSetThenCleared_httpClientConfigTypeIsAuto() {
+        TestAsyncClient client = testAsyncClientBuilder()
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) serviceDefaults -> mock(SdkAsyncHttpClient.class))
+                .httpClientBuilder((SdkAsyncHttpClient.Builder) null)
+                .build();
+        assertThat(client.clientConfiguration.option(HTTP_CLIENT_CONFIG_TYPE))
+            .isEqualTo(BusinessMetricFeatureId.HTTP_CLIENT_AUTO);
+    }
+
+    @Test
     public void clientBuilderFieldsHaveBeanEquivalents() throws Exception {
         // Mutating properties might not have bean equivalents. This is probably fine, since very few customers require
         // bean-equivalent methods and it's not clear what they'd expect them to be named anyway. Ignore these methods for now.
@@ -435,6 +536,13 @@ public class DefaultClientBuilderTest {
                                            .build();
 
         return new TestAsyncClientBuilder().overrideConfiguration(overrideConfig);
+    }
+
+    private void writeTestCredentialsFile(File file, String accessKeyId, String secretAccessKey)
+            throws IOException {
+        String contents = String.format("[default]\naws_access_key_id = %s\naws_secret_access_key = %s\n",
+                                        accessKeyId, secretAccessKey);
+        Files.write(file.toPath(), contents.getBytes(StandardCharsets.UTF_8));
     }
 
     private static class TestClient {

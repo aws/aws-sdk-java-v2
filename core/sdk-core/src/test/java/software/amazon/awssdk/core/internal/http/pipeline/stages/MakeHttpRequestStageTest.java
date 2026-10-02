@@ -40,7 +40,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.timers.TimeoutTracker;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -135,9 +135,9 @@ public class MakeHttpRequestStageTest {
             InputStream requestContentStream = capturedRequest.contentStreamProvider().get().newStream();
 
             if (expectLengthAware) {
-                assertThat(requestContentStream).isInstanceOf(SdkLengthAwareInputStream.class);
+                assertThat(requestContentStream).isInstanceOf(LengthAwareInputStream.class);
             } else {
-                assertThat(requestContentStream).isNotInstanceOf(SdkLengthAwareInputStream.class);
+                assertThat(requestContentStream).isNotInstanceOf(LengthAwareInputStream.class);
             }
         } else {
             assertThat(capturedRequest.contentStreamProvider()).isEmpty();

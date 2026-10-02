@@ -1,0 +1,43 @@
+{
+  "FunctionName": "benchmark-function",
+  "FunctionArn": "arn:aws:lambda:us-east-1:123456789012:function:benchmark-function",
+  "Runtime": "java21",
+  "Role": "arn:aws:iam::123456789012:role/lambda-role",
+  "Handler": "com.example.Handler::handleRequest",
+  "CodeSize": 5242880,
+  "Description": "Benchmark test function",
+  "Timeout": 30,
+  "MemorySize": 512,
+  "LastModified": "2024-01-15T10:30:00.000+0000",
+  "CodeSha256": "dGVzdGhhc2g=",
+  "Version": "$LATEST",
+  "Environment": {
+    "Variables": {
+      "ENV_VAR_1": "value1",
+      "ENV_VAR_2": "value2",
+      "TABLE_NAME": "my-table"
+    }
+  },
+  "TracingConfig": {
+    "Mode": "Active"
+  },
+  "RevisionId": "a1b2c3d4-5678-90ab-cdef-EXAMPLE11111",
+  "Layers": [
+    {
+      "Arn": "arn:aws:lambda:us-east-1:123456789012:layer:my-layer:3",
+      "CodeSize": 1048576,
+      "SigningProfileVersionArn": "arn:aws:signer:us-east-1:123456789012:/signing-profiles/MyProfile"
+    }
+  ],
+  "State": "Active",
+  "LastUpdateStatus": "Successful",
+  "PackageType": "Zip",
+  "Architectures": ["arm64"],
+  "EphemeralStorage": {
+    "Size": 1024
+  },
+  "LoggingConfig": {
+    "LogFormat": "JSON",
+    "LogGroup": "/aws/lambda/benchmark-function"
+  }
+}

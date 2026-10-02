@@ -16,7 +16,6 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DELIMITER;
-import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DEFAULT_PREFIX;
 
 import java.io.IOException;
@@ -107,10 +106,12 @@ public class DownloadDirectoryHelper {
 
         CompletableFuture<Void> allOfFutures = new CompletableFuture<>();
         AsyncBufferingSubscriber<S3Object> asyncBufferingSubscriber =
-            new AsyncBufferingSubscriber<>(downloadSingleFile(downloadDirectoryRequest, request,
+            new AsyncBufferingSubscriber<>(downloadSingleFile(returnFuture, downloadDirectoryRequest, request,
                                                               failedFileDownloads),
                                            allOfFutures,
-                                           DEFAULT_DIRECTORY_TRANSFER_MAX_CONCURRENCY);
+                                           transferConfiguration.option(
+                                               TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY
+                                           ));
         listObjectsHelper.listS3ObjectsRecursively(request)
                          .filter(downloadDirectoryRequest.filter())
                          .subscribe(asyncBufferingSubscriber);
@@ -128,11 +129,13 @@ public class DownloadDirectoryHelper {
     }
 
     private Function<S3Object, CompletableFuture<?>> downloadSingleFile(
+        CompletableFuture<CompletedDirectoryDownload> returnFuture,
         DownloadDirectoryRequest downloadDirectoryRequest,
         ListObjectsV2Request listRequest,
         Queue<FailedFileDownload> failedFileDownloads) {
 
-        return s3Object -> doDownloadSingleFile(downloadDirectoryRequest,
+        return s3Object -> doDownloadSingleFile(returnFuture,
+                                            downloadDirectoryRequest,
                                             failedFileDownloads,
                                             listRequest,
                                             s3Object);
@@ -157,10 +160,17 @@ public class DownloadDirectoryHelper {
         }
     }
 
-    private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(DownloadDirectoryRequest downloadDirectoryRequest,
-                                                                          Collection<FailedFileDownload> failedFileDownloads,
-                                                                          ListObjectsV2Request listRequest,
-                                                                          S3Object s3Object) {
+    private CompletableFuture<CompletedFileDownload> doDownloadSingleFile(
+        CompletableFuture<CompletedDirectoryDownload> returnFuture,
+        DownloadDirectoryRequest downloadDirectoryRequest,
+        Collection<FailedFileDownload> failedFileDownloads,
+        ListObjectsV2Request listRequest,
+        S3Object s3Object) {
+
+        if (returnFuture.isCompletedExceptionally()) {
+            return CompletableFutureUtils.failedFuture(
+                SdkClientException.create("Download was cancelled before file could be started"));
+        }
 
         Path destinationPath = determineDestinationPath(downloadDirectoryRequest, listRequest, s3Object);
 

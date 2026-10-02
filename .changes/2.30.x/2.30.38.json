@@ -1,0 +1,48 @@
+{
+    "version": "2.30.38",
+    "date": "2025-03-11",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "S3 Transfer Manager",
+            "contributor": "",
+            "description": "Fix an issue where `uploadFile` never completes for the Java based S3 TransferManager if the `apiCallBufferSizeInBytes` configured on the `MultipartConfiguration` is too small."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaLive",
+            "contributor": "",
+            "description": "Add an enum option DISABLED for Output Locking Mode under Global Configuration."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "This is a documentation only update for Amazon ECS to address various tickets."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release adds the GroupLongName field to the response of the DescribeAvailabilityZones API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Container Registry",
+            "contributor": "",
+            "description": "This release adds Amazon ECR to Amazon ECR pull through cache rules support."
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "Adding componentArn to network reachability details"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

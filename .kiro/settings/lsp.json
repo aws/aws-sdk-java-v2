@@ -1,0 +1,41 @@
+{
+  "languages": {
+    "java": {
+      "name": "jdtls",
+      "command": "jdtls",
+      "args": [],
+      "file_extensions": [
+        "java"
+      ],
+      "project_patterns": [
+        "pom.xml",
+        "build.gradle",
+        "build.gradle.kts",
+        ".project"
+      ],
+      "exclude_patterns": [
+        "**/target/**",
+        "**/build/**",
+        "**/.gradle/**"
+      ],
+      "multi_workspace": false,
+      "initialization_options": {
+        "settings": {
+          "java": {
+            "compile": {
+              "nullAnalysis": {
+                "mode": "automatic"
+              }
+            },
+            "configuration": {
+              "annotationProcessing": {
+                "enabled": true
+              }
+            }
+          }
+        }
+      },
+      "request_timeout_secs": 60
+    }
+  }
+}

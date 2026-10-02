@@ -16,7 +16,13 @@
 package software.amazon.awssdk.core.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.HashMap;
 import org.junit.jupiter.api.Test;
 
@@ -40,5 +46,26 @@ public class DefaultSdkAutoConstructMapTest {
     @Test
     public void toString_emptyMap() {
         assertThat(AUTO_CONSTRUCT_MAP.toString()).isEqualTo("{}");
+    }
+
+    @Test
+    public void serialization_sameSingletonInstance() throws Exception {
+        DefaultSdkAutoConstructMap<?, ?> originalInstance = DefaultSdkAutoConstructMap.getInstance();
+
+        // Serialize the object
+        ByteArrayOutputStream byteOut = new ByteArrayOutputStream();
+        ObjectOutputStream objectOut = new ObjectOutputStream(byteOut);
+        objectOut.writeObject(originalInstance);
+        objectOut.close();
+
+        // Deserialize the object
+        ByteArrayInputStream byteIn = new ByteArrayInputStream(byteOut.toByteArray());
+        ObjectInputStream objectIn = new ObjectInputStream(byteIn);
+        DefaultSdkAutoConstructMap<?, ?> deserializedInstance = (DefaultSdkAutoConstructMap<?, ?>) objectIn.readObject();
+        objectIn.close();
+
+        // Assert that deserialization was successful
+        assertNotNull(deserializedInstance);
+        assertSame(originalInstance, deserializedInstance, "Deserialized instance should be the same singleton instance");
     }
 }

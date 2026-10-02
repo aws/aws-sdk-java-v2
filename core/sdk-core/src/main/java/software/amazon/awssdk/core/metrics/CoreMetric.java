@@ -60,10 +60,22 @@ public final class CoreMetric {
         metric("ServiceEndpoint", URI.class, MetricLevel.ERROR);
 
     /**
-     * The duration of the API call. This includes all call attempts made.
+     * The duration of the API call. This includes all call attempts made and all interceptors.
      *
-     * <p>{@code API_CALL_DURATION ~= CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + SUM_ALL(BACKOFF_DELAY_DURATION) +
-     * SUM_ALL(SIGNING_DURATION) + SUM_ALL(SERVICE_CALL_DURATION) + SUM_ALL(UNMARSHALLING_DURATION)}
+     * <p>For an asynchronous client the measurement ends when the returned
+     * {@link java.util.concurrent.CompletableFuture} completes, which for a streaming operation is when the response
+     * transformer completes.
+     *
+     * <p>{@code API_CALL_DURATION ~= CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + ENDPOINT_RESOLVE_DURATION +
+     * SUM_ALL(BACKOFF_DELAY_DURATION) + SUM_ALL(SIGNING_DURATION) + SUM_ALL(SERVICE_CALL_DURATION) +
+     * SUM_ALL(UNMARSHALLING_DURATION)}
+     *
+     * <p>The relation is approximate because several steps inside the window have no metric of their own including
+     * request compression and checksum computation.
+     *
+     * <p>This is not bounded by a configured
+     * {@link software.amazon.awssdk.core.client.config.ClientOverrideConfiguration.Builder#apiCallTimeout(Duration)
+     * apiCallTimeout}, which covers a narrower window that excludes marshalling and the interceptors.
      */
     public static final SdkMetric<Duration> API_CALL_DURATION =
         metric("ApiCallDuration", Duration.class, MetricLevel.INFO);
@@ -155,6 +167,27 @@ public final class CoreMetric {
      */
     public static final SdkMetric<Double> READ_THROUGHPUT =
         metric("ReadThroughput", Double.class, MetricLevel.TRACE);
+
+    /**
+     * The write throughput of the client, defined as
+     * {@code RequestBytesWritten / (LastByteWrittenTime - FirstByteWrittenTime)}.
+     * This value is in bytes per second.
+     * <p>
+     * This metric measures the rate at which the SDK provides the request body to the HTTP client.
+     * It excludes connection setup, TLS handshake time, and server processing time.
+     * <p>
+     * Note: This metric only measures the request body, not HTTP headers. For requests with small
+     * payloads where the body size is comparable to the headers size, this metric may not accurately
+     * reflect overall network throughput.
+     * <p>
+     * Note: This metric does not account for buffering in the HTTP client layer. The actual network transmission rate may
+     * be lower if the HTTP client buffers data before sending. This metric represents an upper bound of the network
+     * throughput.
+     * <p>
+     * This metric is only reported for requests that have a body.
+     */
+    public static final SdkMetric<Double> WRITE_THROUGHPUT =
+        metric("WriteThroughput", Double.class, MetricLevel.TRACE);
 
     /**
      * The duration of time it took to resolve the endpoint used for the API call.

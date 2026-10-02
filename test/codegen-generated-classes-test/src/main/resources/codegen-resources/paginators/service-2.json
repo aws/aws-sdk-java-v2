@@ -1,0 +1,49 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2016-03-11",
+    "endpointPrefix":"paginators",
+    "jsonVersion":"1.1",
+    "protocol":"rest-json",
+    "serviceAbbreviation":"Paginators",
+    "serviceFullName":"Paginators",
+    "serviceId":"Paginators",
+    "signatureVersion":"v4",
+    "targetPrefix":"Paginators",
+    "timestampFormat":"unixTimestamp",
+    "uid":"paginators-2016-03-11"
+  },
+  "operations":{
+    "ListStrings":{
+      "name":"ListStrings",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/listStrings"
+      },
+      "input":{"shape":"ListStringsRequest"},
+      "output":{"shape":"ListStringsResponse"}
+    }
+  },
+  "shapes":{
+    "ListStringsRequest":{
+      "type":"structure",
+      "members": {
+        "NextToken": {"shape":"String"},
+        "MaxResults": {"shape":"Integer"}
+      }
+    },
+    "ListStringsResponse":{
+      "type": "structure",
+      "members": {
+        "Strings": {"shape": "ListOfStrings"},
+        "NextToken": {"shape": "String"}
+      }
+    },
+    "Integer":{"type":"integer"},
+    "ListOfStrings":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
+    "String":{"type":"string"}
+  }
+}

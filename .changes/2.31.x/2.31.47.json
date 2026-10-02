@@ -1,0 +1,48 @@
+{
+    "version": "2.31.47",
+    "date": "2025-05-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS DataSync",
+            "contributor": "",
+            "description": "Remove Discovery APIs from the DataSync service"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Enhanced AWS Glue ListConnectionTypes API Model with additional metadata fields."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "This release expands the ModifyInstanceMaintenanceOptions API to enable or disable instance migration during customer-initiated reboots for EC2 Scheduled Reboot Events."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "This release introduces the new DescribeDBMajorEngineVersions API for describing the properties of specific major versions of database engines."
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Observability Access Manager",
+            "contributor": "",
+            "description": "Add IncludeTags field to GetLink, GetSink and UpdateLink API"
+        },
+        {
+            "type": "feature",
+            "category": "Inspector2",
+            "contributor": "",
+            "description": "This release adds GetClustersForImage API and filter updates as part of the mapping of container images to running containers feature."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -39,6 +39,7 @@ import software.amazon.awssdk.codegen.model.service.ServiceMetadata;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.model.service.XmlNamespace;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.StringUtils;
 
@@ -295,13 +296,15 @@ public final class Utils {
     }
 
     /**
-     * Search for a shape model by its C2J name, excluding request and response shapes, which are not candidates to be members
-     * of another shape.
+     * Finds the shape a member should link to by C2J name, excluding request and response shapes. As an exception, a
+     * request or response shape is used when it is the only shape with that name, which happens when a structure is both an
+     * operation input/output and a member of another structure (a valid Smithy pattern).
      *
      * @return ShapeModel or null if the shape doesn't exist (if it's primitive or container type for example)
      */
     public static ShapeModel findMemberShapeModelByC2jNameIfExists(IntermediateModel intermediateModel, String shapeC2jName) {
         ShapeModel candidate = null;
+        ShapeModel inputOutputCandidate = null;
         for (ShapeModel shape : intermediateModel.getShapes().values()) {
             if (shape.getShapeType() != ShapeType.Request
                     && shape.getShapeType() != ShapeType.Response
@@ -311,9 +314,13 @@ public final class Utils {
                                                     + candidate + " and " + shape);
                 }
                 candidate = shape;
+            } else if ((shape.getShapeType() == ShapeType.Request || shape.getShapeType() == ShapeType.Response)
+                       && shape.getC2jName().equals(shapeC2jName)
+                       && shape.getShapeName().equals(capitalize(shapeC2jName))) {
+                inputOutputCandidate = shape;
             }
         }
-        return candidate;
+        return candidate != null ? candidate : inputOutputCandidate;
     }
 
     public static List<ShapeModel> findShapesByC2jName(IntermediateModel intermediateModel, String shapeC2jName) {
@@ -331,11 +338,13 @@ public final class Utils {
                     "The operation parameter must be specified!");
         }
 
+        String protocol = ProtocolUtils.resolveProtocol(service);
+
         ShapeMarshaller marshaller = new ShapeMarshaller()
                 .withAction(operation.getName())
                 .withVerb(operation.getHttp().getMethod())
                 .withRequestUri(operation.getHttp().getRequestUri())
-                .withProtocol(service.getProtocol());
+                .withProtocol(protocol);
         Input input = operation.getInput();
         if (input != null) {
             marshaller.setLocationName(input.getLocationName());
@@ -345,7 +354,7 @@ public final class Utils {
                 marshaller.setXmlNameSpaceUri(xmlNamespace.getUri());
             }
         }
-        if (Metadata.usesOperationIdentifier(service.getProtocol())) {
+        if (Metadata.usesOperationIdentifier(protocol)) {
             marshaller.setTarget(StringUtils.isEmpty(service.getTargetPrefix()) ?
                                  operation.getName() :
                                  service.getTargetPrefix() + "." + operation.getName());

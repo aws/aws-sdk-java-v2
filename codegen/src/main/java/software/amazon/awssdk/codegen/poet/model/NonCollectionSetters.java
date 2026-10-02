@@ -128,6 +128,14 @@ class NonCollectionSetters extends AbstractMemberSetters {
                             .build());
         }
 
+        String additionalSetter = memberModel().getAdditionalBeanStyleSetterName();
+        if (StringUtils.isNotBlank(additionalSetter)) {
+            MethodSpec.Builder methodBuilder = beanStyleSetterBuilder();
+            methodBuilder.setName(additionalSetter);
+            methods.add(methodBuilder.addCode(beanCopySetterBody())
+                                     .build());
+        }
+
         return methods;
     }
 

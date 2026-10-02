@@ -37,11 +37,11 @@ import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.InternalCoreExecutionAttribute;
-import software.amazon.awssdk.core.internal.io.SdkLengthAwareInputStream;
 import software.amazon.awssdk.core.internal.util.MetricUtils;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -49,6 +49,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
+import software.amazon.awssdk.utils.io.LengthAwareInputStream;
 
 @SdkInternalApi
 public abstract class BaseClientHandler {
@@ -80,7 +81,38 @@ public abstract class BaseClientHandler {
 
         addHttpRequest(executionContext, request);
         runAfterMarshallingInterceptors(executionContext);
+
+        // Snapshot the HTTP request endpoint before modifyHttpRequest interceptors run.
+        // EndpointResolutionStage uses this to detect if a customer interceptor modified the endpoint.
+        //
+        // Use the optimized EndpointUrl instead of an expensive URI to avoid the cost of parsing/re-parsing it.
+        // Query/EC2 protocols have the entire request payload in query params at this point which increases the time
+        // to build the URI in proportion to the size of the request.
+        SdkHttpRequest marshalledRequest = executionContext.interceptorContext().httpRequest();
+        executionContext.executionAttributes().putAttribute(
+            SdkInternalExecutionAttribute.HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY,
+            EndpointUrl.fromComponents(marshalledRequest.protocol(),
+                                       marshalledRequest.host(),
+                                       marshalledRequest.port(),
+                                       marshalledRequest.encodedPath()));
+
         return runModifyHttpRequestAndHttpContentInterceptors(executionContext);
+    }
+
+    /**
+     * Report the {@link CoreMetric#SERVICE_ENDPOINT} metric for a completed request execution.
+     *
+     * <p>This must run after the request pipeline, so that {@code EndpointResolutionStage} and the signer have applied
+     * their changes to the HTTP request held by the interceptor context. {@code fallbackRequest} is used only when the
+     * interceptor context does not hold a full request, which can happen when the execution failed before the pipeline
+     * updated it.
+     */
+    static void reportServiceEndpointMetric(ExecutionContext executionContext, SdkHttpFullRequest fallbackRequest) {
+        SdkHttpRequest finalRequest = executionContext.interceptorContext().httpRequest();
+        MetricUtils.collectServiceEndpointMetrics(executionContext.metricCollector(),
+                                                  finalRequest instanceof SdkHttpFullRequest
+                                                  ? (SdkHttpFullRequest) finalRequest
+                                                  : fallbackRequest);
     }
 
     private static void runBeforeMarshallingInterceptors(ExecutionContext executionContext) {
@@ -96,6 +128,8 @@ public abstract class BaseClientHandler {
                                                                  ClientExecutionParams executionParams) {
         if (executionParams.discoveredEndpoint() != null) {
             URI discoveredEndpoint = executionParams.discoveredEndpoint();
+            executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.SKIP_ENDPOINT_RESOLUTION, true);
+            // Keep deprecated attribute for cross-module compatibility with older generated service clients
             executionParams.putExecutionAttribute(SdkInternalExecutionAttribute.IS_DISCOVERED_ENDPOINT, true);
             return originalRequest.toBuilder().host(discoveredEndpoint.getHost()).port(discoveredEndpoint.getPort()).build();
         }
@@ -136,7 +170,7 @@ public abstract class BaseClientHandler {
             ContentStreamProvider streamProvider = contentStreamProviderOptional.get();
             if (contentLengthOptional.isPresent()) {
                 ContentStreamProvider toWrap = contentStreamProviderOptional.get();
-                streamProvider = () -> new SdkLengthAwareInputStream(toWrap.newStream(), contentLength);
+                streamProvider = () -> new LengthAwareInputStream(toWrap.newStream(), contentLength);
             }
 
             return new SdkInternalOnlyRequestBody(streamProvider,

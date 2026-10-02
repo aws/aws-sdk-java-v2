@@ -36,10 +36,9 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 public final class DefaultIdentityProviders implements IdentityProviders {
     /**
-     * TODO(sra-identity-auth): Currently, some customers assume we won't interact with the identity providers when we create
-     * the client. This isn't true - we need to call identityType. To TEMPORARILY work around those customer's tests failing,
-     * this is marked lazy. Once we fully migrate over to the SRA as the default code path, we should remove this lazy and
-     * ticket everyone in live who is making those bad assumptions.
+     * Currently, some customers assume we won't interact with the identity providers when we create
+     * the client. This isn't true - we need to call identityType. To work around those customer's tests failing,
+     * this is marked lazy. See JAVA-8670 for more details.
      */
     private final Lazy<Map<Class<?>, IdentityProvider<?>>> identityProviders;
     private final List<IdentityProvider<?>> identityProvidersList;

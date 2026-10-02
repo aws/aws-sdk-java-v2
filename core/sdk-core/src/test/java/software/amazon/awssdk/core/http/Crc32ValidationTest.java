@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.http;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -27,6 +28,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.unitils.util.ReflectionUtils;
+import software.amazon.awssdk.core.exception.Crc32MismatchException;
 import software.amazon.awssdk.core.internal.util.Crc32ChecksumValidatingInputStream;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
@@ -109,10 +111,23 @@ public class Crc32ValidationTest {
     }
 
     @Test
-    public void adapt_ResponseWithCrc32Header_And_NoContent_DoesNotThrowNPE() throws UnsupportedEncodingException {
+    public void adapt_ResponseWithNonZeroCrc32Header_AndNoContent_ThrowsCrc32Mismatch() {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
                                                               .putHeader("x-amz-crc32", "1234")
+                                                              .build();
+
+        assertThatThrownBy(() -> adapt(httpResponse))
+            .isInstanceOf(Crc32MismatchException.class)
+            .hasMessageContaining("1234")
+            .hasMessageContaining("no content");
+    }
+
+    @Test
+    public void adapt_ResponseWithZeroCrc32Header_AndNoContent_PassesThrough() {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusCode(200)
+                                                              .putHeader("x-amz-crc32", "0")
                                                               .build();
 
         SdkHttpFullResponse adapted = adapt(httpResponse);
@@ -120,7 +135,17 @@ public class Crc32ValidationTest {
     }
 
     @Test
-    public void adapt_ResponseGzipEncoding_And_NoContent_DoesNotThrowNPE() throws IOException {
+    public void adapt_ResponseWithoutCrc32Header_AndNoContent_PassesThrough() {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusCode(200)
+                                                              .build();
+
+        SdkHttpFullResponse adapted = adapt(httpResponse);
+        assertThat(adapted.content().isPresent()).isFalse();
+    }
+
+    @Test
+    public void adapt_ResponseGzipEncoding_AndNoContent_PassesThrough() throws IOException {
         SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
                                                               .statusCode(200)
                                                               .putHeader("Content-Encoding", "gzip")
@@ -128,6 +153,18 @@ public class Crc32ValidationTest {
 
         SdkHttpFullResponse adapted = adapt(httpResponse);
         assertThat(adapted.content().isPresent()).isFalse();
+    }
+
+    @Test
+    public void adapt_ResponseGzip_NonZeroCrc32_AndNoContent_ThrowsCrc32Mismatch() {
+        SdkHttpFullResponse httpResponse = SdkHttpFullResponse.builder()
+                                                              .statusCode(200)
+                                                              .putHeader("Content-Encoding", "gzip")
+                                                              .putHeader("x-amz-crc32", "1234")
+                                                              .build();
+
+        assertThatThrownBy(() -> adapt(httpResponse))
+            .isInstanceOf(Crc32MismatchException.class);
     }
 
     private SdkHttpFullResponse adapt(SdkHttpFullResponse httpResponse) {

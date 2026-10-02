@@ -18,6 +18,8 @@ package software.amazon.awssdk.core.client.config;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 
 /**
@@ -52,8 +54,28 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CONFIGURED,
+        guidance = "An executor that does not dispatch to a separate thread (e.g. Runnable::run) runs the "
+              + "completion inline on the calling thread and can deadlock the client, especially when the "
+              + "future chain issues another SDK request. If you set a custom executor, verify it under your "
+              + "own load tests, including request chains that issue further SDK calls.",
+        saferAlternative = "Leave unset to use the SDK-managed per-client ThreadPoolExecutor.")
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);
+
+    /**
+     * Advanced configuration for the native S3CrtAsyncClient, which only applies for file-based multipart uploads.
+     * By default, the S3CrtAsyncClient will skip buffering parts in memory for large objects.
+     * <p>
+     * When set to false, the client will not buffer parts for large object, but will buffer parts for smaller objects .
+     * When set to true, the client will skip buffering parts even for small objects.
+     * Parts for large objects are never buffered.
+     * <p>
+     * Default to {@code false}.
+     */
+    public static final SdkAdvancedAsyncClientOption<Boolean> CRT_MEMORY_BUFFER_DISABLED =
+        new SdkAdvancedAsyncClientOption<>(Boolean.class);
 
     private SdkAdvancedAsyncClientOption(Class<T> valueClass) {
         super(valueClass);

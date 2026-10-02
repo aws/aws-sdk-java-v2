@@ -28,6 +28,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.core.internal.util.HttpChecksumUtils;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.services.s3.internal.presignedurl.model.PresignedUrlDownloadRequestWrapper;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Pair;
@@ -43,7 +44,8 @@ public class GetObjectInterceptor implements ExecutionInterceptor {
     @Override
     public void afterTransmission(Context.AfterTransmission context, ExecutionAttributes executionAttributes) {
 
-        if (!(context.request() instanceof GetObjectRequest)) {
+        if (!(context.request() instanceof GetObjectRequest)
+            && !(context.request() instanceof PresignedUrlDownloadRequestWrapper)) {
             return;
         }
         ChecksumSpecs resolvedChecksumSpecs = executionAttributes.getAttribute(SdkExecutionAttribute.RESOLVED_CHECKSUM_SPECS);

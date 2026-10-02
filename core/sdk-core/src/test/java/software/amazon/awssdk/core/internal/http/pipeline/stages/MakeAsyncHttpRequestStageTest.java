@@ -46,6 +46,7 @@ import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.http.ExecutionContext;
@@ -56,6 +57,7 @@ import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.TransformingAsyncResponseHandler;
 import software.amazon.awssdk.core.internal.http.timers.ClientExecutionAndRequestTimerTestUtils;
 import software.amazon.awssdk.core.internal.util.AsyncResponseHandlerTestUtils;
+import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -234,6 +236,48 @@ public class MakeAsyncHttpRequestStageTest {
             verify(prepareFuture, times(0)).whenComplete(any());
         } finally {
             mockExecutor.shutdown();
+        }
+    }
+
+    @Test
+    public void execute_requestHasTransferEncodingHeader_doesNotAddContentLength() {
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null));
+
+        SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
+                .method(SdkHttpMethod.POST)
+                .host("service.us-east-1.amazonaws.com")
+                .protocol("https")
+                .putHeader(Header.TRANSFER_ENCODING, "chunked")
+                .build();
+
+        AsyncRequestBody requestBody = AsyncRequestBody.fromString("hello world");
+
+        ExecutionContext executionContext = ExecutionContext.builder()
+                .executionAttributes(new ExecutionAttributes())
+                .build();
+
+        RequestExecutionContext context = RequestExecutionContext.builder()
+                .originalRequest(ValidSdkObjects.sdkRequest())
+                .executionContext(executionContext)
+                .requestProvider(requestBody)
+                .build();
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(sdkHttpRequest);
+
+        try {
+            stage.execute(requestFuture, context);
+        } catch (Exception e) {
+            // ignored, we only care about the request sent to the HTTP client
+        } finally {
+            ArgumentCaptor<AsyncExecuteRequest> httpRequestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+            verify(sdkAsyncHttpClient).execute(httpRequestCaptor.capture());
+
+            SdkHttpFullRequest capturedRequest = (SdkHttpFullRequest) httpRequestCaptor.getValue().request();
+            assertThat(capturedRequest.firstMatchingHeader(Header.CONTENT_LENGTH)).isNotPresent();
+            assertThat(capturedRequest.firstMatchingHeader(Header.TRANSFER_ENCODING)).hasValue("chunked");
         }
     }
 

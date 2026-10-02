@@ -1,0 +1,48 @@
+{
+    "version": "2.41.34",
+    "date": "2026-02-20",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Signer Data Plane",
+            "contributor": "",
+            "description": "This release introduces AWS Signer Data Plane SDK client supporting GetRevocationStatus API. The new client enables AWS PrivateLink connectivity with both private DNS and VPC endpoint URLs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Adding new attribute to disable IMDS v1 APIs for fleet, Image Builder and AppBlockBuilder instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Migrated to Smithy. No functional changes"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Runtime",
+            "contributor": "",
+            "description": "Added support for S3OutputPathExtension and Filename parameters to the InvokeEndpointAsync API to allow users to customize the S3 output path and file name for async inference response payloads."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Add support for AssociationDispatchAssumeRole in AWS SSM State Manager."
+        },
+        {
+            "type": "feature",
+            "category": "TrustedAdvisor Public API",
+            "contributor": "",
+            "description": "Adding a new enum attribute(statusReason) to TrustedAdvisorAPI response. This attribute explains reasoning behind check status for certain specific scenarios."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

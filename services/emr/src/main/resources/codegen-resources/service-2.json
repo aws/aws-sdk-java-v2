@@ -83,6 +83,20 @@
       ],
       "documentation":"<p>Cancels a pending step or steps in a running cluster. Available only in Amazon EMR versions 4.8.0 and later, excluding version 5.0.0. A maximum of 256 steps are allowed in each CancelSteps request. CancelSteps is idempotent but asynchronous; it does not guarantee that a step will be canceled, even if the request is successfully submitted. When you use Amazon EMR releases 5.28.0 and later, you can cancel steps that are in a <code>PENDING</code> or <code>RUNNING</code> state. In earlier versions of Amazon EMR, you can only cancel steps that are in a <code>PENDING</code> state. </p>"
     },
+    "CreatePersistentAppUI":{
+      "name":"CreatePersistentAppUI",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"CreatePersistentAppUIInput"},
+      "output":{"shape":"CreatePersistentAppUIOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Creates a persistent application user interface.</p>"
+    },
     "CreateSecurityConfiguration":{
       "name":"CreateSecurityConfiguration",
       "http":{
@@ -206,6 +220,20 @@
       ],
       "documentation":"<p>Provides details of a notebook execution.</p>"
     },
+    "DescribePersistentAppUI":{
+      "name":"DescribePersistentAppUI",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"DescribePersistentAppUIInput"},
+      "output":{"shape":"DescribePersistentAppUIOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Describes a persistent application user interface.</p>"
+    },
     "DescribeReleaseLabel":{
       "name":"DescribeReleaseLabel",
       "http":{
@@ -309,6 +337,62 @@
       "input":{"shape":"GetManagedScalingPolicyInput"},
       "output":{"shape":"GetManagedScalingPolicyOutput"},
       "documentation":"<p>Fetches the attached managed scaling policy for an Amazon EMR cluster. </p>"
+    },
+    "GetOnClusterAppUIPresignedURL":{
+      "name":"GetOnClusterAppUIPresignedURL",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetOnClusterAppUIPresignedURLInput"},
+      "output":{"shape":"GetOnClusterAppUIPresignedURLOutput"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>The presigned URL properties for the cluster's application user interface.</p>"
+    },
+    "GetPersistentAppUIPresignedURL":{
+      "name":"GetPersistentAppUIPresignedURL",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetPersistentAppUIPresignedURLInput"},
+      "output":{"shape":"GetPersistentAppUIPresignedURLOutput"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>The presigned URL properties for the cluster's application user interface.</p>"
+    },
+    "GetSession":{
+      "name":"GetSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetSessionInput"},
+      "output":{"shape":"GetSessionOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Returns detailed information about a session.</p>"
+    },
+    "GetSessionEndpoint":{
+      "name":"GetSessionEndpoint",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"GetSessionEndpointInput"},
+      "output":{"shape":"GetSessionEndpointOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Returns the Spark Connect endpoint URL and a time-limited authentication token for the specified session. Use the endpoint and token to connect a PySpark client to the session. Call this operation again when the token expires to obtain a new one.</p>"
     },
     "GetStudioSessionMapping":{
       "name":"GetStudioSessionMapping",
@@ -435,6 +519,20 @@
         {"shape":"InvalidRequestException"}
       ],
       "documentation":"<p>Lists all the security configurations visible to this account, providing their creation dates and times, and their names. This call returns a maximum of 50 clusters per call, but returns a marker to track the paging of the cluster list across multiple ListSecurityConfigurations calls.</p>"
+    },
+    "ListSessions":{
+      "name":"ListSessions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"ListSessionsInput"},
+      "output":{"shape":"ListSessionsOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Lists the sessions on a cluster. You can filter the results by session state. Newer sessions are returned first.</p>"
     },
     "ListSteps":{
       "name":"ListSteps",
@@ -694,6 +792,20 @@
       ],
       "documentation":"<p>Starts a notebook execution.</p>"
     },
+    "StartSession":{
+      "name":"StartSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"StartSessionInput"},
+      "output":{"shape":"StartSessionOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Creates and starts a new Spark Connect session on the specified cluster. The cluster must be in the <code>RUNNING</code> or <code>WAITING</code> state and have sessions enabled. This operation is supported in Amazon EMR Spark 8.0.0 and later.</p>"
+    },
     "StopNotebookExecution":{
       "name":"StopNotebookExecution",
       "http":{
@@ -718,6 +830,20 @@
         {"shape":"InternalServerError"}
       ],
       "documentation":"<p>TerminateJobFlows shuts a list of clusters (job flows) down. When a job flow is shut down, any step not yet completed is canceled and the Amazon EC2 instances on which the cluster is running are stopped. Any log files not already saved are uploaded to Amazon S3 if a LogUri was specified when the cluster was created.</p> <p>The maximum number of clusters allowed is 10. The call to <code>TerminateJobFlows</code> is asynchronous. Depending on the configuration of the cluster, it may take up to 1-5 minutes for the cluster to completely terminate and release allocated resources, such as Amazon EC2 instances.</p>"
+    },
+    "TerminateSession":{
+      "name":"TerminateSession",
+      "http":{
+        "method":"POST",
+        "requestUri":"/"
+      },
+      "input":{"shape":"TerminateSessionInput"},
+      "output":{"shape":"TerminateSessionOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"InvalidRequestException"}
+      ],
+      "documentation":"<p>Terminates an active session. After you call this operation, the session enters the <code>TERMINATING</code> state and then transitions to <code>TERMINATED</code>.</p>"
     },
     "UpdateStudio":{
       "name":"UpdateStudio",
@@ -872,14 +998,17 @@
         "Tags":{
           "shape":"TagList",
           "documentation":"<p>A list of tags to associate with a resource. Tags are user-defined key-value pairs that consist of a required key string with a maximum of 128 characters, and an optional value string with a maximum of 256 characters.</p>"
+        },
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that scopes the tag operation. Required when the resource being tagged is a session-scoped resource.</p>"
         }
       },
       "documentation":"<p>This input identifies an Amazon EMR resource and a list of tags to attach.</p>"
     },
     "AddTagsOutput":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>This output indicates the result of adding tags to a resource.</p>"
     },
     "AdjustmentType":{
@@ -1153,6 +1282,11 @@
         "FAILED"
       ]
     },
+    "ClientRequestToken":{
+      "type":"string",
+      "max":36,
+      "min":1
+    },
     "CloudWatchAlarmDefinition":{
       "type":"structure",
       "required":[
@@ -1200,6 +1334,33 @@
         }
       },
       "documentation":"<p>The definition of a CloudWatch metric alarm, which determines when an automatic scaling activity is triggered. When the defined alarm conditions are satisfied, scaling activity begins.</p>"
+    },
+    "CloudWatchLogConfiguration":{
+      "type":"structure",
+      "required":["Enabled"],
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies if CloudWatch logging is enabled.</p>"
+        },
+        "LogGroupName":{
+          "shape":"XmlString",
+          "documentation":"<p>The name of the CloudWatch log group where logs are published.</p>"
+        },
+        "LogStreamNamePrefix":{
+          "shape":"XmlString",
+          "documentation":"<p>The prefix of the log stream name.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The ARN of the encryption key used to encrypt the logs.</p>"
+        },
+        "LogTypes":{
+          "shape":"LogTypesMap",
+          "documentation":"<p>A map of log types to file names for publishing logs to the standard output or standard error streams for CloudWatch. Valid log types include STEP_LOGS, SPARK_DRIVER, and SPARK_EXECUTOR. Valid file names for each type include STDOUT and STDERR.</p>"
+        }
+      },
+      "documentation":"<p>Holds CloudWatch log configuration settings and metadata that specify settings like log files to monitor and where to send them.</p>"
     },
     "Cluster":{
       "type":"structure",
@@ -1339,11 +1500,26 @@
         "EbsRootVolumeThroughput":{
           "shape":"Integer",
           "documentation":"<p>The throughput, in MiB/s, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.</p>"
+        },
+        "ExtendedSupport":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Reserved.</p>"
+        },
+        "MonitoringConfiguration":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>Contains Cloudwatch log configuration metadata and settings.</p>"
+        },
+        "SessionEnabled":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Indicates whether Spark Connect sessions are enabled on the cluster.</p>"
         }
       },
       "documentation":"<p>The detailed description of the cluster.</p>"
     },
-    "ClusterId":{"type":"string"},
+    "ClusterId":{
+      "type":"string",
+      "max":256
+    },
     "ClusterState":{
       "type":"string",
       "enum":[
@@ -1553,6 +1729,45 @@
       "type":"list",
       "member":{"shape":"Configuration"}
     },
+    "CreatePersistentAppUIInput":{
+      "type":"structure",
+      "required":["TargetResourceArn"],
+      "members":{
+        "TargetResourceArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The unique Amazon Resource Name (ARN) of the target resource.</p>"
+        },
+        "EMRContainersConfig":{
+          "shape":"EMRContainersConfig",
+          "documentation":"<p>The EMR containers configuration.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>Tags for the persistent application user interface.</p>"
+        },
+        "XReferer":{
+          "shape":"String",
+          "documentation":"<p>The cross reference for the persistent application user interface.</p>"
+        },
+        "ProfilerType":{
+          "shape":"ProfilerType",
+          "documentation":"<p>The profiler type for the persistent application user interface.</p>"
+        }
+      }
+    },
+    "CreatePersistentAppUIOutput":{
+      "type":"structure",
+      "members":{
+        "PersistentAppUIId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The persistent application user interface identifier.</p>"
+        },
+        "RuntimeRoleEnabledCluster":{
+          "shape":"Boolean",
+          "documentation":"<p>Represents if the EMR on EC2 cluster that the persisent application user interface is created for is a runtime role enabled cluster or not.</p>"
+        }
+      }
+    },
     "CreateSecurityConfigurationInput":{
       "type":"structure",
       "required":[
@@ -1737,8 +1952,7 @@
     },
     "DeleteSecurityConfigurationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteStudioInput":{
       "type":"structure",
@@ -1844,6 +2058,25 @@
         "NotebookExecution":{
           "shape":"NotebookExecution",
           "documentation":"<p>Properties of the notebook execution.</p>"
+        }
+      }
+    },
+    "DescribePersistentAppUIInput":{
+      "type":"structure",
+      "required":["PersistentAppUIId"],
+      "members":{
+        "PersistentAppUIId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The identifier for the persistent application user interface.</p>"
+        }
+      }
+    },
+    "DescribePersistentAppUIOutput":{
+      "type":"structure",
+      "members":{
+        "PersistentAppUI":{
+          "shape":"PersistentAppUI",
+          "documentation":"<p>The persistent application user interface.</p>"
         }
       }
     },
@@ -1967,6 +2200,16 @@
       "type":"list",
       "member":{"shape":"InstanceId"}
     },
+    "EMRContainersConfig":{
+      "type":"structure",
+      "members":{
+        "JobRunId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The Job run ID for the container configuration.</p>"
+        }
+      },
+      "documentation":"<p>The EMR container configuration.</p>"
+    },
     "EbsBlockDevice":{
       "type":"structure",
       "members":{
@@ -2013,7 +2256,7 @@
         },
         "EbsOptimized":{
           "shape":"BooleanObject",
-          "documentation":"<p>Indicates whether an Amazon EBS volume is EBS-optimized.</p>"
+          "documentation":"<p>Indicates whether an Amazon EBS volume is EBS-optimized. The default is false. You should explicitly set this value to true to enable the Amazon EBS-optimized setting for an EC2 instance.</p>"
         }
       },
       "documentation":"<p>The Amazon EBS configuration of a cluster instance.</p>"
@@ -2190,8 +2433,7 @@
     },
     "GetBlockPublicAccessConfigurationInput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "GetBlockPublicAccessConfigurationOutput":{
       "type":"structure",
@@ -2255,6 +2497,154 @@
           "documentation":"<p>Specifies the managed scaling policy that is attached to an Amazon EMR cluster. </p>"
         }
       }
+    },
+    "GetOnClusterAppUIPresignedURLInput":{
+      "type":"structure",
+      "required":["ClusterId"],
+      "members":{
+        "ClusterId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The cluster ID associated with the cluster's application user interface presigned URL.</p>"
+        },
+        "OnClusterAppUIType":{
+          "shape":"OnClusterAppUIType",
+          "documentation":"<p>The application UI type associated with the cluster's application user interface presigned URL.</p>"
+        },
+        "ApplicationId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The application ID associated with the cluster's application user interface presigned URL.</p>"
+        },
+        "DryRun":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Determines if the user interface presigned URL is for a dry run.</p>"
+        },
+        "ExecutionRoleArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The execution role ARN associated with the cluster's application user interface presigned URL.</p>"
+        }
+      }
+    },
+    "GetOnClusterAppUIPresignedURLOutput":{
+      "type":"structure",
+      "members":{
+        "PresignedURLReady":{
+          "shape":"Boolean",
+          "documentation":"<p>Used to determine if the presigned URL is ready.</p>"
+        },
+        "PresignedURL":{
+          "shape":"XmlString",
+          "documentation":"<p>The cluster's generated presigned URL.</p>"
+        }
+      }
+    },
+    "GetPersistentAppUIPresignedURLInput":{
+      "type":"structure",
+      "required":["PersistentAppUIId"],
+      "members":{
+        "PersistentAppUIId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The persistent application user interface ID associated with the presigned URL.</p>"
+        },
+        "PersistentAppUIType":{
+          "shape":"PersistentAppUIType",
+          "documentation":"<p>The persistent application user interface type associated with the presigned URL.</p>"
+        },
+        "ApplicationId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The application ID associated with the presigned URL.</p>"
+        },
+        "AuthProxyCall":{
+          "shape":"BooleanObject",
+          "documentation":"<p>A boolean that represents if the caller is an authentication proxy call.</p>"
+        },
+        "ExecutionRoleArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The execution role ARN associated with the presigned URL.</p>"
+        }
+      }
+    },
+    "GetPersistentAppUIPresignedURLOutput":{
+      "type":"structure",
+      "members":{
+        "PresignedURLReady":{
+          "shape":"Boolean",
+          "documentation":"<p>Used to determine if the presigned URL is ready.</p>"
+        },
+        "PresignedURL":{
+          "shape":"XmlString",
+          "documentation":"<p>The returned presigned URL.</p>"
+        }
+      }
+    },
+    "GetSessionEndpointInput":{
+      "type":"structure",
+      "required":[
+        "ClusterId",
+        "SessionId"
+      ],
+      "members":{
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that the session belongs to.</p>"
+        },
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The ID of the session.</p>"
+        }
+      },
+      "documentation":"<p>Input to the <code>GetSessionEndpoint</code> operation.</p>"
+    },
+    "GetSessionEndpointOutput":{
+      "type":"structure",
+      "required":["Endpoint"],
+      "members":{
+        "Endpoint":{
+          "shape":"XmlString",
+          "documentation":"<p>The Spark Connect endpoint URL to use in the PySpark client.</p>"
+        },
+        "AuthToken":{
+          "shape":"SensitiveString",
+          "documentation":"<p>A time-limited authentication token used to connect to the Spark Connect endpoint.</p>"
+        },
+        "AuthTokenExpirationTime":{
+          "shape":"Date",
+          "documentation":"<p>The time at which the authentication token expires. After this time, call <code>GetSessionEndpoint</code> again to obtain a new token.</p>"
+        },
+        "Credentials":{
+          "shape":"Credentials",
+          "documentation":"<p>Username and password used to authenticate with the Spark Connect server when connecting directly over VPC peering.</p>"
+        }
+      },
+      "documentation":"<p>Output of the <code>GetSessionEndpoint</code> operation.</p>"
+    },
+    "GetSessionInput":{
+      "type":"structure",
+      "required":[
+        "ClusterId",
+        "SessionId"
+      ],
+      "members":{
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that the session belongs to.</p>"
+        },
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The ID of the session.</p>"
+        }
+      },
+      "documentation":"<p>Input to the <code>GetSession</code> operation.</p>"
+    },
+    "GetSessionOutput":{
+      "type":"structure",
+      "required":["Session"],
+      "members":{
+        "Session":{
+          "shape":"Session",
+          "documentation":"<p>The output displays information about the session.</p>"
+        }
+      },
+      "documentation":"<p>Output of the <code>GetSession</code> operation.</p>"
     },
     "GetStudioSessionMappingInput":{
       "type":"structure",
@@ -2513,7 +2903,10 @@
       "type":"list",
       "member":{"shape":"InstanceFleetConfig"}
     },
-    "InstanceFleetId":{"type":"string"},
+    "InstanceFleetId":{
+      "type":"string",
+      "max":256
+    },
     "InstanceFleetList":{
       "type":"list",
       "member":{"shape":"InstanceFleet"}
@@ -2584,6 +2977,7 @@
         "BOOTSTRAPPING",
         "RUNNING",
         "RESIZING",
+        "RECONFIGURING",
         "SUSPENDED",
         "TERMINATING",
         "TERMINATED"
@@ -2677,7 +3071,7 @@
         },
         "BidPrice":{
           "shape":"String",
-          "documentation":"<p>If specified, indicates that the instance group uses Spot Instances. This is the maximum price you are willing to pay for Spot Instances. Specify <code>OnDemandPrice</code> to set the amount equal to the On-Demand price, or specify an amount in USD.</p>"
+          "documentation":"<p>The bid price for each Amazon EC2 Spot Instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -2756,7 +3150,7 @@
         },
         "BidPrice":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>If specified, indicates that the instance group uses Spot Instances. This is the maximum price you are willing to pay for Spot Instances. Specify <code>OnDemandPrice</code> to set the amount equal to the On-Demand price, or specify an amount in USD.</p>"
+          "documentation":"<p>The bid price for each Amazon EC2 Spot Instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -2819,7 +3213,7 @@
         },
         "BidPrice":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>If specified, indicates that the instance group uses Spot Instances. This is the maximum price you are willing to pay for Spot Instances. Specify <code>OnDemandPrice</code> to set the amount equal to the On-Demand price, or specify an amount in USD.</p>"
+          "documentation":"<p>The bid price for each Amazon EC2 Spot Instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "InstanceType":{
           "shape":"InstanceType",
@@ -2868,7 +3262,10 @@
       "type":"list",
       "member":{"shape":"InstanceGroupDetail"}
     },
-    "InstanceGroupId":{"type":"string"},
+    "InstanceGroupId":{
+      "type":"string",
+      "max":256
+    },
     "InstanceGroupIdsList":{
       "type":"list",
       "member":{"shape":"XmlStringMaxLen256"}
@@ -3166,7 +3563,7 @@
         },
         "BidPrice":{
           "shape":"XmlStringMaxLen256",
-          "documentation":"<p>The bid price for each Amazon EC2 Spot Instance type as defined by <code>InstanceType</code>. Expressed in USD.</p>"
+          "documentation":"<p>The bid price for each Amazon EC2 Spot Instance type as defined by <code>InstanceType</code>. Expressed in USD. If neither <code>BidPrice</code> nor <code>BidPriceAsPercentageOfOnDemandPrice</code> is provided, <code>BidPriceAsPercentageOfOnDemandPrice</code> defaults to 100%.</p>"
         },
         "BidPriceAsPercentageOfOnDemandPrice":{
           "shape":"NonNegativeDouble",
@@ -3202,8 +3599,7 @@
     "Integer":{"type":"integer"},
     "InternalServerError":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Indicates that an error occurred while processing the request and that the request was not completed.</p>",
       "exception":true
     },
@@ -3819,6 +4215,43 @@
         }
       }
     },
+    "ListSessionsInput":{
+      "type":"structure",
+      "required":["ClusterId"],
+      "members":{
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster to list sessions for.</p>"
+        },
+        "SessionStates":{
+          "shape":"SessionStateList",
+          "documentation":"<p>An optional filter that limits the results to sessions in the specified states.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token returned by a previous <code>ListSessions</code> call. Use it to retrieve the next page of results.</p>"
+        },
+        "MaxResults":{
+          "shape":"MaxResultsNumber",
+          "documentation":"<p>The maximum number of sessions to return in each page of results.</p>"
+        }
+      },
+      "documentation":"<p>Input to the <code>ListSessions</code> operation.</p>"
+    },
+    "ListSessionsOutput":{
+      "type":"structure",
+      "members":{
+        "Sessions":{
+          "shape":"SessionList",
+          "documentation":"<p>The sessions that match the request.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token to use in a subsequent <code>ListSessions</code> call to retrieve the next page of results. This field is absent when there are no more results.</p>"
+        }
+      },
+      "documentation":"<p>Output of the <code>ListSessions</code> operation.</p>"
+    },
     "ListStepsInput":{
       "type":"structure",
       "required":["ClusterId"],
@@ -3935,6 +4368,32 @@
         }
       }
     },
+    "LogType":{
+      "type":"string",
+      "enum":[
+        "system-logs",
+        "application-logs",
+        "persistent-ui-logs"
+      ]
+    },
+    "LogTypeMap":{
+      "type":"map",
+      "key":{"shape":"LogType"},
+      "value":{"shape":"LogUploadPolicyValue"}
+    },
+    "LogTypesMap":{
+      "type":"map",
+      "key":{"shape":"XmlString"},
+      "value":{"shape":"XmlStringList"}
+    },
+    "LogUploadPolicyValue":{
+      "type":"string",
+      "enum":[
+        "emr-managed",
+        "on-customer-s3only",
+        "disabled"
+      ]
+    },
     "Long":{"type":"long"},
     "ManagedScalingPolicy":{
       "type":"structure",
@@ -3996,6 +4455,10 @@
         "StepConcurrencyLevel":{
           "shape":"Integer",
           "documentation":"<p>The number of steps that can be executed concurrently. You can specify a minimum of 1 step and a maximum of 256 steps. We recommend that you do not change this parameter while steps are running or the <code>ActionOnFailure</code> setting may not behave as expected. For more information see <a>Step$ActionOnFailure</a>.</p>"
+        },
+        "ExtendedSupport":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Reserved.</p>"
         }
       }
     },
@@ -4005,6 +4468,10 @@
         "StepConcurrencyLevel":{
           "shape":"Integer",
           "documentation":"<p>The number of steps that can be executed concurrently.</p>"
+        },
+        "ExtendedSupport":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Reserved.</p>"
         }
       }
     },
@@ -4038,6 +4505,20 @@
         }
       },
       "documentation":"<p>Change the size of some instance groups.</p>"
+    },
+    "MonitoringConfiguration":{
+      "type":"structure",
+      "members":{
+        "CloudWatchLogConfiguration":{
+          "shape":"CloudWatchLogConfiguration",
+          "documentation":"<p>CloudWatch log configuration settings and metadata that specify settings like log files to monitor and where to send them.</p>"
+        },
+        "S3LoggingConfiguration":{
+          "shape":"S3LoggingConfiguration",
+          "documentation":"<p>S3 logging configuration that controls how different types of logs (system logs, application logs, and persistent UI logs) are uploaded to S3. Each log type can be configured with a specific upload policy.</p>"
+        }
+      },
+      "documentation":"<p>Contains CloudWatch log configuration and S3 logging configuration metadata and settings.</p>"
     },
     "NewSupportedProductsList":{
       "type":"list",
@@ -4220,6 +4701,17 @@
       "type":"list",
       "member":{"shape":"OSRelease"}
     },
+    "OnClusterAppUIType":{
+      "type":"string",
+      "enum":[
+        "SparkHistoryServer",
+        "YarnTimelineService",
+        "TezUI",
+        "ApplicationMaster",
+        "JobHistoryServer",
+        "ResourceManager"
+      ]
+    },
     "OnDemandCapacityReservationOptions":{
       "type":"structure",
       "members":{
@@ -4323,6 +4815,56 @@
       },
       "documentation":"<p>The Amazon S3 location that stores the notebook execution output.</p>"
     },
+    "PersistentAppUI":{
+      "type":"structure",
+      "members":{
+        "PersistentAppUIId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The identifier for the persistent application user interface object.</p>"
+        },
+        "PersistentAppUITypeList":{
+          "shape":"PersistentAppUITypeList",
+          "documentation":"<p>The type list for the persistent application user interface object. Valid values include SHS, YTS, or TEZ.</p>"
+        },
+        "PersistentAppUIStatus":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The status for the persistent application user interface object.</p>"
+        },
+        "AuthorId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The author ID for the persistent application user interface object.</p>"
+        },
+        "CreationTime":{
+          "shape":"Date",
+          "documentation":"<p>The creation date and time for the persistent application user interface object.</p>"
+        },
+        "LastModifiedTime":{
+          "shape":"Date",
+          "documentation":"<p>The date and time the persistent application user interface object was last changed.</p>"
+        },
+        "LastStateChangeReason":{
+          "shape":"XmlString",
+          "documentation":"<p>The reason the persistent application user interface object was last changed.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>A collection of tags for the persistent application user interface object.</p>"
+        }
+      },
+      "documentation":"<p>Holds persistent application user interface information. Applications installed on the Amazon EMR cluster publish user interfaces as web sites to monitor cluster activity.</p>"
+    },
+    "PersistentAppUIType":{
+      "type":"string",
+      "enum":[
+        "SHS",
+        "TEZ",
+        "YTS"
+      ]
+    },
+    "PersistentAppUITypeList":{
+      "type":"list",
+      "member":{"shape":"PersistentAppUIType"}
+    },
     "PlacementGroupConfig":{
       "type":"structure",
       "required":["InstanceRole"],
@@ -4389,6 +4931,14 @@
       "type":"list",
       "member":{"shape":"PortRange"}
     },
+    "ProfilerType":{
+      "type":"string",
+      "enum":[
+        "SHS",
+        "TEZUI",
+        "YTS"
+      ]
+    },
     "PutAutoScalingPolicyInput":{
       "type":"structure",
       "required":[
@@ -4448,8 +4998,7 @@
     },
     "PutAutoTerminationPolicyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "PutBlockPublicAccessConfigurationInput":{
       "type":"structure",
@@ -4463,8 +5012,7 @@
     },
     "PutBlockPublicAccessConfigurationOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "PutManagedScalingPolicyInput":{
       "type":"structure",
@@ -4485,8 +5033,7 @@
     },
     "PutManagedScalingPolicyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ReconfigurationType":{
       "type":"string",
@@ -4528,8 +5075,7 @@
     },
     "RemoveAutoScalingPolicyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RemoveAutoTerminationPolicyInput":{
       "type":"structure",
@@ -4543,8 +5089,7 @@
     },
     "RemoveAutoTerminationPolicyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RemoveManagedScalingPolicyInput":{
       "type":"structure",
@@ -4558,8 +5103,7 @@
     },
     "RemoveManagedScalingPolicyOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RemoveTagsInput":{
       "type":"structure",
@@ -4575,14 +5119,17 @@
         "TagKeys":{
           "shape":"StringList",
           "documentation":"<p>A list of tag keys to remove from the resource.</p>"
+        },
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that scopes the tag operation. Required when the resource being untagged is a session-scoped resource.</p>"
         }
       },
       "documentation":"<p>This input identifies an Amazon EMR resource and a list of tags to remove.</p>"
     },
     "RemoveTagsOutput":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>This output indicates the result of removing tags from the resource.</p>"
     },
     "RepoUpgradeOnBoot":{
@@ -4631,6 +5178,10 @@
         "Steps":{
           "shape":"StepConfigList",
           "documentation":"<p>A list of steps to run.</p>"
+        },
+        "StepExecutionRoleArn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the runtime role for steps specified in the RunJobFlow request. The runtime role can be a cross-account IAM role. The runtime role ARN is a combination of account ID, role name, and role type using the following format: <code>arn:partition:iam::account-id:role/role-name</code>.</p> <p>For example, <code>arn:aws:iam::1234567890:role/ReadOnly</code> is a correctly formatted runtime role ARN.</p> <p>This parameter applies only to steps included in the <code>Steps</code> parameter of this RunJobFlow request. It does not apply to steps added later to the cluster.</p>"
         },
         "BootstrapActions":{
           "shape":"BootstrapActionConfigList",
@@ -4720,6 +5271,18 @@
         "EbsRootVolumeThroughput":{
           "shape":"Integer",
           "documentation":"<p>The throughput, in MiB/s, of the Amazon EBS root device volume of the Linux AMI that is used for each Amazon EC2 instance. Available in Amazon EMR releases 6.15.0 and later.</p>"
+        },
+        "ExtendedSupport":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Reserved.</p>"
+        },
+        "MonitoringConfiguration":{
+          "shape":"MonitoringConfiguration",
+          "documentation":"<p>Contains CloudWatch log configuration metadata and settings.</p>"
+        },
+        "SessionEnabled":{
+          "shape":"BooleanObject",
+          "documentation":"<p>Indicates whether Spark Connect sessions are enabled on the cluster. When set to <code>true</code>, you can start Spark Connect sessions using the <code>StartSession</code> operation.</p>"
         }
       },
       "documentation":"<p> Input to the <a>RunJobFlow</a> operation. </p>"
@@ -4737,6 +5300,30 @@
         }
       },
       "documentation":"<p> The result of the <a>RunJobFlow</a> operation. </p>"
+    },
+    "S3LoggingConfiguration":{
+      "type":"structure",
+      "members":{
+        "LogTypeUploadPolicy":{
+          "shape":"LogTypeMap",
+          "documentation":"<p>A map that specifies the upload policy for each log type. The key is the log type, and the value is the upload policy.</p> <p>Valid log types:</p> <ul> <li> <p> <code>system-logs</code>: EMR Daemon logs.</p> </li> <li> <p> <code>application-logs</code>: Framework logs from Hadoop, Spark, Hive and other applications running on the cluster.</p> </li> <li> <p> <code>persistent-ui-logs</code>: Logs required for persistent application UIs such as Spark History Server and Tez UI.</p> </li> </ul> <p>Valid upload policies:</p> <ul> <li> <p> <code>emr-managed</code>: Standard behavior. Logs are uploaded to S3 bucket as configured in your LogUri, with certain logs retained by the service for operational support and troubleshooting purposes.</p> </li> <li> <p> <code>on-customer-s3only</code>: Logs are uploaded only to the customer-specified S3 bucket. This requires you to specify a LogUri when creating the cluster. Persistent-ui-logs cannot have on-customer-s3only policy. Allowed policies for persistent-ui-logs are emr-managed and disabled.</p> </li> <li> <p> <code>disabled</code>: No S3 upload for this log type.</p> </li> </ul>"
+        }
+      },
+      "documentation":"<p>Configuration for S3 logging behavior in EMR clusters. Defines how different types of logs are uploaded to S3 based on the specified upload policies for each log type.</p>"
+    },
+    "S3MonitoringConfiguration":{
+      "type":"structure",
+      "members":{
+        "LogUri":{
+          "shape":"XmlString",
+          "documentation":"<p>The Amazon S3 destination URI for log publishing.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The KMS key ARN to encrypt the logs published to the given Amazon S3 destination.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon S3 configuration for monitoring log publishing. You can configure your step to send log information to Amazon S3. When it's specified, it takes precedence over the cluster's logging configuration. If you don't specify this configuration entirely, or omit individual fields, EMR falls back to cluster-level logging behavior.</p>"
     },
     "ScaleDownBehavior":{
       "type":"string",
@@ -4864,6 +5451,147 @@
       "type":"list",
       "member":{"shape":"XmlStringMaxLen256"}
     },
+    "SensitiveString":{
+      "type":"string",
+      "sensitive":true
+    },
+    "Session":{
+      "type":"structure",
+      "required":[
+        "Id",
+        "ClusterId",
+        "Arn",
+        "State"
+      ],
+      "members":{
+        "Id":{
+          "shape":"SessionId",
+          "documentation":"<p>The ID of the session.</p>"
+        },
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that the session belongs to.</p>"
+        },
+        "Name":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The name of the session, if one was provided at creation time.</p>"
+        },
+        "Arn":{
+          "shape":"ArnType",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the session.</p>"
+        },
+        "State":{
+          "shape":"SessionState",
+          "documentation":"<p>The current state of the session. Valid values are <code>SUBMITTED</code>, <code>STARTING</code>, <code>STARTED</code>, <code>IDLE</code>, <code>BUSY</code>, <code>TERMINATING</code>, <code>TERMINATED</code>, and <code>FAILED</code>.</p>"
+        },
+        "StateChangeReason":{
+          "shape":"XmlString",
+          "documentation":"<p>A human-readable message describing the most recent state change.</p>"
+        },
+        "ReleaseLabel":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The Amazon EMR release label of the cluster that the session is running on.</p>"
+        },
+        "ExecutionRoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The execution role ARN for the session. Amazon EMR uses this role to access Amazon Web Services resources on your behalf during session execution.</p>"
+        },
+        "AccountId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The Amazon Web Services account ID that owns the session.</p>"
+        },
+        "CreatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time that the session was created.</p>"
+        },
+        "UpdatedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time that the session was last updated.</p>"
+        },
+        "StartedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time that the session entered the <code>STARTED</code> state.</p>"
+        },
+        "EndedAt":{
+          "shape":"Date",
+          "documentation":"<p>The date and time that the session was terminated or failed.</p>"
+        },
+        "IdleSince":{
+          "shape":"Date",
+          "documentation":"<p>The date and time that the session last entered the <code>IDLE</code> state.</p>"
+        },
+        "EngineConfigurations":{
+          "shape":"ConfigurationList",
+          "documentation":"<p>The configuration overrides for the session. Only runtime configuration overrides are supported.</p>"
+        },
+        "MonitoringConfiguration":{
+          "shape":"SessionMonitoringConfiguration",
+          "documentation":"<p>The monitoring configuration for the session.</p>"
+        },
+        "SessionIdleTimeoutInMinutes":{
+          "shape":"Long",
+          "documentation":"<p>The idle timeout, in minutes. If the session is idle for this duration, Amazon EMR automatically terminates it.</p>"
+        },
+        "ServerUrl":{
+          "shape":"XmlString",
+          "documentation":"<p>The Spark Connect server URL for the session. Use this URL with the <code>Credentials</code> returned by <code>GetSessionEndpoint</code> to connect directly to the session over VPC peering.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags associated with the session.</p>"
+        }
+      },
+      "documentation":"<p>Detailed information about a Spark Connect session.</p>"
+    },
+    "SessionCloudWatchLoggingConfiguration":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether CloudWatch Logs is enabled for the session.</p>"
+        },
+        "LogGroup":{
+          "shape":"XmlString",
+          "documentation":"<p>The name of the log group where session logs are published.</p>"
+        },
+        "LogStreamNamePrefix":{
+          "shape":"XmlString",
+          "documentation":"<p>The prefix applied to the log stream name where session logs are published.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the logs published to CloudWatch Logs.</p>"
+        },
+        "LogTypes":{
+          "shape":"LogTypesMap",
+          "documentation":"<p>A map of log component names (for example, <code>SPARK_DRIVER</code>, <code>SPARK_EXECUTOR</code>) to the list of log types to publish for that component (for example, <code>stdout</code>, <code>stderr</code>).</p>"
+        }
+      },
+      "documentation":"<p>The CloudWatch Logs configuration for a session.</p>"
+    },
+    "SessionId":{
+      "type":"string",
+      "max":256,
+      "min":0
+    },
+    "SessionList":{
+      "type":"list",
+      "member":{"shape":"Session"}
+    },
+    "SessionManagedLoggingConfiguration":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether Amazon EMR-managed logging is enabled for the session.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the managed logs.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon EMR-managed logging configuration for a session.</p>"
+    },
     "SessionMappingDetail":{
       "type":"structure",
       "members":{
@@ -4931,6 +5659,63 @@
     "SessionMappingSummaryList":{
       "type":"list",
       "member":{"shape":"SessionMappingSummary"}
+    },
+    "SessionMonitoringConfiguration":{
+      "type":"structure",
+      "members":{
+        "CloudWatchLoggingConfiguration":{
+          "shape":"SessionCloudWatchLoggingConfiguration",
+          "documentation":"<p>The CloudWatch Logs configuration for the session.</p>"
+        },
+        "ManagedLoggingConfiguration":{
+          "shape":"SessionManagedLoggingConfiguration",
+          "documentation":"<p>The Amazon EMR-managed logging configuration for the session.</p>"
+        },
+        "S3LoggingConfiguration":{
+          "shape":"SessionS3LoggingConfiguration",
+          "documentation":"<p>The Amazon S3 logging configuration for the session.</p>"
+        }
+      },
+      "documentation":"<p>The monitoring configuration for a session. Controls where session logs are published.</p>"
+    },
+    "SessionS3LoggingConfiguration":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether Amazon S3 logging is enabled for the session.</p>"
+        },
+        "LogUri":{
+          "shape":"XmlString",
+          "documentation":"<p>The Amazon S3 destination URI where session logs are published.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"XmlString",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt logs published to Amazon S3.</p>"
+        },
+        "LogTypes":{
+          "shape":"LogTypesMap",
+          "documentation":"<p>A map of log component names (for example, <code>SPARK_DRIVER</code>, <code>SPARK_EXECUTOR</code>) to the list of log types to publish for that component (for example, <code>stdout</code>, <code>stderr</code>).</p>"
+        }
+      },
+      "documentation":"<p>The Amazon S3 logging configuration for a session.</p>"
+    },
+    "SessionState":{
+      "type":"string",
+      "enum":[
+        "SUBMITTED",
+        "STARTING",
+        "STARTED",
+        "IDLE",
+        "BUSY",
+        "TERMINATING",
+        "TERMINATED",
+        "FAILED"
+      ]
+    },
+    "SessionStateList":{
+      "type":"list",
+      "member":{"shape":"SessionState"}
     },
     "SetKeepJobFlowAliveWhenNoStepsInput":{
       "type":"structure",
@@ -5176,6 +5961,72 @@
         }
       }
     },
+    "StartSessionInput":{
+      "type":"structure",
+      "required":["ClusterId"],
+      "members":{
+        "Name":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>An optional name for the session.</p>"
+        },
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster on which to start the session.</p>"
+        },
+        "ExecutionRoleArn":{
+          "shape":"IAMRoleArn",
+          "documentation":"<p>The execution role ARN for the session. Amazon EMR uses this role to access Amazon Web Services resources on your behalf during session execution.</p>"
+        },
+        "EngineConfigurations":{
+          "shape":"ConfigurationList",
+          "documentation":"<p>The configuration overrides for the session. Only runtime configuration overrides are supported.</p>"
+        },
+        "MonitoringConfiguration":{
+          "shape":"SessionMonitoringConfiguration",
+          "documentation":"<p>The monitoring configuration that controls where session logs are published, such as Amazon S3, CloudWatch, or managed logging.</p>"
+        },
+        "SessionIdleTimeoutInMinutes":{
+          "shape":"Long",
+          "documentation":"<p>The idle timeout, in minutes. If the session is idle for this duration, Amazon EMR EC2 automatically terminates it.</p>"
+        },
+        "ClientRequestToken":{
+          "shape":"ClientRequestToken",
+          "documentation":"<p>A unique, case-sensitive identifier that you provide to ensure the idempotency of the request. If you retry a request that completed successfully using the same client request token, the service returns the original response without performing the operation again.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>The tags to assign to the session.</p>"
+        }
+      },
+      "documentation":"<p>Input to the <code>StartSession</code> operation.</p>"
+    },
+    "StartSessionOutput":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"SessionId",
+          "documentation":"<p>The output contains the ID of the session.</p>"
+        },
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that the session was started on.</p>"
+        },
+        "Arn":{
+          "shape":"ArnType",
+          "documentation":"<p>The output contains the ARN of the session.</p>"
+        },
+        "AccountId":{
+          "shape":"XmlStringMaxLen256",
+          "documentation":"<p>The Amazon Web Services account ID that owns the session.</p>"
+        },
+        "State":{
+          "shape":"SessionState",
+          "documentation":"<p>The state of the session at the time the request returned. When a session is first created, it enters the <code>SUBMITTED</code> state.</p>"
+        }
+      },
+      "documentation":"<p>Output of the <code>StartSession</code> operation.</p>"
+    },
     "Statistic":{
       "type":"string",
       "enum":[
@@ -5212,6 +6063,14 @@
         "ExecutionRoleArn":{
           "shape":"OptionalArnType",
           "documentation":"<p>The Amazon Resource Name (ARN) of the runtime role for a step on the cluster. The runtime role can be a cross-account IAM role. The runtime role ARN is a combination of account ID, role name, and role type using the following format: <code>arn:partition:service:region:account:resource</code>. </p> <p>For example, <code>arn:aws:IAM::1234567890:role/ReadOnly</code> is a correctly formatted runtime role ARN.</p>"
+        },
+        "LogUri":{
+          "shape":"String",
+          "documentation":"<p>The Amazon S3 destination URI for log publishing.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"String",
+          "documentation":"<p>The KMS key ARN to encrypt the logs published to the given Amazon S3 destination.</p>"
         }
       },
       "documentation":"<p>This represents a step in a cluster.</p>"
@@ -5241,6 +6100,10 @@
         "HadoopJarStep":{
           "shape":"HadoopJarStepConfig",
           "documentation":"<p>The JAR file used for the step.</p>"
+        },
+        "StepMonitoringConfiguration":{
+          "shape":"StepMonitoringConfiguration",
+          "documentation":"<p>Object that holds configuration properties for logging.</p>"
         }
       },
       "documentation":"<p>Specification for a cluster (job flow) step.</p>"
@@ -5317,6 +6180,16 @@
     "StepIdsList":{
       "type":"list",
       "member":{"shape":"XmlStringMaxLen256"}
+    },
+    "StepMonitoringConfiguration":{
+      "type":"structure",
+      "members":{
+        "S3MonitoringConfiguration":{
+          "shape":"S3MonitoringConfiguration",
+          "documentation":"<p>The Amazon S3 configuration for monitoring log publishing. You can configure your step to send log information to Amazon S3. When it's specified, it takes precedence over the cluster's logging configuration. If you don't specify this configuration entirely, or omit individual fields, EMR falls back to cluster-level logging behavior. </p>"
+        }
+      },
+      "documentation":"<p>Object that holds configuration properties for logging.</p>"
     },
     "StepState":{
       "type":"string",
@@ -5396,6 +6269,14 @@
         "Status":{
           "shape":"StepStatus",
           "documentation":"<p>The current execution status details of the cluster step.</p>"
+        },
+        "LogUri":{
+          "shape":"String",
+          "documentation":"<p>The Amazon S3 destination URI for log publishing.</p>"
+        },
+        "EncryptionKeyArn":{
+          "shape":"String",
+          "documentation":"<p>The KMS key ARN to encrypt the logs published to the given Amazon S3 destination.</p>"
         }
       },
       "documentation":"<p>The summary of the cluster step.</p>"
@@ -5674,6 +6555,47 @@
         }
       },
       "documentation":"<p> Input to the <a>TerminateJobFlows</a> operation. </p>"
+    },
+    "TerminateSessionInput":{
+      "type":"structure",
+      "required":[
+        "ClusterId",
+        "SessionId"
+      ],
+      "members":{
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that the session belongs to.</p>"
+        },
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The ID of the session to terminate.</p>"
+        }
+      },
+      "documentation":"<p>Input to the <code>TerminateSession</code> operation.</p>"
+    },
+    "TerminateSessionOutput":{
+      "type":"structure",
+      "required":[
+        "ClusterId",
+        "SessionId",
+        "State"
+      ],
+      "members":{
+        "ClusterId":{
+          "shape":"ClusterId",
+          "documentation":"<p>The ID of the cluster that the session belonged to.</p>"
+        },
+        "SessionId":{
+          "shape":"SessionId",
+          "documentation":"<p>The ID of the terminated session.</p>"
+        },
+        "State":{
+          "shape":"SessionState",
+          "documentation":"<p>The state of the session after the terminate request has been accepted.</p>"
+        }
+      },
+      "documentation":"<p>Output of the <code>TerminateSession</code> operation.</p>"
     },
     "ThroughputVal":{
       "type":"integer",

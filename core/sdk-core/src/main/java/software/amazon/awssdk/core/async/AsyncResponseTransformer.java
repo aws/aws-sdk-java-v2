@@ -19,8 +19,13 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.ResponseBytes;
@@ -36,6 +41,7 @@ import software.amazon.awssdk.core.internal.async.SplittingTransformer;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Callback interface to handle a streaming asynchronous response.
@@ -82,6 +88,15 @@ import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
  * @param <ResultT>   Type this response handler produces. I.E. the type you are transforming the response into.
  */
 @SdkPublicApi
+@SdkAdvancedApi(
+    cautionWhen = Usage.IMPLEMENTED,
+    guidance = "prepare() is called on each request attempt; if the CompletableFuture it returned on a previous "
+          + "attempt has already completed, it must return a new instance so the result of a retry is not lost, and "
+          + "exceptionOccurred() should release any resources the attempt opened (for example an open file channel) "
+          + "so retries do not leak them. onStream() receives the response body as a reactive-streams Publisher that "
+          + "the implementation subscribes to, and that subscriber must comply with the reactive-streams "
+          + "specification; a subscriber that never requests data stalls the response.",
+    saferAlternative = "Prefer the AsyncResponseTransformer.toFile/toBytes/toBlockingInputStream factories.")
 public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Initial call to enable any setup required before the response is handled.
@@ -134,6 +149,7 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
             .<ResponseT, ResultT>builder()
             .upstreamResponseTransformer(this)
             .maximumBufferSizeInBytes(splitConfig.bufferSizeInBytes())
+            .responseMapper(splitConfig.responseMapper())
             .resultFuture(future)
             .build();
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResultT>builder()
@@ -159,9 +175,22 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     }
 
     /**
+     * Each AsyncResponseTransformer should return a well-formed name that can be used to identify the implementation.
+     * The Transformer name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestTransformer.
+     */
+    default String name() {
+        return TransformerType.UNKNOWN.getName();
+    }
+
+    /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Pojo Response type.
@@ -175,6 +204,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
     /**
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file with the specified
      * {@link FileTransformerConfiguration}.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
      * @param config      configuration for the transformer
@@ -202,6 +234,9 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * Creates an {@link AsyncResponseTransformer} that writes all the content to the given file. In the event of an error, the
      * SDK will attempt to delete the file (whatever has been written to it so far). If the file already exists, an exception will
      * be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link java.nio.file.NoSuchFileException} will be thrown if they are missing.
      *
      * @param file        File to write to.
      * @param <ResponseT> Pojo Response type.
@@ -258,6 +293,10 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
      * completed after the entire response body has finished streaming.
      * <p>
+     * The publisher has a default timeout of 60 seconds that starts when the response body begins streaming. If no subscriber is
+     * registered within this time, the subscription will be automatically cancelled. Use {@link #toPublisher(Duration)} to
+     * specify a custom timeout.
+     * <p>
      * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
      * transformer is only recommended for advanced use cases.
      * <p>
@@ -276,8 +315,52 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      * @param <ResponseT> Pojo response type.
      * @return AsyncResponseTransformer instance.
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned ResponsePublisher is a reactive-streams Publisher you must subscribe to and drive: "
+              + "your subscriber must obey the reactive-streams specification and honor back-pressure. A subscriber "
+              + "that never requests data stalls the response, and requesting unbounded data can exhaust memory.",
+        saferAlternative = "Prefer the fully-managed AsyncResponseTransformer.toFile/toBytes factories, which do not "
+              + "hand you a publisher to drive. If you do consume the publisher, use an established reactive-streams "
+              + "library such as RxJava or Reactor rather than a hand-written Subscriber.")
     static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT, ResponsePublisher<ResponseT>> toPublisher() {
         return new PublisherAsyncResponseTransformer<>();
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} with a custom timeout that publishes the response body content through a
+     * {@link ResponsePublisher}, which is an {@link SdkPublisher} that also contains a reference to the {@link SdkResponse}
+     * returned by the service.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
+     * <p>
+     * The timeout starts when the response body begins streaming. If no subscriber is registered within the specified timeout,
+     * the subscription will be automatically cancelled. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
+     * <p>
+     * You are responsible for subscribing to this publisher and managing the associated back-pressure. Therefore, this
+     * transformer is only recommended for advanced use cases.
+     *
+     * @param timeout Maximum time to wait for subscription before cancelling. Use {@link Duration#ZERO} or a negative
+     * {@link Duration} to disable timeout.
+     * @param <ResponseT> Pojo response type.
+     * @return AsyncResponseTransformer instance.
+     * @see #toPublisher()
+     */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned ResponsePublisher is a reactive-streams Publisher you must subscribe to and drive: "
+              + "your subscriber must obey the reactive-streams specification and honor back-pressure. A subscriber "
+              + "that never requests data stalls the response, and requesting unbounded data can exhaust memory.",
+        saferAlternative = "Prefer the fully-managed AsyncResponseTransformer.toFile/toBytes factories, which do not "
+              + "hand you a publisher to drive. If you do consume the publisher, use an established reactive-streams "
+              + "library such as RxJava or Reactor rather than a hand-written Subscriber.")
+    static <ResponseT extends SdkResponse> AsyncResponseTransformer<ResponseT,
+        ResponsePublisher<ResponseT>> toPublisher(Duration timeout) {
+        return new PublisherAsyncResponseTransformer<>(timeout);
     }
 
     /**
@@ -303,7 +386,31 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
      */
     static <ResponseT extends SdkResponse>
         AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toBlockingInputStream() {
-        return new InputStreamResponseTransformer<>();
+        return new InputStreamResponseTransformer<>(false);
+    }
+
+    /**
+     * Creates an {@link AsyncResponseTransformer} that allows reading the response body content as an {@link InputStream}
+     * adapted for reading concatenated GZIP content with {@link java.util.zip.GZIPInputStream}. You are responsible for
+     * performing blocking reads from this input stream and closing the stream when you are finished.
+     * <p>
+     * When this transformer is used with an async client, the {@link CompletableFuture} that the client returns will be completed
+     * once the {@link SdkResponse} is available and the response body <i>begins</i> streaming. This behavior differs from some
+     * other transformers, like {@link #toFile(Path)} and {@link #toBytes()}, which only have their {@link CompletableFuture}
+     * completed after the entire response body has finished streaming.
+     * <p>
+     * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
+     * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP
+     * member boundary as the end of the complete stream. Because this can cause a read after {@code available()} to block, this
+     * transformer should only be used when the response will be read with {@code GZIPInputStream}.
+     *
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return AsyncResponseTransformer instance.
+     * @see #toBlockingInputStream()
+     */
+    static <ResponseT extends SdkResponse>
+        AsyncResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toGzipCompatibleBlockingInputStream() {
+        return new InputStreamResponseTransformer<>(true);
     }
 
     /**
@@ -334,6 +441,15 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
          * @return The future
          */
         CompletableFuture<ResultT> resultFuture();
+
+        /**
+         * Indicates if the split async response transformer supports sending individual transformer non-serially and
+         * receiving back data from the many {@link AsyncResponseTransformer#onStream(SdkPublisher) publishers} non-serially.
+         * @return true if non-serial data is supported, false otherwise
+         */
+        default Boolean parallelSplitSupported() {
+            return false;
+        }
 
         static <ResponseT, ResultT> Builder<ResponseT, ResultT> builder() {
             return DefaultAsyncResponseTransformerSplitResult.builder();
@@ -367,6 +483,52 @@ public interface AsyncResponseTransformer<ResponseT, ResultT> {
              * @return an instance of this Builder
              */
             Builder<ResponseT, ResultT> resultFuture(CompletableFuture<ResultT> future);
+
+            /**
+             * If the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently.
+             * @return
+             */
+            Boolean parallelSplitSupported();
+
+            /**
+             * Sets whether the AsyncResponseTransformers returned by the {@link SplitResult#publisher()} support concurrent
+             * parallel streaming of multiple content body concurrently
+             * @return
+             */
+            Builder<ResponseT, ResultT> parallelSplitSupported(Boolean parallelSplitSupported);
+        }
+    }
+
+    @SdkProtectedApi
+    enum TransformerType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+        TransformerType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
         }
     }
 }

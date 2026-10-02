@@ -43,8 +43,6 @@ public interface SdkChecksum extends Checksum {
      */
     void mark(int readLimit);
 
-
-
     /**
      * Gets the Checksum based on the required Algorithm.
      * Instances for CRC32C, CRC32 Algorithm will be added from CRT Java library once they are available in release.

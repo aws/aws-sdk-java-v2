@@ -23,6 +23,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.internal.BucketUtils;
+import software.amazon.awssdk.services.s3.model.BucketLocationConstraint;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 
@@ -63,7 +64,12 @@ public final class CreateBucketInterceptor implements ExecutionInterceptor {
     private CreateBucketConfiguration setLocationConstraint(Region region, CreateBucketConfiguration configuration) {
         if (region.equals(Region.US_EAST_1)) {
             // us-east-1 requires no location restraint. See http://docs.aws.amazon.com/AmazonS3/latest/API/RESTBucketPUT.html
-            return null;
+            // But if tags exists, must keep them
+            if (configuration.hasTags()) {
+                return configuration.copy(c -> c.locationConstraint((BucketLocationConstraint) null));
+            } else {
+                return null;
+            }
         }
         return configuration.copy(c -> c.locationConstraint(region.id()).build());
     }

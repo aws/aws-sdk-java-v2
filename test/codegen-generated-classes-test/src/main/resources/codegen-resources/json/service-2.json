@@ -1,0 +1,38 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2010-05-08",
+    "endpointPrefix":"json-service-endpoint",
+    "globalEndpoint": "json-service.amazonaws.com",
+    "jsonVersion":"1.0",
+    "protocol":"json",
+    "serviceAbbreviation":"Aws Json Service",
+    "serviceFullName":"Some Service That Uses AWS JSON",
+    "serviceId":"Aws Json Service",
+    "signingName": "aws-json-service",
+    "signatureVersion":"v4",
+    "uid":"aws-json-service-2010-05-08",
+    "awsQueryCompatible":{}
+  },
+  "operations":{
+    "AllType": {
+      "name": "APostOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "httpChecksumRequired": true
+    }
+  },
+  "shapes": {
+    "OneShape": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String":{"type":"string"}
+  }
+}

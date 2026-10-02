@@ -18,6 +18,7 @@ package software.amazon.awssdk.auth.credentials;
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.auth.credentials.internal.SystemSettingsCredentialsProvider;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.utils.SystemSetting;
 import software.amazon.awssdk.utils.ToString;
 
@@ -28,7 +29,8 @@ import software.amazon.awssdk.utils.ToString;
 @SdkPublicApi
 public final class EnvironmentVariableCredentialsProvider extends SystemSettingsCredentialsProvider {
 
-    private static final String PROVIDER_NAME = "EnvironmentVariableCredentialsProvider";
+    private static final String CLASS_NAME = "EnvironmentVariableCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_ENV_VARS.value();
 
     private EnvironmentVariableCredentialsProvider() {
     }
@@ -52,6 +54,6 @@ public final class EnvironmentVariableCredentialsProvider extends SystemSettings
 
     @Override
     public String toString() {
-        return ToString.create(PROVIDER_NAME);
+        return ToString.create(CLASS_NAME);
     }
 }

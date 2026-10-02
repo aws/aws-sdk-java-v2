@@ -83,9 +83,13 @@ class PublisherAsyncResponseTransformerTest {
     }
 
     private static String drainPublisherToStr(SdkPublisher<ByteBuffer> publisher) throws Exception {
-        CompletableFuture<byte[]> bodyFuture = new CompletableFuture<>();
+        CompletableFuture<ByteBuffer> bodyFuture = new CompletableFuture<>();
         publisher.subscribe(new BaosSubscriber(bodyFuture));
-        byte[] body = bodyFuture.get();
-        return new String(body);
+
+        ByteBuffer buffer = bodyFuture.get();
+        byte[] bytes = new byte[buffer.remaining()];
+        buffer.get(bytes);
+
+        return new String(bytes);
     }
 }

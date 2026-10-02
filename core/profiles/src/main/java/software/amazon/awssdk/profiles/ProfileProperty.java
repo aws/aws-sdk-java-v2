@@ -112,6 +112,12 @@ public final class ProfileProperty {
     public static final String RETRY_MODE = "retry_mode";
 
     /**
+     * How many HTTP requests an SDK should make for a single SDK operation invocation before giving up. See the JavaDocs for
+     * {@code SdkSystemSetting.AWS_MAX_ATTEMPTS} and {@code RetryStrategy.maxAttempts()} for more information.
+     */
+    public static final String MAX_ATTEMPTS = "max_attempts";
+
+    /**
      * The "defaults mode" to be used for clients created using the currently-configured profile. Defaults mode determins how SDK
      * default configuration should be resolved. See the {@code DefaultsMode} class JavaDoc for more
      * information.
@@ -151,7 +157,11 @@ public final class ProfileProperty {
 
     public static final String USE_DUALSTACK_ENDPOINT = "use_dualstack_endpoint";
 
+    public static final String AUTH_SCHEME_PREFERENCE = "auth_scheme_preference";
+
     public static final String USE_FIPS_ENDPOINT = "use_fips_endpoint";
+
+    public static final String IGNORE_CONFIGURED_ENDPOINT_URLS = "ignore_configured_endpoint_urls";
 
     public static final String EC2_METADATA_SERVICE_ENDPOINT_MODE = "ec2_metadata_service_endpoint_mode";
 
@@ -198,6 +208,11 @@ public final class ProfileProperty {
      * or the configuration file property {@code sigv4a_signing_region_set}, following standard precedence rules.
      */
     public static final String SIGV4A_SIGNING_REGION_SET = "sigv4a_signing_region_set";
+
+    /**
+     * Property  name for login session used with AWS Login/Sign-In Credentials.
+     */
+    public static final String LOGIN_SESSION = "login_session";
 
     private ProfileProperty() {
     }

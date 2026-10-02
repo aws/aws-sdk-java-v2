@@ -115,6 +115,25 @@
       ],
       "documentation":"<p>Operation in the Amazon OpenSearch Service API for associating multiple packages with a domain simultaneously.</p>"
     },
+    "AttachDataSource":{
+      "name":"AttachDataSource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/application/{id}/attachDataSource",
+        "responseCode":200
+      },
+      "input":{"shape":"AttachDataSourceRequest"},
+      "output":{"shape":"AttachDataSourceResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Attaches a data source to an OpenSearch application. The data source must be an Amazon OpenSearch Service domain. If both the application and the data source are active, the attachment completes immediately with a status of <code>ATTACHED</code>. Otherwise, the operation returns <code>PENDING</code> and completes the attachment automatically once both become active. If the attachment cannot be completed, its status becomes <code>FAILED</code>. This operation is idempotent: If the data source is already attached or pending, the operation returns the existing attachment.</p>"
+    },
     "AuthorizeVpcEndpointAccess":{
       "name":"AuthorizeVpcEndpointAccess",
       "http":{
@@ -183,7 +202,7 @@
         {"shape":"InternalException"},
         {"shape":"DisabledOperationException"}
       ],
-      "documentation":"<p>Creates an OpenSearch Application.</p>"
+      "documentation":"<p>Creates an OpenSearch UI application. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/application.html\">Using the OpenSearch user interface in Amazon OpenSearch Service</a>.</p>"
     },
     "CreateDomain":{
       "name":"CreateDomain",
@@ -203,6 +222,26 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Creates an Amazon OpenSearch Service domain. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/createupdatedomains.html\">Creating and managing Amazon OpenSearch Service domains</a>.</p>"
+    },
+    "CreateIndex":{
+      "name":"CreateIndex",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/index"
+      },
+      "input":{"shape":"CreateIndexRequest"},
+      "output":{"shape":"CreateIndexResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ResourceAlreadyExistsException"},
+        {"shape":"InternalException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Creates an OpenSearch index with optional automatic semantic enrichment for specified text fields. Automatic semantic enrichment enables semantic search capabilities without requiring machine learning expertise, improving search relevance by up to 20% by understanding search intent and contextual meaning beyond keyword matching. The semantic enrichment process has zero impact on search latency as sparse encodings are stored directly within the index during indexing. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/opensearch-semantic-enrichment.html\">Automatic semantic enrichment</a>.</p>"
     },
     "CreateOutboundConnection":{
       "name":"CreateOutboundConnection",
@@ -275,7 +314,7 @@
         {"shape":"InternalException"},
         {"shape":"DisabledOperationException"}
       ],
-      "documentation":"<p>Deletes an existing OpenSearch Application.</p>"
+      "documentation":"<p>Deletes a specified OpenSearch application.</p>"
     },
     "DeleteDataSource":{
       "name":"DeleteDataSource",
@@ -341,6 +380,25 @@
       ],
       "documentation":"<p>Allows the destination Amazon OpenSearch Service domain owner to delete an existing inbound cross-cluster search connection. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cross-cluster-search.html\">Cross-cluster search for Amazon OpenSearch Service</a>.</p>"
     },
+    "DeleteIndex":{
+      "name":"DeleteIndex",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/index/{IndexName}"
+      },
+      "input":{"shape":"DeleteIndexRequest"},
+      "output":{"shape":"DeleteIndexResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Deletes an OpenSearch index. This operation permanently removes the index and cannot be undone.</p>"
+    },
     "DeleteOutboundConnection":{
       "name":"DeleteOutboundConnection",
       "http":{
@@ -388,6 +446,43 @@
         {"shape":"BaseException"}
       ],
       "documentation":"<p>Deletes an Amazon OpenSearch Service-managed interface VPC endpoint.</p>"
+    },
+    "DeregisterCapability":{
+      "name":"DeregisterCapability",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/2021-01-01/opensearch/application/{ApplicationId}/capability/deregister/{CapabilityName}",
+        "responseCode":200
+      },
+      "input":{"shape":"DeregisterCapabilityRequest"},
+      "output":{"shape":"DeregisterCapabilityResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Deregisters a capability from an OpenSearch UI application. This operation removes the capability and its associated configuration.</p>"
+    },
+    "DescribeDataSourceAttachment":{
+      "name":"DescribeDataSourceAttachment",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/application/{id}/describeDataSourceAttachment",
+        "responseCode":200
+      },
+      "input":{"shape":"DescribeDataSourceAttachmentRequest"},
+      "output":{"shape":"DescribeDataSourceAttachmentResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Returns the current status and details of a specific data source attachment for an OpenSearch application. Throws a <code>ResourceNotFoundException</code> if no attachment record exists for the specified application and data source combination.</p>"
     },
     "DescribeDomain":{
       "name":"DescribeDomain",
@@ -534,6 +629,24 @@
       ],
       "documentation":"<p>Lists all the inbound cross-cluster search connections for a destination (remote) Amazon OpenSearch Service domain. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/cross-cluster-search.html\">Cross-cluster search for Amazon OpenSearch Service</a>.</p>"
     },
+    "DescribeInsightDetails":{
+      "name":"DescribeInsightDetails",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/insight-details"
+      },
+      "input":{"shape":"DescribeInsightDetailsRequest"},
+      "output":{"shape":"DescribeInsightDetailsResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p>Describes the details of an existing insight for an Amazon OpenSearch Service domain. Returns detailed fields associated with the specified insight, such as text descriptions and metric data.</p>"
+    },
     "DescribeInstanceTypeLimits":{
       "name":"DescribeInstanceTypeLimits",
       "http":{
@@ -631,6 +744,25 @@
       ],
       "documentation":"<p>Describes one or more Amazon OpenSearch Service-managed VPC endpoints.</p>"
     },
+    "DetachDataSource":{
+      "name":"DetachDataSource",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/application/{id}/detachDataSource",
+        "responseCode":200
+      },
+      "input":{"shape":"DetachDataSourceRequest"},
+      "output":{"shape":"DetachDataSourceResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ConflictException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Removes a data source from an OpenSearch application. The application must be in the <code>ACTIVE</code> state. This operation removes the data source saved object from the application and deletes the attachment record. Throws a <code>ConflictException</code> if the specified data source has a <code>PENDING</code> attachment, and a <code>ResourceNotFoundException</code> if the data source is not currently attached to the application.</p>"
+    },
     "DissociatePackage":{
       "name":"DissociatePackage",
       "http":{
@@ -665,7 +797,7 @@
         {"shape":"ConflictException"},
         {"shape":"DisabledOperationException"}
       ],
-      "documentation":"<p>Dissociates multiple packages from a domain simulatneously.</p>"
+      "documentation":"<p>Dissociates multiple packages from a domain simultaneously.</p>"
     },
     "GetApplication":{
       "name":"GetApplication",
@@ -684,7 +816,25 @@
         {"shape":"InternalException"},
         {"shape":"DisabledOperationException"}
       ],
-      "documentation":"<p>Check the configuration and status of an existing OpenSearch Application.</p>"
+      "documentation":"<p>Retrieves the configuration and status of an existing OpenSearch application.</p>"
+    },
+    "GetCapability":{
+      "name":"GetCapability",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/application/{ApplicationId}/capability/{CapabilityName}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetCapabilityRequest"},
+      "output":{"shape":"GetCapabilityResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Retrieves information about a registered capability for an OpenSearch UI application, including its configuration and current status.</p>"
     },
     "GetCompatibleVersions":{
       "name":"GetCompatibleVersions",
@@ -721,6 +871,23 @@
       ],
       "documentation":"<p>Retrieves information about a direct query data source.</p>"
     },
+    "GetDefaultApplicationSetting":{
+      "name":"GetDefaultApplicationSetting",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/defaultApplicationSetting",
+        "responseCode":200
+      },
+      "input":{"shape":"GetDefaultApplicationSettingRequest"},
+      "output":{"shape":"GetDefaultApplicationSettingResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Gets the ARN of the current default application.</p> <p> If the default application isn't set, the operation returns a resource not found error.</p>"
+    },
     "GetDirectQueryDataSource":{
       "name":"GetDirectQueryDataSource",
       "http":{
@@ -754,6 +921,43 @@
         {"shape":"DisabledOperationException"}
       ],
       "documentation":"<p>The status of the maintenance action.</p>"
+    },
+    "GetIndex":{
+      "name":"GetIndex",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/index/{IndexName}"
+      },
+      "input":{"shape":"GetIndexRequest"},
+      "output":{"shape":"GetIndexResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Retrieves information about an OpenSearch index including its schema and semantic enrichment configuration. Use this operation to view the current index structure and semantic search settings.</p>"
+    },
+    "GetMigration":{
+      "name":"GetMigration",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/app-migrations/{migrationId}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetMigrationRequest"},
+      "output":{"shape":"GetMigrationResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Retrieves the current status and progress of a migration job, including the number of exported and imported objects and error details if the migration failed.</p>"
     },
     "GetPackageVersionHistory":{
       "name":"GetPackageVersionHistory",
@@ -806,6 +1010,24 @@
       ],
       "documentation":"<p>Returns the most recent status of the last upgrade or upgrade eligibility check performed on an Amazon OpenSearch Service domain.</p>"
     },
+    "InsightFeedback":{
+      "name":"InsightFeedback",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/insight-feedback"
+      },
+      "input":{"shape":"InsightFeedbackRequest"},
+      "output":{"shape":"InsightFeedbackResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p>Submits feedback for an existing insight in an Amazon OpenSearch Service domain. Allows users to provide a thumbs up or thumbs down rating and optional text feedback for a specific insight.</p>"
+    },
     "ListApplications":{
       "name":"ListApplications",
       "http":{
@@ -823,7 +1045,25 @@
         {"shape":"InternalException"},
         {"shape":"DisabledOperationException"}
       ],
-      "documentation":"<p>List all OpenSearch Applications under your account.</p>"
+      "documentation":"<p>Lists all OpenSearch applications under your account.</p>"
+    },
+    "ListDataSourceAttachments":{
+      "name":"ListDataSourceAttachments",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/application/{id}/listDataSourceAttachments",
+        "responseCode":200
+      },
+      "input":{"shape":"ListDataSourceAttachmentsRequest"},
+      "output":{"shape":"ListDataSourceAttachmentsResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Returns a paginated list of all data source attachments for an OpenSearch application, including attachments in all states (<code>PENDING</code>, <code>ATTACHED</code>, and <code>FAILED</code>).</p>"
     },
     "ListDataSources":{
       "name":"ListDataSources",
@@ -908,6 +1148,24 @@
       ],
       "documentation":"<p>Lists all Amazon OpenSearch Service domains associated with a given package. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/custom-packages.html\">Custom packages for Amazon OpenSearch Service</a>.</p>"
     },
+    "ListInsights":{
+      "name":"ListInsights",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/insights"
+      },
+      "input":{"shape":"ListInsightsRequest"},
+      "output":{"shape":"ListInsightsResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"LimitExceededException"}
+      ],
+      "documentation":"<p>Lists insights for an Amazon OpenSearch Service domain or Amazon Web Services account. Returns a paginated list of insights based on the specified entity, filters, time range, and sort order.</p>"
+    },
     "ListInstanceTypeDetails":{
       "name":"ListInstanceTypeDetails",
       "http":{
@@ -923,6 +1181,23 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Lists all instance types and available features for a given OpenSearch or Elasticsearch version.</p>"
+    },
+    "ListMigrations":{
+      "name":"ListMigrations",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2021-01-01/opensearch/app-migrations",
+        "responseCode":200
+      },
+      "input":{"shape":"ListMigrationsRequest"},
+      "output":{"shape":"ListMigrationsResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Lists migration jobs for an Amazon OpenSearch Service application. You can filter results by migration status. Use pagination to ensure that the operation returns quickly and successfully.</p>"
     },
     "ListPackagesForDomain":{
       "name":"ListPackagesForDomain",
@@ -1055,6 +1330,43 @@
       ],
       "documentation":"<p>Allows you to purchase Amazon OpenSearch Service Reserved Instances.</p>"
     },
+    "PutDefaultApplicationSetting":{
+      "name":"PutDefaultApplicationSetting",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2021-01-01/opensearch/defaultApplicationSetting",
+        "responseCode":200
+      },
+      "input":{"shape":"PutDefaultApplicationSettingRequest"},
+      "output":{"shape":"PutDefaultApplicationSettingResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Sets the default application to the application with the specified ARN.</p> <p> To remove the default application, use the <code>GetDefaultApplicationSetting</code> operation to get the current default and then call the <code>PutDefaultApplicationSetting</code> with the current applications ARN and the <code>setAsDefault</code> parameter set to <code>false</code>.</p>"
+    },
+    "RegisterCapability":{
+      "name":"RegisterCapability",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/application/{ApplicationId}/capability/register",
+        "responseCode":200
+      },
+      "input":{"shape":"RegisterCapabilityRequest"},
+      "output":{"shape":"RegisterCapabilityResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ConflictException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Registers a capability for an OpenSearch UI application. Use this operation to enable specific capabilities, such as AI features, for a given application. The capability configuration defines the type and settings of the capability to register. For more information about the AI features, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/application-ai-assistant.html\">Agentic AI for OpenSearch UI</a>.</p>"
+    },
     "RejectInboundConnection":{
       "name":"RejectInboundConnection",
       "http":{
@@ -1100,6 +1412,23 @@
       ],
       "documentation":"<p>Revokes access to an Amazon OpenSearch Service domain that was provided through an interface VPC endpoint.</p>"
     },
+    "RollbackServiceSoftwareUpdate":{
+      "name":"RollbackServiceSoftwareUpdate",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/serviceSoftwareUpdate/rollback"
+      },
+      "input":{"shape":"RollbackServiceSoftwareUpdateRequest"},
+      "output":{"shape":"RollbackServiceSoftwareUpdateResponse"},
+      "errors":[
+        {"shape":"BaseException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Rolls back a service software update for a domain to the previous version. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/service-software.html\">Service software updates in Amazon OpenSearch Service</a>.</p>"
+    },
     "StartDomainMaintenance":{
       "name":"StartDomainMaintenance",
       "http":{
@@ -1116,6 +1445,25 @@
         {"shape":"DisabledOperationException"}
       ],
       "documentation":"<p>Starts the node maintenance process on the data node. These processes can include a node reboot, an Opensearch or Elasticsearch process restart, or a Dashboard or Kibana restart.</p>"
+    },
+    "StartMigration":{
+      "name":"StartMigration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2021-01-01/opensearch/app-migrations",
+        "responseCode":200
+      },
+      "input":{"shape":"StartMigrationRequest"},
+      "output":{"shape":"StartMigrationResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ConflictException"},
+        {"shape":"DisabledOperationException"}
+      ],
+      "documentation":"<p>Initiates a migration job to migrate saved objects from a data source to an Amazon OpenSearch Service application workspace. Saved objects include dashboards, visualizations, index patterns, and searches. You can specify export filters to control the scope of the migration and a conflict resolution strategy for handling existing objects in the target workspace.</p>"
     },
     "StartServiceSoftwareUpdate":{
       "name":"StartServiceSoftwareUpdate",
@@ -1151,7 +1499,7 @@
         {"shape":"InternalException"},
         {"shape":"DisabledOperationException"}
       ],
-      "documentation":"<p>Update the OpenSearch Application. </p>"
+      "documentation":"<p>Updates the configuration and settings of an existing OpenSearch application.</p>"
     },
     "UpdateDataSource":{
       "name":"UpdateDataSource",
@@ -1184,7 +1532,8 @@
         {"shape":"InternalException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"ValidationException"},
-        {"shape":"DisabledOperationException"}
+        {"shape":"DisabledOperationException"},
+        {"shape":"LimitExceededException"}
       ],
       "documentation":"<p> Updates the configuration or properties of an existing direct query data source in Amazon OpenSearch Service. </p>"
     },
@@ -1205,6 +1554,25 @@
         {"shape":"ValidationException"}
       ],
       "documentation":"<p>Modifies the cluster configuration of the specified Amazon OpenSearch Service domain.</p>"
+    },
+    "UpdateIndex":{
+      "name":"UpdateIndex",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/2021-01-01/opensearch/domain/{DomainName}/index/{IndexName}"
+      },
+      "input":{"shape":"UpdateIndexRequest"},
+      "output":{"shape":"UpdateIndexResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InternalException"},
+        {"shape":"DisabledOperationException"},
+        {"shape":"DependencyFailureException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Updates an existing OpenSearch index schema and semantic enrichment configuration. This operation allows modification of field mappings and semantic search settings for text fields. Changes to semantic enrichment configuration will apply to newly ingested documents.</p>"
     },
     "UpdatePackage":{
       "name":"UpdatePackage",
@@ -1298,12 +1666,25 @@
     }
   },
   "shapes":{
+    "AIConfig":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>Configuration settings for AI-powered capabilities of an OpenSearch UI application.</p>"
+    },
     "AIMLOptionsInput":{
       "type":"structure",
       "members":{
         "NaturalLanguageQueryGenerationOptions":{
           "shape":"NaturalLanguageQueryGenerationOptionsInput",
           "documentation":"<p>Container for parameters required for natural language query generation on the specified domain.</p>"
+        },
+        "S3VectorsEngine":{
+          "shape":"S3VectorsEngine",
+          "documentation":"<p>Container for parameters required to enable S3 vectors engine features on the specified domain.</p>"
+        },
+        "ServerlessVectorAcceleration":{
+          "shape":"ServerlessVectorAcceleration",
+          "documentation":"<p>Specifies whether to enable serverless vector acceleration for the domain. When enabled, provides <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/gpu-acceleration-vector-index.html\">GPU-accelerated</a> vector search capabilities for improved performance on vector workloads.</p>"
         }
       },
       "documentation":"<p>Container for parameters required to enable all machine learning features.</p>"
@@ -1314,6 +1695,14 @@
         "NaturalLanguageQueryGenerationOptions":{
           "shape":"NaturalLanguageQueryGenerationOptionsOutput",
           "documentation":"<p>Container for parameters required for natural language query generation on the specified domain.</p>"
+        },
+        "S3VectorsEngine":{
+          "shape":"S3VectorsEngine",
+          "documentation":"<p>Container for parameters representing the state of S3 vectors engine features on the specified domain.</p>"
+        },
+        "ServerlessVectorAcceleration":{
+          "shape":"ServerlessVectorAcceleration",
+          "documentation":"<p>The current serverless vector acceleration configuration for the domain.</p>"
         }
       },
       "documentation":"<p>Container for parameters representing the state of machine learning features on the specified domain.</p>"
@@ -1328,6 +1717,10 @@
         "Status":{"shape":"OptionStatus"}
       },
       "documentation":"<p>The status of machine learning options on the specified domain.</p>"
+    },
+    "AMPWorkspaceArn":{
+      "type":"string",
+      "pattern":"^arn:aws[a-zA-Z-]*:aps:[a-z0-9-]+:[0-9]{12}:workspace\\/ws-[a-z0-9-]*$"
     },
     "ARN":{
       "type":"string",
@@ -1386,10 +1779,14 @@
       },
       "documentation":"<p>Contains details about the accepted inbound connection.</p>"
     },
+    "AcceptedWarningsList":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "max":25
+    },
     "AccessDeniedException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An error occurred because you don't have permissions to access the resource.</p>",
       "error":{"httpStatusCode":403},
       "exception":true
@@ -1482,8 +1879,7 @@
       "type":"structure",
       "required":[
         "DataSourceName",
-        "DataSourceType",
-        "OpenSearchArns"
+        "DataSourceType"
       ],
       "members":{
         "DataSourceName":{
@@ -1500,7 +1896,11 @@
         },
         "OpenSearchArns":{
           "shape":"DirectQueryOpenSearchARNList",
-          "documentation":"<p> A list of Amazon Resource Names (ARNs) for the OpenSearch collections that are associated with the direct query data source. </p>"
+          "documentation":"<p> An optional list of Amazon Resource Names (ARNs) for the OpenSearch collections that are associated with the direct query data source. This field is required for CloudWatchLogs and SecurityLake datasource types. </p>"
+        },
+        "DataSourceAccessPolicy":{
+          "shape":"PolicyDocument",
+          "documentation":"<p> An optional IAM access policy document that defines the permissions for accessing the data source. The policy document must be in valid JSON format and follow IAM policy syntax.</p>"
         },
         "TagList":{"shape":"TagList"}
       }
@@ -1593,6 +1993,10 @@
           "shape":"JWTOptionsOutput",
           "documentation":"<p>Container for information about the JWT configuration of the Amazon OpenSearch Service.</p>"
         },
+        "IAMFederationOptions":{
+          "shape":"IAMFederationOptionsOutput",
+          "documentation":"<p>Configuration options for IAM identity federation in advanced security settings.</p>"
+        },
         "AnonymousAuthDisableDate":{
           "shape":"DisableTimestamp",
           "documentation":"<p>Date and time when the migration period will be disabled. Only necessary when <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-enabling-existing\">enabling fine-grained access control on an existing domain</a>.</p>"
@@ -1627,6 +2031,10 @@
           "shape":"JWTOptionsInput",
           "documentation":"<p>Container for information about the JWT configuration of the Amazon OpenSearch Service. </p>"
         },
+        "IAMFederationOptions":{
+          "shape":"IAMFederationOptionsInput",
+          "documentation":"<p>Input configuration for IAM identity federation within advanced security options.</p>"
+        },
         "AnonymousAuthEnabled":{
           "shape":"Boolean",
           "documentation":"<p>True to enable a 30-day migration period during which administrators can create role mappings. Only necessary when <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/fgac.html#fgac-enabling-existing\">enabling fine-grained access control on an existing domain</a>.</p>"
@@ -1657,14 +2065,14 @@
       "members":{
         "key":{
           "shape":"AppConfigType",
-          "documentation":"<p>Specify the item to configure, such as admin role for the OpenSearch Application.</p>"
+          "documentation":"<p>The configuration item to set, such as the admin role for the OpenSearch application.</p>"
         },
         "value":{
           "shape":"AppConfigValue",
-          "documentation":"<p>Specifies the value to configure for the key, such as an IAM user ARN.</p>"
+          "documentation":"<p>The value assigned to the configuration key, such as an IAM user ARN.</p>"
         }
       },
-      "documentation":"<p>Configurations of the OpenSearch Application.</p>"
+      "documentation":"<p>Configuration settings for an OpenSearch application. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/application.html\">Using the OpenSearch user interface in Amazon OpenSearch Service</a>.</p>"
     },
     "AppConfigType":{
       "type":"string",
@@ -1682,6 +2090,10 @@
       "type":"list",
       "member":{"shape":"AppConfig"},
       "max":200
+    },
+    "ApplicationId":{
+      "type":"string",
+      "pattern":"[a-z0-9]{3,30}"
     },
     "ApplicationName":{
       "type":"string",
@@ -1712,31 +2124,31 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier for an OpenSearch application.</p>"
+          "documentation":"<p>The unique identifier of an OpenSearch application.</p>"
         },
         "arn":{"shape":"ARN"},
         "name":{
           "shape":"ApplicationName",
-          "documentation":"<p>Name of an OpenSearch Application.</p>"
+          "documentation":"<p>The name of an OpenSearch application.</p>"
         },
         "endpoint":{
           "shape":"String",
-          "documentation":"<p>Endpoint URL of an OpenSearch Application.</p>"
+          "documentation":"<p>The endpoint URL of an OpenSearch application.</p>"
         },
         "status":{
           "shape":"ApplicationStatus",
-          "documentation":"<p>Status of an OpenSearch Application. Possible values are <code>CREATING</code>, <code>UPDATING</code>,<code> DELETING</code>, <code>FAILED</code>, <code>ACTIVE</code>, and <code>DELETED</code>.</p>"
+          "documentation":"<p>The current status of an OpenSearch application. Possible values: <code>CREATING</code>, <code>UPDATING</code>, <code>DELETING</code>, <code>FAILED</code>, <code>ACTIVE</code>, and <code>DELETED</code>.</p>"
         },
         "createdAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp at which an OpenSearch Application was created.</p>"
+          "documentation":"<p>The timestamp when an OpenSearch application was created.</p>"
         },
         "lastUpdatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp at which an OpenSearch Application was last updated.</p>"
+          "documentation":"<p>The timestamp of the last update to an OpenSearch application.</p>"
         }
       },
-      "documentation":"<p>Basic information of the OpenSearch Application.</p>"
+      "documentation":"<p>Basic details of an OpenSearch application.</p>"
     },
     "AssociatePackageRequest":{
       "type":"structure",
@@ -1801,6 +2213,53 @@
         }
       }
     },
+    "AttachDataSourceRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "dataSourceArn"
+      ],
+      "members":{
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier or name of the OpenSearch application to attach the data source to. This is the same identifier used with <code>UpdateApplication</code>, <code>GetApplication</code>, and <code>DeleteApplication</code>.</p>",
+          "location":"uri",
+          "locationName":"id"
+        },
+        "dataSourceArn":{"shape":"ARN"},
+        "workspaceId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of an existing workspace to update with the new data source. Mutually exclusive with <code>workspaceConfiguration</code>.</p>"
+        },
+        "workspaceConfiguration":{
+          "shape":"WorkspaceConfigurationInput",
+          "documentation":"<p>Configuration for creating a new workspace during the attachment. If specified, a workspace is created and linked to the data source after the attachment completes. Mutually exclusive with <code>workspaceId</code>.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. If you retry a request with the same client token and the same parameters, the retry succeeds without performing any further actions.</p>"
+        }
+      }
+    },
+    "AttachDataSourceResponse":{
+      "type":"structure",
+      "members":{
+        "attachmentId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier assigned to the data source attachment.</p>"
+        },
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier of the OpenSearch application.</p>"
+        },
+        "arn":{"shape":"ARN"},
+        "dataSourceArn":{"shape":"ARN"},
+        "status":{
+          "shape":"DataSourceAttachmentStatus",
+          "documentation":"<p>The status of the data source attachment. Valid values are <code>PENDING</code> (waiting for resources to become active), <code>ATTACHED</code> (successfully attached), and <code>FAILED</code> (attachment timed out or encountered a non-retryable error).</p>"
+        }
+      }
+    },
     "AuthorizeVpcEndpointAccessRequest":{
       "type":"structure",
       "required":["DomainName"],
@@ -1818,6 +2277,10 @@
         "Service":{
           "shape":"AWSServicePrincipal",
           "documentation":"<p>The Amazon Web Services service SP to grant access to.</p>"
+        },
+        "ServiceOptions":{
+          "shape":"ServiceOptions",
+          "documentation":"<p>The options for the service, including the supported Regions for the endpoint access.</p>"
         }
       }
     },
@@ -1841,6 +2304,10 @@
         "Principal":{
           "shape":"String",
           "documentation":"<p>The <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html\">IAM principal</a> that is allowed access to the domain.</p>"
+        },
+        "ServiceOptions":{
+          "shape":"ServiceOptions",
+          "documentation":"<p>The options for the service, including the supported Regions for the endpoint access.</p>"
         }
       },
       "documentation":"<p>Information about an Amazon Web Services account or service that has access to an Amazon OpenSearch Service domain through the use of an interface VPC endpoint.</p>"
@@ -2039,6 +2506,66 @@
       "documentation":"<p>Specifies the Auto-Tune type. Valid value is SCHEDULED_ACTION.</p>",
       "enum":["SCHEDULED_ACTION"]
     },
+    "AutomatedSnapshotPauseOptions":{
+      "type":"structure",
+      "required":["Enabled"],
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether automated snapshot pause is enabled for the domain.</p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause begins.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause ends.</p>"
+        },
+        "State":{
+          "shape":"PauseState",
+          "documentation":"<p>The current state of the automated snapshot pause. Valid values are <code>Active</code>, <code>Completed</code>, <code>Scheduled</code>, and <code>Disabled</code>.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the automated snapshot pause options for the domain. These options allow you to temporarily pause automated snapshots for a specified time period.</p>"
+    },
+    "AutomatedSnapshotPauseOptionsStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"AutomatedSnapshotPauseOptions",
+          "documentation":"<p>Automated snapshot pause options for the domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the automated snapshot pause options for the domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of automated snapshot pause options for the domain.</p>"
+    },
+    "AutomatedSnapshotPauseRequestOptions":{
+      "type":"structure",
+      "required":["Enabled"],
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to enable or disable automated snapshot pause for the domain.</p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause should begin.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp at which the automated snapshot pause should end. The maximum allowed duration between <code>StartTime</code> and <code>EndTime</code> is 3 days.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the automated snapshot pause request options for the domain.</p> <important> <p>Suspending snapshots reduces data protection. You cannot restore your domain to points in time when snapshots are suspended. Use this feature only for short-term operational needs such as migrations or maintenance windows.</p> </important> <p>Maximum suspension duration: 3 days.</p>"
+    },
     "AvailabilityZone":{
       "type":"string",
       "max":15,
@@ -2174,6 +2701,83 @@
       "type":"list",
       "member":{"shape":"CancelledChangeProperty"}
     },
+    "CapabilityBaseRequestConfig":{
+      "type":"structure",
+      "members":{
+        "aiConfig":{
+          "shape":"AIConfig",
+          "documentation":"<p>Configuration settings for AI-powered capabilities.</p>"
+        }
+      },
+      "documentation":"<p>The base configuration for registering a capability. Contains capability-specific configuration such as AI settings.</p>",
+      "union":true
+    },
+    "CapabilityBaseResponseConfig":{
+      "type":"structure",
+      "members":{
+        "aiConfig":{
+          "shape":"AIConfig",
+          "documentation":"<p>Configuration settings for AI-powered capabilities.</p>"
+        }
+      },
+      "documentation":"<p>The base configuration returned for a registered capability.</p>",
+      "union":true
+    },
+    "CapabilityExtendedResponseConfig":{
+      "type":"structure",
+      "members":{
+        "aiConfig":{
+          "shape":"AIConfig",
+          "documentation":"<p>Configuration settings for AI-powered capabilities.</p>"
+        }
+      },
+      "documentation":"<p>The extended configuration returned for a registered capability, including additional details beyond the base configuration.</p>",
+      "union":true
+    },
+    "CapabilityFailure":{
+      "type":"structure",
+      "members":{
+        "reason":{
+          "shape":"CapabilityFailureReason",
+          "documentation":"<p>The reason for the capability failure. Possible values: <code>KMS_KEY_INSUFFICIENT_PERMISSION</code>.</p>"
+        },
+        "details":{
+          "shape":"CapabilityFailureDetails",
+          "documentation":"<p>Additional details about the capability failure.</p>"
+        }
+      },
+      "documentation":"<p>Information about a capability failure.</p>"
+    },
+    "CapabilityFailureDetails":{"type":"string"},
+    "CapabilityFailureReason":{
+      "type":"string",
+      "enum":["KMS_KEY_INSUFFICIENT_PERMISSION"]
+    },
+    "CapabilityFailures":{
+      "type":"list",
+      "member":{"shape":"CapabilityFailure"},
+      "documentation":"<p>A list of failures associated with a capability.</p>"
+    },
+    "CapabilityName":{
+      "type":"string",
+      "documentation":"<p>The name of a capability. Must be between 3 and 30 characters and contain only alphanumeric characters and hyphens.</p>",
+      "max":30,
+      "min":3,
+      "pattern":"^[a-zA-Z0-9-]+$"
+    },
+    "CapabilityStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a capability. Possible values: <code>creating</code>, <code>create_failed</code>, <code>active</code>, <code>updating</code>, <code>update_failed</code>, <code>deleting</code>, <code>delete_failed</code>.</p>",
+      "enum":[
+        "creating",
+        "create_failed",
+        "active",
+        "updating",
+        "update_failed",
+        "deleting",
+        "delete_failed"
+      ]
+    },
     "ChangeProgressDetails":{
       "type":"structure",
       "members":{
@@ -2283,6 +2887,14 @@
         "InitiatedBy":{
           "shape":"InitiatedBy",
           "documentation":"<p>The IAM principal who initiated the configuration change.</p>"
+        },
+        "ValidationFailures":{
+          "shape":"ValidationFailures",
+          "documentation":"<p>The validation failures that occurred as a result of the configuration change.</p>"
+        },
+        "AcceptedWarnings":{
+          "shape":"AcceptedWarningsList",
+          "documentation":"<p>The list of advisory warning codes that were accepted for the configuration change.</p>"
         }
       },
       "documentation":"<p>The progress details of a specific domain configuration change.</p>"
@@ -2474,8 +3086,7 @@
     },
     "ConflictException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An error occurred because the client attempts to remove a resource that is currently in use.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
@@ -2521,26 +3132,30 @@
       "members":{
         "clientToken":{
           "shape":"ClientToken",
-          "documentation":"<p>A unique client idempotency token. It will be auto generated if not provided.</p>",
+          "documentation":"<p>Unique, case-sensitive identifier to ensure idempotency of the request.</p>",
           "idempotencyToken":true
         },
         "name":{
           "shape":"ApplicationName",
-          "documentation":"<p>Name of the OpenSearch Appication to create. Application names are unique across the applications owned by an account within an Amazon Web Services Region.</p>"
+          "documentation":"<p>The unique name of the OpenSearch application. Names must be unique within an Amazon Web Services Region for each account.</p>"
         },
         "dataSources":{
           "shape":"DataSources",
-          "documentation":"<p>Data sources to be associated with the OpenSearch Application.</p>"
+          "documentation":"<p>The data sources to link to the OpenSearch application.</p>"
         },
         "iamIdentityCenterOptions":{
           "shape":"IamIdentityCenterOptionsInput",
-          "documentation":"<p>Settings of IAM Identity Center for the OpenSearch Application.</p>"
+          "documentation":"<p>Configuration settings for integrating Amazon Web Services IAM Identity Center with the OpenSearch application.</p>"
         },
         "appConfigs":{
           "shape":"AppConfigs",
-          "documentation":"<p>Configurations of the OpenSearch Application, inlcuding admin configuration.</p>"
+          "documentation":"<p>Configuration settings for the OpenSearch application, including administrative options.</p>"
         },
-        "tagList":{"shape":"TagList"}
+        "tagList":{"shape":"TagList"},
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the application's data at rest. If provided, the application uses your customer-managed key for encryption. If omitted, the application uses an AWS-managed key. The KMS key must be in the same region as the application.</p>"
+        }
       }
     },
     "CreateApplicationResponse":{
@@ -2548,29 +3163,33 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier for the created OpenSearch Application.</p>"
+          "documentation":"<p>The unique identifier assigned to the OpenSearch application.</p>"
         },
         "name":{
           "shape":"ApplicationName",
-          "documentation":"<p>Name of the created OpenSearch Application.</p>"
+          "documentation":"<p>The name of the OpenSearch application.</p>"
         },
         "arn":{"shape":"ARN"},
         "dataSources":{
           "shape":"DataSources",
-          "documentation":"<p>Data sources associated with the created OpenSearch Application.</p>"
+          "documentation":"<p>The data sources linked to the OpenSearch application.</p>"
         },
         "iamIdentityCenterOptions":{
           "shape":"IamIdentityCenterOptions",
-          "documentation":"<p>Settings of IAM Identity Center for the created OpenSearch Application.</p>"
+          "documentation":"<p>The IAM Identity Center settings configured for the OpenSearch application.</p>"
         },
         "appConfigs":{
           "shape":"AppConfigs",
-          "documentation":"<p>Configurations of the OpenSearch Application, inlcuding admin configuration.</p>"
+          "documentation":"<p>Configuration settings for the OpenSearch application, including administrative options.</p>"
         },
         "tagList":{"shape":"TagList"},
         "createdAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp when the OpenSearch Application was created.</p>"
+          "documentation":"<p>The timestamp indicating when the OpenSearch application was created.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the application's data at rest.</p>"
         }
       }
     },
@@ -2640,7 +3259,7 @@
         },
         "IdentityCenterOptions":{
           "shape":"IdentityCenterOptionsInput",
-          "documentation":"<p>Options for IAM Identity Center Option control for the domain.</p>"
+          "documentation":"<p>Configuration options for enabling and managing IAM Identity Center integration within a domain.</p>"
         },
         "TagList":{
           "shape":"TagList",
@@ -2661,6 +3280,22 @@
         "AIMLOptions":{
           "shape":"AIMLOptionsInput",
           "documentation":"<p>Options for all machine learning features for the specified domain.</p>"
+        },
+        "DeploymentStrategyOptions":{
+          "shape":"DeploymentStrategyOptions",
+          "documentation":"<p>Specifies the deployment strategy options for the domain.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseRequestOptions",
+          "documentation":"<p>Specifies the automated snapshot pause options for the domain.</p> <important> <p>Suspending snapshots reduces data protection. You cannot restore your domain to points in time when snapshots are suspended. Use this feature only for short-term operational needs such as migrations or maintenance windows.</p> </important> <p>Maximum suspension duration: 3 days.</p>"
+        },
+        "UseCase":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The primary use case for the domain. For valid values, see <code>DomainUseCase</code>.</p>"
+        },
+        "EngineMode":{
+          "shape":"EngineMode",
+          "documentation":"<p>The engine mode for the domain. For valid values and requirements, see <code>EngineMode</code>.</p>"
         }
       }
     },
@@ -2673,6 +3308,39 @@
         }
       },
       "documentation":"<p>The result of a <code>CreateDomain</code> operation. Contains the status of the newly created domain.</p>"
+    },
+    "CreateIndexRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "IndexName",
+        "IndexSchema"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "IndexName":{
+          "shape":"IndexName",
+          "documentation":"<p>The name of the index to create. Must be between 1 and 255 characters and follow OpenSearch naming conventions.</p>"
+        },
+        "IndexSchema":{
+          "shape":"IndexSchema",
+          "documentation":"<p>The JSON schema defining index mappings, settings, and semantic enrichment configuration. The schema specifies which text fields should be automatically enriched for semantic search capabilities and includes OpenSearch index configuration parameters.</p>"
+        }
+      }
+    },
+    "CreateIndexResponse":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"IndexStatus",
+          "documentation":"<p>The status of the index creation operation.</p>"
+        }
+      }
     },
     "CreateOutboundConnectionRequest":{
       "type":"structure",
@@ -2841,9 +3509,40 @@
         "dataSourceDescription":{
           "shape":"DataSourceDescription",
           "documentation":"<p>Detailed description of a data source.</p>"
+        },
+        "iamRoleForDataSourceArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the IAM role to be used for cross account/region data source association.</p>"
         }
       },
-      "documentation":"<p>Data sources that are associated with an OpenSearch Application. </p>"
+      "documentation":"<p>Data sources that are associated with an OpenSearch application. </p>"
+    },
+    "DataSourceAttachmentStatus":{
+      "type":"string",
+      "enum":[
+        "PENDING",
+        "ATTACHED",
+        "FAILED"
+      ]
+    },
+    "DataSourceAttachmentSummary":{
+      "type":"structure",
+      "members":{
+        "attachmentId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier assigned to the data source attachment.</p>"
+        },
+        "dataSourceArn":{"shape":"ARN"},
+        "status":{
+          "shape":"DataSourceAttachmentStatus",
+          "documentation":"<p>The current status of the data source attachment. Valid values are <code>PENDING</code>, <code>ATTACHED</code>, and <code>FAILED</code>.</p>"
+        }
+      },
+      "documentation":"<p>Summary information about a data source attachment, including its identifier, data source ARN, and current status.</p>"
+    },
+    "DataSourceAttachmentSummaryList":{
+      "type":"list",
+      "member":{"shape":"DataSourceAttachmentSummary"}
     },
     "DataSourceDescription":{
       "type":"string",
@@ -2910,7 +3609,7 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier for the OpenSearch Application that you want to delete.</p>",
+          "documentation":"<p>The unique identifier of the OpenSearch application to delete.</p>",
           "location":"uri",
           "locationName":"id"
         }
@@ -2918,8 +3617,7 @@
     },
     "DeleteApplicationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDataSourceRequest":{
       "type":"structure",
@@ -3011,6 +3709,36 @@
       },
       "documentation":"<p>The results of a <code>DeleteInboundConnection</code> operation. Contains details about the deleted inbound connection.</p>"
     },
+    "DeleteIndexRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "IndexName"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "IndexName":{
+          "shape":"IndexName",
+          "documentation":"<p>The name of the index to delete.</p>",
+          "location":"uri",
+          "locationName":"IndexName"
+        }
+      }
+    },
+    "DeleteIndexResponse":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"IndexStatus",
+          "documentation":"<p>The status of the index deletion operation.</p>"
+        }
+      }
+    },
     "DeleteOutboundConnectionRequest":{
       "type":"structure",
       "required":["ConnectionId"],
@@ -3081,8 +3809,7 @@
     },
     "DependencyFailureException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An exception for when a failure in one of the dependencies results in the service being unable to fetch details about the resource.</p>",
       "error":{"httpStatusCode":424},
       "exception":true
@@ -3098,10 +3825,114 @@
         "ELIGIBLE"
       ]
     },
+    "DeploymentStrategy":{
+      "type":"string",
+      "documentation":"<p>Specifies the deployment strategy for the domain. Valid values are <code>Default</code> and <code>CapacityOptimized</code>.</p>",
+      "enum":[
+        "Default",
+        "CapacityOptimized"
+      ]
+    },
+    "DeploymentStrategyOptions":{
+      "type":"structure",
+      "required":["DeploymentStrategy"],
+      "members":{
+        "DeploymentStrategy":{
+          "shape":"DeploymentStrategy",
+          "documentation":"<p>Specifies the deployment strategy for the domain. Valid values are <code>Default</code> and <code>CapacityOptimized</code>.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the deployment strategy options for the domain.</p>"
+    },
+    "DeploymentStrategyOptionsStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"DeploymentStrategyOptions",
+          "documentation":"<p>Deployment strategy options for the domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the deployment strategy options for the domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of deployment strategy options for the domain.</p>"
+    },
     "DeploymentType":{
       "type":"string",
       "max":128,
       "min":2
+    },
+    "DeregisterCapabilityRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "capabilityName"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch UI application to deregister the capability from.</p>",
+          "location":"uri",
+          "locationName":"ApplicationId"
+        },
+        "capabilityName":{
+          "shape":"CapabilityName",
+          "documentation":"<p>The name of the capability to deregister.</p>",
+          "location":"uri",
+          "locationName":"CapabilityName"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>DeregisterCapability</code> operation.</p>"
+    },
+    "DeregisterCapabilityResponse":{
+      "type":"structure",
+      "members":{
+        "status":{
+          "shape":"CapabilityStatus",
+          "documentation":"<p>The status of the deregistration operation. Returns <code>deleting</code> when the capability is being removed.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>DeregisterCapability</code> request.</p>"
+    },
+    "DescribeDataSourceAttachmentRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "dataSourceArn"
+      ],
+      "members":{
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier or name of the OpenSearch application.</p>",
+          "location":"uri",
+          "locationName":"id"
+        },
+        "dataSourceArn":{"shape":"ARN"}
+      }
+    },
+    "DescribeDataSourceAttachmentResponse":{
+      "type":"structure",
+      "members":{
+        "attachmentId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier assigned to the data source attachment.</p>"
+        },
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier of the OpenSearch application.</p>"
+        },
+        "arn":{"shape":"ARN"},
+        "dataSourceArn":{"shape":"ARN"},
+        "status":{
+          "shape":"DataSourceAttachmentStatus",
+          "documentation":"<p>The status of the data source attachment. Valid values are <code>PENDING</code>, <code>ATTACHED</code>, and <code>FAILED</code>.</p>"
+        }
+      }
     },
     "DescribeDomainAutoTunesRequest":{
       "type":"structure",
@@ -3115,11 +3946,15 @@
         },
         "MaxResults":{
           "shape":"MaxResults",
-          "documentation":"<p>An optional parameter that specifies the maximum number of results to return. You can use <code>nextToken</code> to get the next page of results.</p>"
+          "documentation":"<p>An optional parameter that specifies the maximum number of results to return. You can use <code>nextToken</code> to get the next page of results.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
         },
         "NextToken":{
           "shape":"NextToken",
-          "documentation":"<p>If your initial <code>DescribeDomainAutoTunes</code> operation returns a <code>nextToken</code>, you can include the returned <code>nextToken</code> in subsequent <code>DescribeDomainAutoTunes</code> operations, which returns results in the next page.</p>"
+          "documentation":"<p>If your initial <code>DescribeDomainAutoTunes</code> operation returns a <code>nextToken</code>, you can include the returned <code>nextToken</code> in subsequent <code>DescribeDomainAutoTunes</code> operations, which returns results in the next page.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
         }
       },
       "documentation":"<p>Container for the parameters to the <code>DescribeDomainAutoTunes</code> operation.</p>"
@@ -3404,6 +4239,39 @@
       },
       "documentation":"<p>Contains a list of connections matching the filter criteria.</p>"
     },
+    "DescribeInsightDetailsRequest":{
+      "type":"structure",
+      "required":[
+        "Entity",
+        "InsightId"
+      ],
+      "members":{
+        "Entity":{
+          "shape":"InsightEntity",
+          "documentation":"<p>The entity for which to retrieve insight details. Specifies the type and value of the entity, such as a domain name or Amazon Web Services account ID.</p>"
+        },
+        "InsightId":{
+          "shape":"GUID",
+          "documentation":"<p>The unique identifier of the insight to describe.</p>"
+        },
+        "ShowHtmlContent":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to show response with HTML content in response or not.</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>DescribeInsightDetails</code> operation.</p>"
+    },
+    "DescribeInsightDetailsResponse":{
+      "type":"structure",
+      "required":["Fields"],
+      "members":{
+        "Fields":{
+          "shape":"InsightFieldList",
+          "documentation":"<p>The list of fields that contain detailed information about the insight.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>DescribeInsightDetails</code> request. Contains the detailed fields associated with the specified insight.</p>"
+    },
     "DescribeInstanceTypeLimitsRequest":{
       "type":"structure",
       "required":[
@@ -3649,6 +4517,33 @@
       }
     },
     "Description":{"type":"string"},
+    "DetachDataSourceRequest":{
+      "type":"structure",
+      "required":[
+        "id",
+        "dataSourceArn"
+      ],
+      "members":{
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier or name of the OpenSearch application to detach the data source from.</p>",
+          "location":"uri",
+          "locationName":"id"
+        },
+        "dataSourceArn":{"shape":"ARN"}
+      }
+    },
+    "DetachDataSourceResponse":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier of the OpenSearch application.</p>"
+        },
+        "arn":{"shape":"ARN"},
+        "dataSourceArn":{"shape":"ARN"}
+      }
+    },
     "DirectQueryDataSource":{
       "type":"structure",
       "members":{
@@ -3710,6 +4605,10 @@
         "SecurityLake":{
           "shape":"SecurityLakeDirectQueryDataSource",
           "documentation":"<p> Specifies Security Lake as a type of data source for direct queries. </p>"
+        },
+        "Prometheus":{
+          "shape":"PrometheusDirectQueryDataSource",
+          "documentation":"<p> Specifies Prometheus as a type of data source for direct queries. </p>"
         }
       },
       "documentation":"<p> The type of data source that is used for direct queries. This is a supported Amazon Web Services service, such as CloudWatch Logs or Security Lake. </p>",
@@ -3722,8 +4621,7 @@
     "DisableTimestamp":{"type":"timestamp"},
     "DisabledOperationException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An error occured because the client wanted to access an unsupported operation.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
@@ -3850,7 +4748,7 @@
         },
         "IdentityCenterOptions":{
           "shape":"IdentityCenterOptionsStatus",
-          "documentation":"<p>Container for IAM Identity Center Option control for the domain.</p>"
+          "documentation":"<p>Configuration options for enabling and managing IAM Identity Center integration within a domain.</p>"
         },
         "AutoTuneOptions":{
           "shape":"AutoTuneOptionsStatus",
@@ -3875,6 +4773,22 @@
         "AIMLOptions":{
           "shape":"AIMLOptionsStatus",
           "documentation":"<p>Container for parameters required to enable all machine learning features.</p>"
+        },
+        "DeploymentStrategyOptions":{
+          "shape":"DeploymentStrategyOptionsStatus",
+          "documentation":"<p>Specifies <code>DeploymentStrategyOptions</code> for the domain.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseOptionsStatus",
+          "documentation":"<p>Specifies <code>AutomatedSnapshotPauseOptions</code> for the domain.</p>"
+        },
+        "UseCase":{
+          "shape":"UseCaseStatus",
+          "documentation":"<p>The use case configured for the domain.</p>"
+        },
+        "EngineMode":{
+          "shape":"EngineModeStatus",
+          "documentation":"<p>The engine mode configured for the domain.</p>"
         }
       },
       "documentation":"<p>Container for the configuration of an OpenSearch Service domain.</p>"
@@ -3888,7 +4802,7 @@
         },
         "TLSSecurityPolicy":{
           "shape":"TLSSecurityPolicy",
-          "documentation":"<p>Specify the TLS security policy to apply to the HTTPS endpoint of the domain. The policy can be one of the following values:</p> <ul> <li> <p> <b>Policy-Min-TLS-1-0-2019-07:</b> TLS security policy that supports TLS version 1.0 to TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2019-07:</b> TLS security policy that supports only TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-PFS-2023-10:</b> TLS security policy that supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</p> </li> </ul>"
+          "documentation":"<p>Specify the TLS security policy to apply to the HTTPS endpoint of the domain. The policy can be one of the following values:</p> <ul> <li> <p> <b>Policy-Min-TLS-1-0-2019-07:</b> TLS security policy that supports TLS version 1.0 to TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-2019-07:</b> TLS security policy that supports only TLS version 1.2</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-PFS-2023-10:</b> TLS security policy that supports TLS version 1.2 to TLS version 1.3 with perfect forward secrecy cipher suites</p> </li> <li> <p> <b>Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08:</b> TLS security policy that supports TLS version 1.3 with FIPS</p> </li> </ul>"
         },
         "CustomEndpointEnabled":{
           "shape":"Boolean",
@@ -4036,7 +4950,7 @@
         },
         "NodeType":{
           "shape":"NodeType",
-          "documentation":"<p>Indicates whether the nodes is a data, master, or ultrawarm node.</p>"
+          "documentation":"<p>Indicates whether the nodes is a data, master, or UltraWarm node.</p>"
         },
         "AvailabilityZone":{
           "shape":"AvailabilityZone",
@@ -4056,7 +4970,7 @@
         },
         "StorageVolumeType":{
           "shape":"VolumeType",
-          "documentation":"<p>If the nodes has EBS storage, indicates if the volume type is GP2 or GP3. Only applicable for data nodes. </p>"
+          "documentation":"<p>If the nodes has EBS storage, indicates if the volume type is gp2 or gp3. Only applicable for data nodes. </p>"
         },
         "StorageSize":{
           "shape":"VolumeSize",
@@ -4173,7 +5087,7 @@
         },
         "ARN":{
           "shape":"ARN",
-          "documentation":"<p>The Amazon Resource Name (ARN) of the domain. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html\">IAM identifiers </a> in the <i>AWS Identity and Access Management User Guide</i>.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the domain. For more information, see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_identifiers.html\">IAM identifiers </a> in the <i>Amazon Web Services Identity and Access Management User Guide</i>.</p>"
         },
         "Created":{
           "shape":"Boolean",
@@ -4269,7 +5183,7 @@
         },
         "IdentityCenterOptions":{
           "shape":"IdentityCenterOptions",
-          "documentation":"<p>Container for IAM Identity Center Option control for the domain.</p>"
+          "documentation":"<p>Configuration options for controlling IAM Identity Center integration within a domain.</p>"
         },
         "AutoTuneOptions":{
           "shape":"AutoTuneOptionsOutput",
@@ -4298,6 +5212,22 @@
         "AIMLOptions":{
           "shape":"AIMLOptionsOutput",
           "documentation":"<p>Container for parameters required to enable all machine learning features.</p>"
+        },
+        "DeploymentStrategyOptions":{
+          "shape":"DeploymentStrategyOptions",
+          "documentation":"<p>The current status of the domain's deployment strategy options.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseOptions",
+          "documentation":"<p>The current status of the domain's automated snapshot pause options.</p>"
+        },
+        "UseCase":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The primary use case for the domain.</p>"
+        },
+        "EngineMode":{
+          "shape":"EngineMode",
+          "documentation":"<p>The engine mode for the domain.</p>"
         }
       },
       "documentation":"<p>The current status of an OpenSearch Service domain.</p>"
@@ -4306,6 +5236,16 @@
       "type":"list",
       "member":{"shape":"DomainStatus"},
       "documentation":"<p>List that contains the status of each specified OpenSearch Service domain.</p>"
+    },
+    "DomainUseCase":{
+      "type":"string",
+      "documentation":"<p>The primary use case for the domain, which determines the default configuration and the engine modes that are available. Valid values are <code>SEARCH</code> (full-text search, e-commerce, content discovery, and hybrid and semantic search), <code>VECTOR</code> (k-NN and semantic search, and retrieval-augmented generation), <code>OBSERVABILITY</code> (logs, metrics, traces, and dashboards), and <code>MIXED</code> (a combination of search and analytics). If you don't specify a use case, <code>MIXED</code> is used.</p>",
+      "enum":[
+        "SEARCH",
+        "VECTOR",
+        "OBSERVABILITY",
+        "MIXED"
+      ]
     },
     "Double":{"type":"double"},
     "DryRun":{"type":"boolean"},
@@ -4343,7 +5283,11 @@
         },
         "ValidationFailures":{
           "shape":"ValidationFailures",
-          "documentation":"<p>Any validation failures that occurred as a result of the dry run.</p>"
+          "documentation":"<p>The validation failures that occurred as a result of the dry run.</p>"
+        },
+        "AcceptedWarnings":{
+          "shape":"AcceptedWarningsList",
+          "documentation":"<p>The list of advisory warning codes that were accepted for the configuration change.</p>"
         }
       },
       "documentation":"<p>Information about the progress of a pre-upgrade dry run analysis.</p>"
@@ -4467,6 +5411,32 @@
       "key":{"shape":"String"},
       "value":{"shape":"ServiceUrl"}
     },
+    "EngineMode":{
+      "type":"string",
+      "documentation":"<p>The engine mode for the domain. Valid values are <code>GENERAL</code> (the standard OpenSearch engine) and <code>OPTIMIZED</code>. If you don't specify an engine mode, <code>GENERAL</code> is used. <code>OPTIMIZED</code> requires OpenSearch 3.5 or later, OpenSearch Optimized instance types (OR1, OR2, OM2, or OI2) for the data tier, and is available only for the <code>OBSERVABILITY</code> use cases. The engine mode can't be changed after the domain is created.</p>",
+      "enum":[
+        "GENERAL",
+        "OPTIMIZED"
+      ]
+    },
+    "EngineModeStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"EngineMode",
+          "documentation":"<p>The engine mode configured for the domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the engine mode for the domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of the engine mode for the domain.</p>"
+    },
     "EngineType":{
       "type":"string",
       "enum":[
@@ -4508,6 +5478,24 @@
     },
     "ErrorMessage":{"type":"string"},
     "ErrorType":{"type":"string"},
+    "ExportOptions":{
+      "type":"structure",
+      "members":{
+        "types":{
+          "shape":"StringList",
+          "documentation":"<p>A list of saved object types to include in the migration. Valid values include <code>dashboard</code>, <code>visualization</code>, <code>index-pattern</code>, <code>search</code>, and <code>query</code>.</p>"
+        },
+        "objects":{
+          "shape":"SavedObjectIdentifierList",
+          "documentation":"<p>A list of specific saved objects to include in the migration, identified by type and ID.</p>"
+        },
+        "includeReferencesDeep":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to include all objects referenced by the exported objects, recursively.</p>"
+        }
+      },
+      "documentation":"<p>Options to filter the scope of saved objects to export during a migration.</p>"
+    },
     "Filter":{
       "type":"structure",
       "members":{
@@ -4542,7 +5530,7 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier of the checked OpenSearch Application.</p>",
+          "documentation":"<p>The unique identifier of the OpenSearch application to retrieve.</p>",
           "location":"uri",
           "locationName":"id"
         }
@@ -4553,42 +5541,94 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier of the checked OpenSearch Application.</p>"
+          "documentation":"<p>The unique identifier of the OpenSearch application.</p>"
         },
         "arn":{"shape":"ARN"},
         "name":{
           "shape":"ApplicationName",
-          "documentation":"<p>Name of the checked OpenSearch Application.</p>"
+          "documentation":"<p>The name of the OpenSearch application.</p>"
         },
         "endpoint":{
           "shape":"String",
-          "documentation":"<p>Endpoint URL of the checked OpenSearch Application.</p>"
+          "documentation":"<p>The endpoint URL of the OpenSearch application.</p>"
         },
         "status":{
           "shape":"ApplicationStatus",
-          "documentation":"<p>Current status of the checked OpenSearch Application. Possible values are <code>CREATING</code>, <code>UPDATING</code>, <code>DELETING</code>, <code>FAILED</code>, <code>ACTIVE</code>, and <code>DELETED</code>.</p>"
+          "documentation":"<p>The current status of the OpenSearch application. Possible values: <code>CREATING</code>, <code>UPDATING</code>, <code>DELETING</code>, <code>FAILED</code>, <code>ACTIVE</code>, and <code>DELETED</code>.</p>"
         },
         "iamIdentityCenterOptions":{
           "shape":"IamIdentityCenterOptions",
-          "documentation":"<p>IAM Identity Center settings for the checked OpenSearch Application.</p>"
+          "documentation":"<p>The IAM Identity Center settings configured for the OpenSearch application.</p>"
         },
         "dataSources":{
           "shape":"DataSources",
-          "documentation":"<p>Associated data sources to the checked OpenSearch Application.</p>"
+          "documentation":"<p>The data sources associated with the OpenSearch application.</p>"
         },
         "appConfigs":{
           "shape":"AppConfigs",
-          "documentation":"<p>App configurations of the checked OpenSearch Application.</p>"
+          "documentation":"<p>The configuration settings of the OpenSearch application.</p>"
         },
         "createdAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp at which the checked OpenSearch Application was created.</p>"
+          "documentation":"<p>The timestamp when the OpenSearch application was created.</p>"
         },
         "lastUpdatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp at which the checked OpenSearch Application was last updated.</p>"
+          "documentation":"<p>The timestamp of the last update to the OpenSearch application.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the KMS key used to encrypt the application's data at rest.</p>"
         }
       }
+    },
+    "GetCapabilityRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "capabilityName"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch UI application.</p>",
+          "location":"uri",
+          "locationName":"ApplicationId"
+        },
+        "capabilityName":{
+          "shape":"CapabilityName",
+          "documentation":"<p>The name of the capability to retrieve information about.</p>",
+          "location":"uri",
+          "locationName":"CapabilityName"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>GetCapability</code> operation.</p>"
+    },
+    "GetCapabilityResponse":{
+      "type":"structure",
+      "members":{
+        "capabilityName":{
+          "shape":"CapabilityName",
+          "documentation":"<p>The name of the capability.</p>"
+        },
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch UI application.</p>"
+        },
+        "status":{
+          "shape":"CapabilityStatus",
+          "documentation":"<p>The current status of the capability. Possible values: <code>creating</code>, <code>create_failed</code>, <code>active</code>, <code>updating</code>, <code>update_failed</code>, <code>deleting</code>, <code>delete_failed</code>.</p>"
+        },
+        "capabilityConfig":{
+          "shape":"CapabilityExtendedResponseConfig",
+          "documentation":"<p>The configuration settings for the capability, including capability-specific settings such as AI configuration.</p>"
+        },
+        "failures":{
+          "shape":"CapabilityFailures",
+          "documentation":"<p>A list of failures associated with the capability, if any. Each failure includes a reason and details about what went wrong.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>GetCapability</code> request. Contains details about the capability.</p>"
     },
     "GetCompatibleVersionsRequest":{
       "type":"structure",
@@ -4656,6 +5696,16 @@
       },
       "documentation":"<p>The result of a <code>GetDataSource</code> operation.</p>"
     },
+    "GetDefaultApplicationSettingRequest":{
+      "type":"structure",
+      "members":{}
+    },
+    "GetDefaultApplicationSettingResponse":{
+      "type":"structure",
+      "members":{
+        "applicationArn":{"shape":"ARN"}
+      }
+    },
     "GetDirectQueryDataSourceRequest":{
       "type":"structure",
       "required":["DataSourceName"],
@@ -4686,6 +5736,10 @@
         "OpenSearchArns":{
           "shape":"DirectQueryOpenSearchARNList",
           "documentation":"<p> A list of Amazon Resource Names (ARNs) for the OpenSearch collections that are associated with the direct query data source. </p>"
+        },
+        "DataSourceAccessPolicy":{
+          "shape":"PolicyDocument",
+          "documentation":"<p> The IAM access policy document that defines the permissions for accessing the direct query data source. Returns the current policy configuration in JSON format, or null if no custom policy is configured. </p>"
         },
         "DataSourceArn":{
           "shape":"String",
@@ -4744,6 +5798,89 @@
         }
       },
       "documentation":"<p>The result of a <code>GetDomainMaintenanceStatus</code> request that information about the requested action.</p>"
+    },
+    "GetIndexRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "IndexName"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "IndexName":{
+          "shape":"IndexName",
+          "documentation":"<p>The name of the index to retrieve information about.</p>",
+          "location":"uri",
+          "locationName":"IndexName"
+        }
+      }
+    },
+    "GetIndexResponse":{
+      "type":"structure",
+      "required":["IndexSchema"],
+      "members":{
+        "IndexSchema":{
+          "shape":"IndexSchema",
+          "documentation":"<p>The JSON schema of the index including mappings, settings, and semantic enrichment configuration.</p>"
+        }
+      }
+    },
+    "GetMigrationRequest":{
+      "type":"structure",
+      "required":["migrationId"],
+      "members":{
+        "migrationId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the migration job to retrieve.</p>",
+          "location":"uri",
+          "locationName":"migrationId"
+        }
+      }
+    },
+    "GetMigrationResponse":{
+      "type":"structure",
+      "members":{
+        "migrationId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the migration job.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The current status of the migration job. Valid values are <code>PENDING</code>, <code>IN_PROGRESS</code>, <code>SUCCEEDED</code>, and <code>FAILED</code>.</p>"
+        },
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch application associated with the migration.</p>"
+        },
+        "source":{
+          "shape":"MigrationSource",
+          "documentation":"<p>The source configuration for the migration, including the data source ARN.</p>"
+        },
+        "exportedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of saved objects exported from the source data source.</p>"
+        },
+        "importedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of saved objects successfully imported into the target workspace.</p>"
+        },
+        "error":{
+          "shape":"MigrationError",
+          "documentation":"<p>Error details if the migration failed or completed with errors.</p>"
+        },
+        "createdAt":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The date and time when the migration job was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The date and time when the migration job was last updated.</p>"
+        }
+      }
     },
     "GetPackageVersionHistoryRequest":{
       "type":"structure",
@@ -4859,6 +5996,54 @@
       "documentation":"<p>Container for the response returned by the <code>GetUpgradeStatus</code> operation.</p>"
     },
     "HostedZoneId":{"type":"string"},
+    "IAMFederationOptionsInput":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether IAM identity federation is enabled for the OpenSearch domain.</p>"
+        },
+        "SubjectKey":{
+          "shape":"IAMFederationSubjectKey",
+          "documentation":"<p>The key in the SAML assertion that contains the user's subject identifier.</p>"
+        },
+        "RolesKey":{
+          "shape":"IAMFederationRolesKey",
+          "documentation":"<p>The key in the SAML assertion that contains the user's role information.</p>"
+        }
+      },
+      "documentation":"<p>Input parameters for configuring IAM identity federation settings.</p>"
+    },
+    "IAMFederationOptionsOutput":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether IAM identity federation is currently enabled for the domain.</p>"
+        },
+        "SubjectKey":{
+          "shape":"IAMFederationSubjectKey",
+          "documentation":"<p>The configured key in the SAML assertion for the user's subject identifier.</p>"
+        },
+        "RolesKey":{
+          "shape":"IAMFederationRolesKey",
+          "documentation":"<p>The configured key in the SAML assertion for the user's role information.</p>"
+        }
+      },
+      "documentation":"<p>Output parameters showing the current IAM identity federation configuration.</p>"
+    },
+    "IAMFederationRolesKey":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"^(null|[A-Za-z][A-Za-z0-9_.:/=+\\-@]*)$"
+    },
+    "IAMFederationSubjectKey":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"^(null|[A-Za-z][A-Za-z0-9_.:/=+\\-@]*)$"
+    },
     "IPAddressType":{
       "type":"string",
       "enum":[
@@ -4886,31 +6071,31 @@
       "members":{
         "enabled":{
           "shape":"Boolean",
-          "documentation":"<p>IAM Identity Center is enabled for the OpenSearch Application.</p>"
+          "documentation":"<p>Indicates whether IAM Identity Center is enabled for the OpenSearch application.</p>"
         },
         "iamIdentityCenterInstanceArn":{"shape":"ARN"},
         "iamRoleForIdentityCenterApplicationArn":{
           "shape":"RoleArn",
-          "documentation":"<p>Amazon Resource Name of the IAM Identity Center's Application created for the OpenSearch Application after enabling IAM Identity Center.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role assigned to the IAM Identity Center application for the OpenSearch application.</p>"
         },
         "iamIdentityCenterApplicationArn":{"shape":"ARN"}
       },
-      "documentation":"<p>Settings for IAM Identity Center for an OpenSearch Application.</p>"
+      "documentation":"<p>Configuration settings for IAM Identity Center in an OpenSearch application.</p>"
     },
     "IamIdentityCenterOptionsInput":{
       "type":"structure",
       "members":{
         "enabled":{
           "shape":"Boolean",
-          "documentation":"<p>Enable/disable settings for IAM Identity Center.</p>"
+          "documentation":"<p>Specifies whether IAM Identity Center is enabled or disabled.</p>"
         },
         "iamIdentityCenterInstanceArn":{"shape":"ARN"},
         "iamRoleForIdentityCenterApplicationArn":{
           "shape":"RoleArn",
-          "documentation":"<p>Amazon Resource Name of IAM Identity Center's application.</p>"
+          "documentation":"<p>The ARN of the IAM role associated with the IAM Identity Center application.</p>"
         }
       },
-      "documentation":"<p>Settings for IAM Identity Center.</p>"
+      "documentation":"<p>Configuration settings for enabling and managing IAM Identity Center.</p>"
     },
     "Id":{
       "type":"string",
@@ -4933,52 +6118,60 @@
       "members":{
         "EnabledAPIAccess":{
           "shape":"Boolean",
-          "documentation":"<p>True to enable IAM Identity Center for API access in Amazon OpenSearch Service.</p>"
+          "documentation":"<p>Indicates whether IAM Identity Center is enabled for the application.</p>"
         },
         "IdentityCenterInstanceARN":{
           "shape":"IdentityCenterInstanceARN",
-          "documentation":"<p>The ARN for IAM Identity Center Instance.</p>"
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM Identity Center instance.</p>"
+        },
+        "IdentityCenterInstanceRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance.</p>"
         },
         "SubjectKey":{
           "shape":"SubjectKeyIdCOption",
-          "documentation":"<p>Specify the attribute that contains the subject (username, userID, email) of IAM Identity Center.</p>"
+          "documentation":"<p>Specifies the attribute that contains the subject identifier (such as username, user ID, or email) in IAM Identity Center.</p>"
         },
         "RolesKey":{
           "shape":"RolesKeyIdCOption",
-          "documentation":"<p>Specify the attribute that contains the backend role (groupName, groupID) of IAM Identity Center</p>"
+          "documentation":"<p>Specifies the attribute that contains the backend role identifier (such as group name or group ID) in IAM Identity Center.</p>"
         },
         "IdentityCenterApplicationARN":{
           "shape":"IdentityCenterApplicationARN",
-          "documentation":"<p>The ARN for IAM Identity Center Application which will integrate with Amazon OpenSearch Service.</p>"
+          "documentation":"<p>The ARN of the IAM Identity Center application that integrates with Amazon OpenSearch Service.</p>"
         },
         "IdentityStoreId":{
           "shape":"IdentityStoreId",
-          "documentation":"<p>The ID of IAM Identity Store.</p>"
+          "documentation":"<p>The identifier of the IAM Identity Store.</p>"
         }
       },
-      "documentation":"<p>Container for IAM Identity Center Options settings.</p>"
+      "documentation":"<p>Settings container for integrating IAM Identity Center with OpenSearch UI applications, which enables enabling secure user authentication and access control across multiple data sources. This setup supports single sign-on (SSO) through IAM Identity Center, allowing centralized user management.</p>"
     },
     "IdentityCenterOptionsInput":{
       "type":"structure",
       "members":{
         "EnabledAPIAccess":{
           "shape":"Boolean",
-          "documentation":"<p>True to enable IAM Identity Center for API access in Amazon OpenSearch Service.</p>"
+          "documentation":"<p>Indicates whether IAM Identity Center is enabled for API access in Amazon OpenSearch Service.</p>"
         },
         "IdentityCenterInstanceARN":{
           "shape":"IdentityCenterInstanceARN",
-          "documentation":"<p>The ARN for IAM Identity Center Instance which will be used for IAM Identity Center Application creation.</p>"
+          "documentation":"<p>The ARN of the IAM Identity Center instance used to create an OpenSearch UI application that uses IAM Identity Center for authentication.</p>"
+        },
+        "IdentityCenterInstanceRegion":{
+          "shape":"Region",
+          "documentation":"<p>The Region of the IAM Identity Center instance.</p>"
         },
         "SubjectKey":{
           "shape":"SubjectKeyIdCOption",
-          "documentation":"<p>Specify the attribute that contains the subject (username, userID, email) of IAM Identity Center.</p>"
+          "documentation":"<p>Specifies the attribute that contains the subject identifier (such as username, user ID, or email) in IAM Identity Center.</p>"
         },
         "RolesKey":{
           "shape":"RolesKeyIdCOption",
-          "documentation":"<p>Specify the attribute that contains the backend role (groupName, groupID) of IAM Identity Center</p>"
+          "documentation":"<p>Specifies the attribute that contains the backend role identifier (such as group name or group ID) in IAM Identity Center.</p>"
         }
       },
-      "documentation":"<p>Container for IAM Identity Center Options settings.</p>"
+      "documentation":"<p>Configuration settings for enabling and managing IAM Identity Center.</p>"
     },
     "IdentityCenterOptionsStatus":{
       "type":"structure",
@@ -4989,14 +6182,14 @@
       "members":{
         "Options":{
           "shape":"IdentityCenterOptions",
-          "documentation":"<p>Container for IAM Identity Center Options settings.</p>"
+          "documentation":"<p>Configuration settings for IAM Identity Center integration.</p>"
         },
         "Status":{
           "shape":"OptionStatus",
-          "documentation":"<p>The status of IAM Identity Center Options settings for a domain.</p>"
+          "documentation":"<p>The status of IAM Identity Center configuration settings for a domain.</p>"
         }
       },
-      "documentation":"<p>The status of IAM Identity Center Options settings for a domain.</p>"
+      "documentation":"<p>The status of IAM Identity Center configuration settings for a domain.</p>"
     },
     "IdentityPoolId":{
       "type":"string",
@@ -5067,11 +6260,281 @@
       "type":"list",
       "member":{"shape":"InboundConnection"}
     },
+    "IndexName":{
+      "type":"string",
+      "documentation":"Name of OpenSearch index to be created/updated/retrieved/deleted for customer's domain",
+      "max":255,
+      "min":1,
+      "pattern":"^(?!\\.\\.?$)[^_ ,:\"+/*\\\\|?#><A-Z-][^ ,:\"+/*\\\\|?#><A-Z]*$"
+    },
+    "IndexSchema":{
+      "type":"structure",
+      "members":{},
+      "document":true
+    },
+    "IndexStatus":{
+      "type":"string",
+      "enum":[
+        "CREATED",
+        "UPDATED",
+        "DELETED"
+      ]
+    },
     "InitiatedBy":{
       "type":"string",
       "enum":[
         "CUSTOMER",
         "SERVICE"
+      ]
+    },
+    "Insight":{
+      "type":"structure",
+      "members":{
+        "InsightId":{
+          "shape":"GUID",
+          "documentation":"<p>The unique identifier of the insight.</p>"
+        },
+        "DisplayName":{
+          "shape":"String",
+          "documentation":"<p>The display name of the insight.</p>"
+        },
+        "Type":{
+          "shape":"InsightType",
+          "documentation":"<p>The type of the insight. Possible values are <code>EVENT</code> and <code>RECOMMENDATION</code>.</p>"
+        },
+        "Priority":{
+          "shape":"InsightPriorityLevel",
+          "documentation":"<p>The priority level of the insight. Possible values are <code>CRITICAL</code>, <code>HIGH</code>, <code>MEDIUM</code>, and <code>LOW</code>.</p>"
+        },
+        "Status":{
+          "shape":"InsightStatus",
+          "documentation":"<p>The current status of the insight. Possible values are <code>ACTIVE</code>, <code>RESOLVED</code>, and <code>DISMISSED</code>.</p>"
+        },
+        "CreationTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The timestamp when the insight was created, in epoch milliseconds.</p>"
+        },
+        "UpdateTime":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The timestamp when the insight was last updated, in epoch milliseconds.</p>"
+        },
+        "IsExperimental":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the insight is experimental.</p>"
+        }
+      },
+      "documentation":"<p>Represents an insight returned by the <code>ListInsights</code> operation. An insight is a notification about a domain event or recommendation that helps you optimize your Amazon OpenSearch Service domain.</p>"
+    },
+    "InsightEntity":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"InsightEntityType",
+          "documentation":"<p>The type of the entity. Possible values are <code>Account</code> and <code>DomainName</code>.</p>"
+        },
+        "Value":{
+          "shape":"InsightEntityValue",
+          "documentation":"<p>The value of the entity. For <code>DomainName</code>, this is the domain name. For <code>Account</code>, this is the Amazon Web Services account ID.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the entity for which to retrieve insights. An entity can be an Amazon OpenSearch Service domain or an Amazon Web Services account.</p>"
+    },
+    "InsightEntityType":{
+      "type":"string",
+      "documentation":"<p>The type of entity for which to retrieve insights. Possible values are <code>Account</code> and <code>DomainName</code>.</p>",
+      "enum":[
+        "Account",
+        "DomainName"
+      ]
+    },
+    "InsightEntityValue":{
+      "type":"string",
+      "documentation":"<p>The value of the entity, such as a domain name or Amazon Web Services account ID.</p>",
+      "max":28,
+      "min":3,
+      "pattern":"([a-z][a-z0-9\\-]+|\\d{12})"
+    },
+    "InsightFeedbackEntity":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "Value"
+      ],
+      "members":{
+        "Type":{
+          "shape":"InsightFeedbackEntityType",
+          "documentation":"<p>The type of the entity. Possible values are <code>DomainName</code>.</p>"
+        },
+        "Value":{
+          "shape":"InsightEntityValue",
+          "documentation":"<p>The value of the entity, such as a domain name.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the entity for which to submit insight feedback. An entity represents an Amazon OpenSearch Service domain.</p>"
+    },
+    "InsightFeedbackEntityType":{
+      "type":"string",
+      "documentation":"<p>The type of entity for which to submit insight feedback. Possible values are <code>DomainName</code>.</p>",
+      "enum":["DomainName"]
+    },
+    "InsightFeedbackRequest":{
+      "type":"structure",
+      "required":[
+        "Entity",
+        "InsightId",
+        "Thumbs"
+      ],
+      "members":{
+        "Entity":{
+          "shape":"InsightFeedbackEntity",
+          "documentation":"<p>The entity for which to submit insight feedback. Specifies the type and value of the entity, such as a domain name.</p>"
+        },
+        "InsightId":{
+          "shape":"GUID",
+          "documentation":"<p>The unique identifier of the insight for which to submit feedback.</p>"
+        },
+        "Thumbs":{
+          "shape":"InsightFeedbackThumbs",
+          "documentation":"<p>The thumbs up or thumbs down feedback for the insight. Possible values are <code>Up</code> and <code>Down</code>.</p>"
+        },
+        "FeedbackText":{
+          "shape":"InsightFeedbackText",
+          "documentation":"<p>Optional text feedback providing additional details about the insight. Maximum length is 1000 characters.</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>InsightFeedback</code> operation.</p>"
+    },
+    "InsightFeedbackResponse":{
+      "type":"structure",
+      "members":{
+        "Status":{
+          "shape":"InsightResponseStatus",
+          "documentation":"<p>The status of the feedback submission. Possible values are <code>SUCCESS</code> and <code>ERROR</code>.</p>"
+        }
+      },
+      "documentation":"<p>The result of an <code>InsightFeedback</code> request. Contains the status of the feedback submission.</p>"
+    },
+    "InsightFeedbackText":{
+      "type":"string",
+      "documentation":"<p>Optional text feedback providing additional details about an insight. Maximum length is 1000 characters.</p>",
+      "max":1000,
+      "min":0
+    },
+    "InsightFeedbackThumbs":{
+      "type":"string",
+      "documentation":"<p>The thumbs up or thumbs down feedback for an insight. Possible values are <code>Up</code> and <code>Down</code>.</p>",
+      "enum":[
+        "Up",
+        "Down"
+      ]
+    },
+    "InsightField":{
+      "type":"structure",
+      "required":[
+        "Name",
+        "Type",
+        "Value"
+      ],
+      "members":{
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of the insight field.</p>"
+        },
+        "Type":{
+          "shape":"InsightFieldType",
+          "documentation":"<p>The type of the insight field. Possible values are <code>text</code> and <code>metric</code>.</p>"
+        },
+        "Value":{
+          "shape":"String",
+          "documentation":"<p>The value of the insight field.</p>"
+        }
+      },
+      "documentation":"<p>Represents a field in the detailed view of an insight, returned by the <code>DescribeInsightDetails</code> operation.</p>"
+    },
+    "InsightFieldList":{
+      "type":"list",
+      "member":{"shape":"InsightField"},
+      "documentation":"<p>A list of insight fields.</p>"
+    },
+    "InsightFieldType":{
+      "type":"string",
+      "documentation":"<p>The type of an insight field. Possible values are <code>text</code> and <code>metric</code>.</p>",
+      "enum":[
+        "text",
+        "metric"
+      ]
+    },
+    "InsightList":{
+      "type":"list",
+      "member":{"shape":"Insight"},
+      "documentation":"<p>A list of insights.</p>"
+    },
+    "InsightPageSize":{
+      "type":"integer",
+      "documentation":"<p>The maximum number of insights to return per page. Valid values are 1 to 500.</p>",
+      "max":500,
+      "min":1
+    },
+    "InsightPriorityLevel":{
+      "type":"string",
+      "documentation":"<p>The priority level of an insight. Possible values are <code>CRITICAL</code>, <code>HIGH</code>, <code>MEDIUM</code>, and <code>LOW</code>.</p>",
+      "enum":[
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ]
+    },
+    "InsightResponseStatus":{
+      "type":"string",
+      "documentation":"<p>The status of an insight response. Possible values are <code>SUCCESS</code> and <code>ERROR</code>.</p>",
+      "enum":[
+        "SUCCESS",
+        "ERROR"
+      ]
+    },
+    "InsightSortOrder":{
+      "type":"string",
+      "documentation":"<p>The sort order for listing insights. Possible values are <code>ASC</code> (ascending) and <code>DESC</code> (descending).</p>",
+      "enum":[
+        "ASC",
+        "DESC"
+      ]
+    },
+    "InsightStatus":{
+      "type":"string",
+      "documentation":"<p>The status of an insight. Possible values are <code>ACTIVE</code>, <code>RESOLVED</code>, and <code>DISMISSED</code>.</p>",
+      "enum":[
+        "ACTIVE",
+        "RESOLVED",
+        "DISMISSED"
+      ]
+    },
+    "InsightTimeRange":{
+      "type":"structure",
+      "required":[
+        "From",
+        "To"
+      ],
+      "members":{
+        "From":{
+          "shape":"Long",
+          "documentation":"<p>The start of the time range, in epoch milliseconds.</p>"
+        },
+        "To":{
+          "shape":"Long",
+          "documentation":"<p>The end of the time range, in epoch milliseconds.</p>"
+        }
+      },
+      "documentation":"<p>Specifies the time range for filtering insights.</p>"
+    },
+    "InsightType":{
+      "type":"string",
+      "documentation":"<p>The type of an insight. Possible values are <code>EVENT</code> and <code>RECOMMENDATION</code>.</p>",
+      "enum":[
+        "EVENT",
+        "RECOMMENDATION"
       ]
     },
     "InstanceCount":{
@@ -5160,24 +6623,21 @@
     "IntegerClass":{"type":"integer"},
     "InternalException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Request processing failed because of an unknown error, exception, or internal failure.</p>",
       "error":{"httpStatusCode":500},
       "exception":true
     },
     "InvalidPaginationTokenException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Request processing failed because you provided an invalid pagination token.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
     },
     "InvalidTypeException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An exception for trying to create or access a sub-resource that's either invalid or not supported.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
@@ -5202,6 +6662,10 @@
           "shape":"RolesKey",
           "documentation":"<p>Element of the JWT assertion to use for roles.</p>"
         },
+        "JwksUrl":{
+          "shape":"JwksUrl",
+          "documentation":"<p>The URL endpoint that hosts the JSON Web Key Set (JWKS) containing public keys used to verify JWT signatures.</p>"
+        },
         "PublicKey":{
           "shape":"String",
           "documentation":"<p>Element of the JWT assertion used by the cluster to verify JWT signatures.</p>"
@@ -5224,12 +6688,22 @@
           "shape":"String",
           "documentation":"<p>The key used for matching the JWT roles attribute.</p>"
         },
+        "JwksUrl":{
+          "shape":"JwksUrl",
+          "documentation":"<p>The configured JWKS URL endpoint from which the cluster retrieves public keys to verify JWT requests.</p>"
+        },
         "PublicKey":{
           "shape":"String",
           "documentation":"<p>The key used to verify the signature of incoming JWT requests.</p>"
         }
       },
       "documentation":"<p>Describes the JWT options configured for the domain.</p>"
+    },
+    "JwksUrl":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"^$|^https://(?!(?:10|127|169\\.254|192\\.168|172\\.(?:1[6-9]|2[0-9]|3[01]))\\.)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*\\.[a-zA-Z]{2,}(?::[0-9]{1,5})?(?:/[a-zA-Z0-9\\-._~%!$&'()*+,;=:'@]*(?:/[a-zA-Z0-9\\-._~%!$&'()*+,;=:'@]*)*)?(?:\\?[a-zA-Z0-9\\-._~%!$&'()*+,;=:'/@?]+)?$"
     },
     "KeyStoreAccessOption":{
       "type":"structure",
@@ -5246,6 +6720,12 @@
       },
       "documentation":"<p>The configuration parameters to enable access to the key store required by the package.</p>"
     },
+    "KmsKeyArn":{
+      "type":"string",
+      "max":2048,
+      "min":20,
+      "pattern":"^arn:aws[a-zA-Z-]*:kms:[a-z0-9-]+:[0-9]{12}:key/[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}$"
+    },
     "KmsKeyId":{
       "type":"string",
       "max":500,
@@ -5260,8 +6740,7 @@
     },
     "LimitExceededException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An exception for trying to create more than the allowed number of resources or sub-resources.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
@@ -5306,7 +6785,7 @@
         },
         "statuses":{
           "shape":"ApplicationStatuses",
-          "documentation":"<p>OpenSearch Application Status can be used as filters for the listing request. Possible values are <code>CREATING</code>, <code>UPDATING</code>, <code>DELETING</code>, <code>FAILED</code>, <code>ACTIVE</code>, and <code>DELETED</code>.</p>",
+          "documentation":"<p>Filters the list of OpenSearch applications by status. Possible values: <code>CREATING</code>, <code>UPDATING</code>, <code>DELETING</code>, <code>FAILED</code>, <code>ACTIVE</code>, and <code>DELETED</code>.</p>",
           "location":"querystring",
           "locationName":"statuses"
         },
@@ -5322,9 +6801,42 @@
       "members":{
         "ApplicationSummaries":{
           "shape":"ApplicationSummaries",
-          "documentation":"<p>Summary of the OpenSearch Applications, including ID, ARN, name, endpoint, status, create time and last update time.</p>"
+          "documentation":"<p>Summarizes OpenSearch applications, including ID, ARN, name, endpoint, status, creation time, and last update time.</p>"
         },
         "nextToken":{"shape":"NextToken"}
+      }
+    },
+    "ListDataSourceAttachmentsRequest":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"Id",
+          "documentation":"<p>The unique identifier or name of the OpenSearch application to list attachments for.</p>",
+          "location":"uri",
+          "locationName":"id"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token from a previous call to retrieve the next set of results.</p>"
+        },
+        "maxResults":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum number of results to return per page. The default is 50.</p>"
+        }
+      }
+    },
+    "ListDataSourceAttachmentsResponse":{
+      "type":"structure",
+      "members":{
+        "attachments":{
+          "shape":"DataSourceAttachmentSummaryList",
+          "documentation":"<p>A list of data source attachment summaries for the specified application.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token to use in a subsequent call to retrieve the next set of results.</p>"
+        }
       }
     },
     "ListDataSourcesRequest":{
@@ -5482,6 +6994,47 @@
       },
       "documentation":"<p>Container for the response parameters to the <code>ListDomainsForPackage</code> operation.</p>"
     },
+    "ListInsightsRequest":{
+      "type":"structure",
+      "required":["Entity"],
+      "members":{
+        "Entity":{
+          "shape":"InsightEntity",
+          "documentation":"<p>The entity for which to list insights. Specifies the type and value of the entity, such as a domain name or Amazon Web Services account ID.</p>"
+        },
+        "TimeRange":{
+          "shape":"InsightTimeRange",
+          "documentation":"<p>The time range for filtering insights, specified as epoch millisecond timestamps.</p>"
+        },
+        "SortOrder":{
+          "shape":"InsightSortOrder",
+          "documentation":"<p>The sort order for the results. Possible values are <code>ASC</code> (ascending) and <code>DESC</code> (descending).</p>"
+        },
+        "MaxResults":{
+          "shape":"InsightPageSize",
+          "documentation":"<p>An optional parameter that specifies the maximum number of results to return. You can use <code>NextToken</code> to get the next page of results. Valid values are 1 to 500.</p>"
+        },
+        "NextToken":{
+          "shape":"String",
+          "documentation":"<p>If your initial <code>ListInsights</code> operation returns a <code>NextToken</code>, include the returned <code>NextToken</code> in subsequent <code>ListInsights</code> operations to retrieve the next page of results.</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>ListInsights</code> operation.</p>"
+    },
+    "ListInsightsResponse":{
+      "type":"structure",
+      "members":{
+        "Insights":{
+          "shape":"InsightList",
+          "documentation":"<p>The list of insights returned for the specified entity.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>When <code>NextToken</code> is returned, there are more results available. The value of <code>NextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>ListInsights</code> request. Contains the list of insights and a pagination token for retrieving the next page of results.</p>"
+    },
     "ListInstanceTypeDetailsRequest":{
       "type":"structure",
       "required":["EngineVersion"],
@@ -5534,6 +7087,49 @@
         "NextToken":{
           "shape":"NextToken",
           "documentation":"<p>When <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. Send the request again using the returned token to retrieve the next page.</p>"
+        }
+      }
+    },
+    "ListMigrationsRequest":{
+      "type":"structure",
+      "required":["applicationId"],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch application to list migrations for.</p>",
+          "location":"querystring",
+          "locationName":"applicationId"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>Filters the results by migration status. Valid values are <code>PENDING</code>, <code>IN_PROGRESS</code>, <code>SUCCEEDED</code>, and <code>FAILED</code>.</p>",
+          "location":"querystring",
+          "locationName":"status"
+        },
+        "maxResults":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum number of results to return in a single call.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token from a previous call to retrieve the next set of results.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "ListMigrationsResponse":{
+      "type":"structure",
+      "members":{
+        "migrations":{
+          "shape":"MigrationSummaryList",
+          "documentation":"<p>A list of migration job summaries for the specified application.</p>"
+        },
+        "nextToken":{
+          "shape":"String",
+          "documentation":"<p>The pagination token to use in a subsequent call to retrieve the next set of results.</p>"
         }
       }
     },
@@ -5873,6 +7469,125 @@
       "max":1024,
       "min":0
     },
+    "MigrationError":{
+      "type":"structure",
+      "members":{
+        "code":{
+          "shape":"String",
+          "documentation":"<p>The error code identifying the type of failure.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A human-readable description of the error.</p>"
+        }
+      },
+      "documentation":"<p>Contains error details for a migration that failed or completed with errors.</p>"
+    },
+    "MigrationOptions":{
+      "type":"structure",
+      "required":[
+        "source",
+        "workspace"
+      ],
+      "members":{
+        "source":{
+          "shape":"MigrationSource",
+          "documentation":"<p>The data source from which to export saved objects.</p>"
+        },
+        "workspace":{
+          "shape":"MigrationWorkspace",
+          "documentation":"<p>The target workspace configuration for importing saved objects. You can specify an existing workspace or request creation of a new workspace.</p>"
+        },
+        "exportOptions":{
+          "shape":"ExportOptions",
+          "documentation":"<p>Options to filter the scope of saved objects to export from the source.</p>"
+        },
+        "conflictResolution":{
+          "shape":"String",
+          "documentation":"<p>The strategy for resolving conflicts when saved objects already exist in the target workspace. Valid values are <code>CREATE_NEW_COPIES</code>, which creates new objects with unique IDs, and <code>overwrite</code>, which replaces existing objects.</p>"
+        }
+      },
+      "documentation":"<p>The configuration options for a saved objects migration job.</p>"
+    },
+    "MigrationSource":{
+      "type":"structure",
+      "required":["datasourceArn"],
+      "members":{
+        "datasourceArn":{
+          "shape":"ARN",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the data source to migrate saved objects from.</p>"
+        }
+      },
+      "documentation":"<p>The source configuration for a migration, specifying the data source from which to export saved objects.</p>"
+    },
+    "MigrationSummary":{
+      "type":"structure",
+      "members":{
+        "migrationId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the migration job.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The current status of the migration job.</p>"
+        },
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch application associated with the migration.</p>"
+        },
+        "source":{
+          "shape":"MigrationSource",
+          "documentation":"<p>The source configuration for the migration.</p>"
+        },
+        "exportedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of saved objects exported from the source data source.</p>"
+        },
+        "importedCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of saved objects successfully imported into the target workspace.</p>"
+        },
+        "error":{
+          "shape":"MigrationError",
+          "documentation":"<p>Error details if the migration failed or completed with errors.</p>"
+        },
+        "createdAt":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The date and time when the migration job was created.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdateTimestamp",
+          "documentation":"<p>The date and time when the migration job was last updated.</p>"
+        }
+      },
+      "documentation":"<p>A summary of a migration job, including its status and progress.</p>"
+    },
+    "MigrationSummaryList":{
+      "type":"list",
+      "member":{"shape":"MigrationSummary"}
+    },
+    "MigrationWorkspace":{
+      "type":"structure",
+      "members":{
+        "workspaceId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of an existing workspace to use as the migration target. Specify either this parameter or <code>createWorkspace</code>.</p>"
+        },
+        "createWorkspace":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to create a new workspace as the migration target. If <code>true</code>, you must also specify <code>name</code>.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the new workspace to create. Required when <code>createWorkspace</code> is <code>true</code>.</p>"
+        },
+        "type":{
+          "shape":"String",
+          "documentation":"<p>The type of the new workspace to create.</p>"
+        }
+      },
+      "documentation":"<p>The target workspace configuration for a migration. You can specify an existing workspace by ID or request creation of a new workspace.</p>"
+    },
     "MinimumInstanceCount":{
       "type":"integer",
       "documentation":"<p> Minimum number of instances that can be instantiated for a given instance type.</p>"
@@ -5955,18 +7670,18 @@
       "members":{
         "Enabled":{
           "shape":"Boolean",
-          "documentation":"<p>A boolean that indicates whether a particular node type is enabled or not.</p>"
+          "documentation":"<p>A boolean value indicating whether a specific node type is active or inactive.</p>"
         },
         "Type":{
           "shape":"OpenSearchPartitionInstanceType",
-          "documentation":"<p>The instance type of a particular node type in the cluster.</p>"
+          "documentation":"<p>The instance type of a particular node within the cluster.</p>"
         },
         "Count":{
           "shape":"IntegerClass",
-          "documentation":"<p>The number of nodes of a particular node type in the cluster.</p>"
+          "documentation":"<p>The number of nodes of a specific type within the cluster.</p>"
         }
       },
-      "documentation":"<p>Container for specifying configuration of any node type.</p>"
+      "documentation":"<p>Configuration options for defining the setup of any node type within the cluster.</p>"
     },
     "NodeId":{
       "type":"string",
@@ -5978,14 +7693,14 @@
       "members":{
         "NodeType":{
           "shape":"NodeOptionsNodeType",
-          "documentation":"<p>Container for node type like coordinating.</p>"
+          "documentation":"<p>Defines the type of node, such as coordinating nodes.</p>"
         },
         "NodeConfig":{
           "shape":"NodeConfig",
-          "documentation":"<p>Container for specifying configuration of any node type.</p>"
+          "documentation":"<p>Configuration options for defining the setup of any node type.</p>"
         }
       },
-      "documentation":"<p>Container for specifying node type.</p>"
+      "documentation":"<p>Configuration settings for defining the node type within a cluster.</p>"
     },
     "NodeOptionsList":{
       "type":"list",
@@ -6036,7 +7751,8 @@
       "enum":[
         "Data",
         "Ultrawarm",
-        "Master"
+        "Master",
+        "Warm"
       ]
     },
     "NonEmptyString":{
@@ -6431,7 +8147,7 @@
         },
         "PackageOwner":{
           "shape":"PackageOwner",
-          "documentation":"<p>The owner of the package who is allowed to create/update a package and add users to the package scope.</p>"
+          "documentation":"<p>The owner of the package who is allowed to create and update a package and add users to the package scope.</p>"
         },
         "PackageVendingOptions":{
           "shape":"PackageVendingOptions",
@@ -6439,7 +8155,7 @@
         },
         "PackageEncryptionOptions":{
           "shape":"PackageEncryptionOptions",
-          "documentation":"<p>Package Encryption Options for a package.</p>"
+          "documentation":"<p>Encryption options for a package.</p>"
         }
       },
       "documentation":"<p>Basic information about a package.</p>"
@@ -6454,7 +8170,7 @@
         },
         "PrerequisitePackageIDList":{
           "shape":"PackageIDList",
-          "documentation":"<p>List of package IDs that must be associated with the domain with or before the package can be associated.</p>"
+          "documentation":"<p>List of package IDs that must be linked to the domain before or simultaneously with the package association.</p>"
         },
         "AssociationConfiguration":{
           "shape":"PackageAssociationConfiguration",
@@ -6477,11 +8193,11 @@
       "members":{
         "KmsKeyIdentifier":{
           "shape":"KmsKeyId",
-          "documentation":"<p> KMS key ID for encrypting the package.</p>"
+          "documentation":"<p>KMS key ID for encrypting the package.</p>"
         },
         "EncryptionEnabled":{
           "shape":"Boolean",
-          "documentation":"<p>This indicates whether encryption is enabled for the package.</p>"
+          "documentation":"<p>Whether encryption is enabled for the package.</p>"
         }
       },
       "documentation":"<p>Encryption options for a package.</p>"
@@ -6564,10 +8280,10 @@
       "members":{
         "VendingEnabled":{
           "shape":"Boolean",
-          "documentation":"<p>This indicates whether vending is enabled for the package to determine if package can be used by other users. </p>"
+          "documentation":"<p>Indicates whether the package vending feature is enabled, allowing the package to be used by other users.</p>"
         }
       },
-      "documentation":"<p>The vending options for a package to determine if the package can be used by other users. </p>"
+      "documentation":"<p>Configuration options for determining whether a package can be made available for use by other users.</p>"
     },
     "PackageVersion":{"type":"string"},
     "PackageVersionHistory":{
@@ -6606,6 +8322,16 @@
       "min":8,
       "pattern":".*",
       "sensitive":true
+    },
+    "PauseState":{
+      "type":"string",
+      "documentation":"<p>The state of the automated snapshot pause. Valid values are <code>Active</code>, <code>Completed</code>, <code>Scheduled</code>, and <code>Disabled</code>.</p>",
+      "enum":[
+        "Active",
+        "Completed",
+        "Scheduled",
+        "Disabled"
+      ]
     },
     "PluginClassName":{
       "type":"string",
@@ -6663,6 +8389,24 @@
         "AWS_SERVICE"
       ]
     },
+    "PrometheusDirectQueryDataSource":{
+      "type":"structure",
+      "required":[
+        "RoleArn",
+        "WorkspaceArn"
+      ],
+      "members":{
+        "RoleArn":{
+          "shape":"DirectQueryDataSourceRoleArn",
+          "documentation":"<p> The unique identifier of the IAM role that grants OpenSearch Service permission to access the specified data source. </p>"
+        },
+        "WorkspaceArn":{
+          "shape":"AMPWorkspaceArn",
+          "documentation":"<p> The unique identifier of the Amazon Managed Prometheus Workspace that is associated with the specified data source. </p>"
+        }
+      },
+      "documentation":"<p> Configuration details for a Prometheus data source that can be used for direct queries. </p>"
+    },
     "PropertyValueType":{
       "type":"string",
       "enum":[
@@ -6706,6 +8450,26 @@
       },
       "documentation":"<p>Represents the output of a <code>PurchaseReservedInstanceOffering</code> operation.</p>"
     },
+    "PutDefaultApplicationSettingRequest":{
+      "type":"structure",
+      "required":[
+        "applicationArn",
+        "setAsDefault"
+      ],
+      "members":{
+        "applicationArn":{"shape":"ARN"},
+        "setAsDefault":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to true to set the specified ARN as the default application. Set to false to clear the default application.</p>"
+        }
+      }
+    },
+    "PutDefaultApplicationSettingResponse":{
+      "type":"structure",
+      "members":{
+        "applicationArn":{"shape":"ARN"}
+      }
+    },
     "RecurringCharge":{
       "type":"structure",
       "members":{
@@ -6727,9 +8491,61 @@
     "ReferencePath":{"type":"string"},
     "Region":{
       "type":"string",
+      "documentation":"<p>An Amazon Web Services Region, such as <code>us-east-1</code>.</p>",
       "max":30,
       "min":5,
       "pattern":"[a-z][a-z0-9\\-]+"
+    },
+    "RegionsList":{
+      "type":"list",
+      "member":{"shape":"Region"}
+    },
+    "RegisterCapabilityRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "capabilityName",
+        "capabilityConfig"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch UI application to register the capability for.</p>",
+          "location":"uri",
+          "locationName":"ApplicationId"
+        },
+        "capabilityName":{
+          "shape":"CapabilityName",
+          "documentation":"<p>The name of the capability to register. Must be between 3 and 30 characters and contain only alphanumeric characters and hyphens. This identifies the type of capability being enabled for the application. For registering AI Assistant capability, use <code>ai-capability</code> </p>"
+        },
+        "capabilityConfig":{
+          "shape":"CapabilityBaseRequestConfig",
+          "documentation":"<p>The configuration settings for the capability being registered. This includes capability-specific settings such as AI configuration.</p>"
+        }
+      },
+      "documentation":"<p>Container for the parameters to the <code>RegisterCapability</code> operation.</p>"
+    },
+    "RegisterCapabilityResponse":{
+      "type":"structure",
+      "members":{
+        "capabilityName":{
+          "shape":"CapabilityName",
+          "documentation":"<p>The name of the registered capability.</p>"
+        },
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch UI application.</p>"
+        },
+        "status":{
+          "shape":"CapabilityStatus",
+          "documentation":"<p>The current status of the capability. Possible values: <code>creating</code>, <code>create_failed</code>, <code>active</code>, <code>updating</code>, <code>update_failed</code>, <code>deleting</code>, <code>delete_failed</code>.</p>"
+        },
+        "capabilityConfig":{
+          "shape":"CapabilityBaseResponseConfig",
+          "documentation":"<p>The configuration settings for the registered capability.</p>"
+        }
+      },
+      "documentation":"<p>The result of a <code>RegisterCapability</code> request. Contains details about the registered capability.</p>"
     },
     "RejectInboundConnectionRequest":{
       "type":"structure",
@@ -6910,16 +8726,14 @@
     },
     "ResourceAlreadyExistsException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An exception for creating a resource that already exists.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
     },
     "ResourceNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An exception for accessing or deleting a resource that doesn't exist.</p>",
       "error":{"httpStatusCode":409},
       "exception":true
@@ -6941,13 +8755,16 @@
         "Service":{
           "shape":"AWSServicePrincipal",
           "documentation":"<p>The service SP to revoke access from.</p>"
+        },
+        "ServiceOptions":{
+          "shape":"ServiceOptions",
+          "documentation":"<p>The options for the service, including the supported Regions for the endpoint access.</p>"
         }
       }
     },
     "RevokeVpcEndpointAccessResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RoleArn":{
       "type":"string",
@@ -6975,6 +8792,49 @@
         "DEFAULT_ROLLBACK"
       ]
     },
+    "RollbackServiceSoftwareOptions":{
+      "type":"structure",
+      "members":{
+        "CurrentVersion":{
+          "shape":"String",
+          "documentation":"<p>The current service software version on the domain.</p>"
+        },
+        "NewVersion":{
+          "shape":"String",
+          "documentation":"<p>The service software version that the domain will roll back to.</p>"
+        },
+        "RollbackAvailable":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether a service software rollback is available for the domain.</p>"
+        },
+        "Description":{
+          "shape":"String",
+          "documentation":"<p>A description of the rollback status.</p>"
+        }
+      },
+      "documentation":"<p>Details about the rollback options for a service software update.</p>"
+    },
+    "RollbackServiceSoftwareUpdateRequest":{
+      "type":"structure",
+      "required":["DomainName"],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "documentation":"<p>The name of the domain to roll back the service software update on.</p>"
+        }
+      },
+      "documentation":"<p>Container for the request parameters to the <code>RollbackServiceSoftwareUpdate</code> operation.</p>"
+    },
+    "RollbackServiceSoftwareUpdateResponse":{
+      "type":"structure",
+      "members":{
+        "RollbackServiceSoftwareOptions":{
+          "shape":"RollbackServiceSoftwareOptions",
+          "documentation":"<p>The rollback options for the service software update.</p>"
+        }
+      },
+      "documentation":"<p>Contains details about the rolled-back service software update.</p>"
+    },
     "S3BucketName":{
       "type":"string",
       "max":63,
@@ -6994,6 +8854,16 @@
       "type":"string",
       "max":1024,
       "min":1
+    },
+    "S3VectorsEngine":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Enables S3 vectors engine features.</p>"
+        }
+      },
+      "documentation":"<p>Options for enabling S3 vectors engine features on the specified domain.</p>"
     },
     "SAMLEntityId":{
       "type":"string",
@@ -7082,6 +8952,28 @@
         }
       },
       "documentation":"<p>Describes the SAML application configured for the domain.</p>"
+    },
+    "SavedObjectIdentifier":{
+      "type":"structure",
+      "required":[
+        "type",
+        "id"
+      ],
+      "members":{
+        "type":{
+          "shape":"String",
+          "documentation":"<p>The type of the saved object, such as <code>dashboard</code>, <code>visualization</code>, <code>index-pattern</code>, <code>search</code>, or <code>query</code>.</p>"
+        },
+        "id":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the saved object.</p>"
+        }
+      },
+      "documentation":"<p>Identifies a specific saved object by its type and unique identifier.</p>"
+    },
+    "SavedObjectIdentifierList":{
+      "type":"list",
+      "member":{"shape":"SavedObjectIdentifier"}
     },
     "ScheduleAt":{
       "type":"string",
@@ -7204,6 +9096,33 @@
       },
       "documentation":"<p> Configuration details for a Security Lake data source that can be used for direct queries. </p>"
     },
+    "ServerlessVectorAcceleration":{
+      "type":"structure",
+      "members":{
+        "Enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether serverless vector acceleration is enabled for the domain.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for serverless vector acceleration, which provides <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/gpu-acceleration-vector-index.html\">GPU-accelerated</a> vector search capabilities for improved performance on vector workloads.</p>"
+    },
+    "ServiceOptions":{
+      "type":"structure",
+      "members":{
+        "SupportedRegions":{
+          "shape":"RegionsList",
+          "documentation":"<p>The list of supported Regions for the service.</p>"
+        }
+      },
+      "documentation":"<p>Options for the service, such as the supported Regions.</p>"
+    },
+    "ServiceQuotaExceededException":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>An exception for when a request would cause a service quota to be exceeded.</p>",
+      "error":{"httpStatusCode":402},
+      "exception":true
+    },
     "ServiceSoftwareOptions":{
       "type":"structure",
       "members":{
@@ -7304,6 +9223,10 @@
         "AutoSoftwareUpdateEnabled":{
           "shape":"Boolean",
           "documentation":"<p>Whether automatic service software updates are enabled for the domain.</p>"
+        },
+        "UseLatestServiceSoftwareForBlueGreen":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether the domain should use the latest service software version during a blue/green deployment. If enabled, the domain will automatically use the latest available service software when a blue/green deployment is triggered.</p>"
         }
       },
       "documentation":"<p>Options for configuring service software updates for a domain.</p>"
@@ -7356,6 +9279,40 @@
         }
       },
       "documentation":"<p>The result of a <code>StartDomainMaintenance</code> request that information about the requested action. </p>"
+    },
+    "StartMigrationRequest":{
+      "type":"structure",
+      "required":[
+        "applicationId",
+        "migrationOptions"
+      ],
+      "members":{
+        "applicationId":{
+          "shape":"ApplicationId",
+          "documentation":"<p>The unique identifier of the OpenSearch application to migrate saved objects into.</p>"
+        },
+        "migrationOptions":{
+          "shape":"MigrationOptions",
+          "documentation":"<p>The configuration options for the migration, including the source data source, target workspace, export filters, and conflict resolution strategy.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure that the operation completes no more than one time. If this token matches a previous request, Amazon OpenSearch Service ignores the request but does not return an error.</p>"
+        }
+      }
+    },
+    "StartMigrationResponse":{
+      "type":"structure",
+      "members":{
+        "migrationId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the migration job.</p>"
+        },
+        "status":{
+          "shape":"String",
+          "documentation":"<p>The initial status of the migration job. The status is <code>PENDING</code> when a migration is first created.</p>"
+        }
+      }
     },
     "StartServiceSoftwareUpdateRequest":{
       "type":"structure",
@@ -7468,7 +9425,8 @@
       "enum":[
         "Policy-Min-TLS-1-0-2019-07",
         "Policy-Min-TLS-1-2-2019-07",
-        "Policy-Min-TLS-1-2-PFS-2023-10"
+        "Policy-Min-TLS-1-2-PFS-2023-10",
+        "Policy-Min-TLS-1-2-RFC9151-FIPS-2024-08"
       ]
     },
     "Tag":{
@@ -7508,6 +9466,13 @@
       "min":0,
       "pattern":".*"
     },
+    "ThrottlingException":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>The request was denied due to request throttling. Reduce the frequency of your requests and try again.</p>",
+      "error":{"httpStatusCode":429},
+      "exception":true
+    },
     "TimeUnit":{
       "type":"string",
       "documentation":"<p>The unit of a maintenance schedule duration. Valid value is <code>HOUR</code>.</p>",
@@ -7526,17 +9491,21 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier of the OpenSearch Application to be updated.</p>",
+          "documentation":"<p>The unique identifier for the OpenSearch application to be updated.</p>",
           "location":"uri",
           "locationName":"id"
         },
         "dataSources":{
           "shape":"DataSources",
-          "documentation":"<p>Data sources to be associated with the OpenSearch Application.</p>"
+          "documentation":"<p>The data sources to associate with the OpenSearch application.</p>"
         },
         "appConfigs":{
           "shape":"AppConfigs",
-          "documentation":"<p>Configurations to be changed for the OpenSearch Application.</p>"
+          "documentation":"<p>The configuration settings to modify for the OpenSearch application.</p>"
+        },
+        "iamIdentityCenterOptions":{
+          "shape":"IamIdentityCenterOptionsInput",
+          "documentation":"<p>Configuration settings for integrating IAM Identity Center with the OpenSearch application.</p>"
         }
       }
     },
@@ -7545,32 +9514,32 @@
       "members":{
         "id":{
           "shape":"Id",
-          "documentation":"<p>Unique identifier of the updated OpenSearch Application.</p>"
+          "documentation":"<p>The unique identifier of the updated OpenSearch application.</p>"
         },
         "name":{
           "shape":"ApplicationName",
-          "documentation":"<p>Name of the updated OpenSearch Application.</p>"
+          "documentation":"<p>The name of the updated OpenSearch application.</p>"
         },
         "arn":{"shape":"ARN"},
         "dataSources":{
           "shape":"DataSources",
-          "documentation":"<p>Data sources associated with the updated OpenSearch Application.</p>"
+          "documentation":"<p>The data sources associated with the updated OpenSearch application.</p>"
         },
         "iamIdentityCenterOptions":{
           "shape":"IamIdentityCenterOptions",
-          "documentation":"<p>IAM Identity Center settings for the updated OpenSearch Application.</p>"
+          "documentation":"<p>The IAM Identity Center configuration for the updated OpenSearch application.</p>"
         },
         "appConfigs":{
           "shape":"AppConfigs",
-          "documentation":"<p>Configurations for the updated OpenSearch Application.</p>"
+          "documentation":"<p>The configuration settings for the updated OpenSearch application.</p>"
         },
         "createdAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp at which the OpenSearch Application was created.</p>"
+          "documentation":"<p>The timestamp when the OpenSearch application was originally created.</p>"
         },
         "lastUpdatedAt":{
           "shape":"Timestamp",
-          "documentation":"<p>Timestamp at which the OpenSearch Application was last updated.</p>"
+          "documentation":"<p>The timestamp when the OpenSearch application was last updated.</p>"
         }
       }
     },
@@ -7623,8 +9592,7 @@
       "type":"structure",
       "required":[
         "DataSourceName",
-        "DataSourceType",
-        "OpenSearchArns"
+        "DataSourceType"
       ],
       "members":{
         "DataSourceName":{
@@ -7643,7 +9611,11 @@
         },
         "OpenSearchArns":{
           "shape":"DirectQueryOpenSearchARNList",
-          "documentation":"<p> A list of Amazon Resource Names (ARNs) for the OpenSearch collections that are associated with the direct query data source. </p>"
+          "documentation":"<p> An optional list of Amazon Resource Names (ARNs) for the OpenSearch collections that are associated with the direct query data source. This field is required for CloudWatchLogs and SecurityLake datasource types. </p>"
+        },
+        "DataSourceAccessPolicy":{
+          "shape":"PolicyDocument",
+          "documentation":"<p> An optional IAM access policy document that defines the updated permissions for accessing the direct query data source. The policy document must be in valid JSON format and follow IAM policy syntax. If not specified, the existing access policy if present remains unchanged. </p>"
         }
       }
     },
@@ -7742,6 +9714,26 @@
         "AIMLOptions":{
           "shape":"AIMLOptionsInput",
           "documentation":"<p>Options for all machine learning features for the specified domain.</p>"
+        },
+        "DeploymentStrategyOptions":{
+          "shape":"DeploymentStrategyOptions",
+          "documentation":"<p>Specifies the deployment strategy options for the domain.</p>"
+        },
+        "AutomatedSnapshotPauseOptions":{
+          "shape":"AutomatedSnapshotPauseRequestOptions",
+          "documentation":"<p>Specifies the automated snapshot pause options for the domain.</p> <important> <p>Suspending snapshots reduces data protection. You cannot restore your domain to points in time when snapshots are suspended. Use this feature only for short-term operational needs such as migrations or maintenance windows.</p> </important> <p>Maximum suspension duration: 3 days.</p>"
+        },
+        "UseCase":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The primary use case for the domain. For valid values, see <code>DomainUseCase</code>.</p>"
+        },
+        "EngineMode":{
+          "shape":"EngineMode",
+          "documentation":"<p>The engine mode for the domain. The engine mode can't be changed after the domain is created. For valid values, see <code>EngineMode</code>.</p>"
+        },
+        "AcceptedWarnings":{
+          "shape":"AcceptedWarningsList",
+          "documentation":"<p>A list of advisory warning codes to accept for this configuration change. By default, any advisory warning blocks the change. Include the code of each warning you want to accept so the change can proceed. You can find warning codes in the<code>ValidationFailures</code> list returned by <code>DescribeDomainChangeProgress</code>and <code>DescribeDryRunProgress</code>. Critical validation failures cannot be accepted and always block the change. If you omit this parameter or pass an empty list, all warnings block the change. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/managedomains-configuration-changes#validation-check\">Validating a domain update</a>.</p>"
         }
       },
       "documentation":"<p>Container for the request parameters to the <code>UpdateDomain</code> operation.</p>"
@@ -7764,6 +9756,41 @@
         }
       },
       "documentation":"<p>The results of an <code>UpdateDomain</code> request. Contains the status of the domain being updated.</p>"
+    },
+    "UpdateIndexRequest":{
+      "type":"structure",
+      "required":[
+        "DomainName",
+        "IndexName",
+        "IndexSchema"
+      ],
+      "members":{
+        "DomainName":{
+          "shape":"DomainName",
+          "location":"uri",
+          "locationName":"DomainName"
+        },
+        "IndexName":{
+          "shape":"IndexName",
+          "documentation":"<p>The name of the index to update.</p>",
+          "location":"uri",
+          "locationName":"IndexName"
+        },
+        "IndexSchema":{
+          "shape":"IndexSchema",
+          "documentation":"<p>The updated JSON schema for the index including any changes to mappings, settings, and semantic enrichment configuration.</p>"
+        }
+      }
+    },
+    "UpdateIndexResponse":{
+      "type":"structure",
+      "required":["Status"],
+      "members":{
+        "Status":{
+          "shape":"IndexStatus",
+          "documentation":"<p>The status of the index update operation.</p>"
+        }
+      }
     },
     "UpdatePackageRequest":{
       "type":"structure",
@@ -8044,6 +10071,24 @@
       "type":"list",
       "member":{"shape":"UpgradeStepItem"}
     },
+    "UseCaseStatus":{
+      "type":"structure",
+      "required":[
+        "Options",
+        "Status"
+      ],
+      "members":{
+        "Options":{
+          "shape":"DomainUseCase",
+          "documentation":"<p>The use case configured for the domain.</p>"
+        },
+        "Status":{
+          "shape":"OptionStatus",
+          "documentation":"<p>The current status of the use case for the domain.</p>"
+        }
+      },
+      "documentation":"<p>The status of the use case for the domain.</p>"
+    },
     "UserPoolId":{
       "type":"string",
       "max":55,
@@ -8075,6 +10120,10 @@
         "SecurityGroupIds":{
           "shape":"StringList",
           "documentation":"<p>The list of security group IDs associated with the VPC endpoints for the domain.</p>"
+        },
+        "EgressEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether egress traffic from the domain is routed through the customer VPC. When <code>true</code>, outbound traffic flows through the VPC. When <code>false</code>, outbound traffic goes through the public internet.</p>"
         }
       },
       "documentation":"<p>Information about the subnets and security groups for an Amazon OpenSearch Service domain provisioned within a virtual private cloud (VPC). For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html\">Launching your Amazon OpenSearch Service domains using a VPC</a>. This information only exists if the domain was created with <code>VPCOptions</code>.</p>"
@@ -8107,14 +10156,17 @@
         "SecurityGroupIds":{
           "shape":"StringList",
           "documentation":"<p>The list of security group IDs associated with the VPC endpoints for the domain. If you do not provide a security group ID, OpenSearch Service uses the default security group for the VPC.</p>"
+        },
+        "EgressEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Controls whether egress traffic from the domain is routed through the customer VPC. When <code>true</code>, outbound traffic flows through the VPC. When <code>false</code>, outbound traffic goes through the public internet.</p>"
         }
       },
       "documentation":"<p>Options to specify the subnets and security groups for an Amazon OpenSearch Service VPC endpoint. For more information, see <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/developerguide/vpc.html\">Launching your Amazon OpenSearch Service domains using a VPC</a>.</p>"
     },
     "ValidationException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An exception for accessing or deleting a resource that doesn't exist.</p>",
       "error":{"httpStatusCode":400},
       "exception":true
@@ -8129,9 +10181,20 @@
         "Message":{
           "shape":"String",
           "documentation":"<p>A message corresponding to the failure.</p>"
+        },
+        "Severity":{
+          "shape":"ValidationFailureSeverity",
+          "documentation":"<p>The severity of the validation failure.</p>"
         }
       },
       "documentation":"<p>A validation failure that occurred as the result of a pre-update validation check (verbose dry run) on a domain.</p>"
+    },
+    "ValidationFailureSeverity":{
+      "type":"string",
+      "enum":[
+        "Critical",
+        "Warning"
+      ]
     },
     "ValidationFailures":{
       "type":"list",
@@ -8310,6 +10373,24 @@
         }
       },
       "documentation":"<p>The desired start time for an <a href=\"https://docs.aws.amazon.com/opensearch-service/latest/APIReference/API_OffPeakWindow.html\">off-peak maintenance window</a>.</p>"
+    },
+    "WorkspaceConfigurationInput":{
+      "type":"structure",
+      "required":[
+        "name",
+        "workspaceType"
+      ],
+      "members":{
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the workspace to create. Must be between 1 and 40 characters and can contain alphanumeric characters, parentheses, brackets, hyphens, underscores, and spaces.</p>"
+        },
+        "workspaceType":{
+          "shape":"String",
+          "documentation":"<p>The type of workspace to create, which determines the use-case features enabled for the workspace. Valid values are <code>OBSERVABILITY</code>, <code>SECURITY_ANALYTICS</code>, and <code>SEARCH</code>.</p>"
+        }
+      },
+      "documentation":"<p>Configuration for creating a new workspace when attaching a data source to an OpenSearch application. The workspace is created after the data source is successfully attached.</p>"
     },
     "ZoneAwarenessConfig":{
       "type":"structure",

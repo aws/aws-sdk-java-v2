@@ -29,14 +29,14 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * <p>
  * Example using {@link DynamoDbIgnoreNulls}:
- * <pre>
- * <code>
- * &#64;DynamoDbBean
+ *
+ * {@snippet :
+ * @DynamoDbBean
  * public class NestedBean {
  *     private AbstractBean innerBean1;
  *     private AbstractBean innerBean2;
  *
- *     &#64;DynamoDbIgnoreNulls
+ *     @DynamoDbIgnoreNulls
  *     public AbstractBean getInnerBean1() {
  *         return innerBean1;
  *     }
@@ -45,7 +45,7 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *     }
  *
  *     public AbstractBean getInnerBean2() {
- *         return innerBean;
+ *         return innerBean2;
  *     }
  *     public void setInnerBean2(AbstractBean innerBean) {
  *         this.innerBean2 = innerBean;
@@ -62,13 +62,12 @@ import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
  *
  * Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, true);
  *
- * // innerBean1 w/ @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
- * assertThat(itemMap.get("innerBean1").m(), empty());
+ * // innerBean1 with @DynamoDbIgnoreNulls does not have any attribute values because all the fields are null
+ * assertThat(itemMap.get("innerBean1").m(), anEmptyMap());
  *
- * // innerBean2 w/o @DynamoDbIgnoreNulls has a NULL attribute.
- * assertThat(nestedBean.getInnerBean2(), hasEntry("attribute", nullAttributeValue()));
- * </code>
- * </pre>
+ * // innerBean2 without @DynamoDbIgnoreNulls has a NULL attribute.
+ * assertThat(itemMap.get("innerBean2").m(), hasEntry("attribute", nullAttributeValue()));
+ * }
  */
 @SdkPublicApi
 @Target({ElementType.METHOD})

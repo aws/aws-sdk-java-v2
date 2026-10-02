@@ -15,9 +15,6 @@
 
 package software.amazon.awssdk.codegen.poet.auth.scheme;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import software.amazon.awssdk.utils.Validate;
 
@@ -34,7 +31,6 @@ public final class SigV4SignerDefaults {
     private final Boolean normalizePath;
     private final Boolean payloadSigningEnabled;
     private final Boolean chunkEncodingEnabled;
-    private final Map<String, SigV4SignerDefaults> operations;
 
     private SigV4SignerDefaults(Builder builder) {
         this.service = builder.service;
@@ -44,7 +40,6 @@ public final class SigV4SignerDefaults {
         this.normalizePath = builder.normalizePath;
         this.payloadSigningEnabled = builder.payloadSigningEnabled;
         this.chunkEncodingEnabled = builder.chunkEncodingEnabled;
-        this.operations = Collections.unmodifiableMap(new HashMap<>(builder.operations));
     }
 
     public boolean isServiceOverrideAuthScheme() {
@@ -77,10 +72,6 @@ public final class SigV4SignerDefaults {
 
     public Boolean chunkEncodingEnabled() {
         return chunkEncodingEnabled;
-    }
-
-    public Map<String, SigV4SignerDefaults> operations() {
-        return operations;
     }
 
     public Builder toBuilder() {
@@ -116,10 +107,8 @@ public final class SigV4SignerDefaults {
         if (!Objects.equals(payloadSigningEnabled, defaults.payloadSigningEnabled)) {
             return false;
         }
-        if (!Objects.equals(chunkEncodingEnabled, defaults.chunkEncodingEnabled)) {
-            return false;
-        }
-        return operations.equals(defaults.operations);
+
+        return Objects.equals(chunkEncodingEnabled, defaults.chunkEncodingEnabled);
     }
 
     @Override
@@ -131,7 +120,6 @@ public final class SigV4SignerDefaults {
         result = 31 * result + (normalizePath != null ? normalizePath.hashCode() : 0);
         result = 31 * result + (payloadSigningEnabled != null ? payloadSigningEnabled.hashCode() : 0);
         result = 31 * result + (chunkEncodingEnabled != null ? chunkEncodingEnabled.hashCode() : 0);
-        result = 31 * result + operations.hashCode();
         return result;
     }
 
@@ -148,8 +136,6 @@ public final class SigV4SignerDefaults {
         private Boolean payloadSigningEnabled;
         private Boolean chunkEncodingEnabled;
 
-        private Map<String, SigV4SignerDefaults> operations = new HashMap<>();
-
         public Builder() {
         }
 
@@ -161,7 +147,6 @@ public final class SigV4SignerDefaults {
             this.normalizePath = other.normalizePath;
             this.payloadSigningEnabled = other.payloadSigningEnabled;
             this.chunkEncodingEnabled = other.chunkEncodingEnabled;
-            this.operations.putAll(other.operations);
         }
 
         public String service() {
@@ -224,15 +209,6 @@ public final class SigV4SignerDefaults {
 
         public Builder chunkEncodingEnabled(Boolean chunkEncodingEnabled) {
             this.chunkEncodingEnabled = chunkEncodingEnabled;
-            return this;
-        }
-
-        public Map<String, SigV4SignerDefaults> operations() {
-            return operations;
-        }
-
-        public Builder putOperation(String name, SigV4SignerDefaults constants) {
-            this.operations.put(name, constants);
             return this;
         }
 

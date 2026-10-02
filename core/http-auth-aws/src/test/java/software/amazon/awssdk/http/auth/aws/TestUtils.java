@@ -4,6 +4,7 @@ import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.REGION
 import static software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner.SERVICE_SIGNING_NAME;
 import static software.amazon.awssdk.http.auth.spi.signer.HttpSigner.SIGNING_CLOCK;
 
+import io.reactivex.Flowable;
 import java.io.ByteArrayInputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.function.Consumer;
+import org.reactivestreams.Publisher;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.spi.signer.AsyncSignRequest;
@@ -23,6 +25,10 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 public final class TestUtils {
 
     private TestUtils() {
+    }
+
+    public static byte[] testPayload() {
+        return "{\"TableName\": \"foo\"}".getBytes();
     }
 
     // Helpers for generating test requests
@@ -40,7 +46,7 @@ public final class TestUtils {
                                                      .uri(URI.create("https://demo.us-east-1.amazonaws.com"))
                                                      .build()
                                                      .copy(requestOverrides))
-                          .payload(() -> new ByteArrayInputStream("{\"TableName\": \"foo\"}".getBytes()))
+                          .payload(() -> new ByteArrayInputStream(testPayload()))
                           .putProperty(REGION_NAME, "us-east-1")
                           .putProperty(SERVICE_SIGNING_NAME, "demo")
                           .putProperty(SIGNING_CLOCK,
@@ -54,16 +60,15 @@ public final class TestUtils {
         Consumer<? super SdkHttpRequest.Builder> requestOverrides,
         Consumer<? super AsyncSignRequest.Builder<T>> signRequestOverrides
     ) {
-        SimplePublisher<ByteBuffer> publisher = new SimplePublisher<>();
 
-        publisher.send(ByteBuffer.wrap("{\"TableName\": \"foo\"}".getBytes()));
-        publisher.complete();
+        Publisher<ByteBuffer> publisher = Flowable.just(ByteBuffer.wrap(testPayload()));
 
         return AsyncSignRequest.builder(credentials)
                                .request(SdkHttpRequest.builder()
                                                       .protocol("https")
                                                       .method(SdkHttpMethod.POST)
                                                       .putHeader("Host", "demo.us-east-1.amazonaws.com")
+                                                      .putHeader("content-length", Integer.toString(testPayload().length))
                                                       .putHeader("x-amz-archive-description", "test  test")
                                                       .encodedPath("/")
                                                       .uri(URI.create("https://demo.us-east-1.amazonaws.com"))

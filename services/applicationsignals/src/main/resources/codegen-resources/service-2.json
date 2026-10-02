@@ -13,6 +13,21 @@
     "uid":"application-signals-2024-04-15"
   },
   "operations":{
+    "BatchDeleteInstrumentationConfigurations":{
+      "name":"BatchDeleteInstrumentationConfigurations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/batch-delete-instrumentation-configurations",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchDeleteInstrumentationConfigurationsRequest"},
+      "output":{"shape":"BatchDeleteInstrumentationConfigurationsResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Deletes multiple instrumentation configurations in a single request. Supports two mutually exclusive selection methods:</p> <ul> <li>By scope: Delete all configurations matching a Service + Environment + InstrumentationType</li> <li>By ARN list: Delete specific configurations by providing a list of resource ARNs</li> </ul>"
+    },
     "BatchGetServiceLevelObjectiveBudgetReport":{
       "name":"BatchGetServiceLevelObjectiveBudgetReport",
       "http":{
@@ -27,6 +42,39 @@
         {"shape":"ThrottlingException"}
       ],
       "documentation":"<p>Use this operation to retrieve one or more <i>service level objective (SLO) budget reports</i>.</p> <p>An <i>error budget</i> is the amount of time or requests in an unhealthy state that your service can accumulate during an interval before your overall SLO budget health is breached and the SLO is considered to be unmet. For example, an SLO with a threshold of 99.95% and a monthly interval translates to an error budget of 21.9 minutes of downtime in a 30-day month.</p> <p>Budget reports include a health indicator, the attainment value, and remaining budget.</p> <p>For more information about SLO error budgets, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-ServiceLevelObjectives.html#CloudWatch-ServiceLevelObjectives-concepts\"> SLO concepts</a>.</p>"
+    },
+    "BatchUpdateExclusionWindows":{
+      "name":"BatchUpdateExclusionWindows",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/exclusion-windows",
+        "responseCode":200
+      },
+      "input":{"shape":"BatchUpdateExclusionWindowsInput"},
+      "output":{"shape":"BatchUpdateExclusionWindowsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Add or remove time window exclusions for one or more Service Level Objectives (SLOs).</p>"
+    },
+    "CreateInstrumentationConfiguration":{
+      "name":"CreateInstrumentationConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/create-instrumentation-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateInstrumentationConfigurationRequest"},
+      "output":{"shape":"CreateInstrumentationConfigurationResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Creates a dynamic instrumentation configuration for a specific code or endpoint location within a service and environment. Configurations are immutable after creation.</p> <p>For <code>BREAKPOINT</code> type configurations, they expire after 24 hours unless a shorter expiration is provided. For <code>PROBE</code> type configurations, they persist until explicitly deleted; an expiration cannot be set for <code>PROBE</code> configurations.</p> <p>If a configuration already exists for the same service, environment, signal type, and location, this operation returns a conflict instead of overwriting it. Use attribute filters and capture settings to control where the instrumentation runs and which data is collected.</p>"
     },
     "CreateServiceLevelObjective":{
       "name":"CreateServiceLevelObjective",
@@ -46,6 +94,38 @@
       ],
       "documentation":"<p>Creates a service level objective (SLO), which can help you ensure that your critical business operations are meeting customer expectations. Use SLOs to set and track specific target levels for the reliability and availability of your applications and services. SLOs use service level indicators (SLIs) to calculate whether the application is performing at the level that you want.</p> <p>Create an SLO to set a target for a service or operation’s availability or latency. CloudWatch measures this target frequently you can find whether it has been breached. </p> <p>The target performance quality that is defined for an SLO is the <i>attainment goal</i>.</p> <p>You can set SLO targets for your applications that are discovered by Application Signals, using critical metrics such as latency and availability. You can also set SLOs against any CloudWatch metric or math expression that produces a time series.</p> <note> <p>You can't create an SLO for a service operation that was discovered by Application Signals until after that operation has reported standard metrics to Application Signals.</p> </note> <p>When you create an SLO, you specify whether it is a <i>period-based SLO</i> or a <i>request-based SLO</i>. Each type of SLO has a different way of evaluating your application's performance against its attainment goal.</p> <ul> <li> <p>A <i>period-based SLO</i> uses defined <i>periods</i> of time within a specified total time interval. For each period of time, Application Signals determines whether the application met its goal. The attainment rate is calculated as the <code>number of good periods/number of total periods</code>.</p> <p>For example, for a period-based SLO, meeting an attainment goal of 99.9% means that within your interval, your application must meet its performance goal during at least 99.9% of the time periods.</p> </li> <li> <p>A <i>request-based SLO</i> doesn't use pre-defined periods of time. Instead, the SLO measures <code>number of good requests/number of total requests</code> during the interval. At any time, you can find the ratio of good requests to total requests for the interval up to the time stamp that you specify, and measure that ratio against the goal set in your SLO.</p> </li> </ul> <p>After you have created an SLO, you can retrieve error budget reports for it. An <i>error budget</i> is the amount of time or amount of requests that your application can be non-compliant with the SLO's goal, and still have your application meet the goal.</p> <ul> <li> <p>For a period-based SLO, the error budget starts at a number defined by the highest number of periods that can fail to meet the threshold, while still meeting the overall goal. The <i>remaining error budget</i> decreases with every failed period that is recorded. The error budget within one interval can never increase.</p> <p>For example, an SLO with a threshold that 99.95% of requests must be completed under 2000ms every month translates to an error budget of 21.9 minutes of downtime per month.</p> </li> <li> <p>For a request-based SLO, the remaining error budget is dynamic and can increase or decrease, depending on the ratio of good requests to total requests.</p> </li> </ul> <p>For more information about SLOs, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-ServiceLevelObjectives.html\"> Service level objectives (SLOs)</a>. </p> <p>When you perform a <code>CreateServiceLevelObjective</code> operation, Application Signals creates the <i>AWSServiceRoleForCloudWatchApplicationSignals</i> service-linked role, if it doesn't already exist in your account. This service- linked role has the following permissions:</p> <ul> <li> <p> <code>xray:GetServiceGraph</code> </p> </li> <li> <p> <code>logs:StartQuery</code> </p> </li> <li> <p> <code>logs:GetQueryResults</code> </p> </li> <li> <p> <code>cloudwatch:GetMetricData</code> </p> </li> <li> <p> <code>cloudwatch:ListMetrics</code> </p> </li> <li> <p> <code>tag:GetResources</code> </p> </li> <li> <p> <code>autoscaling:DescribeAutoScalingGroups</code> </p> </li> </ul>"
     },
+    "DeleteGroupingConfiguration":{
+      "name":"DeleteGroupingConfiguration",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/grouping-configuration",
+        "responseCode":200
+      },
+      "output":{"shape":"DeleteGroupingConfigurationOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Deletes the grouping configuration for this account. This removes all custom grouping attribute definitions that were previously configured.</p>",
+      "idempotent":true
+    },
+    "DeleteInstrumentationConfiguration":{
+      "name":"DeleteInstrumentationConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/delete-instrumentation-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteInstrumentationConfigurationRequest"},
+      "output":{"shape":"DeleteInstrumentationConfigurationResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Deletes the specified instrumentation configuration. SDKs remove the instrumentation during their next sync after the configuration is deleted or expires.</p>"
+    },
     "DeleteServiceLevelObjective":{
       "name":"DeleteServiceLevelObjective",
       "http":{
@@ -63,6 +143,39 @@
       "documentation":"<p>Deletes the specified service level objective.</p>",
       "idempotent":true
     },
+    "GetInstrumentationConfiguration":{
+      "name":"GetInstrumentationConfiguration",
+      "http":{
+        "method":"POST",
+        "requestUri":"/get-instrumentation-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"GetInstrumentationConfigurationRequest"},
+      "output":{"shape":"GetInstrumentationConfigurationResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Returns the details of a single instrumentation configuration identified by service, environment, signal type, and location. Use this to audit or display configuration details.</p>"
+    },
+    "GetInstrumentationConfigurationStatus":{
+      "name":"GetInstrumentationConfigurationStatus",
+      "http":{
+        "method":"POST",
+        "requestUri":"/get-instrumentation-configuration-status",
+        "responseCode":200
+      },
+      "input":{"shape":"GetInstrumentationConfigurationStatusRequest"},
+      "output":{"shape":"GetInstrumentationConfigurationStatusResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Retrieves the status history for a single instrumentation configuration during a specified time range. The response lists when the configuration was ACTIVE, READY, ERROR, or DISABLED.</p> <p>If no status or time window is provided, the operation defaults to ACTIVE events from the last hour.</p>",
+      "readonly":true
+    },
     "GetService":{
       "name":"GetService",
       "http":{
@@ -76,7 +189,8 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns information about a service discovered by Application Signals.</p>"
+      "documentation":"<p>Returns information about a service discovered by Application Signals.</p>",
+      "readonly":true
     },
     "GetServiceLevelObjective":{
       "name":"GetServiceLevelObjective",
@@ -92,7 +206,73 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns information about one SLO created in the account. </p>"
+      "documentation":"<p>Returns information about one SLO created in the account. </p>",
+      "readonly":true
+    },
+    "ListAuditFindings":{
+      "name":"ListAuditFindings",
+      "http":{
+        "method":"POST",
+        "requestUri":"/auditFindings",
+        "responseCode":200
+      },
+      "input":{"shape":"ListAuditFindingsInput"},
+      "output":{"shape":"ListAuditFindingsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Returns a list of audit findings that provide automated analysis of service behavior and root cause analysis. These findings help identify the most significant observations about your services, including performance issues, anomalies, and potential problems. The findings are generated using heuristic algorithms based on established troubleshooting patterns.</p>",
+      "readonly":true
+    },
+    "ListEntityEvents":{
+      "name":"ListEntityEvents",
+      "http":{
+        "method":"POST",
+        "requestUri":"/events",
+        "responseCode":200
+      },
+      "input":{"shape":"ListEntityEventsInput"},
+      "output":{"shape":"ListEntityEventsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Returns a list of change events for a specific entity, such as deployments, configuration changes, or other state-changing activities. This operation helps track the history of changes that may have affected service performance.</p>",
+      "readonly":true
+    },
+    "ListGroupingAttributeDefinitions":{
+      "name":"ListGroupingAttributeDefinitions",
+      "http":{
+        "method":"POST",
+        "requestUri":"/grouping-attribute-definitions",
+        "responseCode":200
+      },
+      "input":{"shape":"ListGroupingAttributeDefinitionsInput"},
+      "output":{"shape":"ListGroupingAttributeDefinitionsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Returns the current grouping configuration for this account, including all custom grouping attribute definitions that have been configured. These definitions determine how services are logically grouped based on telemetry attributes, Amazon Web Services tags, or predefined mappings.</p>",
+      "readonly":true
+    },
+    "ListInstrumentationConfigurations":{
+      "name":"ListInstrumentationConfigurations",
+      "http":{
+        "method":"POST",
+        "requestUri":"/list-instrumentation-configurations",
+        "responseCode":200
+      },
+      "input":{"shape":"ListInstrumentationConfigurationsRequest"},
+      "output":{"shape":"InstrumentationConfigurationsPage"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ResourceNotFoundException"}
+      ],
+      "documentation":"<p>Returns all active instrumentation configurations for a service and environment. SDKs use this operation to sync configurations and apply client-side filters locally.</p> <p>Include the previous <code>SyncedAt</code> value to perform incremental syncs. When no changes are detected, the response sets <code>Changed</code> to <code>false</code> and omits configuration details.</p>"
     },
     "ListServiceDependencies":{
       "name":"ListServiceDependencies",
@@ -107,7 +287,8 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of service dependencies of the service that you specify. A dependency is an infrastructure component that an operation of this service connects with. Dependencies can include Amazon Web Services services, Amazon Web Services resources, and third-party services. </p>"
+      "documentation":"<p>Returns a list of service dependencies of the service that you specify. A dependency is an infrastructure component that an operation of this service connects with. Dependencies can include Amazon Web Services services, Amazon Web Services resources, and third-party services. </p>",
+      "readonly":true
     },
     "ListServiceDependents":{
       "name":"ListServiceDependents",
@@ -122,7 +303,25 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns the list of dependents that invoked the specified service during the provided time range. Dependents include other services, CloudWatch Synthetics canaries, and clients that are instrumented with CloudWatch RUM app monitors.</p>"
+      "documentation":"<p>Returns the list of dependents that invoked the specified service during the provided time range. Dependents include other services, CloudWatch Synthetics canaries, and clients that are instrumented with CloudWatch RUM app monitors.</p>",
+      "readonly":true
+    },
+    "ListServiceLevelObjectiveExclusionWindows":{
+      "name":"ListServiceLevelObjectiveExclusionWindows",
+      "http":{
+        "method":"GET",
+        "requestUri":"/slo/{Id}/exclusion-windows",
+        "responseCode":200
+      },
+      "input":{"shape":"ListServiceLevelObjectiveExclusionWindowsInput"},
+      "output":{"shape":"ListServiceLevelObjectiveExclusionWindowsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Retrieves all exclusion windows configured for a specific SLO.</p>",
+      "readonly":true
     },
     "ListServiceLevelObjectives":{
       "name":"ListServiceLevelObjectives",
@@ -137,7 +336,8 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of SLOs created in this account.</p>"
+      "documentation":"<p>Returns a list of SLOs created in this account.</p>",
+      "readonly":true
     },
     "ListServiceOperations":{
       "name":"ListServiceOperations",
@@ -152,7 +352,23 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of the <i>operations</i> of this service that have been discovered by Application Signals. Only the operations that were invoked during the specified time range are returned.</p>"
+      "documentation":"<p>Returns a list of the <i>operations</i> of this service that have been discovered by Application Signals. Only the operations that were invoked during the specified time range are returned.</p>",
+      "readonly":true
+    },
+    "ListServiceStates":{
+      "name":"ListServiceStates",
+      "http":{
+        "method":"POST",
+        "requestUri":"/service/states",
+        "responseCode":200
+      },
+      "input":{"shape":"ListServiceStatesInput"},
+      "output":{"shape":"ListServiceStatesOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Returns information about the last deployment and other change states of services. This API provides visibility into recent changes that may have affected service performance, helping with troubleshooting and change correlation.</p>"
     },
     "ListServices":{
       "name":"ListServices",
@@ -167,7 +383,8 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of services that have been discovered by Application Signals. A service represents a minimum logical and transactional unit that completes a business function. Services are discovered through Application Signals instrumentation.</p>"
+      "documentation":"<p>Returns a list of services that have been discovered by Application Signals. A service represents a minimum logical and transactional unit that completes a business function. Services are discovered through Application Signals instrumentation.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -182,7 +399,41 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Displays the tags associated with a CloudWatch resource. Tags can be assigned to service level objectives.</p>"
+      "documentation":"<p>Displays the tags associated with a CloudWatch resource. Tags can be assigned to service level objectives.</p>",
+      "readonly":true
+    },
+    "PutGroupingConfiguration":{
+      "name":"PutGroupingConfiguration",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/grouping-configuration",
+        "responseCode":200
+      },
+      "input":{"shape":"PutGroupingConfigurationInput"},
+      "output":{"shape":"PutGroupingConfigurationOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Creates or updates the grouping configuration for this account. This operation allows you to define custom grouping attributes that determine how services are logically grouped based on telemetry attributes, Amazon Web Services tags, or predefined mappings. These grouping attributes can then be used to organize and filter services in the Application Signals console and APIs.</p>",
+      "idempotent":true
+    },
+    "ReportInstrumentationConfigurationStatus":{
+      "name":"ReportInstrumentationConfigurationStatus",
+      "http":{
+        "method":"POST",
+        "requestUri":"/report-instrumentation-configuration-status",
+        "responseCode":200
+      },
+      "input":{"shape":"ReportInstrumentationConfigurationStatusRequest"},
+      "output":{"shape":"ReportInstrumentationConfigurationStatusResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Reports the status of one or more instrumentation configurations from SDK instances. Use this to record when configurations become ready, hit errors, become active, or are disabled by limits.</p> <p>Report <code>READY</code>, <code>ERROR</code>, and <code>DISABLED</code> when the status changes. Report <code>ACTIVE</code> periodically (for example, every minute) while instrumentation is running.</p>",
+      "idempotent":true
     },
     "StartDiscovery":{
       "name":"StartDiscovery",
@@ -198,7 +449,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Enables this Amazon Web Services account to be able to use CloudWatch Application Signals by creating the <i>AWSServiceRoleForCloudWatchApplicationSignals</i> service-linked role. This service- linked role has the following permissions:</p> <ul> <li> <p> <code>xray:GetServiceGraph</code> </p> </li> <li> <p> <code>logs:StartQuery</code> </p> </li> <li> <p> <code>logs:GetQueryResults</code> </p> </li> <li> <p> <code>cloudwatch:GetMetricData</code> </p> </li> <li> <p> <code>cloudwatch:ListMetrics</code> </p> </li> <li> <p> <code>tag:GetResources</code> </p> </li> <li> <p> <code>autoscaling:DescribeAutoScalingGroups</code> </p> </li> </ul> <p>After completing this step, you still need to instrument your Java and Python applications to send data to Application Signals. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Signals-Enable.html\"> Enabling Application Signals</a>.</p>"
+      "documentation":"<p>Enables this Amazon Web Services account to be able to use CloudWatch Application Signals by creating the <i>AWSServiceRoleForCloudWatchApplicationSignals</i> service-linked role. This service- linked role has the following permissions:</p> <ul> <li> <p> <code>xray:GetServiceGraph</code> </p> </li> <li> <p> <code>logs:StartQuery</code> </p> </li> <li> <p> <code>logs:GetQueryResults</code> </p> </li> <li> <p> <code>cloudwatch:GetMetricData</code> </p> </li> <li> <p> <code>cloudwatch:ListMetrics</code> </p> </li> <li> <p> <code>tag:GetResources</code> </p> </li> <li> <p> <code>autoscaling:DescribeAutoScalingGroups</code> </p> </li> </ul> <p>A service-linked CloudTrail event channel is created to process CloudTrail events and return change event information. This includes last deployment time, userName, eventName, and other event metadata.</p> <p>After completing this step, you still need to instrument your Java and Python applications to send data to Application Signals. For more information, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Signals-Enable.html\"> Enabling Application Signals</a>.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -279,6 +530,44 @@
       "type":"double",
       "box":true
     },
+    "AttributeFilter":{
+      "type":"structure",
+      "required":[
+        "AttributeFilterName",
+        "AttributeFilterValues"
+      ],
+      "members":{
+        "AttributeFilterName":{
+          "shape":"AttributeFilterName",
+          "documentation":"<p>The name of the attribute to filter by, such as <code>Platform</code>, <code>Environment</code>, or <code>BusinessUnit</code>.</p>"
+        },
+        "AttributeFilterValues":{
+          "shape":"AttributeFilterValues",
+          "documentation":"<p>An array of values to match for the specified attribute. Services that have any of these values for the attribute will be included in the results.</p>"
+        }
+      },
+      "documentation":"<p>A structure that defines a filter for narrowing down results based on specific attribute values. This can be used to filter services by platform, environment, or other service characteristics.</p>"
+    },
+    "AttributeFilterName":{
+      "type":"string",
+      "pattern":"[A-Za-z0-9 :/-]+"
+    },
+    "AttributeFilterValue":{
+      "type":"string",
+      "pattern":"[A-Za-z0-9 :/-]+"
+    },
+    "AttributeFilterValues":{
+      "type":"list",
+      "member":{"shape":"AttributeFilterValue"},
+      "max":20,
+      "min":0
+    },
+    "AttributeFilters":{
+      "type":"list",
+      "member":{"shape":"AttributeFilter"},
+      "max":20,
+      "min":0
+    },
     "AttributeMap":{
       "type":"map",
       "key":{"shape":"String"},
@@ -295,9 +584,302 @@
       "max":4,
       "min":1
     },
+    "AuditFinding":{
+      "type":"structure",
+      "required":["KeyAttributes"],
+      "members":{
+        "KeyAttributes":{
+          "shape":"Attributes",
+          "documentation":"<p>The key attributes that identify the service or entity this audit finding relates to. This is a string-to-string map that includes fields like Type, Name, and Environment.</p>"
+        },
+        "AuditorResults":{
+          "shape":"AuditorResults",
+          "documentation":"<p>An array of auditor results that contain the specific findings, descriptions, and severity levels identified by different auditing algorithms.</p>"
+        },
+        "Operation":{
+          "shape":"String",
+          "documentation":"<p>The name of the operation associated with this audit finding, if the finding is specific to a particular service operation.</p>"
+        },
+        "MetricGraph":{
+          "shape":"MetricGraph",
+          "documentation":"<p>A structure containing metric data queries and time range information that provides context for the audit finding through relevant performance metrics.</p>"
+        },
+        "DependencyGraph":{
+          "shape":"DependencyGraph",
+          "documentation":"<p>A structure containing nodes and edges that represent the dependency relationships relevant to this audit finding, helping to understand the context and potential impact.</p>"
+        },
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of audit finding.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information about an audit finding, which represents an automated analysis result about service behavior, performance issues, or potential problems identified through heuristic algorithms.</p>"
+    },
+    "AuditFindings":{
+      "type":"list",
+      "member":{"shape":"AuditFinding"},
+      "max":10,
+      "min":0
+    },
+    "AuditTarget":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "Data"
+      ],
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of entity being audited, such as <code>service</code>, <code>SLO</code>, <code>service_operation</code>, or <code>canary</code>. </p>"
+        },
+        "Data":{
+          "shape":"AuditTargetEntity",
+          "documentation":"<p>The specific data identifying the audit target entity.</p>"
+        }
+      },
+      "documentation":"<p>A structure that specifies the target entity for audit analysis, such as a <code>service</code>, <code>SLO</code>, <code>service_operation</code>, or <code>canary</code>.</p>"
+    },
+    "AuditTargetEntity":{
+      "type":"structure",
+      "members":{
+        "Service":{
+          "shape":"ServiceEntity",
+          "documentation":"<p>Service entity information when the audit target is a service.</p>"
+        },
+        "Slo":{
+          "shape":"ServiceLevelObjectiveEntity",
+          "documentation":"<p>SLO entity information when the audit target is a service level objective.</p>"
+        },
+        "ServiceOperation":{
+          "shape":"ServiceOperationEntity",
+          "documentation":"<p>Service operation entity information when the audit target is a specific service operation.</p>"
+        },
+        "Canary":{
+          "shape":"CanaryEntity",
+          "documentation":"<p>Canary entity information when the audit target is a CloudWatch Synthetics canary.</p>"
+        }
+      },
+      "documentation":"<p>A union structure that contains the specific entity information for different types of audit targets.</p>",
+      "union":true
+    },
+    "AuditTargets":{
+      "type":"list",
+      "member":{"shape":"AuditTarget"},
+      "max":10,
+      "min":1
+    },
+    "AuditorResult":{
+      "type":"structure",
+      "members":{
+        "Auditor":{
+          "shape":"String",
+          "documentation":"<p>The name of the auditor algorithm that generated this result.</p>"
+        },
+        "Description":{
+          "shape":"AuditorResultDescriptionString",
+          "documentation":"<p>A detailed description of the audit finding, explaining what was observed and potential implications.</p>"
+        },
+        "Data":{
+          "shape":"DataMap",
+          "documentation":"<p>This is a string-to-string map. It contains additional data about the result of an automated audit analysis.</p>"
+        },
+        "Severity":{
+          "shape":"Severity",
+          "documentation":"<p>The severity level of this audit finding, indicating the importance and potential impact of the issue.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the result of an automated audit analysis, including the auditor name, description of findings, additional data, and severity level.</p>"
+    },
+    "AuditorResultDescriptionString":{
+      "type":"string",
+      "max":10240,
+      "min":0
+    },
+    "AuditorResults":{
+      "type":"list",
+      "member":{"shape":"AuditorResult"},
+      "max":5,
+      "min":0
+    },
+    "Auditors":{
+      "type":"list",
+      "member":{"shape":"String"}
+    },
     "AwsAccountId":{
       "type":"string",
       "pattern":"[0-9]{12}"
+    },
+    "BatchDeleteByResourceArns":{
+      "type":"structure",
+      "required":[
+        "ResourceArns",
+        "InstrumentationType"
+      ],
+      "members":{
+        "ResourceArns":{
+          "shape":"BatchDeleteByResourceArnsResourceArnsList",
+          "documentation":"<p>List of resource ARNs to delete.</p>"
+        },
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Instrumentation type: BREAKPOINT or PROBE.</p>"
+        }
+      },
+      "documentation":"<p>Parameters for targeted delete by ARN list.</p>"
+    },
+    "BatchDeleteByResourceArnsResourceArnsList":{
+      "type":"list",
+      "member":{"shape":"BatchDeleteByResourceArnsResourceArnsListMemberString"},
+      "documentation":"<p>List of resource ARNs for batch delete by ARN list. Maximum 50 ARNs per request.</p>",
+      "max":50,
+      "min":1
+    },
+    "BatchDeleteByResourceArnsResourceArnsListMemberString":{
+      "type":"string",
+      "max":2048,
+      "min":20
+    },
+    "BatchDeleteDeletionTarget":{
+      "type":"structure",
+      "members":{
+        "Scope":{
+          "shape":"BatchDeleteScope",
+          "documentation":"<p>Delete all configurations matching the specified scope.</p>"
+        },
+        "ResourceArns":{
+          "shape":"BatchDeleteByResourceArns",
+          "documentation":"<p>Delete specific configurations by ARN list.</p>"
+        }
+      },
+      "documentation":"<p>Union type for batch delete target selection. Exactly one of the two modes must be specified.</p>",
+      "union":true
+    },
+    "BatchDeleteError":{
+      "type":"structure",
+      "required":[
+        "ResourceArn",
+        "Code",
+        "Message"
+      ],
+      "members":{
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>ARN of the configuration that failed to delete.</p>"
+        },
+        "Code":{
+          "shape":"BatchDeleteErrorCode",
+          "documentation":"<p>Error code indicating the type of failure.</p>"
+        },
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Descriptive error message.</p>"
+        }
+      },
+      "documentation":"<p>Represents an error that occurred when attempting to delete a configuration.</p>"
+    },
+    "BatchDeleteErrorCode":{
+      "type":"string",
+      "documentation":"<p>Error codes for batch delete item-level failures.</p>",
+      "enum":[
+        "ResourceNotFoundException",
+        "AccessDeniedException",
+        "InternalServiceException"
+      ]
+    },
+    "BatchDeleteErrorList":{
+      "type":"list",
+      "member":{"shape":"BatchDeleteError"},
+      "documentation":"<p>List of errors in batch delete response.</p>"
+    },
+    "BatchDeleteInstrumentationConfigurationsRequest":{
+      "type":"structure",
+      "required":["DeletionTarget"],
+      "members":{
+        "DeletionTarget":{
+          "shape":"BatchDeleteDeletionTarget",
+          "documentation":"<p>The deletion target - either bulk by scope or targeted by ARN list.</p>"
+        }
+      }
+    },
+    "BatchDeleteInstrumentationConfigurationsResponse":{
+      "type":"structure",
+      "required":[
+        "DeletedCount",
+        "SuccessfulDeletions",
+        "Errors"
+      ],
+      "members":{
+        "DeletedCount":{
+          "shape":"Integer",
+          "documentation":"<p>Number of configurations successfully deleted. When deleting by scope, this is the total count of deleted items. When deleting by ARN list, this equals the length of SuccessfulDeletions.</p>"
+        },
+        "SuccessfulDeletions":{
+          "shape":"BatchDeleteSuccessfulDeletionList",
+          "documentation":"<p>List of successfully deleted configurations. Deleting by scope populates SignalType and LocationHash per item. Deleting by ARN list populates ResourceArn per item.</p>"
+        },
+        "Errors":{
+          "shape":"BatchDeleteErrorList",
+          "documentation":"<p>List of configurations that failed to delete.</p>"
+        }
+      }
+    },
+    "BatchDeleteScope":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "Environment",
+        "InstrumentationType"
+      ],
+      "members":{
+        "Service":{
+          "shape":"BatchDeleteScopeServiceString",
+          "documentation":"<p>Service name for the instrumentation configurations.</p>"
+        },
+        "Environment":{
+          "shape":"BatchDeleteScopeEnvironmentString",
+          "documentation":"<p>Environment identifier for the instrumentation configurations.</p>"
+        },
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Instrumentation type: BREAKPOINT or PROBE.</p>"
+        }
+      },
+      "documentation":"<p>Scope parameters for bulk delete by scope.</p>"
+    },
+    "BatchDeleteScopeEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9:/+=,.@_-]+"
+    },
+    "BatchDeleteScopeServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9:/+=,.@_-]+"
+    },
+    "BatchDeleteSuccessfulDeletion":{
+      "type":"structure",
+      "members":{
+        "ResourceArn":{
+          "shape":"String",
+          "documentation":"<p>ARN of the deleted configuration (populated only when deleting by ARN list).</p>"
+        },
+        "SignalType":{
+          "shape":"String",
+          "documentation":"<p>Signal type of the deleted configuration (populated only when deleting by scope).</p>"
+        },
+        "LocationHash":{
+          "shape":"String",
+          "documentation":"<p>Location hash of the deleted configuration (populated only when deleting by scope).</p>"
+        }
+      },
+      "documentation":"<p>Represents a successfully deleted instrumentation configuration.</p>"
+    },
+    "BatchDeleteSuccessfulDeletionList":{
+      "type":"list",
+      "member":{"shape":"BatchDeleteSuccessfulDeletion"},
+      "documentation":"<p>List of successful deletions in batch delete response.</p>"
     },
     "BatchGetServiceLevelObjectiveBudgetReportInput":{
       "type":"structure",
@@ -335,6 +917,70 @@
         "Errors":{
           "shape":"ServiceLevelObjectiveBudgetReportErrors",
           "documentation":"<p>An array of structures, where each structure includes an error indicating that one of the requests in the array was not valid.</p>"
+        }
+      }
+    },
+    "BatchUpdateExclusionWindowsError":{
+      "type":"structure",
+      "required":[
+        "SloId",
+        "ErrorCode",
+        "ErrorMessage"
+      ],
+      "members":{
+        "SloId":{
+          "shape":"ServiceLevelObjectiveId",
+          "documentation":"<p>The SLO ID in the error.</p>"
+        },
+        "ErrorCode":{
+          "shape":"ExclusionWindowErrorCode",
+          "documentation":"<p>The error code.</p>"
+        },
+        "ErrorMessage":{
+          "shape":"ExclusionWindowErrorMessage",
+          "documentation":"<p>The error message.</p>"
+        }
+      },
+      "documentation":"<p>An array of structures, where each structure includes an error indicating that one of the requests in the array was not valid.</p>"
+    },
+    "BatchUpdateExclusionWindowsErrors":{
+      "type":"list",
+      "member":{"shape":"BatchUpdateExclusionWindowsError"},
+      "max":10,
+      "min":0
+    },
+    "BatchUpdateExclusionWindowsInput":{
+      "type":"structure",
+      "required":["SloIds"],
+      "members":{
+        "SloIds":{
+          "shape":"ServiceLevelObjectiveIds",
+          "documentation":"<p>The list of SLO IDs to add or remove exclusion windows from.</p>"
+        },
+        "AddExclusionWindows":{
+          "shape":"ExclusionWindows",
+          "documentation":"<p>A list of exclusion windows to add to the specified SLOs. You can add up to 10 exclusion windows per SLO.</p>"
+        },
+        "RemoveExclusionWindows":{
+          "shape":"ExclusionWindows",
+          "documentation":"<p>A list of exclusion windows to remove from the specified SLOs. The window configuration must match an existing exclusion window.</p>"
+        }
+      }
+    },
+    "BatchUpdateExclusionWindowsOutput":{
+      "type":"structure",
+      "required":[
+        "SloIds",
+        "Errors"
+      ],
+      "members":{
+        "SloIds":{
+          "shape":"ServiceLevelObjectiveIds",
+          "documentation":"<p>The list of SLO IDs that were successfully processed.</p>"
+        },
+        "Errors":{
+          "shape":"BatchUpdateExclusionWindowsErrors",
+          "documentation":"<p>A list of errors that occurred while processing the request.</p>"
         }
       }
     },
@@ -401,6 +1047,314 @@
       "box":true,
       "min":1
     },
+    "CanaryEntity":{
+      "type":"structure",
+      "required":["CanaryName"],
+      "members":{
+        "CanaryName":{
+          "shape":"String",
+          "documentation":"<p>The name of the CloudWatch Synthetics canary.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains identifying information for a CloudWatch Synthetics canary entity used in audit targeting.</p>"
+    },
+    "CaptureConfiguration":{
+      "type":"structure",
+      "members":{
+        "CodeCapture":{
+          "shape":"CodeCaptureConfiguration",
+          "documentation":"<p>Capture settings for code-level instrumentation, including arguments, return values, stack traces, local variables, and safety limits.</p>"
+        }
+      },
+      "documentation":"<p>A union that defines what data to capture when the instrumentation point is hit. Specify <code>CodeCapture</code> for code-level capture settings.</p>",
+      "union":true
+    },
+    "CaptureLimitsConfig":{
+      "type":"structure",
+      "members":{
+        "MaxHits":{
+          "shape":"CaptureLimitsConfigMaxHitsInteger",
+          "documentation":"<p>The maximum number of times the instrumentation point can be hit before it is automatically disabled. Defaults to 100.</p>"
+        },
+        "MaxStringLength":{
+          "shape":"CaptureLimitsConfigMaxStringLengthInteger",
+          "documentation":"<p>The maximum length of captured string values in characters. Strings longer than this are truncated. Defaults to 128.</p>"
+        },
+        "MaxCollectionWidth":{
+          "shape":"CaptureLimitsConfigMaxCollectionWidthInteger",
+          "documentation":"<p>The maximum number of items to capture from any collection to prevent large payloads. Defaults to 10.</p>"
+        },
+        "MaxCollectionDepth":{
+          "shape":"CaptureLimitsConfigMaxCollectionDepthInteger",
+          "documentation":"<p>The maximum nesting depth to traverse inside collections. Defaults to 3.</p>"
+        },
+        "MaxStackFrames":{
+          "shape":"CaptureLimitsConfigMaxStackFramesInteger",
+          "documentation":"<p>The maximum number of stack frames to capture in stack traces. Defaults to 2.</p>"
+        },
+        "MaxStackTraceSize":{
+          "shape":"CaptureLimitsConfigMaxStackTraceSizeInteger",
+          "documentation":"<p>The maximum total size, in bytes, of a captured stack trace. Defaults to 1000.</p>"
+        },
+        "MaxObjectDepth":{
+          "shape":"CaptureLimitsConfigMaxObjectDepthInteger",
+          "documentation":"<p>The maximum depth for nested object traversal when capturing structured data. Defaults to 3.</p>"
+        },
+        "MaxFieldsPerObject":{
+          "shape":"CaptureLimitsConfigMaxFieldsPerObjectInteger",
+          "documentation":"<p>The maximum number of fields to capture for any object. Defaults to 10.</p>"
+        }
+      },
+      "documentation":"<p>Guardrails that prevent instrumentation from impacting application performance by limiting how much data is captured.</p>"
+    },
+    "CaptureLimitsConfigMaxCollectionDepthInteger":{
+      "type":"integer",
+      "box":true,
+      "max":5,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxCollectionWidthInteger":{
+      "type":"integer",
+      "box":true,
+      "max":20,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxFieldsPerObjectInteger":{
+      "type":"integer",
+      "box":true,
+      "max":20,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxHitsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1000,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxObjectDepthInteger":{
+      "type":"integer",
+      "box":true,
+      "max":5,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxStackFramesInteger":{
+      "type":"integer",
+      "box":true,
+      "max":20,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxStackTraceSizeInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1000,
+      "min":1
+    },
+    "CaptureLimitsConfigMaxStringLengthInteger":{
+      "type":"integer",
+      "box":true,
+      "max":255,
+      "min":1
+    },
+    "ChangeEvent":{
+      "type":"structure",
+      "required":[
+        "Timestamp",
+        "AccountId",
+        "Region",
+        "Entity",
+        "ChangeEventType",
+        "EventId"
+      ],
+      "members":{
+        "Timestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when this change event occurred. When used in a raw HTTP Query API, it is formatted as epoch time in seconds.</p>"
+        },
+        "AccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID where this change event occurred.</p>"
+        },
+        "Region":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services region where this change event occurred.</p>"
+        },
+        "Entity":{
+          "shape":"Attributes",
+          "documentation":"<p>The entity (service or resource) that was affected by this change event, including its key attributes.</p> <p>This is a string-to-string map. It can include the following fields.</p> <ul> <li> <p> <code>Type</code> designates the type of object this is.</p> </li> <li> <p> <code>ResourceType</code> specifies the type of the resource. This field is used only when the value of the <code>Type</code> field is <code>Resource</code> or <code>AWS::Resource</code>.</p> </li> <li> <p> <code>Name</code> specifies the name of the object. This is used only if the value of the <code>Type</code> field is <code>Service</code>, <code>RemoteService</code>, or <code>AWS::Service</code>.</p> </li> <li> <p> <code>Identifier</code> identifies the resource objects of this resource. This is used only if the value of the <code>Type</code> field is <code>Resource</code> or <code>AWS::Resource</code>.</p> </li> <li> <p> <code>Environment</code> specifies the location where this object is hosted, or what it belongs to.</p> </li> <li> <p> <code>AwsAccountId</code> specifies the account where this object is in.</p> </li> </ul> <p>Below is an example of a service.</p> <p> <code>{ \"Type\": \"Service\", \"Name\": \"visits-service\", \"Environment\": \"petclinic-test\" }</code> </p> <p>Below is an example of a resource.</p> <p> <code>{ \"Type\": \"AWS::Resource\", \"ResourceType\": \"AWS::DynamoDB::Table\", \"Identifier\": \"Customers\" }</code> </p>"
+        },
+        "ChangeEventType":{
+          "shape":"ChangeEventType",
+          "documentation":"<p>The type of change event that occurred, such as <code>DEPLOYMENT</code>.</p>"
+        },
+        "EventId":{
+          "shape":"String",
+          "documentation":"<p>A unique identifier for this change event. For CloudTrail-based events, this is the CloudTrail event id. For other events, this will be <code>Unknown</code>.</p>"
+        },
+        "UserName":{
+          "shape":"String",
+          "documentation":"<p>The name of the user who initiated this change event, if available.</p>"
+        },
+        "EventName":{
+          "shape":"String",
+          "documentation":"<p>The name or description of this change event.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information about a change event that occurred for a service, such as a deployment or configuration change.</p>"
+    },
+    "ChangeEventType":{
+      "type":"string",
+      "enum":[
+        "DEPLOYMENT",
+        "CONFIGURATION"
+      ]
+    },
+    "ChangeEvents":{
+      "type":"list",
+      "member":{"shape":"ChangeEvent"},
+      "max":250,
+      "min":0
+    },
+    "CodeCaptureConfiguration":{
+      "type":"structure",
+      "required":["CaptureLimits"],
+      "members":{
+        "CaptureArguments":{
+          "shape":"CodeCaptureConfigurationCaptureArgumentsList",
+          "documentation":"<p>The function arguments to capture. Omit to capture defaults, use an empty list to capture none, use <code>[\"*\"]</code> to capture all arguments, or specify argument names to capture selectively (up to 10 entries).</p>"
+        },
+        "CaptureReturn":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to capture the return value. Defaults to false.</p>"
+        },
+        "CaptureStackTrace":{
+          "shape":"Boolean",
+          "documentation":"<p>Whether to capture a stack trace when the instrumentation point is hit. Defaults to true.</p>"
+        },
+        "CaptureLocals":{
+          "shape":"CodeCaptureConfigurationCaptureLocalsList",
+          "documentation":"<p>The local variables to capture by name. Omit or pass an empty list to capture none. You can specify up to 20 names.</p>"
+        },
+        "CaptureLimits":{
+          "shape":"CaptureLimitsConfig",
+          "documentation":"<p>Safety limits that bound what is captured, including hit counts, string length, collection depth, and stack trace size.</p>"
+        }
+      },
+      "documentation":"<p>Defines what data to capture for code-level instrumentation, including arguments, return values, stack traces, local variables, and safety limits.</p>"
+    },
+    "CodeCaptureConfigurationCaptureArgumentsList":{
+      "type":"list",
+      "member":{"shape":"CodeCaptureConfigurationCaptureArgumentsListMemberString"},
+      "max":10,
+      "min":0
+    },
+    "CodeCaptureConfigurationCaptureArgumentsListMemberString":{
+      "type":"string",
+      "max":80,
+      "min":1
+    },
+    "CodeCaptureConfigurationCaptureLocalsList":{
+      "type":"list",
+      "member":{"shape":"CodeCaptureConfigurationCaptureLocalsListMemberString"},
+      "max":20,
+      "min":0
+    },
+    "CodeCaptureConfigurationCaptureLocalsListMemberString":{
+      "type":"string",
+      "max":80,
+      "min":1
+    },
+    "CodeLocation":{
+      "type":"structure",
+      "required":[
+        "Language",
+        "FilePath"
+      ],
+      "members":{
+        "Language":{
+          "shape":"ProgrammingLanguage",
+          "documentation":"<p>The programming language for this instrumentation point, such as Java, Python, or JavaScript.</p>"
+        },
+        "CodeUnit":{
+          "shape":"CodeLocationCodeUnitString",
+          "documentation":"<p>The package, module, or namespace that contains the target code, for example <code>com.amazon.payment</code> or <code>payment_service</code>.</p>"
+        },
+        "ClassName":{
+          "shape":"CodeLocationClassNameString",
+          "documentation":"<p>The class or type name that contains the method. This is required for Java and optional for Python module-level functions.</p>"
+        },
+        "MethodName":{
+          "shape":"CodeLocationMethodNameString",
+          "documentation":"<p>The method or function name to instrument, such as <code>validateCreditCard</code> or <code>__init__</code>.</p>"
+        },
+        "FilePath":{
+          "shape":"CodeLocationFilePathString",
+          "documentation":"<p>The source file path relative to the project or source root, such as <code>src/payment/PaymentProcessor.java</code> or <code>src/payment/PaymentProcessor.py</code>.</p>"
+        },
+        "LineNumber":{
+          "shape":"CodeLocationLineNumberInteger",
+          "documentation":"<p>The line number to instrument. Provide this to disambiguate overloaded methods and to target a specific line when needed.</p>"
+        }
+      },
+      "documentation":"<p>Identifies a code location to instrument, including the programming language, code unit, class, method, file path, and optional line number.</p>"
+    },
+    "CodeLocationClassNameString":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "CodeLocationCodeUnitString":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "CodeLocationFilePathString":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
+    "CodeLocationLineNumberInteger":{
+      "type":"integer",
+      "box":true,
+      "min":1
+    },
+    "CodeLocationMethodNameString":{
+      "type":"string",
+      "max":80,
+      "min":1
+    },
+    "CompositeSliComponent":{
+      "type":"structure",
+      "members":{
+        "OperationName":{
+          "shape":"OperationName",
+          "documentation":"<p>The name of the operation to include in the composite SLI.</p>"
+        }
+      },
+      "documentation":"<p>Identifies a single operation to include in a composite SLI for a service-level SLO. Used as an element of the <code>Components</code> list in <code>CompositeSliConfig</code>.</p>",
+      "union":true
+    },
+    "CompositeSliComponents":{
+      "type":"list",
+      "member":{"shape":"CompositeSliComponent"},
+      "documentation":"<p>A list of operations that form a composite SLI for a service-level SLO. Each element is a <code>CompositeSliComponent</code> that identifies a single operation. Used in the <code>Components</code> field of <code>CompositeSliConfig</code>.</p>",
+      "max":20,
+      "min":2
+    },
+    "CompositeSliConfig":{
+      "type":"structure",
+      "required":["SelectionConfig"],
+      "members":{
+        "SelectionConfig":{
+          "shape":"SelectionConfig",
+          "documentation":"<p>Specifies how operations are selected for this service-level SLO. Operations can be selected explicitly by listing them, by specifying a prefix to match operation names, or by providing a regular expression pattern.</p>"
+        },
+        "Components":{
+          "shape":"CompositeSliComponents",
+          "documentation":"<p>The list of operations included in this composite SLI. You must specify between 2 and 20 components. Each component is a <code>CompositeSliComponent</code> that identifies a single operation by its <code>OperationName</code>.</p>"
+        }
+      },
+      "documentation":"<p>This structure contains the configuration for a composite service level indicator (SLI) that aggregates metrics across multiple operations of a service for service-level SLOs.</p>"
+    },
     "ConflictException":{
       "type":"structure",
       "required":["Message"],
@@ -413,6 +1367,162 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "ConnectionType":{
+      "type":"string",
+      "enum":[
+        "INDIRECT",
+        "DIRECT"
+      ]
+    },
+    "CreateInstrumentationConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "Service",
+        "Environment",
+        "SignalType",
+        "Location",
+        "CaptureConfiguration"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Type of instrumentation: BREAKPOINT (temporary) or PROBE (permanent)</p>"
+        },
+        "Service":{
+          "shape":"CreateInstrumentationConfigurationRequestServiceString",
+          "documentation":"<p>The name of the service to instrument. This should match the <code>service.name</code> resource attribute reported by the application.</p>"
+        },
+        "Environment":{
+          "shape":"CreateInstrumentationConfigurationRequestEnvironmentString",
+          "documentation":"<p>The environment that the service is running in, such as <code>eks:cluster-prod/namespace</code> or <code>ec2:production</code>.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type to emit for this instrumentation. The supported value is <code>SNAPSHOT</code>.</p>"
+        },
+        "Location":{
+          "shape":"Location",
+          "documentation":"<p>The location where instrumentation should be applied. Specify a <code>CodeLocation</code> for code-level instrumentation.</p>"
+        },
+        "Description":{
+          "shape":"CreateInstrumentationConfigurationRequestDescriptionString",
+          "documentation":"<p>An optional short description (up to 50 characters) that explains the purpose of this instrumentation.</p>"
+        },
+        "ExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>For BREAKPOINT: optional, defaults to 24 hours, must be between 5 min and 24 hours. For PROBE: not supported. PROBE configurations are permanent and persist until explicitly deleted.</p>"
+        },
+        "AttributeFilters":{
+          "shape":"DynamicInstrumentationAttributeFilters",
+          "documentation":"<p>Client-side filters that target specific instances. Each object in the array is AND-matched on its keys, and multiple objects are OR-matched to decide where to apply the instrumentation.</p>"
+        },
+        "CaptureConfiguration":{
+          "shape":"CaptureConfiguration",
+          "documentation":"<p>Specifies what to capture when the instrumentation point is hit. Specify <code>CodeCapture</code> for code-level capture settings.</p>"
+        },
+        "Tags":{
+          "shape":"TagList",
+          "documentation":"<p>An optional list of key-value pairs to associate with the instrumentation configuration. Tags can help you organize and categorize your resources.</p>"
+        }
+      }
+    },
+    "CreateInstrumentationConfigurationRequestDescriptionString":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "CreateInstrumentationConfigurationRequestEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9:/+=,.@_-]+"
+    },
+    "CreateInstrumentationConfigurationRequestServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9:/+=,.@_-]+"
+    },
+    "CreateInstrumentationConfigurationResponse":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "Service",
+        "Environment",
+        "SignalType",
+        "Location",
+        "LocationHash",
+        "CaptureConfiguration",
+        "CreatedAt",
+        "ARN"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>The type of instrumentation that was created, echoed from the request.</p>"
+        },
+        "Service":{
+          "shape":"CreateInstrumentationConfigurationResponseServiceString",
+          "documentation":"<p>The service name for the instrumentation configuration, echoed from the request.</p>"
+        },
+        "Environment":{
+          "shape":"CreateInstrumentationConfigurationResponseEnvironmentString",
+          "documentation":"<p>The environment for the instrumentation configuration, echoed from the request.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type for the instrumentation configuration, echoed from the request.</p>"
+        },
+        "Location":{
+          "shape":"Location",
+          "documentation":"<p>The location where instrumentation is applied, echoed from the request.</p>"
+        },
+        "LocationHash":{
+          "shape":"CreateInstrumentationConfigurationResponseLocationHashString",
+          "documentation":"<p>A stable hash computed from the location that uniquely identifies this instrumentation point within the service, environment, and signal type.</p>"
+        },
+        "Description":{
+          "shape":"String",
+          "documentation":"<p>The optional description that was stored with the instrumentation configuration.</p>"
+        },
+        "ExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp after which this configuration is no longer served to clients. Present only for <code>BREAKPOINT</code> configurations; <code>PROBE</code> configurations do not expire.</p>"
+        },
+        "AttributeFilters":{
+          "shape":"DynamicInstrumentationAttributeFilters",
+          "documentation":"<p>The attribute filters returned with the configuration so SDKs can perform client-side targeting.</p>"
+        },
+        "CaptureConfiguration":{
+          "shape":"CaptureConfiguration",
+          "documentation":"<p>The capture settings that were stored for this instrumentation configuration.</p>"
+        },
+        "CreatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The server-generated creation timestamp for this instrumentation configuration.</p>"
+        },
+        "ARN":{
+          "shape":"InstrumentationConfigurationArn",
+          "documentation":"<p>ARN for the created instrumentation configuration</p>"
+        }
+      }
+    },
+    "CreateInstrumentationConfigurationResponseEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "CreateInstrumentationConfigurationResponseLocationHashString":{
+      "type":"string",
+      "max":16,
+      "min":16
+    },
+    "CreateInstrumentationConfigurationResponseServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
     },
     "CreateServiceLevelObjectiveInput":{
       "type":"structure",
@@ -445,6 +1555,14 @@
         "BurnRateConfigurations":{
           "shape":"BurnRateConfigurations",
           "documentation":"<p>Use this array to create <i>burn rates</i> for this SLO. Each burn rate is a metric that indicates how fast the service is consuming the error budget, relative to the attainment goal of the SLO.</p>"
+        },
+        "CreateRecommendedSlo":{
+          "shape":"Boolean",
+          "documentation":"<p>Set this to <code>true</code> to create a recommended SLO out of the box. When set to <code>true</code>, you don't need to specify the <code>MetricThreshold</code> or <code>ComparisonOperator</code> in the <code>SliConfig</code> or <code>RequestBasedSliConfig</code>. The default value is <code>false</code>.</p> <p>This is supported for SLOs on a service, service operation, or a dependency.</p>"
+        },
+        "AutoInvestigationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether DevOps Agent will automatically investigate this SLO when it is breached</p>"
         }
       }
     },
@@ -455,6 +1573,67 @@
         "Slo":{
           "shape":"ServiceLevelObjective",
           "documentation":"<p>A structure that contains information about the SLO that you just created.</p>"
+        }
+      }
+    },
+    "DataMap":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
+    "DeleteGroupingConfigurationOutput":{
+      "type":"structure",
+      "members":{}
+    },
+    "DeleteInstrumentationConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "Service",
+        "Environment",
+        "SignalType",
+        "LocationIdentifier"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Type of instrumentation configuration (BREAKPOINT or PROBE). Required to identify the configuration to delete.</p>"
+        },
+        "Service":{
+          "shape":"DeleteInstrumentationConfigurationRequestServiceString",
+          "documentation":"<p>Service name for the instrumentation configuration.</p>"
+        },
+        "Environment":{
+          "shape":"DeleteInstrumentationConfigurationRequestEnvironmentString",
+          "documentation":"<p>Environment name for the instrumentation configuration.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>Signal type for the instrumentation configuration.</p>"
+        },
+        "LocationIdentifier":{
+          "shape":"LocationIdentifier",
+          "documentation":"<p>Location identifier - either full code location or a pre-computed hash.</p>"
+        }
+      }
+    },
+    "DeleteInstrumentationConfigurationRequestEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "DeleteInstrumentationConfigurationRequestServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "DeleteInstrumentationConfigurationResponse":{
+      "type":"structure",
+      "required":["DeletionStatus"],
+      "members":{
+        "DeletionStatus":{
+          "shape":"DynamicInstrumentationDeletionStatus",
+          "documentation":"<p>The result of the delete request. The value is <code>DELETED</code> when the configuration has been removed.</p>"
         }
       }
     },
@@ -472,8 +1651,46 @@
     },
     "DeleteServiceLevelObjectiveOutput":{
       "type":"structure",
+      "members":{}
+    },
+    "DependencyConfig":{
+      "type":"structure",
+      "required":[
+        "DependencyKeyAttributes",
+        "DependencyOperationName"
+      ],
       "members":{
-      }
+        "DependencyKeyAttributes":{
+          "shape":"Attributes",
+          "documentation":"<p>This is a string-to-string map. It can include the following fields.</p> <ul> <li> <p> <code>Type</code> designates the type of object this is.</p> </li> <li> <p> <code>ResourceType</code> specifies the type of the resource. This field is used only when the value of the <code>Type</code> field is <code>Resource</code> or <code>AWS::Resource</code>.</p> </li> <li> <p> <code>Name</code> specifies the name of the object. This is used only if the value of the <code>Type</code> field is <code>Service</code>, <code>RemoteService</code>, or <code>AWS::Service</code>.</p> </li> <li> <p> <code>Identifier</code> identifies the resource objects of this resource. This is used only if the value of the <code>Type</code> field is <code>Resource</code> or <code>AWS::Resource</code>.</p> </li> <li> <p> <code>Environment</code> specifies the location where this object is hosted, or what it belongs to.</p> </li> </ul>"
+        },
+        "DependencyOperationName":{
+          "shape":"OperationName",
+          "documentation":"<p>The name of the called operation in the dependency.</p>"
+        }
+      },
+      "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>.</p> <p>When creating a service dependency SLO, you must specify the <code>KeyAttributes</code> of the service, and the <code>DependencyConfig</code> for the dependency. You can specify the <code>OperationName</code> of the service, from which it calls the dependency. Alternatively, you can exclude <code>OperationName</code> and the SLO will monitor all of the service's operations that call the dependency.</p>"
+    },
+    "DependencyGraph":{
+      "type":"structure",
+      "members":{
+        "Nodes":{
+          "shape":"Nodes",
+          "documentation":"<p>An array of nodes representing the services, resources, or other entities in the dependency graph.</p>"
+        },
+        "Edges":{
+          "shape":"Edges",
+          "documentation":"<p>An array of edges representing the connections and relationships between the nodes in the dependency graph.</p>"
+        }
+      },
+      "documentation":"<p>A structure that represents the dependency relationships relevant to an audit finding, containing nodes and edges that show how services and resources are connected.</p>"
+    },
+    "DetailLevel":{
+      "type":"string",
+      "enum":[
+        "BRIEF",
+        "DETAILED"
+      ]
     },
     "Dimension":{
       "type":"structure",
@@ -509,6 +1726,10 @@
       "max":30,
       "min":0
     },
+    "Double":{
+      "type":"double",
+      "box":true
+    },
     "DurationUnit":{
       "type":"string",
       "enum":[
@@ -518,6 +1739,65 @@
         "MONTH"
       ]
     },
+    "DynamicInstrumentationAttributeFilterGroup":{
+      "type":"map",
+      "key":{"shape":"DynamicInstrumentationAttributeFilterGroupKeyString"},
+      "value":{"shape":"DynamicInstrumentationAttributeFilterGroupValueString"},
+      "documentation":"<p>A string-to-string map of OpenTelemetry resource attributes and values that must all match for the instrumentation to run on an instance.</p>"
+    },
+    "DynamicInstrumentationAttributeFilterGroupKeyString":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "DynamicInstrumentationAttributeFilterGroupValueString":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "DynamicInstrumentationAttributeFilters":{
+      "type":"list",
+      "member":{"shape":"DynamicInstrumentationAttributeFilterGroup"},
+      "documentation":"<p>An array of attribute filter groups used to target specific instances. Each filter group must match all of its keys (AND), and multiple groups are OR-matched to decide whether an instance applies the instrumentation. Filters are evaluated client-side by the SDK.</p>",
+      "max":10,
+      "min":1
+    },
+    "DynamicInstrumentationDeletionStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a delete request for an instrumentation configuration. The value is <code>DELETED</code> after a successful deletion.</p>",
+      "enum":["DELETED"]
+    },
+    "DynamicInstrumentationSignalType":{
+      "type":"string",
+      "documentation":"<p>The telemetry signal type for instrumentation.</p> <ul> <li> <p> <code>SNAPSHOT</code> - Captures a snapshot of the instrumentation point.</p> </li> </ul>",
+      "enum":["SNAPSHOT"]
+    },
+    "Edge":{
+      "type":"structure",
+      "members":{
+        "SourceNodeId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the source node in this edge connection.</p>"
+        },
+        "DestinationNodeId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the destination node in this edge connection.</p>"
+        },
+        "Duration":{
+          "shape":"Double",
+          "documentation":"<p>The duration or latency associated with this connection, if applicable.</p>"
+        },
+        "ConnectionType":{
+          "shape":"ConnectionType",
+          "documentation":"<p>The type of connection between the nodes, indicating the nature of the relationship.</p>"
+        }
+      },
+      "documentation":"<p>A structure that represents a connection between two nodes in a dependency graph, showing the relationship and characteristics of the connection.</p>"
+    },
+    "Edges":{
+      "type":"list",
+      "member":{"shape":"Edge"}
+    },
     "EvaluationType":{
       "type":"string",
       "enum":[
@@ -525,7 +1805,224 @@
         "RequestBased"
       ]
     },
+    "ExclusionDuration":{
+      "type":"integer",
+      "box":true,
+      "min":1
+    },
+    "ExclusionReason":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
+    "ExclusionWindow":{
+      "type":"structure",
+      "required":["Window"],
+      "members":{
+        "Window":{
+          "shape":"Window",
+          "documentation":"<p>The SLO time window exclusion .</p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the SLO time window exclusion. Defaults to current time if not specified.</p>"
+        },
+        "RecurrenceRule":{
+          "shape":"RecurrenceRule",
+          "documentation":"<p>The recurrence rule for the SLO time window exclusion. Supports both cron and rate expressions.</p>"
+        },
+        "Reason":{
+          "shape":"ExclusionReason",
+          "documentation":"<p>A description explaining why this time period should be excluded from SLO calculations.</p>"
+        }
+      },
+      "documentation":"<p>The core SLO time window exclusion object that includes Window, StartTime, RecurrenceRule, and Reason.</p>"
+    },
+    "ExclusionWindowErrorCode":{"type":"string"},
+    "ExclusionWindowErrorMessage":{"type":"string"},
+    "ExclusionWindows":{
+      "type":"list",
+      "member":{"shape":"ExclusionWindow"},
+      "max":10,
+      "min":0
+    },
+    "Expression":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
     "FaultDescription":{"type":"string"},
+    "GetInstrumentationConfigurationRequest":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "Service",
+        "Environment",
+        "SignalType",
+        "LocationIdentifier"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Type of instrumentation configuration (BREAKPOINT or PROBE). Required to identify the configuration to retrieve.</p>"
+        },
+        "Service":{
+          "shape":"GetInstrumentationConfigurationRequestServiceString",
+          "documentation":"<p>Service name for the instrumentation configuration.</p>"
+        },
+        "Environment":{
+          "shape":"GetInstrumentationConfigurationRequestEnvironmentString",
+          "documentation":"<p>Environment name for the instrumentation configuration.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>Signal type for the instrumentation configuration.</p>"
+        },
+        "LocationIdentifier":{
+          "shape":"LocationIdentifier",
+          "documentation":"<p>Location identifier - either full code location or a pre-computed hash.</p>"
+        }
+      }
+    },
+    "GetInstrumentationConfigurationRequestEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GetInstrumentationConfigurationRequestServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GetInstrumentationConfigurationResponse":{
+      "type":"structure",
+      "required":["Configuration"],
+      "members":{
+        "Configuration":{
+          "shape":"InstrumentationConfiguration",
+          "documentation":"<p>The complete instrumentation configuration, including its location hash, capture settings, filters, expiration, and creation time.</p>"
+        }
+      }
+    },
+    "GetInstrumentationConfigurationStatusRequest":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "Service",
+        "Environment",
+        "SignalType",
+        "LocationIdentifier"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Type of instrumentation configuration (BREAKPOINT or PROBE). Required to identify the configuration to retrieve.</p>"
+        },
+        "Service":{
+          "shape":"GetInstrumentationConfigurationStatusRequestServiceString",
+          "documentation":"<p>Service name for the instrumentation configuration.</p>"
+        },
+        "Environment":{
+          "shape":"GetInstrumentationConfigurationStatusRequestEnvironmentString",
+          "documentation":"<p>Environment name for the instrumentation configuration.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>Signal type for the instrumentation configuration.</p>"
+        },
+        "LocationIdentifier":{
+          "shape":"LocationIdentifier",
+          "documentation":"<p>Location identifier - either full code location or a pre-computed hash.</p>"
+        },
+        "Status":{
+          "shape":"InstrumentationConfigurationStatus",
+          "documentation":"<p>The single status to query for. If omitted, only <code>ACTIVE</code> status events are returned.</p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time range to retrieve status events for. <code>StartTime</code> and <code>EndTime</code> must both be provided together or both be omitted. When both are omitted, the time range defaults to the last hour.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time range to retrieve status events for. <code>StartTime</code> and <code>EndTime</code> must both be provided together or both be omitted. When both are omitted, the time range defaults to the last hour.</p>"
+        },
+        "MaxResults":{
+          "shape":"GetInstrumentationConfigurationStatusRequestMaxResultsInteger",
+          "documentation":"<p>The maximum number of status events to return in one call. The default is 60.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Use the token returned by a previous call to retrieve the next page of status events.</p>"
+        }
+      }
+    },
+    "GetInstrumentationConfigurationStatusRequestEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GetInstrumentationConfigurationStatusRequestMaxResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "GetInstrumentationConfigurationStatusRequestServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GetInstrumentationConfigurationStatusResponse":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "Environment",
+        "SignalType",
+        "Location",
+        "Status",
+        "Events"
+      ],
+      "members":{
+        "Service":{
+          "shape":"GetInstrumentationConfigurationStatusResponseServiceString",
+          "documentation":"<p>The service name echoed from the request.</p>"
+        },
+        "Environment":{
+          "shape":"GetInstrumentationConfigurationStatusResponseEnvironmentString",
+          "documentation":"<p>The environment echoed from the request.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type echoed from the request.</p>"
+        },
+        "Location":{
+          "shape":"Location",
+          "documentation":"<p>The code location echoed from the request.</p>"
+        },
+        "Status":{
+          "shape":"InstrumentationConfigurationStatus",
+          "documentation":"<p>The status that was queried. If not specified in the request, this is <code>ACTIVE</code>.</p>"
+        },
+        "Events":{
+          "shape":"InstrumentationStatusEventList",
+          "documentation":"<p>The list of status events within the requested time window, sorted with the most recent first. Error events include an error cause.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Pagination token to continue retrieving status events.</p>"
+        }
+      }
+    },
+    "GetInstrumentationConfigurationStatusResponseEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GetInstrumentationConfigurationStatusResponseServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
     "GetServiceInput":{
       "type":"structure",
       "required":[
@@ -618,6 +2115,387 @@
       },
       "documentation":"<p>This structure contains the attributes that determine the goal of an SLO. This includes the time period for evaluation and the attainment threshold.</p>"
     },
+    "GroupIdentifier":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
+    "GroupName":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GroupSource":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GroupValue":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "GroupingAttributeDefinition":{
+      "type":"structure",
+      "required":["GroupingName"],
+      "members":{
+        "GroupingName":{
+          "shape":"GroupingString",
+          "documentation":"<p>The friendly name for this grouping attribute, such as <code>BusinessUnit</code> or <code>Environment</code>. This name is used to identify the grouping in the console and APIs.</p>"
+        },
+        "GroupingSourceKeys":{
+          "shape":"GroupingSourceKeyStringList",
+          "documentation":"<p>An array of source keys used to derive the grouping attribute value from telemetry data, Amazon Web Services tags, or other sources. For example, [\"business_unit\", \"team\"] would look for values in those fields.</p>"
+        },
+        "DefaultGroupingValue":{
+          "shape":"GroupingString",
+          "documentation":"<p>The default value to use for this grouping attribute when no value can be derived from the source keys. This ensures all services have a grouping value even if the source data is missing.</p>"
+        }
+      },
+      "documentation":"<p>A structure that defines how services should be grouped based on specific attributes. This includes the friendly name for the grouping, the source keys to derive values from, and an optional default value.</p>"
+    },
+    "GroupingAttributeDefinitions":{
+      "type":"list",
+      "member":{"shape":"GroupingAttributeDefinition"}
+    },
+    "GroupingConfiguration":{
+      "type":"structure",
+      "required":[
+        "GroupingAttributeDefinitions",
+        "UpdatedAt"
+      ],
+      "members":{
+        "GroupingAttributeDefinitions":{
+          "shape":"GroupingAttributeDefinitions",
+          "documentation":"<p>An array of grouping attribute definitions that specify how services should be grouped based on various attributes and source keys.</p>"
+        },
+        "UpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when this grouping configuration was last updated. When used in a raw HTTP Query API, it is formatted as epoch time in seconds.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains the complete grouping configuration for an account, including all defined grouping attributes and metadata about when it was last updated.</p>"
+    },
+    "GroupingSourceKeyStringList":{
+      "type":"list",
+      "member":{"shape":"GroupingString"}
+    },
+    "GroupingString":{
+      "type":"string",
+      "max":128,
+      "min":1,
+      "pattern":"[a-zA-Z0-9\\s+\\-=\\._:/@]*"
+    },
+    "InstrumentationConfiguration":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "Service",
+        "Environment",
+        "SignalType",
+        "Location",
+        "LocationHash",
+        "CaptureConfiguration",
+        "CreatedAt",
+        "ARN"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>The type of instrumentation for this configuration.</p>"
+        },
+        "Service":{
+          "shape":"InstrumentationConfigurationServiceString",
+          "documentation":"<p>The service that this instrumentation configuration targets.</p>"
+        },
+        "Environment":{
+          "shape":"InstrumentationConfigurationEnvironmentString",
+          "documentation":"<p>The environment where the service is running.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type for this instrumentation configuration.</p>"
+        },
+        "Location":{
+          "shape":"Location",
+          "documentation":"<p>The location where this instrumentation is applied.</p>"
+        },
+        "LocationHash":{
+          "shape":"InstrumentationConfigurationLocationHashString",
+          "documentation":"<p>The stable hash derived from the location that uniquely identifies this instrumentation point within the service and environment.</p>"
+        },
+        "Description":{
+          "shape":"InstrumentationConfigurationDescriptionString",
+          "documentation":"<p>An optional short description of the instrumentation configuration.</p>"
+        },
+        "ExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when this configuration expires.</p>"
+        },
+        "AttributeFilters":{
+          "shape":"DynamicInstrumentationAttributeFilters",
+          "documentation":"<p>Client-side filters that determine which instances apply this instrumentation.</p>"
+        },
+        "CaptureConfiguration":{
+          "shape":"CaptureConfiguration",
+          "documentation":"<p>The capture settings for this instrumentation configuration.</p>"
+        },
+        "CreatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when this instrumentation configuration was created.</p>"
+        },
+        "ARN":{
+          "shape":"InstrumentationConfigurationArn",
+          "documentation":"<p>ARN for the instrumentation configuration</p>"
+        }
+      },
+      "documentation":"<p>The full instrumentation configuration, including the instrumentation type, service, environment, signal type, location details, stable location hash, capture settings, filters, expiration, creation time, and ARN.</p>"
+    },
+    "InstrumentationConfigurationArn":{
+      "type":"string",
+      "documentation":"<p>ARN for an instrumentation configuration Format: arn:${Partition}:application-signals:${Region}:${Account}:instrumentationConfig/${service}/${environment}/${signalType}/${locationHash} Note: service and environment can contain '/' and ':', so we use a permissive pattern that only validates the ARN prefix structure and the 16-character lowercase hex locationHash suffix.</p>",
+      "pattern":"arn:[^:]+:application-signals:[^:]+:[0-9]{12}:instrumentationConfig/.+/[0-9a-f]{16}"
+    },
+    "InstrumentationConfigurationDescriptionString":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "InstrumentationConfigurationEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "InstrumentationConfigurationLocationHashString":{
+      "type":"string",
+      "max":16,
+      "min":16
+    },
+    "InstrumentationConfigurationServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "InstrumentationConfigurationStatus":{
+      "type":"string",
+      "documentation":"<p>The status of an instrumentation configuration on a host.</p> <ul> <li> <p> <code>READY</code> - The configuration has been applied but has not been hit yet.</p> </li> <li> <p> <code>ERROR</code> - Applying the configuration failed; see the error cause.</p> </li> <li> <p> <code>ACTIVE</code> - The configuration has been hit and is capturing data.</p> </li> <li> <p> <code>DISABLED</code> - The configuration was disabled, for example because a limit was reached.</p> </li> </ul>",
+      "enum":[
+        "READY",
+        "ERROR",
+        "ACTIVE",
+        "DISABLED"
+      ]
+    },
+    "InstrumentationConfigurationStatusReport":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "SignalType",
+        "LocationHash",
+        "Status",
+        "Time"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>The type of instrumentation configuration being reported.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type for this instrumentation configuration.</p>"
+        },
+        "LocationHash":{
+          "shape":"InstrumentationConfigurationStatusReportLocationHashString",
+          "documentation":"<p>The stable hash of the instrumentation location that identifies the configuration being reported.</p>"
+        },
+        "Status":{
+          "shape":"InstrumentationConfigurationStatus",
+          "documentation":"<p>The status of the instrumentation configuration: <code>READY</code>, <code>ERROR</code>, <code>ACTIVE</code>, or <code>DISABLED</code>.</p>"
+        },
+        "Time":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the status event occurred.</p>"
+        },
+        "ErrorCause":{
+          "shape":"InstrumentationErrorCause",
+          "documentation":"<p>The error cause when the status is <code>ERROR</code>, such as the file or method not being found.</p>"
+        }
+      },
+      "documentation":"<p>The status of a single instrumentation configuration reported by an SDK instance.</p>"
+    },
+    "InstrumentationConfigurationStatusReportLocationHashString":{
+      "type":"string",
+      "max":16,
+      "min":16
+    },
+    "InstrumentationConfigurationWithoutServiceEnv":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "SignalType",
+        "Location",
+        "LocationHash",
+        "CaptureConfiguration",
+        "CreatedAt",
+        "ARN"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>The type of instrumentation for this configuration.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type for this instrumentation configuration.</p>"
+        },
+        "Location":{
+          "shape":"Location",
+          "documentation":"<p>The location where this instrumentation is applied.</p>"
+        },
+        "LocationHash":{
+          "shape":"InstrumentationConfigurationWithoutServiceEnvLocationHashString",
+          "documentation":"<p>The stable hash derived from the location that identifies this instrumentation point.</p>"
+        },
+        "Description":{
+          "shape":"InstrumentationConfigurationWithoutServiceEnvDescriptionString",
+          "documentation":"<p>An optional short description of the instrumentation configuration.</p>"
+        },
+        "ExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when this configuration expires.</p>"
+        },
+        "AttributeFilters":{
+          "shape":"DynamicInstrumentationAttributeFilters",
+          "documentation":"<p>Client-side filters that determine which instances apply this instrumentation.</p>"
+        },
+        "CaptureConfiguration":{
+          "shape":"CaptureConfiguration",
+          "documentation":"<p>The capture settings for this instrumentation configuration.</p>"
+        },
+        "CreatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when this instrumentation configuration was created.</p>"
+        },
+        "ARN":{
+          "shape":"InstrumentationConfigurationArn",
+          "documentation":"<p>ARN for the instrumentation configuration</p>"
+        }
+      },
+      "documentation":"<p>An instrumentation configuration that omits service and environment because they are provided at a higher level, such as in a list response.</p>"
+    },
+    "InstrumentationConfigurationWithoutServiceEnvDescriptionString":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "InstrumentationConfigurationWithoutServiceEnvLocationHashString":{
+      "type":"string",
+      "max":16,
+      "min":16
+    },
+    "InstrumentationConfigurationsPage":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "Environment",
+        "Changed",
+        "SyncedAt",
+        "SyncInterval"
+      ],
+      "members":{
+        "Service":{
+          "shape":"InstrumentationConfigurationsPageServiceString",
+          "documentation":"<p>The service name associated with the returned configurations.</p>"
+        },
+        "Environment":{
+          "shape":"InstrumentationConfigurationsPageEnvironmentString",
+          "documentation":"<p>The environment associated with the returned configurations.</p>"
+        },
+        "Changed":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether there are configuration changes since the provided <code>SyncedAt</code> timestamp.</p>"
+        },
+        "LatestConfigurations":{
+          "shape":"InstrumentationConfigurationsWithoutServiceEnv",
+          "documentation":"<p>The current set of active instrumentation configurations for the service and environment. Items omit service and environment because they are provided in the request.</p>"
+        },
+        "SyncedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The server timestamp to supply on the next sync call.</p>"
+        },
+        "SyncInterval":{
+          "shape":"InstrumentationConfigurationsPageSyncIntervalInteger",
+          "documentation":"<p>The suggested number of seconds to wait before the next sync request. This is at least 60 seconds to prevent excessive polling.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Pagination token to continue listing configurations when more results are available.</p>"
+        }
+      }
+    },
+    "InstrumentationConfigurationsPageEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "InstrumentationConfigurationsPageServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "InstrumentationConfigurationsPageSyncIntervalInteger":{
+      "type":"integer",
+      "box":true,
+      "min":60
+    },
+    "InstrumentationConfigurationsWithoutServiceEnv":{
+      "type":"list",
+      "member":{"shape":"InstrumentationConfigurationWithoutServiceEnv"},
+      "documentation":"<p>An array of instrumentation configurations that omit service and environment, used when those values are provided elsewhere in the response.</p>"
+    },
+    "InstrumentationErrorCause":{
+      "type":"string",
+      "documentation":"<p>The reason why applying an instrumentation configuration failed.</p> <ul> <li> <p> <code>FILE_NOT_FOUND</code> - The specified file or file location could not be located.</p> </li> <li> <p> <code>METHOD_NOT_FOUND</code> - The specified method or function does not exist.</p> </li> <li> <p> <code>LINE_NOT_EXECUTABLE</code> - The specified line does not contain executable code.</p> </li> <li> <p> <code>OVERLOADED_METHODS</code> - Multiple overloaded methods were found; provide a line number to disambiguate.</p> </li> <li> <p> <code>LANGUAGE_MISMATCH</code> - The language specified in the configuration does not match the service.</p> </li> <li> <p> <code>RUNTIME_ERROR</code> - A runtime error occurred while applying the instrumentation.</p> </li> </ul>",
+      "enum":[
+        "FILE_NOT_FOUND",
+        "METHOD_NOT_FOUND",
+        "LINE_NOT_EXECUTABLE",
+        "OVERLOADED_METHODS",
+        "LANGUAGE_MISMATCH",
+        "RUNTIME_ERROR"
+      ]
+    },
+    "InstrumentationStatusEvent":{
+      "type":"structure",
+      "required":["Time"],
+      "members":{
+        "Time":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the status was reported, rounded to the nearest minute.</p>"
+        },
+        "ErrorCause":{
+          "shape":"InstrumentationErrorCause",
+          "documentation":"<p>The error cause when the status is <code>ERROR</code>.</p>"
+        }
+      },
+      "documentation":"<p>A status event for an instrumentation configuration returned by <code>GetInstrumentationConfigurationStatus</code>. Events include the timestamp and, for errors, an error cause.</p>"
+    },
+    "InstrumentationStatusEventList":{
+      "type":"list",
+      "member":{"shape":"InstrumentationStatusEvent"}
+    },
+    "InstrumentationType":{
+      "type":"string",
+      "documentation":"<p>Type of instrumentation configuration</p>",
+      "enum":[
+        "BREAKPOINT",
+        "PROBE"
+      ]
+    },
+    "Integer":{
+      "type":"integer",
+      "box":true
+    },
     "Interval":{
       "type":"structure",
       "members":{
@@ -642,6 +2520,241 @@
       "max":1024,
       "min":1,
       "pattern":"[ -~]*[!-~]+[ -~]*"
+    },
+    "LatestChangeEvents":{
+      "type":"list",
+      "member":{"shape":"ChangeEvent"},
+      "max":1,
+      "min":1
+    },
+    "ListAuditFindingMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":10,
+      "min":1
+    },
+    "ListAuditFindingsInput":{
+      "type":"structure",
+      "required":[
+        "StartTime",
+        "EndTime",
+        "AuditTargets"
+      ],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period to retrieve audit findings for. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code> </p>",
+          "location":"querystring",
+          "locationName":"StartTime"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period to retrieve audit findings for. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code> </p>",
+          "location":"querystring",
+          "locationName":"EndTime"
+        },
+        "Auditors":{
+          "shape":"Auditors",
+          "documentation":"<p>A list of auditor names to filter the findings by. Only findings generated by the specified auditors will be returned.</p> <p>The following auditors are available for configuration:</p> <ul> <li> <p> <code>slo</code> - SloAuditor: Identifies SLO violations and detects breached thresholds during the Assessment phase.</p> </li> <li> <p> <code>operation_metric</code> - OperationMetricAuditor: Detects anomalies in service operation metrics from Application Signals RED metrics during the Assessment phase</p> <note> <p>Anomaly detection is not supported for sparse metrics (those missing more than 80% of datapoints within the given time period).</p> </note> </li> <li> <p> <code>service_quota</code> - ServiceQuotaAuditor: Monitors resource utilization against service quotas during the Assessment phase</p> </li> <li> <p> <code>trace</code> - TraceAuditor: Performs deep-dive analysis of distributed traces, correlating traces with breached SLOs or abnormal RED metrics during the Analysis phase</p> </li> <li> <p> <code>dependency_metric</code> - CriticalPathAuditor: Analyzes service dependency impacts and maps dependency relationships from Application Signals RED metrics during the Analysis phase</p> </li> <li> <p> <code>top_contributor</code> - TopContributorAuditor: Identifies infrastructure-level contributors to issues by analyzing EMF logs of Application Signals RED metrics during the Analysis phase</p> </li> <li> <p> <code>log</code> - LogAuditor: Extracts insights from application logs, categorizing error types and ranking severity by frequency during the Analysis phase</p> </li> <li> <p> <code>change_indicator</code> - ChangeIndicatorAuditor: Detects change events (deployments, configuration changes) that occurred within 10 minutes before and during a detected anomaly, and surfaces them as findings with deployment timestamps in the Analysis phase. When changes are detected, the <code>top_contributor</code> auditor skips its analysis to avoid redundancy.</p> </li> </ul> <note> <p> <code>InitAuditor</code> and <code>Summarizer</code> auditors are not configurable as they are automatically triggered during the audit process.</p> </note>"
+        },
+        "AuditTargets":{
+          "shape":"AuditTargets",
+          "documentation":"<p>A list of audit targets to filter the findings by. You can specify services, SLOs, or service operations to limit the audit findings to specific entities.</p>"
+        },
+        "DetailLevel":{
+          "shape":"DetailLevel",
+          "documentation":"<p>The level of details of the audit findings. Supported values: <code>BRIEF</code>, <code>DETAILED</code>.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value, if it was returned by the previous operation, to get the next set of audit findings.</p>"
+        },
+        "MaxResults":{
+          "shape":"ListAuditFindingMaxResults",
+          "documentation":"<p>The maximum number of audit findings to return in one operation. If you omit this parameter, the default of 10 is used.</p>"
+        }
+      }
+    },
+    "ListAuditFindingsOutput":{
+      "type":"structure",
+      "required":["AuditFindings"],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period that the returned audit findings apply to. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code> </p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period that the returned audit findings apply to. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code> </p>"
+        },
+        "AuditFindings":{
+          "shape":"AuditFindings",
+          "documentation":"<p>An array of structures, where each structure contains information about one audit finding, including the auditor results, severity, and associated metric and dependency graphs.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value in your next use of this API to get the next set of audit findings.</p>"
+        }
+      }
+    },
+    "ListEntityEventsInput":{
+      "type":"structure",
+      "required":[
+        "Entity",
+        "StartTime",
+        "EndTime"
+      ],
+      "members":{
+        "Entity":{
+          "shape":"Attributes",
+          "documentation":"<p>The entity for which to retrieve change events. This specifies the service, resource, or other entity whose event history you want to examine.</p> <p>This is a string-to-string map. It can include the following fields.</p> <ul> <li> <p> <code>Type</code> designates the type of object this is.</p> </li> <li> <p> <code>ResourceType</code> specifies the type of the resource. This field is used only when the value of the <code>Type</code> field is <code>Resource</code> or <code>AWS::Resource</code>.</p> </li> <li> <p> <code>Name</code> specifies the name of the object. This is used only if the value of the <code>Type</code> field is <code>Service</code>, <code>RemoteService</code>, or <code>AWS::Service</code>.</p> </li> <li> <p> <code>Identifier</code> identifies the resource objects of this resource. This is used only if the value of the <code>Type</code> field is <code>Resource</code> or <code>AWS::Resource</code>.</p> </li> <li> <p> <code>Environment</code> specifies the location where this object is hosted, or what it belongs to.</p> </li> <li> <p> <code>AwsAccountId</code> specifies the account where this object is in.</p> </li> </ul> <p>Below is an example of a service.</p> <p> <code>{ \"Type\": \"Service\", \"Name\": \"visits-service\", \"Environment\": \"petclinic-test\" }</code> </p> <p>Below is an example of a resource.</p> <p> <code>{ \"Type\": \"AWS::Resource\", \"ResourceType\": \"AWS::DynamoDB::Table\", \"Identifier\": \"Customers\" }</code> </p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period to retrieve change events for. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example: <code>1698778057</code> </p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period to retrieve change events for. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example: <code>1698778057</code> </p>"
+        },
+        "MaxResults":{
+          "shape":"ListEntityEventsMaxResults",
+          "documentation":"<p>The maximum number of change events to return in one operation. If you omit this parameter, the default of 50 is used.</p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value, if it was returned by the previous operation, to get the next set of change events.</p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        }
+      }
+    },
+    "ListEntityEventsMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":250,
+      "min":1
+    },
+    "ListEntityEventsOutput":{
+      "type":"structure",
+      "required":[
+        "StartTime",
+        "EndTime",
+        "ChangeEvents"
+      ],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period that the returned change events apply to. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example: <code>1698778057</code> </p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period that the returned change events apply to. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example: <code>1698778057</code> </p>"
+        },
+        "ChangeEvents":{
+          "shape":"ChangeEvents",
+          "documentation":"<p>An array of structures, where each structure contains information about one change event that occurred for the specified entity during the requested time period.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value in your next use of this API to get the next set of change events.</p>"
+        }
+      }
+    },
+    "ListGroupingAttributeDefinitionsInput":{
+      "type":"structure",
+      "members":{
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value, if it was returned by the previous operation, to get the next set of grouping attribute definitions.</p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        },
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID to retrieve grouping attribute definitions for. Use this when accessing grouping configurations from a different account in cross-account monitoring scenarios.</p>",
+          "location":"querystring",
+          "locationName":"AwsAccountId"
+        },
+        "IncludeLinkedAccounts":{
+          "shape":"Boolean",
+          "documentation":"<p>If you are using this operation in a monitoring account, specify <code>true</code> to include grouping attributes from source accounts in the returned data.</p>",
+          "location":"querystring",
+          "locationName":"IncludeLinkedAccounts"
+        }
+      }
+    },
+    "ListGroupingAttributeDefinitionsOutput":{
+      "type":"structure",
+      "required":["GroupingAttributeDefinitions"],
+      "members":{
+        "GroupingAttributeDefinitions":{
+          "shape":"GroupingAttributeDefinitions",
+          "documentation":"<p>An array of structures, where each structure contains information about one grouping attribute definition, including the grouping name, source keys, and default values.</p>"
+        },
+        "UpdatedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp when the grouping configuration was last updated. When used in a raw HTTP Query API, it is formatted as epoch time in seconds.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value in your next use of this API to get the next set of grouping attribute definitions.</p>"
+        }
+      }
+    },
+    "ListInstrumentationConfigurationsRequest":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "Environment",
+        "InstrumentationType"
+      ],
+      "members":{
+        "Service":{
+          "shape":"ListInstrumentationConfigurationsRequestServiceString",
+          "documentation":"<p>The name of the service to retrieve instrumentation configurations for.</p>"
+        },
+        "Environment":{
+          "shape":"ListInstrumentationConfigurationsRequestEnvironmentString",
+          "documentation":"<p>The environment that the service is running in.</p>"
+        },
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>Type of instrumentation configuration (BREAKPOINT or PROBE). Required to determine which backing store to query.</p>"
+        },
+        "SyncedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp from the last successful sync. When provided, the response returns <code>Changed</code> as <code>false</code> if nothing is new since this time, or returns the latest configurations when changes exist.</p>"
+        },
+        "MaxResults":{
+          "shape":"ListInstrumentationConfigurationsRequestMaxResultsInteger",
+          "documentation":"<p>The maximum number of configurations to return in one call. The default is 50 and the maximum is 100.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Use the token returned by a previous call to retrieve the next page of configurations.</p>"
+        }
+      }
+    },
+    "ListInstrumentationConfigurationsRequestEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9:/+=,.@_-]+"
+    },
+    "ListInstrumentationConfigurationsRequestMaxResultsInteger":{
+      "type":"integer",
+      "box":true,
+      "max":100,
+      "min":1
+    },
+    "ListInstrumentationConfigurationsRequestServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1,
+      "pattern":"[A-Za-z0-9:/+=,.@_-]+"
     },
     "ListServiceDependenciesInput":{
       "type":"structure",
@@ -783,6 +2896,50 @@
         }
       }
     },
+    "ListServiceLevelObjectiveExclusionWindowsInput":{
+      "type":"structure",
+      "required":["Id"],
+      "members":{
+        "Id":{
+          "shape":"ServiceLevelObjectiveId",
+          "documentation":"<p>The ID of the SLO to list exclusion windows for.</p>",
+          "location":"uri",
+          "locationName":"Id"
+        },
+        "MaxResults":{
+          "shape":"ListServiceLevelObjectiveExclusionWindowsMaxResults",
+          "documentation":"<p>The maximum number of results to return in one operation. If you omit this parameter, the default of 50 is used. </p>",
+          "location":"querystring",
+          "locationName":"MaxResults"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value, if it was returned by the previous operation, to get the next set of service level objectives. </p>",
+          "location":"querystring",
+          "locationName":"NextToken"
+        }
+      }
+    },
+    "ListServiceLevelObjectiveExclusionWindowsMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":10,
+      "min":1
+    },
+    "ListServiceLevelObjectiveExclusionWindowsOutput":{
+      "type":"structure",
+      "required":["ExclusionWindows"],
+      "members":{
+        "ExclusionWindows":{
+          "shape":"ExclusionWindows",
+          "documentation":"<p>A list of exclusion windows configured for the SLO.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value, if it was returned by the previous operation, to get the next set of service level objectives. </p>"
+        }
+      }
+    },
     "ListServiceLevelObjectivesInput":{
       "type":"structure",
       "members":{
@@ -796,6 +2953,10 @@
           "location":"querystring",
           "locationName":"OperationName"
         },
+        "DependencyConfig":{
+          "shape":"DependencyConfig",
+          "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>. </p>"
+        },
         "MaxResults":{
           "shape":"ListServiceLevelObjectivesMaxResults",
           "documentation":"<p>The maximum number of results to return in one operation. If you omit this parameter, the default of 50 is used.</p>",
@@ -808,9 +2969,13 @@
           "location":"querystring",
           "locationName":"NextToken"
         },
+        "MetricSourceTypes":{
+          "shape":"MetricSourceTypes",
+          "documentation":"<p>Use this optional field to only include SLOs with the specified metric source types in the output. Supported types are:</p> <ul> <li> <p>Service operation</p> </li> <li> <p>Service dependency</p> </li> <li> <p>Service</p> </li> <li> <p>CloudWatch metric</p> </li> <li> <p>AppMonitor</p> </li> <li> <p>Canary</p> </li> </ul>"
+        },
         "IncludeLinkedAccounts":{
           "shape":"Boolean",
-          "documentation":"<p>If you are using this operation in a monitoring account, specify <code>true</code> to include SLO from source accounts in the returned data. <pre><code> &lt;/p&gt; &lt;p&gt;When you are monitoring an account, you can use Amazon Web Services account ID in &lt;code&gt;KeyAttribute&lt;/code&gt; filter for service source account and &lt;code&gt;SloOwnerawsaccountID&lt;/code&gt; for SLO source account with &lt;code&gt;IncludeLinkedAccounts&lt;/code&gt; to filter the returned data to only a single source account. &lt;/p&gt; </code></pre>",
+          "documentation":"<p>If you are using this operation in a monitoring account, specify <code>true</code> to include SLO from source accounts in the returned data. </p> <p>When you are monitoring an account, you can use Amazon Web Services account ID in <code>KeyAttribute</code> filter for service source account and <code>SloOwnerawsaccountID</code> for SLO source account with <code>IncludeLinkedAccounts</code> to filter the returned data to only a single source account. </p>",
           "location":"querystring",
           "locationName":"IncludeLinkedAccounts"
         },
@@ -819,6 +2984,10 @@
           "documentation":"<p>SLO's Amazon Web Services account ID.</p>",
           "location":"querystring",
           "locationName":"SloOwnerAwsAccountId"
+        },
+        "MetricSource":{
+          "shape":"MetricSource",
+          "documentation":"<p>Identifies the metric source to filter SLOs by.</p>"
         }
       }
     },
@@ -911,6 +3080,74 @@
         }
       }
     },
+    "ListServiceStatesInput":{
+      "type":"structure",
+      "required":[
+        "StartTime",
+        "EndTime"
+      ],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period to retrieve service state information for. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code>.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period to retrieve service state information for. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code>.</p>"
+        },
+        "MaxResults":{
+          "shape":"ListServiceStatesMaxResults",
+          "documentation":"<p>The maximum number of service states to return in one operation. If you omit this parameter, the default of 20 is used.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value, if it was returned by the previous operation, to get the next set of service states.</p>"
+        },
+        "IncludeLinkedAccounts":{
+          "shape":"Boolean",
+          "documentation":"<p>If you are using this operation in a monitoring account, specify <code>true</code> to include service states from source accounts in the returned data.</p>"
+        },
+        "AwsAccountId":{
+          "shape":"AwsAccountId",
+          "documentation":"<p>The Amazon Web Services account ID to filter service states by. Use this to limit results to services from a specific account.</p>"
+        },
+        "AttributeFilters":{
+          "shape":"AttributeFilters",
+          "documentation":"<p>A list of attribute filters to narrow down the services. You can filter by platform, environment, or other service attributes.</p>"
+        }
+      }
+    },
+    "ListServiceStatesMaxResults":{
+      "type":"integer",
+      "box":true,
+      "max":250
+    },
+    "ListServiceStatesOutput":{
+      "type":"structure",
+      "required":[
+        "StartTime",
+        "EndTime",
+        "ServiceStates"
+      ],
+      "members":{
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start of the time period that the returned information applies to. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code>.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end of the time period that the returned information applies to. When used in a raw HTTP Query API, it is formatted as epoch time in seconds. For example, <code>1698778057</code>.</p>"
+        },
+        "ServiceStates":{
+          "shape":"ServiceStates",
+          "documentation":"<p>An array of structures, where each structure contains information about the state of one service, including its latest change events such as deployments.</p>"
+        },
+        "NextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>Include this value in your next use of this API to get the next set of service states.</p>"
+        }
+      }
+    },
     "ListServicesInput":{
       "type":"structure",
       "required":[
@@ -944,7 +3181,7 @@
         },
         "IncludeLinkedAccounts":{
           "shape":"Boolean",
-          "documentation":"<p>If you are using this operation in a monitoring account, specify <code>true</code> to include services from source accounts in the returned data. <pre><code> &lt;/p&gt; </code></pre>",
+          "documentation":"<p>If you are using this operation in a monitoring account, specify <code>true</code> to include services from source accounts in the returned data. </p>",
           "location":"querystring",
           "locationName":"IncludeLinkedAccounts"
         },
@@ -1008,6 +3245,37 @@
           "documentation":"<p>The list of tag keys and values associated with the resource you specified.</p>"
         }
       }
+    },
+    "Location":{
+      "type":"structure",
+      "members":{
+        "CodeLocation":{
+          "shape":"CodeLocation",
+          "documentation":"<p>A code location for code-level instrumentation, including language, code unit, class, method, file path, and optional line number.</p>"
+        }
+      },
+      "documentation":"<p>A union that identifies the location to instrument. Specify a <code>CodeLocation</code> for code-level instrumentation.</p>",
+      "union":true
+    },
+    "LocationIdentifier":{
+      "type":"structure",
+      "members":{
+        "CodeLocation":{
+          "shape":"CodeLocation",
+          "documentation":"<p>The full code location specification (will be hashed internally)</p>"
+        },
+        "LocationHash":{
+          "shape":"LocationIdentifierLocationHashString",
+          "documentation":"<p>The pre-computed location hash (16-character hex string)</p>"
+        }
+      },
+      "documentation":"<p>Union type for identifying an instrumentation configuration by code location or locationHash. Used in Get/Delete/GetStatus operations to allow flexible identification.</p>",
+      "union":true
+    },
+    "LocationIdentifierLocationHashString":{
+      "type":"string",
+      "max":16,
+      "min":16
     },
     "LogGroupReferences":{
       "type":"list",
@@ -1075,6 +3343,24 @@
       "max":2048,
       "min":1
     },
+    "MetricGraph":{
+      "type":"structure",
+      "members":{
+        "MetricDataQueries":{
+          "shape":"MetricDataQueries",
+          "documentation":"<p>An array of metric data queries that define the metrics to be retrieved and analyzed as part of the audit finding context.</p>"
+        },
+        "StartTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The start time for the metric data included in this graph. When used in a raw HTTP Query API, it is formatted as epoch time in seconds.</p>"
+        },
+        "EndTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The end time for the metric data included in this graph. When used in a raw HTTP Query API, it is formatted as epoch time in seconds.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains metric data queries and time range information that provides context for audit findings through relevant performance metrics.</p>"
+    },
     "MetricId":{
       "type":"string",
       "max":255,
@@ -1120,6 +3406,38 @@
     "MetricReferences":{
       "type":"list",
       "member":{"shape":"MetricReference"}
+    },
+    "MetricSource":{
+      "type":"structure",
+      "required":["MetricSourceKeyAttributes"],
+      "members":{
+        "MetricSourceKeyAttributes":{
+          "shape":"Attributes",
+          "documentation":"<p>Key attributes that identify the metric source.</p>"
+        },
+        "MetricSourceAttributes":{
+          "shape":"Attributes",
+          "documentation":"<p>Additional attributes for the metric source.</p>"
+        }
+      },
+      "documentation":"<p>Identifies the metric source for SLOs on resources other than Application Signals services.</p>"
+    },
+    "MetricSourceType":{
+      "type":"string",
+      "enum":[
+        "ServiceOperation",
+        "CloudWatchMetric",
+        "ServiceDependency",
+        "AppMonitor",
+        "Canary",
+        "Service"
+      ]
+    },
+    "MetricSourceTypes":{
+      "type":"list",
+      "member":{"shape":"MetricSourceType"},
+      "max":3,
+      "min":1
     },
     "MetricStat":{
       "type":"structure",
@@ -1174,6 +3492,51 @@
       "pattern":".*[^:].*"
     },
     "NextToken":{"type":"string"},
+    "Node":{
+      "type":"structure",
+      "required":[
+        "KeyAttributes",
+        "Name",
+        "NodeId"
+      ],
+      "members":{
+        "KeyAttributes":{
+          "shape":"Attributes",
+          "documentation":"<p>The key attributes that identify this node, including Type, Name, and Environment information.</p>"
+        },
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of the entity represented by this node.</p>"
+        },
+        "NodeId":{
+          "shape":"String",
+          "documentation":"<p>A unique identifier for this node within the dependency graph.</p>"
+        },
+        "Operation":{
+          "shape":"String",
+          "documentation":"<p>The operation associated with this node, if applicable.</p>"
+        },
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of entity represented by this node, such as <code>Service</code> or <code>Resource</code>.</p>"
+        },
+        "Duration":{
+          "shape":"Double",
+          "documentation":"<p>The duration or processing time associated with this node, if applicable.</p>"
+        },
+        "Status":{
+          "shape":"String",
+          "documentation":"<p>The status of the entity represented by this node.</p>"
+        }
+      },
+      "documentation":"<p>A structure that represents a node in a dependency graph, containing information about a service, resource, or other entity and its characteristics.</p>"
+    },
+    "Nodes":{
+      "type":"list",
+      "member":{"shape":"Node"},
+      "max":4,
+      "min":0
+    },
     "OperationName":{
       "type":"string",
       "max":255,
@@ -1182,6 +3545,116 @@
     "Period":{
       "type":"integer",
       "box":true,
+      "min":1
+    },
+    "ProgrammingLanguage":{
+      "type":"string",
+      "documentation":"<p>The programming language of the instrumentation point. Java, Python, and JavaScript are currently supported.</p>",
+      "enum":[
+        "Java",
+        "Python",
+        "Javascript"
+      ]
+    },
+    "PutGroupingConfigurationInput":{
+      "type":"structure",
+      "required":["GroupingAttributeDefinitions"],
+      "members":{
+        "GroupingAttributeDefinitions":{
+          "shape":"GroupingAttributeDefinitions",
+          "documentation":"<p>An array of grouping attribute definitions that specify how services should be grouped. Each definition includes a friendly name, source keys to derive the grouping value from, and an optional default value.</p>"
+        }
+      }
+    },
+    "PutGroupingConfigurationOutput":{
+      "type":"structure",
+      "required":["GroupingConfiguration"],
+      "members":{
+        "GroupingConfiguration":{
+          "shape":"GroupingConfiguration",
+          "documentation":"<p>A structure containing the updated grouping configuration, including all grouping attribute definitions and the timestamp when it was last updated.</p>"
+        }
+      }
+    },
+    "RecurrenceRule":{
+      "type":"structure",
+      "required":["Expression"],
+      "members":{
+        "Expression":{
+          "shape":"Expression",
+          "documentation":"<p>A cron or rate expression that specifies the schedule for the exclusion window.</p>"
+        }
+      },
+      "documentation":"<p>The recurrence rule for the SLO time window exclusion .</p>"
+    },
+    "ReportInstrumentationConfigurationStatusRequest":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "Environment",
+        "Configurations"
+      ],
+      "members":{
+        "Service":{
+          "shape":"ReportInstrumentationConfigurationStatusRequestServiceString",
+          "documentation":"<p>The service that the reported configurations belong to.</p>"
+        },
+        "Environment":{
+          "shape":"ReportInstrumentationConfigurationStatusRequestEnvironmentString",
+          "documentation":"<p>The environment that the service is running in.</p>"
+        },
+        "Configurations":{
+          "shape":"ReportInstrumentationConfigurationStatusRequestConfigurationsList",
+          "documentation":"<p>An array of configuration status reports (up to 100) that include the instrumentation type, signal type, location hash, status, timestamp, and optional error cause.</p>"
+        }
+      }
+    },
+    "ReportInstrumentationConfigurationStatusRequestConfigurationsList":{
+      "type":"list",
+      "member":{"shape":"InstrumentationConfigurationStatusReport"},
+      "max":100,
+      "min":1
+    },
+    "ReportInstrumentationConfigurationStatusRequestEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "ReportInstrumentationConfigurationStatusRequestServiceString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "ReportInstrumentationConfigurationStatusResponse":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "Environment",
+        "UnprocessedStatusEvents"
+      ],
+      "members":{
+        "Service":{
+          "shape":"ReportInstrumentationConfigurationStatusResponseServiceString",
+          "documentation":"<p>The service name echoed from the request.</p>"
+        },
+        "Environment":{
+          "shape":"ReportInstrumentationConfigurationStatusResponseEnvironmentString",
+          "documentation":"<p>The environment echoed from the request.</p>"
+        },
+        "UnprocessedStatusEvents":{
+          "shape":"UnprocessedStatusEventList",
+          "documentation":"<p>Status events that failed to be processed. Each entry includes the configuration identifiers, status, timestamp, and a reason for the failure.</p>"
+        }
+      }
+    },
+    "ReportInstrumentationConfigurationStatusResponseEnvironmentString":{
+      "type":"string",
+      "max":255,
+      "min":1
+    },
+    "ReportInstrumentationConfigurationStatusResponseServiceString":{
+      "type":"string",
+      "max":255,
       "min":1
     },
     "RequestBasedServiceLevelIndicator":{
@@ -1248,6 +3721,18 @@
         "MonitoredRequestCountMetric":{
           "shape":"MonitoredRequestCountMetricDataQueries",
           "documentation":"<p>This structure defines the metric that is used as the \"good request\" or \"bad request\" value for a request-based SLO. This value observed for the metric defined in <code>TotalRequestCountMetric</code> is divided by the number found for <code>MonitoredRequestCountMetric</code> to determine the percentage of successful requests that this SLO tracks.</p>"
+        },
+        "DependencyConfig":{
+          "shape":"DependencyConfig",
+          "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>. </p>"
+        },
+        "MetricSource":{
+          "shape":"MetricSource",
+          "documentation":"<p>Identifies the metric source for SLOs on resources other than Application Signals services.</p>"
+        },
+        "CompositeSliConfig":{
+          "shape":"CompositeSliConfig",
+          "documentation":"<p>The composite SLI configuration for service-level SLOs that monitor multiple operations of a service.</p>"
         }
       },
       "documentation":"<p>This structure contains the information about the metric that is used for a request-based SLO.</p>"
@@ -1274,6 +3759,22 @@
         "MonitoredRequestCountMetric":{
           "shape":"MonitoredRequestCountMetricDataQueries",
           "documentation":"<p>Use this structure to define the metric that you want to use as the \"good request\" or \"bad request\" value for a request-based SLO. This value observed for the metric defined in <code>TotalRequestCountMetric</code> will be divided by the number found for <code>MonitoredRequestCountMetric</code> to determine the percentage of successful requests that this SLO tracks.</p>"
+        },
+        "DependencyConfig":{
+          "shape":"DependencyConfig",
+          "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>. </p>"
+        },
+        "MetricSource":{
+          "shape":"MetricSource",
+          "documentation":"<p>Identifies the metric source for SLOs on resources other than Application Signals services.</p>"
+        },
+        "MetricName":{
+          "shape":"MetricName",
+          "documentation":"<p>The name of the metric for SLOs on resources other than Application Signals services.</p>"
+        },
+        "CompositeSliConfig":{
+          "shape":"CompositeSliConfig",
+          "documentation":"<p>The composite SLI configuration for service-level SLOs that monitor multiple operations of a service.</p>"
         }
       },
       "documentation":"<p>Use this structure to specify the information for the metric that a period-based SLO will monitor.</p>"
@@ -1338,6 +3839,31 @@
       "max":900,
       "min":60
     },
+    "SelectionConfig":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{"shape":"SelectionType"},
+        "Pattern":{
+          "shape":"SelectionPattern",
+          "documentation":"<p>A prefix string or regular expression that specifies which operations to include in a service-level SLO. When <code>SelectionType</code> is <code>PREFIX</code>, this value is a prefix string that matches the beginning of operation names. When <code>SelectionType</code> is <code>REGEX</code>, this value is a regular expression that matches operation names.</p>"
+        }
+      },
+      "documentation":"<p>Defines how operations are selected for a service-level SLO.</p>"
+    },
+    "SelectionPattern":{
+      "type":"string",
+      "pattern":".+"
+    },
+    "SelectionType":{
+      "type":"string",
+      "documentation":"<p>The strategy for selecting operations to include in a service-level SLO.</p> <ul> <li> <p> <code>EXPLICIT</code> — You provide a specific list of operations in the <code>Components</code> field of <code>CompositeSliConfig</code>.</p> </li> <li> <p> <code>PREFIX</code> — You provide a prefix string in the <code>Pattern</code> field of <code>SelectionConfig</code>, and all operations whose names start with the prefix are included.</p> </li> <li> <p> <code>REGEX</code> — You provide a regular expression in the <code>Pattern</code> field of <code>SelectionConfig</code>, and all operations whose names match the pattern are included.</p> </li> </ul>",
+      "enum":[
+        "EXPLICIT",
+        "PREFIX",
+        "REGEX"
+      ]
+    },
     "Service":{
       "type":"structure",
       "required":[
@@ -1352,6 +3878,10 @@
         "AttributeMaps":{
           "shape":"AttributeMaps",
           "documentation":"<p>This structure contains one or more string-to-string maps that help identify this service. It can include <i>platform attributes</i>, <i>application attributes</i>, and <i>telemetry attributes</i>.</p> <p>Platform attributes contain information the service's platform.</p> <ul> <li> <p> <code>PlatformType</code> defines the hosted-in platform.</p> </li> <li> <p> <code>EKS.Cluster</code> is the name of the Amazon EKS cluster.</p> </li> <li> <p> <code>K8s.Cluster</code> is the name of the self-hosted Kubernetes cluster.</p> </li> <li> <p> <code>K8s.Namespace</code> is the name of the Kubernetes namespace in either Amazon EKS or Kubernetes clusters.</p> </li> <li> <p> <code>K8s.Workload</code> is the name of the Kubernetes workload in either Amazon EKS or Kubernetes clusters.</p> </li> <li> <p> <code>K8s.Node</code> is the name of the Kubernetes node in either Amazon EKS or Kubernetes clusters.</p> </li> <li> <p> <code>K8s.Pod</code> is the name of the Kubernetes pod in either Amazon EKS or Kubernetes clusters.</p> </li> <li> <p> <code>EC2.AutoScalingGroup</code> is the name of the Amazon EC2 Auto Scaling group.</p> </li> <li> <p> <code>EC2.InstanceId</code> is the ID of the Amazon EC2 instance.</p> </li> <li> <p> <code>Host</code> is the name of the host, for all platform types.</p> </li> </ul> <p>Application attributes contain information about the application.</p> <ul> <li> <p> <code>AWS.Application</code> is the application's name in Amazon Web Services Service Catalog AppRegistry.</p> </li> <li> <p> <code>AWS.Application.ARN</code> is the application's ARN in Amazon Web Services Service Catalog AppRegistry.</p> </li> </ul> <p>Telemetry attributes contain telemetry information.</p> <ul> <li> <p> <code>Telemetry.SDK</code> is the fingerprint of the OpenTelemetry SDK version for instrumented services.</p> </li> <li> <p> <code>Telemetry.Agent</code> is the fingerprint of the agent used to collect and send telemetry data.</p> </li> <li> <p> <code>Telemetry.Source</code> Specifies the point of application where the telemetry was collected or specifies what was used for the source of telemetry data.</p> </li> </ul>"
+        },
+        "ServiceGroups":{
+          "shape":"ServiceGroups",
+          "documentation":"<p>An array of service groups that this service belongs to, based on the configured grouping attributes.</p>"
         },
         "MetricReferences":{
           "shape":"MetricReferences",
@@ -1430,7 +3960,61 @@
       "max":100,
       "min":0
     },
+    "ServiceEntity":{
+      "type":"structure",
+      "members":{
+        "Type":{
+          "shape":"String",
+          "documentation":"<p>The type of the service entity.</p>"
+        },
+        "Name":{
+          "shape":"String",
+          "documentation":"<p>The name of the service.</p>"
+        },
+        "Environment":{
+          "shape":"String",
+          "documentation":"<p>The environment where the service is deployed.</p>"
+        },
+        "AwsAccountId":{
+          "shape":"String",
+          "documentation":"<p>The Amazon Web Services account ID where the service is located. Provide this value only for cross-account access.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains identifying information for a service entity.</p>"
+    },
     "ServiceErrorMessage":{"type":"string"},
+    "ServiceGroup":{
+      "type":"structure",
+      "required":[
+        "GroupName",
+        "GroupValue",
+        "GroupSource",
+        "GroupIdentifier"
+      ],
+      "members":{
+        "GroupName":{
+          "shape":"GroupName",
+          "documentation":"<p>The name of the grouping attribute, such as <code>BusinessUnit</code> or <code>Environment</code>.</p>"
+        },
+        "GroupValue":{
+          "shape":"GroupValue",
+          "documentation":"<p>The value of the grouping attribute for this service, such as <code>Payments</code> or <code>Production</code>.</p>"
+        },
+        "GroupSource":{
+          "shape":"GroupSource",
+          "documentation":"<p>The source of the grouping attribute, such as <code>TAG</code>, <code>OTEL</code>, or <code>DEFAULT</code>.</p>"
+        },
+        "GroupIdentifier":{
+          "shape":"GroupIdentifier",
+          "documentation":"<p>A unique identifier for this grouping attribute value, used for filtering and API operations.</p>"
+        }
+      },
+      "documentation":"<p>A structure that represents a logical grouping of services based on shared attributes such as business unit, environment, or entry point.</p>"
+    },
+    "ServiceGroups":{
+      "type":"list",
+      "member":{"shape":"ServiceGroup"}
+    },
     "ServiceLevelIndicator":{
       "type":"structure",
       "required":[
@@ -1465,11 +4049,7 @@
     },
     "ServiceLevelIndicatorConfig":{
       "type":"structure",
-      "required":[
-        "SliMetricConfig",
-        "MetricThreshold",
-        "ComparisonOperator"
-      ],
+      "required":["SliMetricConfig"],
       "members":{
         "SliMetricConfig":{
           "shape":"ServiceLevelIndicatorMetricConfig",
@@ -1477,11 +4057,12 @@
         },
         "MetricThreshold":{
           "shape":"ServiceLevelIndicatorMetricThreshold",
-          "documentation":"<p>This parameter is used only when a request-based SLO tracks the <code>Latency</code> metric. Specify the threshold value that the observed <code>Latency</code> metric values are to be compared to.</p>"
+          "documentation":"<p>This parameter is used only when a request-based SLO tracks the <code>Latency</code> metric. Specify the threshold value that the observed <code>Latency</code> metric values are to be compared to.</p> <p>This is not required if <code>CreateRecommendedSlo</code> is set to <code>true</code>.</p>",
+          "box":true
         },
         "ComparisonOperator":{
           "shape":"ServiceLevelIndicatorComparisonOperator",
-          "documentation":"<p>The arithmetic operation to use when comparing the specified metric to the threshold.</p>"
+          "documentation":"<p>The arithmetic operation to use when comparing the specified metric to the threshold.</p> <p>This is not required if <code>CreateRecommendedSlo</code> is set to <code>true</code>.</p>"
         }
       },
       "documentation":"<p>This structure specifies the information about the service and the performance metric that a period-based SLO is to monitor.</p>"
@@ -1505,6 +4086,18 @@
         "MetricDataQueries":{
           "shape":"MetricDataQueries",
           "documentation":"<p>If this SLO monitors a CloudWatch metric or the result of a CloudWatch metric math expression, this structure includes the information about that metric or expression. </p>"
+        },
+        "DependencyConfig":{
+          "shape":"DependencyConfig",
+          "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>. </p>"
+        },
+        "MetricSource":{
+          "shape":"MetricSource",
+          "documentation":"<p>Identifies the metric source for SLOs on resources other than Application Signals services.</p>"
+        },
+        "CompositeSliConfig":{
+          "shape":"CompositeSliConfig",
+          "documentation":"<p>The composite SLI configuration for service-level SLOs that monitor multiple operations of a service.</p>"
         }
       },
       "documentation":"<p>This structure contains the information about the metric that is used for a period-based SLO.</p>"
@@ -1524,6 +4117,10 @@
           "shape":"ServiceLevelIndicatorMetricType",
           "documentation":"<p>If the SLO is to monitor either the <code>LATENCY</code> or <code>AVAILABILITY</code> metric that Application Signals collects, use this field to specify which of those metrics is used.</p>"
         },
+        "MetricName":{
+          "shape":"MetricName",
+          "documentation":"<p>The name of the CloudWatch metric to use for the SLO, when using a custom metric rather than Application Signals standard metrics.</p>"
+        },
         "Statistic":{
           "shape":"ServiceLevelIndicatorStatistic",
           "documentation":"<p>The statistic to use for comparison to the threshold. It can be any CloudWatch statistic or extended statistic. For more information about statistics, see <a href=\"https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Statistics-definitions.html\">CloudWatch statistics definitions</a>.</p>"
@@ -1532,9 +4129,21 @@
           "shape":"SLIPeriodSeconds",
           "documentation":"<p>The number of seconds to use as the period for SLO evaluation. Your application's performance is compared to the SLI during each period. For each period, the application is determined to have either achieved or not achieved the necessary performance.</p>"
         },
+        "MetricSource":{
+          "shape":"MetricSource",
+          "documentation":"<p>Identifies the metric source for SLOs on resources other than Application Signals services.</p>"
+        },
         "MetricDataQueries":{
           "shape":"MetricDataQueries",
           "documentation":"<p>If this SLO monitors a CloudWatch metric or the result of a CloudWatch metric math expression, use this structure to specify that metric or expression. </p>"
+        },
+        "DependencyConfig":{
+          "shape":"DependencyConfig",
+          "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>. </p>"
+        },
+        "CompositeSliConfig":{
+          "shape":"CompositeSliConfig",
+          "documentation":"<p>The composite SLI configuration for service-level SLOs that monitor multiple operations of a service.</p>"
         }
       },
       "documentation":"<p>Use this structure to specify the information for the metric that a period-based SLO will monitor.</p>"
@@ -1602,6 +4211,14 @@
         "BurnRateConfigurations":{
           "shape":"BurnRateConfigurations",
           "documentation":"<p>Each object in this array defines the length of the look-back window used to calculate one burn rate metric for this SLO. The burn rate measures how fast the service is consuming the error budget, relative to the attainment goal of the SLO.</p>"
+        },
+        "MetricSourceType":{
+          "shape":"MetricSourceType",
+          "documentation":"<p>Displays the SLI metric source type for this SLO. Supported types are:</p> <ul> <li> <p>Service operation</p> </li> <li> <p>Service dependency</p> </li> <li> <p>Service</p> </li> <li> <p>CloudWatch metric</p> </li> <li> <p>AppMonitor</p> </li> <li> <p>Canary</p> </li> </ul>"
+        },
+        "AutoInvestigationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether DevOps Agent will automatically investigate this SLO when it is breached</p>"
         }
       },
       "documentation":"<p>A structure containing information about one service level objective (SLO) that has been created in Application Signals. Creating SLOs can help you ensure your services are performing to the level that you expect. SLOs help you set and track a specific target level for the reliability and availability of your applications and services. Each SLO uses a service level indicator (SLI), which is a key performance metric, to calculate how much underperformance can be tolerated before the goal that you set for the SLO is not achieved.</p>"
@@ -1610,7 +4227,7 @@
       "type":"string",
       "max":2048,
       "min":1,
-      "pattern":"arn:aws:application-signals:[^:]*:[^:]*:slo/[0-9A-Za-z][-._0-9A-Za-z ]{0,126}[0-9A-Za-z]"
+      "pattern":"arn:(aws|aws-us-gov):application-signals:[^:]*:[^:]*:slo/[0-9A-Za-z][-._0-9A-Za-z ]{0,126}[0-9A-Za-z]"
     },
     "ServiceLevelObjectiveBudgetReport":{
       "type":"structure",
@@ -1721,9 +4338,23 @@
       "max":1024,
       "min":1
     },
+    "ServiceLevelObjectiveEntity":{
+      "type":"structure",
+      "members":{
+        "SloName":{
+          "shape":"String",
+          "documentation":"<p>The name of the service level objective.</p>"
+        },
+        "SloArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the service level objective. The SLO must be provided with ARN for cross-account access.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains identifying information for a service level objective entity.</p>"
+    },
     "ServiceLevelObjectiveId":{
       "type":"string",
-      "pattern":"[0-9A-Za-z][-._0-9A-Za-z ]{0,126}[0-9A-Za-z]$|^arn:aws:application-signals:[^:]*:[^:]*:slo/[0-9A-Za-z][-._0-9A-Za-z ]{0,126}[0-9A-Za-z]"
+      "pattern":"[0-9A-Za-z][-._0-9A-Za-z ]{0,126}[0-9A-Za-z]$|^arn:(aws|aws-us-gov):application-signals:[^:]*:[^:]*:slo/[0-9A-Za-z][-._0-9A-Za-z ]{0,126}[0-9A-Za-z]"
     },
     "ServiceLevelObjectiveIds":{
       "type":"list",
@@ -1762,9 +4393,29 @@
           "shape":"OperationName",
           "documentation":"<p>If this service level objective is specific to a single operation, this field displays the name of that operation.</p>"
         },
+        "DependencyConfig":{
+          "shape":"DependencyConfig",
+          "documentation":"<p>Identifies the dependency using the <code>DependencyKeyAttributes</code> and <code>DependencyOperationName</code>. </p>"
+        },
         "CreatedTime":{
           "shape":"Timestamp",
           "documentation":"<p>The date and time that this service level objective was created. It is expressed as the number of milliseconds since Jan 1, 1970 00:00:00 UTC.</p>"
+        },
+        "EvaluationType":{
+          "shape":"EvaluationType",
+          "documentation":"<p>Displays whether this is a period-based SLO or a request-based SLO.</p>"
+        },
+        "MetricSourceType":{
+          "shape":"MetricSourceType",
+          "documentation":"<p>Displays the SLI metric source type for this SLO. Supported types are:</p> <ul> <li> <p>Service operation</p> </li> <li> <p>Service dependency</p> </li> <li> <p>Service</p> </li> <li> <p>CloudWatch metric</p> </li> <li> <p>AppMonitor</p> </li> <li> <p>Canary</p> </li> </ul>"
+        },
+        "MetricSource":{
+          "shape":"MetricSource",
+          "documentation":"<p>Identifies the metric source for SLOs on resources other than Application Signals services.</p>"
+        },
+        "CompositeSliConfig":{
+          "shape":"CompositeSliConfig",
+          "documentation":"<p>The composite SLI configuration for service-level SLOs that monitor multiple operations of a service.</p>"
         }
       },
       "documentation":"<p>A structure that contains information about one service level objective (SLO) created in Application Signals.</p>"
@@ -1787,6 +4438,24 @@
       },
       "documentation":"<p>This structure contains information about an operation discovered by Application Signals. An operation is a specific function performed by a service that was discovered by Application Signals, and is often an API that is called by an upstream dependent. </p>"
     },
+    "ServiceOperationEntity":{
+      "type":"structure",
+      "members":{
+        "Service":{
+          "shape":"ServiceEntity",
+          "documentation":"<p>The service entity that contains this operation.</p>"
+        },
+        "Operation":{
+          "shape":"String",
+          "documentation":"<p>The name of the operation.</p>"
+        },
+        "MetricType":{
+          "shape":"String",
+          "documentation":"<p>The type of metric associated with this service operation.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains identifying information for a service operation entity.</p>"
+    },
     "ServiceOperations":{
       "type":"list",
       "member":{"shape":"ServiceOperation"},
@@ -1805,6 +4474,34 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "ServiceState":{
+      "type":"structure",
+      "required":[
+        "Service",
+        "LatestChangeEvents"
+      ],
+      "members":{
+        "AttributeFilters":{
+          "shape":"AttributeFilters",
+          "documentation":"<p>The attribute filters that were applied when retrieving this service state information.</p>"
+        },
+        "Service":{
+          "shape":"Attributes",
+          "documentation":"<p>The key attributes that identify this service, including Type, Name, and Environment information.</p>"
+        },
+        "LatestChangeEvents":{
+          "shape":"LatestChangeEvents",
+          "documentation":"<p>An array containing the most recent change events for this service, such as deployments, with information about when they occurred and who initiated them.</p>"
+        }
+      },
+      "documentation":"<p>A structure that contains information about the current state of a service, including its latest change events such as deployments and other state-changing activities.</p>"
+    },
+    "ServiceStates":{
+      "type":"list",
+      "member":{"shape":"ServiceState"},
+      "max":250,
+      "min":0
     },
     "ServiceSummaries":{
       "type":"list",
@@ -1828,9 +4525,23 @@
         "MetricReferences":{
           "shape":"MetricReferences",
           "documentation":"<p>An array of structures that each contain information about one metric associated with this service.</p>"
+        },
+        "ServiceGroups":{
+          "shape":"ServiceGroups",
+          "documentation":"<p>An array of service groups that this service belongs to, based on the configured grouping attributes.</p>"
         }
       },
       "documentation":"<p>This structure contains information about one of your services that was discovered by Application Signals</p>"
+    },
+    "Severity":{
+      "type":"string",
+      "enum":[
+        "CRITICAL",
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NONE"
+      ]
     },
     "StandardUnit":{
       "type":"string",
@@ -1866,13 +4577,11 @@
     },
     "StartDiscoveryInput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StartDiscoveryOutput":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Stat":{"type":"string"},
     "String":{"type":"string"},
@@ -1930,8 +4639,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -1960,6 +4668,62 @@
       "type":"integer",
       "box":true
     },
+    "UnprocessedStatusEvent":{
+      "type":"structure",
+      "required":[
+        "InstrumentationType",
+        "SignalType",
+        "LocationHash",
+        "Status",
+        "Time",
+        "FailedReason"
+      ],
+      "members":{
+        "InstrumentationType":{
+          "shape":"InstrumentationType",
+          "documentation":"<p>The type of instrumentation configuration for the unprocessed status event.</p>"
+        },
+        "SignalType":{
+          "shape":"DynamicInstrumentationSignalType",
+          "documentation":"<p>The telemetry signal type for the unprocessed status event.</p>"
+        },
+        "LocationHash":{
+          "shape":"UnprocessedStatusEventLocationHashString",
+          "documentation":"<p>The stable hash of the instrumentation location for the unprocessed event.</p>"
+        },
+        "Status":{
+          "shape":"InstrumentationConfigurationStatus",
+          "documentation":"<p>The status that failed to be processed.</p>"
+        },
+        "Time":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of the status event that failed to be processed.</p>"
+        },
+        "FailedReason":{
+          "shape":"UnprocessedStatusEventFailureReason",
+          "documentation":"<p>The reason why this status event could not be processed, such as throttling or validation errors.</p>"
+        }
+      },
+      "documentation":"<p>A status event that could not be processed by the service.</p>"
+    },
+    "UnprocessedStatusEventFailureReason":{
+      "type":"string",
+      "documentation":"<p>The reason an instrumentation status event could not be processed.</p> <ul> <li> <p> <code>THROTTLED</code> - The request exceeded allowed throughput.</p> </li> <li> <p> <code>INTERNAL_ERROR</code> - An internal server error occurred while processing the event.</p> </li> <li> <p> <code>VALIDATION_ERROR</code> - The event failed validation.</p> </li> </ul>",
+      "enum":[
+        "THROTTLED",
+        "INTERNAL_ERROR",
+        "VALIDATION_ERROR"
+      ]
+    },
+    "UnprocessedStatusEventList":{
+      "type":"list",
+      "member":{"shape":"UnprocessedStatusEvent"}
+    },
+    "UnprocessedStatusEventLocationHashString":{
+      "type":"string",
+      "max":16,
+      "min":16
+    },
     "UntagResourceRequest":{
       "type":"structure",
       "required":[
@@ -1979,8 +4743,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateServiceLevelObjectiveInput":{
       "type":"structure",
@@ -2011,6 +4774,10 @@
         "BurnRateConfigurations":{
           "shape":"BurnRateConfigurations",
           "documentation":"<p>Use this array to create <i>burn rates</i> for this SLO. Each burn rate is a metric that indicates how fast the service is consuming the error budget, relative to the attainment goal of the SLO.</p>"
+        },
+        "AutoInvestigationEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether DevOps Agent will automatically investigate this SLO when it is breached</p>"
         }
       }
     },
@@ -2040,6 +4807,24 @@
     "WarningThreshold":{
       "type":"double",
       "box":true
+    },
+    "Window":{
+      "type":"structure",
+      "required":[
+        "DurationUnit",
+        "Duration"
+      ],
+      "members":{
+        "DurationUnit":{
+          "shape":"DurationUnit",
+          "documentation":"<p>The unit of time for the exclusion window duration. Valid values: MINUTE, HOUR, DAY, MONTH.</p>"
+        },
+        "Duration":{
+          "shape":"ExclusionDuration",
+          "documentation":"<p>The number of time units for the exclusion window length.</p>"
+        }
+      },
+      "documentation":"<p>The object that defines the time length of an exclusion window.</p>"
     }
   },
   "documentation":"<p>Use CloudWatch Application Signals for comprehensive observability of your cloud-based applications. It enables real-time service health dashboards and helps you track long-term performance trends against your business goals. The application-centric view provides you with unified visibility across your applications, services, and dependencies, so you can proactively monitor and efficiently triage any issues that may arise, ensuring optimal customer experience.</p> <p>Application Signals provides the following benefits:</p> <ul> <li> <p>Automatically collect metrics and traces from your applications, and display key metrics such as call volume, availability, latency, faults, and errors. </p> </li> <li> <p>Create and monitor service level objectives (SLOs). </p> </li> <li> <p>See a map of your application topology that Application Signals automatically discovers, that gives you a visual representation of your applications, dependencies, and their connectivity.</p> </li> </ul> <p>Application Signals works with CloudWatch RUM, CloudWatch Synthetics canaries, and Amazon Web Services Service Catalog AppRegistry, to display your client pages, Synthetics canaries, and application names within dashboards and maps.</p>"

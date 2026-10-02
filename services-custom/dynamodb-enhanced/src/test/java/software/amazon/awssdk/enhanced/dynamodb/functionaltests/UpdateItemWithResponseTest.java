@@ -16,6 +16,7 @@
 package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertNull;
 import static software.amazon.awssdk.enhanced.dynamodb.mapper.StaticAttributeTags.primaryPartitionKey;
 
 import java.util.Objects;
@@ -29,6 +30,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.model.UpdateItemEnhancedResponse;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
+import software.amazon.awssdk.services.dynamodb.model.ReturnValue;
 
 public class UpdateItemWithResponseTest extends LocalDynamoDbSyncTestBase {
     private static class Record {
@@ -152,5 +154,57 @@ public class UpdateItemWithResponseTest extends LocalDynamoDbSyncTestBase {
         UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated));
 
         assertThat(response.itemCollectionMetrics()).isNull();
+    }
+
+    @Test
+    public void updateItemWithResponse_returnAllOld_shouldMapAttributes() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original);
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnValues(ReturnValue.ALL_OLD));
+        assertThat(response.attributes()).isEqualTo(original);
+    }
+
+    @Test
+    public void updateItemWithResponse_returnAllNew_shouldMapAttributes() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original);
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnValues(ReturnValue.ALL_NEW));
+        assertThat(response.attributes()).isEqualTo(updated);
+    }
+
+    @Test
+    public void updateItemWithResponse_returnNone_shouldHaveNullAttributes() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original);
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnValues(ReturnValue.NONE));
+        assertNull(response.attributes());
+    }
+
+    @Test
+    public void updateItemWithResponse_returnUpdatedOld_shouldMapAttributes() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original);
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnValues(ReturnValue.UPDATED_OLD));
+        assertThat(response.attributes().getStringAttr1()).isEqualTo(original.stringAttr1);
+        assertThat(response.attributes().getId()).isNull();
+    }
+
+    @Test
+    public void updateItemWithResponse_returnUpdatedNew_shouldMapAttributes() {
+        Record original = new Record().setId(1).setStringAttr1("attr");
+        mappedTable1.putItem(original);
+        Record updated = new Record().setId(1).setStringAttr1("attr2");
+        UpdateItemEnhancedResponse<Record> response = mappedTable1.updateItemWithResponse(r -> r.item(updated)
+                                                                                                .returnValues(ReturnValue.UPDATED_NEW));
+        assertThat(response.attributes().getStringAttr1()).isEqualTo(updated.getStringAttr1());
+        assertThat(response.attributes().getId()).isNull();
     }
 }

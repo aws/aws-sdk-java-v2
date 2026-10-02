@@ -1,0 +1,42 @@
+{
+    "version": "2.35.11",
+    "date": "2025-10-21",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds the ability to set resolution for the black video generator and also adds the StartJobsQuery and GetJobsQueryResults APIs which allow asynchronous search of job history using new filters."
+        },
+        {
+            "type": "feature",
+            "category": "AWSMarketplace Metering",
+            "contributor": "",
+            "description": "Added ClientToken parameter to MeterUsage API for specifying idempotent requests."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Add business metrics support for RPC v2 CBOR protocol to track smithy rpcv2 cbor protocol usage."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon DynamoDB",
+            "contributor": "",
+            "description": "Add AccountID based endpoint metric to endpoint rules."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EMR",
+            "contributor": "",
+            "description": "Added RECONFIGURING to the InstanceFleetState convenience enum."
+        },
+        {
+            "type": "removal",
+            "category": "AWS SDK for Java v2 Codegenerator",
+            "contributor": "",
+            "description": "Remove `useSraAuth` setting from customization config."
+        }
+    ]
+}

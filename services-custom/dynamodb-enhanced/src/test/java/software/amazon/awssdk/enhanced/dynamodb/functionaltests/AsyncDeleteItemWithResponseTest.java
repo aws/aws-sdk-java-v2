@@ -116,4 +116,20 @@ public class AsyncDeleteItemWithResponseTest extends LocalDynamoDbAsyncTestBase 
 
         assertThat(response.consumedCapacity()).isNotNull();
     }
+
+    @Test
+    public void deleteItem_simpleAndWithResponse_shouldReturnSameAttributes() {
+        Record first = new Record().setId(11).setStringAttr1("a");
+        mappedTable1.putItem(first).join();
+        Record deletedBySimple = mappedTable1.deleteItem(r -> r.key(k -> k.partitionValue(11))).join();
+        assertThat(deletedBySimple).isEqualTo(first);
+        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(11))).join()).isNull();
+
+        Record second = new Record().setId(12).setStringAttr1("b");
+        mappedTable1.putItem(second).join();
+        DeleteItemEnhancedResponse<Record> response =
+            mappedTable1.deleteItemWithResponse(r -> r.key(k -> k.partitionValue(12))).join();
+        assertThat(response.attributes()).isEqualTo(second);
+        assertThat(mappedTable1.getItem(r -> r.key(k -> k.partitionValue(12))).join()).isNull();
+    }
 }

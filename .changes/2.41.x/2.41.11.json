@@ -1,0 +1,60 @@
+{
+    "version": "2.41.11",
+    "date": "2026-01-20",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS STS",
+            "contributor": "",
+            "description": "Fix `StsWebIdentityTokenFileCredentialsProvider` not respecting custom `prefetchTime` and `staleTime` configurations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Make `Apache5HttpClient` the preferred default HTTP client for sync SDK clients. This means that when `apache5-client` is on the classpath, and an HTTP client is *not* explicitly configured on client builder, the SDK client will use `Apache5HttpClient`."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock Runtime",
+            "contributor": "",
+            "description": "Added support for extended prompt caching with one hour TTL."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "Adds support for managing table pre-warming in Amazon Keyspaces (for Apache Cassandra)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Verified Permissions",
+            "contributor": "",
+            "description": "Amazon Verified Permissions now supports encryption of resources by a customer managed KMS key. Customers can now create new encrypted policy stores by passing in their customer managed key during policy store creation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Workspaces Instances",
+            "contributor": "",
+            "description": "Added billing configuration support for WorkSpaces Instances with monthly and hourly billing modes, including new filtering capabilities for instance type searches."
+        },
+        {
+            "type": "feature",
+            "category": "Auto Scaling",
+            "contributor": "",
+            "description": "This release adds support for three new filters when describing scaling activities, StartTimeLowerBound, StartTimeUpperBound, and Status."
+        },
+        {
+            "type": "feature",
+            "category": "odb",
+            "contributor": "",
+            "description": "Adds support for associating and disassociating IAM roles with Autonomous VM cluster resources through the AssociateIamRoleToResource and DisassociateIamRoleFromResource APIs. The GetCloudAutonomousVmCluster and ListCloudAutonomousVmClusters API responses now include the iamRoles field."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

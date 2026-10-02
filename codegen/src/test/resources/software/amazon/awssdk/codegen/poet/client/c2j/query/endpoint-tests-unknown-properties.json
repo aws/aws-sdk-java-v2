@@ -1,0 +1,200 @@
+{
+  "testCases": [
+    {
+      "documentation": "test case 1",
+      "params": {
+        "region": "us-east-1"
+      },
+      "expect": {
+        "endpoint": {
+          "url": "https://myservice.aws",
+          "properties": {
+            "unknownProperty": "value"
+          }
+        }
+      }
+    },
+    {
+      "documentation": "test case 2",
+      "params": {
+        "region": "us-east-1",
+        "booleanContextParam": true,
+        "stringContextParam": "this is a test"
+      },
+      "expect": {
+        "endpoint": {
+          "url": "https://myservice.aws"
+        }
+      }
+    },
+    {
+      "documentation": "test case 3",
+      "params": {
+        "region": "us-east-1"
+      },
+      "operationInputs": [
+        {
+          "operationName": "OperationWithContextParam",
+          "operationParams": {
+            "StringMember": "this is a test"
+          }
+        }
+      ],
+      "expect": {
+        "endpoint": {
+          "url": "https://myservice.aws"
+        }
+      }
+    },
+    {
+      "documentation": "test case 4",
+      "params": {
+        "region": "us-east-6"
+      },
+      "operationInputs": [
+        {
+          "operationName": "OperationWithContextParam",
+          "operationParams": {
+            "StringMember": "this is a test"
+          }
+        }
+      ],
+      "expect": {
+        "endpoint": {
+          "url": "https://myservice.aws"
+        }
+      }
+    },
+    {
+      "documentation": "test case 5",
+      "operationInputs": [
+        {
+          "operationName": "OperationWithContextParam",
+          "operationParams": {
+            "StringMember": "this is a test with AccountId and AccountIdEndpointMode"
+          },
+          "builtInParams": {
+            "AWS::Region": "us-east-5",
+            "AWS::Auth::AccountId": "012345678901",
+            "AWS::Auth::AccountIdEndpointMode": "required"
+          }
+        }
+      ],
+      "params": {
+        "Region": "us-east-5",
+        "AccountId": "012345678901",
+        "AccountIdEndpointMode": "required"
+      },
+      "expect": {
+        "endpoint": {
+          "url": "https://012345678901.myservice.aws"
+        }
+      }
+    },
+    {
+      "documentation": "test case 6",
+      "operationInputs": [
+        {
+          "operationName": "OperationWithMapOperationContextParam",
+          "operationParams": {
+            "OperationWithMapOperationContextParam": {
+              "key": {
+                "S" : "value"
+              }
+            }
+          },
+          "builtInParams": {
+            "AWS::Region": "us-east-5",
+            "AWS::Auth::AccountId": "012345678901",
+            "AWS::Auth::AccountIdEndpointMode": "required"
+          }
+        }
+      ],
+      "params": {
+        "Region": "us-east-5",
+        "AccountId": "012345678901",
+        "AccountIdEndpointMode": "required",
+        "ArnList": [
+          "arn:aws:dynamodb:us-east-6:012345678901:table/table_name"
+        ]
+      },
+      "expect": {
+        "endpoint": {
+          "url": "https://012345678901.myservice.aws"
+        }
+      }
+    },
+    {
+      "documentation": "test case 7",
+      "operationInputs": [
+        {
+          "operationName": "OperationWithMapOperationContextParam",
+          "operationParams": {
+            "OperationWithMapOperationContextParam": {
+              "key": {
+                "S" : "value"
+              },
+              "key2": {
+                "S" : "value2"
+              }
+            }
+          },
+          "builtInParams": {
+            "AWS::Region": "us-east-5",
+            "AWS::Auth::AccountId": "012345678901",
+            "AWS::Auth::AccountIdEndpointMode": "required"
+          }
+        }
+      ],
+      "params": {
+        "Region": "us-east-5",
+        "AccountId": "012345678901",
+        "AccountIdEndpointMode": "required",
+        "ArnList": [
+          "arn:aws:dynamodb:us-east-6:012345678901:table/table_name"
+        ]
+      },
+      "expect": {
+        "endpoint": {
+          "url": "https://012345678901.myservice.aws"
+        }
+      }
+    },
+    {
+      "documentation": "For region us-iso-west-1 with FIPS enabled and DualStack enabled",
+      "expect": {
+        "error": "Should have been skipped!"
+      },
+      "params": {
+      }
+    },
+    {
+      "documentation": "Has complex operation input",
+      "expect": {
+        "error": "Missing info"
+      },
+      "params": {
+      },
+      "operationInputs": [
+        {
+          "operationName": "OperationWithContextParam",
+          "operationParams": {
+            "NestedMember": {
+              "ChecksumMode": "foo"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "documentation": "Has has undeclared input parameter",
+      "expect": {
+        "error": "Missing info"
+      },
+      "params": {
+        "NotAParam": "ABC"
+      }
+    }
+  ],
+  "version": "1.0"
+}

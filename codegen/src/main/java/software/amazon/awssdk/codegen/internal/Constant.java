@@ -78,6 +78,8 @@ public final class Constant {
 
     public static final String PACKAGE_NAME_BATCHMANAGER_PATTERN = "%s.batchmanager";
 
+    public static final String PACKAGE_NAME_PRESIGNEDURL_PATTERN = "%s.presignedurl";
+
     public static final String PACKAGE_NAME_CUSTOM_AUTH_PATTERN = "%s.auth";
 
     public static final String AUTH_POLICY_ENUM_CLASS_DIR = "software/amazon/awssdk/auth/policy/actions";
@@ -97,6 +99,8 @@ public final class Constant {
     public static final String LF = System.lineSeparator();
 
     public static final String AWS_DOCS_HOST = "docs.aws.amazon.com";
+
+    public static final String EXAMPLE_META_PATH = "software/amazon/awssdk/codegen/example-meta.json";
 
     public static final String APPROVED_SIMPLE_METHOD_VERBS = "(get|list|describe|lookup|batchGet).*";
 

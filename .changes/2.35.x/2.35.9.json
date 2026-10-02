@@ -1,0 +1,306 @@
+{
+    "version": "2.35.9",
+    "date": "2025-10-16",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Amplify",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS App Runner",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Auto Scaling Plans",
+            "contributor": "",
+            "description": "Updated FIPS endpoints for US GovCloud regions"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWSBillingConductor",
+            "contributor": "",
+            "description": "New feature: service flat CLI and first AWS managed pricing plan (BasicPricingPlan)"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Billing and Cost Management Data Exports",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Certificate Manager Private Certificate Authority",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Data Exchange",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaPackage v2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Free Tier",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Global Accelerator",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue DataBrew",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Health Imaging",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Key Management Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWSMainframeModernization",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Mainframe Modernization Application Testing",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Entitlement Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Migration Hub Config",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Price List Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Route53 Recovery Control Config",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSM-GUIConnect",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO Identity Store",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Systems Manager Incident Manager Contacts",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayManagementApi",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Customer Profiles",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Data Lifecycle Manager",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GameLift",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Model Building Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lex Runtime V2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Routes V2",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lookout for Equipment",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Machine Learning",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Managed Grafana",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon MemoryDB",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon OpenSearch Ingestion",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Personalize Runtime",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint SMS and Voice Service",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QLDB",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QLDB Session",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Timestream Query",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Voice ID",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon WorkSpaces Web",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        },
+        {
+            "type": "feature",
+            "category": "Network Flow Monitor",
+            "contributor": "",
+            "description": "Update endpoint ruleset parameters casing"
+        }
+    ]
+}

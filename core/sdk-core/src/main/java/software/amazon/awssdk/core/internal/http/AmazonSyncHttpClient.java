@@ -30,13 +30,14 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionI
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallAttemptTimeoutTrackingStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AuthSchemeResolutionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeTransmissionExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.BeforeUnmarshallingExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.CompressRequestStage;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.EndpointResolutionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ExecutionFailureExceptionReportingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HandleResponseStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.HttpChecksumStage;
@@ -181,12 +182,14 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                     .first(RequestPipelineBuilder
                                .first(MakeRequestMutableStage::new)
                                .then(ApplyTransactionIdStage::new)
-                               .then(ApplyUserAgentStage::new)
                                .then(MergeCustomHeadersStage::new)
                                .then(MergeCustomQueryParamsStage::new)
                                .then(QueryParametersToBodyStage::new)
                                .then(() -> new CompressRequestStage(httpClientDependencies))
+                               .then(AuthSchemeResolutionStage::new)
+                               .then(EndpointResolutionStage::new)
                                .then(() -> new HttpChecksumStage(ClientType.SYNC))
+                               .then(ApplyUserAgentStage::new)
                                .then(MakeRequestImmutableStage::new)
                                // End of mutating request
                                .then(RequestPipelineBuilder
@@ -202,7 +205,7 @@ public final class AmazonSyncHttpClient implements SdkAutoCloseable {
                                          .wrappedWith(RetryableStage::new)::build)
                                .wrappedWith(StreamManagingStage::new)
                                .wrappedWith(ApiCallTimeoutTrackingStage::new)::build)
-                               .wrappedWith((deps, wrapped) -> new ApiCallMetricCollectionStage<>(wrapped))
+                    // Note: API_CALL_DURATION is measured by BaseSyncClientHandler
                     .then(() -> new UnwrapResponseContainer<>())
                     .then(() -> new AfterExecutionInterceptorsStage<>())
                     .wrappedWith(ExecutionFailureExceptionReportingStage::new)

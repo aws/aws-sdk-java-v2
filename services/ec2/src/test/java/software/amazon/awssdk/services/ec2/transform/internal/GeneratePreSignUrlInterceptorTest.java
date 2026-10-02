@@ -18,21 +18,31 @@ package software.amazon.awssdk.services.ec2.transform.internal;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.AWS_CREDENTIALS;
+import static software.amazon.awssdk.core.interceptor.SdkExecutionAttribute.SERVICE_NAME;
+
 import java.net.URI;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Collections;
+import java.util.Map;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.services.ec2.model.CopySnapshotRequest;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -59,6 +69,8 @@ public class GeneratePreSignUrlInterceptorTest {
 
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AWS_CREDENTIALS, AwsBasicCredentials.create("foo", "bar"));
+        attrs.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "ec2");
+        addSraAttributes(attrs, AwsBasicCredentials.create("foo", "bar"));
 
         SdkHttpRequest modifiedRequest = INTERCEPTOR.modifyHttpRequest(mockContext, attrs);
 
@@ -82,8 +94,8 @@ public class GeneratePreSignUrlInterceptorTest {
                 "&X-Amz-Algorithm=AWS4-HMAC-SHA256" +
                 "&X-Amz-Date=20200107T205609Z" +
                 "&X-Amz-SignedHeaders=host" +
-                "&X-Amz-Expires=604800" +
                 "&X-Amz-Credential=akid%2F20200107%2Fus-west-2%2Fec2%2Faws4_request" +
+                "&X-Amz-Expires=604800" +
                 "&X-Amz-Signature=c1f5e34834292a86ff2b46b5e97cebaf2967b09641b4e2e60a382a37d137a03b";
 
         ZoneId utcZone = ZoneId.of("UTC").normalized();
@@ -111,11 +123,32 @@ public class GeneratePreSignUrlInterceptorTest {
 
         ExecutionAttributes attrs = new ExecutionAttributes();
         attrs.putAttribute(AWS_CREDENTIALS, AwsBasicCredentials.create("akid", "skid"));
+        attrs.putAttribute(AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME, "ec2");
+        addSraAttributes(attrs, AwsBasicCredentials.create("akid", "skid"));
 
         SdkHttpRequest modifiedRequest = interceptor.modifyHttpRequest(mockContext, attrs);
 
         String generatedPresignedUrl = modifiedRequest.rawQueryParameters().get("PresignedUrl").get(0);
 
         assertThat(generatedPresignedUrl).isEqualTo(expectedPresignedUrl);
+    }
+
+    private static void addSraAttributes(ExecutionAttributes attrs, AwsBasicCredentials credentials) {
+        AwsV4AuthScheme authScheme = AwsV4AuthScheme.create();
+        Map<String, AuthScheme<?>> authSchemes = Collections.singletonMap(authScheme.schemeId(), authScheme);
+        IdentityProviders identityProviders = IdentityProviders.builder()
+            .putIdentityProvider(StaticCredentialsProvider.create(credentials))
+            .build();
+        attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEMES, authSchemes);
+        attrs.putAttribute(SdkInternalExecutionAttribute.IDENTITY_PROVIDERS, identityProviders);
+        attrs.putAttribute(SdkInternalExecutionAttribute.AUTH_SCHEME_OPTIONS_RESOLVER,
+                           (request, executionAttributes) -> Collections.singletonList(
+                               software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption.builder()
+                                   .schemeId(authScheme.schemeId())
+                                   .putSignerProperty(software.amazon.awssdk.http.auth.aws.signer.AwsV4FamilyHttpSigner
+                                                          .SERVICE_SIGNING_NAME, "ec2")
+                                   .putSignerProperty(software.amazon.awssdk.http.auth.aws.signer.AwsV4HttpSigner
+                                                          .REGION_NAME, "us-west-2")
+                                   .build()));
     }
 }

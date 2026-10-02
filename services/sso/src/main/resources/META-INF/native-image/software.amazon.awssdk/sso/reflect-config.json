@@ -1,0 +1,11 @@
+[
+  {
+    "name": "software.amazon.awssdk.services.sso.auth.SsoProfileCredentialsProviderFactory",
+    "methods": [
+      {
+        "name": "<init>",
+        "parameterTypes": []
+      }
+    ]
+  }
+]

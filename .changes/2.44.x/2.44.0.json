@@ -1,0 +1,66 @@
+{
+    "version": "2.44.0",
+    "date": "2026-05-01",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "Adds support for filtering log groups by tags in the ListLogGroups API via the new logGroupTags parameter."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "Add IdentityProviderCACertificatesBundleS3Uri for private CA certs with OAuth datasources. 256-char limit for FontFamily in themes. ControlTitleFormatText on all 13 filters. ControlTitleFontConfiguration. ContextRegion for cross-region identity context. Story,scenario in CreateCustomCapability API."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch",
+            "contributor": "",
+            "description": "This release adds tag support for CloudWatch Dashboards. The PutDashboard API now accepts a Tags parameter, allowing you to tag dashboards at creation time. Additionally, the TagResource, UntagResource, and ListTagsForResource APIs now support dashboard ARNs as resources."
+        },
+        {
+            "type": "feature",
+            "category": "AWS IoT",
+            "contributor": "",
+            "description": "AWS IoT HTTP rule actions now support cross-topic batching, combining messages from different MQTT topics into single HTTP requests."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Add support for transitive matching in AWS Entity Resolution rule-based matching workflows. When enabled, records that match through different rules are grouped together into the same match group, allowing related records to be connected across rule levels."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon AppStream",
+            "contributor": "",
+            "description": "Amazon WorkSpaces Applications now enables AI agents to securely operate desktop applications. Administrators configure stacks to provide agents access to WorkSpaces. Agents can click, type, and take screenshots. Agents authenticate with AWS IAM credentials with activity logged in AWS CloudTrail."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Identity and Access Management",
+            "contributor": "",
+            "description": "Added guidance for CreateOpenIDConnectProvider to include multiple thumbprints when OIDC discovery and JWKS endpoints use different hosts or certificates"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Added support for v2.1 retry behavior behind the `AWS_NEW_RETRIES_2026` feature gate. When enabled via environment variable `AWS_NEW_RETRIES_2026=true` or system property `-Daws.newRetries2026=true`, the SDK applies the following changes:\n\n- Uses `STANDARD` as the default retry mode\n- Reduces base backoff delay from 100ms to 50ms\n- Differentiates token costs between transient and throttling errors\n- Honors the `max_attempts` profile property\n- Uses the `x-amz-retry-after` response header for server-suggested delays\n- Retries on `LimitExceededException` as a throttling error\n- Retries on STS `IdpCommunicationErrorException`\n- Reduces DynamoDB default max attempts from 9 to 4\n- Backs off before failing long-polling operations (e.g., SQS `ReceiveMessage`) when the retry token bucket is exhausted, instead of failing immediately\n\nExample usage:\n```java\nSystem.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), \"true\");\nDynamoDbClient ddb = DynamoDbClient.create();\n```"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Q Connect",
+            "contributor": "",
+            "description": "Added reasoning details, statusDescription, and timeToFirstTokenMs fields to the ListSpans response in Amazon Q in Connect to provide visibility into model thinking, error diagnostics, and inference latency metrics."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

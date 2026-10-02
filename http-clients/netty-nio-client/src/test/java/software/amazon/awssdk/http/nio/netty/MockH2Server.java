@@ -44,25 +44,25 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
  */
 public class MockH2Server extends BaseMockServer {
     private final Server server;
+    private final ServerConnector httpConnector;
+    private final ServerConnector http2Connector;
+    private final HttpConfiguration httpConfiguration;
 
     public MockH2Server(boolean usingAlpn) throws IOException {
         server = new Server();
-        ServerConnector connector = new ServerConnector(server);
-        connector.setPort(httpPort);
 
         // HTTP Configuration
-        HttpConfiguration httpConfiguration = new HttpConfiguration();
+        httpConfiguration = new HttpConfiguration();
         httpConfiguration.setSecureScheme("https");
-        httpConfiguration.setSecurePort(httpsPort);
         httpConfiguration.setSendXPoweredBy(true);
         httpConfiguration.setSendServerVersion(true);
 
-        // HTTP Connector
-        ServerConnector http = new ServerConnector(server,
-                                                   new HttpConnectionFactory(httpConfiguration),
-                                                   new HTTP2CServerConnectionFactory(httpConfiguration));
-        http.setPort(httpPort);
-        server.addConnector(http);
+        // HTTP Connector, port 0 makes the kernel assign a free port atomically at bind time
+        httpConnector = new ServerConnector(server,
+                                            new HttpConnectionFactory(httpConfiguration),
+                                            new HTTP2CServerConnectionFactory(httpConfiguration));
+        httpConnector.setPort(0);
+        server.addConnector(httpConnector);
 
 
         // HTTPS Configuration
@@ -86,7 +86,6 @@ public class MockH2Server extends BaseMockServer {
 
         // SSL Connection Factory
         SslConnectionFactory ssl;
-        ServerConnector http2Connector;
 
         if (usingAlpn) {
             ssl = new SslConnectionFactory(sslContextFactory, "alpn");
@@ -98,7 +97,7 @@ public class MockH2Server extends BaseMockServer {
             http2Connector = new ServerConnector(server, ssl, h2, new HttpConnectionFactory(https));
         }
 
-        http2Connector.setPort(httpsPort);
+        http2Connector.setPort(0);
         server.addConnector(http2Connector);
 
         ServletContextHandler context = new ServletContextHandler(server, "/", ServletContextHandler.SESSIONS);
@@ -108,6 +107,9 @@ public class MockH2Server extends BaseMockServer {
 
     public void start() throws Exception {
         server.start();
+        httpPort = httpConnector.getLocalPort();
+        httpsPort = http2Connector.getLocalPort();
+        httpConfiguration.setSecurePort(httpsPort);
     }
 
     public void stop() throws Exception {

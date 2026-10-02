@@ -59,6 +59,12 @@ public class Member {
 
     private String deprecatedName;
 
+    /**
+     * An additional, alternate name for this member that should additionally be used when generating bean style
+     * setters/getters for the enclosing shape.
+     */
+    private String alternateBeanPropertyName;
+
     private ContextParam contextParam;
 
     public String getShape() {
@@ -235,5 +241,13 @@ public class Member {
 
     public void setContextParam(ContextParam contextParam) {
         this.contextParam = contextParam;
+    }
+
+    public String getAlternateBeanPropertyName() {
+        return alternateBeanPropertyName;
+    }
+
+    public void setAlternateBeanPropertyName(String alternateBeanPropertyName) {
+        this.alternateBeanPropertyName = alternateBeanPropertyName;
     }
 }

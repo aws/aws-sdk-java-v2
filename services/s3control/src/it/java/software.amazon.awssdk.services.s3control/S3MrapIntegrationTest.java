@@ -32,7 +32,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
-import software.amazon.awssdk.auth.signer.internal.SignerConstant;
 import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -45,7 +44,8 @@ import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
+import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -314,7 +314,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                 builder.contentStreamProvider(() -> new StringInputStream(content));
             }
             HttpExecuteRequest request = builder.build();
-            HttpExecuteResponse response = ApacheHttpClient.create().prepareRequest(request).call();
+            HttpExecuteResponse response = Apache5HttpClient.create().prepareRequest(request).call();
             return response.responseBody()
                            .map(stream -> invokeSafely(() -> IoUtils.toUtf8String(stream)))
                            .orElseThrow(() -> new IOException("No input stream"));

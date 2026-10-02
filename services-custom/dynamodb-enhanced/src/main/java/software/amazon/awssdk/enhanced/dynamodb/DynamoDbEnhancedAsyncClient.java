@@ -527,6 +527,20 @@ public interface DynamoDbEnhancedAsyncClient extends DynamoDbEnhancedResource {
         throw new UnsupportedOperationException();
     }
 
+    /**
+     * Returns the underlying low-level {@link DynamoDbAsyncClient} that this enhanced client uses to make API calls.
+     * <p>
+     * The returned client is the same instance that was provided during construction via
+     * {@link Builder#dynamoDbClient(DynamoDbAsyncClient)}, or the internally-created one if {@link #create()} was used.
+     * It is <b>not</b> a copy — any operations performed on it (including {@code close()}) will affect this
+     * enhanced client as well.
+     *
+     * @return the underlying {@link DynamoDbAsyncClient}
+     * @throws UnsupportedOperationException if the implementation does not support this operation
+     */
+    default DynamoDbAsyncClient dynamoDbAsyncClient() {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Creates a default builder for {@link DynamoDbEnhancedAsyncClient}.

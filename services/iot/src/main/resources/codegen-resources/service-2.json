@@ -153,7 +153,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Associates a Device Defender security profile with a thing group or this account. Each thing group or account can have up to five security profiles associated with it.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">AttachSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Associates a Device Defender security profile with a thing group or this account. Each thing group or account can have up to five security profiles associated with it.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">AttachSecurityProfile</a> action.</p>"
     },
     "AttachThingPrincipal":{
       "name":"AttachThingPrincipal",
@@ -237,7 +237,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Cancels a Device Defender ML Detect mitigation action. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CancelDetectMitigationActionsTask</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Cancels a Device Defender ML Detect mitigation action. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CancelDetectMitigationActionsTask</a> action.</p>"
     },
     "CancelJob":{
       "name":"CancelJob",
@@ -428,7 +428,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Use this API to define a Custom Metric published by your devices to Device Defender. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateCustomMetric</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Use this API to define a Custom Metric published by your devices to Device Defender. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateCustomMetric</a> action.</p>"
     },
     "CreateDimension":{
       "name":"CreateDimension",
@@ -445,7 +445,7 @@
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Create a dimension that you can use to limit the scope of a metric used in a security profile for IoT Device Defender. For example, using a <code>TOPIC_FILTER</code> dimension, you can narrow down the scope of the metric only to MQTT topics whose name match the pattern specified in the dimension.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateDimension</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Create a dimension that you can use to limit the scope of a metric used in a security profile for IoT Device Defender. For example, using a <code>TOPIC_FILTER</code> dimension, you can narrow down the scope of the metric only to MQTT topics whose name match the pattern specified in the dimension.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateDimension</a> action.</p>"
     },
     "CreateDomainConfiguration":{
       "name":"CreateDomainConfiguration",
@@ -781,7 +781,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Creates a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Creates a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateSecurityProfile</a> action.</p>"
     },
     "CreateStream":{
       "name":"CreateStream",
@@ -869,7 +869,8 @@
         {"shape":"InvalidRequestException"},
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ServiceUnavailableException"},
-        {"shape":"ConflictingResourceUpdateException"}
+        {"shape":"ConflictingResourceUpdateException"},
+        {"shape":"UnauthorizedException"}
       ],
       "documentation":"<p>Creates a rule. Creating rules is an administrator-level action. Any user who has permission to create rules will be able to access data processed by the rule.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateTopicRule</a> action.</p>"
     },
@@ -886,7 +887,8 @@
         {"shape":"InvalidRequestException"},
         {"shape":"ResourceAlreadyExistsException"},
         {"shape":"ServiceUnavailableException"},
-        {"shape":"ConflictingResourceUpdateException"}
+        {"shape":"ConflictingResourceUpdateException"},
+        {"shape":"UnauthorizedException"}
       ],
       "documentation":"<p>Creates a topic rule destination. The destination must be confirmed prior to use.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">CreateTopicRuleDestination</a> action.</p>"
     },
@@ -1058,7 +1060,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Deletes a Device Defender detect custom metric. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DeleteCustomMetric</a> action.</p> <note> <p>Before you can delete a custom metric, you must first remove the custom metric from all security profiles it's a part of. The security profile associated with the custom metric can be found using the <a href=\"https://docs.aws.amazon.com/iot/latest/apireference/API_ListSecurityProfiles.html\">ListSecurityProfiles</a> API with <code>metricName</code> set to your custom metric name.</p> </note>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Deletes a Device Defender detect custom metric. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DeleteCustomMetric</a> action.</p> <note> <p>Before you can delete a custom metric, you must first remove the custom metric from all security profiles it's a part of. The security profile associated with the custom metric can be found using the <a href=\"https://docs.aws.amazon.com/iot/latest/apireference/API_ListSecurityProfiles.html\">ListSecurityProfiles</a> API with <code>metricName</code> set to your custom metric name.</p> </note>"
     },
     "DeleteDimension":{
       "name":"DeleteDimension",
@@ -1073,7 +1075,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Removes the specified dimension from your Amazon Web Services accounts.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DeleteDimension</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Removes the specified dimension from your Amazon Web Services accounts.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DeleteDimension</a> action.</p>"
     },
     "DeleteDomainConfiguration":{
       "name":"DeleteDomainConfiguration",
@@ -1382,7 +1384,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"VersionConflictException"}
       ],
-      "documentation":"<p>Deletes a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DeleteSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Deletes a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DeleteSecurityProfile</a> action.</p>"
     },
     "DeleteStream":{
       "name":"DeleteStream",
@@ -1701,7 +1703,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Gets information about a Device Defender detect custom metric. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeCustomMetric</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Gets information about a Device Defender detect custom metric. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeCustomMetric</a> action.</p>"
     },
     "DescribeDefaultAuthorizer":{
       "name":"DescribeDefaultAuthorizer",
@@ -1735,7 +1737,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Gets information about a Device Defender ML Detect mitigation action. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeDetectMitigationActionsTask</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Gets information about a Device Defender ML Detect mitigation action. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeDetectMitigationActionsTask</a> action.</p>"
     },
     "DescribeDimension":{
       "name":"DescribeDimension",
@@ -1751,7 +1753,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Provides details about a dimension that is defined in your Amazon Web Services accounts.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeDimension</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Provides details about a dimension that is defined in your Amazon Web Services accounts.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeDimension</a> action.</p>"
     },
     "DescribeDomainConfiguration":{
       "name":"DescribeDomainConfiguration",
@@ -1770,6 +1772,23 @@
         {"shape":"InternalFailureException"}
       ],
       "documentation":"<p>Gets summary information about a domain configuration.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeDomainConfiguration</a> action.</p>"
+    },
+    "DescribeEncryptionConfiguration":{
+      "name":"DescribeEncryptionConfiguration",
+      "http":{
+        "method":"GET",
+        "requestUri":"/encryption-configuration"
+      },
+      "input":{"shape":"DescribeEncryptionConfigurationRequest"},
+      "output":{"shape":"DescribeEncryptionConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Retrieves the encryption configuration for resources and data of your Amazon Web Services account in Amazon Web Services IoT Core. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/encryption-at-rest.html\">Data encryption at rest</a> in the <i>Amazon Web Services IoT Core Developer Guide</i>.</p>"
     },
     "DescribeEndpoint":{
       "name":"DescribeEndpoint",
@@ -1999,7 +2018,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Gets information about a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Gets information about a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DescribeSecurityProfile</a> action.</p>"
     },
     "DescribeStream":{
       "name":"DescribeStream",
@@ -2137,7 +2156,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Disassociates a Device Defender security profile from a thing group or from this account.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DetachSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Disassociates a Device Defender security profile from a thing group or from this account.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">DetachSecurityProfile</a> action.</p>"
     },
     "DetachThingPrincipal":{
       "name":"DetachThingPrincipal",
@@ -2222,7 +2241,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p> Returns a Device Defender's ML Detect Security Profile training model's status. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">GetBehaviorModelTrainingSummaries</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Returns a Device Defender's ML Detect Security Profile training model's status. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">GetBehaviorModelTrainingSummaries</a> action.</p>"
     },
     "GetBucketsAggregation":{
       "name":"GetBucketsAggregation",
@@ -2544,7 +2563,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"IndexNotReadyException"}
       ],
-      "documentation":"<p>Retrieves the live connectivity status per device.</p>"
+      "documentation":"<p>Retrieves the live connectivity status per device. If a device has never connected to IoT Core or was disconnected for more than 1 hour before fleet indexing's <code>thingConnectivityIndexingMode</code> was enabled, the response will have the <code>connected</code> field set to <code>false</code> with no additional session details.</p>"
     },
     "GetTopicRule":{
       "name":"GetTopicRule",
@@ -2607,7 +2626,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Lists the active violations for a given Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListActiveViolations</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Lists the active violations for a given Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListActiveViolations</a> action.</p>"
     },
     "ListAttachedPolicies":{
       "name":"ListAttachedPolicies",
@@ -2848,7 +2867,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Lists your Device Defender detect custom metrics. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListCustomMetrics</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Lists your Device Defender detect custom metrics. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListCustomMetrics</a> action.</p>"
     },
     "ListDetectMitigationActionsExecutions":{
       "name":"ListDetectMitigationActionsExecutions",
@@ -2863,7 +2882,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Lists mitigation actions executions for a Device Defender ML Detect Security Profile. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListDetectMitigationActionsExecutions</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Lists mitigation actions executions for a Device Defender ML Detect Security Profile. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListDetectMitigationActionsExecutions</a> action.</p>"
     },
     "ListDetectMitigationActionsTasks":{
       "name":"ListDetectMitigationActionsTasks",
@@ -2878,7 +2897,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> List of Device Defender ML Detect mitigation actions tasks. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListDetectMitigationActionsTasks</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> List of Device Defender ML Detect mitigation actions tasks. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListDetectMitigationActionsTasks</a> action.</p>"
     },
     "ListDimensions":{
       "name":"ListDimensions",
@@ -2893,7 +2912,7 @@
         {"shape":"InvalidRequestException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>List the set of dimensions that are defined for your Amazon Web Services accounts.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListDimensions</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>List the set of dimensions that are defined for your Amazon Web Services accounts.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListDimensions</a> action.</p>"
     },
     "ListDomainConfigurations":{
       "name":"ListDomainConfigurations",
@@ -3343,7 +3362,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists the Device Defender security profiles you've created. You can filter security profiles by dimension or custom metric.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListSecurityProfiles</a> action.</p> <note> <p> <code>dimensionName</code> and <code>metricName</code> cannot be used in the same request.</p> </note>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Lists the Device Defender security profiles you've created. You can filter security profiles by dimension or custom metric.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListSecurityProfiles</a> action.</p> <note> <p> <code>dimensionName</code> and <code>metricName</code> cannot be used in the same request.</p> </note>"
     },
     "ListSecurityProfilesForTarget":{
       "name":"ListSecurityProfilesForTarget",
@@ -3359,7 +3378,7 @@
         {"shape":"InternalFailureException"},
         {"shape":"ResourceNotFoundException"}
       ],
-      "documentation":"<p>Lists the Device Defender security profiles attached to a target (thing group).</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListSecurityProfilesForTarget</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Lists the Device Defender security profiles attached to a target (thing group).</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListSecurityProfilesForTarget</a> action.</p>"
     },
     "ListStreams":{
       "name":"ListStreams",
@@ -3427,7 +3446,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Lists the targets (thing groups) associated with a given Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListTargetsForSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Lists the targets (thing groups) associated with a given Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListTargetsForSecurityProfile</a> action.</p>"
     },
     "ListThingGroups":{
       "name":"ListThingGroups",
@@ -3622,7 +3641,8 @@
       "errors":[
         {"shape":"InternalException"},
         {"shape":"InvalidRequestException"},
-        {"shape":"ServiceUnavailableException"}
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"UnauthorizedException"}
       ],
       "documentation":"<p>Lists the rules for the specific topic.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListTopicRules</a> action.</p>"
     },
@@ -3655,7 +3675,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Lists the Device Defender security profile violations discovered during the given time period. You can use filters to limit the results to those alerts issued for a particular security profile, behavior, or thing (device).</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListViolationEvents</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Lists the Device Defender security profile violations discovered during the given time period. You can use filters to limit the results to those alerts issued for a particular security profile, behavior, or thing (device).</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ListViolationEvents</a> action.</p>"
     },
     "PutVerificationStateOnViolation":{
       "name":"PutVerificationStateOnViolation",
@@ -3670,7 +3690,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Set a verification state and provide a description of that verification state on a violation (detect alarm).</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Set a verification state and provide a description of that verification state on a violation (detect alarm).</p>"
     },
     "RegisterCACertificate":{
       "name":"RegisterCACertificate",
@@ -3839,7 +3859,7 @@
         {"shape":"InvalidQueryException"},
         {"shape":"IndexNotReadyException"}
       ],
-      "documentation":"<p>The query search index.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">SearchIndex</a> action.</p>"
+      "documentation":"<p>Searches the specified index.</p> <p>If a device has never connected to IoT Core or was disconnected for more than 1 hour before fleet indexing's <code>thingConnectivityIndexingMode</code> was enabled, the <code>connectivity</code> object for this device in the response will have the <code>connected</code> field set to <code>false</code> with no additional session details.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">SearchIndex</a> action.</p>"
     },
     "SetDefaultAuthorizer":{
       "name":"SetDefaultAuthorizer",
@@ -3953,7 +3973,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p> Starts a Device Defender ML Detect mitigation actions task. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">StartDetectMitigationActionsTask</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p> Starts a Device Defender ML Detect mitigation actions task. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">StartDetectMitigationActionsTask</a> action.</p>"
     },
     "StartOnDemandAuditTask":{
       "name":"StartOnDemandAuditTask",
@@ -4077,7 +4097,7 @@
         {"shape":"ServiceUnavailableException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Transfers the specified certificate to the specified Amazon Web Services account.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">TransferCertificate</a> action.</p> <p>You can cancel the transfer until it is acknowledged by the recipient.</p> <p>No notification is sent to the transfer destination's account. It is up to the caller to notify the transfer target.</p> <p>The certificate being transferred must not be in the ACTIVE state. You can use the <a>UpdateCertificate</a> action to deactivate it.</p> <p>The certificate must not have any policies attached to it. You can use the <a>DetachPolicy</a> action to detach them.</p>"
+      "documentation":"<p>Transfers the specified certificate to the specified Amazon Web Services account.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">TransferCertificate</a> action.</p> <p>You can cancel the transfer until it is accepted by the recipient.</p> <p>No notification is sent to the transfer destination's account. The caller is responsible for notifying the transfer target.</p> <p>The certificate being transferred must not be in the <code>ACTIVE</code> state. You can use the <a>UpdateCertificate</a> action to deactivate it.</p> <p>The certificate must not have any policies attached to it. You can use the <a>DetachPolicy</a> action to detach them.</p> <p> <b>Customer managed key behavior:</b> When you use a customer managed key to encrypt your data and then transfer the certificate to a customer in a different account using the <code>TransferCertificate</code> operation, the certificates will no longer be encrypted by their customer managed key configuration. During the transfer process, certificates are encrypted using Amazon Web Services IoT Core owned keys.</p> <p>While a certificate is in the <b>PENDING_TRANSFER</b> state, it's always protected by Amazon Web Services IoT Core owned keys, regardless of the customer managed key configuration of either the source or destination account. </p> <p>Once the transfer is completed through <a>AcceptCertificateTransfer</a>, <a>RejectCertificateTransfer</a>, or <a>CancelCertificateTransfer</a>, the certificate will be protected by the customer managed key configuration of the account that owns the certificate after the transfer operation:</p> <ul> <li> <p>If the transfer is accepted: The certificate is encrypted by the target account's customer managed key configuration.</p> </li> <li> <p>If the transfer is rejected or cancelled: The certificate is protected by the source account's customer managed key configuration.</p> </li> </ul>"
     },
     "UntagResource":{
       "name":"UntagResource",
@@ -4246,7 +4266,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Updates a Device Defender detect custom metric. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateCustomMetric</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Updates a Device Defender detect custom metric. </p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateCustomMetric</a> action.</p>"
     },
     "UpdateDimension":{
       "name":"UpdateDimension",
@@ -4262,7 +4282,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Updates the definition for a dimension. You cannot change the type of a dimension after it is created (you can delete it and recreate it).</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateDimension</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Updates the definition for a dimension. You cannot change the type of a dimension after it is created (you can delete it and recreate it).</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateDimension</a> action.</p>"
     },
     "UpdateDomainConfiguration":{
       "name":"UpdateDomainConfiguration",
@@ -4300,6 +4320,23 @@
         {"shape":"InvalidQueryException"}
       ],
       "documentation":"<p>Updates a dynamic thing group.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateDynamicThingGroup</a> action.</p>"
+    },
+    "UpdateEncryptionConfiguration":{
+      "name":"UpdateEncryptionConfiguration",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/encryption-configuration"
+      },
+      "input":{"shape":"UpdateEncryptionConfigurationRequest"},
+      "output":{"shape":"UpdateEncryptionConfigurationResponse"},
+      "errors":[
+        {"shape":"InvalidRequestException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"UnauthorizedException"},
+        {"shape":"ServiceUnavailableException"},
+        {"shape":"InternalFailureException"}
+      ],
+      "documentation":"<p>Updates the encryption configuration. By default, Amazon Web Services IoT Core encrypts your data at rest using Amazon Web Services owned keys. Amazon Web Services IoT Core also supports symmetric customer managed keys from Key Management Service (KMS). With customer managed keys, you create, own, and manage the KMS keys in your Amazon Web Services account. </p> <p>Before using this API, you must set up permissions for Amazon Web Services IoT Core to access KMS. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/encryption-at-rest.html\">Data encryption at rest</a> in the <i>Amazon Web Services IoT Core Developer Guide</i>.</p>"
     },
     "UpdateEventConfigurations":{
       "name":"UpdateEventConfigurations",
@@ -4507,7 +4544,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Updates a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateSecurityProfile</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Updates a Device Defender security profile.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">UpdateSecurityProfile</a> action.</p>"
     },
     "UpdateStream":{
       "name":"UpdateStream",
@@ -4628,7 +4665,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"InternalFailureException"}
       ],
-      "documentation":"<p>Validates a Device Defender security profile behaviors specification.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ValidateSecurityProfileBehaviors</a> action.</p>"
+      "documentation":"<note> <p>The IoT Device Defender detect feature will no longer be available to new customers starting August 31, 2026. If you would like to use the detect feature, sign up prior to August 31, 2026. To learn about alternatives to IoT Device Defender detect, see IoT Device Defender detect feature availability change in the IoT Device Defender Developer Guide. There is no change to IoT Device Defender audit availability.</p> </note> <p>Validates a Device Defender security profile behaviors specification.</p> <p>Requires permission to access the <a href=\"https://docs.aws.amazon.com/service-authorization/latest/reference/list_awsiot.html#awsiot-actions-as-permissions\">ValidateSecurityProfileBehaviors</a> action.</p>"
     }
   },
   "shapes":{
@@ -4803,6 +4840,10 @@
         "location":{
           "shape":"LocationAction",
           "documentation":"<p>The Amazon Location Service rule action sends device location updates from an MQTT message to an Amazon Location tracker resource.</p>"
+        },
+        "influxDB":{
+          "shape":"InfluxDBAction",
+          "documentation":"<p>Write data to an InfluxDB database.</p>"
         }
       },
       "documentation":"<p>Describes the actions associated with a rule.</p>"
@@ -4895,8 +4936,7 @@
     },
     "AddThingToBillingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "AddThingToThingGroupRequest":{
       "type":"structure",
@@ -4925,8 +4965,7 @@
     },
     "AddThingToThingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "AddThingsToThingGroupParams":{
       "type":"structure",
@@ -5286,8 +5325,7 @@
     },
     "AttachSecurityProfileResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "AttachThingPrincipalRequest":{
       "type":"structure",
@@ -5319,8 +5357,7 @@
     },
     "AttachThingPrincipalResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output from the AttachThingPrincipal operation.</p>"
     },
     "AttributeKey":{"type":"string"},
@@ -6063,6 +6100,40 @@
       "documentation":"<p>Specifies the amount of time each device has to finish its execution of the job. A timer is started when the job execution status is set to <code>IN_PROGRESS</code>. If the job execution status is not set to another terminal state before the timer expires, it will be automatically set to <code>TIMED_OUT</code>.</p>"
     },
     "AwsJobTimeoutInProgressTimeoutInMinutes":{"type":"long"},
+    "AwsJsonSubstitutionCommandPreprocessorConfig":{
+      "type":"structure",
+      "required":["outputFormat"],
+      "members":{
+        "outputFormat":{
+          "shape":"OutputFormat",
+          "documentation":"<p>Converts the command preprocessor result to the format defined by this parameter, before sending it to the device.</p>"
+        }
+      },
+      "documentation":"<p>Configures the command to treat the <code>payloadTemplate</code> as a JSON document for preprocessing. This preprocessor substitutes placeholders with parameter values to generate the command execution request payload. </p>"
+    },
+    "BatchAcrossTopics":{"type":"boolean"},
+    "BatchConfig":{
+      "type":"structure",
+      "members":{
+        "maxBatchOpenMs":{
+          "shape":"MaxBatchOpenMs",
+          "documentation":"<p>The maximum amount of time (in milliseconds) that an outgoing call waits for other calls with which it batches messages of the same type. The higher the setting, the longer the latency of the batched HTTP Action will be.</p>"
+        },
+        "maxBatchSize":{
+          "shape":"MaxBatchSize",
+          "documentation":"<p>The maximum number of messages that are batched together in a single action execution.</p>"
+        },
+        "maxBatchSizeBytes":{
+          "shape":"MaxBatchSizeBytes",
+          "documentation":"<p>Maximum size of a message batch, in bytes.</p>"
+        },
+        "batchAcrossTopics":{
+          "shape":"BatchAcrossTopics",
+          "documentation":"<p>Whether to allow batching messages from different MQTT topics into a single HTTP request. By default, only messages from the same topic are batched together. The default value is <code>false</code>.</p> <note> <p>When <code>batchAcrossTopics</code> is enabled, the error payload format changes: the <code>topic</code> field moves from the top level to inside each entry in the <code>payloadsWithMetadata</code> array, since each message in the batch may originate from a different topic.</p> </note> <note> <p>Messages are always batched within the scope of the same account, rule name, target HTTP endpoint URL, and billing group. Messages that differ in any of these attributes are never combined into the same batch, regardless of the <code>batchAcrossTopics</code> setting.</p> </note>"
+        }
+      },
+      "documentation":"<p>Configuration settings for batching.</p>"
+    },
     "BatchMode":{"type":"boolean"},
     "BeforeSubstitutionFlag":{"type":"boolean"},
     "Behavior":{
@@ -6374,8 +6445,7 @@
     },
     "CancelAuditMitigationActionsTaskResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CancelAuditTaskRequest":{
       "type":"structure",
@@ -6391,8 +6461,7 @@
     },
     "CancelAuditTaskResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CancelCertificateTransferRequest":{
       "type":"structure",
@@ -6421,8 +6490,7 @@
     },
     "CancelDetectMitigationActionsTaskResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CancelJobExecutionRequest":{
       "type":"structure",
@@ -6762,13 +6830,11 @@
     },
     "ClearDefaultAuthorizerRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ClearDefaultAuthorizerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ClientCertificateCallbackArn":{
       "type":"string",
@@ -7061,13 +7127,21 @@
           "shape":"CommandParameterName",
           "documentation":"<p>The name of a specific parameter used in a command and command execution.</p>"
         },
+        "type":{
+          "shape":"CommandParameterType",
+          "documentation":"<p>The type of the command parameter.</p>"
+        },
         "value":{
           "shape":"CommandParameterValue",
-          "documentation":"<p>The value used to describe the command. When you assign a value to a parameter, it will override any default value that you had already specified.</p>"
+          "documentation":"<p>Parameter value that overrides the default value, if set.</p>"
         },
         "defaultValue":{
           "shape":"CommandParameterValue",
           "documentation":"<p>The default value used to describe the command. This is the value assumed by the parameter if no other value is assigned to it.</p>"
+        },
+        "valueConditions":{
+          "shape":"CommandParameterValueConditionList",
+          "documentation":"<p>The list of conditions that a command parameter value must satisfy to create a command execution.</p>"
         },
         "description":{
           "shape":"CommandParameterDescription",
@@ -7091,6 +7165,18 @@
       "max":192,
       "min":1,
       "pattern":"^[.$a-zA-Z0-9_-]+$"
+    },
+    "CommandParameterType":{
+      "type":"string",
+      "enum":[
+        "STRING",
+        "INTEGER",
+        "DOUBLE",
+        "LONG",
+        "UNSIGNEDLONG",
+        "BOOLEAN",
+        "BINARY"
+      ]
     },
     "CommandParameterValue":{
       "type":"structure",
@@ -7124,7 +7210,95 @@
           "documentation":"<p>An attribute of type unsigned long.</p>"
         }
       },
-      "documentation":"<p>The range of possible values that's used to describe a specific command parameter.</p> <note> <p>The <code>commandParameterValue</code> can only have one of the below fields listed.</p> </note>"
+      "documentation":"<p>The value of a command parameter used to create a command execution.</p> <note> <p>The <code>commandParameterValue</code> can only have one of the below fields listed.</p> </note>"
+    },
+    "CommandParameterValueComparisonOperand":{
+      "type":"structure",
+      "members":{
+        "number":{
+          "shape":"StringParameterValue",
+          "documentation":"<p>An operand of number value type, defined as a string.</p>"
+        },
+        "numbers":{
+          "shape":"CommandParameterValueStringList",
+          "documentation":"<p>A List of operands of numerical value type, defined as strings.</p>"
+        },
+        "string":{
+          "shape":"StringParameterValue",
+          "documentation":"<p>An operand of string value type.</p>"
+        },
+        "strings":{
+          "shape":"CommandParameterValueStringList",
+          "documentation":"<p>A List of operands of string value type.</p>"
+        },
+        "numberRange":{
+          "shape":"CommandParameterValueNumberRange",
+          "documentation":"<p>An operand of numerical range value type.</p>"
+        }
+      },
+      "documentation":"<p>The comparison operand used to compare the defined value against the value supplied in request.</p>"
+    },
+    "CommandParameterValueComparisonOperator":{
+      "type":"string",
+      "enum":[
+        "EQUALS",
+        "NOT_EQUALS",
+        "LESS_THAN",
+        "LESS_THAN_EQUALS",
+        "GREATER_THAN",
+        "GREATER_THAN_EQUALS",
+        "IN_SET",
+        "NOT_IN_SET",
+        "IN_RANGE",
+        "NOT_IN_RANGE"
+      ]
+    },
+    "CommandParameterValueCondition":{
+      "type":"structure",
+      "required":[
+        "comparisonOperator",
+        "operand"
+      ],
+      "members":{
+        "comparisonOperator":{
+          "shape":"CommandParameterValueComparisonOperator",
+          "documentation":"<p>The comparison operator for the command parameter.</p> <note> <p>IN_RANGE, and NOT_IN_RANGE operators include boundary values.</p> </note>"
+        },
+        "operand":{
+          "shape":"CommandParameterValueComparisonOperand",
+          "documentation":"<p>The comparison operand for the command parameter.</p>"
+        }
+      },
+      "documentation":"<p>A condition for the command parameter that must be evaluated to true for successful creation of a command execution.</p>"
+    },
+    "CommandParameterValueConditionList":{
+      "type":"list",
+      "member":{"shape":"CommandParameterValueCondition"},
+      "min":1
+    },
+    "CommandParameterValueNumberRange":{
+      "type":"structure",
+      "required":[
+        "min",
+        "max"
+      ],
+      "members":{
+        "min":{
+          "shape":"StringParameterValue",
+          "documentation":"<p>The minimum value of a numerical range of a command parameter value.</p>"
+        },
+        "max":{
+          "shape":"StringParameterValue",
+          "documentation":"<p>The maximum value of a numerical range of a command parameter value.</p>"
+        }
+      },
+      "documentation":"<p>The numerical range value type to compare a command parameter value against.</p>"
+    },
+    "CommandParameterValueStringList":{
+      "type":"list",
+      "member":{"shape":"StringParameterValue"},
+      "max":10,
+      "min":1
     },
     "CommandPayload":{
       "type":"structure",
@@ -7141,6 +7315,20 @@
       "documentation":"<p>The command payload object that contains the instructions for the device to process.</p>"
     },
     "CommandPayloadBlob":{"type":"blob"},
+    "CommandPayloadTemplateString":{
+      "type":"string",
+      "max":32768
+    },
+    "CommandPreprocessor":{
+      "type":"structure",
+      "members":{
+        "awsJsonSubstitution":{
+          "shape":"AwsJsonSubstitutionCommandPreprocessorConfig",
+          "documentation":"<p>Configuration for the JSON substitution preprocessor.</p>"
+        }
+      },
+      "documentation":"<p>Configuration that determines how the <code>payloadTemplate</code> is processed by the service to generate the final payload sent to devices at <code>StartCommandExecution</code> API invocation.</p>"
+    },
     "CommandSummary":{
       "type":"structure",
       "members":{
@@ -7230,6 +7418,31 @@
       },
       "documentation":"<p>Configuration.</p>"
     },
+    "ConfigurationDetails":{
+      "type":"structure",
+      "members":{
+        "configurationStatus":{
+          "shape":"ConfigurationStatus",
+          "documentation":"<p>The health status of KMS key and KMS access role. If either KMS key or KMS access role is <code>UNHEALTHY</code>, the return value will be <code>UNHEALTHY</code>. To use a customer managed KMS key, the value of <code>configurationStatus</code> must be <code>HEALTHY</code>. </p>"
+        },
+        "errorCode":{
+          "shape":"ErrorCode",
+          "documentation":"<p>The error code that indicates either the KMS key or the KMS access role is <code>UNHEALTHY</code>. Valid values: <code>KMS_KEY_VALIDATION_ERROR</code> and <code>ROLE_VALIDATION_ERROR</code>. </p>"
+        },
+        "errorMessage":{
+          "shape":"ErrorMessage",
+          "documentation":"<p>The detailed error message that corresponds to the <code>errorCode</code>.</p>"
+        }
+      },
+      "documentation":"<p>The encryption configuration details that include the status information of the Key Management Service (KMS) key and the KMS access role.</p>"
+    },
+    "ConfigurationStatus":{
+      "type":"string",
+      "enum":[
+        "HEALTHY",
+        "UNHEALTHY"
+      ]
+    },
     "ConfirmTopicRuleDestinationRequest":{
       "type":"structure",
       "required":["confirmationToken"],
@@ -7244,8 +7457,7 @@
     },
     "ConfirmTopicRuleDestinationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ConfirmationToken":{
       "type":"string",
@@ -7288,6 +7500,16 @@
       "min":1,
       "pattern":"[a-zA-Z0-9:_-]+",
       "sensitive":true
+    },
+    "ConnectivityFilter":{
+      "type":"structure",
+      "members":{
+        "includeSocketInformation":{
+          "shape":"FleetIndexingApiList",
+          "documentation":"<p>A list of fleet indexing APIs for which to enable socket information retrieval. Currently, the only supported value is <code>GET_THING_CONNECTIVITY_DATA</code>.</p>"
+        }
+      },
+      "documentation":"<p>Provides connectivity filter selections for the fleet indexing configuration.</p>"
     },
     "ConnectivityTimestamp":{"type":"long"},
     "ConsecutiveDatapointsToAlarm":{
@@ -7342,8 +7564,7 @@
     },
     "CreateAuditSuppressionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateAuthorizerRequest":{
       "type":"structure",
@@ -7543,15 +7764,23 @@
         },
         "payload":{
           "shape":"CommandPayload",
-          "documentation":"<p>The payload object for the command. You must specify this information when using the <code>AWS-IoT</code> namespace.</p> <p>You can upload a static payload file from your local storage that contains the instructions for the device to process. The payload file can use any format. To make sure that the device correctly interprets the payload, we recommend you to specify the payload content type.</p>"
+          "documentation":"<p>The payload object for the static command.</p> <p>You can upload a static payload file from your local storage that contains the instructions for the device to process. The payload file can use any format. To make sure that the device correctly interprets the payload, we recommend you to specify the payload content type.</p>"
+        },
+        "payloadTemplate":{
+          "shape":"CommandPayloadTemplateString",
+          "documentation":"<p>The payload template for the dynamic command.</p> <note> <p>This parameter is required for dynamic commands where the command execution placeholders are supplied either from <code>mandatoryParameters</code> or when <code>StartCommandExecution</code> is invoked.</p> </note>"
+        },
+        "preprocessor":{
+          "shape":"CommandPreprocessor",
+          "documentation":"<p>Configuration that determines how <code>payloadTemplate</code> is processed to generate command execution payload.</p> <note> <p>This parameter is required for dynamic commands, along with <code>payloadTemplate</code>, and <code>mandatoryParameters</code>.</p> </note>"
         },
         "mandatoryParameters":{
           "shape":"CommandParameterList",
-          "documentation":"<p>A list of parameters that are required by the <code>StartCommandExecution</code> API. These parameters need to be specified only when using the <code>AWS-IoT-FleetWise</code> namespace. You can either specify them here or when running the command using the <code>StartCommandExecution</code> API.</p>"
+          "documentation":"<p>A list of parameters that are used by <code>StartCommandExecution</code> API for execution payload generation.</p>"
         },
         "roleArn":{
           "shape":"RoleArn",
-          "documentation":"<p>The IAM role that you must provide when using the <code>AWS-IoT-FleetWise</code> namespace. The role grants IoT Device Management the permission to access IoT FleetWise resources for generating the payload for the command. This field is not required when you use the <code>AWS-IoT</code> namespace.</p>"
+          "documentation":"<p>The IAM role that you must provide when using the <code>AWS-IoT-FleetWise</code> namespace. The role grants IoT Device Management the permission to access IoT FleetWise resources for generating the payload for the command. This field is not supported when you use the <code>AWS-IoT</code> namespace.</p>"
         },
         "tags":{
           "shape":"TagList",
@@ -8997,8 +9226,7 @@
     },
     "DeleteAccountAuditConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteAdditionalMetricsToRetain":{"type":"boolean"},
     "DeleteAlertTargets":{"type":"boolean"},
@@ -9015,8 +9243,7 @@
     },
     "DeleteAuditSuppressionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteAuthorizerRequest":{
       "type":"structure",
@@ -9032,8 +9259,7 @@
     },
     "DeleteAuthorizerResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteBehaviors":{"type":"boolean"},
     "DeleteBillingGroupRequest":{
@@ -9056,8 +9282,7 @@
     },
     "DeleteBillingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCACertificateRequest":{
       "type":"structure",
@@ -9074,8 +9299,7 @@
     },
     "DeleteCACertificateResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output for the DeleteCACertificate operation.</p>"
     },
     "DeleteCertificateProviderRequest":{
@@ -9092,8 +9316,7 @@
     },
     "DeleteCertificateProviderResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCertificateRequest":{
       "type":"structure",
@@ -9137,8 +9360,7 @@
     },
     "DeleteCommandExecutionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteCommandRequest":{
       "type":"structure",
@@ -9188,8 +9410,7 @@
     },
     "DeleteCustomMetricResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDimensionRequest":{
       "type":"structure",
@@ -9205,8 +9426,7 @@
     },
     "DeleteDimensionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDomainConfigurationRequest":{
       "type":"structure",
@@ -9222,8 +9442,7 @@
     },
     "DeleteDomainConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteDynamicThingGroupRequest":{
       "type":"structure",
@@ -9245,8 +9464,7 @@
     },
     "DeleteDynamicThingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteFleetMetricRequest":{
       "type":"structure",
@@ -9357,8 +9575,7 @@
     },
     "DeleteMitigationActionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteOTAUpdateRequest":{
       "type":"structure",
@@ -9386,8 +9603,7 @@
     },
     "DeleteOTAUpdateResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePackageRequest":{
       "type":"structure",
@@ -9410,8 +9626,7 @@
     },
     "DeletePackageResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePackageVersionRequest":{
       "type":"structure",
@@ -9443,8 +9658,7 @@
     },
     "DeletePackageVersionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePolicyRequest":{
       "type":"structure",
@@ -9495,8 +9709,7 @@
     },
     "DeleteProvisioningTemplateResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteProvisioningTemplateVersionRequest":{
       "type":"structure",
@@ -9521,19 +9734,16 @@
     },
     "DeleteProvisioningTemplateVersionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteRegistrationCodeRequest":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The input for the DeleteRegistrationCode operation.</p>"
     },
     "DeleteRegistrationCodeResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output for the DeleteRegistrationCode operation.</p>"
     },
     "DeleteRoleAliasRequest":{
@@ -9550,8 +9760,7 @@
     },
     "DeleteRoleAliasResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteScheduledAuditRequest":{
       "type":"structure",
@@ -9567,8 +9776,7 @@
     },
     "DeleteScheduledAuditResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteScheduledAudits":{"type":"boolean"},
     "DeleteSecurityProfileRequest":{
@@ -9591,8 +9799,7 @@
     },
     "DeleteSecurityProfileResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteStream":{"type":"boolean"},
     "DeleteStreamRequest":{
@@ -9609,8 +9816,7 @@
     },
     "DeleteStreamResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteThingGroupRequest":{
       "type":"structure",
@@ -9632,8 +9838,7 @@
     },
     "DeleteThingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteThingRequest":{
       "type":"structure",
@@ -9656,8 +9861,7 @@
     },
     "DeleteThingResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output of the DeleteThing operation.</p>"
     },
     "DeleteThingTypeRequest":{
@@ -9675,8 +9879,7 @@
     },
     "DeleteThingTypeResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output for the DeleteThingType operation.</p>"
     },
     "DeleteTopicRuleDestinationRequest":{
@@ -9693,8 +9896,7 @@
     },
     "DeleteTopicRuleDestinationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteTopicRuleRequest":{
       "type":"structure",
@@ -9718,7 +9920,7 @@
       "members":{
         "targetType":{
           "shape":"LogTargetType",
-          "documentation":"<p>The type of resource for which you are configuring logging. Must be <code>THING_Group</code>.</p>",
+          "documentation":"<p>The type of resource for which you are configuring logging. Must be <code>DEFAULT</code>, <code>THING_GROUP</code>, <code>CLIENT_ID</code>, <code>SOURCE_IP</code>, or <code>PRINCIPAL_ID</code>.</p>",
           "location":"querystring",
           "locationName":"targetType"
         },
@@ -9764,16 +9966,14 @@
     },
     "DeprecateThingTypeResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output for the DeprecateThingType operation.</p>"
     },
     "DeprecationDate":{"type":"timestamp"},
     "DeprecationFlag":{"type":"boolean"},
     "DescribeAccountAuditConfigurationRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeAccountAuditConfigurationResponse":{
       "type":"structure",
@@ -10122,8 +10322,7 @@
     },
     "DescribeDefaultAuthorizerRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeDefaultAuthorizerResponse":{
       "type":"structure",
@@ -10269,6 +10468,35 @@
         }
       }
     },
+    "DescribeEncryptionConfigurationRequest":{
+      "type":"structure",
+      "members":{}
+    },
+    "DescribeEncryptionConfigurationResponse":{
+      "type":"structure",
+      "members":{
+        "encryptionType":{
+          "shape":"EncryptionType",
+          "documentation":"<p>The type of the KMS key.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the customer managed KMS key.</p>"
+        },
+        "kmsAccessRoleArn":{
+          "shape":"KmsAccessRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role assumed by Amazon Web Services IoT Core to call KMS on behalf of the customer.</p>"
+        },
+        "configurationDetails":{
+          "shape":"ConfigurationDetails",
+          "documentation":"<p>The encryption configuration details that include the status information of the KMS key and the KMS access role.</p>"
+        },
+        "lastModifiedDate":{
+          "shape":"DateType",
+          "documentation":"<p>The date when encryption configuration is last updated.</p>"
+        }
+      }
+    },
     "DescribeEndpointRequest":{
       "type":"structure",
       "members":{
@@ -10293,8 +10521,7 @@
     },
     "DescribeEventConfigurationsRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeEventConfigurationsResponse":{
       "type":"structure",
@@ -11175,8 +11402,7 @@
     },
     "DetachSecurityProfileResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DetachThingPrincipalRequest":{
       "type":"structure",
@@ -11202,8 +11428,7 @@
     },
     "DetachThingPrincipalResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output from the DetachThingPrincipal operation.</p>"
     },
     "DetailsKey":{
@@ -11472,8 +11697,7 @@
     },
     "DisassociateSbomFromPackageVersionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DisconnectReason":{"type":"string"},
     "DisconnectReasonValue":{
@@ -11488,6 +11712,7 @@
         "MQTT_KEEP_ALIVE_TIMEOUT",
         "SERVER_ERROR",
         "SERVER_INITIATED_DISCONNECT",
+        "API_INITIATED_DISCONNECT",
         "THROTTLED",
         "WEBSOCKET_TTL_EXPIRATION",
         "CUSTOMAUTH_TTL_EXPIRATION",
@@ -11735,6 +11960,7 @@
     "ElasticsearchId":{"type":"string"},
     "ElasticsearchIndex":{"type":"string"},
     "ElasticsearchType":{"type":"string"},
+    "EnableBatching":{"type":"boolean"},
     "EnableCachingForHttp":{"type":"boolean"},
     "EnableIoTLoggingParams":{
       "type":"structure",
@@ -11772,6 +11998,13 @@
     "EnabledBoolean":{
       "type":"boolean",
       "box":true
+    },
+    "EncryptionType":{
+      "type":"string",
+      "enum":[
+        "CUSTOMER_MANAGED_KMS_KEY",
+        "AWS_OWNED_KMS_KEY"
+      ]
     },
     "EndpointAddress":{"type":"string"},
     "EndpointType":{
@@ -11976,6 +12209,14 @@
       "pattern":"([\\n\\t])|(\\r\\n)|(,)"
     },
     "Flag":{"type":"boolean"},
+    "FleetIndexingApi":{
+      "type":"string",
+      "enum":["GET_THING_CONNECTIVITY_DATA"]
+    },
+    "FleetIndexingApiList":{
+      "type":"list",
+      "member":{"shape":"FleetIndexingApi"}
+    },
     "FleetMetricArn":{"type":"string"},
     "FleetMetricDescription":{
       "type":"string",
@@ -12305,6 +12546,14 @@
           "shape":"CommandPayload",
           "documentation":"<p>The payload object that you provided for the command.</p>"
         },
+        "payloadTemplate":{
+          "shape":"CommandPayloadTemplateString",
+          "documentation":"<p>The payload template for the dynamic command.</p>"
+        },
+        "preprocessor":{
+          "shape":"CommandPreprocessor",
+          "documentation":"<p>Configuration that determines how <code>payloadTemplate</code> is processed to generate command execution payload.</p>"
+        },
         "roleArn":{
           "shape":"RoleArn",
           "documentation":"<p>The IAM role that you provided when creating the command with <code>AWS-IoT-FleetWise</code> as the namespace.</p>"
@@ -12357,8 +12606,7 @@
     },
     "GetIndexingConfigurationRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "GetIndexingConfigurationResponse":{
       "type":"structure",
@@ -12402,8 +12650,7 @@
     },
     "GetLoggingOptionsRequest":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The input for the GetLoggingOptions operation.</p>"
     },
     "GetLoggingOptionsResponse":{
@@ -12443,8 +12690,7 @@
     },
     "GetPackageConfigurationRequest":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "GetPackageConfigurationResponse":{
       "type":"structure",
@@ -12718,8 +12964,7 @@
     },
     "GetRegistrationCodeRequest":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The input to the GetRegistrationCode operation.</p>"
     },
     "GetRegistrationCodeResponse":{
@@ -12772,6 +13017,10 @@
           "documentation":"<p>The name of your IoT thing.</p>",
           "location":"uri",
           "locationName":"thingName"
+        },
+        "includeSocketInformation":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies if socket information (sourcePort, targetPort, sourceIp, targetIp, vpcEndpointId) should be included in the GetThingConnectivityData response. Set to <code>true</code> to include socket information. Set to <code>false</code> to omit socket information. By default, this is set to <code>false</code>.</p>"
         }
       }
     },
@@ -12788,11 +13037,47 @@
         },
         "timestamp":{
           "shape":"Timestamp",
-          "documentation":"<p>The timestamp of when the event occurred.</p>"
+          "documentation":"<p>The timestamp of when the device connected or disconnected.</p>"
         },
         "disconnectReason":{
           "shape":"DisconnectReasonValue",
-          "documentation":"<p>The reason why the client is disconnecting.</p>"
+          "documentation":"<p>The reason that the client is disconnected.</p>"
+        },
+        "sourceIp":{
+          "shape":"SourceIp",
+          "documentation":"<p>The IP address of the client that initiated the connection.</p>"
+        },
+        "sourcePort":{
+          "shape":"SourcePort",
+          "documentation":"<p>The client's source port.</p>"
+        },
+        "targetIp":{
+          "shape":"TargetIp",
+          "documentation":"<p>The IP address of the Amazon Web Services IoT Core endpoint that the client connected to.</p>"
+        },
+        "targetPort":{
+          "shape":"TargetPort",
+          "documentation":"<p>The port number of the Amazon Web Services IoT Core endpoint that the client connected to.</p>"
+        },
+        "vpcEndpointId":{
+          "shape":"VpcEndpointId",
+          "documentation":"<p>The ID of the VPC endpoint. Present for clients connected to Amazon Web Services IoT Core via a VPC endpoint.</p>"
+        },
+        "keepAliveDuration":{
+          "shape":"KeepAliveDuration",
+          "documentation":"<p>The keep-alive interval in seconds that the client specified when establishing the connection.</p>"
+        },
+        "cleanSession":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the client is using a clean session. Returns <code>true</code> for clean sessions.</p>"
+        },
+        "sessionExpiry":{
+          "shape":"SessionExpiry",
+          "documentation":"<p>The session expiry interval in seconds for the MQTT client connection. This value indicates how long the session will remain active after the client disconnects.</p>"
+        },
+        "clientId":{
+          "shape":"ClientId",
+          "documentation":"<p>The unique identifier of the MQTT client.</p>"
         }
       }
     },
@@ -12847,6 +13132,12 @@
     "GetV2LoggingOptionsRequest":{
       "type":"structure",
       "members":{
+        "verbose":{
+          "shape":"VerboseFlag",
+          "documentation":"<p> The flag is used to get all the event types and their respective configuration that event-based logging supports. </p>",
+          "location":"querystring",
+          "locationName":"verbose"
+        }
       }
     },
     "GetV2LoggingOptionsResponse":{
@@ -12863,6 +13154,10 @@
         "disableAllLogs":{
           "shape":"DisableAllLogs",
           "documentation":"<p>Disables all logs.</p>"
+        },
+        "eventConfigurations":{
+          "shape":"LogEventConfigurations",
+          "documentation":"<p> The list of event configurations that override account-level logging. </p>"
         }
       }
     },
@@ -12914,6 +13209,14 @@
         "auth":{
           "shape":"HttpAuthorization",
           "documentation":"<p>The authentication method to use when sending data to an HTTPS endpoint.</p>"
+        },
+        "enableBatching":{
+          "shape":"EnableBatching",
+          "documentation":"<p>Whether to process the HTTP action messages into a single request. Value can be true or false.</p>"
+        },
+        "batchConfig":{
+          "shape":"BatchConfig",
+          "documentation":"<p>The configuration settings for batching. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/http_batching.html\"> Batching HTTP action messages</a>.</p>"
         }
       },
       "documentation":"<p>Send data to an HTTPS endpoint.</p>"
@@ -13073,9 +13376,246 @@
         "geoLocations":{
           "shape":"GeoLocationsFilter",
           "documentation":"<p>The list of geolocation targets that you select to index. The default maximum number of geolocation targets for indexing is <code>1</code>. To increase the limit, see <a href=\"https://docs.aws.amazon.com/general/latest/gr/iot_device_management.html#fleet-indexing-limits\">Amazon Web Services IoT Device Management Quotas</a> in the <i>Amazon Web Services General Reference</i>.</p>"
+        },
+        "connectivity":{
+          "shape":"ConnectivityFilter",
+          "documentation":"<p>Provides additional connectivity filter selections for the fleet indexing configuration.</p>"
         }
       },
       "documentation":"<p>Provides additional selections for named shadows and geolocation data. </p> <p>To add named shadows to your fleet indexing configuration, set <code>namedShadowIndexingMode</code> to be ON and specify your shadow names in <code>namedShadowNames</code> filter.</p> <p>To add geolocation data to your fleet indexing configuration: </p> <ul> <li> <p>If you store geolocation data in a class/unnamed shadow, set <code>thingIndexingMode</code> to be <code>REGISTRY_AND_SHADOW</code> and specify your geolocation data in <code>geoLocations</code> filter. </p> </li> <li> <p>If you store geolocation data in a named shadow, set <code>namedShadowIndexingMode</code> to be <code>ON</code>, add the shadow name in <code>namedShadowNames</code> filter, and specify your geolocation data in <code>geoLocations</code> filter. For more information, see <a href=\"https://docs.aws.amazon.com/iot/latest/developerguide/managing-fleet-index.html\">Managing fleet indexing</a>.</p> </li> </ul>"
+    },
+    "InfluxDBAction":{
+      "type":"structure",
+      "required":[
+        "destinationArn",
+        "roleArn",
+        "databaseName",
+        "tableName"
+      ],
+      "members":{
+        "destinationArn":{
+          "shape":"AwsArn",
+          "documentation":"<p>The ARN of the InfluxDB topic rule destination that identifies the InfluxDB instance to write to.</p>"
+        },
+        "roleArn":{
+          "shape":"AwsArn",
+          "documentation":"<p>The ARN of the role that grants permission to retrieve the InfluxDB API token from Amazon Web Services Secrets Manager.</p>"
+        },
+        "databaseName":{
+          "shape":"InfluxDBDatabaseName",
+          "documentation":"<p>The name of the InfluxDB database to write to. In InfluxDB 2, this is the name of the bucket.</p>"
+        },
+        "tableName":{
+          "shape":"InfluxDBTableName",
+          "documentation":"<p>The name of the table to write the data point to. This is the measurement name of the InfluxDB line protocol record.</p> <p>Accepts substitution templates.</p>"
+        },
+        "organization":{
+          "shape":"InfluxDBOrganization",
+          "documentation":"<p>The name of the InfluxDB organization that owns the database.</p> <p>A write to an InfluxDB 2 instance fails if this value isn't set. This value isn't used when the destination is an InfluxDB 3 instance.</p>"
+        },
+        "tags":{
+          "shape":"InfluxDBTagMap",
+          "documentation":"<p>The set of tags to write with each data point. Tags are the indexed metadata of an InfluxDB data point.</p> <p>Tag names and tag values accept substitution templates. A tag name can't use the <code>@{...}</code> per-element form. A tag name must resolve to the same value for every element of an array payload.</p>"
+        },
+        "timestampUnit":{
+          "shape":"InfluxDBTimestampUnit",
+          "documentation":"<p>The precision of the timestamp written with each data point. Valid values are <code>s</code> (seconds), <code>ms</code> (milliseconds), <code>us</code> (microseconds), and <code>ns</code> (nanoseconds).</p> <p>If omitted, the topic rule action uses <code>ms</code>.</p>"
+        },
+        "batchConfig":{
+          "shape":"InfluxDBBatchConfig",
+          "documentation":"<p>The batching configuration for the action. When present, IoT collects data points from multiple messages and writes them to InfluxDB in a single request.</p> <p>If omitted, each message is written to InfluxDB in its own request.</p>"
+        }
+      },
+      "documentation":"<p>The InfluxDB rule action converts the message payload into InfluxDB line protocol. It writes the result to a table in an InfluxDB database. The database can be an Amazon Timestream for InfluxDB instance or a self-managed InfluxDB cluster.</p> <p>The action connects to InfluxDB through an InfluxDB topic rule destination, which must be in the <code>ENABLED</code> state before the action can write data.</p>"
+    },
+    "InfluxDBBatchAcrossTopics":{"type":"boolean"},
+    "InfluxDBBatchConfig":{
+      "type":"structure",
+      "members":{
+        "maxBatchSize":{
+          "shape":"InfluxDBMaxBatchSize",
+          "documentation":"<p>The maximum number of data points to collect in a batch.</p> <p>If you don't specify a value, this limit doesn't apply. IoT then closes each batch when another configured limit is reached.</p>"
+        },
+        "maxBatchOpenMs":{
+          "shape":"InfluxDBMaxBatchOpenMs",
+          "documentation":"<p>The maximum length of time, in milliseconds, to keep a batch open before writing it to InfluxDB.</p> <p>If you don't specify a value, this limit doesn't apply. IoT then closes each batch when another configured limit is reached.</p>"
+        },
+        "maxBatchSizeBytes":{
+          "shape":"InfluxDBMaxBatchSizeBytes",
+          "documentation":"<p>The maximum size of a batch, in bytes, before IoT writes it to InfluxDB.</p> <p>If you don't specify a value, this limit doesn't apply. IoT then closes each batch when another configured limit is reached.</p>"
+        },
+        "batchAcrossTopics":{
+          "shape":"InfluxDBBatchAcrossTopics",
+          "documentation":"<p>Specifies whether to collect data points from different topics into the same batch.</p> <p>If omitted or <code>false</code>, IoT batches data points for each topic separately.</p>"
+        }
+      },
+      "documentation":"<p>The batching configuration of an InfluxDB rule action. IoT closes a batch and writes it to InfluxDB when the first of the configured limits is reached.</p>"
+    },
+    "InfluxDBDatabaseName":{
+      "type":"string",
+      "max":64,
+      "min":2,
+      "pattern":"^[^_\\\"][^\\\"]+$"
+    },
+    "InfluxDBDestinationConfiguration":{
+      "type":"structure",
+      "required":[
+        "endpoint",
+        "influxDBVersion",
+        "secretId"
+      ],
+      "members":{
+        "endpoint":{
+          "shape":"Url",
+          "documentation":"<p>The URL of the InfluxDB instance to write to.</p>"
+        },
+        "influxDBVersion":{
+          "shape":"InfluxDBVersion",
+          "documentation":"<p>The major version of the InfluxDB instance. Valid values are <code>V2</code> and <code>V3</code>.</p>"
+        },
+        "secretId":{
+          "shape":"InfluxDBSecretId",
+          "documentation":"<p>The ARN or name of the Amazon Web Services Secrets Manager secret that contains the InfluxDB API token.</p>"
+        },
+        "secretType":{
+          "shape":"InfluxDBSecretType",
+          "documentation":"<p>The type of the secret that contains the InfluxDB API token. Valid values are <code>SecretString</code> and <code>SecretBinary</code>.</p> <p>If omitted, IoT reads the secret as a string.</p>"
+        },
+        "secretKey":{
+          "shape":"InfluxDBSecretKey",
+          "documentation":"<p>The key to read from the secret value when the secret contains a JSON object. If omitted, IoT uses the entire secret value as the InfluxDB API token.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of an InfluxDB topic rule destination.</p>"
+    },
+    "InfluxDBDestinationProperties":{
+      "type":"structure",
+      "members":{
+        "endpoint":{
+          "shape":"Url",
+          "documentation":"<p>The URL of the InfluxDB instance that the destination writes to.</p>"
+        },
+        "influxDBVersion":{
+          "shape":"InfluxDBVersion",
+          "documentation":"<p>The major version of the InfluxDB instance. Valid values are <code>V2</code> and <code>V3</code>.</p>"
+        },
+        "secretId":{
+          "shape":"InfluxDBSecretId",
+          "documentation":"<p>The ARN or name of the Amazon Web Services Secrets Manager secret that contains the InfluxDB API token.</p>"
+        },
+        "secretType":{
+          "shape":"InfluxDBSecretType",
+          "documentation":"<p>The type of the secret that contains the InfluxDB API token. Valid values are <code>SecretString</code> and <code>SecretBinary</code>.</p>"
+        },
+        "secretKey":{
+          "shape":"InfluxDBSecretKey",
+          "documentation":"<p>The key that is read from the secret value when the secret contains a JSON object.</p>"
+        }
+      },
+      "documentation":"<p>The properties of an existing InfluxDB topic rule destination, as returned by <code>CreateTopicRuleDestination</code> and <code>GetTopicRuleDestination</code>.</p>"
+    },
+    "InfluxDBDestinationSummary":{
+      "type":"structure",
+      "members":{
+        "endpoint":{
+          "shape":"Url",
+          "documentation":"<p>The URL of the InfluxDB instance that the destination writes to.</p>"
+        },
+        "influxDBVersion":{
+          "shape":"InfluxDBVersion",
+          "documentation":"<p>The major version of the InfluxDB instance. Valid values are <code>V2</code> and <code>V3</code>.</p>"
+        },
+        "secretId":{
+          "shape":"InfluxDBSecretId",
+          "documentation":"<p>The ARN or name of the Amazon Web Services Secrets Manager secret that contains the InfluxDB API token.</p>"
+        },
+        "secretType":{
+          "shape":"InfluxDBSecretType",
+          "documentation":"<p>The type of the secret that contains the InfluxDB API token. Valid values are <code>SecretString</code> and <code>SecretBinary</code>.</p>"
+        },
+        "secretKey":{
+          "shape":"InfluxDBSecretKey",
+          "documentation":"<p>The key that is read from the secret value when the secret contains a JSON object.</p>"
+        }
+      },
+      "documentation":"<p>A summary of an InfluxDB topic rule destination, as returned by <code>ListTopicRuleDestinations</code>. For the full set of destination properties, see <code>InfluxDBDestinationProperties</code>.</p>"
+    },
+    "InfluxDBMaxBatchOpenMs":{
+      "type":"integer",
+      "max":1000,
+      "min":5
+    },
+    "InfluxDBMaxBatchSize":{
+      "type":"integer",
+      "max":500,
+      "min":1
+    },
+    "InfluxDBMaxBatchSizeBytes":{
+      "type":"integer",
+      "max":131072,
+      "min":100
+    },
+    "InfluxDBOrganization":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "InfluxDBSecretId":{
+      "type":"string",
+      "max":512,
+      "min":1
+    },
+    "InfluxDBSecretKey":{
+      "type":"string",
+      "max":128,
+      "min":1
+    },
+    "InfluxDBSecretType":{
+      "type":"string",
+      "enum":[
+        "SecretString",
+        "SecretBinary"
+      ]
+    },
+    "InfluxDBTableName":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"^[^_].*$"
+    },
+    "InfluxDBTagMap":{
+      "type":"map",
+      "key":{"shape":"InfluxDBTagName"},
+      "value":{"shape":"InfluxDBTagValue"},
+      "max":498,
+      "min":0
+    },
+    "InfluxDBTagName":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"^[^_].*$"
+    },
+    "InfluxDBTagValue":{
+      "type":"string",
+      "max":1024,
+      "min":1
+    },
+    "InfluxDBTimestampUnit":{
+      "type":"string",
+      "enum":[
+        "s",
+        "ms",
+        "us",
+        "ns"
+      ]
+    },
+    "InfluxDBVersion":{
+      "type":"string",
+      "enum":[
+        "V2",
+        "V3"
+      ]
     },
     "InlineDocument":{"type":"string"},
     "InputName":{
@@ -13799,6 +14339,7 @@
       "max":100,
       "min":1
     },
+    "KeepAliveDuration":{"type":"integer"},
     "Key":{"type":"string"},
     "KeyName":{
       "type":"string",
@@ -13846,6 +14387,14 @@
         }
       },
       "documentation":"<p>Describes an action to write data to an Amazon Kinesis stream.</p>"
+    },
+    "KmsAccessRoleArn":{
+      "type":"string",
+      "max":2048
+    },
+    "KmsKeyArn":{
+      "type":"string",
+      "max":2048
     },
     "LambdaAction":{
       "type":"structure",
@@ -16507,7 +17056,7 @@
       "members":{
         "targetType":{
           "shape":"LogTargetType",
-          "documentation":"<p>The type of resource for which you are configuring logging. Must be <code>THING_Group</code>.</p>",
+          "documentation":"<p>The type of resource for which you are configuring logging. Must be <code>DEFAULT</code>, <code>THING_GROUP</code>, <code>CLIENT_ID</code>, <code>SOURCE_IP</code>, or <code>PRINCIPAL_ID</code>.</p>",
           "location":"querystring",
           "locationName":"targetType"
         },
@@ -16665,6 +17214,40 @@
         }
       },
       "documentation":"<p>Describes how to interpret an application-defined timestamp value from an MQTT message payload and the precision of that value.</p>"
+    },
+    "LogDestination":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "pattern":"^[.\\-_/#A-Za-z0-9]+$"
+    },
+    "LogEventConfiguration":{
+      "type":"structure",
+      "required":["eventType"],
+      "members":{
+        "eventType":{
+          "shape":"LogEventType",
+          "documentation":"<p> The type of event to log. These include event types like Connect, Publish, and Disconnect. </p>"
+        },
+        "logLevel":{
+          "shape":"LogLevel",
+          "documentation":"<p> The logging level for the specified event type. Determines the verbosity of log messages generated for this event type. </p>"
+        },
+        "logDestination":{
+          "shape":"LogDestination",
+          "documentation":"<p> CloudWatch Log Group for event-based logging. Specifies where log events should be sent. The log destination for event-based logging overrides default Log Group for the specified event type and applies to all resources associated with that event. </p>"
+        }
+      },
+      "documentation":"<p> Configuration for event-based logging that specifies which event types to log and their logging settings. Used for account-level logging overrides. </p>"
+    },
+    "LogEventConfigurations":{
+      "type":"list",
+      "member":{"shape":"LogEventConfiguration"}
+    },
+    "LogEventType":{
+      "type":"string",
+      "max":512,
+      "min":1
     },
     "LogGroupName":{"type":"string"},
     "LogLevel":{
@@ -16825,6 +17408,21 @@
       "type":"string",
       "max":1024,
       "pattern":"[A-Za-z0-9+/]+={0,2}"
+    },
+    "MaxBatchOpenMs":{
+      "type":"integer",
+      "max":200,
+      "min":5
+    },
+    "MaxBatchSize":{
+      "type":"integer",
+      "max":10,
+      "min":2
+    },
+    "MaxBatchSizeBytes":{
+      "type":"integer",
+      "max":131072,
+      "min":100
     },
     "MaxBuckets":{
       "type":"integer",
@@ -17475,6 +18073,13 @@
       "type":"list",
       "member":{"shape":"OutgoingCertificate"}
     },
+    "OutputFormat":{
+      "type":"string",
+      "enum":[
+        "JSON",
+        "CBOR"
+      ]
+    },
     "OverrideDynamicGroups":{"type":"boolean"},
     "PackageArn":{"type":"string"},
     "PackageCatalogMaxResults":{
@@ -18011,8 +18616,7 @@
     },
     "PutVerificationStateOnViolationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Qos":{
       "type":"integer",
@@ -18329,8 +18933,7 @@
     },
     "RemoveThingFromBillingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RemoveThingFromThingGroupRequest":{
       "type":"structure",
@@ -18355,8 +18958,7 @@
     },
     "RemoveThingFromThingGroupResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "RemoveThingType":{"type":"boolean"},
     "RemovedThings":{"type":"integer"},
@@ -19132,6 +19734,7 @@
       "exception":true,
       "fault":true
     },
+    "SessionExpiry":{"type":"long"},
     "SetAsActive":{"type":"boolean"},
     "SetAsActiveFlag":{"type":"boolean"},
     "SetAsDefault":{"type":"boolean"},
@@ -19223,6 +19826,10 @@
         "disableAllLogs":{
           "shape":"DisableAllLogs",
           "documentation":"<p>If true all logs are disabled. The default is false.</p>"
+        },
+        "eventConfigurations":{
+          "shape":"LogEventConfigurations",
+          "documentation":"<p> The list of event configurations that override account-level logging. </p>"
         }
       }
     },
@@ -19316,6 +19923,14 @@
         "ASCENDING",
         "DESCENDING"
       ]
+    },
+    "SourceIp":{
+      "type":"string",
+      "sensitive":true
+    },
+    "SourcePort":{
+      "type":"integer",
+      "sensitive":true
     },
     "SqlParseException":{
       "type":"structure",
@@ -19645,8 +20260,7 @@
     },
     "StopThingRegistrationTaskResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Stream":{
       "type":"structure",
@@ -19855,8 +20469,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -19879,6 +20492,14 @@
         "LatLon",
         "LonLat"
       ]
+    },
+    "TargetIp":{
+      "type":"string",
+      "sensitive":true
+    },
+    "TargetPort":{
+      "type":"integer",
+      "sensitive":true
     },
     "TargetSelection":{
       "type":"string",
@@ -20018,7 +20639,7 @@
       "members":{
         "principal":{
           "shape":"Principal",
-          "documentation":"<p>The principal. Valid principals are CertificateArn (arn:aws:iot:<i>region</i>:<i>accountId</i>:cert/<i>certificateId</i>), thingGroupArn (arn:aws:iot:<i>region</i>:<i>accountId</i>:thinggroup/<i>groupName</i>) and CognitoId (<i>region</i>:<i>id</i>).</p>"
+          "documentation":"<p>The principal. Valid principals are CertificateArn (arn:aws:iot:<i>region</i>:<i>accountId</i>:cert/<i>certificateId</i>) and CognitoId (<i>region</i>:<i>id</i>).</p>"
         },
         "cognitoIdentityPoolId":{
           "shape":"CognitoIdentityPoolId",
@@ -20150,11 +20771,27 @@
         },
         "timestamp":{
           "shape":"ConnectivityTimestamp",
-          "documentation":"<p>The epoch time (in milliseconds) when the thing last connected or disconnected. If the thing has been disconnected for approximately an hour, the time value might be missing.</p>"
+          "documentation":"<p>The epoch time (in milliseconds) when the thing last connected or disconnected.</p>"
         },
         "disconnectReason":{
           "shape":"DisconnectReason",
-          "documentation":"<p>The reason why the client is disconnected. If the thing has been disconnected for approximately an hour, the <code>disconnectReason</code> value might be missing.</p>"
+          "documentation":"<p>The reason that the client is disconnected.</p>"
+        },
+        "keepAliveDuration":{
+          "shape":"KeepAliveDuration",
+          "documentation":"<p>The keep-alive interval in seconds that the client specified when establishing the connection.</p>"
+        },
+        "cleanSession":{
+          "shape":"Boolean",
+          "documentation":"<p>Indicates whether the client is using a clean session. Returns <code>true</code> for clean sessions.</p>"
+        },
+        "sessionExpiry":{
+          "shape":"SessionExpiry",
+          "documentation":"<p>The session expiry interval in seconds for the MQTT client connection. This value indicates how long the session will remain active after the client disconnects.</p>"
+        },
+        "clientId":{
+          "shape":"ClientId",
+          "documentation":"<p>The unique identifier of the MQTT client.</p>"
         }
       },
       "documentation":"<p>The connectivity status of the thing.</p>"
@@ -20718,6 +21355,10 @@
         "vpcProperties":{
           "shape":"VpcDestinationProperties",
           "documentation":"<p>Properties of the virtual private cloud (VPC) connection.</p>"
+        },
+        "influxDBProperties":{
+          "shape":"InfluxDBDestinationProperties",
+          "documentation":"<p>The properties of an InfluxDB topic rule destination, as returned by <code>CreateTopicRuleDestination</code> and <code>GetTopicRuleDestination</code>.</p>"
         }
       },
       "documentation":"<p>A topic rule destination.</p>"
@@ -20732,6 +21373,10 @@
         "vpcConfiguration":{
           "shape":"VpcDestinationConfiguration",
           "documentation":"<p>Configuration of the virtual private cloud (VPC) connection.</p>"
+        },
+        "influxDBConfiguration":{
+          "shape":"InfluxDBDestinationConfiguration",
+          "documentation":"<p>The configuration of an InfluxDB topic rule destination, which you specify when you call <code>CreateTopicRuleDestination</code>.</p>"
         }
       },
       "documentation":"<p>Configuration of the topic rule destination.</p>"
@@ -20785,6 +21430,10 @@
         "vpcDestinationSummary":{
           "shape":"VpcDestinationSummary",
           "documentation":"<p>Information about the virtual private cloud (VPC) connection.</p>"
+        },
+        "influxDBSummary":{
+          "shape":"InfluxDBDestinationSummary",
+          "documentation":"<p>A summary of an InfluxDB topic rule destination, as returned by <code>ListTopicRuleDestinations</code>.</p>"
         }
       },
       "documentation":"<p>Information about the topic rule destination.</p>"
@@ -20993,8 +21642,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateAccountAuditConfigurationRequest":{
       "type":"structure",
@@ -21015,8 +21663,7 @@
     },
     "UpdateAccountAuditConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateAuditSuppressionRequest":{
       "type":"structure",
@@ -21043,8 +21690,7 @@
     },
     "UpdateAuditSuppressionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateAuthorizerRequest":{
       "type":"structure",
@@ -21479,6 +22125,28 @@
         }
       }
     },
+    "UpdateEncryptionConfigurationRequest":{
+      "type":"structure",
+      "required":["encryptionType"],
+      "members":{
+        "encryptionType":{
+          "shape":"EncryptionType",
+          "documentation":"<p>The type of the KMS key.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the customer managedKMS key.</p>"
+        },
+        "kmsAccessRoleArn":{
+          "shape":"KmsAccessRoleArn",
+          "documentation":"<p>The Amazon Resource Name (ARN) of the IAM role assumed by Amazon Web Services IoT Core to call KMS on behalf of the customer.</p>"
+        }
+      }
+    },
+    "UpdateEncryptionConfigurationResponse":{
+      "type":"structure",
+      "members":{}
+    },
     "UpdateEventConfigurationsRequest":{
       "type":"structure",
       "members":{
@@ -21490,8 +22158,7 @@
     },
     "UpdateEventConfigurationsResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateFleetMetricRequest":{
       "type":"structure",
@@ -21559,8 +22226,7 @@
     },
     "UpdateIndexingConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateJobRequest":{
       "type":"structure",
@@ -21655,8 +22321,7 @@
     },
     "UpdatePackageConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdatePackageRequest":{
       "type":"structure",
@@ -21691,8 +22356,7 @@
     },
     "UpdatePackageResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdatePackageVersionRequest":{
       "type":"structure",
@@ -21744,8 +22408,7 @@
     },
     "UpdatePackageVersionResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateProvisioningTemplateRequest":{
       "type":"structure",
@@ -21785,8 +22448,7 @@
     },
     "UpdateProvisioningTemplateResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateRoleAliasRequest":{
       "type":"structure",
@@ -22069,8 +22731,7 @@
     },
     "UpdateThingGroupsForThingResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateThingRequest":{
       "type":"structure",
@@ -22103,8 +22764,7 @@
     },
     "UpdateThingResponse":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The output from the UpdateThing operation.</p>"
     },
     "UpdateThingTypeRequest":{
@@ -22122,8 +22782,7 @@
     },
     "UpdateThingTypeResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateTopicRuleDestinationRequest":{
       "type":"structure",
@@ -22144,8 +22803,7 @@
     },
     "UpdateTopicRuleDestinationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Url":{
       "type":"string",
@@ -22245,6 +22903,7 @@
       "pattern":"[\\s\\S]*"
     },
     "Variance":{"type":"double"},
+    "VerboseFlag":{"type":"boolean"},
     "VerificationState":{
       "type":"string",
       "enum":[
@@ -22467,6 +23126,10 @@
         }
       },
       "documentation":"<p>The summary of a virtual private cloud (VPC) destination.</p>"
+    },
+    "VpcEndpointId":{
+      "type":"string",
+      "sensitive":true
     },
     "VpcId":{"type":"string"},
     "WaitingForDataCollectionChecksCount":{"type":"integer"},

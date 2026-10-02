@@ -25,7 +25,9 @@ import static javax.lang.model.element.Modifier.PUBLIC;
 import static javax.lang.model.element.Modifier.STATIC;
 import static software.amazon.awssdk.codegen.internal.Constant.EVENT_PUBLISHER_PARAM_NAME;
 import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.addS3ArnableFieldCode;
-import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.applySignerOverrideMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.resolveMetricPublishersMethod;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.transformServiceId;
+import static software.amazon.awssdk.codegen.poet.client.ClientClassUtils.updateSdkClientConfigurationMethod;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.addRequestModifierCode;
 import static software.amazon.awssdk.codegen.poet.client.SyncClientClass.getProtocolSpecs;
 
@@ -40,7 +42,6 @@ import com.squareup.javapoet.WildcardTypeName;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -52,7 +53,6 @@ import org.reactivestreams.Publisher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.AsyncAws4Signer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.client.handler.AwsAsyncClientHandler;
@@ -66,7 +66,6 @@ import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
-import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.PoetUtils;
 import software.amazon.awssdk.codegen.poet.StaticImport;
@@ -75,9 +74,7 @@ import software.amazon.awssdk.codegen.poet.client.specs.ProtocolSpec;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
 import software.amazon.awssdk.codegen.poet.model.ServiceClientConfigurationUtils;
-import software.amazon.awssdk.core.RequestOverrideConfiguration;
-import software.amazon.awssdk.core.SdkPlugin;
-import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.codegen.poet.rules.EndpointRulesSpecUtils;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.AsyncResponseTransformerUtils;
 import software.amazon.awssdk.core.async.SdkPublisher;
@@ -104,7 +101,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
     private final ProtocolSpec protocolSpec;
     private final ClassName serviceClientConfigurationClassName;
     private final ServiceClientConfigurationUtils configurationUtils;
-    private final boolean useSraAuth;
+    private final AuthSchemeSpecUtils authSchemeSpecUtils;
+    private final EndpointRulesSpecUtils endpointRulesSpecUtils;
     private boolean hasScheduledExecutor;
 
     public AsyncClientClass(GeneratorTaskParams dependencies) {
@@ -114,29 +112,30 @@ public final class AsyncClientClass extends AsyncClientInterface {
         this.className = poetExtensions.getClientClass(model.getMetadata().getAsyncClient());
         this.protocolSpec = getProtocolSpecs(poetExtensions, model);
         this.serviceClientConfigurationClassName = new PoetExtension(model).getServiceConfigClass();
-        this.useSraAuth = new AuthSchemeSpecUtils(model).useSraAuth();
         this.configurationUtils = new ServiceClientConfigurationUtils(model);
+        this.authSchemeSpecUtils = new AuthSchemeSpecUtils(model);
+        this.endpointRulesSpecUtils = new EndpointRulesSpecUtils(model);
     }
 
     @Override
-    protected TypeSpec.Builder createTypeSpec() {
+    protected Builder createTypeSpec() {
         return PoetUtils.createClassBuilder(className);
     }
 
     @Override
-    protected void addInterfaceClass(TypeSpec.Builder type) {
+    protected void addInterfaceClass(Builder type) {
         ClassName interfaceClass = poetExtensions.getClientClass(model.getMetadata().getAsyncInterface());
         type.addSuperinterface(interfaceClass)
             .addJavadoc("Internal implementation of {@link $1T}.\n\n@see $1T#builder()", interfaceClass);
     }
 
     @Override
-    protected void addAnnotations(TypeSpec.Builder type) {
+    protected void addAnnotations(Builder type) {
         type.addAnnotation(SdkInternalApi.class);
     }
 
     @Override
-    protected void addModifiers(TypeSpec.Builder type) {
+    protected void addModifiers(Builder type) {
         type.addModifiers(FINAL);
     }
 
@@ -152,6 +151,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addField(protocolSpec.protocolFactory(model))
             .addField(SdkClientConfiguration.class, "clientConfiguration", PRIVATE, FINAL);
 
+        protocolSpec.errorResponseMapperField().ifPresent(type::addField);
+
         // Kinesis doesn't support CBOR for STS yet so need another protocol factory for JSON
         if (model.getMetadata().isCborProtocol()) {
             type.addField(AwsJsonProtocolFactory.class, "jsonProtocolFactory", PRIVATE, FINAL);
@@ -163,6 +164,8 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         model.getEndpointOperation().ifPresent(
             o -> type.addField(EndpointDiscoveryRefreshCache.class, "endpointDiscoveryCache", PRIVATE));
+
+        ClientClassUtils.authSchemeCacheField(authSchemeSpecUtils).ifPresent(type::addField);
     }
 
     @Override
@@ -171,16 +174,15 @@ public final class AsyncClientClass extends AsyncClientInterface {
             .addMethod(nameMethod())
             .addMethods(protocolSpec.additionalMethods())
             .addMethod(protocolSpec.initProtocolFactory(model))
-            .addMethod(resolveMetricPublishersMethod());
+            .addMethod(resolveMetricPublishersMethod())
+            .addMethod(ClientClassUtils.publishMetricsMethod())
+            .addMethod(ClientClassUtils.publishMetricsWhenCompleteMethod())
+            .addMethod(ClientClassUtils.resolveAuthSchemeOptionsMethod(authSchemeSpecUtils, endpointRulesSpecUtils))
+            .addMethod(ClientClassUtils.resolveEndpointMethod(authSchemeSpecUtils, endpointRulesSpecUtils));
 
-        if (!useSraAuth) {
-            if (model.containsRequestSigners() || model.containsRequestEventStreams() || hasStreamingV4AuthOperations()) {
-                type.addMethod(applySignerOverrideMethod(poetExtensions, model));
-                type.addMethod(isSignerOverriddenOnClientMethod());
-            }
-        }
         type.addMethod(ClientClassUtils.updateRetryStrategyClientConfigurationMethod());
-        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName()));
+        type.addMethod(updateSdkClientConfigurationMethod(configurationUtils.serviceClientConfigurationBuilderClassName(),
+                                                          model));
         protocolSpec.createErrorResponseHandler().ifPresent(type::addMethod);
         protocolSpec.createEventstreamErrorResponseHandler().ifPresent(type::addMethod);
     }
@@ -229,7 +231,14 @@ public final class AsyncClientClass extends AsyncClientInterface {
                         .addStatement("this.clientHandler = new $T(clientConfiguration)", AwsAsyncClientHandler.class)
                         .addStatement("this.clientConfiguration = clientConfiguration.toBuilder()"
                                       + ".option($T.SDK_CLIENT, this)"
-                                      + ".build()", SdkClientOption.class);
+                                      + ".option($T.API_METADATA, $S + \"#\" + $T.VERSION)"
+                                      + ".build()",
+                                      SdkClientOption.class,
+                                      SdkClientOption.class,
+                                      transformServiceId(model.getMetadata().getServiceId()),
+                                      ClassName.get(model.getMetadata().getFullClientInternalPackageName(),
+                                                    "ServiceVersionInfo"));
+
         FieldSpec protocolFactoryField = protocolSpec.protocolFactory(model);
         if (model.getMetadata().isJsonProtocol()) {
             builder.addStatement("this.$N = init($T.builder()).build()", protocolFactoryField.name,
@@ -303,32 +312,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                          .build();
     }
 
-    protected static MethodSpec updateSdkClientConfigurationMethod(
-        TypeName serviceClientConfigurationBuilderClassName) {
-        MethodSpec.Builder builder = MethodSpec.methodBuilder("updateSdkClientConfiguration")
-                                               .addModifiers(PRIVATE)
-                                               .addParameter(SdkRequest.class, "request")
-                                               .addParameter(SdkClientConfiguration.class, "clientConfiguration")
-                                               .returns(SdkClientConfiguration.class);
-
-        builder.addStatement("$T plugins = request.overrideConfiguration()\n"
-                             + ".map(c -> c.plugins()).orElse(Collections.emptyList())",
-                             ParameterizedTypeName.get(List.class, SdkPlugin.class))
-               .addStatement("$T configuration = clientConfiguration.toBuilder()", SdkClientConfiguration.Builder.class);
-
-        builder.beginControlFlow("if (plugins.isEmpty())")
-               .addStatement("return configuration.build()")
-               .endControlFlow()
-               .addStatement("$1T serviceConfigBuilder = new $1T(configuration)", serviceClientConfigurationBuilderClassName)
-               .beginControlFlow("for ($T plugin : plugins)", SdkPlugin.class)
-               .addStatement("plugin.configureClient(serviceConfigBuilder)")
-               .endControlFlow();
-        builder.addStatement("updateRetryStrategyClientConfiguration(configuration)");
-        builder.addStatement("return configuration.build()");
-
-        return builder.build();
-    }
-
     @Override
     protected void addCloseMethod(TypeSpec.Builder type) {
         MethodSpec method = MethodSpec.methodBuilder("close")
@@ -384,14 +367,6 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  Void.class,
                                  "endOfStreamFuture",
                                  "pair");
-        }
-
-        if (!useSraAuth) {
-            if (shouldUseAsyncWithBodySigner(opModel)) {
-                builder.addCode(applyAsyncWithBodyV4SignerOverride(opModel));
-            } else {
-                builder.addCode(ClientClassUtils.callApplySignerOverrideMethod(opModel));
-            }
         }
 
         builder.addCode(protocolSpec.responseHandler(model, opModel));
@@ -476,7 +451,7 @@ public final class AsyncClientClass extends AsyncClientInterface {
                                  "() -> $N.exceptionOccurred(t))", paramName);
         }
 
-        builder.addStatement("metricPublishers.forEach(p -> p.publish(apiCallMetricCollector.collect()))")
+        builder.addStatement("publishMetrics(metricPublishers, apiCallMetricCollector)")
                .addStatement("return $T.failedFuture(t)", CompletableFutureUtils.class)
                .endControlFlow();
 
@@ -576,80 +551,25 @@ public final class AsyncClientClass extends AsyncClientInterface {
 
         type.addMethod(batchManager);
     }
-
-    private MethodSpec resolveMetricPublishersMethod() {
-        String clientConfigName = "clientConfiguration";
-        String requestOverrideConfigName = "requestOverrideConfiguration";
-
-        MethodSpec.Builder methodBuilder = MethodSpec.methodBuilder("resolveMetricPublishers")
-                .addModifiers(PRIVATE, STATIC)
-                .returns(ParameterizedTypeName.get(List.class, MetricPublisher.class))
-                .addParameter(SdkClientConfiguration.class, clientConfigName)
-                .addParameter(RequestOverrideConfiguration.class, requestOverrideConfigName);
-
-        String publishersName = "publishers";
-
-        methodBuilder.addStatement("$T $N = null", ParameterizedTypeName.get(List.class, MetricPublisher.class), publishersName);
-
-        methodBuilder.beginControlFlow("if ($N != null)", requestOverrideConfigName)
-                .addStatement("$N = $N.metricPublishers()", publishersName, requestOverrideConfigName)
-                .endControlFlow();
-
-        methodBuilder.beginControlFlow("if ($1N == null || $1N.isEmpty())", publishersName)
-                .addStatement("$N = $N.option($T.$N)",
-                              publishersName,
-                              clientConfigName,
-                              SdkClientOption.class,
-                              "METRIC_PUBLISHERS")
-                .endControlFlow();
-
-        methodBuilder.beginControlFlow("if ($1N == null)", publishersName)
-                .addStatement("$N = $T.emptyList()", publishersName, Collections.class)
-                .endControlFlow();
-
-        methodBuilder.addStatement("return $N", publishersName);
-
-        return methodBuilder.build();
-    }
-
-    private boolean shouldUseAsyncWithBodySigner(OperationModel opModel) {
-        if (opModel.getInputShape().getRequestSignerClassFqcn() != null) {
-            return false;
-        }
-
-        AuthType authTypeForOperation = opModel.getAuthType();
-
-        if (authTypeForOperation == null) {
-            authTypeForOperation = model.getMetadata().getAuthType();
-        }
-
-        return authTypeForOperation == AuthType.V4 && opModel.hasStreamingInput();
-    }
-
-    private CodeBlock applyAsyncWithBodyV4SignerOverride(OperationModel opModel) {
-        return CodeBlock.builder()
-                .beginControlFlow("if (!isSignerOverridden($N))", "clientConfiguration")
-                .addStatement("$1L = applySignerOverride($1L, $2T.create())",
-                        opModel.getInput().getVariableName(), AsyncAws4Signer.class)
-                .endControlFlow()
-                .build();
-    }
-
-    private MethodSpec isSignerOverriddenOnClientMethod() {
-        String clientConfigurationName = "clientConfiguration";
-
-        return MethodSpec.methodBuilder("isSignerOverridden")
-                .returns(boolean.class)
-                .addModifiers(PRIVATE, STATIC)
-                .addParameter(SdkClientConfiguration.class, clientConfigurationName)
-                .addStatement("return $T.TRUE.equals($N.option($T.$N))", Boolean.class, clientConfigurationName,
-                        SdkClientOption.class, "SIGNER_OVERRIDDEN")
-                .build();
-    }
-
-    private boolean hasStreamingV4AuthOperations() {
-        return model.getOperations().values().stream()
-                .anyMatch(this::shouldUseAsyncWithBodySigner);
+    
+    @Override
+    protected void addPresignedUrlExtensionMethod(Builder type) {
+        ClassName returnType = poetExtensions.getPresignedUrlExtensionAsyncInterface();
+        String internalPresignedUrlPackage = model.getMetadata().getFullInternalPackageName() + ".presignedurl";
+        ClassName implClass = ClassName.get(internalPresignedUrlPackage, "DefaultAsyncPresignedUrlExtension");
+        
+        MethodSpec presignedUrlExtension = MethodSpec.methodBuilder("presignedUrlExtension")
+                                                  .addModifiers(PUBLIC)
+                                                  .addAnnotation(Override.class)
+                                                  .returns(returnType)
+                                                  .addStatement("return new $T(clientHandler,"
+                                                                + " protocolFactory, "
+                                                                + "clientConfiguration,"
+                                                                + " protocolMetadata)",
+                                                                implClass)
+                                                  .build();
+        
+        type.addMethod(presignedUrlExtension);
     }
 
     private void addScheduledExecutorIfNeeded(Builder classBuilder) {

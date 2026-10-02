@@ -42,7 +42,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -51,6 +50,7 @@ import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedTypeDocumentConfiguration;
+import software.amazon.awssdk.enhanced.dynamodb.ExecutionContext;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.internal.AttributeConfiguration;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.BeanAttributeGetter;
@@ -140,8 +140,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      */
     @SuppressWarnings("unchecked")
     public static <T> BeanTableSchema<T> create(Class<T> beanClass) {
+        return create(beanClass, ExecutionContext.ROOT);
+    }
+
+    static <T> BeanTableSchema<T> create(Class<T> beanClass, ExecutionContext context) {
         BeanTableSchemaParams<T> params = BeanTableSchemaParams.builder(beanClass).build();
-        return create(params);
+        return create(params, context);
     }
 
     /**
@@ -162,19 +166,28 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
      */
     @SuppressWarnings("unchecked")
     public static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params) {
-        return (BeanTableSchema<T>) BEAN_TABLE_SCHEMA_CACHE.computeIfAbsent(params.beanClass(),
-                                                                            clz -> create(params,
-                                                                                          new MetaTableSchemaCache()));
+        return create(params, ExecutionContext.ROOT);
     }
 
-    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, MetaTableSchemaCache metaTableSchemaCache) {
+    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, ExecutionContext context) {
+        if (context == ExecutionContext.ROOT) {
+            return (BeanTableSchema<T>) BEAN_TABLE_SCHEMA_CACHE.computeIfAbsent(params.beanClass(),
+                                                                               clz -> create(params,
+                                                                                             new MetaTableSchemaCache(),
+                                                                                             context));
+        }
+        return create(params, new MetaTableSchemaCache(), context);
+    }
+
+    private static <T> BeanTableSchema<T> create(BeanTableSchemaParams<T> params, MetaTableSchemaCache metaTableSchemaCache,
+                                                 ExecutionContext context) {
         Class<T> beanClass = params.beanClass();
         debugLog(beanClass, () -> "Creating bean schema");
         // Fetch or create a new reference to this yet-to-be-created TableSchema in the cache
         MetaTableSchema<T> metaTableSchema = metaTableSchemaCache.getOrCreate(beanClass);
 
         BeanTableSchema<T> newTableSchema =
-            new BeanTableSchema<>(createStaticTableSchema(params.beanClass(), params.lookup(), metaTableSchemaCache));
+            new BeanTableSchema<>(createStaticTableSchema(params.beanClass(), params.lookup(), metaTableSchemaCache, context));
         metaTableSchema.initialize(newTableSchema);
         return newTableSchema;
     }
@@ -204,7 +217,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
     private static <T> StaticTableSchema<T> createStaticTableSchema(Class<T> beanClass,
                                                                     MethodHandles.Lookup lookup,
-                                                                    MetaTableSchemaCache metaTableSchemaCache) {
+                                                                    MetaTableSchemaCache metaTableSchemaCache,
+                                                                    ExecutionContext context) {
 
         DynamoDbBean dynamoDbBean = beanClass.getAnnotation(DynamoDbBean.class);
 
@@ -222,6 +236,12 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
             throw new IllegalArgumentException(e);
         }
 
+        List<PropertyDescriptor> mappableProperties = Arrays.stream(beanInfo.getPropertyDescriptors())
+                                                            .filter(p -> isMappableProperty(beanClass, p))
+                                                            .collect(Collectors.toList());
+
+        validateDynamoDbFlattenAnnotations(mappableProperties);
+
         Supplier<T> newObjectSupplier = newObjectSupplierForClass(beanClass, lookup);
 
         StaticTableSchema.Builder<T> builder = StaticTableSchema.builder(beanClass)
@@ -231,35 +251,43 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
 
         List<StaticAttribute<T, ?>> attributes = new ArrayList<>();
 
-        Arrays.stream(beanInfo.getPropertyDescriptors())
-              .filter(p -> isMappableProperty(beanClass, p))
-              .forEach(propertyDescriptor -> {
-                  DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
+        mappableProperties.forEach(propertyDescriptor -> {
+            DynamoDbFlatten dynamoDbFlatten = getPropertyAnnotation(propertyDescriptor, DynamoDbFlatten.class);
 
-                  if (dynamoDbFlatten != null) {
-                      builder.flatten(TableSchema.fromClass(propertyDescriptor.getReadMethod().getReturnType()),
-                                      getterForProperty(propertyDescriptor, beanClass, lookup),
-                                      setterForProperty(propertyDescriptor, beanClass, lookup));
-                  } else {
-                      AttributeConfiguration attributeConfiguration =
-                          resolveAttributeConfiguration(propertyDescriptor);
+            if (dynamoDbFlatten != null) {
+                Type returnType = propertyDescriptor.getReadMethod().getGenericReturnType();
+                if (isValidFlattenMapType(returnType)) {
+                    // Map flattening
+                    builder.flatten(propertyDescriptor.getName(),
+                                    getterForProperty(propertyDescriptor, beanClass, lookup),
+                                    setterForProperty(propertyDescriptor, beanClass, lookup));
+                } else {
+                    // Object flattening
+                    builder.flatten(TableSchemaFactory.fromClass(propertyDescriptor.getReadMethod().getReturnType(),
+                                                                 ExecutionContext.FLATTENED),
+                                    getterForProperty(propertyDescriptor, beanClass, lookup),
+                                    setterForProperty(propertyDescriptor, beanClass, lookup));
+                }
+            } else {
+                AttributeConfiguration attributeConfiguration =
+                    resolveAttributeConfiguration(propertyDescriptor);
 
-                      StaticAttribute.Builder<T, ?> attributeBuilder =
-                          staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
-                                                 attributeConfiguration);
+                StaticAttribute.Builder<T, ?> attributeBuilder =
+                    staticAttributeBuilder(propertyDescriptor, beanClass, lookup, metaTableSchemaCache,
+                                           attributeConfiguration);
 
-                      Optional<AttributeConverter> attributeConverter =
-                              createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
-                      attributeConverter.ifPresent(attributeBuilder::attributeConverter);
+                Optional<AttributeConverter> attributeConverter =
+                    createAttributeConverterFromAnnotation(propertyDescriptor, lookup);
+                attributeConverter.ifPresent(attributeBuilder::attributeConverter);
 
-                      addTagsToAttribute(attributeBuilder, propertyDescriptor);
-                      attributes.add(attributeBuilder.build());
-                  }
-              });
+                addTagsToAttribute(attributeBuilder, propertyDescriptor);
+                attributes.add(attributeBuilder.build());
+            }
+        });
 
         builder.attributes(attributes);
 
-        return builder.build();
+        return builder.build(context);
     }
 
     // Enhance beanInfo descriptors with fluent setter when the default set method is absent
@@ -284,6 +312,50 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
                                   && m.getParameterCount() == 1
                                   && m.getReturnType().equals(beanClass))
                      .findFirst();
+    }
+
+    private static void validateDynamoDbFlattenAnnotations(List<PropertyDescriptor> mappableProperties) {
+        int mapCount = 0;
+
+        for (PropertyDescriptor property : mappableProperties) {
+            if (!hasFlattenAnnotation(property)) {
+                continue;
+            }
+
+            Type type = property.getReadMethod().getGenericReturnType();
+            if (isValidFlattenMapType(type)) {
+                mapCount++;
+            } else if (isMapType(type)) {
+                throw new IllegalArgumentException(
+                    "@DynamoDbFlatten on Map properties can only be applied to Map<String, String> attributes");
+            }
+        }
+
+        if (mapCount > 1) {
+            throw new IllegalArgumentException("Multiple @DynamoDbFlatten Map<String, String> properties found. "
+                                               + "Only one flattened map per class is supported.");
+        }
+    }
+
+    private static boolean hasFlattenAnnotation(PropertyDescriptor property) {
+        return getPropertyAnnotation(property, DynamoDbFlatten.class) != null;
+    }
+
+    private static boolean isMapType(Type type) {
+        return type instanceof ParameterizedType &&
+               Map.class.equals(((ParameterizedType) type).getRawType());
+    }
+
+    private static boolean isValidFlattenMapType(Type type) {
+        if (!isMapType(type)) {
+            return false;
+        }
+
+        Type[] mapTypes = ((ParameterizedType) type).getActualTypeArguments();
+
+        return mapTypes.length == 2 &&
+               String.class.equals(mapTypes[0]) &&
+               String.class.equals(mapTypes[1]);
     }
 
     private static AttributeConfiguration resolveAttributeConfiguration(PropertyDescriptor propertyDescriptor) {
@@ -518,9 +590,8 @@ public final class BeanTableSchema<T> extends WrappedTableSchema<T, StaticTableS
     }
 
     private static List<? extends Annotation> propertyAnnotations(PropertyDescriptor propertyDescriptor) {
-        return Stream.concat(Arrays.stream(propertyDescriptor.getReadMethod().getAnnotations()),
-                             Arrays.stream(propertyDescriptor.getWriteMethod().getAnnotations()))
-                     .collect(Collectors.toList());
+        return AnnotationUtils.expandAnnotations(propertyDescriptor.getReadMethod().getAnnotations(),
+                                                 propertyDescriptor.getWriteMethod().getAnnotations());
     }
 
     private static void debugLog(Class<?> beanClass, Supplier<String> logMessage) {

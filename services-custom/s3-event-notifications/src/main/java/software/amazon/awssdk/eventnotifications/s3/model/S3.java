@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.eventnotifications.s3.model;
 
+import java.util.List;
 import java.util.Objects;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.ToString;
@@ -31,12 +32,19 @@ public class S3 {
     private final S3Bucket bucket;
     private final S3Object object;
     private final String s3SchemaVersion;
+    private final List<S3ObjectAnnotation> objectAnnotation;
 
     public S3(String configurationId, S3Bucket bucket, S3Object object, String s3SchemaVersion) {
+        this(configurationId, bucket, object, s3SchemaVersion, null);
+    }
+
+    public S3(String configurationId, S3Bucket bucket, S3Object object, String s3SchemaVersion,
+              List<S3ObjectAnnotation> objectAnnotation) {
         this.configurationId = configurationId;
         this.bucket = bucket;
         this.object = object;
         this.s3SchemaVersion = s3SchemaVersion;
+        this.objectAnnotation = objectAnnotation;
     }
 
     /**
@@ -65,6 +73,10 @@ public class S3 {
         return s3SchemaVersion;
     }
 
+    public List<S3ObjectAnnotation> getObjectAnnotation() {
+        return objectAnnotation;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -85,7 +97,10 @@ public class S3 {
         if (!Objects.equals(object, s3.object)) {
             return false;
         }
-        return Objects.equals(s3SchemaVersion, s3.s3SchemaVersion);
+        if (!Objects.equals(s3SchemaVersion, s3.s3SchemaVersion)) {
+            return false;
+        }
+        return Objects.equals(objectAnnotation, s3.objectAnnotation);
     }
 
     @Override
@@ -94,6 +109,7 @@ public class S3 {
         result = 31 * result + (bucket != null ? bucket.hashCode() : 0);
         result = 31 * result + (object != null ? object.hashCode() : 0);
         result = 31 * result + (s3SchemaVersion != null ? s3SchemaVersion.hashCode() : 0);
+        result = 31 * result + (objectAnnotation != null ? objectAnnotation.hashCode() : 0);
         return result;
     }
 
@@ -104,6 +120,7 @@ public class S3 {
                        .add("bucket", bucket)
                        .add("object", object)
                        .add("s3SchemaVersion", s3SchemaVersion)
+                       .add("objectAnnotation", objectAnnotation)
                        .build();
     }
 }

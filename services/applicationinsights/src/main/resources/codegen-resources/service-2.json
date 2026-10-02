@@ -4,8 +4,11 @@
     "apiVersion":"2018-11-25",
     "endpointPrefix":"applicationinsights",
     "jsonVersion":"1.1",
-    "protocol":"json",
-    "protocols":["json"],
+    "protocol":"smithy-rpc-v2-cbor",
+    "protocols":[
+      "smithy-rpc-v2-cbor",
+      "json"
+    ],
     "serviceAbbreviation":"Application Insights",
     "serviceFullName":"Amazon CloudWatch Application Insights",
     "serviceId":"Application Insights",
@@ -527,6 +530,7 @@
         "Message":{"shape":"ErrorMsg"}
       },
       "documentation":"<p> User does not have permissions to perform this action. </p>",
+      "error":{"httpStatusCode":403},
       "exception":true
     },
     "AccountId":{
@@ -850,8 +854,7 @@
     },
     "CreateComponentResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CreateLogPatternRequest":{
       "type":"structure",
@@ -916,8 +919,7 @@
     },
     "DeleteApplicationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteComponentRequest":{
       "type":"structure",
@@ -938,8 +940,7 @@
     },
     "DeleteComponentResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteLogPatternRequest":{
       "type":"structure",
@@ -965,8 +966,7 @@
     },
     "DeleteLogPatternResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeApplicationRequest":{
       "type":"structure",
@@ -2050,8 +2050,7 @@
     },
     "RemoveWorkloadResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "ResolutionMethod":{
       "type":"string",
@@ -2188,8 +2187,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -2203,6 +2201,7 @@
         "Message":{"shape":"ExceptionMessage"}
       },
       "documentation":"<p>Tags are already registered for the specified application ARN.</p>",
+      "error":{"httpStatusCode":400},
       "exception":true
     },
     "Tier":{
@@ -2246,6 +2245,7 @@
         }
       },
       "documentation":"<p>The number of the provided tags is beyond the limit, or the number of total tags you are trying to attach to the specified resource exceeds the limit.</p>",
+      "error":{"httpStatusCode":400},
       "exception":true
     },
     "Unit":{"type":"string"},
@@ -2268,8 +2268,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateApplicationRequest":{
       "type":"structure",
@@ -2353,8 +2352,7 @@
     },
     "UpdateComponentConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateComponentRequest":{
       "type":"structure",
@@ -2383,8 +2381,7 @@
     },
     "UpdateComponentResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateLogPatternRequest":{
       "type":"structure",
@@ -2449,8 +2446,7 @@
     },
     "UpdateProblemResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateStatus":{
       "type":"string",

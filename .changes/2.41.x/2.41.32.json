@@ -1,0 +1,30 @@
+{
+    "version": "2.41.32",
+    "date": "2026-02-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "akhilyendluri",
+            "description": "Updating Lakeformation Access Grants Plugin version to 1.3"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "This release adds support for federated catalogs in Athena-sourced configured tables."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Correcting in-app notifications API documentation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

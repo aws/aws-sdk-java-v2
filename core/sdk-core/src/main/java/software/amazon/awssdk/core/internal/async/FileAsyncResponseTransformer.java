@@ -41,6 +41,7 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.FileTransformerConfiguration;
 import software.amazon.awssdk.core.FileTransformerConfiguration.FailureBehavior;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -76,6 +77,18 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         this.position = position;
     }
 
+    FileTransformerConfiguration config() {
+        return configuration.toBuilder().build();
+    }
+
+    Path path() {
+        return path;
+    }
+
+    long position() {
+        return position;
+    }
+
     private static long determineFilePositionToWrite(Path path, FileTransformerConfiguration fileConfiguration) {
         if (fileConfiguration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
             try {
@@ -89,7 +102,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         if (fileConfiguration.fileWriteOption() == WRITE_TO_POSITION) {
             return Validate.getOrDefault(fileConfiguration.position(), () -> 0L);
         }
-        return  0L;
+        return 0L;
     }
 
     private AsynchronousFileChannel createChannel(Path path) throws IOException {
@@ -113,11 +126,20 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
 
         ExecutorService executorService = configuration.executorService().orElse(null);
-        return AsynchronousFileChannel.open(path, options, executorService);
+        try {
+            return AsynchronousFileChannel.open(path, options, executorService);
+        } catch (NoSuchFileException e) {
+            if (configuration.fileWriteOption() == WRITE_TO_POSITION) {
+                throw e;
+            }
+            throw new NoSuchFileException(e.getFile(), e.getOtherFile(),
+                                          "Verify that the file's parent directories exist. The SDK will not auto-create them.");
+        }
     }
 
     @Override
     public CompletableFuture<ResponseT> prepare() {
+        fileChannel = null;
         cf = new CompletableFuture<>();
         cf.whenComplete((r, t) -> {
             if (t != null && fileChannel != null) {
@@ -148,14 +170,16 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
 
     @Override
     public void exceptionOccurred(Throwable throwable) {
+        AsynchronousFileChannel currentFileChannel = fileChannel;
+        fileChannel = null;
         try {
-            if (fileChannel != null) {
+            if (currentFileChannel != null) {
                 runAndLogError(log.logger(),
                                String.format("Failed to close the file %s, resource may be leaked", path),
-                               () -> fileChannel.close());
+                               currentFileChannel::close);
             }
         } finally {
-            if (configuration.failureBehavior() == FailureBehavior.DELETE) {
+            if (currentFileChannel != null && configuration.failureBehavior() == FailureBehavior.DELETE) {
                 runAndLogError(log.logger(),
                                String.format("Failed to delete the file %s", path),
                                () -> Files.deleteIfExists(path));
@@ -169,6 +193,11 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         }
     }
 
+    @Override
+    public String name() {
+        return TransformerType.FILE.getName();
+    }
+
     /**
      * {@link Subscriber} implementation that writes chunks to a file.
      */
@@ -178,6 +207,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         private final Path path;
         private final CompletableFuture<Void> future;
         private final Consumer<Throwable> onErrorMethod;
+        private final Object closeLock = new Object();
 
         private volatile boolean writeInProgress = false;
         private volatile boolean closeOnLastWrite = false;
@@ -223,7 +253,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
                     if (byteBuffer.hasRemaining()) {
                         performWrite(byteBuffer);
                     } else {
-                        synchronized (FileSubscriber.this) {
+                        synchronized (closeLock) {
                             writeInProgress = false;
                             if (closeOnLastWrite) {
                                 close();
@@ -251,7 +281,7 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         public void onComplete() {
             log.trace(() -> "onComplete");
             // if write in progress, tell write to close on finish.
-            synchronized (this) {
+            synchronized (closeLock) {
                 if (writeInProgress) {
                     log.trace(() -> "writeInProgress = true, not closing");
                     closeOnLastWrite = true;
@@ -278,5 +308,19 @@ public final class FileAsyncResponseTransformer<ResponseT> implements AsyncRespo
         public String toString() {
             return getClass() + ":" + path.toString();
         }
+    }
+
+
+    @Override
+    public SplitResult<ResponseT, ResponseT> split(SplittingTransformerConfiguration splitConfig) {
+        if (configuration.fileWriteOption() == CREATE_OR_APPEND_TO_EXISTING) {
+            return AsyncResponseTransformer.super.split(splitConfig);
+        }
+        CompletableFuture<ResponseT> future = new CompletableFuture<>();
+        return (SplitResult<ResponseT, ResponseT>) SplitResult.<ResponseT, ResponseT>builder()
+                                                              .publisher(new FileAsyncResponseTransformerPublisher(this))
+                                                              .resultFuture(future)
+                                                              .parallelSplitSupported(true)
+                                                              .build();
     }
 }

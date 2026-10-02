@@ -40,7 +40,9 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.DrainingSubscriber;
+import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
@@ -173,15 +175,69 @@ public class S3CrtResponseHandlerAdapterTest {
         when(errorContext.getErrorHeaders()).thenReturn(headers.toArray(new HttpHeader[0]));
 
         responseHandlerAdapter.onFinished(errorContext);
-        Throwable actualException = sdkResponseHandler.error;
-        assertThat(actualException).isInstanceOf(S3Exception.class);
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        Throwable exceptionFromSubscriber = sdkResponseHandler.subscriber.error;
 
-        assertThat(((S3Exception) actualException).statusCode()).isEqualTo(404);
-        assertThat(((S3Exception) actualException).requestId()).isEqualTo("1234");
-        assertThat(((S3Exception) actualException).extendedRequestId()).isEqualTo("5678");
+        assertThat(exceptionFromResponseHandler).isInstanceOf(S3Exception.class);
+        assertThat(((S3Exception) exceptionFromResponseHandler).statusCode()).isEqualTo(404);
+        assertThat(((S3Exception) exceptionFromResponseHandler).requestId()).isEqualTo("1234");
+        assertThat(((S3Exception) exceptionFromResponseHandler).extendedRequestId()).isEqualTo("5678");
+        assertThat(exceptionFromResponseHandler).isEqualTo(exceptionFromSubscriber);
 
-        assertThatThrownBy(() -> future.join()).hasRootCause(actualException);
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
         assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void requestFailedMidwayDueToIoError_shouldInvokeOnError() {
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1079, 0, "".getBytes());
+        responseHandlerAdapter.onFinished(errorContext);
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        Throwable exceptionFromSubscriber = sdkResponseHandler.subscriber.error;
+
+        assertThat(exceptionFromResponseHandler).isEqualTo(exceptionFromSubscriber);
+        assertThat(exceptionFromResponseHandler).isInstanceOf(SdkClientException.class);
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
+        assertThat(future).isCompletedExceptionally();
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
+    public void errorWithHttp200Status_shouldCompleteFutureExceptionally() {
+        // Simulates the S3 "200 OK with error in body" case (e.g. CompleteMultipartUpload returning
+        // ServiceUnavailable). CRT detects the error and reports a non-zero error code with responseStatus=200.
+        // responseHandlingInitiated is false because CRT never calls onResponseBody for this case.
+        //
+        // The adapter wraps the response in an ErrorFlaggedSdkHttpResponse (isSuccessful()=false) and routes
+        // it through the normal SDK pipeline. In this unit test we verify the adapter passes a non-successful
+        // response to the handler and sends the error payload through the stream.
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+
+        byte[] errorPayload = ("<Error><Code>ServiceUnavailable</Code>"
+                               + "<Message>Service is temporarily unavailable.</Message>"
+                               + "<RequestId>test-request-id</RequestId></Error>")
+                              .getBytes(StandardCharsets.UTF_8);
+
+        S3FinishedResponseContext errorContext = stubResponseContext(1, 200, errorPayload);
+        List<HttpHeader> headers = new ArrayList<>();
+        headers.add(new HttpHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE, "req-id-123"));
+        headers.add(new HttpHeader(X_AMZ_ID_2_HEADER, "ext-id-456"));
+        when(errorContext.getErrorHeaders()).thenReturn(headers.toArray(new HttpHeader[0]));
+
+        responseHandlerAdapter.onFinished(errorContext);
+
+        // Verify the response handler received a non-successful response with status 200
+        assertThat(sdkResponseHandler.sdkHttpResponse).isNotNull();
+        assertThat(sdkResponseHandler.sdkHttpResponse.isSuccessful()).isFalse();
+        assertThat(sdkResponseHandler.sdkHttpResponse.statusCode()).isEqualTo(200);
+
+        // The result future completes normally (the full SDK pipeline in production would produce
+        // an S3Exception from the error body via DecorateErrorFromResponseBodyUnmarshaller)
+        assertThat(future).isCompleted();
         verify(s3MetaRequest).close();
     }
 
@@ -201,6 +257,44 @@ public class S3CrtResponseHandlerAdapterTest {
         verify(s3MetaRequest).close();
     }
 
+    @Test
+    public void bodyError_completesFutureWithOriginalError_andSuppressesLaterCancelOnError() {
+        RuntimeException originalError = new RuntimeException("test error");
+
+        // The body adapter fails the execute future with the original publisher error.
+        future.completeExceptionally(originalError);
+
+        assertThat(sdkResponseHandler.error).isSameAs(originalError);
+        assertThatThrownBy(() -> future.join()).hasCause(originalError);
+        verify(s3MetaRequest).cancel();
+        verify(s3MetaRequest).close();
+
+        // The cancel() above later surfaces as onFinished(AWS_ERROR_S3_CANCELED). It must not re-notify onError.
+        responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
+
+        assertThat(sdkResponseHandler.error).isSameAs(originalError);
+        verify(sdkResponseHandler, times(1)).onError(any());
+    }
+
+    @Test
+    public void pipelineForwardedError_completesFutureWithThatError_andSuppressesLaterCancelOnError() {
+        // A pipeline-forwarded failure (e.g. an API-call-attempt timeout that MakeAsyncHttpRequestStage forwards onto the
+        // execute future) completes resultFuture exceptionally the same way a body error does. The whenComplete must
+        // deliver that error to onError exactly once, not the later cancel-derived S3_CANCELED wrapper.
+        ApiCallAttemptTimeoutException timeout = ApiCallAttemptTimeoutException.create(1000);
+
+        future.completeExceptionally(timeout);
+
+        assertThat(sdkResponseHandler.error).isSameAs(timeout);
+        assertThatThrownBy(() -> future.join()).hasCause(timeout);
+        verify(s3MetaRequest).cancel();
+
+        responseHandlerAdapter.onFinished(stubResponseContext(1, 0, null));
+
+        assertThat(sdkResponseHandler.error).isSameAs(timeout);
+        verify(sdkResponseHandler, times(1)).onError(any());
+    }
+
     private S3FinishedResponseContext stubResponseContext(int errorCode, int responseStatus, byte[] errorPayload) {
         Mockito.reset(context);
         when(context.getErrorCode()).thenReturn(errorCode);
@@ -217,6 +311,8 @@ public class S3CrtResponseHandlerAdapterTest {
     private static class TestResponseHandler implements SdkAsyncHttpResponseHandler {
         private SdkHttpResponse sdkHttpResponse;
         private Throwable error;
+        private TestSubscriber subscriber = new TestSubscriber();
+
         @Override
         public void onHeaders(SdkHttpResponse headers) {
             this.sdkHttpResponse = headers;
@@ -224,12 +320,21 @@ public class S3CrtResponseHandlerAdapterTest {
 
         @Override
         public void onStream(Publisher<ByteBuffer> stream) {
-            stream.subscribe(new DrainingSubscriber<>());
+            stream.subscribe(subscriber);
         }
 
         @Override
         public void onError(Throwable error) {
             this.error = error;
+        }
+    }
+
+    private static class TestSubscriber extends DrainingSubscriber {
+        private Throwable error;
+        @Override
+        public void onError(Throwable throwable) {
+            error = throwable;
+            super.onError(throwable);
         }
     }
 }

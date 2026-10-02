@@ -84,7 +84,14 @@ final class AddExceptionShapes extends AddShapes implements IntermediateModelSha
     }
 
     private boolean isErrorCodeOverridden(ErrorTrait errorTrait) {
-        return errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getCode());
+        return protocolSupportsErrorCodeOverride() && errorTrait != null && !Utils.isNullOrEmpty(errorTrait.getCode());
+    }
+
+    // JSON (ie non-rest) and smithy-rpc-v2-cbor should ignore the AwsQueryError trait
+    // error code on the deserialized exceptions is parsed based on the awsQueryCompatible trait in:
+    // AwsJsonProtocolErrorUnmarshaller#getEffectiveErrorCode
+    private boolean protocolSupportsErrorCodeOverride() {
+        return !getProtocol().equals("json") && !getProtocol().equals("smithy-rpc-v2-cbor");
     }
 
     private Integer getHttpStatusCode(String errorShapeName) {

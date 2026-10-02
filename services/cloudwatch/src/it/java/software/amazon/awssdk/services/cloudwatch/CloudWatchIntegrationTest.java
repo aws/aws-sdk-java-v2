@@ -23,10 +23,10 @@ import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.isIn;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-import static software.amazon.awssdk.testutils.service.AwsTestBase.isValidSdkServiceException;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -41,7 +41,6 @@ import org.junit.Test;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.CompressionConfiguration;
 import software.amazon.awssdk.core.SdkGlobalTime;
-import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
 import software.amazon.awssdk.regions.Region;
@@ -59,9 +58,11 @@ import software.amazon.awssdk.services.cloudwatch.model.ListMetricsResponse;
 import software.amazon.awssdk.services.cloudwatch.model.Metric;
 import software.amazon.awssdk.services.cloudwatch.model.MetricAlarm;
 import software.amazon.awssdk.services.cloudwatch.model.MetricDatum;
+import software.amazon.awssdk.services.cloudwatch.model.MissingRequiredParameterException;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricAlarmRequest;
 import software.amazon.awssdk.services.cloudwatch.model.PutMetricDataRequest;
 import software.amazon.awssdk.services.cloudwatch.model.StateValue;
+import software.amazon.awssdk.services.cloudwatch.model.Statistic;
 import software.amazon.awssdk.testutils.Waiter;
 import software.amazon.awssdk.testutils.service.AwsIntegrationTestBase;
 
@@ -365,12 +366,25 @@ public class CloudWatchIntegrationTest extends AwsIntegrationTestBase {
      */
     @Test
     public void testExceptionHandling() throws Exception {
+        Instant endTime = Instant.now();
         try {
             cloudwatch.getMetricStatistics(GetMetricStatisticsRequest.builder()
-                                                   .namespace("fake-namespace").build());
+                                                   .namespace("fake-namespace")
+                                                   .startTime(endTime.minus(Duration.ofMinutes(5)))
+                                                   .endTime(endTime)
+                                                   .period(60)
+                                                   .statistics(Statistic.AVERAGE)
+                                                   .build());
             fail("Expected an SdkServiceException, but wasn't thrown");
-        } catch (SdkServiceException e) {
-            assertThat(e, isValidSdkServiceException());
+        } catch (MissingRequiredParameterException e) {
+            // There is a strong contract on the value of these fields, and they should never change unexpectedly
+            assertEquals("MissingParameter", e.awsErrorDetails().errorCode());
+            assertEquals(400, e.statusCode());
+
+            // There is no strong contract on the exact value of these fields, but they should always be at least present
+            assertFalse(e.requestId().isEmpty());
+            assertFalse(e.awsErrorDetails().serviceName().isEmpty());
+            assertFalse(e.getMessage().isEmpty());
         }
     }
 

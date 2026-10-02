@@ -17,7 +17,10 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
@@ -52,6 +55,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
@@ -228,6 +232,26 @@ public class AsyncIndexQueryTest extends LocalDynamoDbAsyncTestBase {
         assertThat(page.items(),
                    is(KEYS_ONLY_RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void queryBetween_withConsumedCapacity_shouldReturnIndexMetrics() {
+        insertRecords();
+        Key fromKey = Key.builder().partitionValue("gsi-id-value").sortValue(3).build();
+        Key toKey = Key.builder().partitionValue("gsi-id-value").sortValue(5).build();
+        SdkPublisher<Page<Record>> publisher =
+            keysOnlyMappedIndex.query(r -> r.queryConditional(QueryConditional.sortBetween(fromKey, toKey))
+                                        .returnConsumedCapacity(ReturnConsumedCapacity.INDEXES));
+
+        Page<Record> page = drainPublisher(publisher, 1).get(0);
+        assertThat(page.items(),
+                   is(KEYS_ONLY_RECORDS.stream().filter(r -> r.sort >= 3 && r.sort <= 5).collect(Collectors.toList())));
+        assertThat(page.consumedCapacity(), is(notNullValue()));
+        assertThat(page.consumedCapacity().globalSecondaryIndexes(), is(notNullValue()));
+        assertThat(page.consumedCapacity().globalSecondaryIndexes().isEmpty(), is(false));
+        assertThat(page.consumedCapacity().capacityUnits(), is(greaterThan(0d)));
+        assertThat(page.count(), equalTo(3));
+        assertThat(page.scannedCount(), equalTo(3));
     }
 
     @Test

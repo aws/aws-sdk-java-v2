@@ -22,6 +22,7 @@ import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.crt.ConnectionHealthConfiguration;
 import software.amazon.awssdk.http.crt.ProxyConfiguration;
 import software.amazon.awssdk.http.crt.TcpKeepAliveConfiguration;
+import software.amazon.awssdk.http.crt.TlsVersion;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Validate;
 
@@ -33,6 +34,8 @@ public class AwsCrtClientBuilderBase<BuilderT> {
     private ConnectionHealthConfiguration connectionHealthConfiguration;
     private TcpKeepAliveConfiguration tcpKeepAliveConfiguration;
     private Boolean postQuantumTlsEnabled;
+    private TlsVersion minTlsVersion;
+    private Integer numEventLoopThreads;
 
     protected AwsCrtClientBuilderBase() {
     }
@@ -59,6 +62,17 @@ public class AwsCrtClientBuilderBase<BuilderT> {
 
     public Long getReadBufferSizeInBytes() {
         return this.readBufferSize;
+    }
+
+    public BuilderT numEventLoopThreads(Integer numEventLoopThreads) {
+        Validate.isTrue(numEventLoopThreads == null || numEventLoopThreads > 1,
+                        "numEventLoopThreads must be greater than 1");
+        this.numEventLoopThreads = numEventLoopThreads;
+        return thisBuilder();
+    }
+
+    public Integer getNumEventLoopThreads() {
+        return this.numEventLoopThreads;
     }
 
 
@@ -106,6 +120,16 @@ public class AwsCrtClientBuilderBase<BuilderT> {
         return thisBuilder();
     }
 
+    public BuilderT tlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+        Validate.isPositive(tlsNegotiationTimeout, "tlsNegotiationTimeout");
+        standardOptions.put(SdkHttpConfigurationOption.TLS_NEGOTIATION_TIMEOUT, tlsNegotiationTimeout);
+        return thisBuilder();
+    }
+
+    public void setTlsNegotiationTimeout(Duration tlsNegotiationTimeout) {
+        tlsNegotiationTimeout(tlsNegotiationTimeout);
+    }
+
     public BuilderT tcpKeepAliveConfiguration(TcpKeepAliveConfiguration tcpKeepAliveConfiguration) {
         this.tcpKeepAliveConfiguration = tcpKeepAliveConfiguration;
         return thisBuilder();
@@ -130,6 +154,15 @@ public class AwsCrtClientBuilderBase<BuilderT> {
 
     public Boolean getPostQuantumTlsEnabled() {
         return this.postQuantumTlsEnabled;
+    }
+
+    public BuilderT minTlsVersion(TlsVersion minTlsVersion) {
+        this.minTlsVersion = minTlsVersion;
+        return thisBuilder();
+    }
+
+    public TlsVersion getMinTlsVersion() {
+        return this.minTlsVersion;
     }
 
     public BuilderT proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {

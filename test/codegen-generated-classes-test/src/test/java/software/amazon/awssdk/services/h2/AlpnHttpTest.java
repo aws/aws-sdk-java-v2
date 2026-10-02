@@ -18,10 +18,13 @@ package software.amazon.awssdk.services.h2;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.net.ConnectException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.security.AccessController;
 import java.security.PrivilegedExceptionAction;
@@ -47,6 +50,7 @@ public class AlpnHttpTest {
         assertThat(e.getCause()).hasCauseInstanceOf(ConnectException.class);
         assertThat(e.getMessage()).contains("Connection refused");
         assertThat(e.getMessage()).doesNotContain("ALPN can only be used with HTTPS, not HTTP. Use ProtocolNegotiation.ASSUME_PROTOCOL instead.");
+        client.close();
     }
 
     @Test
@@ -62,11 +66,12 @@ public class AlpnHttpTest {
         assertThat(e).hasCauseInstanceOf(SdkClientException.class);
         assertThat(e.getCause()).hasCauseInstanceOf(UnsupportedOperationException.class);
         assertThat(e.getMessage()).contains("ALPN can only be used with HTTPS, not HTTP. Use ProtocolNegotiation.ASSUME_PROTOCOL instead.");
+        client.close();
     }
 
     private H2AsyncClientBuilder clientBuilderWithHttpEndpoint() {
         return H2AsyncClient.builder()
-                            .endpointOverride(URI.create("http://localhost:8080"));
+                            .endpointOverride(URI.create("http://localhost:" + getUnusedPort()));
     }
 
     private void makeRequest(H2AsyncClient client) {
@@ -88,6 +93,15 @@ public class AlpnHttpTest {
             return true;
         } catch (Throwable t) {
             return false;
+        }
+    }
+
+    private static int getUnusedPort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            socket.setReuseAddress(true);
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 }

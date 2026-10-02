@@ -1,34 +1,51 @@
 package software.amazon.awssdk.services.database;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.auth.signer.Aws4Signer;
+import software.amazon.awssdk.auth.credentials.TokenUtils;
+import software.amazon.awssdk.auth.token.credentials.aws.DefaultAwsTokenProvider;
+import software.amazon.awssdk.awscore.auth.AuthSchemePreferenceResolver;
 import software.amazon.awssdk.awscore.client.builder.AwsDefaultClientBuilder;
 import software.amazon.awssdk.awscore.client.config.AwsClientOption;
 import software.amazon.awssdk.awscore.endpoint.AwsClientEndpointProvider;
+import software.amazon.awssdk.awscore.endpoints.AwsEndpointAttribute;
+import software.amazon.awssdk.awscore.endpoints.authscheme.EndpointAuthScheme;
+import software.amazon.awssdk.awscore.endpoints.authscheme.SigV4AuthScheme;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
-import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.retry.RetryMode;
-import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.endpoints.Endpoint;
+import software.amazon.awssdk.http.auth.aws.scheme.AwsV4AuthScheme;
+import software.amazon.awssdk.http.auth.scheme.BearerAuthScheme;
+import software.amazon.awssdk.http.auth.scheme.NoAuthAuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
-import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
+import software.amazon.awssdk.identity.spi.TokenIdentity;
+import software.amazon.awssdk.protocols.json.internal.unmarshall.SdkClientJsonProtocolAdvancedOption;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.retries.api.RetryStrategy;
+import software.amazon.awssdk.services.database.auth.scheme.DatabaseAuthSchemeProvider;
+import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointParams;
 import software.amazon.awssdk.services.database.endpoints.DatabaseEndpointProvider;
-import software.amazon.awssdk.services.database.endpoints.internal.DatabaseRequestSetEndpointInterceptor;
-import software.amazon.awssdk.services.database.endpoints.internal.DatabaseResolveEndpointInterceptor;
 import software.amazon.awssdk.services.database.internal.DatabaseServiceClientConfigurationBuilder;
 import software.amazon.awssdk.utils.CollectionUtils;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -38,6 +55,8 @@ import software.amazon.awssdk.utils.Validate;
 @SdkInternalApi
 abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuilder<B, C>, C> extends
                                                                                               AwsDefaultClientBuilder<B, C> {
+    private final Map<String, AuthScheme<?>> additionalAuthSchemes = new HashMap<>();
+
     @Override
     protected final String serviceEndpointPrefix() {
         return "database-service-endpoint";
@@ -50,16 +69,20 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
 
     @Override
     protected final SdkClientConfiguration mergeServiceDefaults(SdkClientConfiguration config) {
-        return config.merge(c -> c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
-                                  .option(SdkAdvancedClientOption.SIGNER, defaultSigner())
-                                  .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false));
+        return config.merge(c -> {
+            c.option(SdkClientOption.ENDPOINT_PROVIDER, defaultEndpointProvider())
+             .option(SdkClientOption.AUTH_SCHEME_PROVIDER, defaultAuthSchemeProvider(config))
+             .option(SdkClientOption.AUTH_SCHEMES, authSchemes())
+             .option(SdkClientOption.CRC32_FROM_COMPRESSED_DATA_ENABLED, false)
+             .lazyOption(AwsClientOption.TOKEN_PROVIDER,
+                         p -> TokenUtils.toSdkTokenProvider(p.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER)))
+             .option(AwsClientOption.TOKEN_IDENTITY_PROVIDER, defaultTokenProvider());
+        });
     }
 
     @Override
     protected final SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
         List<ExecutionInterceptor> endpointInterceptors = new ArrayList<>();
-        endpointInterceptors.add(new DatabaseResolveEndpointInterceptor());
-        endpointInterceptors.add(new DatabaseRequestSetEndpointInterceptor());
         ClasspathInterceptorChainFactory interceptorFactory = new ClasspathInterceptorChainFactory();
         List<ExecutionInterceptor> interceptors = interceptorFactory
             .getInterceptors("software/amazon/awssdk/services/database/execution.interceptors");
@@ -70,6 +93,10 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         SdkClientConfiguration.Builder builder = config.toBuilder();
         builder.lazyOption(SdkClientOption.IDENTITY_PROVIDERS, c -> {
             IdentityProviders.Builder result = IdentityProviders.builder();
+            IdentityProvider<?> tokenIdentityProvider = c.get(AwsClientOption.TOKEN_IDENTITY_PROVIDER);
+            if (tokenIdentityProvider != null) {
+                result.putIdentityProvider(tokenIdentityProvider);
+            }
             IdentityProvider<?> credentialsIdentityProvider = c.get(AwsClientOption.CREDENTIALS_IDENTITY_PROVIDER);
             if (credentialsIdentityProvider != null) {
                 result.putIdentityProvider(credentialsIdentityProvider);
@@ -79,25 +106,58 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
         builder.option(SdkClientOption.EXECUTION_INTERCEPTORS, interceptors);
         builder.lazyOptionIfAbsent(
             SdkClientOption.CLIENT_ENDPOINT_PROVIDER,
-            c -> AwsClientEndpointProvider
-                .builder()
-                .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
-                .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
-                .serviceProfileProperty("database_service")
-                .serviceEndpointPrefix(serviceEndpointPrefix())
-                .defaultProtocol("https")
-                .region(c.get(AwsClientOption.AWS_REGION))
-                .profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
-                .profileName(c.get(SdkClientOption.PROFILE_NAME))
-                .putAdvancedOption(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT,
-                                   c.get(ServiceMetadataAdvancedOption.DEFAULT_S3_US_EAST_1_REGIONAL_ENDPOINT))
-                .dualstackEnabled(c.get(AwsClientOption.DUALSTACK_ENDPOINT_ENABLED))
-                .fipsEnabled(c.get(AwsClientOption.FIPS_ENDPOINT_ENABLED)).build());
+            c -> {
+                Optional<URI> overrideEndpoint = AwsClientEndpointProvider.builder()
+                                                                          .serviceEndpointOverrideEnvironmentVariable("AWS_ENDPOINT_URL_DATABASE_SERVICE")
+                                                                          .serviceEndpointOverrideSystemProperty("aws.endpointUrlDatabase")
+                                                                          .serviceProfileProperty("database_service").profileFile(c.get(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                          .profileName(c.get(SdkClientOption.PROFILE_NAME)).resolveFromOverrides();
+                if (overrideEndpoint.isPresent()) {
+                    return ClientEndpointProvider.create(overrideEndpoint.get(), true);
+                }
+                URI clientEndpointUri = null;
+                Region region = c.get(AwsClientOption.AWS_REGION);
+                try {
+                    DatabaseEndpointParams endpointParams = DatabaseEndpointParams.builder().region(region).build();
+                    Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                        endpointParams));
+                    clientEndpointUri = endpoint.url();
+                } catch (Exception e) {
+                    // Endpoint resolution failed. This is expected for services with required parameters
+                    // beyond region, dualstack, and FIPS. Use a placeholder that will be replaced at request time.
+                    return ClientEndpointProvider.create(URI.create("https://localhost"), false);
+                }
+                if (clientEndpointUri.getHost() == null) {
+                    throw SdkClientException.create("Configured region (" + region + ") resulted in an invalid URI: "
+                                                    + clientEndpointUri + ". This is usually caused by an invalid region configuration.");
+                }
+                return ClientEndpointProvider.create(clientEndpointUri, false);
+            });
+        builder.lazyOptionIfAbsent(
+            AwsClientOption.SIGNING_REGION,
+            c -> {
+                Region region = c.get(AwsClientOption.AWS_REGION);
+                try {
+                    DatabaseEndpointParams endpointParams = DatabaseEndpointParams.builder().region(region).build();
+                    Endpoint endpoint = CompletableFutureUtils.joinLikeSync(defaultEndpointProvider().resolveEndpoint(
+                        endpointParams));
+                    List<EndpointAuthScheme> authSchemes = endpoint.attribute(AwsEndpointAttribute.AUTH_SCHEMES);
+                    if (authSchemes != null && !authSchemes.isEmpty()) {
+                        EndpointAuthScheme firstScheme = authSchemes.get(0);
+                        if (firstScheme instanceof SigV4AuthScheme) {
+                            String signingRegion = ((SigV4AuthScheme) firstScheme).signingRegion();
+                            if (signingRegion != null) {
+                                return Region.of(signingRegion);
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    // Endpoint resolution failed. Fall back to using the client region as signing region.
+                }
+                return region;
+            });
+        builder.option(SdkClientJsonProtocolAdvancedOption.ENABLE_FAST_UNMARSHALLER, true);
         return builder.build();
-    }
-
-    private Signer defaultSigner() {
-        return Aws4Signer.create();
     }
 
     @Override
@@ -107,6 +167,44 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
 
     private DatabaseEndpointProvider defaultEndpointProvider() {
         return DatabaseEndpointProvider.defaultProvider();
+    }
+
+    public B authSchemeProvider(DatabaseAuthSchemeProvider authSchemeProvider) {
+        clientConfiguration.option(SdkClientOption.AUTH_SCHEME_PROVIDER, authSchemeProvider);
+        return thisBuilder();
+    }
+
+    private DatabaseAuthSchemeProvider defaultAuthSchemeProvider(SdkClientConfiguration config) {
+        AuthSchemePreferenceResolver authSchemePreferenceProvider = AuthSchemePreferenceResolver.builder()
+                                                                                                .profileFile(config.option(SdkClientOption.PROFILE_FILE_SUPPLIER))
+                                                                                                .profileName(config.option(SdkClientOption.PROFILE_NAME)).build();
+        List<String> preferences = authSchemePreferenceProvider.resolveAuthSchemePreference();
+        if (!preferences.isEmpty()) {
+            return DatabaseAuthSchemeProvider.defaultProvider(preferences);
+        }
+        return DatabaseAuthSchemeProvider.defaultProvider();
+    }
+
+    @Override
+    public B putAuthScheme(AuthScheme<?> authScheme) {
+        additionalAuthSchemes.put(authScheme.schemeId(), authScheme);
+        return thisBuilder();
+    }
+
+    private Map<String, AuthScheme<?>> authSchemes() {
+        Map<String, AuthScheme<?>> schemes = new HashMap<>(3 + this.additionalAuthSchemes.size());
+        AwsV4AuthScheme awsV4AuthScheme = AwsV4AuthScheme.create();
+        schemes.put(awsV4AuthScheme.schemeId(), awsV4AuthScheme);
+        BearerAuthScheme bearerAuthScheme = BearerAuthScheme.create();
+        schemes.put(bearerAuthScheme.schemeId(), bearerAuthScheme);
+        NoAuthAuthScheme noAuthAuthScheme = NoAuthAuthScheme.create();
+        schemes.put(noAuthAuthScheme.schemeId(), noAuthAuthScheme);
+        schemes.putAll(this.additionalAuthSchemes);
+        return schemes;
+    }
+
+    private IdentityProvider<? extends TokenIdentity> defaultTokenProvider() {
+        return DefaultAwsTokenProvider.create();
     }
 
     @Override
@@ -155,7 +253,7 @@ abstract class DefaultDatabaseBaseClientBuilder<B extends DatabaseBaseClientBuil
     }
 
     protected static void validateClientOptions(SdkClientConfiguration c) {
-        Validate.notNull(c.option(SdkAdvancedClientOption.SIGNER),
-                         "The 'overrideConfiguration.advancedOption[SIGNER]' must be configured in the client builder.");
+        Validate.notNull(c.option(AwsClientOption.TOKEN_IDENTITY_PROVIDER),
+                         "The 'tokenProvider' must be configured in the client builder.");
     }
 }

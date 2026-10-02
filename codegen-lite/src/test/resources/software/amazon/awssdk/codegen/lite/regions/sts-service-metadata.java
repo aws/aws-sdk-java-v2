@@ -41,6 +41,7 @@ public final class StsServiceMetadata implements ServiceMetadata {
 
     private static final Map<ServiceEndpointKey, String> SIGNING_REGIONS_BY_REGION = ImmutableMap
         .<ServiceEndpointKey, String> builder()
+        .allowDuplicateKeys(true)
         .put(ServiceEndpointKey.builder().region(Region.of("aws-global")).build(), "us-east-1")
         .put(ServiceEndpointKey.builder().region(Region.of("us-east-1-fips")).build(), "us-east-1")
         .put(ServiceEndpointKey.builder().region(Region.of("us-east-2-fips")).build(), "us-east-2")
@@ -60,6 +61,7 @@ public final class StsServiceMetadata implements ServiceMetadata {
 
     private static final Map<ServiceEndpointKey, String> HOSTNAMES_BY_REGION = ImmutableMap
         .<ServiceEndpointKey, String> builder()
+        .allowDuplicateKeys(true)
         .put(ServiceEndpointKey.builder().region(Region.of("aws-global")).build(), "sts.amazonaws.com")
         .put(ServiceEndpointKey.builder().region(Region.of("us-east-1")).tags(EndpointTag.of("fips")).build(),
              "sts-fips.us-east-1.amazonaws.com")

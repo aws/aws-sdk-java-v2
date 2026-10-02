@@ -98,6 +98,7 @@ class AsyncBufferingSubscriberTest {
             assertThat(numRequestsInFlightSampling).contains(MAX_CONCURRENT_EXECUTIONS);
         }
         disposable.dispose();
+        numRequestsInFlightSampling.forEach(maxConcurrency -> assertThat(maxConcurrency).isLessThanOrEqualTo(MAX_CONCURRENT_EXECUTIONS));
     }
 
     @Test
@@ -127,7 +128,44 @@ class AsyncBufferingSubscriberTest {
         subscriber.onSubscribe(mockSubscription);
         subscriber.onNext("item");
 
+        // Cancelled once, from the onNext() catch block. The whenComplete() handler does not cancel again, which would
+        // violate Reactive Streams rule 2.3 (cancel from within onError).
         verify(mockSubscription, times(1)).cancel();
         assertThatThrownBy(future::join).hasCause(exception);
+    }
+
+    @Test
+    void returnFutureCancelled_shouldCancelUpstreamSubscription() {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(
+            s -> new CompletableFuture<>(), future, 10);
+
+        Subscription mockSubscription = mock(Subscription.class);
+        subscriber.onSubscribe(mockSubscription);
+        subscriber.onNext("item");
+
+        future.cancel(true);
+        verify(mockSubscription, times(1)).cancel();
+    }
+
+    @Test
+    void returnFutureCancelledDuringOnNext_shouldCancelInFlightFuture() {
+        CompletableFuture<Void> returnFuture = new CompletableFuture<>();
+        CompletableFuture<Object> consumerFuture = new CompletableFuture<>();
+
+        AsyncBufferingSubscriber<String> subscriber = new AsyncBufferingSubscriber<>(
+            item -> {
+                returnFuture.completeExceptionally(new RuntimeException("cancelled"));
+                return consumerFuture;
+            },
+            returnFuture,
+            1
+        );
+
+        SimplePublisher<String> publisher = new SimplePublisher<>();
+        publisher.subscribe(subscriber);
+        publisher.send("item1");
+
+        assertThat(consumerFuture.isCancelled()).isTrue();
     }
 }

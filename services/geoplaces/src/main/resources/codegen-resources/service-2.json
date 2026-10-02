@@ -17,7 +17,7 @@
       "name":"Autocomplete",
       "http":{
         "method":"POST",
-        "requestUri":"/autocomplete",
+        "requestUri":"/v2/autocomplete",
         "responseCode":200
       },
       "input":{"shape":"AutocompleteRequest"},
@@ -28,13 +28,14 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>The autocomplete operation speeds up and increases the accuracy of entering addresses by providing a list of address candidates matching a partially entered address. Results are sorted from most to least matching. Filtering and biasing can be used to increase the relevance of the results if additional search context is known</p>"
+      "documentation":"<p> <code>Autocomplete</code> completes potential places and addresses as the user types, based on the partial input. The API enhances the efficiency and accuracy of address by completing query based on a few entered keystrokes. It helps you by completing partial queries with valid address completion. Also, the API supports the filtering of results based on geographic location, country, or specific place types, and can be tailored using optional parameters like language and political views. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/autocomplete.html\">Autocomplete</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     },
     "Geocode":{
       "name":"Geocode",
       "http":{
         "method":"POST",
-        "requestUri":"/geocode",
+        "requestUri":"/v2/geocode",
         "responseCode":200
       },
       "input":{"shape":"GeocodeRequest"},
@@ -45,13 +46,14 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>The <code>Geocode</code> action allows you to obtain coordinates, addresses, and other information about places.</p>"
+      "documentation":"<p> <code>Geocode</code> converts a textual address or place into geographic coordinates. You can obtain geographic coordinates, address component, and other related information. It supports flexible queries, including free-form text or structured queries with components like street names, postal codes, and regions. The Geocode API can also provide additional features such as time zone information and the inclusion of political views. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/geocode.html\">Geocode</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     },
     "GetPlace":{
       "name":"GetPlace",
       "http":{
         "method":"GET",
-        "requestUri":"/place/{PlaceId}",
+        "requestUri":"/v2/place/{PlaceId}",
         "responseCode":200
       },
       "input":{"shape":"GetPlaceRequest"},
@@ -62,13 +64,14 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Finds a place by its unique ID. A <code>PlaceId</code> is returned by other place operations.</p>"
+      "documentation":"<p> <code>GetPlace</code> finds a place by its unique ID. A <code>PlaceId</code> is returned by other place operations.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/get-place.html\">GetPlace</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     },
     "ReverseGeocode":{
       "name":"ReverseGeocode",
       "http":{
         "method":"POST",
-        "requestUri":"/reverse-geocode",
+        "requestUri":"/v2/reverse-geocode",
         "responseCode":200
       },
       "input":{"shape":"ReverseGeocodeRequest"},
@@ -79,13 +82,14 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p> The <code>ReverseGeocode</code> operation allows you to retrieve addresses and place information from coordinates.</p>"
+      "documentation":"<p> <code>ReverseGeocode</code> converts geographic coordinates into a human-readable address or place. You can obtain address component, and other related information such as place type, category, street information. The Reverse Geocode API supports filtering to on place type so that you can refine result based on your need. Also, The Reverse Geocode API can also provide additional features such as time zone information and the inclusion of political views.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/reverse-geocode.html\">Reverse Geocode</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     },
     "SearchNearby":{
       "name":"SearchNearby",
       "http":{
         "method":"POST",
-        "requestUri":"/search-nearby",
+        "requestUri":"/v2/search-nearby",
         "responseCode":200
       },
       "input":{"shape":"SearchNearbyRequest"},
@@ -96,13 +100,14 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Search nearby a specified location.</p>"
+      "documentation":"<p> <code>SearchNearby</code> queries for points of interest within a radius from a central coordinates, returning place results with optional filters such as categories, business chains, food types and more. The API returns details such as a place name, address, phone, category, food type, contact, opening hours. Also, the API can return phonemes, time zones and more based on requested parameters. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/search-nearby.html\">Search Nearby</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     },
     "SearchText":{
       "name":"SearchText",
       "http":{
         "method":"POST",
-        "requestUri":"/search-text",
+        "requestUri":"/v2/search-text",
         "responseCode":200
       },
       "input":{"shape":"SearchTextRequest"},
@@ -113,13 +118,14 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Use the <code>SearchText</code> operation to search for geocode and place information. You can then complete a follow-up query suggested from the <code>Suggest</code> API via a query id.</p>"
+      "documentation":"<p> <code>SearchText</code> searches for geocode and place information. You can then complete a follow-up query suggested from the <code>Suggest</code> API via a query id.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/search-text.html\">Search Text</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     },
     "Suggest":{
       "name":"Suggest",
       "http":{
         "method":"POST",
-        "requestUri":"/suggest",
+        "requestUri":"/v2/suggest",
         "responseCode":200
       },
       "input":{"shape":"SuggestRequest"},
@@ -130,7 +136,8 @@
         {"shape":"ValidationException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>The <code>Suggest</code> operation finds addresses or place candidates based on incomplete or misspelled queries. You then select the best query to submit based on the returned results.</p>"
+      "documentation":"<p> <code>Suggest</code> provides intelligent predictions or recommendations based on the user's input or context, such as relevant places, points of interest, query terms or search category. It is designed to help users find places or point of interests candidates or identify a follow on query based on incomplete or misspelled queries. It returns a list of possible matches or refinements that can be used to formulate a more accurate query. Users can select the most appropriate suggestion and use it for further searching. The API provides options for filtering results by location and other attributes, and allows for additional features like phonemes and timezones. The response includes refined query terms and detailed place information.</p> <p>For more information, see <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/suggest.html\">Suggest</a> in the <i>Amazon Location Service Developer Guide</i>.</p>",
+      "readonly":true
     }
   },
   "shapes":{
@@ -155,7 +162,19 @@
       "members":{
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
+        },
+        "Type":{
+          "shape":"AccessPointType",
+          "documentation":"<p>The type of access point, indicating its intended use. Only applies to results of type place.</p>"
+        },
+        "Primary":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>Set to <code>true</code> for the primary access position when the place has more than one access point.</p>"
+        },
+        "Label":{
+          "shape":"SensitiveString",
+          "documentation":"<p>A short textual description of the access point, such as <code>\"North Entrance\"</code>.</p>"
         }
       },
       "documentation":"<p>Position of the access point represented by longitude and latitude for a vehicle.</p>"
@@ -166,11 +185,23 @@
       "max":100,
       "min":0
     },
+    "AccessPointType":{
+      "type":"string",
+      "enum":[
+        "Delivery",
+        "Emergency",
+        "Entrance",
+        "Loading",
+        "Other",
+        "Parking",
+        "Taxi"
+      ]
+    },
     "AccessRestriction":{
       "type":"structure",
       "members":{
         "Restricted":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>The restriction.</p>"
         },
         "Categories":{
@@ -207,7 +238,7 @@
         },
         "Locality":{
           "shape":"AddressLocalityString",
-          "documentation":"<p>The locality or city of the address.</p> <p>Example: <code>Vancouver</code>.</p>"
+          "documentation":"<p>The city or locality of the address.</p> <p>Example: <code>Vancouver</code>.</p>"
         },
         "District":{
           "shape":"AddressDistrictString",
@@ -219,19 +250,19 @@
         },
         "PostalCode":{
           "shape":"AddressPostalCodeString",
-          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code, for which the result should posses. </p>"
+          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code, for which the result should possess. </p>"
         },
         "Block":{
           "shape":"AddressBlockString",
-          "documentation":"<p>Name of the block. </p> <p>Example: <code>Sunny Mansion 203 block: 2 Chome</code> </p>"
+          "documentation":"<p> Name of the block. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <p>Example: <code>Sunny Mansion 203 block: 2 Chome</code> </p>"
         },
         "SubBlock":{
           "shape":"AddressSubBlockString",
-          "documentation":"<p>Name of sub-block. </p> <p>Example: <code>Sunny Mansion 203 sub-block: 4</code> </p>"
+          "documentation":"<p> Name of sub-block. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <p>Example: <code>Sunny Mansion 203 sub-block: 4</code> </p>"
         },
         "Intersection":{
-          "shape":"IntersectionList",
-          "documentation":"<p>Name of the streets in the intersection. </p> <p>Example: <code>[\"Friedrichstraße\",\"Unter den Linden\"]</code> </p>"
+          "shape":"IntersectionStreetList",
+          "documentation":"<p> Name of the streets in the intersection. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <p>Example: <code>[\"Friedrichstraße\",\"Unter den Linden\"]</code> </p>"
         },
         "Street":{
           "shape":"AddressStreetString",
@@ -239,7 +270,7 @@
         },
         "StreetComponents":{
           "shape":"StreetComponentsList",
-          "documentation":"<p>Components of the street. </p> <p>Example: Younge from the \"Younge street\".</p>"
+          "documentation":"<p> Components of the street. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <p>Example: Yonge from \"Yonge street\".</p>"
         },
         "AddressNumber":{
           "shape":"AddressAddressNumberString",
@@ -247,7 +278,11 @@
         },
         "Building":{
           "shape":"AddressBuildingString",
-          "documentation":"<p>The name of the building at the address.</p>"
+          "documentation":"<p> The name of the building at the address. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
+        },
+        "SecondaryAddressComponents":{
+          "shape":"SecondaryAddressComponentList",
+          "documentation":"<p> Components that correspond to secondary identifiers on an Address. Secondary address components include information such as Suite or Unit Number, Building, or Floor. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <note> <p>Coverage for <code>Address.SecondaryAddressComponents</code> is available in the following countries:</p> <p>AUS, CAN, NZL, USA, PRI</p> </note>"
         }
       },
       "documentation":"<p>The place address.</p>"
@@ -255,17 +290,20 @@
     "AddressAddressNumberString":{
       "type":"string",
       "max":10,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressBlockString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressBuildingString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressComponentMatchScores":{
       "type":"structure",
@@ -296,7 +334,7 @@
         },
         "PostalCode":{
           "shape":"MatchScore",
-          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code, for which the result should posses. </p>"
+          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code, for which the result should possess. </p>"
         },
         "Block":{
           "shape":"MatchScore",
@@ -317,6 +355,10 @@
         "Building":{
           "shape":"MatchScore",
           "documentation":"<p>The name of the building at the address.</p>"
+        },
+        "SecondaryAddressComponents":{
+          "shape":"SecondaryAddressComponentMatchScoreList",
+          "documentation":"<p>Match scores for the secondary address components in the result.</p> <note> <p>Coverage for this functionality is available in the following countries: AUS, AUT, BRA, CAN, ESP, FRA, GBR, IDN, IND, NZL, TUR, TWN, USA.</p> </note>"
         }
       },
       "documentation":"<p>Indicates how well the entire input matches the returned. It is equal to 1 if all input tokens are recognized and matched.</p>"
@@ -372,37 +414,87 @@
     "AddressDistrictString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressLabelString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressLocalityString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressPostalCodeString":{
       "type":"string",
       "max":50,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressStreetString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressSubBlockString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "AddressSubDistrictString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
+    },
+    "AddressTranslationComponent":{
+      "type":"string",
+      "enum":[
+        "District",
+        "Locality",
+        "Region",
+        "SubRegion"
+      ]
+    },
+    "AddressTranslationComponentList":{
+      "type":"list",
+      "member":{"shape":"AddressTranslationComponent"},
+      "max":4,
+      "min":1
+    },
+    "AdminNames":{
+      "type":"structure",
+      "required":["Names"],
+      "members":{
+        "Names":{
+          "shape":"TranslationNameList",
+          "documentation":"<p>A list of translation names for the administrative address component, including name variants and translations in available languages.</p>"
+        },
+        "Preference":{
+          "shape":"AdminNamesPreference",
+          "documentation":"<p>Indicates the preference level of the administrative name. Valid values are <code>Primary</code> and <code>Alternative</code>.</p>"
+        }
+      },
+      "documentation":"<p>The official administrative names for an address component, returned when <code>AddressNamesMode</code> is set to <code>Administrative</code>.</p>"
+    },
+    "AdminNamesList":{
+      "type":"list",
+      "member":{"shape":"AdminNames"},
+      "max":2,
+      "min":1
+    },
+    "AdminNamesPreference":{
+      "type":"string",
+      "enum":[
+        "Alternative",
+        "Primary"
+      ]
     },
     "ApiKey":{
       "type":"string",
@@ -457,11 +549,11 @@
         },
         "Block":{
           "shape":"HighlightList",
-          "documentation":"<p>Name of the block. Example: Sunny Mansion 203 block: 2 Chome</p>"
+          "documentation":"<p>Name of the block. </p> <p>Example: <code>Sunny Mansion 203 block: 2 Chome</code> </p>"
         },
         "SubBlock":{
           "shape":"HighlightList",
-          "documentation":"<p>Name of sub-block. Example Sunny Mansion 203 sub-block: 4</p>"
+          "documentation":"<p>Name of sub-block. </p> <p>Example: <code>Sunny Mansion 203 sub-block: 4</code> </p>"
         },
         "Intersection":{
           "shape":"IntersectionHighlightsList",
@@ -469,7 +561,7 @@
         },
         "PostalCode":{
           "shape":"HighlightList",
-          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code for which the result should posses. </p>"
+          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code for which the result should possess. </p>"
         },
         "AddressNumber":{
           "shape":"HighlightList",
@@ -499,19 +591,25 @@
           "documentation":"<p>The included place types.</p>"
         }
       },
-      "documentation":"<p>Autocomplete structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+      "documentation":"<p>Autocomplete structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
     },
     "AutocompleteFilterPlaceType":{
       "type":"string",
       "enum":[
         "Locality",
-        "PostalCode"
+        "PostalCode",
+        "Street",
+        "Intersection",
+        "PointAddress",
+        "InterpolatedAddress",
+        "Country",
+        "Region"
       ]
     },
     "AutocompleteFilterPlaceTypeList":{
       "type":"list",
       "member":{"shape":"AutocompleteFilterPlaceType"},
-      "max":2,
+      "max":8,
       "min":1
     },
     "AutocompleteHighlights":{
@@ -538,23 +636,23 @@
       "members":{
         "QueryText":{
           "shape":"AutocompleteRequestQueryTextString",
-          "documentation":"<p>The free-form text query to match addresses against. This is usually a partially typed address from an end user in an address box or form.</p>"
+          "documentation":"<p>The free-form text query to match addresses against. This is usually a partially typed address from an end user in an address box or form.</p> <note> <p>The fields <code>QueryText</code>, and <code>QueryID</code> are mutually exclusive.</p> </note>"
         },
         "MaxResults":{
           "shape":"AutocompleteRequestMaxResultsInteger",
-          "documentation":"<p>An optional limit for the number of results returned in a single call. </p>"
+          "documentation":"<p>An optional limit for the number of results returned in a single call.</p> <p>Default value: 5</p>"
         },
         "BiasPosition":{
           "shape":"Position",
-          "documentation":"<p>The position in longitude and latitude that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WSG84 format.</p> <note> <p>The fields <code>BiasPosition</code>, <code>FilterBoundingBox</code>, and <code>FilterCircle</code> are mutually exclusive.</p> </note>"
+          "documentation":"<p>The position in longitude and latitude that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WGS 84 format.</p> <note> <p>The fields <code>BiasPosition</code>, <code>FilterBoundingBox</code>, and <code>FilterCircle</code> are mutually exclusive.</p> </note>"
         },
         "Filter":{
           "shape":"AutocompleteFilter",
-          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
         },
         "PostalCodeMode":{
           "shape":"PostalCodeMode",
-          "documentation":"<p>The <code>PostalCodeMode</code> affects how postal code results are returned. If a postal code spans multiple localities and this value is empty, partial district or locality information may be returned under a single postal code result entry. If it's populated with the value <code>cityLookup</code>, all cities in that postal code are returned.</p>"
+          "documentation":"<p>The <code>PostalCodeMode</code> affects how postal code results are returned. If a postal code spans multiple localities and this value is empty, partial district or locality information may be returned under a single postal code result entry. If it's populated with the value <code>EnumerateSpannedLocalities</code>, all cities in that postal code are returned. If it's populated with the value <code>EnumerateSpannedDistricts</code>, all combinations of the postal code with the corresponding district and city names are returned.</p>"
         },
         "AdditionalFeatures":{
           "shape":"AutocompleteAdditionalFeatureList",
@@ -562,15 +660,15 @@
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
         },
         "PoliticalView":{
           "shape":"CountryCode",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p> <p>The following political views are currently supported:</p> <ul> <li> <p> <code>ARG</code>: Argentina's view on the Southern Patagonian Ice Field and Tierra Del Fuego, including the Falkland Islands, South Georgia, and South Sandwich Islands</p> </li> <li> <p> <code>EGY</code>: Egypt's view on Bir Tawil</p> </li> <li> <p> <code>IND</code>: India's view on Gilgit-Baltistan</p> </li> <li> <p> <code>KEN</code>: Kenya's view on the Ilemi Triangle</p> </li> <li> <p> <code>MAR</code>: Morocco's view on Western Sahara</p> </li> <li> <p> <code>RUS</code>: Russia's view on Crimea</p> </li> <li> <p> <code>SDN</code>: Sudan's view on the Halaib Triangle</p> </li> <li> <p> <code>SRB</code>: Serbia's view on Kosovo, Vukovar, and Sarengrad Islands</p> </li> <li> <p> <code>SUR</code>: Suriname's view on the Courantyne Headwaters and Lawa Headwaters</p> </li> <li> <p> <code>SYR</code>: Syria's view on the Golan Heights</p> </li> <li> <p> <code>TUR</code>: Turkey's view on Cyprus and Northern Cyprus</p> </li> <li> <p> <code>TZA</code>: Tanzania's view on Lake Malawi</p> </li> <li> <p> <code>URY</code>: Uruguay's view on Rincon de Artigas</p> </li> <li> <p> <code>VNM</code>: Vietnam's view on the Paracel Islands and Spratly Islands</p> </li> </ul>"
         },
         "IntendedUse":{
           "shape":"AutocompleteIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>"
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). Currently, <code>Autocomplete</code> does not support storage of results. </p>"
         },
         "Key":{
           "shape":"ApiKey",
@@ -598,7 +696,7 @@
       "members":{
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -638,7 +736,7 @@
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
         },
         "PoliticalView":{
           "shape":"CountryCode3",
@@ -647,6 +745,10 @@
         "Highlights":{
           "shape":"AutocompleteHighlights",
           "documentation":"<p>Indicates the starting and ending index of the place in the text query that match the found title. </p>"
+        },
+        "EstimatedPointAddress":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>If <code>true</code>, indicates that the coordinates of the position and access points of the point address are estimated.</p>"
         }
       },
       "documentation":"<p>A result matching the input query text.</p>"
@@ -659,17 +761,15 @@
     },
     "AutocompleteResultItemPlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "AutocompleteResultItemTitleString":{
       "type":"string",
       "max":200,
-      "min":0
-    },
-    "Boolean":{
-      "type":"boolean",
-      "box":true
+      "min":0,
+      "sensitive":true
     },
     "BoundingBox":{
       "type":"list",
@@ -695,7 +795,8 @@
     "BusinessChainIdString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "BusinessChainList":{
       "type":"list",
@@ -706,7 +807,8 @@
     "BusinessChainNameString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "Category":{
       "type":"structure",
@@ -728,7 +830,7 @@
           "documentation":"<p>Localized name of the category type.</p>"
         },
         "Primary":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean which indicates if this category is the primary offered by the place.</p>"
         }
       },
@@ -737,7 +839,8 @@
     "CategoryIdString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "CategoryList":{
       "type":"list",
@@ -748,26 +851,28 @@
     "CategoryLocalizedNameString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "CategoryNameString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "ComponentMatchScores":{
       "type":"structure",
       "members":{
         "Title":{
           "shape":"MatchScore",
-          "documentation":"<p>Indicates the starting and ending index of the title in the text query that match the found title. </p>"
+          "documentation":"<p>Indicates the match score of the title in the text query that match the found title. </p>"
         },
         "Address":{
           "shape":"AddressComponentMatchScores",
           "documentation":"<p>The place's address.</p>"
         }
       },
-      "documentation":"<p>Indicates how well the input matches the returned element. It is equal to 1 if all input tokens are recognized and matched to the title in the result.</p>"
+      "documentation":"<p>Indicates how well the returned title and address components matches the input TextQuery. For each component a score is provied with 1 indicating all tokens were matched and 0 indicating no tokens were matched.</p>"
     },
     "ContactDetails":{
       "type":"structure",
@@ -790,7 +895,8 @@
     "ContactDetailsLabelString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "ContactDetailsList":{
       "type":"list",
@@ -801,7 +907,8 @@
     "ContactDetailsValueString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "Contacts":{
       "type":"structure",
@@ -847,19 +954,22 @@
       "type":"string",
       "max":3,
       "min":2,
-      "pattern":"([A-Z]{2}|[A-Z]{3})"
+      "pattern":"([A-Z]{2}|[A-Z]{3})",
+      "sensitive":true
     },
     "CountryCode2":{
       "type":"string",
       "max":2,
       "min":2,
-      "pattern":"[A-Z]{2}"
+      "pattern":"[A-Z]{2}",
+      "sensitive":true
     },
     "CountryCode3":{
       "type":"string",
       "max":3,
       "min":3,
-      "pattern":"[A-Z]{3}"
+      "pattern":"[A-Z]{3}",
+      "sensitive":true
     },
     "CountryCodeList":{
       "type":"list",
@@ -884,12 +994,54 @@
     "CountryNameString":{
       "type":"string",
       "max":100,
+      "min":0,
+      "sensitive":true
+    },
+    "CrossReference":{
+      "type":"structure",
+      "required":[
+        "Source",
+        "SourcePlaceId"
+      ],
+      "members":{
+        "Source":{
+          "shape":"CrossReferenceSourceString",
+          "documentation":"<p>The name of the third-party data supplier (for example, <code>Yelp</code> or <code>TripAdvisor</code>).</p>"
+        },
+        "SourcePlaceId":{
+          "shape":"CrossReferenceSourcePlaceIdString",
+          "documentation":"<p>The place identifier assigned by the third-party supplier.</p>"
+        },
+        "SourceCategories":{
+          "shape":"CategoryList",
+          "documentation":"<p>The list of place category identifiers this supplier reference relates to.</p>"
+        }
+      },
+      "documentation":"<p>A reference to a third-party supplier's identifier for a place, enabling correlation of places across external systems.</p>"
+    },
+    "CrossReferenceList":{
+      "type":"list",
+      "member":{"shape":"CrossReference"},
+      "max":100,
       "min":0
+    },
+    "CrossReferenceSourcePlaceIdString":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "sensitive":true
+    },
+    "CrossReferenceSourceString":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "sensitive":true
     },
     "DistanceMeters":{
       "type":"long",
       "max":4294967295,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "Double":{
       "type":"double",
@@ -904,7 +1056,8 @@
     "FilterBusinessChainListMemberString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "FilterCategoryList":{
       "type":"list",
@@ -915,7 +1068,8 @@
     "FilterCategoryListMemberString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "FilterCircle":{
       "type":"structure",
@@ -926,11 +1080,11 @@
       "members":{
         "Center":{
           "shape":"Position",
-          "documentation":"<p>The center position, in longitude and latitude, of the <code>FilterCircle</code>.</p>"
+          "documentation":"<p>The center position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "Radius":{
           "shape":"FilterCircleRadiusLong",
-          "documentation":"<p>The radius, in meters, of the <code>FilterCircle</code>.</p>",
+          "documentation":"<p> The radius, in meters, of the <code>FilterCircle</code>. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers,<code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only up to a maximum value of 300,000. </p>",
           "box":true
         }
       },
@@ -940,7 +1094,8 @@
     "FilterCircleRadiusLong":{
       "type":"long",
       "max":21000000,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "FilterFoodTypeList":{
       "type":"list",
@@ -951,7 +1106,8 @@
     "FilterFoodTypeListMemberString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "FoodType":{
       "type":"structure",
@@ -966,7 +1122,7 @@
           "documentation":"<p>The Food Type Id.</p>"
         },
         "Primary":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean which indicates if this food type is the primary offered by the place. For example, if a location serves fast food, but also dessert, he primary would likely be fast food.</p>"
         }
       },
@@ -975,7 +1131,8 @@
     "FoodTypeIdString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "FoodTypeList":{
       "type":"list",
@@ -986,20 +1143,30 @@
     "FoodTypeLocalizedNameString":{
       "type":"string",
       "max":100,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "GeocodeAdditionalFeature":{
       "type":"string",
       "enum":[
         "TimeZone",
-        "Access"
+        "Access",
+        "SecondaryAddresses",
+        "Intersections"
       ]
     },
     "GeocodeAdditionalFeatureList":{
       "type":"list",
       "member":{"shape":"GeocodeAdditionalFeature"},
-      "max":2,
+      "max":4,
       "min":1
+    },
+    "GeocodeAddressNamesMode":{
+      "type":"string",
+      "enum":[
+        "Matched",
+        "Administrative"
+      ]
     },
     "GeocodeFilter":{
       "type":"structure",
@@ -1013,7 +1180,7 @@
           "documentation":"<p>The included place types.</p>"
         }
       },
-      "documentation":"<p>Geocode structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+      "documentation":"<p>Geocode structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
     },
     "GeocodeFilterPlaceType":{
       "type":"string",
@@ -1023,13 +1190,18 @@
         "Intersection",
         "Street",
         "PointAddress",
-        "InterpolatedAddress"
-      ]
+        "InterpolatedAddress",
+        "SecondaryAddress",
+        "PointOfInterest",
+        "Country",
+        "Region"
+      ],
+      "sensitive":true
     },
     "GeocodeFilterPlaceTypeList":{
       "type":"list",
       "member":{"shape":"GeocodeFilterPlaceType"},
-      "max":6,
+      "max":10,
       "min":1
     },
     "GeocodeIntendedUse":{
@@ -1038,6 +1210,82 @@
         "SingleUse",
         "Storage"
       ]
+    },
+    "GeocodeParsedQuery":{
+      "type":"structure",
+      "members":{
+        "Title":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The localized display name of this result item based on request parameter <code>language</code>.</p>"
+        },
+        "Address":{
+          "shape":"GeocodeParsedQueryAddressComponents",
+          "documentation":"<p>The place address.</p>"
+        }
+      },
+      "documentation":"<p>Parsed components in the provided QueryText.</p>"
+    },
+    "GeocodeParsedQueryAddressComponents":{
+      "type":"structure",
+      "members":{
+        "Country":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The alpha-2 or alpha-3 character code for the country that the results will be present in.</p>"
+        },
+        "Region":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The region or state results should be present in. </p> <p>Example: <code>North Rhine-Westphalia</code>.</p>"
+        },
+        "SubRegion":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The sub-region or county for which results should be present in. </p>"
+        },
+        "Locality":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The city or locality of the address.</p> <p>Example: <code>Vancouver</code>.</p>"
+        },
+        "District":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The district or division of a city the results should be present in.</p>"
+        },
+        "SubDistrict":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>A subdivision of a district. </p> <p>Example: <code>Minden-Lübbecke</code>.</p>"
+        },
+        "PostalCode":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code, for which the result should possess. </p>"
+        },
+        "Block":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>Name of the block. </p> <p>Example: <code>Sunny Mansion 203 block: 2 Chome</code> </p>"
+        },
+        "SubBlock":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>Name of sub-block. </p> <p>Example: <code>Sunny Mansion 203 sub-block: 4</code> </p>"
+        },
+        "Street":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The name of the street results should be present in.</p>"
+        },
+        "AddressNumber":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The number that identifies an address within a street.</p>"
+        },
+        "Building":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>The name of the building at the address.</p>"
+        },
+        "SecondaryAddressComponents":{
+          "shape":"ParsedQuerySecondaryAddressComponentList",
+          "documentation":"<p>Parsed secondary address components from the provided query text.</p> <note> <p>Coverage for <code>ParsedQuery.Address.SecondaryAddressComponents</code> is available in the following countries:</p> <p>AUS, AUT, BRA, CAN, ESP, FRA, GBR, HKG, IDN, IND, NZL, TUR, TWN, USA</p> </note>"
+        },
+        "OtherComponents":{
+          "shape":"ParsedQueryComponentList",
+          "documentation":"<p>Additional information extracted from the query that does not correspond to standard address components.</p>"
+        }
+      },
+      "documentation":"<p>Parsed address components in the provided QueryText.</p>"
     },
     "GeocodeQueryComponents":{
       "type":"structure",
@@ -1056,7 +1304,7 @@
         },
         "Locality":{
           "shape":"GeocodeQueryComponentsLocalityString",
-          "documentation":"<p>City or locality results should be present in. </p> <p>Example: <code>Vancouver</code>.</p>"
+          "documentation":"<p>The city or locality results should be present in. </p> <p>Example: <code>Vancouver</code>.</p>"
         },
         "District":{
           "shape":"GeocodeQueryComponentsDistrictString",
@@ -1072,7 +1320,7 @@
         },
         "PostalCode":{
           "shape":"GeocodeQueryComponentsPostalCodeString",
-          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code for which the result should posses. </p>"
+          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code for which the result should possess. </p>"
         }
       },
       "documentation":"<p>A structured free text query allows you to search for places by the name or text representation of specific properties of the place. </p>"
@@ -1143,15 +1391,15 @@
         "QueryComponents":{"shape":"GeocodeQueryComponents"},
         "MaxResults":{
           "shape":"GeocodeRequestMaxResultsInteger",
-          "documentation":"<p>An optional limit for the number of results returned in a single call.</p>"
+          "documentation":"<p>An optional limit for the number of results returned in a single call.</p> <p>Default value: 20</p>"
         },
         "BiasPosition":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude, that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WSG84 format.</p> <note> <p>The fields <code>BiasPosition</code>, <code>FilterBoundingBox</code>, and <code>FilterCircle</code> are mutually exclusive.</p> </note>"
+          "documentation":"<p>The position, in longitude and latitude, that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WGS 84 format.</p>"
         },
         "Filter":{
           "shape":"GeocodeFilter",
-          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
         },
         "AdditionalFeatures":{
           "shape":"GeocodeAdditionalFeatureList",
@@ -1159,7 +1407,7 @@
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
         },
         "PoliticalView":{
           "shape":"CountryCode",
@@ -1167,13 +1415,25 @@
         },
         "IntendedUse":{
           "shape":"GeocodeIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>"
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <note> <p>When storing <code>Geocode</code> responses, you <i>must</i> set this field to <code>Storage</code> to comply with the terms of service. These requests will be charged at a higher rate. Please review the <a href=\"https://aws.amazon.com/location/sla/\">user agreement</a> and <a href=\"https://aws.amazon.com/location/pricing/\">service pricing structure</a> to determine the correct setting for your use case.</p> </note>"
         },
         "Key":{
           "shape":"ApiKey",
           "documentation":"<p>Optional: The API key to be used for authorization. Either an API key or valid SigV4 signature must be provided when making a request.</p>",
           "location":"querystring",
           "locationName":"key"
+        },
+        "PostalCodeMode":{
+          "shape":"PostalCodeMode",
+          "documentation":"<p>The <code>PostalCodeMode</code> affects how postal code results are returned. If a postal code spans multiple localities and this value is empty, partial district or locality information may be returned under a single postal code result entry. If it's populated with the value <code>EnumerateSpannedLocalities</code>, all cities in that postal code are returned. If it's populated with the value <code>EnumerateSpannedDistricts</code>, all combinations of the postal code with the corresponding district and city names are returned.</p>"
+        },
+        "AddressTranslations":{
+          "shape":"AddressTranslationComponentList",
+          "documentation":"<p>Specifies which address components to include translations for. Translations include all name variants and alternative names for the requested fields in all available languages. Valid values are <code>District</code>, <code>Locality</code>, <code>Region</code>, and <code>SubRegion</code>.</p>"
+        },
+        "AddressNamesMode":{
+          "shape":"GeocodeAddressNamesMode",
+          "documentation":"<p>Specifies how address names are returned. If not set, the service returns normalized (official) names by default. When set to <code>Matched</code>, address names in the response are based on the input query rather than official names. When set to <code>Administrative</code>, the service returns the official administrative names for address components. <code>Administrative</code> currently applies only to addresses in the United States.</p>"
         }
       }
     },
@@ -1195,7 +1455,7 @@
       "members":{
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at, or the maximum pricing bucket when the query is charged per item within the query.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -1215,7 +1475,7 @@
       "members":{
         "PlaceId":{
           "shape":"GeocodeResultItemPlaceIdString",
-          "documentation":"<p>The <code>PlaceId</code> of the place you wish to receive the information for.</p>"
+          "documentation":"<p>The <code>PlaceId</code> of the place result.</p>"
         },
         "PlaceType":{
           "shape":"PlaceType",
@@ -1230,7 +1490,7 @@
           "documentation":"<p>The place's address.</p>"
         },
         "AddressNumberCorrected":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean indicating if the address provided has been corrected.</p>"
         },
         "PostalCodeDetails":{
@@ -1239,7 +1499,7 @@
         },
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "Distance":{
           "shape":"DistanceMeters",
@@ -1259,7 +1519,7 @@
         },
         "AccessPoints":{
           "shape":"AccessPointList",
-          "documentation":"<p>Position of the access point represent by longitude and latitude.</p>"
+          "documentation":"<p>Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "TimeZone":{
           "shape":"TimeZone",
@@ -1272,6 +1532,30 @@
         "MatchScores":{
           "shape":"MatchScoreDetails",
           "documentation":"<p>Indicates how well the entire input matches the returned. It is equal to 1 if all input tokens are recognized and matched.</p>"
+        },
+        "ParsedQuery":{
+          "shape":"GeocodeParsedQuery",
+          "documentation":"<p>Free-form text query.</p>"
+        },
+        "Intersections":{
+          "shape":"IntersectionList",
+          "documentation":"<p>All Intersections that are near the provided address.</p>"
+        },
+        "MainAddress":{
+          "shape":"RelatedPlace",
+          "documentation":"<p>The main address corresponding to a place of type Secondary Address.</p>"
+        },
+        "SecondaryAddresses":{
+          "shape":"RelatedPlaceList",
+          "documentation":"<p>All secondary addresses that are associated with a main address. A secondary address is one that includes secondary designators, such as a Suite or Unit Number, Building, or Floor information.</p> <note> <p>Coverage for this functionality is available in the following countries: AUS, CAN, NZL, USA, PRI.</p> </note>"
+        },
+        "Translations":{
+          "shape":"TranslationDetails",
+          "documentation":"<p>All name translations and alternative names for the requested address fields in all available languages.</p>"
+        },
+        "EstimatedPointAddress":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>If <code>true</code>, indicates that the coordinates of the position and access points of the point address are estimated.</p>"
         }
       },
       "documentation":"<p>The Geocoded result.</p>"
@@ -1284,13 +1568,15 @@
     },
     "GeocodeResultItemPlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "GeocodeResultItemTitleString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "GetPlaceAdditionalFeature":{
       "type":"string",
@@ -1298,14 +1584,20 @@
         "TimeZone",
         "Phonemes",
         "Access",
-        "Contact"
+        "Contact",
+        "SecondaryAddresses",
+        "CrossReferences"
       ]
     },
     "GetPlaceAdditionalFeatureList":{
       "type":"list",
       "member":{"shape":"GetPlaceAdditionalFeature"},
-      "max":4,
+      "max":6,
       "min":1
+    },
+    "GetPlaceAddressNamesMode":{
+      "type":"string",
+      "enum":["Administrative"]
     },
     "GetPlaceIntendedUse":{
       "type":"string",
@@ -1326,25 +1618,25 @@
         },
         "AdditionalFeatures":{
           "shape":"GetPlaceAdditionalFeatureList",
-          "documentation":"<p>A list of optional additional parameters such as time zone that can be requested for each result.</p>",
+          "documentation":"<p> A list of optional additional parameters such as time zone that can be requested for each result. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the <code>TimeZone</code> value. </p>",
           "location":"querystring",
           "locationName":"additional-features"
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>",
+          "documentation":"<p> A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the following codes: <code>en, id, km, lo, ms, my, pt, th, tl, vi, zh</code> </p>",
           "location":"querystring",
           "locationName":"language"
         },
         "PoliticalView":{
           "shape":"CountryCode",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>",
+          "documentation":"<p> The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>",
           "location":"querystring",
           "locationName":"political-view"
         },
         "IntendedUse":{
           "shape":"GetPlaceIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>",
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <note> <p>When storing <code>GetPlace</code> responses, you <i>must</i> set this field to <code>Storage</code> to comply with the terms of service. These requests will be charged at a higher rate. Please review the <a href=\"https://aws.amazon.com/location/sla/\">user agreement</a> and <a href=\"https://aws.amazon.com/location/pricing/\">service pricing structure</a> to determine the correct setting for your use case.</p> </note>",
           "location":"querystring",
           "locationName":"intended-use"
         },
@@ -1353,12 +1645,18 @@
           "documentation":"<p>Optional: The API key to be used for authorization. Either an API key or valid SigV4 signature must be provided when making a request.</p>",
           "location":"querystring",
           "locationName":"key"
+        },
+        "AddressNamesMode":{
+          "shape":"GetPlaceAddressNamesMode",
+          "documentation":"<p>Specifies how address names are returned. When set to <code>Administrative</code>, the service returns the official administrative names for address components. <code>Administrative</code> currently applies only to addresses in the United States.</p>",
+          "location":"querystring",
+          "locationName":"address-names-mode"
         }
       }
     },
     "GetPlaceRequestPlaceIdString":{
       "type":"string",
-      "max":200,
+      "max":500,
       "min":0,
       "sensitive":true
     },
@@ -1381,11 +1679,11 @@
         },
         "Title":{
           "shape":"GetPlaceResponseTitleString",
-          "documentation":"<p>The localized display name of this result item based on request parameter <code>language</code>. </p>"
+          "documentation":"<p>The localized display name of this result item based on request parameter <code>language</code>.</p>"
         },
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -1394,16 +1692,16 @@
           "documentation":"<p>The place's address.</p>"
         },
         "AddressNumberCorrected":{
-          "shape":"Boolean",
-          "documentation":"<p>Boolean indicating if the address provided has been corrected.</p>"
+          "shape":"SensitiveBoolean",
+          "documentation":"<p> Boolean indicating if the address provided has been corrected. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "PostalCodeDetails":{
           "shape":"PostalCodeDetailsList",
-          "documentation":"<p>Contains details about the postal code of the place/result. </p>"
+          "documentation":"<p> Contains details about the postal code of the place/result. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "MapView":{
           "shape":"BoundingBox",
@@ -1415,7 +1713,7 @@
         },
         "FoodTypes":{
           "shape":"FoodTypeList",
-          "documentation":"<p>List of food types offered by this result.</p>"
+          "documentation":"<p> List of food types offered by this result. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "BusinessChains":{
           "shape":"BusinessChainList",
@@ -1423,19 +1721,19 @@
         },
         "Contacts":{
           "shape":"Contacts",
-          "documentation":"<p>List of potential contact methods for the result/place.</p>"
+          "documentation":"<p> List of potential contact methods for the result/place. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "OpeningHours":{
           "shape":"OpeningHoursList",
-          "documentation":"<p>List of opening hours objects.</p>"
+          "documentation":"<p> List of opening hours objects. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "AccessPoints":{
           "shape":"AccessPointList",
-          "documentation":"<p>Position of the access point in <code>(lng,lat)</code>.</p>"
+          "documentation":"<p> Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude]. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "AccessRestrictions":{
           "shape":"AccessRestrictionList",
-          "documentation":"<p>Indicates known access restrictions on a vehicle access point. The index correlates to an access point and indicates if access through this point has some form of restriction.</p>"
+          "documentation":"<p> Indicates known access restrictions on a vehicle access point. The index correlates to an access point and indicates if access through this point has some form of restriction. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "TimeZone":{
           "shape":"TimeZone",
@@ -1443,23 +1741,51 @@
         },
         "PoliticalView":{
           "shape":"CountryCode3",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p> The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "Phonemes":{
           "shape":"PhonemeDetails",
-          "documentation":"<p>How the various components of the result's address are pronounced in various languages.</p>"
+          "documentation":"<p> How the various components of the result's address are pronounced in various languages. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
+        },
+        "MainAddress":{
+          "shape":"RelatedPlace",
+          "documentation":"<p> The main address corresponding to a place of type Secondary Address. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
+        },
+        "SecondaryAddresses":{
+          "shape":"RelatedPlaceList",
+          "documentation":"<p> All secondary addresses that are associated with a main address. A secondary address is one that includes secondary designators, such as a Suite or Unit Number, Building, or Floor information. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <note> <p>Coverage for this functionality is available in the following countries: AUS, CAN, NZL, USA, PRI.</p> </note>"
+        },
+        "PlaceAttributes":{
+          "shape":"PlaceAttributeList",
+          "documentation":"<p>A list of place attributes for the result, such as whether the business offers drive-through service.</p>"
+        },
+        "EstimatedPointAddress":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>If <code>true</code>, indicates that the coordinates of the position and access points of the point address are estimated.</p>"
+        },
+        "CrossReferences":{
+          "shape":"CrossReferenceList",
+          "documentation":"<p>The list of supplier references available for this place. Requires the <code>CrossReferences</code> additional feature to be enabled.</p>"
         }
       }
     },
     "GetPlaceResponsePlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "GetPlaceResponseTitleString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
+    },
+    "Heading":{
+      "type":"double",
+      "max":360.0,
+      "min":0.0,
+      "sensitive":true
     },
     "Highlight":{
       "type":"structure",
@@ -1477,7 +1803,7 @@
           "documentation":"<p>The highlight's value.</p>"
         }
       },
-      "documentation":"<p>Describes how parts of the result response match the input query.</p>"
+      "documentation":"<p>Indicates the starting and ending index of the text query that match the found title.</p>"
     },
     "HighlightEndIndexInteger":{
       "type":"integer",
@@ -1498,7 +1824,8 @@
     "HighlightValueString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "InternalServerException":{
       "type":"structure",
@@ -1515,6 +1842,47 @@
       "fault":true,
       "retryable":{"throttling":false}
     },
+    "Intersection":{
+      "type":"structure",
+      "required":[
+        "PlaceId",
+        "Title"
+      ],
+      "members":{
+        "PlaceId":{
+          "shape":"IntersectionPlaceIdString",
+          "documentation":"<p>The <code>PlaceId</code> of the place result.</p>"
+        },
+        "Title":{
+          "shape":"IntersectionTitleString",
+          "documentation":"<p>The localized display name of this result item based on request parameter <code>language</code>.</p>"
+        },
+        "Address":{"shape":"Address"},
+        "Position":{
+          "shape":"Position",
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
+        },
+        "Distance":{
+          "shape":"DistanceMeters",
+          "documentation":"<p>The distance in meters from the QueryPosition.</p>",
+          "box":true
+        },
+        "RouteDistance":{
+          "shape":"DistanceMeters",
+          "documentation":"<p>The distance from the routing position of the nearby address to the street result.</p>",
+          "box":true
+        },
+        "MapView":{
+          "shape":"BoundingBox",
+          "documentation":"<p>The bounding box enclosing the geometric shape (area or line) that an individual result covers.</p> <p>The bounding box formed is defined as a set of four coordinates: <code>[{westward lng}, {southern lat}, {eastward lng}, {northern lat}]</code> </p>"
+        },
+        "AccessPoints":{
+          "shape":"AccessPointList",
+          "documentation":"<p>Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
+        }
+      },
+      "documentation":"<p>All Intersections that are near the provided address.</p>"
+    },
     "IntersectionHighlightsList":{
       "type":"list",
       "member":{"shape":"HighlightList"},
@@ -1523,14 +1891,31 @@
     },
     "IntersectionList":{
       "type":"list",
-      "member":{"shape":"IntersectionStreet"},
-      "max":100,
+      "member":{"shape":"Intersection"},
       "min":1
+    },
+    "IntersectionPlaceIdString":{
+      "type":"string",
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "IntersectionStreet":{
       "type":"string",
       "max":200,
       "min":0
+    },
+    "IntersectionStreetList":{
+      "type":"list",
+      "member":{"shape":"IntersectionStreet"},
+      "max":100,
+      "min":1
+    },
+    "IntersectionTitleString":{
+      "type":"string",
+      "max":200,
+      "min":0,
+      "sensitive":true
     },
     "LanguageTag":{
       "type":"string",
@@ -1564,7 +1949,7 @@
           "documentation":"<p>List of opening hours in the format they are displayed in. This can vary by result and in most cases represents how the result uniquely formats their opening hours. </p>"
         },
         "OpenNow":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean which indicates if the result/place is currently open. </p>"
         },
         "Components":{
@@ -1605,22 +1990,26 @@
     "OpeningHoursComponentsOpenDurationString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "OpeningHoursComponentsOpenTimeString":{
       "type":"string",
       "max":21,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "OpeningHoursComponentsRecurrenceString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "OpeningHoursDisplay":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "OpeningHoursDisplayList":{
       "type":"list",
@@ -1633,6 +2022,123 @@
       "member":{"shape":"OpeningHours"},
       "max":100,
       "min":1
+    },
+    "ParsedQueryComponent":{
+      "type":"structure",
+      "members":{
+        "StartIndex":{
+          "shape":"ParsedQueryComponentStartIndexInteger",
+          "documentation":"<p>Start index of the parsed query component.</p>"
+        },
+        "EndIndex":{
+          "shape":"ParsedQueryComponentEndIndexInteger",
+          "documentation":"<p>End index of the parsed query component.</p>"
+        },
+        "Value":{
+          "shape":"ParsedQueryComponentValueString",
+          "documentation":"<p>Value of the parsed query component.</p>"
+        },
+        "QueryComponent":{
+          "shape":"ParsedQueryComponentQueryComponentString",
+          "documentation":"<p>The address component that the parsed query component corresponds to.</p>"
+        }
+      },
+      "documentation":"<p>Parsed components in the provided QueryText.</p>"
+    },
+    "ParsedQueryComponentEndIndexInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "ParsedQueryComponentList":{
+      "type":"list",
+      "member":{"shape":"ParsedQueryComponent"},
+      "max":200,
+      "min":0
+    },
+    "ParsedQueryComponentQueryComponentString":{
+      "type":"string",
+      "max":11,
+      "min":0,
+      "sensitive":true
+    },
+    "ParsedQueryComponentStartIndexInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "ParsedQueryComponentValueString":{
+      "type":"string",
+      "max":200,
+      "min":0,
+      "sensitive":true
+    },
+    "ParsedQuerySecondaryAddressComponent":{
+      "type":"structure",
+      "required":[
+        "StartIndex",
+        "EndIndex",
+        "Value",
+        "Number",
+        "Designator"
+      ],
+      "members":{
+        "StartIndex":{
+          "shape":"ParsedQuerySecondaryAddressComponentStartIndexInteger",
+          "documentation":"<p>Start index of the parsed secondary address component in the query text.</p>"
+        },
+        "EndIndex":{
+          "shape":"ParsedQuerySecondaryAddressComponentEndIndexInteger",
+          "documentation":"<p>End index of the parsed secondary address component in the query text.</p>"
+        },
+        "Value":{
+          "shape":"ParsedQuerySecondaryAddressComponentValueString",
+          "documentation":"<p>Value of the parsed secondary address component.</p>"
+        },
+        "Number":{
+          "shape":"ParsedQuerySecondaryAddressComponentNumberString",
+          "documentation":"<p>Secondary address number provided in the query.</p>"
+        },
+        "Designator":{
+          "shape":"ParsedQuerySecondaryAddressComponentDesignatorString",
+          "documentation":"<p>Secondary address designator provided in the query.</p>"
+        }
+      },
+      "documentation":"<p>Information about a secondary address component parsed from the query text.</p>"
+    },
+    "ParsedQuerySecondaryAddressComponentDesignatorString":{
+      "type":"string",
+      "max":4,
+      "min":0,
+      "sensitive":true
+    },
+    "ParsedQuerySecondaryAddressComponentEndIndexInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "ParsedQuerySecondaryAddressComponentList":{
+      "type":"list",
+      "member":{"shape":"ParsedQuerySecondaryAddressComponent"},
+      "max":200,
+      "min":0
+    },
+    "ParsedQuerySecondaryAddressComponentNumberString":{
+      "type":"string",
+      "max":10,
+      "min":0,
+      "sensitive":true
+    },
+    "ParsedQuerySecondaryAddressComponentStartIndexInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "ParsedQuerySecondaryAddressComponentValueString":{
+      "type":"string",
+      "max":200,
+      "min":0,
+      "sensitive":true
     },
     "PhonemeDetails":{
       "type":"structure",
@@ -1657,10 +2163,10 @@
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
         },
         "Preferred":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean which indicates if it the preferred pronunciation.</p>"
         }
       },
@@ -1675,6 +2181,18 @@
     "PhonemeTranscriptionValueString":{
       "type":"string",
       "max":50,
+      "min":0,
+      "sensitive":true
+    },
+    "PlaceAttribute":{
+      "type":"string",
+      "enum":["DriveThrough"],
+      "sensitive":true
+    },
+    "PlaceAttributeList":{
+      "type":"list",
+      "member":{"shape":"PlaceAttribute"},
+      "max":1,
       "min":0
     },
     "PlaceType":{
@@ -1693,8 +2211,11 @@
         "Street",
         "PointOfInterest",
         "PointAddress",
-        "InterpolatedAddress"
-      ]
+        "InterpolatedAddress",
+        "SecondaryAddress",
+        "InferredSecondaryAddress"
+      ],
+      "sensitive":true
     },
     "Position":{
       "type":"list",
@@ -1705,14 +2226,15 @@
     },
     "PostalAuthority":{
       "type":"string",
-      "enum":["Usps"]
+      "enum":["Usps"],
+      "sensitive":true
     },
     "PostalCodeDetails":{
       "type":"structure",
       "members":{
         "PostalCode":{
           "shape":"PostalCodeDetailsPostalCodeString",
-          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code for which the result should posses. </p>"
+          "documentation":"<p>An alphanumeric string included in a postal address to facilitate mail sorting, such as post code, postcode, or ZIP code for which the result should possess. </p>"
         },
         "PostalAuthority":{
           "shape":"PostalAuthority",
@@ -1742,13 +2264,15 @@
     "PostalCodeDetailsPostalCodeString":{
       "type":"string",
       "max":50,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "PostalCodeMode":{
       "type":"string",
       "enum":[
         "MergeAllSpannedLocalities",
-        "EnumerateSpannedLocalities"
+        "EnumerateSpannedLocalities",
+        "EnumerateSpannedDistricts"
       ]
     },
     "PostalCodeType":{
@@ -1756,7 +2280,8 @@
       "enum":[
         "UspsZip",
         "UspsZipPlus4"
-      ]
+      ],
+      "sensitive":true
     },
     "QueryRefinement":{
       "type":"structure",
@@ -1800,12 +2325,14 @@
     "QueryRefinementOriginalTermString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "QueryRefinementRefinedTermString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "QueryRefinementStartIndexInteger":{
       "type":"integer",
@@ -1828,14 +2355,15 @@
         "PostOfficeBox",
         "Rural",
         "Street"
-      ]
+      ],
+      "sensitive":true
     },
     "Region":{
       "type":"structure",
       "members":{
         "Code":{
           "shape":"RegionCodeString",
-          "documentation":"<p>Abbreviated code for a the state, province or region of the country. </p> <p>Example: <code>BC</code>.</p>"
+          "documentation":"<p> Abbreviated code for a the state, province or region of the country. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <p>Example: <code>BC</code>.</p>"
         },
         "Name":{
           "shape":"RegionNameString",
@@ -1847,7 +2375,8 @@
     "RegionCodeString":{
       "type":"string",
       "max":3,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "RegionHighlights":{
       "type":"structure",
@@ -1866,27 +2395,82 @@
     "RegionNameString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
+    },
+    "RelatedPlace":{
+      "type":"structure",
+      "required":[
+        "PlaceId",
+        "PlaceType",
+        "Title"
+      ],
+      "members":{
+        "PlaceId":{
+          "shape":"RelatedPlacePlaceIdString",
+          "documentation":"<p>The <code>PlaceId</code> of the place result.</p>"
+        },
+        "PlaceType":{
+          "shape":"PlaceType",
+          "documentation":"<p>A <code>PlaceType</code> is a category that the result place must belong to.</p>"
+        },
+        "Title":{
+          "shape":"RelatedPlaceTitleString",
+          "documentation":"<p>The localized display name of this result item based on request parameter <code>language</code>.</p>"
+        },
+        "Address":{"shape":"Address"},
+        "Position":{
+          "shape":"Position",
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
+        },
+        "AccessPoints":{
+          "shape":"AccessPointList",
+          "documentation":"<p>Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
+        }
+      },
+      "documentation":"<p>Place that is related to the result item.</p>"
+    },
+    "RelatedPlaceList":{
+      "type":"list",
+      "member":{"shape":"RelatedPlace"},
+      "min":1
+    },
+    "RelatedPlacePlaceIdString":{
+      "type":"string",
+      "max":500,
+      "min":0,
+      "sensitive":true
+    },
+    "RelatedPlaceTitleString":{
+      "type":"string",
+      "max":200,
+      "min":0,
+      "sensitive":true
     },
     "ReverseGeocodeAdditionalFeature":{
       "type":"string",
       "enum":[
         "TimeZone",
-        "Access"
+        "Access",
+        "Intersections"
       ]
     },
     "ReverseGeocodeAdditionalFeatureList":{
       "type":"list",
       "member":{"shape":"ReverseGeocodeAdditionalFeature"},
-      "max":2,
+      "max":3,
       "min":1
+    },
+    "ReverseGeocodeAddressNamesMode":{
+      "type":"string",
+      "enum":["Administrative"]
     },
     "ReverseGeocodeFilter":{
       "type":"structure",
       "members":{
         "IncludePlaceTypes":{
           "shape":"ReverseGeocodeFilterPlaceTypeList",
-          "documentation":"<p>The included place types.</p>"
+          "documentation":"<p> The included place types. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only <code>Street</code> and <code>PointAddress</code> values. </p>"
         }
       },
       "documentation":"<p>The included place types.</p>"
@@ -1898,13 +2482,15 @@
         "Intersection",
         "Street",
         "PointAddress",
-        "InterpolatedAddress"
+        "InterpolatedAddress",
+        "SecondaryAddress",
+        "PointOfInterest"
       ]
     },
     "ReverseGeocodeFilterPlaceTypeList":{
       "type":"list",
       "member":{"shape":"ReverseGeocodeFilterPlaceType"},
-      "max":5,
+      "max":7,
       "min":1
     },
     "ReverseGeocodeIntendedUse":{
@@ -1920,42 +2506,50 @@
       "members":{
         "QueryPosition":{
           "shape":"Position",
-          "documentation":"<p>The position, in <code>[lng, lat]</code> for which you are querying nearby resultsfor. Results closer to the position will be ranked higher then results further away from the position</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude] for which you are querying nearby results for. Results closer to the position will be ranked higher then results further away from the position</p>"
         },
         "QueryRadius":{
           "shape":"ReverseGeocodeRequestQueryRadiusLong",
-          "documentation":"<p>The maximum distance in meters from the QueryPosition from which a result will be returned.</p>",
+          "documentation":"<p> The maximum distance in meters from the QueryPosition from which a result will be returned. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only up to a maximum value of 100,000. </p>",
           "box":true
         },
         "MaxResults":{
           "shape":"ReverseGeocodeRequestMaxResultsInteger",
-          "documentation":"<p>An optional limit for the number of results returned in a single call.</p>"
+          "documentation":"<p> An optional limit for the number of results returned in a single call.</p> <p>Default value: 1</p>"
         },
         "Filter":{
           "shape":"ReverseGeocodeFilter",
-          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
         },
         "AdditionalFeatures":{
           "shape":"ReverseGeocodeAdditionalFeatureList",
-          "documentation":"<p>A list of optional additional parameters, such as time zone that can be requested for each result.</p>"
+          "documentation":"<p> A list of optional additional parameters, such as time zone that can be requested for each result. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the <code>TimeZone</code> value. </p>"
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p> A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the following codes: <code>en, id, km, lo, ms, my, pt, th, tl, vi, zh</code> </p>"
         },
         "PoliticalView":{
           "shape":"CountryCode",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p> The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "IntendedUse":{
           "shape":"ReverseGeocodeIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>"
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). </p> <note> <p>When storing <code>ReverseGeocode</code> responses, you <i>must</i> set this field to <code>Storage</code> to comply with the terms of service. These requests will be charged at a higher rate. Please review the <a href=\"https://aws.amazon.com/location/sla/\">user agreement</a> and <a href=\"https://aws.amazon.com/location/pricing/\">service pricing structure</a> to determine the correct setting for your use case.</p> </note>"
         },
         "Key":{
           "shape":"ApiKey",
           "documentation":"<p>Optional: The API key to be used for authorization. Either an API key or valid SigV4 signature must be provided when making a request.</p>",
           "location":"querystring",
           "locationName":"key"
+        },
+        "Heading":{
+          "shape":"Heading",
+          "documentation":"<p>The heading in degrees from true north in a navigation context. The heading is measured as the angle clockwise from the North direction.</p> <p>Example: North is <code>0</code> degrees, East is <code>90</code> degrees, South is <code>180</code> degrees, and West is <code>270</code> degrees.</p>"
+        },
+        "AddressNamesMode":{
+          "shape":"ReverseGeocodeAddressNamesMode",
+          "documentation":"<p>Specifies how address names are returned. When set to <code>Administrative</code>, the service returns the official administrative names for address components. <code>Administrative</code> currently applies only to addresses in the United States.</p>"
         }
       }
     },
@@ -1968,7 +2562,8 @@
     "ReverseGeocodeRequestQueryRadiusLong":{
       "type":"long",
       "max":21000000,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "ReverseGeocodeResponse":{
       "type":"structure",
@@ -1976,7 +2571,7 @@
       "members":{
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -2011,16 +2606,16 @@
           "documentation":"<p>The place's address.</p>"
         },
         "AddressNumberCorrected":{
-          "shape":"Boolean",
-          "documentation":"<p>Boolean indicating if the address provided has been corrected.</p>"
+          "shape":"SensitiveBoolean",
+          "documentation":"<p> Boolean indicating if the address provided has been corrected. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "PostalCodeDetails":{
           "shape":"PostalCodeDetailsList",
-          "documentation":"<p>Contains details about the postal code of the place/result. </p>"
+          "documentation":"<p> Contains details about the postal code of the place/result. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "Distance":{
           "shape":"DistanceMeters",
@@ -2036,11 +2631,11 @@
         },
         "FoodTypes":{
           "shape":"FoodTypeList",
-          "documentation":"<p>List of food types offered by this result.</p>"
+          "documentation":"<p> List of food types offered by this result. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "AccessPoints":{
           "shape":"AccessPointList",
-          "documentation":"<p>Position of the access point represent by longitude and latitude.</p>"
+          "documentation":"<p> Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude]. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "TimeZone":{
           "shape":"TimeZone",
@@ -2048,7 +2643,19 @@
         },
         "PoliticalView":{
           "shape":"CountryCode3",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p> The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
+        },
+        "Intersections":{
+          "shape":"IntersectionList",
+          "documentation":"<p> All Intersections that are near the provided address. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
+        },
+        "MainAddress":{
+          "shape":"RelatedPlace",
+          "documentation":"<p>The main address corresponding to a place of type Secondary Address.</p>"
+        },
+        "EstimatedPointAddress":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>If <code>true</code>, indicates that the coordinates of the position and access points of the point address are estimated.</p>"
         }
       },
       "documentation":"<p>The returned location from the <code>Reverse Geocode</code> action.</p>"
@@ -2061,13 +2668,15 @@
     },
     "ReverseGeocodeResultItemPlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "ReverseGeocodeResultItemTitleString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "SearchNearbyAdditionalFeature":{
       "type":"string",
@@ -2075,13 +2684,14 @@
         "TimeZone",
         "Phonemes",
         "Access",
-        "Contact"
+        "Contact",
+        "CrossReferences"
       ]
     },
     "SearchNearbyAdditionalFeatureList":{
       "type":"list",
       "member":{"shape":"SearchNearbyAdditionalFeature"},
-      "max":4,
+      "max":5,
       "min":1
     },
     "SearchNearbyFilter":{
@@ -2120,7 +2730,7 @@
           "documentation":"<p>Food types that results are excluded from.</p>"
         }
       },
-      "documentation":"<p>SearchNearby structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+      "documentation":"<p>SearchNearby structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
     },
     "SearchNearbyIntendedUse":{
       "type":"string",
@@ -2135,20 +2745,20 @@
       "members":{
         "QueryPosition":{
           "shape":"Position",
-          "documentation":"<p>The position, in <code>[lng, lat]</code> for which you are querying nearby resultsfor. Results closer to the position will be ranked higher then results further away from the position</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude] for which you are querying nearby results for. Results closer to the position will be ranked higher then results further away from the position</p>"
         },
         "QueryRadius":{
           "shape":"SearchNearbyRequestQueryRadiusLong",
-          "documentation":"<p>The maximum distance in meters from the QueryPosition from which a result will be returned.</p>",
+          "documentation":"<p>The maximum distance in meters from the QueryPosition from which a result will be returned.</p> <note> <p>The fields <code>QueryText</code>, and <code>QueryID</code> are mutually exclusive.</p> </note>",
           "box":true
         },
         "MaxResults":{
           "shape":"SearchNearbyRequestMaxResultsInteger",
-          "documentation":"<p>An optional limit for the number of results returned in a single call.</p>"
+          "documentation":"<p>An optional limit for the number of results returned in a single call.</p> <p>Default value: 20</p>"
         },
         "Filter":{
           "shape":"SearchNearbyFilter",
-          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
         },
         "AdditionalFeatures":{
           "shape":"SearchNearbyAdditionalFeatureList",
@@ -2156,7 +2766,7 @@
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
         },
         "PoliticalView":{
           "shape":"CountryCode",
@@ -2164,7 +2774,7 @@
         },
         "IntendedUse":{
           "shape":"SearchNearbyIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>"
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <note> <p>When storing <code>SearchNearby</code> responses, you <i>must</i> set this field to <code>Storage</code> to comply with the terms of service. These requests will be charged at a higher rate. Please review the <a href=\"https://aws.amazon.com/location/sla/\">user agreement</a> and <a href=\"https://aws.amazon.com/location/pricing/\">service pricing structure</a> to determine the correct setting for your use case.</p> </note>"
         },
         "NextToken":{
           "shape":"Token",
@@ -2187,7 +2797,8 @@
     "SearchNearbyRequestQueryRadiusLong":{
       "type":"long",
       "max":21000000,
-      "min":1
+      "min":1,
+      "sensitive":true
     },
     "SearchNearbyResponse":{
       "type":"structure",
@@ -2195,7 +2806,7 @@
       "members":{
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -2234,12 +2845,12 @@
           "documentation":"<p>The place's address.</p>"
         },
         "AddressNumberCorrected":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean indicating if the address provided has been corrected.</p>"
         },
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "Distance":{
           "shape":"DistanceMeters",
@@ -2271,7 +2882,7 @@
         },
         "AccessPoints":{
           "shape":"AccessPointList",
-          "documentation":"<p>Position of the access point represent by longitude and latitude.</p>"
+          "documentation":"<p>Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "AccessRestrictions":{
           "shape":"AccessRestrictionList",
@@ -2288,6 +2899,14 @@
         "Phonemes":{
           "shape":"PhonemeDetails",
           "documentation":"<p>How the various components of the result's address are pronounced in various languages.</p>"
+        },
+        "PlaceAttributes":{
+          "shape":"PlaceAttributeList",
+          "documentation":"<p>A list of place attributes for the result, such as whether the business offers drive-through service.</p>"
+        },
+        "CrossReferences":{
+          "shape":"CrossReferenceList",
+          "documentation":"<p>The list of supplier references available for this place. Requires the <code>CrossReferences</code> additional feature to be enabled.</p>"
         }
       },
       "documentation":"<p>The search results of nearby places.</p>"
@@ -2300,13 +2919,15 @@
     },
     "SearchNearbyResultItemPlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "SearchNearbyResultItemTitleString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "SearchTextAdditionalFeature":{
       "type":"string",
@@ -2314,13 +2935,14 @@
         "TimeZone",
         "Phonemes",
         "Access",
-        "Contact"
+        "Contact",
+        "CrossReferences"
       ]
     },
     "SearchTextAdditionalFeatureList":{
       "type":"list",
       "member":{"shape":"SearchTextAdditionalFeature"},
-      "max":4,
+      "max":5,
       "min":1
     },
     "SearchTextFilter":{
@@ -2336,7 +2958,7 @@
           "documentation":"<p> A list of countries that all results must be in. Countries are represented by either their alpha-2 or alpha-3 character codes.</p>"
         }
       },
-      "documentation":"<p>SearchText structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+      "documentation":"<p>SearchText structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
     },
     "SearchTextIntendedUse":{
       "type":"string",
@@ -2350,43 +2972,47 @@
       "members":{
         "QueryText":{
           "shape":"SearchTextRequestQueryTextString",
-          "documentation":"<p>The free-form text query to match addresses against. This is usually a partially typed address from an end user in an address box or form.</p>"
+          "documentation":"<p>The free-form text query to match addresses against. This is usually a partially typed address from an end user in an address box or form.</p> <note> <p>Exactly one of the following fields must be set: <code>QueryText</code> or <code>QueryId</code>.</p> </note>"
         },
         "QueryId":{
           "shape":"SearchTextRequestQueryIdString",
-          "documentation":"<p>The query Id.</p>"
+          "documentation":"<p>The query Id returned by the suggest API. If passed in the request, the SearchText API will preform a SearchText query with the improved query terms for the original query made to the suggest API. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers.</p> <note> <p>Exactly one of the following fields must be set: <code>QueryText</code> or <code>QueryId</code>.</p> </note>"
         },
         "MaxResults":{
           "shape":"SearchTextRequestMaxResultsInteger",
-          "documentation":"<p>An optional limit for the number of results returned in a single call.</p>"
+          "documentation":"<p>An optional limit for the number of results returned in a single call.</p> <p>Default value: 20</p>"
         },
         "BiasPosition":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude, that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WSG84 format.</p> <note> <p>The fields <code>BiasPosition</code>, <code>FilterBoundingBox</code>, and <code>FilterCircle</code> are mutually exclusive.</p> </note>"
+          "documentation":"<p>The position, in longitude and latitude, that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WGS 84 format.</p> <note> <p>Exactly one of the following fields must be set: <code>BiasPosition</code>, <code>Filter.BoundingBox</code>, or <code>Filter.Circle</code>.</p> </note>"
         },
         "Filter":{
           "shape":"SearchTextFilter",
-          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
         },
         "AdditionalFeatures":{
           "shape":"SearchTextAdditionalFeatureList",
-          "documentation":"<p>A list of optional additional parameters, such as time zone, that can be requested for each result.</p>"
+          "documentation":"<p>A list of optional additional parameters, such as time zone, that can be requested for each result. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the <code>TimeZone</code> value.</p>"
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the following codes: <code>en, id, km, lo, ms, my, pt, th, tl, vi, zh</code> </p>"
         },
         "PoliticalView":{
           "shape":"CountryCode",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers.</p>"
         },
         "IntendedUse":{
           "shape":"SearchTextIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>"
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). </p> <note> <p>When storing <code>SearchText</code> responses, you <i>must</i> set this field to <code>Storage</code> to comply with the terms of service. These requests will be charged at a higher rate. Please review the <a href=\"https://aws.amazon.com/location/sla/\">user agreement</a> and <a href=\"https://aws.amazon.com/location/pricing/\">service pricing structure</a> to determine the correct setting for your use case.</p> </note>"
         },
         "NextToken":{
           "shape":"Token",
           "documentation":"<p>If <code>nextToken</code> is returned, there are more results available. The value of <code>nextToken</code> is a unique pagination token for each page. </p>"
+        },
+        "TravelMode":{
+          "shape":"SearchTextTravelMode",
+          "documentation":"<p>Indicates the mode of mobility used by the end user. This is used to improve the relevance of search results. Valid values are <code>Car</code>, <code>Scooter</code>, and <code>Truck</code>.</p>"
         },
         "Key":{
           "shape":"ApiKey",
@@ -2404,7 +3030,7 @@
     },
     "SearchTextRequestQueryIdString":{
       "type":"string",
-      "max":400,
+      "max":500,
       "min":1,
       "sensitive":true
     },
@@ -2420,7 +3046,7 @@
       "members":{
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -2459,12 +3085,12 @@
           "documentation":"<p>The place's address.</p>"
         },
         "AddressNumberCorrected":{
-          "shape":"Boolean",
+          "shape":"SensitiveBoolean",
           "documentation":"<p>Boolean indicating if the address provided has been corrected.</p>"
         },
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "Distance":{
           "shape":"DistanceMeters",
@@ -2492,11 +3118,11 @@
         },
         "OpeningHours":{
           "shape":"OpeningHoursList",
-          "documentation":"<p>List of opening hours objects.</p>"
+          "documentation":"<p> List of opening hours objects. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "AccessPoints":{
           "shape":"AccessPointList",
-          "documentation":"<p>Position of the access point represent by longitude and latitude.</p>"
+          "documentation":"<p>Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "AccessRestrictions":{
           "shape":"AccessRestrictionList",
@@ -2513,6 +3139,14 @@
         "Phonemes":{
           "shape":"PhonemeDetails",
           "documentation":"<p>How the various components of the result's address are pronounced in various languages.</p>"
+        },
+        "PlaceAttributes":{
+          "shape":"PlaceAttributeList",
+          "documentation":"<p>A list of place attributes for the result, such as whether the business offers drive-through service.</p>"
+        },
+        "CrossReferences":{
+          "shape":"CrossReferenceList",
+          "documentation":"<p>The list of supplier references available for this place. Requires the <code>CrossReferences</code> additional feature to be enabled.</p>"
         }
       },
       "documentation":"<p>The text search result.</p>"
@@ -2525,24 +3159,90 @@
     },
     "SearchTextResultItemPlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "SearchTextResultItemTitleString":{
       "type":"string",
       "max":200,
+      "min":0,
+      "sensitive":true
+    },
+    "SearchTextTravelMode":{
+      "type":"string",
+      "enum":[
+        "Car",
+        "Scooter",
+        "Truck"
+      ]
+    },
+    "SecondaryAddressComponent":{
+      "type":"structure",
+      "required":["Number"],
+      "members":{
+        "Number":{
+          "shape":"SecondaryAddressComponentNumberString",
+          "documentation":"<p>Number that uniquely identifies a secondary address.</p>"
+        },
+        "Designator":{
+          "shape":"SecondaryAddressComponentDesignatorString",
+          "documentation":"<p>The designator of the secondary address component.</p> <p>Example: <code>Apt</code>.</p>"
+        }
+      },
+      "documentation":"<p>Components that correspond to secondary identifiers on an address. The only component type supported currently is Unit.</p>"
+    },
+    "SecondaryAddressComponentDesignatorString":{
+      "type":"string",
+      "max":20,
+      "min":0,
+      "sensitive":true
+    },
+    "SecondaryAddressComponentList":{
+      "type":"list",
+      "member":{"shape":"SecondaryAddressComponent"},
+      "max":3,
       "min":0
+    },
+    "SecondaryAddressComponentMatchScore":{
+      "type":"structure",
+      "members":{
+        "Number":{
+          "shape":"MatchScore",
+          "documentation":"<p>Match score for the secondary address number.</p>"
+        }
+      },
+      "documentation":"<p>Match score for a secondary address component in the result.</p>"
+    },
+    "SecondaryAddressComponentMatchScoreList":{
+      "type":"list",
+      "member":{"shape":"SecondaryAddressComponentMatchScore"}
+    },
+    "SecondaryAddressComponentNumberString":{
+      "type":"string",
+      "max":10,
+      "min":0,
+      "sensitive":true
+    },
+    "SensitiveBoolean":{
+      "type":"boolean",
+      "box":true,
+      "sensitive":true
+    },
+    "SensitiveString":{
+      "type":"string",
+      "sensitive":true
     },
     "StreetComponents":{
       "type":"structure",
       "members":{
         "BaseName":{
           "shape":"StreetComponentsBaseNameString",
-          "documentation":"<p>Base name part of the street name. </p> <p>Example: Younge from the “Younge street\".</p>"
+          "documentation":"<p>Base name part of the street name. </p> <p>Example: Younge from the \"Younge street\".</p>"
         },
         "Type":{
           "shape":"StreetComponentsTypeString",
-          "documentation":"<p>Street type part of the street name. </p> <p>Example: <code>“avenue\"</code>.</p>"
+          "documentation":"<p>Street type part of the street name. </p> <p>Example: <code>\"avenue\"</code>.</p>"
         },
         "TypePlacement":{
           "shape":"TypePlacement",
@@ -2550,7 +3250,7 @@
         },
         "TypeSeparator":{
           "shape":"TypeSeparator",
-          "documentation":"<p>What character(s) separates the string from its type. </p>"
+          "documentation":"<p>Defines a separator character such as <code>\"\"</code> or <code>\" \"</code> between the base name and type.</p>"
         },
         "Prefix":{
           "shape":"StreetComponentsPrefixString",
@@ -2566,7 +3266,7 @@
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p>A <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
         }
       },
       "documentation":"<p>Components of a street.</p>"
@@ -2574,12 +3274,14 @@
     "StreetComponentsBaseNameString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "StreetComponentsDirectionString":{
       "type":"string",
       "max":50,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "StreetComponentsList":{
       "type":"list",
@@ -2590,17 +3292,20 @@
     "StreetComponentsPrefixString":{
       "type":"string",
       "max":50,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "StreetComponentsSuffixString":{
       "type":"string",
       "max":50,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "StreetComponentsTypeString":{
       "type":"string",
       "max":50,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "String":{"type":"string"},
     "SubRegion":{
@@ -2608,7 +3313,7 @@
       "members":{
         "Code":{
           "shape":"SubRegionCodeString",
-          "documentation":"<p>Abbreviated code for the county or sub-region.</p>"
+          "documentation":"<p> Abbreviated code for the county or sub-region. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "Name":{
           "shape":"SubRegionNameString",
@@ -2620,7 +3325,8 @@
     "SubRegionCodeString":{
       "type":"string",
       "max":3,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "SubRegionHighlights":{
       "type":"structure",
@@ -2639,7 +3345,8 @@
     "SubRegionNameString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "SuggestAdditionalFeature":{
       "type":"string",
@@ -2647,13 +3354,14 @@
         "Core",
         "TimeZone",
         "Phonemes",
-        "Access"
+        "Access",
+        "CrossReferences"
       ]
     },
     "SuggestAdditionalFeatureList":{
       "type":"list",
       "member":{"shape":"SuggestAdditionalFeature"},
-      "max":4,
+      "max":5,
       "min":1
     },
     "SuggestAddressHighlights":{
@@ -2679,7 +3387,7 @@
           "documentation":"<p> A list of countries that all results must be in. Countries are represented by either their alpha-2 or alpha-3 character codes.</p>"
         }
       },
-      "documentation":"<p>SuggestFilter structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+      "documentation":"<p>SuggestFilter structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
     },
     "SuggestHighlights":{
       "type":"structure",
@@ -2716,7 +3424,7 @@
         },
         "Position":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude.</p>"
+          "documentation":"<p>The position in World Geodetic System (WGS 84) format: [longitude, latitude].</p>"
         },
         "Distance":{
           "shape":"DistanceMeters",
@@ -2732,19 +3440,19 @@
         },
         "FoodTypes":{
           "shape":"FoodTypeList",
-          "documentation":"<p>List of food types offered by this result.</p>"
+          "documentation":"<p> List of food types offered by this result. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "BusinessChains":{
           "shape":"BusinessChainList",
-          "documentation":"<p>The Business Chains associated with the place.</p>"
+          "documentation":"<p> The Business Chains associated with the place. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "AccessPoints":{
           "shape":"AccessPointList",
-          "documentation":"<p>Position of the access point represent by longitude and latitude.</p>"
+          "documentation":"<p> Position of the access point in World Geodetic System (WGS 84) format: [longitude, latitude]. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "AccessRestrictions":{
           "shape":"AccessRestrictionList",
-          "documentation":"<p>Indicates known access restrictions on a vehicle access point. The index correlates to an access point and indicates if access through this point has some form of restriction.</p>"
+          "documentation":"<p> Indicates known access restrictions on a vehicle access point. The index correlates to an access point and indicates if access through this point has some form of restriction. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "TimeZone":{
           "shape":"TimeZone",
@@ -2752,38 +3460,48 @@
         },
         "PoliticalView":{
           "shape":"CountryCode3",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p> The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "Phonemes":{
           "shape":"PhonemeDetails",
-          "documentation":"<p>How the various components of the result's address are pronounced in various languages.</p>"
+          "documentation":"<p> How the various components of the result's address are pronounced in various languages. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
+        },
+        "PlaceAttributes":{
+          "shape":"PlaceAttributeList",
+          "documentation":"<p>A list of place attributes for the result, such as whether the business offers drive-through service.</p>"
+        },
+        "CrossReferences":{
+          "shape":"CrossReferenceList",
+          "documentation":"<p>The list of supplier references available for this place. Requires the <code>CrossReferences</code> additional feature to be enabled.</p>"
         }
       },
       "documentation":"<p>The suggested place results.</p>"
     },
     "SuggestPlaceResultPlaceIdString":{
       "type":"string",
-      "max":200,
-      "min":1
+      "max":500,
+      "min":1,
+      "sensitive":true
     },
     "SuggestQueryResult":{
       "type":"structure",
       "members":{
         "QueryId":{
           "shape":"SuggestQueryResultQueryIdString",
-          "documentation":"<p>QueryId can be used to complete a follow up query through the SearchText API. The QueryId retains context from the original Suggest request such as filters, political view and language. See the SearchText API documentation for more details <a href=\"https://docs.aws.amazon.com/latest/APIReference/API_geoplaces_SearchText.html\">SearchText API docs</a>.</p>"
+          "documentation":"<p>QueryId can be used to complete a follow up query through the SearchText API. The QueryId retains context from the original Suggest request such as filters, political view and language. See the SearchText API documentation for more details <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_SearchText.html\">SearchText API docs</a>. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p> <note> <p>The fields <code>QueryText</code>, and <code>QueryID</code> are mutually exclusive.</p> </note>"
         },
         "QueryType":{
           "shape":"QueryType",
-          "documentation":"<p>The query type. Category qeuries will search for places which have an entry matching the given category, for example \"doctor office\". BusinessChain queries will search for instances of a given business.</p>"
+          "documentation":"<p> The query type. Category queries will search for places which have an entry matching the given category, for example \"doctor office\". BusinessChain queries will search for instances of a given business. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         }
       },
       "documentation":"<p>The suggested query results.</p>"
     },
     "SuggestQueryResultQueryIdString":{
       "type":"string",
-      "max":400,
-      "min":0
+      "max":500,
+      "min":0,
+      "sensitive":true
     },
     "SuggestRequest":{
       "type":"structure",
@@ -2791,39 +3509,43 @@
       "members":{
         "QueryText":{
           "shape":"SuggestRequestQueryTextString",
-          "documentation":"<p>The free-form text query to match addresses against. This is usually a partially typed address from an end user in an address box or form.</p>"
+          "documentation":"<p>The free-form text query to match addresses against. This is usually a partially typed address from an end user in an address box or form.</p> <note> <p>The fields <code>QueryText</code> and <code>QueryID</code> are mutually exclusive.</p> </note>"
         },
         "MaxResults":{
           "shape":"SuggestRequestMaxResultsInteger",
-          "documentation":"<p>An optional limit for the number of results returned in a single call.</p>"
+          "documentation":"<p> An optional limit for the number of results returned in a single call. </p> <p>Default value: 20</p>"
         },
         "MaxQueryRefinements":{
           "shape":"SuggestRequestMaxQueryRefinementsInteger",
-          "documentation":"<p>Maximum number of query terms to be returned for use with a search text query.</p>"
+          "documentation":"<p> Maximum number of query terms to be returned for use with a search text query. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "BiasPosition":{
           "shape":"Position",
-          "documentation":"<p>The position, in longitude and latitude, that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WSG84 format.</p> <note> <p>The fields <code>BiasPosition</code>, <code>FilterBoundingBox</code>, and <code>FilterCircle</code> are mutually exclusive.</p> </note>"
+          "documentation":"<p>The position, in longitude and latitude, that the results should be close to. Typically, place results returned are ranked higher the closer they are to this position. Stored in <code>[lng, lat]</code> and in the WGS 84 format.</p> <note> <p>The fields <code>BiasPosition</code>, <code>FilterBoundingBox</code>, and <code>FilterCircle</code> are mutually exclusive.</p> </note>"
         },
         "Filter":{
           "shape":"SuggestFilter",
-          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must posses in order to be returned as a result.</p>"
+          "documentation":"<p>A structure which contains a set of inclusion/exclusion properties that results must possess in order to be returned as a result.</p>"
         },
         "AdditionalFeatures":{
           "shape":"SuggestAdditionalFeatureList",
-          "documentation":"<p>A list of optional additional parameters, such as time zone, that can be requested for each result.</p>"
+          "documentation":"<p> A list of optional additional parameters, such as time zone, that can be requested for each result. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the <code>Core</code> and <code>TimeZone</code> values. </p>"
         },
         "Language":{
           "shape":"LanguageTag",
-          "documentation":"<p>A list of <a href=\"https://en.wikipedia.org/wiki/IETF_language_tag\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry.</p>"
+          "documentation":"<p> A list of <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language codes for the results to be rendered in. If there is no data for the result in the requested language, data will be returned in the default language for the entry. For <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers, <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions support only the following codes: <code>en, id, km, lo, ms, my, pt, th, tl, vi, zh</code> </p>"
         },
         "PoliticalView":{
           "shape":"CountryCode",
-          "documentation":"<p>The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country.</p>"
+          "documentation":"<p> The alpha-2 or alpha-3 character code for the political view of a country. The political view applies to the results of the request to represent unresolved territorial claims through the point of view of the specified country. Not supported in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         },
         "IntendedUse":{
           "shape":"SuggestIntendedUse",
-          "documentation":"<p>Indicates if the results will be stored. Defaults to <code>SingleUse</code>, if left empty.</p>"
+          "documentation":"<p> Indicates if the query results will be persisted in customer infrastructure. Defaults to <code>SingleUse</code> (not stored). Currently, <code>Suggest</code> does not support storage of results. </p>"
+        },
+        "TravelMode":{
+          "shape":"SuggestTravelMode",
+          "documentation":"<p>Indicates the mode of mobility used by the end user. This is used to improve the relevance of search results. Valid values are <code>Car</code>, <code>Scooter</code>, and <code>Truck</code>.</p>"
         },
         "Key":{
           "shape":"ApiKey",
@@ -2857,7 +3579,7 @@
       "members":{
         "PricingBucket":{
           "shape":"String",
-          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more inforamtion on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
+          "documentation":"<p>The pricing bucket for which the query is charged at.</p> <p>For more information on pricing, please visit <a href=\"https://aws.amazon.com/location/pricing/\">Amazon Location Service Pricing</a>.</p>",
           "location":"header",
           "locationName":"x-amz-geo-pricing-bucket"
         },
@@ -2867,7 +3589,7 @@
         },
         "QueryRefinements":{
           "shape":"QueryRefinementList",
-          "documentation":"<p>Maximum number of query terms to be returned for use with a search text query.</p>"
+          "documentation":"<p> Maximum number of query terms to be returned for use with a search text query. Not available in <code>ap-southeast-1</code> and <code>ap-southeast-5</code> regions for <a href=\"https://docs.aws.amazon.com/location/latest/developerguide/GrabMaps.html\">GrabMaps</a> customers. </p>"
         }
       }
     },
@@ -2907,13 +3629,22 @@
     "SuggestResultItemTitleString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "SuggestResultItemType":{
       "type":"string",
       "enum":[
         "Place",
         "Query"
+      ]
+    },
+    "SuggestTravelMode":{
+      "type":"string",
+      "enum":[
+        "Car",
+        "Scooter",
+        "Truck"
       ]
     },
     "ThrottlingException":{
@@ -2955,21 +3686,98 @@
     "TimeZoneNameString":{
       "type":"string",
       "max":200,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "TimeZoneOffsetSecondsLong":{
       "type":"long",
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "TimeZoneOffsetString":{
       "type":"string",
       "max":6,
-      "min":0
+      "min":0,
+      "sensitive":true
     },
     "Token":{
       "type":"string",
       "max":2000,
       "min":1
+    },
+    "TranslationDetails":{
+      "type":"structure",
+      "members":{
+        "Locality":{
+          "shape":"AdminNamesList",
+          "documentation":"<p>A list of administrative names and translations for the locality address component.</p>"
+        },
+        "Region":{
+          "shape":"AdminNamesList",
+          "documentation":"<p>A list of administrative names and translations for the region address component.</p>"
+        },
+        "District":{
+          "shape":"AdminNamesList",
+          "documentation":"<p>A list of administrative names and translations for the district address component.</p>"
+        },
+        "SubRegion":{
+          "shape":"AdminNamesList",
+          "documentation":"<p>A list of administrative names and translations for the sub-region address component.</p>"
+        }
+      },
+      "documentation":"<p>Translation details for the address, including alternative names and translations in available languages.</p>"
+    },
+    "TranslationName":{
+      "type":"structure",
+      "required":[
+        "Value",
+        "Type"
+      ],
+      "members":{
+        "Value":{
+          "shape":"TranslationNameValueString",
+          "documentation":"<p>The translated or alternative name value.</p>"
+        },
+        "Language":{
+          "shape":"LanguageTag",
+          "documentation":"<p>A <a href=\"https://www.iana.org/assignments/language-subtag-registry/language-subtag-registry\">BCP 47</a> compliant language code for the translation name.</p>"
+        },
+        "Type":{
+          "shape":"TranslationNameType",
+          "documentation":"<p>The type of translation name. Valid values are <code>Abbreviation</code>, <code>AreaCode</code>, <code>BaseName</code>, <code>Exonym</code>, <code>Shortened</code>, and <code>Synonym</code>.</p>"
+        },
+        "Primary":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>If <code>true</code>, indicates this is the primary name variant for the given language.</p>"
+        },
+        "Transliterated":{
+          "shape":"SensitiveBoolean",
+          "documentation":"<p>If <code>true</code>, indicates this name is a transliterated version rather than a native script translation.</p>"
+        }
+      },
+      "documentation":"<p>A translation or alternative name for an address component.</p>"
+    },
+    "TranslationNameList":{
+      "type":"list",
+      "member":{"shape":"TranslationName"},
+      "min":1
+    },
+    "TranslationNameType":{
+      "type":"string",
+      "enum":[
+        "Abbreviation",
+        "AreaCode",
+        "BaseName",
+        "Exonym",
+        "Shortened",
+        "Synonym"
+      ]
+    },
+    "TranslationNameValueString":{
+      "type":"string",
+      "max":200,
+      "min":1,
+      "sensitive":true
     },
     "TypePlacement":{
       "type":"string",
@@ -3075,8 +3883,9 @@
         "Military",
         "PostOfficeBoxes",
         "Unique"
-      ]
+      ],
+      "sensitive":true
     }
   },
-  "documentation":"<p> The Places API enables powerful location search and geocoding capabilities for your applications, offering global coverage with rich, detailed information. Key features include: </p> <ul> <li> <p>Forward and reverse geocoding for addresses and coordinates</p> </li> <li> <p>Comprehensive place searches with detailed information, including:</p> <ul> <li> <p>Business names and addresses</p> </li> <li> <p>Contact information</p> </li> <li> <p>Hours of operation</p> </li> <li> <p>POI (Points of Interest) categories</p> </li> <li> <p>Food types for restaurants</p> </li> <li> <p>Chain affiliation for relevant businesses</p> </li> </ul> </li> <li> <p>Global data coverage with a wide range of POI categories</p> </li> <li> <p>Regular data updates to ensure accuracy and relevance</p> </li> </ul>"
+  "documentation":"<p> The Places API enables powerful location search and geocoding capabilities for your applications, offering global coverage with rich, detailed information. Key features include: </p> <ul> <li> <p>Forward and reverse geocoding for addresses and coordinates. See <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_Geocode.html\">Geocode</a> and <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_ReverseGeocode.html\">ReverseGeocode</a>.</p> </li> <li> <p>Comprehensive place searches with detailed information. See <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_SearchText.html\">SearchText</a>, <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_SearchNearby.html\">SearchNearby</a>, and <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_GetPlace.html\">GetPlace</a>. Place information you can find include:</p> <ul> <li> <p>Business names and addresses</p> </li> <li> <p>Contact information</p> </li> <li> <p>Hours of operation</p> </li> <li> <p>Points of Interest (POI) categories</p> </li> <li> <p>Food types for restaurants</p> </li> <li> <p>Chain affiliation for relevant businesses</p> </li> </ul> </li> <li> <p>Address and place completion as users type, enhancing input efficiency by completing partial queries with valid addresses. See <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_Autocomplete.html\">Autocomplete</a>.</p> </li> <li> <p>Intelligent place and query recommendation based on user's input or context, returning relevant places, points of interest, query terms, or search categories. See <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/API_geoplaces_Suggest.html\">Suggest</a>.</p> </li> <li> <p>Global data coverage with a wide range of POI categories.</p> </li> <li> <p>Regular data updates to ensure accuracy and relevance.</p> </li> <li> <p>Bulk address validation for verifying and standardizing large volumes of addresses in a single operation using <a href=\"https://docs.aws.amazon.com/location/latest/APIReference/Welcome.html#Welcome_Amazon_Location_Service_Jobs\">Amazon Location Service Jobs</a>.</p> </li> </ul>"
 }

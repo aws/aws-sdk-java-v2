@@ -5,8 +5,7 @@
         "pattern": "software/amazon/awssdk/services/\\w+/execution.interceptors"
       },
       {
-        "pattern": "software/amazon/awssdk/.*"
-      }
-    ]
+        "pattern": "\\Qsoftware/amazon/awssdk/core/util/mime.types\\E"
+      }]
   }
 }

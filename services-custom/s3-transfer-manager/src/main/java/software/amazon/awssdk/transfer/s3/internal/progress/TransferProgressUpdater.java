@@ -20,10 +20,13 @@ import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.SplittingTransformerConfiguration;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.async.listener.AsyncRequestBodyListener;
 import software.amazon.awssdk.core.async.listener.AsyncResponseTransformerListener;
 import software.amazon.awssdk.core.async.listener.PublisherListener;
@@ -35,6 +38,7 @@ import software.amazon.awssdk.transfer.s3.model.TransferObjectRequest;
 import software.amazon.awssdk.transfer.s3.progress.TransferListener;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgressSnapshot;
+import software.amazon.awssdk.utils.ContentRangeParser;
 
 /**
  * An SDK-internal helper class that facilitates updating a {@link TransferProgress} and invoking {@link TransferListener}s.
@@ -73,7 +77,15 @@ public class TransferProgressUpdater {
         listenerInvoker.transferInitiated(context);
     }
 
-    public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody) {
+    /**
+     * Wraps the request body to track upload progress.
+     *
+     * @param requestBody the original request body
+     * @param disableIncrementalProgress when {@code true}, the wrapper will not report byte-level progress. This is used
+     *     for in-memory byte bodies because all bytes are delivered to the publisher instantly and progress would jump to 100%
+     *     before any data is sent over the wire.
+     */
+    public AsyncRequestBody wrapRequestBody(AsyncRequestBody requestBody, boolean disableIncrementalProgress) {
         return AsyncRequestBodyListener.wrap(
             requestBody,
             new AsyncRequestBodyListener() {
@@ -86,12 +98,14 @@ public class TransferProgressUpdater {
 
                 @Override
                 public void subscriberOnNext(ByteBuffer byteBuffer) {
-                    incrementBytesTransferred(byteBuffer.limit());
-                    progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
-                        if (Double.compare(ratioTransferred, 1.0) == 0) {
-                            endOfStreamFutureCompleted();
-                        }
-                    });
+                    if (!disableIncrementalProgress) {
+                        incrementBytesTransferred(byteBuffer.limit());
+                        progress.snapshot().ratioTransferred().ifPresent(ratioTransferred -> {
+                            if (Double.compare(ratioTransferred, 1.0) == 0) {
+                                endOfStreamFutureCompleted();
+                            }
+                        });
+                    }
                 }
 
                 @Override
@@ -114,6 +128,10 @@ public class TransferProgressUpdater {
 
     /**
      * Progress listener for Java-based S3Client with multipart enabled.
+     * <p>
+     * For multipart uploads, this is the primary source of progress since the wrapper body is bypassed
+     * by {@code splitCloseable}. For single-chunk uploads via {@code uploadInOneChunk}, this listener
+     * reports progress after the server responds.
      */
     public PublisherListener<Long> multipartClientProgressListener() {
 
@@ -150,6 +168,14 @@ public class TransferProgressUpdater {
 
             @Override
             public void subscriberOnNext(S3MetaRequestProgress s3MetaRequestProgress) {
+                // For a download whose body CRT writes straight to a file, the response headers are not surfaced to the SDK
+                // until the transfer has finished, so CRT's progress is the only source of the total size while the transfer
+                // is in flight. Seed it here so that ratioTransferred() is available during the download; the exact value
+                // from the response Content-Length replaces this once the transfer completes.
+                long contentLength = s3MetaRequestProgress.getContentLength();
+                if (contentLength > 0 && !progress.snapshot().totalBytes().isPresent()) {
+                    updateTotalBytes(contentLength, null);
+                }
                 incrementBytesTransferred(s3MetaRequestProgress.getBytesTransferred());
             }
 
@@ -172,23 +198,95 @@ public class TransferProgressUpdater {
             new BaseAsyncResponseTransformerListener() {
                 @Override
                 public void transformerOnResponse(GetObjectResponse response) {
-                    // if the GetObjectRequest is a range-get, the Content-Length headers of the response needs to be used
-                    // to update progress since the Content-Range would incorrectly upgrade progress with the whole object
-                    // size.
-                    if (request.range() != null) {
-                        if (response.contentLength() != null) {
-                            progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
-                        }
-                    } else {
-                        // if the GetObjectRequest is not a range-get, it might be a part-get. In that case, we need to parse
-                        // the Content-Range header to get the correct totalByte amount.
-                        ContentRangeParser
-                            .totalBytes(response.contentRange())
-                            .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
-                    }
+                    multipartDownloadOnResponse(request, response);
                 }
             }
         );
+    }
+
+    private void multipartDownloadOnResponse(GetObjectRequest request, GetObjectResponse response) {
+        // if the GetObjectRequest is a range-get, the Content-Length headers of the response needs to be used
+        // to update progress since the Content-Range would incorrectly upgrade progress with the whole object
+        // size.
+        if (request.range() != null) {
+            if (response.contentLength() != null) {
+                progress.updateAndGet(b -> b.totalBytes(response.contentLength()).sdkResponse(response));
+            }
+        } else {
+            // if the GetObjectRequest is not a range-get, it might be a part-get. In that case, we need to parse
+            // the Content-Range header to get the correct totalByte amount.
+            ContentRangeParser
+                .totalBytes(response.contentRange())
+                .ifPresent(totalBytes -> progress.updateAndGet(b -> b.totalBytes(totalBytes).sdkResponse(response)));
+        }
+    }
+
+    // upstream transformer
+    public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapForNonSerialFileDownload(
+        AsyncResponseTransformer<GetObjectResponse, ResultT> responseTransformer, GetObjectRequest request) {
+        return new AsyncResponseTransformer<GetObjectResponse, ResultT>() {
+            @Override
+            public CompletableFuture<ResultT> prepare() {
+                return responseTransformer.prepare();
+            }
+
+            @Override
+            public void onResponse(GetObjectResponse response) {
+                responseTransformer.onResponse(response);
+            }
+
+            @Override
+            public void onStream(SdkPublisher<ByteBuffer> publisher) {
+                responseTransformer.onStream(publisher);
+            }
+
+            @Override
+            public void exceptionOccurred(Throwable error) {
+                responseTransformer.exceptionOccurred(error);
+            }
+
+            @Override
+            public SplitResult<GetObjectResponse, ResultT> split(SplittingTransformerConfiguration splitConfig) {
+                return responseTransformer
+                    .split(splitConfig)
+                    .copy(b -> b.publisher(wrapIndividualTransformer(b.publisher(), request)));
+            }
+
+            @Override
+            public String name() {
+                return responseTransformer.name();
+            }
+        };
+    }
+
+    private <ResultT> SdkPublisher<AsyncResponseTransformer<GetObjectResponse, ResultT>> wrapIndividualTransformer(
+        SdkPublisher<AsyncResponseTransformer<GetObjectResponse, ResultT>> publisher, GetObjectRequest request) {
+        // each of the individual transformer for multipart file download
+        return publisher.map(art -> {
+            AtomicLong partBytesTransferred = new AtomicLong(0);
+            return AsyncResponseTransformerListener.wrap(
+                art,
+                new AsyncResponseTransformerListener<GetObjectResponse>() {
+                    @Override
+                    public void transformerOnResponse(GetObjectResponse response) {
+                        multipartDownloadOnResponse(request, response);
+                    }
+
+                    @Override
+                    public void publisherSubscribe(Subscriber<? super ByteBuffer> subscriber) {
+                        long previousPartBytes = partBytesTransferred.getAndSet(0);
+                        if (previousPartBytes > 0) {
+                            progress.updateAndGet(b -> b.transferredBytes(b.getTransferredBytes() - previousPartBytes));
+                        }
+                    }
+
+                    @Override
+                    public void subscriberOnNext(ByteBuffer byteBuffer) {
+                        partBytesTransferred.addAndGet(byteBuffer.limit());
+                        incrementBytesTransferred(byteBuffer.limit());
+                    }
+                });
+        });
     }
 
     public <ResultT> AsyncResponseTransformer<GetObjectResponse, ResultT> wrapResponseTransformer(
@@ -205,11 +303,68 @@ public class TransferProgressUpdater {
             });
     }
 
+    /**
+     * Wraps the response transformer used when the CRT-based S3 client writes the response body straight to a file.
+     * <p>
+     * Byte-level progress for that path is reported by {@link #crtProgressListener()} rather than by the response
+     * transformer, because no response body is ever delivered to the SDK. The transformer's publisher is also only subscribed
+     * to once the transfer has already finished, so unlike {@link #wrapResponseTransformer(AsyncResponseTransformer)} this
+     * wrapper must neither reset nor increment the transferred byte count - doing so would discard the progress that CRT
+     * already reported.
+     */
+    public AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> wrapCrtResponseFileTransformer(
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer) {
+        return AsyncResponseTransformerListener.wrap(
+            responseTransformer,
+            new AsyncResponseTransformerListener<GetObjectResponse>() {
+                @Override
+                public void transformerOnResponse(GetObjectResponse response) {
+                    if (response.contentLength() != null) {
+                        updateTotalBytes(response.contentLength(), response);
+                    }
+                }
+
+                @Override
+                public void transformerExceptionOccurred(Throwable t) {
+                    transferFailed(t);
+                }
+
+                @Override
+                public void subscriberOnError(Throwable t) {
+                    transferFailed(t);
+                }
+
+                @Override
+                public void subscriberOnComplete() {
+                    endOfStreamFuture.complete(null);
+                }
+            });
+    }
+
+    /**
+     * Records the total size of a transfer, and the response it came from, without breaking the
+     * {@link DefaultTransferProgressSnapshot} invariant that the transferred byte count must not exceed the total.
+     * <p>
+     * This is only used on the CRT paths, where the transferred count comes from CRT's progress callbacks while the total
+     * comes from the response, so the two are accounted for independently and could in principle disagree. If they do, the
+     * larger byte count is trusted rather than failing the transfer: throwing from here would either propagate out of a CRT
+     * callback or, in the response transformer, be swallowed and silently discard the response that pausing needs in order to
+     * build a resume token.
+     */
+    private void updateTotalBytes(long totalBytes, GetObjectResponse sdkResponse) {
+        progress.updateAndGet(b -> {
+            b.totalBytes(Math.max(totalBytes, b.getTransferredBytes()));
+            if (sdkResponse != null) {
+                b.sdkResponse(sdkResponse);
+            }
+        });
+    }
+
     private void resetBytesTransferred() {
         progress.updateAndGet(b -> b.transferredBytes(0L));
     }
 
-    private void incrementBytesTransferred(long numBytes) {
+    public void incrementBytesTransferred(long numBytes) {
         TransferProgressSnapshot snapshot = progress.updateAndGet(b -> {
             b.transferredBytes(b.getTransferredBytes() + numBytes);
         });

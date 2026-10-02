@@ -188,6 +188,44 @@
       ],
       "documentation": "<p>Deletes a broker. Note: This API is asynchronous.</p>"
     },
+    "DeleteConfiguration": {
+      "name": "DeleteConfiguration",
+      "http": {
+        "method": "DELETE",
+        "requestUri": "/v1/configurations/{configuration-id}",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DeleteConfigurationRequest"
+      },
+      "output": {
+        "shape": "DeleteConfigurationResponse",
+        "documentation": "<p>HTTP Status Code 200: OK.</p>"
+      },
+      "errors": [
+        {
+          "shape": "NotFoundException",
+          "documentation": "<p>HTTP Status Code 404: Resource not found due to incorrect input. Correct your request and then retry it.</p>"
+        },
+        {
+          "shape": "BadRequestException",
+          "documentation": "<p>HTTP Status Code 400: Bad request due to incorrect input. Correct your request and then retry it.</p>"
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "<p>HTTP Status Code 500: Unexpected internal server error. Retrying your request might resolve the issue.</p>"
+        },
+        {
+          "shape": "ConflictException",
+          "documentation": "<p>HTTP Status Code 409: Conflict. This broker name already exists. Retry your request with another name.</p>"
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "<p>HTTP Status Code 403: Access forbidden. Correct your credentials and then retry your request.</p>"
+        }
+      ],
+      "documentation": "<p>Deletes the specified configuration.</p>"
+    },
     "DeleteTags": {
       "name": "DeleteTags",
       "http": {
@@ -413,6 +451,40 @@
         }
       ],
       "documentation": "<p>Returns the specified configuration revision for the specified configuration.</p>"
+    },
+    "DescribeSharedResources": {
+      "name": "DescribeSharedResources",
+      "http": {
+        "method": "GET",
+        "requestUri": "/v1/brokers/{broker-id}/shared-resources",
+        "responseCode": 200
+      },
+      "input": {
+        "shape": "DescribeSharedResourcesRequest"
+      },
+      "output": {
+        "shape": "DescribeSharedResourcesResponse",
+        "documentation": "<p>HTTP Status Code 200: OK.</p>"
+      },
+      "errors": [
+        {
+          "shape": "NotFoundException",
+          "documentation": "<p>HTTP Status Code 404: Resource not found due to incorrect input. Correct your request and then retry it.</p>"
+        },
+        {
+          "shape": "BadRequestException",
+          "documentation": "<p>HTTP Status Code 400: Bad request due to incorrect input. Correct your request and then retry it.</p>"
+        },
+        {
+          "shape": "InternalServerErrorException",
+          "documentation": "<p>HTTP Status Code 500: Unexpected internal server error. Retrying your request might resolve the issue.</p>"
+        },
+        {
+          "shape": "ForbiddenException",
+          "documentation": "<p>HTTP Status Code 403: Access forbidden. Correct your credentials and then retry your request.</p>"
+        }
+      ],
+      "documentation": "<p>Returns the resources shared to a broker.</p>"
     },
     "DescribeUser": {
       "name": "DescribeUser",
@@ -815,7 +887,8 @@
       "documentation": "<p>Optional. The authentication strategy used to secure the broker. The default is SIMPLE.</p>",
       "enum": [
         "SIMPLE",
-        "LDAP"
+        "LDAP",
+        "CONFIG_MANAGED"
       ]
     },
     "AvailabilityZone": {
@@ -841,6 +914,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>",
@@ -1194,6 +1272,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>",
@@ -1291,6 +1374,11 @@
           "locationName": "securityGroups",
           "documentation": "<p>The list of rules (1 minimum, 125 maximum) that authorize connections to brokers.</p>"
         },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
+        },
         "StorageType": {
           "shape": "BrokerStorageType",
           "locationName": "storageType",
@@ -1309,13 +1397,12 @@
         "Users": {
           "shape": "__listOfUser",
           "locationName": "users",
-          "documentation": "<p>The list of broker users (persons or applications) who can access queues and topics. For Amazon MQ for RabbitMQ brokers, one and only one administrative user is accepted and created when a broker is first provisioned. All subsequent broker users are created by making RabbitMQ API calls directly to brokers or via the RabbitMQ web console.</p>"
+          "documentation": "<p>The list of broker users (persons or applications) who can access queues and topics. For Amazon MQ for RabbitMQ brokers, an administrative user is required if using simple authentication and authorization. For brokers using OAuth2, this user is optional. When provided, one and only one administrative user is accepted and created when a broker is first provisioned. All subsequent broker users are created by making RabbitMQ API calls directly to brokers or via the RabbitMQ web console.</p>"
         }
       },
       "documentation": "<p>Creates a broker.</p>",
       "required": [
         "HostInstanceType",
-        "Users",
         "BrokerName",
         "DeploymentMode",
         "EngineType",
@@ -1417,6 +1504,11 @@
           "locationName": "securityGroups",
           "documentation": "<p>The list of rules (1 minimum, 125 maximum) that authorize connections to brokers.</p>"
         },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
+        },
         "StorageType": {
           "shape": "BrokerStorageType",
           "locationName": "storageType",
@@ -1435,7 +1527,7 @@
         "Users": {
           "shape": "__listOfUser",
           "locationName": "users",
-          "documentation": "<p>The list of broker users (persons or applications) who can access queues and topics. For Amazon MQ for RabbitMQ brokers, one and only one administrative user is accepted and created when a broker is first provisioned. All subsequent broker users are created by making RabbitMQ API calls directly to brokers or via the RabbitMQ web console.</p>"
+          "documentation": "<p>The list of broker users (persons or applications) who can access queues and topics. For Amazon MQ for RabbitMQ brokers, an administrative user is required if using simple authentication and authorization. For brokers using OAuth2, this user is optional. When provided, one and only one administrative user is accepted and created when a broker is first provisioned. All subsequent broker users are created by making RabbitMQ API calls directly to brokers or via the RabbitMQ web console.</p>"
         },
         "DataReplicationMode": {
           "shape": "DataReplicationMode",
@@ -1451,7 +1543,6 @@
       "documentation": "<p>Creates a broker using the specified properties.</p>",
       "required": [
         "HostInstanceType",
-        "Users",
         "BrokerName",
         "DeploymentMode",
         "EngineType",
@@ -1715,8 +1806,7 @@
     },
     "CreateUserResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DataReplicationCounterpart": {
       "type": "structure",
@@ -1812,6 +1902,41 @@
         }
       }
     },
+    "DeleteConfigurationOutput": {
+      "type": "structure",
+      "members": {
+        "ConfigurationId": {
+          "shape": "__string",
+          "locationName": "configurationId",
+          "documentation": "<p>The unique ID that Amazon MQ generates for the configuration.</p>"
+        }
+      },
+      "documentation": "<p>Returns information about the deleted configuration.</p>"
+    },
+    "DeleteConfigurationRequest": {
+      "type": "structure",
+      "members": {
+        "ConfigurationId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "configuration-id",
+          "documentation": "<p>The unique ID that Amazon MQ generates for the configuration.</p>"
+        }
+      },
+      "required": [
+        "ConfigurationId"
+      ]
+    },
+    "DeleteConfigurationResponse": {
+      "type": "structure",
+      "members": {
+        "ConfigurationId": {
+          "shape": "__string",
+          "locationName": "configurationId",
+          "documentation": "<p>The unique ID that Amazon MQ generates for the configuration.</p>"
+        }
+      }
+    },
     "DeleteTagsRequest": {
       "type": "structure",
       "members": {
@@ -1856,8 +1981,7 @@
     },
     "DeleteUserResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DeploymentMode": {
       "type": "string",
@@ -2104,6 +2228,11 @@
           "locationName": "pendingSecurityGroups",
           "documentation": "<p>The list of pending security groups to authorize connections to brokers.</p>"
         },
+        "PendingStorageSize": {
+          "shape": "__integer",
+          "locationName": "pendingStorageSize",
+          "documentation": "<p>The pending storage size in GB, to be applied on the next broker restart.</p>"
+        },
         "PubliclyAccessible": {
           "shape": "__boolean",
           "locationName": "publiclyAccessible",
@@ -2113,6 +2242,11 @@
           "shape": "__listOf__string",
           "locationName": "securityGroups",
           "documentation": "<p>The list of rules (1 minimum, 125 maximum) that authorize connections to brokers.</p>"
+        },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
         },
         "StorageType": {
           "shape": "BrokerStorageType",
@@ -2275,6 +2409,11 @@
           "locationName": "pendingSecurityGroups",
           "documentation": "<p>The list of pending security groups to authorize connections to brokers.</p>"
         },
+        "PendingStorageSize": {
+          "shape": "__integer",
+          "locationName": "pendingStorageSize",
+          "documentation": "<p>The pending storage size in GB, to be applied on the next broker restart.</p>"
+        },
         "PubliclyAccessible": {
           "shape": "__boolean",
           "locationName": "publiclyAccessible",
@@ -2284,6 +2423,11 @@
           "shape": "__listOf__string",
           "locationName": "securityGroups",
           "documentation": "<p>The list of rules (1 minimum, 125 maximum) that authorize connections to brokers.</p>"
+        },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
         },
         "StorageType": {
           "shape": "BrokerStorageType",
@@ -2473,6 +2617,63 @@
         }
       }
     },
+    "DescribeSharedResourcesOutput": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "<p>The token that specifies the next page of results Amazon MQ should return. To request the first page, leave nextToken empty.</p>"
+        },
+        "SharedResources": {
+          "shape": "__listOfSharedResource",
+          "locationName": "sharedResources",
+          "documentation": "<p>A list of resources shared to the broker.</p>"
+        }
+      },
+      "documentation": "<p>Returns the networking resources shared to the broker.</p>"
+    },
+    "DescribeSharedResourcesRequest": {
+      "type": "structure",
+      "members": {
+        "BrokerId": {
+          "shape": "__string",
+          "location": "uri",
+          "locationName": "broker-id",
+          "documentation": "<p>The unique ID that Amazon MQ generates for the broker.</p>"
+        },
+        "MaxResults": {
+          "shape": "MaxResults",
+          "location": "querystring",
+          "locationName": "maxResults",
+          "documentation": "<p>The maximum number of resources that Amazon MQ can return per page (20 by default). This value must be an integer from 5 to 100.</p>"
+        },
+        "NextToken": {
+          "shape": "__string",
+          "location": "querystring",
+          "locationName": "nextToken",
+          "documentation": "<p>The token that specifies the next page of results Amazon MQ should return. To request the first page, leave nextToken empty.</p>"
+        }
+      },
+      "required": [
+        "BrokerId"
+      ]
+    },
+    "DescribeSharedResourcesResponse": {
+      "type": "structure",
+      "members": {
+        "NextToken": {
+          "shape": "__string",
+          "locationName": "nextToken",
+          "documentation": "<p>The token that specifies the next page of results Amazon MQ should return. To request the first page, leave nextToken empty.</p>"
+        },
+        "SharedResources": {
+          "shape": "__listOfSharedResource",
+          "locationName": "sharedResources",
+          "documentation": "<p>A list of resources shared to the broker.</p>"
+        }
+      }
+    },
     "DescribeUserOutput": {
       "type": "structure",
       "members": {
@@ -2619,6 +2820,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>"
@@ -2635,6 +2841,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>",
@@ -2655,6 +2866,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>",
@@ -3154,6 +3370,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>",
@@ -3258,8 +3479,28 @@
     },
     "RebootBrokerResponse": {
       "type": "structure",
+      "members": {}
+    },
+    "ResourceShareError": {
+      "type": "structure",
       "members": {
-      }
+        "ErrorCode": {
+          "shape": "__string",
+          "locationName": "errorCode",
+          "documentation": "<p>The error code of the resource share.</p>"
+        },
+        "ResourceShareArn": {
+          "shape": "__string",
+          "locationName": "resourceShareArn",
+          "documentation": "<p>The ARN of the resource share.</p>"
+        },
+        "Status": {
+          "shape": "__string",
+          "locationName": "status",
+          "documentation": "<p>The status of the resource share.</p>"
+        }
+      },
+      "documentation": "<p>Returns info about the resource share error after updating the broker.</p>"
     },
     "SanitizationWarning": {
       "type": "structure",
@@ -3294,6 +3535,100 @@
         "INVALID_ATTRIBUTE_VALUE_REMOVED"
       ]
     },
+    "SharedResource": {
+      "type": "structure",
+      "documentation": "<p>Represents a resource that is shared with the broker, including its type, ARN, and current status.</p>",
+      "members": {
+        "DnsNames": {
+          "shape": "__listOf__string",
+          "locationName": "dnsNames",
+          "documentation": "<p>The DNS names accessible by the broker.</p>"
+        },
+        "Error": {
+          "shape": "SharedResourceError",
+          "locationName": "error",
+          "documentation": "<p>Information on the error encountered by the resource.</p>"
+        },
+        "ResourceArn": {
+          "shape": "__string",
+          "locationName": "resourceArn",
+          "documentation": "<p>The ARN of the shared resource.</p>"
+        },
+        "ResourceShareArns": {
+          "shape": "__listOf__string",
+          "locationName": "resourceShareArns",
+          "documentation": "<p>The resource share ARNs to which the resource belongs.</p>"
+        },
+        "Status": {
+          "shape": "SharedResourceStatus",
+          "locationName": "status",
+          "documentation": "<p>The status of the shared resource.</p>"
+        },
+        "Type": {
+          "shape": "SharedResourceType",
+          "locationName": "type",
+          "documentation": "<p>The type of shared resource.</p>"
+        }
+      },
+      "required": [
+        "Status",
+        "ResourceArn",
+        "Type"
+      ]
+    },
+    "SharedResourceError": {
+      "type": "structure",
+      "members": {
+        "Code": {
+          "shape": "SharedResourceErrorCode",
+          "locationName": "code",
+          "documentation": "<p>The error code associated with the error.</p>"
+        },
+        "Message": {
+          "shape": "__string",
+          "locationName": "message",
+          "documentation": "<p>The error message.</p>"
+        }
+      },
+      "documentation": "<p>Information on the error encountered by the resource.</p>",
+      "required": [
+        "Message",
+        "Code"
+      ]
+    },
+    "SharedResourceErrorCode": {
+      "type": "string",
+      "documentation": "<p>The error code associated with the error.</p>",
+      "enum": [
+        "QUOTA_EXCEEDED",
+        "SHARE_NOT_FOUND",
+        "INVITE_FAILED",
+        "SETUP_INCOMPLETE",
+        "INTERNAL_ERROR",
+        "AZ_MISMATCH",
+        "RESOURCE_CONFIGURATION_NOT_FOUND"
+      ]
+    },
+    "SharedResourceStatus": {
+      "type": "string",
+      "documentation": "<p>The status of the shared resource.</p>",
+      "enum": [
+        "AVAILABLE",
+        "SETUP_IN_PROGRESS",
+        "DELETION_IN_PROGRESS",
+        "PENDING_CREATE",
+        "PENDING_DELETE",
+        "ERROR"
+      ]
+    },
+    "SharedResourceType": {
+      "type": "string",
+      "documentation": "<p>The type of shared resource.</p>",
+      "enum": [
+        "RESOURCE_SHARE",
+        "RESOURCE"
+      ]
+    },
     "Tags": {
       "type": "structure",
       "members": {
@@ -3317,6 +3652,11 @@
           "shape": "__string",
           "locationName": "message",
           "documentation": "<p>The explanation of the error.</p>"
+        },
+        "ResourceShareErrors": {
+          "shape": "__listOfResourceShareError",
+          "locationName": "resourceShareErrors",
+          "documentation": "<p>The list of resource share errors.</p>"
         }
       },
       "documentation": "<p>Returns information about an error.</p>",
@@ -3373,10 +3713,20 @@
           "locationName": "maintenanceWindowStartTime",
           "documentation": "<p>The parameters that determine the WeeklyStartTime.</p>"
         },
+        "ResourceShareArns": {
+          "shape": "__listOf__string",
+          "locationName": "resourceShareArns",
+          "documentation": "<p>The list of resource shares to update on the broker</p>"
+        },
         "SecurityGroups": {
           "shape": "__listOf__string",
           "locationName": "securityGroups",
           "documentation": "<p>The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers.</p>"
+        },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
         }
       },
       "documentation": "<p>Updates the broker using the specified properties.</p>"
@@ -3449,10 +3799,20 @@
           "locationName": "pendingDataReplicationMode",
           "documentation": "<p>Describes whether this broker will be a part of a data replication pair after reboot.</p>"
         },
+        "ResourceShareArns": {
+          "shape": "__listOf__string",
+          "locationName": "resourceShareArns",
+          "documentation": "<p>The pending broker's target list of resource shares</p>"
+        },
         "SecurityGroups": {
           "shape": "__listOf__string",
           "locationName": "securityGroups",
           "documentation": "<p>The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers.</p>"
+        },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
         }
       },
       "documentation": "<p>Returns information about the updated broker.</p>",
@@ -3509,10 +3869,20 @@
           "locationName": "maintenanceWindowStartTime",
           "documentation": "<p>The parameters that determine the WeeklyStartTime.</p>"
         },
+        "ResourceShareArns": {
+          "shape": "__listOf__string",
+          "locationName": "resourceShareArns",
+          "documentation": "<p>The list of resource shares to update on the broker</p>"
+        },
         "SecurityGroups": {
           "shape": "__listOf__string",
           "locationName": "securityGroups",
           "documentation": "<p>The list of security groups (1 minimum, 5 maximum) that authorizes connections to brokers.</p>"
+        },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
         },
         "DataReplicationMode": {
           "shape": "DataReplicationMode",
@@ -3573,6 +3943,11 @@
           "locationName": "maintenanceWindowStartTime",
           "documentation": "<p>The parameters that determine the WeeklyStartTime.</p>"
         },
+        "ResourceShareArns": {
+          "shape": "__listOf__string",
+          "locationName": "resourceShareArns",
+          "documentation": "<p>The pending broker's target list of resource shares</p>"
+        },
         "SecurityGroups": {
           "shape": "__listOf__string",
           "locationName": "securityGroups",
@@ -3597,6 +3972,11 @@
           "shape": "DataReplicationMode",
           "locationName": "pendingDataReplicationMode",
           "documentation": "<p>Describes whether this broker will be a part of a data replication pair after reboot.</p>"
+        },
+        "StorageSize": {
+          "shape": "__integer",
+          "locationName": "storageSize",
+          "documentation": "<p>The broker's storage size in GB.</p>"
         }
       }
     },
@@ -3792,8 +4172,7 @@
     },
     "UpdateUserResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "User": {
       "type": "structure",
@@ -3978,10 +4357,22 @@
         "shape": "EngineVersion"
       }
     },
+    "__listOfResourceShareError": {
+      "type": "list",
+      "member": {
+        "shape": "ResourceShareError"
+      }
+    },
     "__listOfSanitizationWarning": {
       "type": "list",
       "member": {
         "shape": "SanitizationWarning"
+      }
+    },
+    "__listOfSharedResource": {
+      "type": "list",
+      "member": {
+        "shape": "SharedResource"
       }
     },
     "__listOfUser": {

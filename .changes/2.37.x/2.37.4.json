@@ -1,0 +1,42 @@
+{
+    "version": "2.37.4",
+    "date": "2025-11-03",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Budgets",
+            "contributor": "",
+            "description": "Fix the AWS Budgets endpoint for the aws-eusc partition."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Update Jackson and Jackson jr to 2.19.4"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Adds support for direct code deploy with CreateAgentRuntime and UpdateAgentRuntime"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Documentation-only update for LINEAR and CANARY deployment strategies."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add Amazon EC2 trn2.3xlarge instance type."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis",
+            "contributor": "",
+            "description": "Adds support for MinimumThroughputBillingCommitment with new UpdateAccountSettings API. Adds support to configure warm throughput for on-demand streams in new UpdateStreamWarmThroughput API and existing CreateStream API and UpdateStreamMode API."
+        }
+    ]
+}

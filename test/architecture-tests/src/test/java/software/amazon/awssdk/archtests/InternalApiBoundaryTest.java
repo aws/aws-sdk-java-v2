@@ -31,6 +31,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.awscore.internal.AwsProtocolMetadata;
 import software.amazon.awssdk.awscore.internal.AwsServiceProtocol;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
@@ -92,7 +94,9 @@ public class InternalApiBoundaryTest {
                 }
 
                 if (JavaClass.Predicates.resideInAPackage("software.amazon.awssdk..internal..").test(dependencyTargetClass)) {
-                    if (!ArchUtils.resideInSameRootPackage(packageName, dependencyPackageName)) {
+                    if (!ArchUtils.resideInSameRootPackage(packageName, dependencyPackageName) &&
+                        // Ignore if the dependency class is not annotated with SdkInternalApi since it's an exception case
+                        dependencyTargetClass.isAnnotatedWith(SdkInternalApi.class)) {
                         String errorMessage = String.format("%s depends on an internal API from a different module (%s)",
                                                             item.getDescription(),
                                                             dependencyTargetClass.getDescription());

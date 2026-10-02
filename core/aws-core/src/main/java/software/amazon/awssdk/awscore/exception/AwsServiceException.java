@@ -79,7 +79,8 @@ public class AwsServiceException extends SdkServiceException {
             joiner.add(diagnostics.toString());
         }
 
-        return joiner.toString();
+        String result = joiner.toString();
+        return result.isEmpty() ? super.getMessage() : result;
     }
 
     private String serviceDiagnostics() {

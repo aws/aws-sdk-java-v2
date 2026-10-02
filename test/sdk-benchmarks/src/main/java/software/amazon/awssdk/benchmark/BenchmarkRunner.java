@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -39,8 +40,9 @@ import org.openjdk.jmh.runner.options.ChainedOptionsBuilder;
 import org.openjdk.jmh.runner.options.OptionsBuilder;
 import software.amazon.awssdk.benchmark.apicall.MetricsEnabledBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtClientBenchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.AwsCrtH2ClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH1Benchmark;
-import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2Benchmark;
+import software.amazon.awssdk.benchmark.apicall.httpclient.async.NettyHttpClientH2PriorKnowledgeBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.ApacheHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.CrtHttpClientBenchmark;
 import software.amazon.awssdk.benchmark.apicall.httpclient.sync.UrlConnectionHttpClientBenchmark;
@@ -49,8 +51,13 @@ import software.amazon.awssdk.benchmark.apicall.protocol.JsonProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.QueryProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.SmithyRpcV2ProtocolBenchmark;
 import software.amazon.awssdk.benchmark.apicall.protocol.XmlProtocolBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V1ClientCreationBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2DefaultClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2DefaultFirstRequestBenchmark;
 import software.amazon.awssdk.benchmark.coldstart.V2OptimizedClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2SdkWarmUpExecutionTimeBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2WarmedUpClientCreationBenchmark;
+import software.amazon.awssdk.benchmark.coldstart.V2WarmedUpFirstRequestBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientDeleteV1MapperComparisonBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetOverheadBenchmark;
 import software.amazon.awssdk.benchmark.enhanced.dynamodb.EnhancedClientGetV1MapperComparisonBenchmark;
@@ -73,9 +80,10 @@ public class BenchmarkRunner {
         QueryProtocolBenchmark.class.getSimpleName(), XmlProtocolBenchmark.class.getSimpleName());
 
     private static final List<String> ASYNC_BENCHMARKS = Arrays.asList(
-        NettyHttpClientH2Benchmark.class.getSimpleName(),
+        NettyHttpClientH2PriorKnowledgeBenchmark.class.getSimpleName(),
         NettyHttpClientH1Benchmark.class.getSimpleName(),
-        AwsCrtClientBenchmark.class.getSimpleName());
+        AwsCrtClientBenchmark.class.getSimpleName(),
+        AwsCrtH2ClientBenchmark.class.getSimpleName());
 
     private static final List<String> SYNC_BENCHMARKS = Arrays.asList(
         ApacheHttpClientBenchmark.class.getSimpleName(),
@@ -83,8 +91,13 @@ public class BenchmarkRunner {
         CrtHttpClientBenchmark.class.getSimpleName());
 
     private static final List<String> COLD_START_BENCHMARKS = Arrays.asList(
+        V1ClientCreationBenchmark.class.getSimpleName(),
         V2OptimizedClientCreationBenchmark.class.getSimpleName(),
-        V2DefaultClientCreationBenchmark.class.getSimpleName());
+        V2DefaultClientCreationBenchmark.class.getSimpleName(),
+        V2WarmedUpClientCreationBenchmark.class.getSimpleName(),
+        V2DefaultFirstRequestBenchmark.class.getSimpleName(),
+        V2WarmedUpFirstRequestBenchmark.class.getSimpleName(),
+        V2SdkWarmUpExecutionTimeBenchmark.class.getSimpleName());
 
     private static final List<String> MAPPER_BENCHMARKS = Arrays.asList(
             EnhancedClientGetOverheadBenchmark.class.getSimpleName(),
@@ -117,7 +130,29 @@ public class BenchmarkRunner {
         this.options = options;
     }
 
+    static List<String> getShardClasses(String shard) {
+        switch (shard) {
+            case "sync": return SYNC_BENCHMARKS;
+            case "async": return ASYNC_BENCHMARKS;
+            case "protocol": return PROTOCOL_BENCHMARKS;
+            case "coldStart": return COLD_START_BENCHMARKS;
+            case "metrics": return Stream.concat(METRIC_BENCHMARKS.stream(), METRIC_PUBLISHER_BENCHMARKS.stream())
+                                         .collect(Collectors.toList());
+            case "all": return Stream.of(SYNC_BENCHMARKS, ASYNC_BENCHMARKS, PROTOCOL_BENCHMARKS,
+                                         COLD_START_BENCHMARKS, METRIC_BENCHMARKS, METRIC_PUBLISHER_BENCHMARKS)
+                                     .flatMap(List::stream).collect(Collectors.toList());
+            default: throw new IllegalArgumentException("Unknown shard: " + shard);
+        }
+    }
+
     public static void main(String... args) throws Exception {
+        if (args.length >= 2 && args[0].equals("--list")) {
+            // CHECKSTYLE:OFF
+            System.out.println(String.join("|", getShardClasses(args[1])));
+            // CHECKSTYLE:ON
+            return;
+        }
+
         List<String> benchmarksToRun = new ArrayList<>();
         benchmarksToRun.addAll(SYNC_BENCHMARKS);
         benchmarksToRun.addAll(ASYNC_BENCHMARKS);

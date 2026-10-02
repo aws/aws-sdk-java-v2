@@ -66,6 +66,12 @@ public class AuthSchemeSpecTest {
                     .caseName("query")
                     .outputFileSuffix("default-params")
                     .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::queryServiceModels)
+                    .classSpecProvider(PreferredAuthSchemeProviderSpec::new)
+                    .caseName("query")
+                    .outputFileSuffix("preferred-provider")
+                    .build(),
             // query-endpoint-auth-params
             TestCase.builder()
                     .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
@@ -155,11 +161,24 @@ public class AuthSchemeSpecTest {
                     .caseName("ops-with-no-auth")
                     .outputFileSuffix("default-provider")
                     .build(),
-            // Service with signature version with the same value as S3
+            // S3
             TestCase.builder()
-                    .modelProvider(ClientTestModels::serviceMiniS3)
+                    .modelProvider(ClientTestModels::serviceS3)
+                    .classSpecProvider(EndpointBasedAuthSchemeProviderSpec::new)
+                    .caseName("s3-test")
+                    .outputFileSuffix("default-provider")
+                    .build(),
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceS3)
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
-                    .caseName("mini-s3")
+                    .caseName("s3-test")
+                    .outputFileSuffix("fallback-provider")
+                    .build(),
+            // S3 control
+            TestCase.builder()
+                    .modelProvider(ClientTestModels::serviceS3Control)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("s3control-test")
                     .outputFileSuffix("default-provider")
                     .build(),
             TestCase.builder()
@@ -167,28 +186,6 @@ public class AuthSchemeSpecTest {
                     .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
                     .caseName("auth-with-legacy-trait")
                     .outputFileSuffix("default-provider")
-                    .build(),
-            // Interceptors
-            // - Normal case
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModels)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("query")
-                    .outputFileSuffix("interceptor")
-                    .build(),
-            // - Endpoints based params with allow list
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithAllowList)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("query-endpoint-auth-params-with-allowlist")
-                    .outputFileSuffix("interceptor")
-                    .build(),
-            // - Endpoints based params without allow list
-            TestCase.builder()
-                    .modelProvider(ClientTestModels::queryServiceModelsEndpointAuthParamsWithoutAllowList)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("query-endpoint-auth-params-without-allowlist")
-                    .outputFileSuffix("interceptor")
                     .build(),
             // Service with auth trait with Sigv4a
             TestCase.builder()
@@ -209,11 +206,12 @@ public class AuthSchemeSpecTest {
                     .caseName("ops-auth-sigv4a-value")
                     .outputFileSuffix("default-params")
                     .build(),
+            // Rest Json service with checksum
             TestCase.builder()
-                    .modelProvider(ClientTestModels::opsWithSigv4a)
-                    .classSpecProvider(AuthSchemeInterceptorSpec::new)
-                    .caseName("ops-auth-sigv4a-value")
-                    .outputFileSuffix("interceptor")
+                    .modelProvider(ClientTestModels::restJsonServiceModels)
+                    .classSpecProvider(ModelBasedAuthSchemeProviderSpec::new)
+                    .caseName("rest-json-checksum")
+                    .outputFileSuffix("provider")
                     .build()
         );
     }

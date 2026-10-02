@@ -2485,9 +2485,7 @@
         "shape": "ListManagedDataIdentifiersResponse",
         "documentation": "<p>The request succeeded.</p>"
       },
-      "errors": [
-
-      ],
+      "errors": [],
       "documentation": "<p>Retrieves information about all the managed data identifiers that Amazon Macie currently provides.</p>"
     },
     "ListMembers": {
@@ -2714,9 +2712,7 @@
         "shape": "ListTagsForResourceResponse",
         "documentation": "<p>The request succeeded.</p>"
       },
-      "errors": [
-
-      ],
+      "errors": [],
       "documentation": "<p>Retrieves the tags (keys and values) that are associated with an Amazon Macie resource.</p>"
     },
     "PutClassificationExportConfiguration": {
@@ -2871,9 +2867,7 @@
         "shape": "TagResourceResponse",
         "documentation": "<p>The request succeeded and there isn't any content to include in the body of the response (No Content).</p>"
       },
-      "errors": [
-
-      ],
+      "errors": [],
       "documentation": "<p>Adds or updates one or more tags (keys and values) that are associated with an Amazon Macie resource.</p>"
     },
     "TestCustomDataIdentifier": {
@@ -2936,9 +2930,7 @@
         "shape": "UntagResourceResponse",
         "documentation": "<p>The request succeeded and there isn't any content to include in the body of the response (No Content).</p>"
       },
-      "errors": [
-
-      ],
+      "errors": [],
       "documentation": "<p>Removes one or more tags (keys and values) from an Amazon Macie resource.</p>"
     },
     "UpdateAllowList": {
@@ -3464,8 +3456,7 @@
     },
     "AcceptInvitationResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "AccessControlList": {
       "type": "structure",
@@ -3763,7 +3754,7 @@
         "errorCode": {
           "shape": "AutomatedDiscoveryAccountUpdateErrorCode",
           "locationName": "errorCode",
-          "documentation": "<p>The error code for the error that caused the request to fail for the account (accountId). Possible values are: ACCOUNT_NOT_FOUND, the account doesn’t exist or you're not the Amazon Macie administrator for the account; and, ACCOUNT_PAUSED, Macie isn’t enabled for the account in the current Amazon Web Services Region.</p>"
+          "documentation": "<p>The error code for the error that caused the request to fail for the account (accountId). Possible values are: ACCOUNT_NOT_FOUND, the account doesn't exist or you're not the Amazon Macie administrator for the account; and, ACCOUNT_PAUSED, Macie isn't enabled for the account in the current Amazon Web Services Region.</p>"
         }
       },
       "documentation": "<p>Provides information about a request that failed to change the status of automated sensitive data discovery for an Amazon Macie account.</p>"
@@ -3904,7 +3895,7 @@
         "errors": {
           "shape": "__listOfAutomatedDiscoveryAccountUpdateError",
           "locationName": "errors",
-          "documentation": "<p>An array of objects, one for each account whose status wasn’t changed. Each object identifies the account and explains why the status of automated sensitive data discovery wasn’t changed for the account. This value is null if the request succeeded for all specified accounts.</p>"
+          "documentation": "<p>An array of objects, one for each account whose status wasn't changed. Each object identifies the account and explains why the status of automated sensitive data discovery wasn't changed for the account. This value is null if the request succeeded for all specified accounts.</p>"
         }
       }
     },
@@ -4879,8 +4870,7 @@
     },
     "CreateSampleFindingsResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "CriteriaBlockForJob": {
       "type": "structure",
@@ -5049,8 +5039,7 @@
     },
     "DailySchedule": {
       "type": "structure",
-      "members": {
-      },
+      "members": {},
       "documentation": "<p>Specifies that a classification job runs once a day, every day. This is an empty object.</p>"
     },
     "DataIdentifierSeverity": {
@@ -5155,8 +5144,7 @@
     },
     "DeleteAllowListResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DeleteCustomDataIdentifierRequest": {
       "type": "structure",
@@ -5174,8 +5162,7 @@
     },
     "DeleteCustomDataIdentifierResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DeleteFindingsFilterRequest": {
       "type": "structure",
@@ -5193,8 +5180,7 @@
     },
     "DeleteFindingsFilterResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DeleteInvitationsRequest": {
       "type": "structure",
@@ -5235,8 +5221,7 @@
     },
     "DeleteMemberResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DescribeBucketsRequest": {
       "type": "structure",
@@ -5405,8 +5390,7 @@
     },
     "DescribeOrganizationConfigurationRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DescribeOrganizationConfigurationResponse": {
       "type": "structure",
@@ -5475,13 +5459,11 @@
     },
     "DisableMacieRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisableMacieResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisableOrganizationAdminAccountRequest": {
       "type": "structure",
@@ -5499,28 +5481,23 @@
     },
     "DisableOrganizationAdminAccountResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisassociateFromAdministratorAccountRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisassociateFromAdministratorAccountResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisassociateFromMasterAccountRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisassociateFromMasterAccountResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DisassociateMemberRequest": {
       "type": "structure",
@@ -5538,8 +5515,7 @@
     },
     "DisassociateMemberResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "DomainDetails": {
       "type": "structure",
@@ -5562,8 +5538,7 @@
     },
     "Empty": {
       "type": "structure",
-      "members": {
-      },
+      "members": {},
       "documentation": "<p>The request succeeded and there isn't any content to include in the body of the response (No Content).</p>"
     },
     "EnableMacieRequest": {
@@ -5589,8 +5564,7 @@
     },
     "EnableMacieResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "EnableOrganizationAdminAccountRequest": {
       "type": "structure",
@@ -5613,8 +5587,7 @@
     },
     "EnableOrganizationAdminAccountResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "EncryptionType": {
       "type": "string",
@@ -5916,8 +5889,7 @@
     },
     "GetAdministratorAccountRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetAdministratorAccountResponse": {
       "type": "structure",
@@ -5995,8 +5967,7 @@
     },
     "GetAutomatedDiscoveryConfigurationRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetAutomatedDiscoveryConfigurationResponse": {
       "type": "structure",
@@ -6125,8 +6096,7 @@
     },
     "GetClassificationExportConfigurationRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetClassificationExportConfigurationResponse": {
       "type": "structure",
@@ -6350,8 +6320,7 @@
     },
     "GetFindingsPublicationConfigurationRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetFindingsPublicationConfigurationResponse": {
       "type": "structure",
@@ -6393,8 +6362,7 @@
     },
     "GetInvitationsCountRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetInvitationsCountResponse": {
       "type": "structure",
@@ -6408,8 +6376,7 @@
     },
     "GetMacieSessionRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetMacieSessionResponse": {
       "type": "structure",
@@ -6443,8 +6410,7 @@
     },
     "GetMasterAccountRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetMasterAccountResponse": {
       "type": "structure",
@@ -6561,8 +6527,7 @@
     },
     "GetRevealConfigurationRequest": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "GetRevealConfigurationResponse": {
       "type": "structure",
@@ -8134,8 +8099,7 @@
     },
     "PutFindingsPublicationConfigurationResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "Range": {
       "type": "structure",
@@ -8573,6 +8537,11 @@
           "locationName": "bucketName",
           "documentation": "<p>The name of the bucket. This must be the name of an existing general purpose bucket.</p>"
         },
+        "expectedBucketOwner": {
+          "shape": "__string",
+          "locationName": "expectedBucketOwner",
+          "documentation": "<p>The unique identifier (ID) for the Amazon Web Services account that owns the bucket. This must be the ID for the account that owns the specified bucket.</p>"
+        },
         "keyPrefix": {
           "shape": "__string",
           "locationName": "keyPrefix",
@@ -8584,7 +8553,7 @@
           "documentation": "<p>The Amazon Resource Name (ARN) of the customer managed KMS key to use for encryption of the results. This must be the ARN of an existing, symmetric encryption KMS key that's enabled in the same Amazon Web Services Region as the bucket.</p>"
         }
       },
-      "documentation": "<p>Specifies an S3 bucket to store data classification results in, and the encryption settings to use when storing results in that bucket.</p>",
+      "documentation": "<p>Specifies an S3 bucket to store data classification results in, and the encryption settings to use when storing results in that bucket. The bucket must be an existing general purpose bucket. It can be a bucket in your own account or a bucket that another account owns. If another account owns the bucket, you must specify both the unique identifier for the account and the name of the bucket.</p>",
       "required": [
         "bucketName",
         "kmsKeyArn"
@@ -9405,8 +9374,7 @@
     },
     "TagResourceResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "TagScopeTerm": {
       "type": "structure",
@@ -9623,8 +9591,7 @@
     },
     "UntagResourceResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateAllowListRequest": {
       "type": "structure",
@@ -9692,8 +9659,7 @@
     },
     "UpdateAutomatedDiscoveryConfigurationResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateClassificationJobRequest": {
       "type": "structure",
@@ -9717,8 +9683,7 @@
     },
     "UpdateClassificationJobResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateClassificationScopeRequest": {
       "type": "structure",
@@ -9741,8 +9706,7 @@
     },
     "UpdateClassificationScopeResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateFindingsFilterRequest": {
       "type": "structure",
@@ -9821,8 +9785,7 @@
     },
     "UpdateMacieSessionResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateMemberSessionRequest": {
       "type": "structure",
@@ -9846,8 +9809,7 @@
     },
     "UpdateMemberSessionResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateOrganizationConfigurationRequest": {
       "type": "structure",
@@ -9864,8 +9826,7 @@
     },
     "UpdateOrganizationConfigurationResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateResourceProfileDetectionsRequest": {
       "type": "structure",
@@ -9888,8 +9849,7 @@
     },
     "UpdateResourceProfileDetectionsResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateResourceProfileRequest": {
       "type": "structure",
@@ -9912,8 +9872,7 @@
     },
     "UpdateResourceProfileResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UpdateRetrievalConfiguration": {
       "type": "structure",
@@ -9998,8 +9957,7 @@
     },
     "UpdateSensitivityInspectionTemplateResponse": {
       "type": "structure",
-      "members": {
-      }
+      "members": {}
     },
     "UsageByAccount": {
       "type": "structure",

@@ -17,14 +17,10 @@ package software.amazon.awssdk.services.s3.internal.endpoints;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.function.Supplier;
-import org.apache.hc.core5.http.Chars;
 import org.junit.After;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,7 +32,6 @@ import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.ServiceMetadataAdvancedOption;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
-import software.amazon.awssdk.utils.StringInputStream;
 import software.amazon.awssdk.utils.Validate;
 
 @RunWith(Parameterized.class)

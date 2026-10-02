@@ -15,13 +15,16 @@
 
 package software.amazon.awssdk.codegen.docs;
 
+import static software.amazon.awssdk.codegen.internal.Constant.EXAMPLE_META_PATH;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.createLinkToServiceDocumentation;
 import static software.amazon.awssdk.codegen.internal.DocumentationUtils.stripHtmlTags;
 
 import com.squareup.javapoet.ClassName;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
+import software.amazon.awssdk.codegen.internal.ExampleMetadataProvider;
 import software.amazon.awssdk.codegen.model.intermediate.DocumentationModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
@@ -50,6 +53,9 @@ abstract class OperationDocProvider {
             "{@link Path} to file that response contents will be written to. The file must not exist or " +
             "this method will throw an exception. If the file is not writable by the current user then " +
             "an exception will be thrown. ";
+
+    private static final ExampleMetadataProvider EXAMPLE_PROVIDER =
+        new ExampleMetadataProvider(EXAMPLE_META_PATH);
 
     protected final IntermediateModel model;
     protected final OperationModel opModel;
@@ -86,6 +92,10 @@ abstract class OperationDocProvider {
         if (!crosslink.isEmpty()) {
             docBuilder.see(crosslink);
         }
+
+        Optional<String> codeExampleLink = EXAMPLE_PROVIDER
+            .createLinkToCodeExample(model.getMetadata(), opModel.getOperationName());
+        codeExampleLink.ifPresent(docBuilder::see);
         return docBuilder.build().replace("$", "&#36");
     }
 

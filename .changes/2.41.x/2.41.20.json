@@ -1,0 +1,30 @@
+{
+    "version": "2.41.20",
+    "date": "2026-02-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Multi-party Approval",
+            "contributor": "",
+            "description": "Updates to multi-party approval (MPA) service to add support for multi-factor authentication (MFA) for voting operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Adds tagging support for AgentCore Evaluations (evaluator and online evaluation config)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Add OriginMTLS support to CloudFront Distribution APIs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

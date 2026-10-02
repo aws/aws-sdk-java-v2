@@ -27,6 +27,7 @@ import java.util.function.Supplier;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.sso.SsoClient;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsRequest;
 import software.amazon.awssdk.services.sso.model.GetRoleCredentialsResponse;
@@ -136,7 +137,7 @@ public class SsoCredentialsProviderTest {
                 assertThat(actualCredentials.accessKeyId()).isEqualTo("a");
                 assertThat(actualCredentials.secretAccessKey()).isEqualTo("b");
                 assertThat(actualCredentials.sessionToken()).isEqualTo("c");
-                assertThat(actualCredentials.providerName()).isPresent().contains("SsoCredentialsProvider");
+                assertThat(actualCredentials.providerName()).isPresent().contains(BusinessMetricFeatureId.CREDENTIALS_SSO.value());
                 assertThat(actualCredentials.accountId()).isPresent().contains("123456789");
             }
         }

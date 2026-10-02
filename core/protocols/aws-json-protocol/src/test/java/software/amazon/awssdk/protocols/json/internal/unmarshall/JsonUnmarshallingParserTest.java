@@ -19,11 +19,13 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.document.Document;
 import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.awssdk.thirdparty.jackson.core.JsonParseException;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -97,6 +99,27 @@ class JsonUnmarshallingParserTest {
         assertNotNull(doc);
         assertTrue(doc.isBoolean());
         assertTrue(doc.asBoolean());
+    }
+
+    @Test
+    public void parsingTimestampWithoutRoundingNeeded() {
+        JsonUnmarshallingParser parser = parser();
+        TestRequest req = (TestRequest) parser.parse(TestRequest.builder(), from("{\"timestampMember\": 1099510880.773}"));
+        assertNotNull(req);
+        Instant timestamp = req.timestampMember();
+        assertNotNull(timestamp);
+        assertEquals(Instant.ofEpochMilli(1099510880773L), timestamp);
+    }
+
+    @Test
+    public void parsingTimestampWithRoundingNeeded() {
+        JsonUnmarshallingParser parser = parser();
+        // NOTE: 1099510880.771d * 1_000d == 1.0995108807709999E12
+        TestRequest req = (TestRequest) parser.parse(TestRequest.builder(), from("{\"timestampMember\": 1099510880.771}"));
+        assertNotNull(req);
+        Instant timestamp = req.timestampMember();
+        assertNotNull(timestamp);
+        assertEquals(Instant.ofEpochMilli(1099510880771L), timestamp);
     }
 
     static JsonUnmarshallingParser parser() {

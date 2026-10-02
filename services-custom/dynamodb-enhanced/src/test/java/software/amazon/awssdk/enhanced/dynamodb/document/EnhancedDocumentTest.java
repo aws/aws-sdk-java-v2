@@ -24,8 +24,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static software.amazon.awssdk.enhanced.dynamodb.document.EnhancedDocumentTestData.testDataInstance;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,12 +50,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.SdkNumber;
+import software.amazon.awssdk.enhanced.dynamodb.AttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DefaultAttributeConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomAttributeForDocumentConverterProvider;
 import software.amazon.awssdk.enhanced.dynamodb.converters.document.CustomClassForDocumentAPI;
 
 class EnhancedDocumentTest {
+
+    ObjectMapper mapper = new ObjectMapper();
 
     private static Stream<Arguments> escapeDocumentStrings() {
         char c = 0x0a;
@@ -495,5 +503,214 @@ class EnhancedDocumentTest {
         assertThatIllegalArgumentException().isThrownBy(
                                                 () -> EnhancedDocument.builder().build().get("listKey" , List.class))
                                             .withMessage("Values of type List are not supported by this API, please use the getList API instead");
+    }
+
+    @Test
+    void toJson_numberFormatting_veryLargeNumbers() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putNumber("longMax", Long.MAX_VALUE)
+            .putNumber("longMin", Long.MIN_VALUE)
+            .putNumber("doubleMax", Double.MAX_VALUE)
+            .putNumber("scientific", 1.23e+100)
+            .putNumber("manyDecimals", 1.123456789012345)
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"longMax\":9223372036854775807,\"longMin\":-9223372036854775808,"
+                                            + "\"doubleMax\":1.7976931348623157E308,\"scientific\":1.23E100,"
+                                            + "\"manyDecimals\":1.123456789012345}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_numberFormatting_trailingZeros() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putNumber("twoPointZero", 2.0)
+            .putNumber("tenPointZeroZero", 10.00)
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"twoPointZero\":2.0,\"tenPointZeroZero\":10.0}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_stringEscaping_allControlCharacters() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("allEscapes", "line1\nline2\ttab\"quote\\backslash\r\f")
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"allEscapes\":\"line1\\nline2\\ttab\\\"quote\\\\backslash\\r\\f\"}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_stringEscaping_forwardSlash() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("slash", "path/to/resource")
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"slash\":\"path/to/resource\"}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_emptyString() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("empty", "")
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"empty\":\"\"}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_bytesEncoding_emptyBytes() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putBytes("empty", SdkBytes.fromByteArray(new byte[0]))
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"empty\":\"\"}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_listWithAllNulls() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nullList", "[null,null,null]")
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nullList\":[null,null,null]}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_mapWithNullValues() throws JsonProcessingException {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nullValues", "{\"key1\":null,\"key2\":\"value\",\"key3\":null}")
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nullValues\":{\"key1\":null,\"key2\":\"value\",\"key3\":null}}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_deeplyNestedStructure() throws JsonProcessingException {
+        String deepJson = "{\"level1\":{\"level2\":{\"level3\":{\"level4\":"
+                          + "{\"level5\":{\"level6\":{\"level7\":{\"value\":\"deep\"}}}}}}}}";
+        
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nested", deepJson)
+            .build();
+        
+        String json = doc.toJson();
+
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nested\":" + deepJson + "}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_deeplyNestedArrays() throws JsonProcessingException {
+        String deepArrayJson = "[[[[[[\"innermost\"]]]]]]";
+        
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putJson("nestedArrays", deepArrayJson)
+            .build();
+        
+        String json = doc.toJson();
+        JsonNode actual = mapper.readTree(json);
+        JsonNode expected = mapper.readTree("{\"nestedArrays\":" + deepArrayJson + "}");
+        assertThat(expected).isEqualTo(actual);
+    }
+
+    @Test
+    void toJson_emoji() {
+
+    String emoji = "{\"smile\":\"Hello 😀 World\"}";
+
+    EnhancedDocument doc = EnhancedDocument.builder()
+                                           .attributeConverterProviders(defaultProvider())
+                                           .putJson("emoji", emoji)
+                                           .build();
+
+    String json = doc.toJson();
+    assertThat(json).isEqualTo("{\"emoji\":" + emoji + "}");
+    }
+
+    @Test
+    void getJson_returnsRawValue() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("key", "value")
+            .build();
+
+        String result = doc.getJson("key");
+        assertThat(result).isEqualTo("\"value\"");
+    }
+
+    @Test
+    void getJson_nonExistentAttribute() {
+        EnhancedDocument doc = EnhancedDocument.builder()
+            .attributeConverterProviders(defaultProvider())
+            .putString("exists", "value")
+            .build();
+
+        String result = doc.getJson("doesNotExist");
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void toJson_fixtureFile_largeData() throws IOException {
+        String largeDataJson = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/large_data_input.json")));
+
+        EnhancedDocument doc = EnhancedDocument.fromJson(largeDataJson);
+        String actualOutput = doc.toJson();
+
+        // This fixture file is generated after running legacy toJson()
+        String goldenOutput = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/large_data_fixture.json")));
+
+        assertThat(actualOutput).isEqualTo(goldenOutput);
+    }
+
+    @Test
+    void toJson_fixtureFile_binaryEdgeCases() throws IOException {
+        String inputJson = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/binary_edge_cases_input.json")), StandardCharsets.UTF_8);
+
+        EnhancedDocument doc = EnhancedDocument.fromJson(inputJson);
+        String actualOutput = doc.toJson();
+
+        // This fixture file is generated after running legacy toJson()
+        String goldenOutput = new String(Files.readAllBytes(
+            Paths.get("src/test/resources/binary_edge_cases_fixture.json")), StandardCharsets.UTF_8);
+
+        assertThat(actualOutput).isEqualTo(goldenOutput);
     }
 }

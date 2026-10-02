@@ -33,14 +33,14 @@ public final class SdkVersionUtils {
     public static String getSdkPreviousReleaseVersion(Path pomFile) throws IOException {
         Optional<String> versionString =
             Files.readAllLines(pomFile)
-                 .stream().filter(l -> l.contains("<awsjavasdk.previous.version>")).findFirst();
+                 .stream().filter(l -> l.contains("<awsjavasdk.previous-previous.version>")).findFirst();
 
         if (!versionString.isPresent()) {
             throw new AssertionError("No version is found");
         }
 
         String string = versionString.get().trim();
-        String substring = string.substring(29, string.indexOf('/') - 1);
+        String substring = string.substring(38, string.indexOf('/') - 1);
         return substring;
     }
 

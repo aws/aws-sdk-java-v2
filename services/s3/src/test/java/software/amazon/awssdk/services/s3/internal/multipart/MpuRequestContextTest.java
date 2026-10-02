@@ -34,6 +34,7 @@ public class MpuRequestContextTest {
     private static final long NUM_PARTS_COMPLETED = 3;
     private static final String UPLOAD_ID = "55555";
     private static final Map<Integer, CompletedPart> EXISTING_PARTS = new ConcurrentHashMap<>();
+    public static final int EXPECTED_NUM_PARTS = 10;
 
     @Test
     public void mpuRequestContext_withValues_buildsCorrectly() {
@@ -44,6 +45,7 @@ public class MpuRequestContextTest {
                                                                .uploadId(UPLOAD_ID)
                                                                .existingParts(EXISTING_PARTS)
                                                                .numPartsCompleted(NUM_PARTS_COMPLETED)
+                                                               .expectedNumParts(EXPECTED_NUM_PARTS)
                                                                .build();
 
         assertThat(mpuRequestContext.request()).isEqualTo(REQUEST);
@@ -52,11 +54,14 @@ public class MpuRequestContextTest {
         assertThat(mpuRequestContext.uploadId()).isEqualTo(UPLOAD_ID);
         assertThat(mpuRequestContext.existingParts()).isEqualTo(EXISTING_PARTS);
         assertThat(mpuRequestContext.numPartsCompleted()).isEqualTo(NUM_PARTS_COMPLETED);
+        assertThat(mpuRequestContext.expectedNumParts()).isEqualTo(EXPECTED_NUM_PARTS);
     }
 
     @Test
     public void mpuRequestContext_default_buildsCorrectly() {
-        MpuRequestContext mpuRequestContext = MpuRequestContext.builder().build();
+        MpuRequestContext mpuRequestContext = MpuRequestContext.builder()
+                                                               .expectedNumParts(1)
+                                                               .build();
 
         assertThat(mpuRequestContext.request()).isNull();
         assertThat(mpuRequestContext.contentLength()).isNull();

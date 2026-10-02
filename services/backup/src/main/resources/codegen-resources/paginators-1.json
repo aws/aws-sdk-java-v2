@@ -1,5 +1,23 @@
 {
   "pagination": {
+    "ListBackupAccessPoints": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "BackupAccessPoints"
+    },
+    "ListBackupAccessPointsByRecoveryPoint": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "BackupAccessPoints"
+    },
+    "ListBackupAccessPointsByResource": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "BackupAccessPoints"
+    },
     "ListBackupJobSummaries": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -109,6 +127,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults"
     },
+    "ListRestoreAccessBackupVaults": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "RestoreAccessBackupVaults"
+    },
     "ListRestoreJobSummaries": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -138,10 +162,28 @@
       "limit_key": "MaxResults",
       "result_key": "RestoreTestingSelections"
     },
+    "ListScanJobSummaries": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ScanJobSummaries"
+    },
+    "ListScanJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ScanJobs"
+    },
     "ListTags": {
       "input_token": "NextToken",
       "output_token": "NextToken",
       "limit_key": "MaxResults"
+    },
+    "ListTieringConfigurations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TieringConfigurations"
     }
   }
 }

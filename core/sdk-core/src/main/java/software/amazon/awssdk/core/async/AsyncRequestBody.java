@@ -23,11 +23,15 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.function.Consumer;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.FileRequestBodyConfiguration;
 import software.amazon.awssdk.core.internal.async.ByteBuffersAsyncRequestBody;
@@ -37,6 +41,7 @@ import software.amazon.awssdk.core.internal.async.SplittingPublisher;
 import software.amazon.awssdk.core.internal.util.Mimetype;
 import software.amazon.awssdk.utils.BinaryUtils;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Interface to allow non-blocking streaming of request content. This follows the reactive streams pattern where this interface is
@@ -60,6 +65,15 @@ import software.amazon.awssdk.utils.Validate;
  * @see ByteBuffersAsyncRequestBody
  */
 @SdkPublicApi
+@SdkAdvancedApi(
+    cautionWhen = Usage.IMPLEMENTED,
+    guidance = "This is a reactive-streams Publisher and must obey the reactive-streams specification. "
+          + "The SDK re-subscribes on each retry attempt, "
+          + "so to support retries, reproduce the full content on every subscribe; a body that cannot should fail the "
+          + "subscriber on a later subscribe rather than emit partial content.",
+    saferAlternative = "Prefer the AsyncRequestBody.fromFile/fromBytes/fromInputStream factories. If you must supply a "
+          + "custom Publisher, build it with an established reactive-streams library such as RxJava or Reactor rather "
+          + "than implementing Publisher by hand.")
 public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
 
     /**
@@ -75,12 +89,32 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     }
 
     /**
+     * Each AsyncRequestBody should return a well-formed name that can be used to identify the implementation.
+     * The body name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this AsyncRequestBody implementation.
+     */
+    default String body() {
+        return BodyType.UNKNOWN.getName();
+    }
+
+    /**
      * Creates an {@link AsyncRequestBody} the produces data from the input ByteBuffer publisher. The data is delivered when the
      * publisher publishes the data.
      *
      * @param publisher Publisher of source data
      * @return Implementation of {@link AsyncRequestBody} that produces data send by the publisher
      */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CALLED,
+        guidance = "The returned AsyncRequestBody passes each subscribe straight through to the supplied publisher, so "
+              + "the publisher must itself meet the AsyncRequestBody contract: obey the reactive-streams "
+              + "specification, and since the SDK re-subscribes on each "
+              + "retry attempt, reproduce the full content on every subscribe to support retries; a publisher that "
+              + "cannot should fail the subscriber on a later subscribe rather than emit partial content.",
+        saferAlternative = "Prefer the AsyncRequestBody.fromFile/fromBytes/fromInputStream factories, which do not "
+              + "require the caller to supply a contract-compliant publisher. If you must supply one, build it with an "
+              + "established reactive-streams library such as RxJava or Reactor rather than by hand.")
     static AsyncRequestBody fromPublisher(Publisher<ByteBuffer> publisher) {
         return new AsyncRequestBody() {
 
@@ -95,6 +129,11 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
             @Override
             public void subscribe(Subscriber<? super ByteBuffer> s) {
                 publisher.subscribe(s);
+            }
+
+            @Override
+            public String body() {
+                return BodyType.PUBLISHER.getName();
             }
         };
     }
@@ -352,18 +391,65 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
     }
 
     /**
-     * Creates an {@link AsyncRequestBody} from an {@link InputStream}.
+     * Creates an {@link AsyncRequestBody} from an {@link InputStream} with a customer-provided {@link ExecutorService}.
      *
      * <p>An {@link ExecutorService} is required in order to perform the blocking data reads, to prevent blocking the
-     * non-blocking event loop threads owned by the SDK.
+     * non-blocking event loop threads owned by the SDK. Consider using {@link #fromInputStream(InputStream, Long)} instead,
+     * which lets the SDK manage threading internally.
+     *
+     * <p><b>Executor Guidance:</b> The provided executor is used to run a blocking task that reads from the input stream and
+     * pushes data to the HTTP connection. If the executor has fewer threads than the number of concurrent requests using it,
+     * tasks are serialized — one slow or failing request may block other requests from writing data in a timely manner,
+     * leading to idle HTTP connections that the server may close before data can be written. This may result in
+     * degraded performance or request timeouts.
+     *
+     * <p>To avoid this:
+     * <ul>
+     *     <li>Use a <b>dedicated</b> executor for SDK input stream requests — do not share it with other blocking work
+     *     in your application, as competing tasks may delay data writes and cause the same issue.</li>
+     *     <li>Size the executor's thread pool to at least the maximum number of concurrent requests.</li>
+     * </ul>
+     *
+     * <p>It is also recommended to configure an API call timeout via
+     * {@code ClientOverrideConfiguration.builder().apiCallTimeout()} to bound the total time spent on retries.
+     *
+     * @param inputStream The input stream containing the data to be sent
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     * @param executor The executor
+     *
+     * @return An AsyncRequestBody instance for the input stream
+     *
+     * @see #fromInputStream(InputStream, Long)
      */
     static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength, ExecutorService executor) {
         return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength).executor(executor));
     }
 
     /**
+     * Creates an {@link AsyncRequestBody} from an {@link InputStream} with SDK-managed executor.
+     *
+     * <p>The SDK manages the threading required to perform blocking reads from the input stream
+     * without blocking the non-blocking event loop threads.
+     *
+     * @param inputStream The input stream containing the data to be sent
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     *
+     * @see #fromInputStream(InputStream, Long, ExecutorService)
+     * @return An AsyncRequestBody instance for the input stream
+     */
+    static AsyncRequestBody fromInputStream(InputStream inputStream, Long contentLength) {
+        return fromInputStream(b -> b.inputStream(inputStream).contentLength(contentLength));
+    }
+
+    /**
      * Creates an {@link AsyncRequestBody} from an {@link InputStream} with the provided
-     * {@link AsyncRequestBodySplitConfiguration}.
+     * {@link AsyncRequestBodyFromInputStreamConfiguration}.
+     *
+     * <p>See {@link #fromInputStream(InputStream, Long, ExecutorService)} for guidance on executor.
      */
     static AsyncRequestBody fromInputStream(AsyncRequestBodyFromInputStreamConfiguration configuration) {
         Validate.notNull(configuration, "configuration");
@@ -386,6 +472,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *
      * <p>By default, it will time out if streaming hasn't started within 10 seconds, and use application/octet-stream as
      * content type. You can configure it via {@link BlockingInputStreamAsyncRequestBody#builder()}
+     *
      * <p><b>Example Usage</b>
      *
      * <p>
@@ -393,8 +480,8 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     S3AsyncClient s3 = S3AsyncClient.create(); // Use one client for your whole application!
      *
      *     byte[] dataToSend = "Hello".getBytes(StandardCharsets.UTF_8);
-     *     InputStream streamToSend = new ByteArrayInputStream();
-     *     long streamToSendLength = dataToSend.length();
+     *     InputStream streamToSend = new ByteArrayInputStream(dataToSend);
+     *     long streamToSendLength = dataToSend.length;
      *
      *     // Start the operation
      *     BlockingInputStreamAsyncRequestBody body =
@@ -408,6 +495,10 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     // Wait for the service to respond.
      *     PutObjectResponse response = responseFuture.join();
      * }
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     * @return The created {@code BlockingInputStreamAsyncRequestBody}.
      */
     static BlockingInputStreamAsyncRequestBody forBlockingInputStream(Long contentLength) {
         return BlockingInputStreamAsyncRequestBody.builder()
@@ -433,7 +524,7 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     long lengthOfDataToSend = dataToSend.length();
      *
      *     // Start the operation
-     *     BlockingInputStreamAsyncRequestBody body =
+     *     BlockingOutputStreamAsyncRequestBody body =
      *         AsyncRequestBody.forBlockingOutputStream(lengthOfDataToSend);
      *     CompletableFuture<PutObjectResponse> responseFuture =
      *         s3.putObject(r -> r.bucket("bucketName").key("key"), body);
@@ -447,6 +538,11 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      *     PutObjectResponse response = responseFuture.join();
      * }
      * @see BlockingOutputStreamAsyncRequestBody
+     *
+     * @param contentLength The content length. If a content length smaller than the actual size of the object is set, the client
+     *                      will truncate the stream to the specified content length and only send exactly the number of bytes
+     *                      equal to the content length.
+     * @return The created {@code BlockingOutputStreamAsyncRequestBody}.
      */
     static BlockingOutputStreamAsyncRequestBody forBlockingOutputStream(Long contentLength) {
         return BlockingOutputStreamAsyncRequestBody.builder()
@@ -463,7 +559,6 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
         return fromBytes(new byte[0]);
     }
 
-
     /**
      * Converts this {@link AsyncRequestBody} to a publisher of {@link AsyncRequestBody}s, each of which publishes a specific
      * portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk size
@@ -476,12 +571,45 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
      * interface overrides this method.
      *
-     * @see AsyncRequestBodySplitConfiguration
+     * @deprecated use {@link #splitCloseable(AsyncRequestBodySplitConfiguration)} instead.
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(AsyncRequestBodySplitConfiguration splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
+        return SplittingPublisher.builder()
+                .asyncRequestBody(this)
+                .splitConfiguration(splitConfiguration)
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build()
+                .map(r -> r);
+    }
 
-        return new SplittingPublisher(this, splitConfiguration);
+    /**
+     * Converts this {@link AsyncRequestBody} to a publisher of {@link CloseableAsyncRequestBody}s, each of which publishes
+     * specific portion of the original data, based on the provided {@link AsyncRequestBodySplitConfiguration}. The default chunk
+     * size is 2MB and the default buffer size is 8MB.
+     *
+     * <p>
+     * The default implementation behaves the same as {@link #split(AsyncRequestBodySplitConfiguration)}. This behavior may
+     * vary in different implementations.
+     *
+     * <p>
+     * Caller is responsible for closing {@link CloseableAsyncRequestBody} when it is ready to be disposed to release any
+     * resources.
+     *
+     * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
+     * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.
+     *
+     * @see #splitCloseable(Consumer)
+     * @see AsyncRequestBodySplitConfiguration
+     */
+    default SdkPublisher<CloseableAsyncRequestBody> splitCloseable(AsyncRequestBodySplitConfiguration splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return SplittingPublisher.builder()
+                .asyncRequestBody(this)
+                .splitConfiguration(splitConfiguration)
+                .retryableSubAsyncRequestBodyEnabled(false)
+                .build();
     }
 
     /**
@@ -489,9 +617,58 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
      *
      * @see #split(AsyncRequestBodySplitConfiguration)
+     * @deprecated use {@link #splitCloseable(Consumer)} instead
      */
+    @Deprecated
     default SdkPublisher<AsyncRequestBody> split(Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
         Validate.notNull(splitConfiguration, "splitConfiguration");
         return split(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
+    }
+
+    /**
+     * This is a convenience method that passes an instance of the {@link AsyncRequestBodySplitConfiguration} builder,
+     * avoiding the need to create one manually via {@link AsyncRequestBodySplitConfiguration#builder()}.
+     *
+     * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
+     * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.
+     *
+     * @see #splitCloseable(AsyncRequestBodySplitConfiguration)
+     */
+    default SdkPublisher<CloseableAsyncRequestBody> splitCloseable(
+        Consumer<AsyncRequestBodySplitConfiguration.Builder> splitConfiguration) {
+        Validate.notNull(splitConfiguration, "splitConfiguration");
+        return splitCloseable(AsyncRequestBodySplitConfiguration.builder().applyMutation(splitConfiguration).build());
+    }
+
+    @SdkProtectedApi
+    enum BodyType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        PUBLISHER("Publisher", "p"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, BodyType> VALUE_MAP =
+            EnumUtils.uniqueIndex(BodyType.class, BodyType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+        BodyType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

@@ -21,6 +21,8 @@ import static org.mockito.Mockito.never;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import org.junit.Before;
@@ -266,6 +268,20 @@ public class CloudWatchMetricPublisherTest {
         assertThat(availableConcurrency.values()).isNotEmpty();
         assertThat(availableConcurrency.counts()).isNotEmpty();
         assertThat(availableConcurrency.statisticValues()).isNull();
+    }
+
+    @Test
+    public void taskQueueSettingIsHonored() {
+        ArrayBlockingQueue<Runnable> customQueue = Mockito.spy(new ArrayBlockingQueue<>(128));
+        try (CloudWatchMetricPublisher publisher = publisherBuilder.taskQueue(customQueue).build()) {
+            MetricCollector collector = newCollector();
+            collector.reportMetric(HttpMetric.AVAILABLE_CONCURRENCY, 5);
+            publisher.publish(new FixedTimeMetricCollection(collector.collect()));
+        } catch (RuntimeException e) {
+            // ignore any exception since we are just verifying it's being used
+        }
+
+        Mockito.verify(customQueue, Mockito.atLeastOnce()).offer(any(Runnable.class));
     }
 
     private MetricDatum getDatum(PutMetricDataRequest call, SdkMetric<?> metric) {

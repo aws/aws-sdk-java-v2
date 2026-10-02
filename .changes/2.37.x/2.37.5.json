@@ -1,0 +1,24 @@
+{
+    "version": "2.37.5",
+    "date": "2025-11-04",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "The DynamoDB Enhanced Client now properly sanitizes version attribute names when building conditional expressions for optimistic locking. Version attributes with special characters in their names will now work correctly. See [#3279](https://github.com/aws/aws-sdk-java-v2/issues/3279)"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Pinpoint SMS Voice V2",
+            "contributor": "",
+            "description": "This release adds support for the CarrierLookup API, which returns information about a destination phone number including if the number is valid, the carrier, and more."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -90,7 +90,7 @@ class DefaultPollyPresignerTest {
     }
 
     @Test
-    void presign_requestLevelSingerAndCredentials_honored() {
+    void presign_requestLevelSignerAndCredentials_honored() {
         IdentityProvider<AwsCredentialsIdentity> requestCedentialsProvider = StaticCredentialsProvider.create(
             AwsBasicCredentials.create("akid2", "skid2")
         );
@@ -189,6 +189,26 @@ class DefaultPollyPresignerTest {
         PresignedSynthesizeSpeechRequest presignedSynthesizeSpeechRequest = presigner.presignSynthesizeSpeech(presignRequest);
 
         assertThat(presignedSynthesizeSpeechRequest.httpRequest().rawQueryParameters().keySet()).contains("QueryParam1");
+    }
+
+    @Test
+    void presign_noEndpointOverride_usesDefaultEndpoint() {
+        PollyPresigner presigner = DefaultPollyPresigner.builder()
+                .region(Region.US_EAST_1)
+                .credentialsProvider(credentialsProvider)
+                .build();
+
+        SynthesizeSpeechPresignRequest presignRequest = SynthesizeSpeechPresignRequest.builder()
+                .synthesizeSpeechRequest(BASIC_SYNTHESIZE_SPEECH_REQUEST)
+                .signatureDuration(Duration.ofHours(3))
+                .build();
+
+        PresignedSynthesizeSpeechRequest presigned = presigner.presignSynthesizeSpeech(presignRequest);
+
+        URL presignedUrl = presigned.url();
+        assertThat(presignedUrl.getProtocol()).isEqualTo("https");
+        assertThat(presignedUrl.getHost()).isEqualTo("polly.us-east-1.amazonaws.com");
+        assertThat(presignedUrl.getPath()).isEqualTo("/v1/speech");
     }
 
     @Test

@@ -37,7 +37,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.s3.model.AbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.model.CreateMultipartUploadRequest;
@@ -52,6 +52,8 @@ import software.amazon.awssdk.services.s3.presigner.model.PresignedCompleteMulti
 import software.amazon.awssdk.services.s3.presigner.model.PresignedCreateMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedDeleteObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedGetObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadBucketRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PresignedHeadObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedUploadPartRequest;
 import software.amazon.awssdk.services.s3.utils.S3TestUtils;
@@ -190,7 +192,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = presigned.signedPayload()
                                                         .map(SdkBytes::asContentStreamProvider)
@@ -224,7 +226,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = presigned.signedPayload()
                                                         .map(SdkBytes::asContentStreamProvider)
@@ -253,7 +255,7 @@ public class S3PresignerIntegrationTest {
 
         assertThat(presigned.isBrowserExecutable()).isFalse();
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build(); // or UrlConnectionHttpClient.builder().build()
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = () -> new StringInputStream(testObjectContent);
 
@@ -363,6 +365,50 @@ public class S3PresignerIntegrationTest {
         assertThat(getMultipartUpload(objectKey)).isNotPresent();
     }
 
+    @Test
+    public void headObject_CanBePresigned() throws IOException {
+        PresignedHeadObjectRequest presigned =
+            presigner.presignHeadObject(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                             .headObjectRequest(hor -> hor.bucket(testBucket)
+                                                                         .key(testGetObjectKey)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
+
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(presigned.httpRequest())
+                                                       .build();
+
+        HttpExecuteResponse response = httpClient.prepareRequest(request).call();
+
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+        assertThat(response.httpResponse().firstMatchingHeader("Content-Length")).isPresent();
+        assertThat(response.httpResponse().firstMatchingHeader("ETag")).isPresent();
+        assertThat(response.httpResponse().firstMatchingHeader("Last-Modified")).isPresent();
+
+    }
+
+    @Test
+    public void headBucket_CanBePresigned() throws IOException {
+        PresignedHeadBucketRequest presigned =
+            presigner.presignHeadBucket(r -> r.signatureDuration(Duration.ofMinutes(5))
+                                              .headBucketRequest(hbr -> hbr.bucket(testBucket)));
+
+        assertThat(presigned.isBrowserExecutable()).isFalse();
+
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
+
+        HttpExecuteRequest request = HttpExecuteRequest.builder()
+                                                       .request(presigned.httpRequest())
+                                                       .build();
+
+        HttpExecuteResponse response = httpClient.prepareRequest(request).call();
+
+        assertThat(response.httpResponse().isSuccessful()).isTrue();
+        assertThat(response.httpResponse().firstMatchingHeader("x-amz-bucket-region")).isPresent();
+    }
+
     private Consumer<CreateMultipartUploadRequest.Builder> createMultipartUploadRequest(String objectKey) {
         return r -> r.bucket(testBucket).key(objectKey);
     }
@@ -396,7 +442,7 @@ public class S3PresignerIntegrationTest {
     }
 
     private HttpExecuteResponse execute(PresignedRequest presigned, String payload) throws IOException {
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         ContentStreamProvider requestPayload = payload == null ? null : () -> new StringInputStream(payload);
 

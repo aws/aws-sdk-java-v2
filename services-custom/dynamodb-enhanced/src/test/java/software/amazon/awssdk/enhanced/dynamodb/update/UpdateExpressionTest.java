@@ -174,4 +174,34 @@ class UpdateExpressionTest {
     private static final class UnknownUpdateAction implements UpdateAction {
 
     }
+
+    @Test
+    void mergeExpressions_withFirstExpressionNull_returnsSecondExpression() {
+        UpdateExpression updateExpression = UpdateExpression.builder()
+                                                            .actions(removeAction, setAction, deleteAction, addAction)
+                                                            .build();
+        UpdateExpression result = UpdateExpression.mergeExpressions(null, updateExpression);
+        assertThat(result.removeActions()).containsExactly(removeAction);
+        assertThat(result.setActions()).containsExactly(setAction);
+        assertThat(result.deleteActions()).containsExactly(deleteAction);
+        assertThat(result.addActions()).containsExactly(addAction);
+    }
+
+    @Test
+    void mergeExpressions_withBothExpressionsNull_returnsNull() {
+        UpdateExpression result = UpdateExpression.mergeExpressions(null, null);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    void builder_actions_withNullList_doesNotModifyExistingActions() {
+        UpdateExpression updateExpression = UpdateExpression.builder()
+                                                            .addAction(removeAction)
+                                                            .actions((List<UpdateAction>) null)
+                                                            .build();
+        assertThat(updateExpression.removeActions()).containsExactly(removeAction);
+        assertThat(updateExpression.setActions()).isEmpty();
+        assertThat(updateExpression.deleteActions()).isEmpty();
+        assertThat(updateExpression.addActions()).isEmpty();
+    }
 }

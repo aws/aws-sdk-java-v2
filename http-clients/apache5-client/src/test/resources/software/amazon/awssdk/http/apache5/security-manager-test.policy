@@ -1,0 +1,15 @@
+grant {
+    permission java.util.PropertyPermission "*", "read,write";
+    permission java.io.FilePermission "<<ALL FILES>>", "read,write";
+    permission java.lang.RuntimePermission "getenv.*";
+    permission "java.lang.RuntimePermission" "accessDeclaredMembers";
+    permission "javax.net.ssl.SSLPermission" "setDefaultSSLContext";
+    permission "java.net.SocketPermission" "*", "connect,resolve";
+
+    // Needed for test to remove the security manager
+    permission java.lang.RuntimePermission "setSecurityManager";
+
+    // jdk.net.NetworkPermission for setOption.TCP_KEEPIDLE, setOption.TCP_KEEPINTERVAL,
+    // setOption.TCP_KEEPCOUNT is explicitly NOT granted to test that Apache5HttpClient
+    // fails fast when these permissions are missing.
+};

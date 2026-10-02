@@ -50,7 +50,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     @Override
     public SdkRequest modifyRequest(Context.ModifyRequest context, ExecutionAttributes executionAttributes) {
         SdkRequest result = context.request();
-        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.skipEndpointResolution(executionAttributes)) {
             return result;
         }
         QueryEndpointProvider provider = (QueryEndpointProvider) executionAttributes
@@ -87,6 +87,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
                 executionAttributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, selectedAuthScheme);
             }
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT, endpoint);
+            setMetricValues(endpoint, executionAttributes);
             return result;
         } catch (CompletionException e) {
             Throwable cause = e.getCause();
@@ -101,7 +102,7 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
         Endpoint resolvedEndpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);
-        if (resolvedEndpoint.headers().isEmpty()) {
+        if (resolvedEndpoint == null || CollectionUtils.isNullOrEmpty(resolvedEndpoint.headers())) {
             return context.httpRequest();
         }
         SdkHttpRequest.Builder httpRequestBuilder = context.httpRequest().toBuilder();
@@ -241,8 +242,10 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
     private static String resolveAndRecordAccountIdFromIdentity(ExecutionAttributes executionAttributes) {
         String accountId = accountIdFromIdentity(executionAttributes
                                                      .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME));
-        executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
-            BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        if (accountId != null) {
+            executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(
+                BusinessMetricFeatureId.RESOLVED_ACCOUNT_ID.value());
+        }
         return accountId;
     }
 
@@ -260,5 +263,11 @@ public final class QueryResolveEndpointInterceptor implements ExecutionIntercept
         BusinessMetricsUtils.resolveAccountIdEndpointModeMetric(mode).ifPresent(
             m -> executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).addMetric(m));
         return mode.name().toLowerCase();
+    }
+
+    private void setMetricValues(Endpoint endpoint, ExecutionAttributes executionAttributes) {
+        if (endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES) != null) {
+            executionAttributes.getOptionalAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS).ifPresent(metrics -> endpoint.attribute(AwsEndpointAttribute.METRIC_VALUES).forEach(v -> metrics.addMetric(v)));
+        }
     }
 }

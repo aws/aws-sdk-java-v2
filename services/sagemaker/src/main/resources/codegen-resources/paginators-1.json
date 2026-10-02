@@ -1,5 +1,35 @@
 {
   "pagination": {
+    "CreateHubContentPresignedUrls": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AuthorizedUrlConfigs"
+    },
+    "DescribeTrainingPlanExtensionHistory": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TrainingPlanExtensions"
+    },
+    "ListAIBenchmarkJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIBenchmarkJobs"
+    },
+    "ListAIRecommendationJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIRecommendationJobs"
+    },
+    "ListAIWorkloadConfigs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIWorkloadConfigs"
+    },
     "ListActions": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -53,6 +83,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "Candidates"
+    },
+    "ListClusterEvents": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Events"
     },
     "ListClusterNodes": {
       "input_token": "NextToken",
@@ -210,6 +246,18 @@
       "limit_key": "MaxResults",
       "result_key": "InferenceRecommendationsJobs"
     },
+    "ListJobSchemaVersions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "JobConfigSchemas"
+    },
+    "ListJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "JobSummaries"
+    },
     "ListLabelingJobs": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -227,6 +275,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "LineageGroupSummaries"
+    },
+    "ListMlflowApps": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Summaries"
     },
     "ListMlflowTrackingServers": {
       "input_token": "NextToken",
@@ -360,6 +414,12 @@
       "limit_key": "MaxResults",
       "result_key": "PipelineParameters"
     },
+    "ListPipelineVersions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "PipelineVersionSummaries"
+    },
     "ListPipelines": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -448,6 +508,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "TrialSummaries"
+    },
+    "ListUltraServersByReservedCapacity": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "UltraServers"
     },
     "ListUserProfiles": {
       "input_token": "NextToken",

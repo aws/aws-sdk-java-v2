@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.AnalyticsFilter;
 import software.amazon.awssdk.services.s3.model.AnalyticsS3BucketDestination;
 import software.amazon.awssdk.services.s3.model.AnalyticsS3ExportFileFormat;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.DeleteBucketAnalyticsConfigurationRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketAnalyticsConfigurationRequest;
@@ -69,6 +70,7 @@ public class BucketAnalyticsConfigurationIntegrationTest extends S3IntegrationTe
                                            .bucket(BUCKET_NAME)
                                            .createBucketConfiguration(CreateBucketConfiguration.builder()
                                                                                                .locationConstraint("us-west-2")
+                                                                                               .tags(S3TestUtils.integTestTag())
                                                                                                .build())
                                            .build());
 

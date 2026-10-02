@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
 import software.amazon.awssdk.core.sync.RequestBody;
@@ -36,11 +35,13 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 import software.amazon.awssdk.services.s3.model.NoSuchKeyException;
+import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
-import software.amazon.awssdk.stability.tests.utils.RetryableTest;
+import software.amazon.awssdk.testutils.retry.RetryableTest;
 import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.testutils.service.AwsTestBase;
+import software.amazon.awssdk.testutils.service.S3BucketUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Md5Utils;
 
@@ -215,12 +216,23 @@ public abstract class S3BaseStabilityTest extends AwsTestBase {
         }
     }
 
+    /**
+     * Tag applied to test buckets at creation so any residual test buckets can be cleaned up based on the tag.
+     */
+    protected static Tag integTestTag() {
+        return Tag.builder()
+                  .key(S3BucketUtils.INTEG_TEST_RESOURCE_TAG_KEY)
+                  .value(S3BucketUtils.INTEG_TEST_RESOURCE_TAG_VALUE)
+                  .build();
+    }
+
     protected void verifyObjectExist(String bucketName, String keyName, long size) throws IOException {
         try {
             s3ApacheClient.headBucket(b -> b.bucket(bucketName));
         } catch (NoSuchBucketException e) {
             log.info(() -> "NoSuchBucketException was thrown, staring to create the bucket");
-            s3ApacheClient.createBucket(b -> b.bucket(bucketName));
+            s3ApacheClient.createBucket(b -> b.bucket(bucketName)
+                                              .createBucketConfiguration(cfg -> cfg.tags(integTestTag())));
         }
 
         try {

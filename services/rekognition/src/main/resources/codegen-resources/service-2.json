@@ -33,7 +33,7 @@
         {"shape":"ConflictException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Associates one or more faces with an existing UserID. Takes an array of <code>FaceIds</code>. Each <code>FaceId</code> that are present in the <code>FaceIds</code> list is associated with the provided UserID. The maximum number of total <code>FaceIds</code> per UserID is 100. </p> <p>The <code>UserMatchThreshold</code> parameter specifies the minimum user match confidence required for the face to be associated with a UserID that has at least one <code>FaceID</code> already associated. This ensures that the <code>FaceIds</code> are associated with the right UserID. The value ranges from 0-100 and default value is 75. </p> <p>If successful, an array of <code>AssociatedFace</code> objects containing the associated <code>FaceIds</code> is returned. If a given face is already associated with the given <code>UserID</code>, it will be ignored and will not be returned in the response. If a given face is already associated to a different <code>UserID</code>, isn't found in the collection, doesn’t meet the <code>UserMatchThreshold</code>, or there are already 100 faces associated with the <code>UserID</code>, it will be returned as part of an array of <code>UnsuccessfulFaceAssociations.</code> </p> <p>The <code>UserStatus</code> reflects the status of an operation which updates a UserID representation with a list of given faces. The <code>UserStatus</code> can be: </p> <ul> <li> <p>ACTIVE - All associations or disassociations of FaceID(s) for a UserID are complete.</p> </li> <li> <p>CREATED - A UserID has been created, but has no FaceID(s) associated with it.</p> </li> <li> <p>UPDATING - A UserID is being updated and there are current associations or disassociations of FaceID(s) taking place.</p> </li> </ul>"
+      "documentation":"<p>Associates one or more faces with an existing UserID. Takes an array of <code>FaceIds</code>. Each <code>FaceId</code> that are present in the <code>FaceIds</code> list is associated with the provided UserID. The number of FaceIds that can be used as input in a single request is limited to 100.</p> <p>Note that the total number of faces that can be associated with a single <code>UserID</code> is also limited to 100. Once a <code>UserID</code> has 100 faces associated with it, no additional faces can be added. If more API calls are made after the limit is reached, a <code>ServiceQuotaExceededException</code> will result.</p> <p>The <code>UserMatchThreshold</code> parameter specifies the minimum user match confidence required for the face to be associated with a UserID that has at least one <code>FaceID</code> already associated. This ensures that the <code>FaceIds</code> are associated with the right UserID. The value ranges from 0-100 and default value is 75. </p> <p>If successful, an array of <code>AssociatedFace</code> objects containing the associated <code>FaceIds</code> is returned. If a given face is already associated with the given <code>UserID</code>, it will be ignored and will not be returned in the response. If a given face is already associated to a different <code>UserID</code>, isn't found in the collection, doesn’t meet the <code>UserMatchThreshold</code>, or there are already 100 faces associated with the <code>UserID</code>, it will be returned as part of an array of <code>UnsuccessfulFaceAssociations.</code> </p> <p>The <code>UserStatus</code> reflects the status of an operation which updates a UserID representation with a list of given faces. The <code>UserStatus</code> can be: </p> <ul> <li> <p>ACTIVE - All associations or disassociations of FaceID(s) for a UserID are complete.</p> </li> <li> <p>CREATED - A UserID has been created, but has no FaceID(s) associated with it.</p> </li> <li> <p>UPDATING - A UserID is being updated and there are current associations or disassociations of FaceID(s) taking place.</p> </li> </ul>"
     },
     "CompareFaces":{
       "name":"CompareFaces",
@@ -131,7 +131,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>This API operation initiates a Face Liveness session. It returns a <code>SessionId</code>, which you can use to start streaming Face Liveness video and get the results for a Face Liveness session. </p> <p>You can use the <code>OutputConfig</code> option in the Settings parameter to provide an Amazon S3 bucket location. The Amazon S3 bucket stores reference images and audit images. If no Amazon S3 bucket is defined, raw bytes are sent instead. </p> <p>You can use <code>AuditImagesLimit</code> to limit the number of audit images returned when <code>GetFaceLivenessSessionResults</code> is called. This number is between 0 and 4. By default, it is set to 0. The limit is best effort and based on the duration of the selfie-video. </p>",
+      "documentation":"<p>This API operation initiates a Face Liveness session. It returns a <code>SessionId</code>, which you can use to start streaming Face Liveness video and get the results for a Face Liveness session. </p> <p>You can use the <code>OutputConfig</code> option in the Settings parameter to provide an Amazon S3 bucket location. The Amazon S3 bucket stores reference images and audit images. If no Amazon S3 bucket is defined, raw bytes are sent instead. </p> <p>You can use <code>AuditImagesLimit</code> to limit the number of audit images returned when <code>GetFaceLivenessSessionResults</code> is called. This number is between 0 and 4. By default, it is set to 0. The limit is best effort and based on the duration of the selfie-video. </p> <p>You can use the <code>ChallengePreferences</code> option in the <code>Settings</code> parameter to choose between the 'FaceMovementAndLightChallenge' or FaceMovementChallenge' settings. See the <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/face-liveness-shared-responsibility-model.html\">Shared Responsibility</a> page for details on guidance for which setting to choose between these two settings depending on your use case and preferences. This parameter is optional and if no parameter is provided, then the 'FaceMovementAndLightChallenge' settings is applied by default.</p>",
       "idempotent":true
     },
     "CreateProject":{
@@ -192,7 +192,7 @@
         {"shape":"ProvisionedThroughputExceededException"},
         {"shape":"ServiceQuotaExceededException"}
       ],
-      "documentation":"<p>Creates an Amazon Rekognition stream processor that you can use to detect and recognize faces or to detect labels in a streaming video.</p> <p>Amazon Rekognition Video is a consumer of live video from Amazon Kinesis Video Streams. There are two different settings for stream processors in Amazon Rekognition: detecting faces and detecting labels.</p> <ul> <li> <p>If you are creating a stream processor for detecting faces, you provide as input a Kinesis video stream (<code>Input</code>) and a Kinesis data stream (<code>Output</code>) stream for receiving the output. You must use the <code>FaceSearch</code> option in <code>Settings</code>, specifying the collection that contains the faces you want to recognize. After you have finished analyzing a streaming video, use <a>StopStreamProcessor</a> to stop processing.</p> </li> <li> <p>If you are creating a stream processor to detect labels, you provide as input a Kinesis video stream (<code>Input</code>), Amazon S3 bucket information (<code>Output</code>), and an Amazon SNS topic ARN (<code>NotificationChannel</code>). You can also provide a KMS key ID to encrypt the data sent to your Amazon S3 bucket. You specify what you want to detect by using the <code>ConnectedHome</code> option in settings, and selecting one of the following: <code>PERSON</code>, <code>PET</code>, <code>PACKAGE</code>, <code>ALL</code> You can also specify where in the frame you want Amazon Rekognition to monitor with <code>RegionsOfInterest</code>. When you run the <a>StartStreamProcessor</a> operation on a label detection stream processor, you input start and stop information to determine the length of the processing time.</p> </li> </ul> <p> Use <code>Name</code> to assign an identifier for the stream processor. You use <code>Name</code> to manage the stream processor. For example, you can start processing the source video by calling <a>StartStreamProcessor</a> with the <code>Name</code> field. </p> <p>This operation requires permissions to perform the <code>rekognition:CreateStreamProcessor</code> action. If you want to tag your stream processor, you also require permission to perform the <code>rekognition:TagResource</code> operation.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Creates an Amazon Rekognition stream processor that you can use to detect and recognize faces or to detect labels in a streaming video.</p> <p>Amazon Rekognition Video is a consumer of live video from Amazon Kinesis Video Streams. There are two different settings for stream processors in Amazon Rekognition: detecting faces and detecting labels.</p> <ul> <li> <p>If you are creating a stream processor for detecting faces, you provide as input a Kinesis video stream (<code>Input</code>) and a Kinesis data stream (<code>Output</code>) stream for receiving the output. You must use the <code>FaceSearch</code> option in <code>Settings</code>, specifying the collection that contains the faces you want to recognize. After you have finished analyzing a streaming video, use <a>StopStreamProcessor</a> to stop processing.</p> </li> <li> <p>If you are creating a stream processor to detect labels, you provide as input a Kinesis video stream (<code>Input</code>), Amazon S3 bucket information (<code>Output</code>), and an Amazon SNS topic ARN (<code>NotificationChannel</code>). You can also provide a KMS key ID to encrypt the data sent to your Amazon S3 bucket. You specify what you want to detect by using the <code>ConnectedHome</code> option in settings, and selecting one of the following: <code>PERSON</code>, <code>PET</code>, <code>PACKAGE</code>, <code>ALL</code> You can also specify where in the frame you want Amazon Rekognition to monitor with <code>RegionsOfInterest</code>. When you run the <a>StartStreamProcessor</a> operation on a label detection stream processor, you input start and stop information to determine the length of the processing time.</p> </li> </ul> <p> Use <code>Name</code> to assign an identifier for the stream processor. You use <code>Name</code> to manage the stream processor. For example, you can start processing the source video by calling <a>StartStreamProcessor</a> with the <code>Name</code> field. </p> <p>This operation requires permissions to perform the <code>rekognition:CreateStreamProcessor</code> action. If you want to tag your stream processor, you also require permission to perform the <code>rekognition:TagResource</code> operation.</p>"
     },
     "CreateUser":{
       "name":"CreateUser",
@@ -345,7 +345,7 @@
         {"shape":"ResourceInUseException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>Deletes the stream processor identified by <code>Name</code>. You assign the value for <code>Name</code> when you create the stream processor with <a>CreateStreamProcessor</a>. You might not be able to use the same name for a stream processor for a few seconds after calling <code>DeleteStreamProcessor</code>.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Deletes the stream processor identified by <code>Name</code>. You assign the value for <code>Name</code> when you create the stream processor with <a>CreateStreamProcessor</a>. You might not be able to use the same name for a stream processor for a few seconds after calling <code>DeleteStreamProcessor</code>.</p>"
     },
     "DeleteUser":{
       "name":"DeleteUser",
@@ -456,7 +456,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>Provides information about a stream processor created by <a>CreateStreamProcessor</a>. You can get information about the input and output streams, the input parameters for the face recognition being performed, and the current status of the stream processor.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Provides information about a stream processor created by <a>CreateStreamProcessor</a>. You can get information about the input and output streams, the input parameters for the face recognition being performed, and the current status of the stream processor.</p>"
     },
     "DetectCustomLabels":{
       "name":"DetectCustomLabels",
@@ -479,7 +479,7 @@
         {"shape":"ProvisionedThroughputExceededException"},
         {"shape":"InvalidImageFormatException"}
       ],
-      "documentation":"<note> <p>This operation applies only to Amazon Rekognition Custom Labels.</p> </note> <p>Detects custom labels in a supplied image by using an Amazon Rekognition Custom Labels model. </p> <p>You specify which version of a model version to use by using the <code>ProjectVersionArn</code> input parameter. </p> <p>You pass the input image as base64-encoded image bytes or as a reference to an image in an Amazon S3 bucket. If you use the AWS CLI to call Amazon Rekognition operations, passing image bytes is not supported. The image must be either a PNG or JPEG formatted file. </p> <p> For each object that the model version detects on an image, the API returns a (<code>CustomLabel</code>) object in an array (<code>CustomLabels</code>). Each <code>CustomLabel</code> object provides the label name (<code>Name</code>), the level of confidence that the image contains the object (<code>Confidence</code>), and object location information, if it exists, for the label on the image (<code>Geometry</code>). Note that for the <code>DetectCustomLabelsLabels</code> operation, <code>Polygons</code> are not returned in the <code>Geometry</code> section of the response.</p> <p>To filter labels that are returned, specify a value for <code>MinConfidence</code>. <code>DetectCustomLabelsLabels</code> only returns labels with a confidence that's higher than the specified value. The value of <code>MinConfidence</code> maps to the assumed threshold values created during training. For more information, see <i>Assumed threshold</i> in the Amazon Rekognition Custom Labels Developer Guide. Amazon Rekognition Custom Labels metrics expresses an assumed threshold as a floating point value between 0-1. The range of <code>MinConfidence</code> normalizes the threshold value to a percentage value (0-100). Confidence responses from <code>DetectCustomLabels</code> are also returned as a percentage. You can use <code>MinConfidence</code> to change the precision and recall or your model. For more information, see <i>Analyzing an image</i> in the Amazon Rekognition Custom Labels Developer Guide. </p> <p>If you don't specify a value for <code>MinConfidence</code>, <code>DetectCustomLabels</code> returns labels based on the assumed threshold of each label.</p> <p>This is a stateless API operation. That is, the operation does not persist any data.</p> <p>This operation requires permissions to perform the <code>rekognition:DetectCustomLabels</code> action. </p> <p>For more information, see <i>Analyzing an image</i> in the Amazon Rekognition Custom Labels Developer Guide. </p>"
+      "documentation":"<note> <p>This operation applies only to Amazon Rekognition Custom Labels.</p> </note> <p>Detects custom labels in a supplied image by using an Amazon Rekognition Custom Labels model. </p> <p>You specify which version of a model version to use by using the <code>ProjectVersionArn</code> input parameter. </p> <p>You pass the input image as base64-encoded image bytes or as a reference to an image in an Amazon S3 bucket. If you use the AWS CLI to call Amazon Rekognition operations, passing image bytes is not supported. The image must be either a PNG or JPEG formatted file. </p> <p> For each object that the model version detects on an image, the API returns a (<code>CustomLabel</code>) object in an array (<code>CustomLabels</code>). Each <code>CustomLabel</code> object provides the label name (<code>Name</code>), the level of confidence that the image contains the object (<code>Confidence</code>), and object location information, if it exists, for the label on the image (<code>Geometry</code>). </p> <p>To filter labels that are returned, specify a value for <code>MinConfidence</code>. <code>DetectCustomLabelsLabels</code> only returns labels with a confidence that's higher than the specified value. The value of <code>MinConfidence</code> maps to the assumed threshold values created during training. For more information, see <i>Assumed threshold</i> in the Amazon Rekognition Custom Labels Developer Guide. Amazon Rekognition Custom Labels metrics expresses an assumed threshold as a floating point value between 0-1. The range of <code>MinConfidence</code> normalizes the threshold value to a percentage value (0-100). Confidence responses from <code>DetectCustomLabels</code> are also returned as a percentage. You can use <code>MinConfidence</code> to change the precision and recall or your model. For more information, see <i>Analyzing an image</i> in the Amazon Rekognition Custom Labels Developer Guide. </p> <p>If you don't specify a value for <code>MinConfidence</code>, <code>DetectCustomLabels</code> returns labels based on the assumed threshold of each label.</p> <p>This is a stateless API operation. That is, the operation does not persist any data.</p> <p>This operation requires permissions to perform the <code>rekognition:DetectCustomLabels</code> action. </p> <p>For more information, see <i>Analyzing an image</i> in the Amazon Rekognition Custom Labels Developer Guide. </p>"
     },
     "DetectFaces":{
       "name":"DetectFaces",
@@ -714,7 +714,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>Retrieves the results of a specific Face Liveness session. It requires the <code>sessionId</code> as input, which was created using <code>CreateFaceLivenessSession</code>. Returns the corresponding Face Liveness confidence score, a reference image that includes a face bounding box, and audit images that also contain face bounding boxes. The Face Liveness confidence score ranges from 0 to 100. </p> <p>The number of audit images returned by <code>GetFaceLivenessSessionResults</code> is defined by the <code>AuditImagesLimit</code> paramater when calling <code>CreateFaceLivenessSession</code>. Reference images are always returned when possible.</p>"
+      "documentation":"<p>Retrieves the results of a specific Face Liveness session. It requires the <code>sessionId</code> as input, which was created using <code>CreateFaceLivenessSession</code>. Returns the corresponding Face Liveness confidence score, a reference image that includes a face bounding box, and audit images that also contain face bounding boxes. The Face Liveness confidence score ranges from 0 to 100. </p> <p>The number of audit images returned by <code>GetFaceLivenessSessionResults</code> is defined by the <code>AuditImagesLimit</code> paramater when calling <code>CreateFaceLivenessSession</code>. Reference images are always returned when possible.</p> <p>For a session that has completed, the response can also include a <code>Feedback</code> list describing conditions that were detected in the selfie-video, such as low lighting or an obstructed face, and <code>Metadata</code> about the client that streamed the session.</p>"
     },
     "GetFaceSearch":{
       "name":"GetFaceSearch",
@@ -770,7 +770,7 @@
         {"shape":"ProvisionedThroughputExceededException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Retrieves the results for a given media analysis job. Takes a <code>JobId</code> returned by StartMediaAnalysisJob.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Retrieves the results for a given media analysis job. Takes a <code>JobId</code> returned by StartMediaAnalysisJob.</p>"
     },
     "GetPersonTracking":{
       "name":"GetPersonTracking",
@@ -789,7 +789,7 @@
         {"shape":"ResourceNotFoundException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Gets the path tracking results of a Amazon Rekognition Video analysis started by <a>StartPersonTracking</a>.</p> <p>The person path tracking operation is started by a call to <code>StartPersonTracking</code> which returns a job identifier (<code>JobId</code>). When the operation finishes, Amazon Rekognition Video publishes a completion status to the Amazon Simple Notification Service topic registered in the initial call to <code>StartPersonTracking</code>.</p> <p>To get the results of the person path tracking operation, first check that the status value published to the Amazon SNS topic is <code>SUCCEEDED</code>. If so, call <a>GetPersonTracking</a> and pass the job identifier (<code>JobId</code>) from the initial call to <code>StartPersonTracking</code>.</p> <p> <code>GetPersonTracking</code> returns an array, <code>Persons</code>, of tracked persons and the time(s) their paths were tracked in the video. </p> <note> <p> <code>GetPersonTracking</code> only returns the default facial attributes (<code>BoundingBox</code>, <code>Confidence</code>, <code>Landmarks</code>, <code>Pose</code>, and <code>Quality</code>). The other facial attributes listed in the <code>Face</code> object of the following response syntax are not returned. </p> <p>For more information, see FaceDetail in the Amazon Rekognition Developer Guide.</p> </note> <p>By default, the array is sorted by the time(s) a person's path is tracked in the video. You can sort by tracked persons by specifying <code>INDEX</code> for the <code>SortBy</code> input parameter.</p> <p>Use the <code>MaxResults</code> parameter to limit the number of items returned. If there are more results than specified in <code>MaxResults</code>, the value of <code>NextToken</code> in the operation response contains a pagination token for getting the next set of results. To get the next page of results, call <code>GetPersonTracking</code> and populate the <code>NextToken</code> request parameter with the token value returned from the previous call to <code>GetPersonTracking</code>.</p>"
+      "documentation":"<note> <p> <i>End of support notice:</i> On October 31, 2025, AWS will discontinue support for Amazon Rekognition People Pathing. After October 31, 2025, you will no longer be able to use the Rekognition People Pathing capability. For more information, visit this <a href=\"https://aws.amazon.com/blogs/machine-learning/transitioning-from-amazon-rekognition-people-pathing-exploring-other-alternatives/\">blog post</a>.</p> </note> <p>Gets the path tracking results of a Amazon Rekognition Video analysis started by <a>StartPersonTracking</a>.</p> <p>The person path tracking operation is started by a call to <code>StartPersonTracking</code> which returns a job identifier (<code>JobId</code>). When the operation finishes, Amazon Rekognition Video publishes a completion status to the Amazon Simple Notification Service topic registered in the initial call to <code>StartPersonTracking</code>.</p> <p>To get the results of the person path tracking operation, first check that the status value published to the Amazon SNS topic is <code>SUCCEEDED</code>. If so, call <a>GetPersonTracking</a> and pass the job identifier (<code>JobId</code>) from the initial call to <code>StartPersonTracking</code>.</p> <p> <code>GetPersonTracking</code> returns an array, <code>Persons</code>, of tracked persons and the time(s) their paths were tracked in the video. </p> <note> <p> <code>GetPersonTracking</code> only returns the default facial attributes (<code>BoundingBox</code>, <code>Confidence</code>, <code>Landmarks</code>, <code>Pose</code>, and <code>Quality</code>). The other facial attributes listed in the <code>Face</code> object of the following response syntax are not returned. </p> <p>For more information, see FaceDetail in the Amazon Rekognition Developer Guide.</p> </note> <p>By default, the array is sorted by the time(s) a person's path is tracked in the video. You can sort by tracked persons by specifying <code>INDEX</code> for the <code>SortBy</code> input parameter.</p> <p>Use the <code>MaxResults</code> parameter to limit the number of items returned. If there are more results than specified in <code>MaxResults</code>, the value of <code>NextToken</code> in the operation response contains a pagination token for getting the next set of results. To get the next page of results, call <code>GetPersonTracking</code> and populate the <code>NextToken</code> request parameter with the token value returned from the previous call to <code>GetPersonTracking</code>.</p>"
     },
     "GetSegmentDetection":{
       "name":"GetSegmentDetection",
@@ -947,7 +947,7 @@
         {"shape":"ProvisionedThroughputExceededException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Returns a list of media analysis jobs. Results are sorted by <code>CreationTimestamp</code> in descending order.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Returns a list of media analysis jobs. Results are sorted by <code>CreationTimestamp</code> in descending order.</p>"
     },
     "ListProjectPolicies":{
       "name":"ListProjectPolicies",
@@ -984,7 +984,7 @@
         {"shape":"InvalidPaginationTokenException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>Gets a list of stream processors that you have created with <a>CreateStreamProcessor</a>. </p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Gets a list of stream processors that you have created with <a>CreateStreamProcessor</a>. </p>"
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -1277,7 +1277,7 @@
         {"shape":"ThrottlingException"},
         {"shape":"IdempotentParameterMismatchException"}
       ],
-      "documentation":"<p>Initiates a new media analysis job. Accepts a manifest file in an Amazon S3 bucket. The output is a manifest file and a summary of the manifest stored in the Amazon S3 bucket.</p>",
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Initiates a new media analysis job. Accepts a manifest file in an Amazon S3 bucket. The output is a manifest file and a summary of the manifest stored in the Amazon S3 bucket.</p>",
       "idempotent":true
     },
     "StartPersonTracking":{
@@ -1299,7 +1299,7 @@
         {"shape":"LimitExceededException"},
         {"shape":"ThrottlingException"}
       ],
-      "documentation":"<p>Starts the asynchronous tracking of a person's path in a stored video.</p> <p>Amazon Rekognition Video can track the path of people in a video stored in an Amazon S3 bucket. Use <a>Video</a> to specify the bucket name and the filename of the video. <code>StartPersonTracking</code> returns a job identifier (<code>JobId</code>) which you use to get the results of the operation. When label detection is finished, Amazon Rekognition publishes a completion status to the Amazon Simple Notification Service topic that you specify in <code>NotificationChannel</code>. </p> <p>To get the results of the person detection operation, first check that the status value published to the Amazon SNS topic is <code>SUCCEEDED</code>. If so, call <a>GetPersonTracking</a> and pass the job identifier (<code>JobId</code>) from the initial call to <code>StartPersonTracking</code>.</p>",
+      "documentation":"<note> <p> <i>End of support notice:</i> On October 31, 2025, AWS will discontinue support for Amazon Rekognition People Pathing. After October 31, 2025, you will no longer be able to use the Rekognition People Pathing capability. For more information, visit this <a href=\"https://aws.amazon.com/blogs/machine-learning/transitioning-from-amazon-rekognition-people-pathing-exploring-other-alternatives/\">blog post</a>.</p> </note> <p>Starts the asynchronous tracking of a person's path in a stored video.</p> <p>Amazon Rekognition Video can track the path of people in a video stored in an Amazon S3 bucket. Use <a>Video</a> to specify the bucket name and the filename of the video. <code>StartPersonTracking</code> returns a job identifier (<code>JobId</code>) which you use to get the results of the operation. When label detection is finished, Amazon Rekognition publishes a completion status to the Amazon Simple Notification Service topic that you specify in <code>NotificationChannel</code>. </p> <p>To get the results of the person detection operation, first check that the status value published to the Amazon SNS topic is <code>SUCCEEDED</code>. If so, call <a>GetPersonTracking</a> and pass the job identifier (<code>JobId</code>) from the initial call to <code>StartPersonTracking</code>.</p>",
       "idempotent":true
     },
     "StartProjectVersion":{
@@ -1361,7 +1361,7 @@
         {"shape":"ResourceInUseException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>Starts processing a stream processor. You create a stream processor by calling <a>CreateStreamProcessor</a>. To tell <code>StartStreamProcessor</code> which stream processor to start, use the value of the <code>Name</code> field specified in the call to <code>CreateStreamProcessor</code>.</p> <p>If you are using a label detection stream processor to detect labels, you need to provide a <code>Start selector</code> and a <code>Stop selector</code> to determine the length of the stream processing time.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Starts processing a stream processor. You create a stream processor by calling <a>CreateStreamProcessor</a>. To tell <code>StartStreamProcessor</code> which stream processor to start, use the value of the <code>Name</code> field specified in the call to <code>CreateStreamProcessor</code>.</p> <p>If you are using a label detection stream processor to detect labels, you need to provide a <code>Start selector</code> and a <code>Stop selector</code> to determine the length of the stream processing time.</p>"
     },
     "StartTextDetection":{
       "name":"StartTextDetection",
@@ -1421,7 +1421,7 @@
         {"shape":"ResourceInUseException"},
         {"shape":"ProvisionedThroughputExceededException"}
       ],
-      "documentation":"<p>Stops a running stream processor that was created by <a>CreateStreamProcessor</a>.</p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p>Stops a running stream processor that was created by <a>CreateStreamProcessor</a>.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -1497,14 +1497,13 @@
         {"shape":"ProvisionedThroughputExceededException"},
         {"shape":"ResourceInUseException"}
       ],
-      "documentation":"<p> Allows you to update a stream processor. You can change some settings and regions of interest and delete certain parameters. </p>"
+      "documentation":"<important> <p>Service availability notice: Streaming Video and Bulk Image Analysis is no longer available to new customers. For more information, see <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/rekognition-availability-changes.html\">Rekognition feature availability changes</a>.</p> <p> <b>This change does not impact the availability of other Amazon Rekognition features.</b> </p> </important> <p> Allows you to update a stream processor. You can change some settings and regions of interest and delete certain parameters. </p>"
     }
   },
   "shapes":{
     "AccessDeniedException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>You are not authorized to perform the action.</p>",
       "exception":true
     },
@@ -1831,6 +1830,50 @@
       "type":"list",
       "member":{"shape":"CelebrityRecognition"}
     },
+    "Challenge":{
+      "type":"structure",
+      "required":[
+        "Type",
+        "Version"
+      ],
+      "members":{
+        "Type":{
+          "shape":"ChallengeType",
+          "documentation":"<p>The type of the challenge being used for the Face Liveness session.</p>"
+        },
+        "Version":{
+          "shape":"Version",
+          "documentation":"<p>The version of the challenge being used for the Face Liveness session.</p>"
+        }
+      },
+      "documentation":"<p>Describes the type and version of the challenge being used for the Face Liveness session.</p>"
+    },
+    "ChallengePreference":{
+      "type":"structure",
+      "required":["Type"],
+      "members":{
+        "Type":{
+          "shape":"ChallengeType",
+          "documentation":"<p>The types of challenges that have been selected for the Face Liveness session.</p>"
+        },
+        "Versions":{
+          "shape":"Versions",
+          "documentation":"<p>The version of the challenges that have been selected for the Face Liveness session.</p>"
+        }
+      },
+      "documentation":"<p>An ordered list of preferred challenge type and versions.</p>"
+    },
+    "ChallengePreferences":{
+      "type":"list",
+      "member":{"shape":"ChallengePreference"}
+    },
+    "ChallengeType":{
+      "type":"string",
+      "enum":[
+        "FaceMovementAndLightChallenge",
+        "FaceMovementChallenge"
+      ]
+    },
     "ClientRequestToken":{
       "type":"string",
       "max":64,
@@ -1973,8 +2016,7 @@
     },
     "ConflictException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p> A User with the same Id already exists within the collection, or the update or deletion of the User caused an inconsistent state. ** </p>",
       "exception":true
     },
@@ -2249,6 +2291,10 @@
         "AuditImagesLimit":{
           "shape":"AuditImagesLimit",
           "documentation":"<p>Number of audit images to be returned back. Takes an integer between 0-4. Any integer less than 0 will return 0, any integer above 4 will return 4 images in the response. By default, it is set to 0. The limit is best effort and is based on the actual duration of the selfie-video.</p>"
+        },
+        "ChallengePreferences":{
+          "shape":"ChallengePreferences",
+          "documentation":"<p>Indicates preferred challenge types and versions for the Face Liveness session to be created.</p>"
         }
       },
       "documentation":"<p>A session settings object. It contains settings for the operation to be performed. It accepts arguments for OutputConfig and AuditImagesLimit.</p>"
@@ -2431,8 +2477,7 @@
     },
     "CreateUserResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "CustomLabel":{
       "type":"structure",
@@ -2721,8 +2766,7 @@
     },
     "DeleteDatasetResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteFacesRequest":{
       "type":"structure",
@@ -2777,8 +2821,7 @@
     },
     "DeleteProjectPolicyResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteProjectRequest":{
       "type":"structure",
@@ -2830,8 +2873,7 @@
     },
     "DeleteStreamProcessorResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteUserRequest":{
       "type":"structure",
@@ -2857,8 +2899,7 @@
     },
     "DeleteUserResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DescribeCollectionRequest":{
       "type":"structure",
@@ -3483,8 +3524,7 @@
     },
     "DistributeDatasetEntriesResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DistributeDatasetMetadataList":{
       "type":"list",
@@ -3542,7 +3582,7 @@
           "documentation":"<p>Level of confidence in the determination.</p>"
         }
       },
-      "documentation":"<p>The emotions that appear to be expressed on the face, and the confidence level in the determination. The API is only making a determination of the physical appearance of a person's face. It is not a determination of the person’s internal emotional state and should not be used in such a way. For example, a person pretending to have a sad face might not be sad emotionally.</p>"
+      "documentation":"<p>The API returns a prediction of an emotion based on a person's facial expressions, along with the confidence level for the predicted emotion. It is not a determination of the person’s internal emotional state and should not be used in such a way. For example, a person pretending to have a sad face might not be sad emotionally. The API is not intended to be used, and you may not use it, in a manner that violates the EU Artificial Intelligence Act or any other applicable law.</p>"
     },
     "EmotionName":{
       "type":"string",
@@ -3884,6 +3924,46 @@
         "TIMESTAMP"
       ]
     },
+    "FeedbackCode":{
+      "type":"string",
+      "enum":[
+        "FACE_NOT_VISIBLE",
+        "FACE_OBSTRUCTION_DETECTED",
+        "LOW_VIDEO_QUALITY_DETECTED",
+        "FACE_NOT_ALIGNED",
+        "EYES_CLOSED_DETECTED",
+        "LOW_LIGHTING_DETECTED",
+        "HIGH_LIGHTING_DETECTED"
+      ]
+    },
+    "FeedbackItem":{
+      "type":"structure",
+      "required":[
+        "Code",
+        "Message"
+      ],
+      "members":{
+        "Code":{
+          "shape":"FeedbackCode",
+          "documentation":"<p>A code identifying the condition that was detected during the Face Liveness session.</p>"
+        },
+        "Message":{
+          "shape":"FeedbackMessage",
+          "documentation":"<p>A human-readable description of the detected condition, suitable for displaying to an end user before they retry a Face Liveness check. Use <code>Code</code> rather than this message for programmatic decisions, because the message text can change.</p>"
+        }
+      },
+      "documentation":"<p>Describes a condition that was detected in the Face Liveness video and that contributed to the confidence score returned for the session.</p>"
+    },
+    "FeedbackList":{
+      "type":"list",
+      "member":{"shape":"FeedbackItem"},
+      "max":10
+    },
+    "FeedbackMessage":{
+      "type":"string",
+      "max":512,
+      "min":1
+    },
     "Float":{"type":"float"},
     "FlowDefinitionArn":{
       "type":"string",
@@ -4211,6 +4291,18 @@
         "AuditImages":{
           "shape":"AuditImages",
           "documentation":"<p>A set of images from the Face Liveness video that can be used for audit purposes. It includes a bounding box of the face and the Base64-encoded bytes that return an image. If the CreateFaceLivenessSession request included an OutputConfig argument, the image will be uploaded to an S3Object specified in the output configuration. If no Amazon S3 bucket is defined, raw bytes are sent instead.</p>"
+        },
+        "Challenge":{
+          "shape":"Challenge",
+          "documentation":"<p>Contains information regarding the challenge type used for the Face Liveness check.</p>"
+        },
+        "Feedback":{
+          "shape":"FeedbackList",
+          "documentation":"<p>A list of conditions that were detected in the Face Liveness video and that contributed to the returned <code>Confidence</code> score. Each item contains a code and a human-readable message. Feedback is returned only for sessions with a <code>Status</code> of <code>SUCCEEDED</code>, and the list is empty when no such conditions were detected.</p>"
+        },
+        "Metadata":{
+          "shape":"SessionMetadata",
+          "documentation":"<p>Metadata about the client that streamed the video for the Face Liveness session.</p>"
         }
       }
     },
@@ -4697,8 +4789,7 @@
     },
     "IdempotentParameterMismatchException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>A <code>ClientRequestToken</code> input parameter was reused with an operation, but at least one of the other input parameters is different from the previous call to the operation.</p>",
       "exception":true
     },
@@ -4741,8 +4832,7 @@
     },
     "ImageTooLargeException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The input image size exceeds the allowed limit. If you are calling DetectProtectiveEquipment, the image size or resolution exceeds the allowed limit. For more information, see Guidelines and quotas in Amazon Rekognition in the Amazon Rekognition Developer Guide. </p>",
       "exception":true
     },
@@ -4832,51 +4922,44 @@
     },
     "InternalServerError":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Amazon Rekognition experienced a service issue. Try your call again.</p>",
       "exception":true,
       "fault":true
     },
     "InvalidImageFormatException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The provided image format is not supported. </p>",
       "exception":true
     },
     "InvalidManifestException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Indicates that a provided manifest file is empty or larger than the allowed limit.</p>",
       "exception":true
     },
     "InvalidPaginationTokenException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Pagination token in the request is not valid.</p>",
       "exception":true
     },
     "InvalidParameterException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Input parameter violated a constraint. Validate your parameter before calling the API operation again.</p>",
       "exception":true
     },
     "InvalidPolicyRevisionIdException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The supplied revision id for the project policy is invalid.</p>",
       "exception":true
     },
     "InvalidS3ObjectException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Amazon Rekognition is unable to access the S3 object specified in the request.</p>",
       "exception":true
     },
@@ -5149,8 +5232,7 @@
     },
     "LimitExceededException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>An Amazon Rekognition service limit was exceeded. For example, if you start too many jobs concurrently, subsequent calls to start operations (ex: <code>StartLabelDetection</code>) will raise a <code>LimitExceededException</code> exception (HTTP status code: 400) until the number of concurrently running jobs is below the Amazon Rekognition service limit. </p>",
       "exception":true
     },
@@ -5503,8 +5585,7 @@
     },
     "MalformedPolicyDocumentException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The format of the project policy document that you supplied to <code>PutProjectPolicy</code> is incorrect. </p>",
       "exception":true
     },
@@ -6319,8 +6400,7 @@
     },
     "ProvisionedThroughputExceededException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The number of requests exceeded your throughput limit. If you want to increase this limit, contact Amazon Rekognition.</p>",
       "exception":true
     },
@@ -6444,8 +6524,7 @@
     },
     "ResourceAlreadyExistsException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>A resource with the specified ID already exists.</p>",
       "exception":true
     },
@@ -6456,22 +6535,19 @@
     },
     "ResourceInUseException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The specified resource is already being used.</p>",
       "exception":true
     },
     "ResourceNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The resource specified in the request cannot be found.</p>",
       "exception":true
     },
     "ResourceNotReadyException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The requested resource isn't ready. For example, this exception occurs when you call <code>DetectCustomLabels</code> with a model version that isn't deployed. </p>",
       "exception":true
     },
@@ -6529,6 +6605,11 @@
     "S3ObjectVersion":{
       "type":"string",
       "max":1024,
+      "min":1
+    },
+    "SDKTypeString":{
+      "type":"string",
+      "max":64,
       "min":1
     },
     "SNSTopicArn":{
@@ -6843,15 +6924,24 @@
     },
     "ServiceQuotaExceededException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p/> <p>The size of the collection exceeds the allowed limit. For more information, see Guidelines and quotas in Amazon Rekognition in the Amazon Rekognition Developer Guide. </p>",
       "exception":true
     },
+    "SessionMetadata":{
+      "type":"structure",
+      "required":["SDKType"],
+      "members":{
+        "SDKType":{
+          "shape":"SDKTypeString",
+          "documentation":"<p>The type of SDK that was used to stream the video for the Face Liveness session.</p> <note> <p>This value is self-reported by the client that streamed the session, and Amazon Rekognition doesn't verify it. Don't rely on it for authentication, authorization, or any other security decision.</p> </note>"
+        }
+      },
+      "documentation":"<p>Contains metadata about the client that streamed the video for a Face Liveness session.</p>"
+    },
     "SessionNotFoundException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Occurs when a given sessionId is not found.</p>",
       "exception":true
     },
@@ -7355,8 +7445,7 @@
     },
     "StopStreamProcessorResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "StreamProcessingStartSelector":{
       "type":"structure",
@@ -7555,8 +7644,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -7683,8 +7771,7 @@
     },
     "ThrottlingException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>Amazon Rekognition is temporarily unable to process the request. Try your call again.</p>",
       "exception":true,
       "fault":true
@@ -7906,8 +7993,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateDatasetEntriesRequest":{
       "type":"structure",
@@ -7928,8 +8014,7 @@
     },
     "UpdateDatasetEntriesResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateStreamProcessorRequest":{
       "type":"structure",
@@ -7959,8 +8044,7 @@
     },
     "UpdateStreamProcessorResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Url":{"type":"string"},
     "Urls":{
@@ -8038,6 +8122,12 @@
       },
       "documentation":"<p>Contains the Amazon S3 bucket location of the validation data for a model training job. </p> <p>The validation data includes error information for individual JSON Lines in the dataset. For more information, see <i>Debugging a Failed Model Training</i> in the Amazon Rekognition Custom Labels Developer Guide. </p> <p>You get the <code>ValidationData</code> object for the training dataset (<a>TrainingDataResult</a>) and the test dataset (<a>TestingDataResult</a>) by calling <a>DescribeProjectVersions</a>. </p> <p>The assets array contains a single <a>Asset</a> object. The <a>GroundTruthManifest</a> field of the Asset object contains the S3 bucket location of the validation data. </p>"
     },
+    "Version":{
+      "type":"string",
+      "max":11,
+      "min":5,
+      "pattern":"^(0|[1-9]\\d{0,2})\\.(0|[1-9]\\d{0,2})\\.(0|[1-9]\\d{0,2})$"
+    },
     "VersionDescription":{
       "type":"string",
       "max":255,
@@ -8055,6 +8145,20 @@
       "member":{"shape":"VersionName"},
       "max":10,
       "min":1
+    },
+    "Versions":{
+      "type":"structure",
+      "members":{
+        "Minimum":{
+          "shape":"Version",
+          "documentation":"<p>The desired minimum version for the challenge.</p>"
+        },
+        "Maximum":{
+          "shape":"Version",
+          "documentation":"<p>The desired maximum version for the challenge.</p>"
+        }
+      },
+      "documentation":"<p>Object specifying the acceptable range of challenge versions.</p>"
     },
     "Video":{
       "type":"structure",
@@ -8121,11 +8225,10 @@
     },
     "VideoTooLargeException":{
       "type":"structure",
-      "members":{
-      },
+      "members":{},
       "documentation":"<p>The file size or duration of the supplied media is too large. The maximum file size is 10GB. The maximum duration is 6 hours. </p>",
       "exception":true
     }
   },
-  "documentation":"<p>This is the API Reference for <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/images.html\">Amazon Rekognition Image</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/what-is.html\">Amazon Rekognition Custom Labels</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/video.html\">Amazon Rekognition Stored Video</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/streaming-video.html\">Amazon Rekognition Streaming Video</a>. It provides descriptions of actions, data types, common parameters, and common errors.</p> <p> <b>Amazon Rekognition Image</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_AssociateFaces.html\">AssociateFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CompareFaces.html\">CompareFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateCollection.html\">CreateCollection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateUser.html\">CreateUser</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteCollection.html\">DeleteCollection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteFaces.html\">DeleteFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteUser.html\">DeleteUser</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeCollection.html\">DescribeCollection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectFaces.html\">DetectFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectLabels.html\">DetectLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectModerationLabels.html\">DetectModerationLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectProtectiveEquipment.html\">DetectProtectiveEquipment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectText.html\">DetectText</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DisassociateFaces.html\">DisassociateFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetCelebrityInfo.html\">GetCelebrityInfo</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetMediaAnalysisJob.html\">GetMediaAnalysisJob</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_IndexFaces.html\">IndexFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListCollections.html\">ListCollections</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListMediaAnalysisJob.html\">ListMediaAnalysisJob</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListFaces.html\">ListFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListFaces.html\">ListUsers</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_RecognizeCelebrities.html\">RecognizeCelebrities</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchFaces.html\">SearchFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchFacesByImage.html\">SearchFacesByImage</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchUsers.html\">SearchUsers</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchUsersByImage.html\">SearchUsersByImage</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartMediaAnalysisJob.html\">StartMediaAnalysisJob</a> </p> </li> </ul> <p> <b>Amazon Rekognition Custom Labels</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CopyProjectVersion.html\">CopyProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateDataset.html\">CreateDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateProject.html\">CreateProject</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateProjectVersion.html\">CreateProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteDataset.html\">DeleteDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteProject.html\">DeleteProject</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteProjectPolicy.html\">DeleteProjectPolicy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteProjectVersion.html\">DeleteProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeDataset.html\">DescribeDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeProjects.html\">DescribeProjects</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeProjectVersions.html\">DescribeProjectVersions</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectCustomLabels.html\">DetectCustomLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DistributeDatasetEntries.html\">DistributeDatasetEntries</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListDatasetEntries.html\">ListDatasetEntries</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListDatasetLabels.html\">ListDatasetLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListProjectPolicies.html\">ListProjectPolicies</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_PutProjectPolicy.html\">PutProjectPolicy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartProjectVersion.html\">StartProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StopProjectVersion.html\">StopProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_UpdateDatasetEntries.html\">UpdateDatasetEntries</a> </p> </li> </ul> <p> <b>Amazon Rekognition Video Stored Video</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetCelebrityRecognition.html\">GetCelebrityRecognition</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetContentModeration.html\">GetContentModeration</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetFaceDetection.html\">GetFaceDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetFaceSearch.html\">GetFaceSearch</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetLabelDetection.html\">GetLabelDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetPersonTracking.html\">GetPersonTracking</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetSegmentDetection.html\">GetSegmentDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetTextDetection.html\">GetTextDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartCelebrityRecognition.html\">StartCelebrityRecognition</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartContentModeration.html\">StartContentModeration</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartFaceDetection.html\">StartFaceDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartFaceSearch.html\">StartFaceSearch</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartLabelDetection.html\">StartLabelDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartPersonTracking.html\">StartPersonTracking</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartSegmentDetection.html\">StartSegmentDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartTextDetection.html\">StartTextDetection</a> </p> </li> </ul> <p> <b>Amazon Rekognition Video Streaming Video</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateStreamProcessor.html\">CreateStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteStreamProcessor.html\">DeleteStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeStreamProcessor.html\">DescribeStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListStreamProcessors.html\">ListStreamProcessors</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartStreamProcessor.html\">StartStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StopStreamProcessor.html\">StopStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_UpdateStreamProcessor.html\">UpdateStreamProcessor</a> </p> </li> </ul>"
+  "documentation":"<p>This is the API Reference for <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/images.html\">Amazon Rekognition Image</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/bulk-analysis.html\">Amazon Rekognition Bulk Image Analysis</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/customlabels-dg/what-is.html\">Amazon Rekognition Custom Labels</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/video.html\">Amazon Rekognition Stored Video</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/face-liveness.html\">Amazon Rekognition Face Liveness</a>, <a href=\"https://docs.aws.amazon.com/rekognition/latest/dg/streaming-video.html\">Amazon Rekognition Streaming Video</a>. It provides descriptions of actions, data types, common parameters, and common errors.</p> <p> <b>Amazon Rekognition Image</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_AssociateFaces.html\">AssociateFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CompareFaces.html\">CompareFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateCollection.html\">CreateCollection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateUser.html\">CreateUser</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteCollection.html\">DeleteCollection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteFaces.html\">DeleteFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteUser.html\">DeleteUser</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeCollection.html\">DescribeCollection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectFaces.html\">DetectFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectLabels.html\">DetectLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectModerationLabels.html\">DetectModerationLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectProtectiveEquipment.html\">DetectProtectiveEquipment</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectText.html\">DetectText</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DisassociateFaces.html\">DisassociateFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetCelebrityInfo.html\">GetCelebrityInfo</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_IndexFaces.html\">IndexFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListCollections.html\">ListCollections</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListFaces.html\">ListFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListFaces.html\">ListUsers</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_RecognizeCelebrities.html\">RecognizeCelebrities</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchFaces.html\">SearchFaces</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchFacesByImage.html\">SearchFacesByImage</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchUsers.html\">SearchUsers</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_SearchUsersByImage.html\">SearchUsersByImage</a> </p> </li> </ul> <p> <b>Amazon Rekognition Bulk Image Analysis</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetMediaAnalysisJob.html\">GetMediaAnalysisJob</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListMediaAnalysisJob.html\">ListMediaAnalysisJob</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartMediaAnalysisJob.html\">StartMediaAnalysisJob</a> </p> </li> </ul> <p> <b>Amazon Rekognition Custom Labels</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CopyProjectVersion.html\">CopyProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateDataset.html\">CreateDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateProject.html\">CreateProject</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateProjectVersion.html\">CreateProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteDataset.html\">DeleteDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteProject.html\">DeleteProject</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteProjectPolicy.html\">DeleteProjectPolicy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteProjectVersion.html\">DeleteProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeDataset.html\">DescribeDataset</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeProjects.html\">DescribeProjects</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeProjectVersions.html\">DescribeProjectVersions</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DetectCustomLabels.html\">DetectCustomLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DistributeDatasetEntries.html\">DistributeDatasetEntries</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListDatasetEntries.html\">ListDatasetEntries</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListDatasetLabels.html\">ListDatasetLabels</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListProjectPolicies.html\">ListProjectPolicies</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_PutProjectPolicy.html\">PutProjectPolicy</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartProjectVersion.html\">StartProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StopProjectVersion.html\">StopProjectVersion</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_UpdateDatasetEntries.html\">UpdateDatasetEntries</a> </p> </li> </ul> <p> <b>Amazon Rekognition Stored Video</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetCelebrityRecognition.html\">GetCelebrityRecognition</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetContentModeration.html\">GetContentModeration</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetFaceDetection.html\">GetFaceDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetFaceSearch.html\">GetFaceSearch</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetLabelDetection.html\">GetLabelDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetPersonTracking.html\">GetPersonTracking</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetSegmentDetection.html\">GetSegmentDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetTextDetection.html\">GetTextDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartCelebrityRecognition.html\">StartCelebrityRecognition</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartContentModeration.html\">StartContentModeration</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartFaceDetection.html\">StartFaceDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartFaceSearch.html\">StartFaceSearch</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartLabelDetection.html\">StartLabelDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartPersonTracking.html\">StartPersonTracking</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartSegmentDetection.html\">StartSegmentDetection</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartTextDetection.html\">StartTextDetection</a> </p> </li> </ul> <p> <b>Amazon Rekognition Face Liveness</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateFaceLivenessSession.html\">CreateFaceLivenessSession</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_GetFaceLivenessSessionResults.html\">GetFaceLivenessSessionResults</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_rekognitionstreaming_StartFaceLivenessSession.html\">StartFaceLivenessSession</a> </p> </li> </ul> <p> <b>Amazon Rekognition Streaming Video</b> </p> <ul> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_CreateStreamProcessor.html\">CreateStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DeleteStreamProcessor.html\">DeleteStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_DescribeStreamProcessor.html\">DescribeStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_ListStreamProcessors.html\">ListStreamProcessors</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StartStreamProcessor.html\">StartStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_StopStreamProcessor.html\">StopStreamProcessor</a> </p> </li> <li> <p> <a href=\"https://docs.aws.amazon.com/rekognition/latest/APIReference/API_UpdateStreamProcessor.html\">UpdateStreamProcessor</a> </p> </li> </ul>"
 }

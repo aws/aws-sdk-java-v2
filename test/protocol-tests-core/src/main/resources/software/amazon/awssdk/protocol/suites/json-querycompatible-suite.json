@@ -1,0 +1,6 @@
+{
+  "testCases": [
+    "cases/json-querycompatible-input.json",
+    "cases/json-querycompatible-output.json"
+  ]
+}

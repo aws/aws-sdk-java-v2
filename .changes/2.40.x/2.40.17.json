@@ -1,0 +1,24 @@
+{
+    "version": "2.40.17",
+    "date": "2025-12-29",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Adds links to AWS Code Library examples in package summary documentation and to individual methods documentation in Java SDK API Reference guide."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Changes for Contact for Global Search"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon QuickSight",
+            "contributor": "",
+            "description": "This release adds support for quick users to be able to perform role upgrades on their own. Additionally it allows admins to make this feature admin or auto approval along with new self upgrade capability that can be restricted by Admins."
+        }
+    ]
+}

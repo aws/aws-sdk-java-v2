@@ -15,8 +15,6 @@
 
 package software.amazon.awssdk.http.nio.netty;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URI;
 
 public class BaseMockServer {
@@ -24,23 +22,11 @@ public class BaseMockServer {
     protected int httpPort;
     protected int httpsPort;
 
-    public BaseMockServer() throws IOException {
-        httpPort = getUnusedPort();
-        httpsPort = getUnusedPort();
-    }
-
     public URI getHttpUri() {
         return URI.create(String.format("http://localhost:%s", httpPort));
     }
 
     public URI getHttpsUri() {
         return URI.create(String.format("https://localhost:%s", httpsPort));
-    }
-
-    public static int getUnusedPort() throws IOException {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            socket.setReuseAddress(true);
-            return socket.getLocalPort();
-        }
     }
 }

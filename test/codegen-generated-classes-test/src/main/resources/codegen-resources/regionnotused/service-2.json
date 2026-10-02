@@ -1,0 +1,37 @@
+{
+    "version": "2.0",
+    "metadata": {
+        "apiVersion": "2023-01-01",
+        "endpointPrefix": "regionnotused",
+        "protocol": "rest-json",
+        "serviceFullName": "Region Not Used Test Service",
+        "serviceId": "RegionNotUsed",
+        "signatureVersion": "v4",
+        "uid": "regionnotused-2023-01-01"
+    },
+    "operations": {
+        "DoSomething": {
+            "name": "DoSomething",
+            "http": {
+                "method": "POST",
+                "requestUri": "/do-something"
+            },
+            "input": {
+                "shape": "DoSomethingRequest"
+            },
+            "output": {
+                "shape": "DoSomethingResponse"
+            }
+        }
+    },
+    "shapes": {
+        "DoSomethingRequest": {
+            "type": "structure",
+            "members": {}
+        },
+        "DoSomethingResponse": {
+            "type": "structure",
+            "members": {}
+        }
+    }
+}

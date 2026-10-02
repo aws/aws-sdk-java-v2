@@ -1,0 +1,13 @@
+# Test allowlist for ServiceMetadataProviderGenerator
+access-analyzer
+api.ecr
+api.ecr-public
+dynamodb
+elasticloadbalancing
+iam
+lambda
+route53
+runtime.sagemaker
+s3
+s3-outposts
+sts

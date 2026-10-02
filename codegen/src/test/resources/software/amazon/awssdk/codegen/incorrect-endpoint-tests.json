@@ -1,0 +1,26 @@
+{
+  "testCases": [
+    {
+      "documentation": "Test references undefined operation member",
+      "expect": {
+        "error": "Some error"
+      },
+      "operationInputs": [
+        {
+          "builtInParams": {
+            "AWS::Region": "us-east-1"
+          },
+          "operationName": "APostOperation",
+          "operationParams": {
+            "Foo": "bar"
+          }
+        }
+      ],
+      "params": {
+        "Region": "us-east-1",
+        "UseFIPS": false,
+        "UseDualStack": false
+      }
+    }
+  ]
+}

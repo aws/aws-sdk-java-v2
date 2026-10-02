@@ -52,6 +52,7 @@ import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpClient;
@@ -159,6 +160,43 @@ public class DefaultAwsClientBuilderTest {
             .isEqualTo(true);
         assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_1);
         assertThat(client.clientConfiguration.option(SERVICE_SIGNING_NAME)).isEqualTo(SIGNING_NAME);
+    }
+
+    @Test
+    public void resolveSigningRegion_withGlobalRegion_resolvesCorrectlyFromEndpointRules() {
+        ClientOverrideConfiguration overrideConfig =
+            ClientOverrideConfiguration.builder()
+                                       .putAdvancedOption(SIGNER, TEST_SIGNER)
+                                       .putAdvancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
+                                       .build();
+
+        TestClient client = new TestClientBuilderWithEndpointRulesSigningRegion(Region.US_EAST_1)
+            .credentialsProvider(AnonymousCredentialsProvider.create())
+            .overrideConfiguration(overrideConfig)
+            .region(Region.AWS_GLOBAL)
+            .build();
+
+        // The endpoint-rules-resolved signing region (us-east-1) is used, not the client region (aws-global)
+        assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_EAST_1);
+    }
+
+    @Test
+    public void signingRegionFromEndpointRules_fallsBackToClientRegionOnFailure() {
+        // Simulates a generated builder where endpoint resolution fails.
+        // Should fall back to client region.
+        ClientOverrideConfiguration overrideConfig =
+            ClientOverrideConfiguration.builder()
+                                       .putAdvancedOption(SIGNER, TEST_SIGNER)
+                                       .putAdvancedOption(ENABLE_DEFAULT_REGION_DETECTION, false)
+                                       .build();
+
+        TestClient client = new TestClientBuilderWithFailingEndpointResolution()
+            .credentialsProvider(AnonymousCredentialsProvider.create())
+            .overrideConfiguration(overrideConfig)
+            .region(Region.US_WEST_2)
+            .build();
+
+        assertThat(client.clientConfiguration.option(SIGNING_REGION)).isEqualTo(Region.US_WEST_2);
     }
 
     @Test
@@ -404,6 +442,17 @@ public class DefaultAwsClientBuilderTest {
         }
 
         @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
+        }
+
+        @Override
         protected String serviceEndpointPrefix() {
             return ENDPOINT_PREFIX;
         }
@@ -445,6 +494,17 @@ public class DefaultAwsClientBuilderTest {
         }
 
         @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
+        }
+
+        @Override
         protected String serviceEndpointPrefix() {
             return ENDPOINT_PREFIX;
         }
@@ -466,5 +526,105 @@ public class DefaultAwsClientBuilderTest {
     }
 
     private static class TestException extends Throwable {
+    }
+
+    /**
+     * Test builder that sets SIGNING_REGION from endpoint rules in finalizeServiceConfiguration.
+     */
+    private class TestClientBuilderWithEndpointRulesSigningRegion
+        extends AwsDefaultClientBuilder<TestClientBuilderWithEndpointRulesSigningRegion, TestClient>
+        implements AwsClientBuilder<TestClientBuilderWithEndpointRulesSigningRegion, TestClient> {
+
+        private final Region resolvedSigningRegion;
+
+        public TestClientBuilderWithEndpointRulesSigningRegion(Region resolvedSigningRegion) {
+            super(defaultHttpClientBuilder, null, autoModeDiscovery);
+            this.resolvedSigningRegion = resolvedSigningRegion;
+        }
+
+        @Override
+        protected TestClient buildClient() {
+            return new TestClient(super.syncClientConfiguration());
+        }
+
+        @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .lazyOptionIfAbsent(AwsClientOption.SIGNING_REGION, c -> resolvedSigningRegion)
+                         .build();
+        }
+
+        @Override
+        protected String serviceEndpointPrefix() {
+            return ENDPOINT_PREFIX;
+        }
+
+        @Override
+        protected String signingName() {
+            return SIGNING_NAME;
+        }
+
+        @Override
+        protected String serviceName() {
+            return SERVICE_NAME;
+        }
+
+        @Override
+        protected AttributeMap serviceHttpConfig() {
+            return MOCK_DEFAULTS;
+        }
+    }
+
+    /**
+     * Test builder where finalizeServiceConfiguration does not set SIGNING_REGION.
+     */
+    private class TestClientBuilderWithFailingEndpointResolution
+        extends AwsDefaultClientBuilder<TestClientBuilderWithFailingEndpointResolution, TestClient>
+        implements AwsClientBuilder<TestClientBuilderWithFailingEndpointResolution, TestClient> {
+
+        public TestClientBuilderWithFailingEndpointResolution() {
+            super(defaultHttpClientBuilder, null, autoModeDiscovery);
+        }
+
+        @Override
+        protected TestClient buildClient() {
+            return new TestClient(super.syncClientConfiguration());
+        }
+
+        @Override
+        protected SdkClientConfiguration finalizeServiceConfiguration(SdkClientConfiguration config) {
+            return config.toBuilder()
+                         .lazyOptionIfAbsent(SdkClientOption.CLIENT_ENDPOINT_PROVIDER, c -> {
+                             URI endpoint = URI.create("https://" + serviceEndpointPrefix() + "."
+                                                      + c.get(AwsClientOption.AWS_REGION) + ".amazonaws.com");
+                             return ClientEndpointProvider.create(endpoint, false);
+                         })
+                         .build();
+        }
+
+        @Override
+        protected String serviceEndpointPrefix() {
+            return ENDPOINT_PREFIX;
+        }
+
+        @Override
+        protected String signingName() {
+            return SIGNING_NAME;
+        }
+
+        @Override
+        protected String serviceName() {
+            return SERVICE_NAME;
+        }
+
+        @Override
+        protected AttributeMap serviceHttpConfig() {
+            return MOCK_DEFAULTS;
+        }
     }
 }

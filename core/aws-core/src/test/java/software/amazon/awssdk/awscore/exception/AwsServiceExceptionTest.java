@@ -122,6 +122,32 @@ public class AwsServiceExceptionTest {
         );
     }
 
+    @ParameterizedTest
+    @MethodSource("messageNullabilityTestCases")
+    void getMessage_respectsNullBehavior(String testDescription,
+                                         AwsServiceException.Builder builder,
+                                         String expectedMessage) {
+        AwsServiceException e = builder.build();
+        assertThat(e.getMessage())
+            .as(testDescription)
+            .isEqualTo(expectedMessage);
+    }
+
+    private static Stream<Arguments> messageNullabilityTestCases() {
+        return Stream.of(
+            Arguments.of(
+                "No message or details set",
+                AwsServiceException.builder(),
+                null
+            ),
+            Arguments.of(
+                "Explicitly null message without details",
+                AwsServiceException.builder().message(null),
+                null
+            )
+        );
+    }
+
     @Test
     public void exceptionMessage_withoutErrorMessage() {
         AwsServiceException e = AwsServiceException.builder()

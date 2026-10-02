@@ -22,7 +22,8 @@ import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
-import software.amazon.awssdk.crt.http.HttpClientConnectionManager;
+import software.amazon.awssdk.crt.http.HttpStreamManager;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
@@ -91,15 +92,15 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
          * we have a pool and no one can destroy it underneath us until we've finished submitting the
          * request)
          */
-        try (HttpClientConnectionManager crtConnPool = getOrCreateConnectionPool(poolKey(asyncRequest.request()))) {
-            CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
-                                                                   .crtConnPool(crtConnPool)
-                                                                   .readBufferSize(this.readBufferSize)
-                                                                   .request(asyncRequest)
-                                                                   .build();
+        HttpStreamManager streamManager = getOrCreateConnectionPool(poolKey(asyncRequest.request()));
+        CrtAsyncRequestContext context = CrtAsyncRequestContext.builder()
+                                                               .streamManager(streamManager)
+                                                               .readBufferSize(this.readBufferSize)
+                                                               .request(asyncRequest)
+                                                               .protocol(this.protocol)
+                                                               .build();
 
-            return new CrtAsyncRequestExecutor().execute(context);
-        }
+        return new CrtAsyncRequestExecutor().execute(context);
     }
 
     /**
@@ -115,14 +116,38 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder maxConcurrency(Integer maxConcurrency);
 
         /**
-         * Configures the number of unread bytes that can be buffered in the
-         * client before we stop reading from the underlying TCP socket and wait for the Subscriber
-         * to read more data.
+         * Configures the number of bytes that can be buffered in the client for sending and receiving data.
+         * <p>
+         * For requests, this is the number unsent bytes the client will buffer from the request content publisher until it has to
+         * wait for the socket to allow more data to be written to it.
+         * <p>
+         * When reading responses, this is the number of bytes the client will buffer before we stop reading from the
+         * underlying TCP socket and wait for the Subscriber to read more data.
          *
-         * @param readBufferSize The number of bytes that can be buffered.
+         * @param readBufferSize The number of bytes that can be buffered for sending and receiving.
          * @return The builder of the method chaining.
          */
         AwsCrtAsyncHttpClient.Builder readBufferSizeInBytes(Long readBufferSize);
+
+        /**
+         * Configure the number of event-loop (IO) threads in this client's event-loop group.
+         *
+         * <p>By default (when this is not set), the client shares a single, process-wide event-loop group sized to
+         * {@code Runtime.getRuntime().availableProcessors()}, shared with every other CRT client in the JVM. When this value is
+         * set, the client instead creates and owns a private event-loop group of the given size; that group is shut down when
+         * this client is closed and is not shared with any other client.
+         *
+         * <p>This is an advanced tuning and isolation control, and each client configured with an explicit size consumes that
+         * many additional IO threads. Oversizing wastes threads and adds context-switching and memory overhead without improving
+         * throughput; undersizing can leave the client's IO as a bottleneck and underutilize available cores. The best value
+         * depends on your workload and hardware, so benchmark your own application before changing it from the default. An
+         * excessively high value relative to the number of available processors is logged as a warning.
+         *
+         * @param numEventLoopThreads the number of event-loop threads; must be greater than 1, or {@code null} to use the shared
+         *                           default.
+         * @return The builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder numEventLoopThreads(Integer numEventLoopThreads);
 
         /**
          * Sets the http proxy configuration to use for this client.
@@ -140,18 +165,22 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer);
 
         /**
-         * Configure the health checks for all connections established by this client.
+         * Configure the health checks for all connections established by this client. This is the CRT client's knob for a
+         * read/write inactivity timeout: a connection whose throughput stays below
+         * {@link ConnectionHealthConfiguration#minimumThroughputInBps()} for
+         * {@link ConnectionHealthConfiguration#minimumThroughputTimeout()} is considered unhealthy and shut down, failing the
+         * in-flight request with a retryable {@code IOException}.
          *
-         * <p>
-         * You can set a throughput threshold for a connection to be considered healthy.
-         * If a connection falls below this threshold ({@link ConnectionHealthConfiguration#minimumThroughputInBps()
-         * }) for the configurable amount
-         * of time ({@link ConnectionHealthConfiguration#minimumThroughputTimeout()}),
-         * then the connection is considered unhealthy and will be shut down.
+         * <p>To set a read/write inactivity timeout, use {@code minimumThroughputInBps(1L)} with
+         * {@code minimumThroughputTimeout(yourDuration)}: any byte moved in either direction resets the window, so the connection
+         * is shut down only after {@code yourDuration} elapses with no bytes transferred. The timeout has whole-second
+         * granularity and must be at least two seconds.
          *
-         * <p>
-         * By default, monitoring options are disabled. You can enable {@code healthChecks} by providing this configuration
-         * and specifying the options for monitoring for the connection manager.
+         * <p>When this client is created and managed by an AWS SDK service client, a default read/write inactivity timeout
+         * may be applied automatically, resolved per service by the SDK. When this client is built directly and supplied to a
+         * service client, or used standalone, no automatic default is applied; monitoring is enabled only by an explicit
+         * configuration set here, which always takes precedence over any SDK-applied default.
+         *
          * @param healthChecksConfiguration The health checks config to use
          * @return The builder of the method chaining.
          */
@@ -190,6 +219,17 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         AwsCrtAsyncHttpClient.Builder connectionAcquisitionTimeout(Duration connectionAcquisitionTimeout);
 
         /**
+         * Configure the maximum amount of time that a TLS handshake is allowed to take from the time the CLIENT HELLO
+         * message is sent to the time the client and server have fully negotiated ciphers and exchanged keys.
+         *
+         * <p>By default, it's 10 seconds.
+         *
+         * @param tlsNegotiationTimeout the timeout duration; must be positive
+         * @return this builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder tlsNegotiationTimeout(Duration tlsNegotiationTimeout);
+
+        /**
          * Configure whether to enable {@code tcpKeepAlive} and relevant configuration for all connections established by this
          * client.
          *
@@ -219,20 +259,52 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
                                               tcpKeepAliveConfigurationBuilder);
 
         /**
+         * Configure the HTTP protocol version to use for connections.
+         *
+         * @param protocol the HTTP protocol version
+         * @return The builder for method chaining.
+         */
+        AwsCrtAsyncHttpClient.Builder protocol(Protocol protocol);
+
+        /**
          * Configure whether to enable a hybrid post-quantum key exchange option for the Transport Layer Security (TLS) network
          * encryption protocol when communicating with services that support Post Quantum TLS. If Post Quantum cipher suites are
          * not supported on the platform, the SDK will use the default TLS cipher suites.
          *
          * <p>
-         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum TLS with AWS KMS</a>
+         * See <a href="https://docs.aws.amazon.com/kms/latest/developerguide/pqtls.html">Using hybrid post-quantum
+         * TLS with AWS KMS</a>
          *
          * <p>
-         * It's disabled by default.
+         * It's enabled by default. If set to {@code false}, the SDK will use the latest recommended non-post-quantum
+         * TLS cipher policy, which may change over time as the underlying CRT library is updated.
          *
          * @param postQuantumTlsEnabled whether to prefer Post Quantum TLS
          * @return The builder of the method chaining.
          */
         AwsCrtAsyncHttpClient.Builder postQuantumTlsEnabled(Boolean postQuantumTlsEnabled);
+
+        /**
+         * Configure the minimum TLS protocol version the client will accept when negotiating
+         * a TLS connection. Handshakes that would negotiate a lower version will fail.
+         *
+         * <p>If not set, the platform + CRT default is used (equivalent to
+         * {@link TlsVersion#SYSTEM_DEFAULT}).
+         *
+         * <p>This option is mutually exclusive with {@link #postQuantumTlsEnabled(Boolean)
+         * postQuantumTlsEnabled(false)}. Attempting to set both will cause client construction
+         * to fail with an {@link IllegalStateException}.
+         *
+         * <p><b>macOS:</b> the default CRT TLS backend on macOS (Apple Secure Transport) does not
+         * support TLS 1.3. To use {@link TlsVersion#TLS_1_3} on macOS you must set the environment
+         * variable {@code AWS_CRT_USE_NON_FIPS_TLS_13} to any non-empty value at process startup so
+         * the CRT selects its s2n-tls backend. See {@link TlsVersion} for details.
+         *
+         * @param minTlsVersion the minimum acceptable TLS version; {@code null} clears
+         *                      the value and reverts to the platform default
+         * @return this builder for method chaining
+         */
+        AwsCrtAsyncHttpClient.Builder minTlsVersion(TlsVersion minTlsVersion);
     }
 
     /**
@@ -242,9 +314,17 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
     private static final class DefaultAsyncBuilder
         extends AwsCrtClientBuilderBase<AwsCrtAsyncHttpClient.Builder> implements Builder {
 
+
+        @Override
+        public Builder protocol(Protocol protocol) {
+            getAttributeMap().put(SdkHttpConfigurationOption.PROTOCOL, protocol);
+            return this;
+        }
+
         @Override
         public SdkAsyncHttpClient build() {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
+                                                                      .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                                       .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
 
@@ -252,7 +332,9 @@ public final class AwsCrtAsyncHttpClient extends AwsCrtHttpClientBase implements
         public SdkAsyncHttpClient buildWithDefaults(AttributeMap serviceDefaults) {
             return new AwsCrtAsyncHttpClient(this, getAttributeMap().build()
                                                                     .merge(serviceDefaults)
+                                                                    .merge(AwsCrtHttpClientBase.AWS_CRT_HTTP_DEFAULTS)
                                                                     .merge(SdkHttpConfigurationOption.GLOBAL_HTTP_DEFAULTS));
         }
+
     }
 }

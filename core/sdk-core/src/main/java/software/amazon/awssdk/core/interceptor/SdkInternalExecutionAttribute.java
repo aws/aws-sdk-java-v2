@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.core.interceptor;
 
+import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.core.ClientEndpointProvider;
 import software.amazon.awssdk.core.SdkClient;
@@ -25,15 +28,22 @@ import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.checksums.ChecksumSpecs;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksumRequired;
 import software.amazon.awssdk.core.internal.interceptor.trait.RequestCompression;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
+import software.amazon.awssdk.core.spi.identity.RequestIdentityProviderResolver;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -54,6 +64,12 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<BusinessMetricCollection> BUSINESS_METRICS =
         new ExecutionAttribute<>("BusinessMetricsCollection");
+
+    /**
+     * A collection of metadata to be added to the UserAgent.
+     */
+    public static final ExecutionAttribute<List<AdditionalMetadata>> USER_AGENT_METADATA =
+        new ExecutionAttribute<>("UserAgentMetadata");
 
     /**
      * If true, indicates that this is an event streaming request being sent over RPC, and therefore the serialized
@@ -115,9 +131,21 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
 
     /**
      * Whether the endpoint on the request is the result of Endpoint Discovery.
+     *
+     * @deprecated This attribute is specific to the endpoint discovery feature and should not be used to skip endpoint
+     * resolution; use {@link #SKIP_ENDPOINT_RESOLUTION} instead.
      */
+    @Deprecated
     public static final ExecutionAttribute<Boolean> IS_DISCOVERED_ENDPOINT =
         new ExecutionAttribute<>("IsDiscoveredEndpoint");
+
+    /**
+     * Whether endpoint resolution should be skipped for the current request. When set to {@code true}, the SDK will not
+     * invoke the endpoint provider and will use the endpoint already set on the request. This is used for pre-signed URL
+     * operations and other scenarios where the endpoint is already fully resolved.
+     */
+    public static final ExecutionAttribute<Boolean> SKIP_ENDPOINT_RESOLUTION =
+        new ExecutionAttribute<>("SkipEndpointResolution");
 
     /**
      * The nano time that the current API call attempt began.
@@ -157,10 +185,79 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
     public static final ExecutionAttribute<IdentityProviders> IDENTITY_PROVIDERS = new ExecutionAttribute<>("IdentityProviders");
 
     /**
+     * Callback for updating identity providers based on request-level overrides.
+     * This allows aws-core to provide AWS-specific logic without sdk-core depending on aws-core.
+     */
+    public static final ExecutionAttribute<RequestIdentityProviderResolver> IDENTITY_PROVIDER_RESOLVER =
+        new ExecutionAttribute<>("RequestIdentityProviderResolver");
+
+    /**
+     * Callback to resolve auth scheme options from the (possibly modified) request.
+     * Called by AuthSchemeResolutionStage after interceptors have run.
+     */
+    public static final ExecutionAttribute<AuthSchemeOptionsResolver> AUTH_SCHEME_OPTIONS_RESOLVER =
+        new ExecutionAttribute<>("AuthSchemeOptionsResolver");
+
+    /**
+     * Callback to recompute {@code SIGNING_METHOD} after auth scheme resolution.
+     * Set by {@code AwsExecutionContextBuilder}
+     */
+    public static final ExecutionAttribute<Consumer<ExecutionAttributes>> SIGNING_METHOD_UPDATER =
+        new ExecutionAttribute<>("SigningMethodUpdater");
+
+    /**
+     * Callback for resolving the endpoint. Generated per-service as a lambda in the client class.
+     * Called by EndpointResolutionStage after interceptors have run.
+     */
+    public static final ExecutionAttribute<EndpointResolver> ENDPOINT_RESOLVER =
+        new ExecutionAttribute<>("EndpointResolver");
+
+    /**
+     * The HTTP request endpoint (scheme, host, port and path) captured before modifyHttpRequest interceptors run.
+     * Used by EndpointResolutionStage to detect if a customer interceptor modified the endpoint.
+     */
+    public static final ExecutionAttribute<EndpointUrl> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY =
+        new ExecutionAttribute<>("HttpRequestEndpointBeforeModify");
+
+    /**
+     * The HTTP request URI captured before modifyHttpRequest interceptors run. Writing this replaces
+     * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} with the written URI's components.
+     *
+     * @deprecated Use {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} instead. This is a view over that attribute, so the
+     * value recorded by the SDK carries only the scheme, host, port and path: the query string is absent, and the port
+     * is present even when it is the protocol's default. Reading it builds a {@link URI}, which
+     * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} lets you avoid.
+     */
+    @Deprecated
+    public static final ExecutionAttribute<URI> HTTP_REQUEST_URI_BEFORE_MODIFY =
+        ExecutionAttribute.derivedBuilder("HttpRequestUriBeforeModify",
+                                          URI.class,
+                                          () -> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY)
+                          .readMapping(endpoint -> endpoint != null ? endpoint.toUri() : null)
+                          .writeMapping((endpoint, uri) -> uri != null ? EndpointUrl.fromUri(uri) : null)
+                          .build();
+
+    /**
      * The selected auth scheme for a request.
      */
     public static final ExecutionAttribute<SelectedAuthScheme<?>> SELECTED_AUTH_SCHEME =
         new ExecutionAttribute<>("SelectedAuthScheme");
+
+    /**
+     * Snapshot of {@link #SELECTED_AUTH_SCHEME} taken before execution interceptors run.
+     * Used by {@code AuthSchemeResolver#mergePreExistingAuthSchemeProperties} to detect which signer properties
+     * were explicitly modified by interceptors (and should therefore override the freshly-resolved values).
+     */
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS =
+        new ExecutionAttribute<>("AuthSchemeSnapshotPreInterceptors");
+
+    /**
+     * Snapshot of {@link #SELECTED_AUTH_SCHEME} taken after interceptors run but before auth scheme resolution.
+     * Together with {@link #AUTH_SCHEME_SNAPSHOT_PRE_INTERCEPTORS}, this allows detecting which signer properties
+     * were explicitly modified by interceptors so they can be re-applied after endpoint resolution.
+     */
+    public static final ExecutionAttribute<SelectedAuthScheme<?>> AUTH_SCHEME_SNAPSHOT_POST_INTERCEPTORS =
+        new ExecutionAttribute<>("AuthSchemeSnapshotPostInterceptors");
 
     /**
      * The supported compression algorithms for an operation, and whether the operation is streaming or not.
@@ -188,6 +285,29 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
      */
     public static final ExecutionAttribute<ResponseChecksumValidation> RESPONSE_CHECKSUM_VALIDATION = new ExecutionAttribute<>(
         "ResponseChecksumValidation");
+
+    /**
+     * The token configured from the environment or system properties, used to determine if the BEARER_SERVICE_ENV_VARS
+     * business metric should be set.
+     */
+    public static final ExecutionAttribute<String> TOKEN_CONFIGURED_FROM_ENV = new ExecutionAttribute<>(
+        "TokenConfiguredFromEnv");
+
+    /**
+     * The store used by {@link HttpSigner} implementations to store payload checksums.
+     */
+    public static final ExecutionAttribute<PayloadChecksumStore> CHECKSUM_STORE =
+        new ExecutionAttribute<>("ChecksumStore");
+
+    /**
+     * Indicates whether this is a long polling operation.
+     */
+    public static final ExecutionAttribute<Boolean> IS_LONG_POLLING = new ExecutionAttribute<>("IsLongPolling");
+
+    /**
+     * Indicates whether retries v2.1 is enabled.
+     */
+    public static final ExecutionAttribute<Boolean> NEW_RETRIES_2026_ENABLED = new ExecutionAttribute<>("NewRetries2026Enabled");
 
     /**
      * The backing attribute for RESOLVED_CHECKSUM_SPECS.

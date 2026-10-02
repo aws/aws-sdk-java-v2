@@ -232,7 +232,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Get information about the specified Composition resource.</p>"
+      "documentation":"<p>Get information about the specified Composition resource.</p>",
+      "readonly":true
     },
     "GetEncoderConfiguration":{
       "name":"GetEncoderConfiguration",
@@ -251,7 +252,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Gets information about the specified EncoderConfiguration resource. </p>"
+      "documentation":"<p>Gets information about the specified EncoderConfiguration resource. </p>",
+      "readonly":true
     },
     "GetIngestConfiguration":{
       "name":"GetIngestConfiguration",
@@ -267,7 +269,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets information about the specified IngestConfiguration.</p>"
+      "documentation":"<p>Gets information about the specified IngestConfiguration.</p>",
+      "readonly":true
     },
     "GetParticipant":{
       "name":"GetParticipant",
@@ -283,7 +286,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets information about the specified participant token.</p>"
+      "documentation":"<p>Gets information about the specified participant token.</p>",
+      "readonly":true
     },
     "GetPublicKey":{
       "name":"GetPublicKey",
@@ -299,7 +303,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets information for the specified public key.</p>"
+      "documentation":"<p>Gets information for the specified public key.</p>",
+      "readonly":true
     },
     "GetStage":{
       "name":"GetStage",
@@ -315,7 +320,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets information for the specified stage.</p>"
+      "documentation":"<p>Gets information for the specified stage.</p>",
+      "readonly":true
     },
     "GetStageSession":{
       "name":"GetStageSession",
@@ -331,7 +337,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets information for the specified stage session.</p>"
+      "documentation":"<p>Gets information for the specified stage session.</p>",
+      "readonly":true
     },
     "GetStorageConfiguration":{
       "name":"GetStorageConfiguration",
@@ -350,7 +357,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Gets the storage configuration for the specified ARN.</p>"
+      "documentation":"<p>Gets the storage configuration for the specified ARN.</p>",
+      "readonly":true
     },
     "ImportPublicKey":{
       "name":"ImportPublicKey",
@@ -386,7 +394,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Gets summary information about all Compositions in your account, in the AWS region where the API request is processed. </p>"
+      "documentation":"<p>Gets summary information about all Compositions in your account, in the AWS region where the API request is processed. </p>",
+      "readonly":true
     },
     "ListEncoderConfigurations":{
       "name":"ListEncoderConfigurations",
@@ -404,7 +413,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Gets summary information about all EncoderConfigurations in your account, in the AWS region where the API request is processed.</p>"
+      "documentation":"<p>Gets summary information about all EncoderConfigurations in your account, in the AWS region where the API request is processed.</p>",
+      "readonly":true
     },
     "ListIngestConfigurations":{
       "name":"ListIngestConfigurations",
@@ -419,7 +429,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists all IngestConfigurations in your account, in the AWS region where the API request is processed.</p>"
+      "documentation":"<p>Lists all IngestConfigurations in your account, in the AWS region where the API request is processed.</p>",
+      "readonly":true
     },
     "ListParticipantEvents":{
       "name":"ListParticipantEvents",
@@ -434,7 +445,24 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists events for a specified participant that occurred during a specified stage session.</p>"
+      "documentation":"<p>Lists events for a specified participant that occurred during a specified stage session.</p>",
+      "readonly":true
+    },
+    "ListParticipantReplicas":{
+      "name":"ListParticipantReplicas",
+      "http":{
+        "method":"POST",
+        "requestUri":"/ListParticipantReplicas",
+        "responseCode":200
+      },
+      "input":{"shape":"ListParticipantReplicasRequest"},
+      "output":{"shape":"ListParticipantReplicasResponse"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"}
+      ],
+      "documentation":"<p>Lists all the replicas for a participant from a source stage.</p>",
+      "readonly":true
     },
     "ListParticipants":{
       "name":"ListParticipants",
@@ -449,7 +477,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Lists all participants in a specified stage session.</p>"
+      "documentation":"<p>Lists all participants in a specified stage session.</p>",
+      "readonly":true
     },
     "ListPublicKeys":{
       "name":"ListPublicKeys",
@@ -464,7 +493,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets summary information about all public keys in your account, in the AWS region where the API request is processed.</p>"
+      "documentation":"<p>Gets summary information about all public keys in your account, in the AWS region where the API request is processed.</p>",
+      "readonly":true
     },
     "ListStageSessions":{
       "name":"ListStageSessions",
@@ -479,7 +509,8 @@
         {"shape":"ValidationException"},
         {"shape":"AccessDeniedException"}
       ],
-      "documentation":"<p>Gets all sessions for a specified stage.</p>"
+      "documentation":"<p>Gets all sessions for a specified stage.</p>",
+      "readonly":true
     },
     "ListStages":{
       "name":"ListStages",
@@ -495,7 +526,8 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Gets summary information about all stages in your account, in the AWS region where the API request is processed.</p>"
+      "documentation":"<p>Gets summary information about all stages in your account, in the AWS region where the API request is processed.</p>",
+      "readonly":true
     },
     "ListStorageConfigurations":{
       "name":"ListStorageConfigurations",
@@ -513,7 +545,8 @@
         {"shape":"ServiceQuotaExceededException"},
         {"shape":"ConflictException"}
       ],
-      "documentation":"<p>Gets summary information about all storage configurations in your account, in the AWS region where the API request is processed.</p>"
+      "documentation":"<p>Gets summary information about all storage configurations in your account, in the AWS region where the API request is processed.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -529,7 +562,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>Gets information about AWS tags for the specified ARN.</p>"
+      "documentation":"<p>Gets information about AWS tags for the specified ARN.</p>",
+      "readonly":true
     },
     "StartComposition":{
       "name":"StartComposition",
@@ -551,6 +585,26 @@
       ],
       "documentation":"<p>Starts a Composition from a stage based on the configuration provided in the request.</p> <p>A Composition is an ephemeral resource that exists after this operation returns successfully. Composition stops and the resource is deleted:</p> <ul> <li> <p>When <a>StopComposition</a> is called.</p> </li> <li> <p>After a 1-minute timeout, when all participants are disconnected from the stage.</p> </li> <li> <p>After a 1-minute timeout, if there are no participants in the stage when StartComposition is called.</p> </li> <li> <p>When broadcasting to the IVS channel fails and all retries are exhausted.</p> </li> <li> <p>When broadcasting is disconnected and all attempts to reconnect are exhausted.</p> </li> </ul>"
     },
+    "StartParticipantReplication":{
+      "name":"StartParticipantReplication",
+      "http":{
+        "method":"POST",
+        "requestUri":"/StartParticipantReplication",
+        "responseCode":200
+      },
+      "input":{"shape":"StartParticipantReplicationRequest"},
+      "output":{"shape":"StartParticipantReplicationResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"PendingVerification"},
+        {"shape":"ConflictException"}
+      ],
+      "documentation":"<p>Starts replicating a publishing participant from a source stage to a destination stage.</p>"
+    },
     "StopComposition":{
       "name":"StopComposition",
       "http":{
@@ -569,6 +623,23 @@
         {"shape":"ConflictException"}
       ],
       "documentation":"<p>Stops and deletes a Composition resource. Any broadcast from the Composition resource is stopped.</p>"
+    },
+    "StopParticipantReplication":{
+      "name":"StopParticipantReplication",
+      "http":{
+        "method":"POST",
+        "requestUri":"/StopParticipantReplication",
+        "responseCode":200
+      },
+      "input":{"shape":"StopParticipantReplicationRequest"},
+      "output":{"shape":"StopParticipantReplicationResponse"},
+      "errors":[
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"}
+      ],
+      "documentation":"<p>Stops a replicated participant session.</p>"
     },
     "TagResource":{
       "name":"TagResource",
@@ -645,12 +716,60 @@
     "AccessDeniedException":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p>User does not have sufficient access to perform this action.</p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>User does not have sufficient access to perform this action.</p>",
       "error":{
         "httpStatusCode":403,
         "senderFault":true
@@ -669,7 +788,7 @@
       "members":{
         "storageConfigurationArn":{
           "shape":"AutoParticipantRecordingStorageConfigurationArn",
-          "documentation":"<p>ARN of the <a>StorageConfiguration</a> resource to use for individual participant recording. Default: <code>\"\"</code> (empty string, no storage configuration is specified). Individual participant recording cannot be started unless a storage configuration is specified, when a <a>Stage</a> is created or updated.</p>"
+          "documentation":"<p>ARN of the <a>StorageConfiguration</a> resource to use for individual participant recording. Default: <code>\"\"</code> (empty string, no storage configuration is specified). Individual participant recording cannot be started unless a storage configuration is specified, when a <a>Stage</a> is created or updated. To disable individual participant recording, set this to <code>\"\"</code>; other fields in this object will get reset to their defaults when sending <code>\"\"</code>. </p>"
         },
         "mediaTypes":{
           "shape":"ParticipantRecordingMediaTypeList",
@@ -678,6 +797,18 @@
         "thumbnailConfiguration":{
           "shape":"ParticipantThumbnailConfiguration",
           "documentation":"<p>A complex type that allows you to enable/disable the recording of thumbnails for individual participant recording and modify the interval at which thumbnails are generated for the live session.</p>"
+        },
+        "recordingReconnectWindowSeconds":{
+          "shape":"ParticipantRecordingReconnectWindowSeconds",
+          "documentation":"<p>If a stage publisher disconnects and then reconnects within the specified interval, the multiple recordings will be considered a single recording and merged together.</p> <p>The default value is 0, which disables merging.</p>"
+        },
+        "hlsConfiguration":{
+          "shape":"ParticipantRecordingHlsConfiguration",
+          "documentation":"<p>HLS configuration object for individual participant recording.</p>"
+        },
+        "recordParticipantReplicas":{
+          "shape":"RecordParticipantReplicas",
+          "documentation":"<p>Optional field to disable replica participant recording. If this is set to <code>false</code> when a participant is a replica, replica participants are not recorded. Default: <code>true</code>.</p>"
         }
       },
       "documentation":"<p>Object specifying a configuration for individual participant recording.</p>"
@@ -773,6 +904,22 @@
       "min":1,
       "pattern":"[a-zA-Z0-9-_]*"
     },
+    "CompositionRecordingHlsConfiguration":{
+      "type":"structure",
+      "members":{
+        "targetSegmentDurationSeconds":{
+          "shape":"CompositionRecordingTargetSegmentDurationSeconds",
+          "documentation":"<p>Defines the target duration for recorded segments generated when using composite recording. Default: 2.</p>"
+        }
+      },
+      "documentation":"<p>An object representing a configuration of HLS recordings for server-side composition.</p>"
+    },
+    "CompositionRecordingTargetSegmentDurationSeconds":{
+      "type":"integer",
+      "box":true,
+      "max":10,
+      "min":2
+    },
     "CompositionState":{
       "type":"string",
       "enum":[
@@ -850,12 +997,60 @@
     "ConflictException":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p>Updating or deleting a resource can cause an inconsistent state.</p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>Updating or deleting a resource can cause an inconsistent state.</p>",
       "error":{
         "httpStatusCode":409,
         "senderFault":true
@@ -916,6 +1111,10 @@
           "shape":"InsecureIngest",
           "documentation":"<p>Whether the stage allows insecure RTMP ingest. This must be set to <code>true</code>, if <code>ingestProtocol</code> is set to <code>RTMP</code>. Default: <code>false</code>. </p>"
         },
+        "redundantIngest":{
+          "shape":"RedundantIngest",
+          "documentation":"<p>Indicates whether redundant ingest is enabled for the ingest configuration. Default: <code>false</code>. </p>"
+        },
         "tags":{
           "shape":"Tags",
           "documentation":"<p>Tags attached to the resource. Array of maps, each of the form <code>string:string (key:value)</code>. See <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/best-practices-and-strats.html\">Best practices and strategies</a> in <i>Tagging AWS Resources and Tag Editor</i> for details, including restrictions that apply to tags and \"Tag naming limits and requirements\"; Amazon IVS has no constraints on tags beyond what is documented there.</p>"
@@ -925,6 +1124,48 @@
     "CreateIngestConfigurationResponse":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin\">Access-Control-Allow-Origin</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers\">Access-Control-Expose-Headers</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control\">Cache-Control</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy\">Content-Security-Policy</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Strict-Transport-Security\">Strict-Transport-Security</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options\">X-Content-Type-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options\">X-Frame-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
         "ingestConfiguration":{
           "shape":"IngestConfiguration",
           "documentation":"<p>The IngestConfiguration that was created.</p>"
@@ -1039,8 +1280,7 @@
     },
     "DeleteEncoderConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteIngestConfigurationRequest":{
       "type":"structure",
@@ -1058,8 +1298,7 @@
     },
     "DeleteIngestConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeletePublicKeyRequest":{
       "type":"structure",
@@ -1073,8 +1312,7 @@
     },
     "DeletePublicKeyResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteStageRequest":{
       "type":"structure",
@@ -1088,8 +1326,7 @@
     },
     "DeleteStageResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "DeleteStorageConfigurationRequest":{
       "type":"structure",
@@ -1103,8 +1340,7 @@
     },
     "DeleteStorageConfigurationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "Destination":{
       "type":"structure",
@@ -1258,8 +1494,7 @@
     },
     "DisconnectParticipantResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "EncoderConfiguration":{
       "type":"structure",
@@ -1347,6 +1582,26 @@
         "errorCode":{
           "shape":"EventErrorCode",
           "documentation":"<p>If the event is an error event, the error code is provided to give insight into the specific error that occurred. If the event is not an error event, this field is null.</p> <ul> <li> <p> <code>B_FRAME_PRESENT</code> — The participant's stream includes B-frames. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/rt-rtmp-publishing.html\"> IVS RTMP Publishing</a>.</p> </li> <li> <p> <code>BITRATE_EXCEEDED</code> — The participant exceeded the maximum supported bitrate. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/service-quotas.html\"> Service Quotas</a>.</p> </li> <li> <p> <code>INSUFFICIENT_CAPABILITIES</code> — The participant tried to take an action that the participant’s token is not allowed to do. For details on participant capabilities, see the <code>capabilities</code> field in <a>CreateParticipantToken</a>.</p> </li> <li> <p> <code>INTERNAL_SERVER_EXCEPTION</code> — The participant failed to publish to the stage due to an internal server error.</p> </li> <li> <p> <code>INVALID_AUDIO_CODEC</code> — The participant is using an invalid audio codec. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/rt-stream-ingest.html\"> Stream Ingest</a>.</p> </li> <li> <p> <code>INVALID_INPUT</code> — The participant is using an invalid input stream.</p> </li> <li> <p> <code>INVALID_PROTOCOL</code> — The participant's IngestConfiguration resource is configured for RTMPS but they tried streaming with RTMP. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/rt-rtmp-publishing.html\"> IVS RTMP Publishing</a>.</p> </li> <li> <p> <code>INVALID_STREAM_KEY</code> — The participant is using an invalid stream key. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/rt-rtmp-publishing.html\"> IVS RTMP Publishing</a>.</p> </li> <li> <p> <code>INVALID_VIDEO_CODEC</code> — The participant is using an invalid video codec. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/rt-stream-ingest.html\"> Stream Ingest</a>.</p> </li> <li> <p> <code>PUBLISHER_NOT_FOUND</code> — The participant tried to subscribe to a publisher that doesn’t exist.</p> </li> <li> <p> <code>QUOTA_EXCEEDED</code> — The number of participants who want to publish/subscribe to a stage exceeds the quota. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/service-quotas.html\"> Service Quotas</a>.</p> </li> <li> <p> <code>RESOLUTION_EXCEEDED</code> — The participant exceeded the maximum supported resolution. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/service-quotas.html\"> Service Quotas</a>.</p> </li> <li> <p> <code>REUSE_OF_STREAM_KEY</code> — The participant tried to use a stream key that is associated with another active stage session.</p> </li> <li> <p> <code>STREAM_DURATION_EXCEEDED</code> — The participant exceeded the maximum allowed stream duration. For details, see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/service-quotas.html\"> Service Quotas</a>.</p> </li> </ul>"
+        },
+        "destinationStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage where the participant is replicated. Applicable only if the event name is <code>REPLICATION_STARTED</code> or <code>REPLICATION_STOPPED</code>.</p>"
+        },
+        "destinationSessionId":{
+          "shape":"StageSessionId",
+          "documentation":"<p>ID of the session within the destination stage. Applicable only if the event name is <code>REPLICATION_STARTED</code> or <code>REPLICATION_STOPPED</code>.</p>"
+        },
+        "replica":{
+          "shape":"Replica",
+          "documentation":"<p>If true, this indicates the <code>participantId</code> is a replicated participant. If this is a subscribe event, then this flag refers to <code>remoteParticipantId</code>. Default: <code>false</code>.</p>"
+        },
+        "previousToken":{
+          "shape":"ExchangedParticipantToken",
+          "documentation":"<p>Source participant token for <code>TOKEN_EXCHANGED</code> event.</p>"
+        },
+        "newToken":{
+          "shape":"ExchangedParticipantToken",
+          "documentation":"<p>Participant token created during <code>TOKEN_EXCHANGED</code> event.</p>"
         }
       },
       "documentation":"<p>An occurrence during a stage session.</p>"
@@ -1385,8 +1640,33 @@
         "SUBSCRIBE_STOPPED",
         "PUBLISH_ERROR",
         "SUBSCRIBE_ERROR",
-        "JOIN_ERROR"
+        "JOIN_ERROR",
+        "REPLICATION_STARTED",
+        "REPLICATION_STOPPED",
+        "TOKEN_EXCHANGED"
       ]
+    },
+    "ExchangedParticipantToken":{
+      "type":"structure",
+      "members":{
+        "capabilities":{
+          "shape":"ParticipantTokenCapabilities",
+          "documentation":"<p>Set of capabilities that the user is allowed to perform in the stage.</p>"
+        },
+        "attributes":{
+          "shape":"ParticipantTokenAttributes",
+          "documentation":"<p>Application-provided attributes to encode into the token and attach to a stage. Map keys and values can contain UTF-8 encoded text. The maximum length of this field is 1 KB total. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
+        },
+        "userId":{
+          "shape":"ParticipantTokenUserId",
+          "documentation":"<p>Customer-assigned name to help identify the token; this can be used to link a participant to a user in the customer’s own systems. This can be any UTF-8 encoded text. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
+        },
+        "expirationTime":{
+          "shape":"ParticipantTokenExpirationTime",
+          "documentation":"<p>ISO 8601 timestamp (returned as a string) for when this token expires.</p>"
+        }
+      },
+      "documentation":"<p>Object specifying an exchanged participant token in a stage, created when an original participant token is updated.</p> <p> <b>Important</b>: Treat tokens as opaque; i.e., do not build functionality based on token contents. The format of tokens could change in the future.</p>"
     },
     "Framerate":{
       "type":"float",
@@ -1587,6 +1867,10 @@
         "gridGap":{
           "shape":"GridGap",
           "documentation":"<p>Specifies the spacing between participant tiles in pixels. Default: <code>2</code>.</p>"
+        },
+        "participantOrderAttribute":{
+          "shape":"AttributeKey",
+          "documentation":"<p>Attribute name in <a>ParticipantTokenConfiguration</a> identifying the participant ordering key. Participants with <code>participantOrderAttribute</code> set to <code>\"\"</code> or not specified are ordered based on their arrival time into the stage.</p>"
         }
       },
       "documentation":"<p>Configuration information specific to Grid layout, for server-side composition. See \"Layouts\" in <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/server-side-composition.html\">Server-Side Composition</a>.</p>"
@@ -1671,6 +1955,14 @@
           "shape":"UserId",
           "documentation":"<p>Customer-assigned name to help identify the participant using the IngestConfiguration; this can be used to link a participant to a user in the customer’s own systems. This can be any UTF-8 encoded text. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
         },
+        "redundantIngest":{
+          "shape":"RedundantIngest",
+          "documentation":"<p>Indicates whether redundant ingest is enabled for the ingest configuration.</p>"
+        },
+        "redundantIngestCredentials":{
+          "shape":"RedundantIngestCredentials",
+          "documentation":"<p>A list of redundant ingest credentials, present only when <code>redundantIngest</code> is set to <code>true</code>. See <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/rt-rtmp-publishing.html#redundant-ingest\">Redundant Ingest</a> in <i>IVS RTMP Publishing</i> for details.</p>"
+        },
         "attributes":{
           "shape":"ParticipantAttributes",
           "documentation":"<p>Application-provided attributes to to store in the IngestConfiguration and attach to a stage. Map keys and values can contain UTF-8 encoded text. The maximum length of this field is 1 KB total. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
@@ -1748,6 +2040,10 @@
         "userId":{
           "shape":"UserId",
           "documentation":"<p>Customer-assigned name to help identify the participant using the IngestConfiguration; this can be used to link a participant to a user in the customer’s own systems. This can be any UTF-8 encoded text. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
+        },
+        "redundantIngest":{
+          "shape":"RedundantIngest",
+          "documentation":"<p>Indicates whether redundant ingest is enabled for the ingest configuration.</p>"
         }
       },
       "documentation":"<p>Summary information about an IngestConfiguration.</p>"
@@ -1763,12 +2059,60 @@
     "InternalServerException":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p>Unexpected error during processing of request.</p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>Unexpected error during processing of request.</p>",
       "error":{"httpStatusCode":500},
       "exception":true,
       "fault":true
@@ -1925,6 +2269,45 @@
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>If there are more events than <code>maxResults</code>, use <code>nextToken</code> in the request to get the next set. </p>"
+        }
+      }
+    },
+    "ListParticipantReplicasRequest":{
+      "type":"structure",
+      "required":[
+        "sourceStageArn",
+        "participantId"
+      ],
+      "members":{
+        "sourceStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage where the participant is publishing.</p>"
+        },
+        "participantId":{
+          "shape":"ParticipantId",
+          "documentation":"<p>Participant ID of the publisher that has been replicated. This is assigned by IVS and returned by <a>CreateParticipantToken</a> or the <code>jti</code> (JWT ID) used to <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/getting-started-distribute-tokens.html#getting-started-distribute-tokens-self-signed\">create a self signed token</a>.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>The first participant to retrieve. This is used for pagination; see the <code>nextToken</code> response field.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxParticipantReplicaResults",
+          "documentation":"<p>Maximum number of results to return. Default: 50.</p>"
+        }
+      }
+    },
+    "ListParticipantReplicasResponse":{
+      "type":"structure",
+      "required":["replicas"],
+      "members":{
+        "replicas":{
+          "shape":"ParticipantReplicaList",
+          "documentation":"<p>List of all participant replicas.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>If there are more participants than <code>maxResults</code>, use <code>nextToken</code> in the request to get the next set.</p>"
         }
       }
     },
@@ -2142,6 +2525,12 @@
       "max":100,
       "min":1
     },
+    "MaxParticipantReplicaResults":{
+      "type":"integer",
+      "box":true,
+      "max":50,
+      "min":1
+    },
     "MaxParticipantResults":{
       "type":"integer",
       "box":true,
@@ -2236,7 +2625,7 @@
         },
         "recordingS3Prefix":{
           "shape":"ParticipantRecordingS3Prefix",
-          "documentation":"<p>S3 prefix of the S3 bucket where the participant is being recorded, if individual participant recording is enabled, or <code>\"\"</code> (empty string), if recording is not enabled.</p>"
+          "documentation":"<p>S3 prefix of the S3 bucket where the participant is being recorded, if individual participant recording is enabled, or <code>\"\"</code> (empty string), if recording is not enabled. If individual participant recording merge is enabled, and if a stage publisher disconnects from a stage and then reconnects, IVS tries to record to the same S3 prefix as the previous session. See <a href=\"/ivs/latest/RealTimeUserGuide/rt-individual-participant-recording.html#ind-part-rec-merge-frag\"> Merge Fragmented Individual Participant Recordings</a>.</p>"
         },
         "recordingState":{
           "shape":"ParticipantRecordingState",
@@ -2245,6 +2634,30 @@
         "protocol":{
           "shape":"ParticipantProtocol",
           "documentation":"<p>Type of ingest protocol that the participant employs for broadcasting.</p>"
+        },
+        "replicationType":{
+          "shape":"ReplicationType",
+          "documentation":"<p>Indicates if the participant has been replicated to another stage or is a replica from another stage. Default: <code>NONE</code>. </p>"
+        },
+        "replicationState":{
+          "shape":"ReplicationState",
+          "documentation":"<p>The participant's replication state.</p>"
+        },
+        "sourceStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>Source stage ARN from which this participant is replicated, if <code>replicationType</code> is <code>REPLICA</code>. </p>"
+        },
+        "sourceSessionId":{
+          "shape":"StageSessionId",
+          "documentation":"<p>ID of the session within the source stage, if <code>replicationType</code> is <code>REPLICA</code>.</p>"
+        },
+        "redundantIngest":{
+          "shape":"RedundantIngest",
+          "documentation":"<p>Indicates whether redundant ingest is enabled for the participant.</p>"
+        },
+        "ingestConfigurationArn":{
+          "shape":"IngestConfigurationArn",
+          "documentation":"<p>The participant’s ingest configuration.</p>"
         }
       },
       "documentation":"<p>Object describing a participant that has joined a stage.</p>"
@@ -2264,7 +2677,7 @@
       "type":"string",
       "max":64,
       "min":0,
-      "pattern":"[a-zA-Z0-9-]*"
+      "pattern":"[a-zA-Z0-9-_]*"
     },
     "ParticipantList":{
       "type":"list",
@@ -2289,6 +2702,16 @@
         "FAILED"
       ]
     },
+    "ParticipantRecordingHlsConfiguration":{
+      "type":"structure",
+      "members":{
+        "targetSegmentDurationSeconds":{
+          "shape":"ParticipantRecordingTargetSegmentDurationSeconds",
+          "documentation":"<p>Defines the target duration for recorded segments generated when recording a stage participant. Segments may have durations longer than the specified value when needed to ensure each segment begins with a keyframe. Default: 6.</p>"
+        }
+      },
+      "documentation":"<p>An object representing a configuration of participant HLS recordings for individual participant recording.</p>"
+    },
     "ParticipantRecordingMediaType":{
       "type":"string",
       "enum":[
@@ -2301,6 +2724,11 @@
       "type":"list",
       "member":{"shape":"ParticipantRecordingMediaType"},
       "max":1,
+      "min":0
+    },
+    "ParticipantRecordingReconnectWindowSeconds":{
+      "type":"integer",
+      "max":300,
       "min":0
     },
     "ParticipantRecordingS3BucketName":{
@@ -2325,6 +2753,54 @@
         "FAILED",
         "DISABLED"
       ]
+    },
+    "ParticipantRecordingTargetSegmentDurationSeconds":{
+      "type":"integer",
+      "box":true,
+      "max":10,
+      "min":2
+    },
+    "ParticipantReplica":{
+      "type":"structure",
+      "required":[
+        "sourceStageArn",
+        "participantId",
+        "sourceSessionId",
+        "destinationStageArn",
+        "destinationSessionId",
+        "replicationState"
+      ],
+      "members":{
+        "sourceStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage from which this participant is replicated.</p>"
+        },
+        "participantId":{
+          "shape":"ParticipantId",
+          "documentation":"<p>Participant ID of the publisher that will be replicated. This is assigned by IVS and returned by <a>CreateParticipantToken</a> or the <code>jti</code> (JWT ID) used to <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/getting-started-distribute-tokens.html#getting-started-distribute-tokens-self-signed\"> create a self signed token</a>.</p>"
+        },
+        "sourceSessionId":{
+          "shape":"StageSessionId",
+          "documentation":"<p>ID of the session within the source stage.</p>"
+        },
+        "destinationStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage where the participant is replicated.</p>"
+        },
+        "destinationSessionId":{
+          "shape":"StageSessionId",
+          "documentation":"<p>ID of the session within the destination stage.</p>"
+        },
+        "replicationState":{
+          "shape":"ReplicationState",
+          "documentation":"<p>Replica’s current replication state.</p>"
+        }
+      },
+      "documentation":"<p>Information about the replicated destination stage for a participant.</p>"
+    },
+    "ParticipantReplicaList":{
+      "type":"list",
+      "member":{"shape":"ParticipantReplica"}
     },
     "ParticipantState":{
       "type":"string",
@@ -2359,6 +2835,30 @@
         "recordingState":{
           "shape":"ParticipantRecordingState",
           "documentation":"<p>The participant’s recording state.</p>"
+        },
+        "replicationType":{
+          "shape":"ReplicationType",
+          "documentation":"<p>Indicates if the participant has been replicated to another stage or is a replica from another stage. Default: <code>NONE</code>. </p>"
+        },
+        "replicationState":{
+          "shape":"ReplicationState",
+          "documentation":"<p>The participant's replication state.</p>"
+        },
+        "sourceStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>Source stage ARN from which this participant is replicated, if <code>replicationType</code> is <code>REPLICA</code>.</p>"
+        },
+        "sourceSessionId":{
+          "shape":"StageSessionId",
+          "documentation":"<p>ID of the session within the source stage, if <code>replicationType</code> is <code>REPLICA</code>.</p>"
+        },
+        "redundantIngest":{
+          "shape":"RedundantIngest",
+          "documentation":"<p>Indicates whether redundant ingest is enabled for the participant.</p>"
+        },
+        "ingestConfigurationArn":{
+          "shape":"IngestConfigurationArn",
+          "documentation":"<p>The participant’s ingest configuration.</p>"
         }
       },
       "documentation":"<p>Summary object describing a participant that has joined a stage.</p>"
@@ -2398,7 +2898,7 @@
         },
         "attributes":{
           "shape":"ParticipantTokenAttributes",
-          "documentation":"<p>Application-provided attributes to encode into the token and attach to a stage. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
+          "documentation":"<p>Application-provided attributes to encode into the token and attach to a stage. Map keys and values can contain UTF-8 encoded text. The maximum length of this field is 1 KB total. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p>"
         },
         "duration":{
           "shape":"ParticipantTokenDurationMinutes",
@@ -2471,7 +2971,12 @@
       "type":"timestamp",
       "timestampFormat":"iso8601"
     },
-    "ParticipantTokenId":{"type":"string"},
+    "ParticipantTokenId":{
+      "type":"string",
+      "max":64,
+      "min":0,
+      "pattern":"[a-zA-Z0-9-_]*"
+    },
     "ParticipantTokenList":{
       "type":"list",
       "member":{"shape":"ParticipantToken"}
@@ -2488,12 +2993,60 @@
     "PendingVerification":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p> Your account is pending verification. </p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>Your account is pending verification.</p>",
       "error":{
         "httpStatusCode":403,
         "senderFault":true
@@ -2549,6 +3102,10 @@
         "pipHeight":{
           "shape":"PipHeight",
           "documentation":"<p>Specifies the height of the PiP window in pixels. When this is not set explicitly, <code>pipHeight</code>’s value will be based on the size of the composition and the aspect ratio of the participant’s video.</p>"
+        },
+        "participantOrderAttribute":{
+          "shape":"AttributeKey",
+          "documentation":"<p>Attribute name in <a>ParticipantTokenConfiguration</a> identifying the participant ordering key. Participants with <code>participantOrderAttribute</code> set to <code>\"\"</code> or not specified are ordered based on their arrival time into the stage.</p>"
         }
       },
       "documentation":"<p>Configuration information specific to Picture-in-Picture (PiP) layout, for <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/server-side-composition.html\">server-side composition</a>. </p>"
@@ -2642,9 +3199,20 @@
       "documentation":"<p>Summary information about a public key.</p>"
     },
     "Published":{"type":"boolean"},
+    "ReconnectWindowSeconds":{
+      "type":"integer",
+      "box":true,
+      "max":300,
+      "min":0
+    },
+    "RecordParticipantReplicas":{"type":"boolean"},
     "RecordingConfiguration":{
       "type":"structure",
       "members":{
+        "hlsConfiguration":{
+          "shape":"CompositionRecordingHlsConfiguration",
+          "documentation":"<p>An HLS configuration object to return information about how the recording will be configured.</p>"
+        },
         "format":{
           "shape":"RecordingConfigurationFormat",
           "documentation":"<p>The recording format for storing a recording in Amazon S3.</p>"
@@ -2656,6 +3224,41 @@
       "type":"string",
       "enum":["HLS"]
     },
+    "RedundantIngest":{"type":"boolean"},
+    "RedundantIngestCredential":{
+      "type":"structure",
+      "members":{
+        "participantId":{
+          "shape":"ParticipantId",
+          "documentation":"<p>ID of the participant within the stage.</p>"
+        },
+        "streamKey":{
+          "shape":"StreamKey",
+          "documentation":"<p>Ingest-key value.</p>"
+        }
+      },
+      "documentation":"<p>An object representing a redundant ingest credential.</p>"
+    },
+    "RedundantIngestCredentials":{
+      "type":"list",
+      "member":{"shape":"RedundantIngestCredential"}
+    },
+    "Replica":{"type":"boolean"},
+    "ReplicationState":{
+      "type":"string",
+      "enum":[
+        "ACTIVE",
+        "STOPPED"
+      ]
+    },
+    "ReplicationType":{
+      "type":"string",
+      "enum":[
+        "SOURCE",
+        "REPLICA",
+        "NONE"
+      ]
+    },
     "ResourceArn":{
       "type":"string",
       "max":128,
@@ -2665,12 +3268,60 @@
     "ResourceNotFoundException":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p>Request references a resource which does not exist.</p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>Request references a resource which does not exist.</p>",
       "error":{
         "httpStatusCode":404,
         "senderFault":true
@@ -2734,12 +3385,60 @@
     "ServiceQuotaExceededException":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p>Request would cause a service quota to be exceeded.</p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>Request would cause a service quota to be exceeded.</p>",
       "error":{
         "httpStatusCode":402,
         "senderFault":true
@@ -2928,6 +3627,83 @@
         }
       }
     },
+    "StartParticipantReplicationRequest":{
+      "type":"structure",
+      "required":[
+        "sourceStageArn",
+        "destinationStageArn",
+        "participantId"
+      ],
+      "members":{
+        "sourceStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage where the participant is publishing.</p>"
+        },
+        "destinationStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage to which the participant will be replicated.</p>"
+        },
+        "participantId":{
+          "shape":"ParticipantId",
+          "documentation":"<p>Participant ID of the publisher that will be replicated. This is assigned by IVS and returned by <a>CreateParticipantToken</a> or the <code>jti</code> (JWT ID) used to <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/getting-started-distribute-tokens.html#getting-started-distribute-tokens-self-signed\">create a self signed token</a>. </p>"
+        },
+        "reconnectWindowSeconds":{
+          "shape":"ReconnectWindowSeconds",
+          "documentation":"<p>If the participant disconnects and then reconnects within the specified interval, replication will continue to be <code>ACTIVE</code>. Default: 0.</p>"
+        },
+        "attributes":{
+          "shape":"ParticipantAttributes",
+          "documentation":"<p>Application-provided attributes to set on the replicated participant in the destination stage. Map keys and values can contain UTF-8 encoded text. The maximum length of this field is 1 KB total. <i>This field is exposed to all stage participants and should not be used for personally identifying, confidential, or sensitive information.</i> </p> <p>These attributes are merged with any attributes set for this participant when creating the token. If there is overlap in keys, the values in these attributes are replaced.</p>"
+        }
+      }
+    },
+    "StartParticipantReplicationResponse":{
+      "type":"structure",
+      "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin\">Access-Control-Allow-Origin</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers\">Access-Control-Expose-Headers</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control\">Cache-Control</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy\">Content-Security-Policy</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Strict-Transport-Security\">Strict-Transport-Security</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options\">X-Content-Type-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options\">X-Frame-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        }
+      }
+    },
     "StopCompositionRequest":{
       "type":"structure",
       "required":["arn"],
@@ -2940,7 +3716,75 @@
     },
     "StopCompositionResponse":{
       "type":"structure",
+      "members":{}
+    },
+    "StopParticipantReplicationRequest":{
+      "type":"structure",
+      "required":[
+        "sourceStageArn",
+        "destinationStageArn",
+        "participantId"
+      ],
       "members":{
+        "sourceStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage where the participant is publishing.</p>"
+        },
+        "destinationStageArn":{
+          "shape":"StageArn",
+          "documentation":"<p>ARN of the stage where the participant has been replicated.</p>"
+        },
+        "participantId":{
+          "shape":"ParticipantId",
+          "documentation":"<p>Participant ID of the publisher that has been replicated. This is assigned by IVS and returned by <a>CreateParticipantToken</a> or the <code>jti</code> (JWT ID) used to <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/getting-started-distribute-tokens.html#getting-started-distribute-tokens-self-signed\"> create a self signed token</a>.</p>"
+        }
+      }
+    },
+    "StopParticipantReplicationResponse":{
+      "type":"structure",
+      "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin\">Access-Control-Allow-Origin</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers\">Access-Control-Expose-Headers</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control\">Cache-Control</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy\">Content-Security-Policy</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Strict-Transport-Security\">Strict-Transport-Security</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options\">X-Content-Type-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options\">X-Frame-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        }
       }
     },
     "StorageConfiguration":{
@@ -3043,8 +3887,7 @@
     },
     "TagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "TagValue":{
       "type":"string",
@@ -3103,7 +3946,7 @@
         },
         "tagKeys":{
           "shape":"TagKeyList",
-          "documentation":"<p>Array of tags to be removed. Array of maps, each of the form <code>string:string (key:value)</code>. See <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/best-practices-and-strats.html\">Best practices and strategies</a> in <i>Tagging AWS Resources and Tag Editor</i> for details, including restrictions that apply to tags and \"Tag naming limits and requirements\"; Amazon IVS has no constraints on tags beyond what is documented there.</p>",
+          "documentation":"<p>Array of tag keys (strings) for the tags to be removed. See <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/best-practices-and-strats.html\">Best practices and strategies</a> in <i>Tagging AWS Resources and Tag Editor</i> for details, including restrictions that apply to tags and \"Tag naming limits and requirements\"; Amazon IVS has no constraints on tags beyond what is documented there.</p>",
           "location":"querystring",
           "locationName":"tagKeys"
         }
@@ -3111,8 +3954,7 @@
     },
     "UntagResourceResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "UpdateIngestConfigurationRequest":{
       "type":"structure",
@@ -3125,12 +3967,58 @@
         "stageArn":{
           "shape":"IngestConfigurationStageArn",
           "documentation":"<p>Stage ARN that needs to be updated.</p>"
+        },
+        "redundantIngest":{
+          "shape":"RedundantIngest",
+          "documentation":"<p>Indicates whether redundant ingest is enabled for the ingest configuration. Default: <code>false</code>. </p>"
         }
       }
     },
     "UpdateIngestConfigurationResponse":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Allow-Origin\">Access-Control-Allow-Origin</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Access-Control-Expose-Headers\">Access-Control-Expose-Headers</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control\">Cache-Control</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy\">Content-Security-Policy</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Strict-Transport-Security\">Strict-Transport-Security</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Content-Type-Options\">X-Content-Type-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p>See <a href=\"https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/X-Frame-Options\">X-Frame-Options</a> in the MDN Web Docs.</p>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
         "ingestConfiguration":{
           "shape":"IngestConfiguration",
           "documentation":"<p>The updated IngestConfiguration.</p>"
@@ -3172,12 +4060,60 @@
     "ValidationException":{
       "type":"structure",
       "members":{
+        "accessControlAllowOrigin":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Allow-Origin"
+        },
+        "accessControlExposeHeaders":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Access-Control-Expose-Headers"
+        },
+        "cacheControl":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Cache-Control"
+        },
+        "contentSecurityPolicy":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Content-Security-Policy"
+        },
+        "strictTransportSecurity":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"Strict-Transport-Security"
+        },
+        "xContentTypeOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Content-Type-Options"
+        },
+        "xFrameOptions":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"X-Frame-Options"
+        },
+        "xAmznErrorType":{
+          "shape":"String",
+          "documentation":"<p/>",
+          "location":"header",
+          "locationName":"x-amzn-ErrorType"
+        },
         "exceptionMessage":{
           "shape":"errorMessage",
           "documentation":"<p>The input fails to satisfy the constraints specified by an Amazon Web Services service.</p>"
         }
       },
-      "documentation":"<p/>",
+      "documentation":"<p>The input fails to satisfy the constraints specified by an Amazon Web Services service.</p>",
       "error":{
         "httpStatusCode":400,
         "senderFault":true
@@ -3231,5 +4167,5 @@
     },
     "errorMessage":{"type":"string"}
   },
-  "documentation":"<p>The Amazon Interactive Video Service (IVS) real-time API is REST compatible, using a standard HTTP API and an AWS EventBridge event stream for responses. JSON is used for both requests and responses, including errors. </p> <p> <b>Key Concepts</b> </p> <ul> <li> <p> <b>Stage</b> — A virtual space where participants can exchange video in real time.</p> </li> <li> <p> <b>Participant token</b> — A token that authenticates a participant when they join a stage.</p> </li> <li> <p> <b>Participant object</b> — Represents participants (people) in the stage and contains information about them. When a token is created, it includes a participant ID; when a participant uses that token to join a stage, the participant is associated with that participant ID. There is a 1:1 mapping between participant tokens and participants.</p> </li> </ul> <p>For server-side composition:</p> <ul> <li> <p> <b>Composition process</b> — Composites participants of a stage into a single video and forwards it to a set of outputs (e.g., IVS channels). Composition operations support this process.</p> </li> <li> <p> <b>Composition</b> — Controls the look of the outputs, including how participants are positioned in the video.</p> </li> </ul> <p>For more information about your IVS live stream, also see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/getting-started.html\">Getting Started with Amazon IVS Real-Time Streaming</a>.</p> <p> <b>Tagging</b> </p> <p>A <i>tag</i> is a metadata label that you assign to an AWS resource. A tag comprises a <i>key</i> and a <i>value</i>, both set by you. For example, you might set a tag as <code>topic:nature</code> to label a particular video category. See <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/best-practices-and-strats.html\">Best practices and strategies</a> in <i>Tagging AWS Resources and Tag Editor</i> for details, including restrictions that apply to tags and \"Tag naming limits and requirements\"; Amazon IVS stages has no service-specific constraints beyond what is documented there.</p> <p>Tags can help you identify and organize your AWS resources. For example, you can use the same tag for different resources to indicate that they are related. You can also use tags to manage access (see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html\">Access Tags</a>).</p> <p>The Amazon IVS real-time API has these tag-related operations: <a>TagResource</a>, <a>UntagResource</a>, and <a>ListTagsForResource</a>. The following resource supports tagging: Stage.</p> <p>At most 50 tags can be applied to a resource.</p>"
+  "documentation":"<p>The Amazon Interactive Video Service (IVS) real-time API is REST compatible, using a standard HTTP API and an AWS EventBridge event stream for responses. JSON is used for both requests and responses, including errors. </p> <p> <b>Key Concepts</b> </p> <ul> <li> <p> <b>Stage</b> — A virtual space where participants can exchange video in real time.</p> </li> <li> <p> <b>Participant token</b> — A token that authenticates a participant when they join a stage.</p> </li> <li> <p> <b>Participant object</b> — Represents participants (people) in the stage and contains information about them. When a token is created, it includes a participant ID; when a participant uses that token to join a stage, the participant is associated with that participant ID. There is a 1:1 mapping between participant tokens and participants.</p> </li> </ul> <p>For server-side composition:</p> <ul> <li> <p> <b>Composition process</b> — Composites participants of a stage into a single video and forwards it to a set of outputs (e.g., IVS channels). Composition operations support this process.</p> </li> <li> <p> <b>Composition</b> — Controls the look of the outputs, including how participants are positioned in the video.</p> </li> </ul> <p>For participant replication:</p> <ul> <li> <p> <b>Source stage</b> — The stage where the participant originally joined, which is used as the source for replication.</p> </li> <li> <p> <b>Destination stage</b> — The stage to which the participant is replicated. </p> </li> <li> <p> <b>Replicated participant</b> — A participant in a stage that is replicated to one or more destination stages. </p> </li> <li> <p> <b>Replica participant</b> — A participant in a destination stage that is replicated from another stage (the source stage).</p> </li> </ul> <p>For more information about your IVS live stream, also see <a href=\"https://docs.aws.amazon.com/ivs/latest/RealTimeUserGuide/getting-started.html\">Getting Started with Amazon IVS Real-Time Streaming</a>.</p> <p> <b>Tagging</b> </p> <p>A <i>tag</i> is a metadata label that you assign to an AWS resource. A tag comprises a <i>key</i> and a <i>value</i>, both set by you. For example, you might set a tag as <code>topic:nature</code> to label a particular video category. See <a href=\"https://docs.aws.amazon.com/tag-editor/latest/userguide/best-practices-and-strats.html\">Best practices and strategies</a> in <i>Tagging AWS Resources and Tag Editor</i> for details, including restrictions that apply to tags and \"Tag naming limits and requirements\"; Amazon IVS stages has no service-specific constraints beyond what is documented there.</p> <p>Tags can help you identify and organize your AWS resources. For example, you can use the same tag for different resources to indicate that they are related. You can also use tags to manage access (see <a href=\"https://docs.aws.amazon.com/IAM/latest/UserGuide/access_tags.html\">Access Tags</a>).</p> <p>The Amazon IVS real-time API has these tag-related operations: <a>TagResource</a>, <a>UntagResource</a>, and <a>ListTagsForResource</a>. The following resource supports tagging: Stage.</p> <p>At most 50 tags can be applied to a resource.</p>"
 }

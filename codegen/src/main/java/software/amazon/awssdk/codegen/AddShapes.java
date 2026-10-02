@@ -21,6 +21,7 @@ import static software.amazon.awssdk.codegen.internal.Utils.isListShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isMapShape;
 import static software.amazon.awssdk.codegen.internal.Utils.isScalar;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -37,9 +38,15 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.Member;
+import software.amazon.awssdk.codegen.model.service.Operation;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
+import software.amazon.awssdk.codegen.validation.ModelInvalidException;
+import software.amazon.awssdk.codegen.validation.ValidationEntry;
+import software.amazon.awssdk.codegen.validation.ValidationErrorId;
+import software.amazon.awssdk.codegen.validation.ValidationErrorSeverity;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.Validate;
 
@@ -151,7 +158,7 @@ abstract class AddShapes {
                                             Map<String, Shape> allC2jShapes) {
         String c2jShapeName = c2jMemberDefinition.getShape();
         Shape shape = allC2jShapes.get(c2jShapeName);
-        String variableName = getNamingStrategy().getVariableName(c2jMemberName);
+        String variableName = getNamingStrategy().getVariableName(c2jMemberName, parentShape);
         String variableType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
         String variableDeclarationType = getTypeUtils().getJavaDataType(allC2jShapes, c2jShapeName);
 
@@ -196,6 +203,14 @@ abstract class AddShapes {
         memberModel.setContextParam(c2jMemberDefinition.getContextParam());
         memberModel.setRequired(isRequiredMember(c2jMemberName, parentShape));
         memberModel.setSynthetic(shape.isSynthetic());
+
+        if (c2jMemberDefinition.getAlternateBeanPropertyName() != null) {
+            String alternatePropertyName = c2jMemberDefinition.getAlternateBeanPropertyName();
+
+            String setter = String.format("set%s", alternatePropertyName);
+
+            memberModel.setAdditionalBeanStyleSetterName(setter);
+        }
 
 
         // Pass the xmlNameSpace from the member reference
@@ -296,16 +311,65 @@ abstract class AddShapes {
 
         ParameterHttpMapping mapping = new ParameterHttpMapping();
 
+        // Per the Smithy spec, HTTP binding traits are only honored on top-level shapes (direct operation
+        // input/output/error). When a location trait is ignored, its locationName is also ignored so the member
+        // name is used as the wire name. https://smithy.io/2.0/spec/http-bindings.html
+        Location resolvedLocation = resolveLocation(parentShape, member, allC2jShapes);
+        boolean locationIgnored = member.getLocation() != null && resolvedLocation == null;
+
         Shape memberShape = allC2jShapes.get(member.getShape());
-        mapping.withLocation(Location.forValue(member.getLocation()))
+        String marshallLocationName = locationIgnored
+            ? memberName : deriveMarshallerLocationName(memberShape, memberName, member, protocol);
+        String unmarshallLocationName = locationIgnored
+            ? memberName : deriveUnmarshallerLocationName(memberShape, memberName, member);
+
+        mapping.withLocation(resolvedLocation)
                .withPayload(member.isPayload()).withStreaming(member.isStreaming())
                .withFlattened(isFlattened(member, memberShape))
-               .withUnmarshallLocationName(deriveUnmarshallerLocationName(memberShape, memberName, member))
-               .withMarshallLocationName(
-                        deriveMarshallerLocationName(memberShape, memberName, member, protocol))
+               .withUnmarshallLocationName(unmarshallLocationName)
+               .withMarshallLocationName(marshallLocationName)
                .withIsGreedy(isGreedy(parentShape, allC2jShapes, mapping));
 
         return mapping;
+    }
+
+    private Location resolveLocation(Shape parentShape, Member member, Map<String, Shape> allC2jShapes) {
+        Location location = Location.forValue(member.getLocation());
+        if (location == null) {
+            return null;
+        }
+        switch (location) {
+            case URI:
+            case QUERY_STRING:
+                return isDirectInputShape(parentShape, allC2jShapes) ? location : null;
+            case HEADER:
+            case HEADERS:
+                return isTopLevelShape(parentShape, allC2jShapes) ? location : null;
+            case STATUS_CODE:
+                return isDirectOutputShape(parentShape, allC2jShapes) ? location : null;
+            default:
+                return location;
+        }
+    }
+
+    private boolean isDirectInputShape(Shape shape, Map<String, Shape> allC2jShapes) {
+        return builder.getService().getOperations().values().stream()
+                      .filter(o -> o.getInput() != null)
+                      .anyMatch(o -> allC2jShapes.get(o.getInput().getShape()).equals(shape));
+    }
+
+    private boolean isDirectOutputShape(Shape shape, Map<String, Shape> allC2jShapes) {
+        return builder.getService().getOperations().values().stream()
+                      .filter(o -> o.getOutput() != null)
+                      .anyMatch(o -> allC2jShapes.get(o.getOutput().getShape()).equals(shape));
+    }
+
+    private boolean isTopLevelShape(Shape shape, Map<String, Shape> allC2jShapes) {
+        return builder.getService().getOperations().values().stream()
+                      .anyMatch(o -> (o.getInput() != null && allC2jShapes.get(o.getInput().getShape()).equals(shape))
+                                     || (o.getOutput() != null && allC2jShapes.get(o.getOutput().getShape()).equals(shape))
+                                     || (o.getErrors() != null && o.getErrors().stream()
+                                             .anyMatch(e -> allC2jShapes.get(e.getShape()).equals(shape))));
     }
 
     private boolean isFlattened(Member member, Shape memberShape) {
@@ -327,9 +391,9 @@ abstract class AddShapes {
      */
     private boolean isGreedy(Shape parentShape, Map<String, Shape> allC2jShapes, ParameterHttpMapping mapping) {
         if (mapping.getLocation() == Location.URI) {
-            // If the location is URI we can assume the parent shape is an input shape.
-            String requestUri = findRequestUri(parentShape, allC2jShapes);
-            if (requestUri.contains(String.format("{%s+}", mapping.getMarshallLocationName()))) {
+            Optional<String> requestUri = findRequestUri(parentShape, allC2jShapes);
+            if (requestUri.isPresent()
+                && requestUri.get().contains(String.format("{%s+}", mapping.getMarshallLocationName()))) {
                 return true;
             }
         }
@@ -337,19 +401,42 @@ abstract class AddShapes {
     }
 
     /**
-     * Given an input shape, finds the Request URI for the operation that input is referenced from.
+     * Given a shape, finds the Request URI for the operation that references it as input.
+     * Returns empty if the shape is not a direct operation input.
      *
-     * @param parentShape  Input shape to find operation's request URI for.
+     * @param parentShape  Shape to find operation's request URI for.
      * @param allC2jShapes All shapes in the service model.
-     * @return Request URI for operation.
-     * @throws RuntimeException If operation can't be found.
+     * @return Request URI for operation, or empty if the shape is not a direct operation input.
      */
-    private String findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
-        return builder.getService().getOperations().values().stream()
-                .filter(o -> o.getInput() != null)
-                .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
-                .map(o -> o.getHttp().getRequestUri())
-                .findFirst().orElseThrow(() -> new RuntimeException("Could not find request URI for input shape"));
+    private Optional<String> findRequestUri(Shape parentShape, Map<String, Shape> allC2jShapes) {
+        Optional<Operation> operation = builder.getService().getOperations().values().stream()
+                                               .filter(o -> o.getInput() != null)
+                                               .filter(o -> allC2jShapes.get(o.getInput().getShape()).equals(parentShape))
+                                               .findFirst();
+
+        if (!operation.isPresent()) {
+            // Not a direct operation input shape, should be ignored.
+            // https://smithy.io/2.0/spec/http-bindings.html#httplabel-is-only-used-on-top-level-input
+            return Optional.empty();
+        }
+
+        String requestUri = operation.get().getHttp().getRequestUri();
+        if (requestUri == null) {
+            String shapeName = allC2jShapes.entrySet().stream()
+                .filter(e -> e.getValue().equals(parentShape))
+                .map(Map.Entry::getKey)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Shape not found in model: " + parentShape));
+            String detailMsg = "Operation referencing input shape '" + shapeName
+                + "' has no requestUri configured in its HTTP binding.";
+            ValidationEntry entry =
+                new ValidationEntry().withErrorId(ValidationErrorId.REQUEST_URI_NOT_FOUND)
+                                     .withDetailMessage(detailMsg)
+                                     .withSeverity(ValidationErrorSeverity.DANGER);
+            throw ModelInvalidException.builder().validationEntries(Collections.singletonList(entry)).build();
+        }
+
+        return Optional.of(requestUri);
     }
 
     private String deriveUnmarshallerLocationName(Shape memberShape, String memberName, Member member) {
@@ -464,6 +551,6 @@ abstract class AddShapes {
     }
 
     protected String getProtocol() {
-        return getServiceModel().getMetadata().getProtocol();
+        return ProtocolUtils.resolveProtocol(getServiceModel().getMetadata());
     }
 }

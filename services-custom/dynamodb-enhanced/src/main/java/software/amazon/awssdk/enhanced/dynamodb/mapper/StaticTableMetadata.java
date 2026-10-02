@@ -15,12 +15,15 @@
 
 package software.amazon.awssdk.enhanced.dynamodb.mapper;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import software.amazon.awssdk.annotations.NotThreadSafe;
@@ -32,6 +35,11 @@ import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticIndexMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.internal.mapper.StaticKeyAttributeMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.DistanceFunction;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElement;
+import software.amazon.awssdk.enhanced.dynamodb.model.SearchSchemaElementType;
+import software.amazon.awssdk.enhanced.dynamodb.model.VectorIndexMetadata;
 import software.amazon.awssdk.services.dynamodb.model.ScalarAttributeType;
 
 /**
@@ -45,11 +53,17 @@ public final class StaticTableMetadata implements TableMetadata {
     private final Map<String, Object> customMetadata;
     private final Map<String, IndexMetadata> indexByNameMap;
     private final Map<String, KeyAttributeMetadata> keyAttributes;
+    private final List<VectorIndexMetadata> vectorIndices;
+    private final ConcurrentHashMap<String, List<String>> partitionKeyCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, List<String>> sortKeyCache = new ConcurrentHashMap<>();
 
     private StaticTableMetadata(Builder builder) {
         this.customMetadata = Collections.unmodifiableMap(builder.customMetadata);
-        this.indexByNameMap = Collections.unmodifiableMap(builder.indexByNameMap);
+        Map<String, IndexMetadata> indices = new LinkedHashMap<>();
+        builder.indexBuilders.forEach((key, value) -> indices.put(key, value.name(key).build()));
+        this.indexByNameMap = Collections.unmodifiableMap(indices);
         this.keyAttributes = Collections.unmodifiableMap(builder.keyAttributes);
+        this.vectorIndices = Collections.unmodifiableList(builder.buildFinalVectorIndices());
     }
 
     /**
@@ -79,43 +93,82 @@ public final class StaticTableMetadata implements TableMetadata {
     }
 
     @Override
-    public String indexPartitionKey(String indexName) {
-        IndexMetadata index = getIndex(indexName);
+    public List<String> indexPartitionKeys(String indexName) {
+        List<String> cached = partitionKeyCache.get(indexName);
+        if (cached != null) {
+            return cached;
+        }
+        List<String> computedKeys = computePartitionKeys(indexName);
+        List<String> existingKeys = partitionKeyCache.putIfAbsent(indexName, computedKeys);
+        return existingKeys == null ? computedKeys : existingKeys;
+    }
 
-        if (!index.partitionKey().isPresent()) {
-            if (!TableMetadata.primaryIndexName().equals(indexName) && index.sortKey().isPresent()) {
-                // Local secondary index, use primary partition key
-                return primaryPartitionKey();
+    private List<String> computePartitionKeys(String indexName) {
+        IndexMetadata index = getIndex(indexName);
+        
+        List<KeyAttributeMetadata> partitionKeys = index.partitionKeys();
+        if (partitionKeys.isEmpty()) {
+            if (!TableMetadata.primaryIndexName().equals(indexName) && !index.sortKeys().isEmpty()) {
+                // Local secondary index, use primary partition keys
+                return indexPartitionKeys(TableMetadata.primaryIndexName());
             }
 
-            throw new IllegalArgumentException("Attempt to execute an operation against an index that requires a "
-                                               + "partition key without assigning a partition key to that index. "
+            throw new IllegalArgumentException("Attempt to execute an operation against an index that requires "
+                                               + "partition keys without assigning partition keys to that index. "
                                                + "Index name: " + indexName);
         }
 
-        return index.partitionKey().get().name();
+        return Collections.unmodifiableList(partitionKeys.stream()
+                           .filter(Objects::nonNull)
+                           .map(KeyAttributeMetadata::name)
+                           .collect(Collectors.toList()));
     }
 
     @Override
-    public Optional<String> indexSortKey(String indexName) {
+    public List<String> indexSortKeys(String indexName) {
+        return sortKeyCache.computeIfAbsent(indexName, this::computeSortKeys);
+    }
+
+    private List<String> computeSortKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
 
-        return index.sortKey().map(KeyAttributeMetadata::name);
+        List<KeyAttributeMetadata> sortKeys = index.sortKeys();
+        return Collections.unmodifiableList(sortKeys.stream()
+                       .filter(Objects::nonNull)
+                       .map(KeyAttributeMetadata::name)
+                       .collect(Collectors.toList()));
     }
 
     @Override
     public Collection<String> indexKeys(String indexName) {
         IndexMetadata index = getIndex(indexName);
-
-        if (index.sortKey().isPresent()) {
-            if (!TableMetadata.primaryIndexName().equals(indexName) && !index.partitionKey().isPresent()) {
-                // Local secondary index, use primary index for partition key
-                return Collections.unmodifiableList(Arrays.asList(primaryPartitionKey(), index.sortKey().get().name()));
+        List<String> allKeys = new ArrayList<>();
+        
+        List<KeyAttributeMetadata> partitionKeys = index.partitionKeys();
+        List<KeyAttributeMetadata> sortKeys = index.sortKeys();
+        
+        if (!sortKeys.isEmpty()) {
+            if (!TableMetadata.primaryIndexName().equals(indexName) && partitionKeys.isEmpty()) {
+                // Local secondary index, use primary index for partition keys
+                allKeys.addAll(indexPartitionKeys(TableMetadata.primaryIndexName()));
+            } else {
+                allKeys.addAll(partitionKeys.stream()
+                                           .filter(Objects::nonNull)
+                                           .map(KeyAttributeMetadata::name)
+                                           .collect(Collectors.toList()));
             }
-            return Collections.unmodifiableList(Arrays.asList(index.partitionKey().get().name(), index.sortKey().get().name()));
+            allKeys.addAll(sortKeys.stream()
+                                  .filter(Objects::nonNull)
+                                  .map(KeyAttributeMetadata::name)
+                                  .collect(Collectors.toList()));
         } else {
-            return Collections.singletonList(index.partitionKey().get().name());
+            allKeys.addAll(partitionKeys.stream()
+                                       .filter(Objects::nonNull)
+                                       .map(KeyAttributeMetadata::name)
+                                       .collect(Collectors.toList()));
         }
+        
+        return Collections.unmodifiableList(allKeys);
     }
 
     @Override
@@ -126,6 +179,11 @@ public final class StaticTableMetadata implements TableMetadata {
     @Override
     public Collection<IndexMetadata> indices() {
         return indexByNameMap.values();
+    }
+
+    @Override
+    public Collection<VectorIndexMetadata> vectorIndices() {
+        return vectorIndices;
     }
 
     @Override
@@ -146,11 +204,18 @@ public final class StaticTableMetadata implements TableMetadata {
                 throw new IllegalArgumentException("Attempt to execute an operation that requires a primary index "
                                                    + "without defining any primary key attributes in the table "
                                                    + "metadata.");
-            } else {
-                throw new IllegalArgumentException("Attempt to execute an operation that requires a secondary index "
-                                                   + "without defining the index attributes in the table metadata. "
-                                                   + "Index name: " + indexName);
             }
+            throw new IllegalArgumentException("Attempt to execute an operation that requires a secondary index "
+                                               + "without defining the index attributes in the table metadata. "
+                                               + "Index name: " + indexName);
+        }
+
+        // Check if primary index is empty (no keys defined)
+        if (TableMetadata.primaryIndexName().equals(indexName) && 
+            index.partitionKeys().isEmpty() && index.sortKeys().isEmpty()) {
+            throw new IllegalArgumentException("Attempt to execute an operation that requires a primary index "
+                                               + "without defining any primary key attributes in the table "
+                                               + "metadata.");
         }
 
         return index;
@@ -184,7 +249,10 @@ public final class StaticTableMetadata implements TableMetadata {
         if (indexByNameMap != null ? ! indexByNameMap.equals(that.indexByNameMap) : that.indexByNameMap != null) {
             return false;
         }
-        return keyAttributes != null ? keyAttributes.equals(that.keyAttributes) : that.keyAttributes == null;
+        if (keyAttributes != null ? !keyAttributes.equals(that.keyAttributes) : that.keyAttributes != null) {
+            return false;
+        }
+        return vectorIndices != null ? vectorIndices.equals(that.vectorIndices) : that.vectorIndices == null;
     }
 
     @Override
@@ -192,6 +260,7 @@ public final class StaticTableMetadata implements TableMetadata {
         int result = customMetadata != null ? customMetadata.hashCode() : 0;
         result = 31 * result + (indexByNameMap != null ? indexByNameMap.hashCode() : 0);
         result = 31 * result + (keyAttributes != null ? keyAttributes.hashCode() : 0);
+        result = 31 * result + (vectorIndices != null ? vectorIndices.hashCode() : 0);
         return result;
     }
 
@@ -201,10 +270,13 @@ public final class StaticTableMetadata implements TableMetadata {
     @NotThreadSafe
     public static class Builder {
         private final Map<String, Object> customMetadata = new LinkedHashMap<>();
-        private final Map<String, IndexMetadata> indexByNameMap = new LinkedHashMap<>();
+        private final Map<String, StaticIndexMetadata.Builder> indexBuilders = new LinkedHashMap<>();
         private final Map<String, KeyAttributeMetadata> keyAttributes = new LinkedHashMap<>();
+        private final Map<String, VectorIndexMetadata> vectorIndices = new LinkedHashMap<>();
+        private final Map<String, VectorIndexMetadata.Builder> incrementalVectorIndices = new LinkedHashMap<>();
 
         private Builder() {
+            indexBuilders.put(TableMetadata.primaryIndexName(), StaticIndexMetadata.builder());
         }
 
         /**
@@ -271,22 +343,28 @@ public final class StaticTableMetadata implements TableMetadata {
          * @param indexName the name of the index to associate the partition key with
          * @param attributeName the name of the attribute that represents the partition key
          * @param attributeValueType the {@link AttributeValueType} of the partition key
-         * @throws IllegalArgumentException if a partition key has already been defined for this index
+         * @param order the order of this key in composite keys (-1 for implicit, 0-3 for explicit)
          */
-        public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
-            IndexMetadata index = indexByNameMap.get(indexName);
+        public Builder addIndexPartitionKey(String indexName, String attributeName, 
+                                           AttributeValueType attributeValueType, Order order) {
+            IndexValidator.validateKeyOrder(order);
+            StaticIndexMetadata.Builder indexBuilder = getOrCreateIndexBuilder(indexName);
+            IndexValidator.validateNoDuplicateKeys(indexBuilder.getPartitionKeys(), indexName, attributeName);
 
-            if (index != null && index.partitionKey().isPresent()) {
-                throw new IllegalArgumentException("Attempt to set an index partition key that conflicts with an "
-                                                   + "existing index partition key of the same name and index. Index "
-                                                   + "name: " + indexName + "; attribute name: " + attributeName);
-            }
-
-            KeyAttributeMetadata partitionKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType);
-            indexByNameMap.put(indexName,
-                               StaticIndexMetadata.builderFrom(index).name(indexName).partitionKey(partitionKey).build());
+            KeyAttributeMetadata partitionKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType, order);
+            indexBuilder.addPartitionKey(partitionKey);
             markAttributeAsKey(attributeName, attributeValueType);
             return this;
+        }
+        
+        /**
+         * Adds information about a partition key associated with a specific index (backward compatibility).
+         * @param indexName the name of the index to associate the partition key with
+         * @param attributeName the name of the attribute that represents the partition key
+         * @param attributeValueType the {@link AttributeValueType} of the partition key
+         */
+        public Builder addIndexPartitionKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            return addIndexPartitionKey(indexName, attributeName, attributeValueType, Order.UNSPECIFIED);
         }
 
         /**
@@ -294,23 +372,35 @@ public final class StaticTableMetadata implements TableMetadata {
          * @param indexName the name of the index to associate the sort key with
          * @param attributeName the name of the attribute that represents the sort key
          * @param attributeValueType the {@link AttributeValueType} of the sort key
-         * @throws IllegalArgumentException if a sort key has already been defined for this index
+         * @param order the order of this key in composite keys (-1 for implicit, 0-3 for explicit)
          */
-        public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
-            IndexMetadata index = indexByNameMap.get(indexName);
+        public Builder addIndexSortKey(String indexName, String attributeName, 
+                                      AttributeValueType attributeValueType, Order order) {
+            IndexValidator.validateKeyOrder(order);
+            StaticIndexMetadata.Builder indexBuilder = getOrCreateIndexBuilder(indexName);
+            IndexValidator.validateNoDuplicateKeys(indexBuilder.getSortKeys(), indexName, attributeName);
 
-            if (index != null && index.sortKey().isPresent()) {
-                throw new IllegalArgumentException("Attempt to set an index sort key that conflicts with an existing"
-                                                   + " index sort key of the same name and index. Index name: "
-                                                   + indexName + "; attribute name: " + attributeName);
-            }
-
-            KeyAttributeMetadata sortKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType);
-            indexByNameMap.put(indexName,
-                               StaticIndexMetadata.builderFrom(index).name(indexName).sortKey(sortKey).build());
+            KeyAttributeMetadata sortKey = StaticKeyAttributeMetadata.create(attributeName, attributeValueType, order);
+            indexBuilder.addSortKey(sortKey);
             markAttributeAsKey(attributeName, attributeValueType);
             return this;
         }
+        
+        /**
+         * Adds information about a non-composite sort key associated with a specific index.
+         * @param indexName the name of the index to associate the sort key with
+         * @param attributeName the name of the attribute that represents the sort key
+         * @param attributeValueType the {@link AttributeValueType} of the sort key
+         */
+        public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
+            return addIndexSortKey(indexName, attributeName, attributeValueType, Order.UNSPECIFIED);
+        }
+        
+        private StaticIndexMetadata.Builder getOrCreateIndexBuilder(String indexName) {
+            return indexBuilders.computeIfAbsent(indexName, k -> StaticIndexMetadata.builder());
+        }
+        
+
 
         /**
          * Declares a 'key-like' attribute that is not an actual DynamoDB key. These pseudo-keys can then be recognized
@@ -336,25 +426,153 @@ public final class StaticTableMetadata implements TableMetadata {
         }
 
         /**
+         * Adds a HASH element to the SearchSchema for the named vector index. The vector index metadata is built incrementally
+         * from annotations and finalized at {@link #build()} time.
+         *
+         * @param indexName     the name of the vector index
+         * @param attributeName the attribute to use as the HASH partition key in the search schema
+         */
+        public Builder addSearchVectorsHashKey(String indexName, String attributeName) {
+            getOrCreateIncrementalVectorIndex(indexName)
+                .addSearchSchemaElement(SearchSchemaElement.builder()
+                                                           .attributeName(attributeName)
+                                                           .searchSchemaElementType(SearchSchemaElementType.HASH)
+                                                           .build());
+            return this;
+        }
+
+        /**
+         * Adds an INLINE_FILTER element to the SearchSchema for the named vector index. The vector index metadata is built
+         * incrementally from annotations and finalized at {@link #build()} time.
+         *
+         * @param indexName     the name of the vector index
+         * @param attributeName the attribute to use as an inline filter in the search schema
+         */
+        public Builder addSearchVectorsInlineFilterKey(String indexName, String attributeName) {
+            getOrCreateIncrementalVectorIndex(indexName)
+                .addSearchSchemaElement(SearchSchemaElement.builder()
+                                                           .attributeName(attributeName)
+                                                           .searchSchemaElementType(SearchSchemaElementType.INLINE_FILTER)
+                                                           .build());
+            return this;
+        }
+
+        /**
+         * Sets the vector attribute, dimensions, and distance function for the named vector index. The vector index metadata is
+         * built incrementally from annotations and finalized at {@link #build()} time.
+         *
+         * @param indexName        the name of the vector index
+         * @param attributeName    the attribute that stores the vector embedding
+         * @param dimensions       the number of vector dimensions
+         * @param distanceFunction the distance function for similarity search
+         */
+        public Builder setVectorAttribute(String indexName, String attributeName,
+                                          int dimensions, DistanceFunction distanceFunction) {
+            VectorIndexMetadata.Builder builder = getOrCreateIncrementalVectorIndex(indexName);
+
+            if (builder.vectorAttributeName() != null) {
+                throw new IllegalArgumentException(
+                    "Attempt to set a vector attribute for a vector index that already has one. "
+                    + "Vector index name: " + indexName);
+            }
+
+            builder.vectorAttributeName(attributeName)
+                   .dimensions(dimensions)
+                   .distanceFunction(distanceFunction);
+            return this;
+        }
+
+        private VectorIndexMetadata.Builder getOrCreateIncrementalVectorIndex(String indexName) {
+            return incrementalVectorIndices.computeIfAbsent(indexName,
+                                                            k -> VectorIndexMetadata.builder().indexName(k));
+        }
+
+        private List<VectorIndexMetadata> buildFinalVectorIndices() {
+            Map<String, VectorIndexMetadata> merged = new LinkedHashMap<>(vectorIndices);
+            incrementalVectorIndices.forEach((name, builder) -> {
+                if (merged.containsKey(name)) {
+                    throw new IllegalArgumentException(
+                        "Vector index '" + name + "' is defined both programmatically and via annotations.");
+                }
+                merged.put(name, builder.build());
+            });
+            return new ArrayList<>(merged.values());
+        }
+
+        /**
+         * Adds metadata for a vector index on this table. Vector indexes are distinct from global and local secondary indexes and
+         * must not be registered through {@link #addIndexPartitionKey(String, String, AttributeValueType)}.
+         *
+         * @param vectorIndex the vector index metadata to add
+         * @throws IllegalArgumentException if a vector index with the same name has already been added
+         */
+        public Builder addVectorIndex(VectorIndexMetadata vectorIndex) {
+            if (vectorIndices.containsKey(vectorIndex.indexName())) {
+                throw new IllegalArgumentException("Attempt to add a vector index that has already been added. "
+                                                   + "Vector index name: " + vectorIndex.indexName());
+            }
+
+            vectorIndices.put(vectorIndex.indexName(), vectorIndex);
+            return this;
+        }
+
+        /**
+         * Adds metadata for a vector index on this table.
+         *
+         * @param enhancedVectorIndex the enhanced vector index definition to add
+         * @throws IllegalArgumentException if a vector index with the same name has already been added
+         */
+        public Builder addVectorIndex(EnhancedVectorIndex enhancedVectorIndex) {
+            return addVectorIndex(VectorIndexMetadata.fromEnhancedVectorIndex(enhancedVectorIndex));
+        }
+
+        /**
          * Package-private method to merge the contents of a constructed {@link TableMetadata} into this builder.
          */
         Builder mergeWith(TableMetadata other) {
             other.indices().forEach(
                 index -> {
-                    index.partitionKey().ifPresent(
-                        partitionKey -> addIndexPartitionKey(index.name(),
-                                                             partitionKey.name(),
-                                                             partitionKey.attributeValueType()));
-
-                    index.sortKey().ifPresent(
-                        sortKey -> addIndexSortKey(index.name(), sortKey.name(), sortKey.attributeValueType())
-                    );
+                    for (KeyAttributeMetadata partitionKey : index.partitionKeys()) {
+                        addIndexPartitionKey(index.name(),
+                                             partitionKey.name(),
+                                             partitionKey.attributeValueType(),
+                                             partitionKey.order());
+                    }
+                    for (KeyAttributeMetadata sortKey : index.sortKeys()) {
+                        addIndexSortKey(index.name(),
+                                        sortKey.name(),
+                                        sortKey.attributeValueType(),
+                                        sortKey.order());
+                    }
                 });
 
             other.customMetadata().forEach(this::mergeCustomMetaDataObject);
             other.keyAttributes().forEach(keyAttribute -> markAttributeAsKey(keyAttribute.name(),
                                                                              keyAttribute.attributeValueType()));
+            other.vectorIndices().forEach(this::mergeVectorIndex);
             return this;
+        }
+
+        private void mergeVectorIndex(VectorIndexMetadata vi) {
+            if (vectorIndices.containsKey(vi.indexName())) {
+                throw new IllegalArgumentException("Attempt to add a vector index that has already been added. "
+                                                   + "Vector index name: " + vi.indexName());
+            }
+            VectorIndexMetadata.Builder builder = getOrCreateIncrementalVectorIndex(vi.indexName());
+            if (vi.vectorAttributeName() != null) {
+                if (builder.vectorAttributeName() != null) {
+                    throw new IllegalArgumentException(
+                        "Attempt to set a vector attribute for a vector index that already has one. "
+                        + "Vector index name: " + vi.indexName());
+                }
+                builder.vectorAttributeName(vi.vectorAttributeName())
+                       .dimensions(vi.dimensions())
+                       .distanceFunction(vi.distanceFunction());
+            }
+            if (vi.projection() != null) {
+                builder.projection(vi.projection());
+            }
+            vi.searchSchemaElements().forEach(builder::addSearchSchemaElement);
         }
 
         private void mergeCustomMetaDataObject(String key, Object object) {

@@ -224,7 +224,9 @@ class MemberCopierSpec implements ClassSpec {
                 case NONE:
                     return inputVariableName;
                 case ENUM_TO_STRING:
-                    code.add("$T $N = $N.toString();", String.class, outputVariableName, inputVariableName);
+                    code.add(
+                        "$T $N = $N == null ? null : $N.toString();",
+                        String.class, outputVariableName, inputVariableName, inputVariableName);
                     return outputVariableName;
                 case STRING_TO_ENUM:
                     code.add("$1T $2N = $1T.fromValue($3N);", enumType, outputVariableName, inputVariableName);

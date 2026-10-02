@@ -1,0 +1,30 @@
+{
+  "version": "2.0",
+  "metadata": {
+    "serviceId": "LowercaseShape",
+    "serviceFullName": "Lowercase Shape Validation Test Service"
+  },
+  "operations": {
+    "TestOperation": {
+      "name": "TestOperation",
+      "http": {
+        "method": "POST",
+        "requestUri": "/"
+      },
+      "input": {"shape": "lowercaseshape"}
+    }
+  },
+  "shapes": {
+    "lowercaseshape": {
+      "type": "structure",
+      "members": {
+        "StringMember": {
+          "shape": "String"
+        }
+      }
+    },
+    "String": {
+      "type": "string"
+    }
+  }
+}

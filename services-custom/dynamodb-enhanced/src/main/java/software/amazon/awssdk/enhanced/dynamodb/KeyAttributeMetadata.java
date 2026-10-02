@@ -17,6 +17,7 @@ package software.amazon.awssdk.enhanced.dynamodb;
 
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.Order;
 
 /**
  * A metadata class that stores information about a key attribute
@@ -33,4 +34,12 @@ public interface KeyAttributeMetadata {
      * The DynamoDB type of the key attribute
      */
     AttributeValueType attributeValueType();
+
+    /**
+     * The order of the key attribute for composite keys.
+     * Default is -1 for implicit ordering.
+     */
+    default Order order() {
+        return Order.UNSPECIFIED;
+    }
 }

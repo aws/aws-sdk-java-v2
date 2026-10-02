@@ -37,6 +37,7 @@ class HeaderTransformsHelperTest {
         headers.put("user-agent", Collections.singletonList("md/user"));
         headers.put("expect", Collections.singletonList("100-continue"));
         headers.put("transfer-encoding", Collections.singletonList("chunked"));
+        headers.put("x-forwarded-for", Collections.singletonList("127.0.0.1"));
 
         // Headers that should be included in signing
         headers.put("Content-Type", Collections.singletonList("application/json"));
@@ -56,6 +57,7 @@ class HeaderTransformsHelperTest {
         assertFalse(canonicalizedHeaders.containsKey("user-agent"), "Should not contain user-agent header");
         assertFalse(canonicalizedHeaders.containsKey("expect"), "Should not contain expect header");
         assertFalse(canonicalizedHeaders.containsKey("transfer-encoding"), "Should not contain transfer-encoding header");
+        assertFalse(canonicalizedHeaders.containsKey("x-forwarded-for"), "Should not contain x-forwarded-for header");
     }
 
 }

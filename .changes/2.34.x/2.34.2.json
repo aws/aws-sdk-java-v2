@@ -1,0 +1,48 @@
+{
+    "version": "2.34.2",
+    "date": "2025-09-23",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Added support for running incremental ID mapping for rule-based workflows."
+        },
+        {
+            "type": "feature",
+            "category": "AWS EntityResolution",
+            "contributor": "",
+            "description": "Support incremental id mapping workflow for AWS Entity Resolution"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SSO OIDC",
+            "contributor": "",
+            "description": "This release includes exception definition and documentation updates."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Single Sign-On Admin",
+            "contributor": "",
+            "description": "Add support for encryption at rest with Customer Managed KMS Key in AWS IAM Identity Center"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add Amazon EC2 R8gn instance types"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Simple Systems Manager (SSM)",
+            "contributor": "",
+            "description": "Added Dualstack support to GetDeployablePatchSnapshotForInstance"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

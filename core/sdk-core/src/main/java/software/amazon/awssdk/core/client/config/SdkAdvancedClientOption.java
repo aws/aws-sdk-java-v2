@@ -19,7 +19,11 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.client.builder.SdkClientBuilder;
 import software.amazon.awssdk.core.signer.Signer;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 
 
 /**
@@ -47,11 +51,31 @@ public class SdkAdvancedClientOption<T> extends ClientOption<T> {
 
     /**
      * Define the signer that should be used when authenticating with AWS.
+     *
+     * @deprecated Replaced by {@link HttpSigner}.
+     * <p>
+     * <b>Migration options:</b>
+     * <ul>
+     * <li>To customize signing logic: Configure via {@link SdkClientBuilder#putAuthScheme(AuthScheme)}.
+     *     See {@link Signer} for examples.</li>
+     * <li>To override signing properties only: Use custom {@link AuthSchemeProvider}.
+     *     See {@link AuthSchemeProvider} for examples.</li>
+     * </ul>
      */
+    @Deprecated
     public static final SdkAdvancedClientOption<Signer> SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 
     /**
      * Define the signer that should be used for token-based authentication with AWS.
+     * @deprecated Replaced by {@link HttpSigner}.
+     * <p>
+     * <b>Migration options:</b>
+     * <ul>
+     * <li>To customize signing logic: Configure via {@link SdkClientBuilder#putAuthScheme(AuthScheme)}.
+     *     See {@link Signer} for examples.</li>
+     * <li>To override signing properties only: Use custom {@link AuthSchemeProvider}.
+     *     See {@link AuthSchemeProvider} for examples.</li>
+     * </ul>
      */
     public static final SdkAdvancedClientOption<Signer> TOKEN_SIGNER = new SdkAdvancedClientOption<>(Signer.class);
 

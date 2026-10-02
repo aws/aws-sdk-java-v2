@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "parameters": {
+    "Endpoint": {
+      "builtIn": "SDK::Endpoint",
+      "required": false,
+      "documentation": "Override the endpoint used to send this request",
+      "type": "String"
+    }
+  },
+  "rules": [
+    {
+      "conditions": [
+        {
+          "fn": "isSet",
+          "argv": [
+            {
+              "ref": "Endpoint"
+            }
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "conditions": [],
+          "endpoint": {
+            "url": {
+              "ref": "Endpoint"
+            },
+            "properties": {
+              "unknownProperty": "value"
+            },
+            "headers": {}
+          },
+          "type": "endpoint"
+        }
+      ],
+      "type": "tree"
+    },
+    {
+      "conditions": [],
+      "error": "Invalid Configuration: Missing Endpoint",
+      "type": "error"
+    }
+  ]
+}

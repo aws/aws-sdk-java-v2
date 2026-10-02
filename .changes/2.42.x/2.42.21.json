@@ -1,0 +1,54 @@
+{
+    "version": "2.42.21",
+    "date": "2026-03-25",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix bug in CachedSupplier that retries aggressively after many consecutive failures"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "Documentation-only update for AWS Batch."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Marketplace Agreement Service",
+            "contributor": "",
+            "description": "The Variable Payments APIs enable AWS Marketplace Sellers to perform manage their payment requests (send, get, list, cancel)."
+        },
+        {
+            "type": "feature",
+            "category": "AWS User Experience Customization",
+            "contributor": "",
+            "description": "GA release of AccountCustomizations, used to manage account color, visible services, and visible regions settings in the AWS Management Console."
+        },
+        {
+            "type": "feature",
+            "category": "AmazonApiGatewayV2",
+            "contributor": "",
+            "description": "Added DISABLE IN PROGRESS and DISABLE FAILED Portal statuses."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Application Signals",
+            "contributor": "",
+            "description": "This release adds support for creating SLOs on RUM appMonitors, Synthetics canaries and services."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Add support for Mu-law and A-law codecs for output format"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Add support for maxInFlightParts to multipart upload (PutObject) in MultipartS3AsyncClient."
+        }
+    ]
+}

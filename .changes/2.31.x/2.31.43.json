@@ -1,0 +1,30 @@
+{
+    "version": "2.31.43",
+    "date": "2025-05-14",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This update enables cropping for video overlays and adds a new STL to Teletext upconversion toggle to preserve styling."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudWatch Logs",
+            "contributor": "",
+            "description": "This release adds a new API \"ListLogGroups\" and an improvement in API \"DescribeLogGroups\""
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Cognito Identity Provider",
+            "contributor": "",
+            "description": "Add exceptions to WebAuthn operations."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Kinesis Firehose",
+            "contributor": "",
+            "description": "This release adds catalogARN support for s3 tables multi-catalog catalogARNs."
+        }
+    ]
+}

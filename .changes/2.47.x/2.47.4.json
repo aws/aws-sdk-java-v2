@@ -1,0 +1,43 @@
+{
+    "version": "2.47.4",
+    "date": "2026-07-09",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added support for additional override parameters in CreateFleet, including LaunchTemplateSpecificationUserData, KeyName, IamInstanceProfile, and MetadataOptions. The CreateFleet response now also includes SubnetId, AvailabilityZone, and AvailabilityZoneId for launched instances."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Amazon Connect - Added DeleteContactData API to support PII deletion of customer endpoint, additional email recipients and email subject."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service",
+            "contributor": "",
+            "description": "adds support for AWS IVS ad configuration APIs to allow for a postRollConfiguration object on the ad configuration resource"
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "contributor": "",
+            "description": "CloudWatch Synthetics adds support for customer managed KMS keys for canary environment variables. Customers can now encrypt their canary's Lambda function environment variables at rest using their own AWS KMS key, providing additional control over data protection."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Adding \"AI Analyst\" enum value for detector"
+        },
+        {
+            "type": "bugfix",
+            "category": "Apache 5 HTTP Client",
+            "contributor": "luneo7",
+            "description": "Fix GraalVM native-image metadata for Apache 5."
+        }
+
+    ]
+}

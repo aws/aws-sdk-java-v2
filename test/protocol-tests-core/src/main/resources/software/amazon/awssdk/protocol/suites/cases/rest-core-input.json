@@ -581,5 +581,49 @@
         }
       }
     }
+  },
+  {
+    "description": "Map bound to headers with prefix produces prefixed headers for each entry",
+    "given": {
+      "input": {
+        "MetadataMember": {
+          "key1": "value1",
+          "key2": "value2"
+        }
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MapInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "contains": {
+            "x-amz-meta-key1": "value1",
+            "x-amz-meta-key2": "value2"
+          }
+        }
+      }
+    }
+  },
+  {
+    "description": "Empty map bound to headers with prefix does not produce any prefixed headers",
+    "given": {
+      "input": {
+        "MetadataMember": {}
+      }
+    },
+    "when": {
+      "action": "marshall",
+      "operation": "MapInHeaders"
+    },
+    "then": {
+      "serializedAs": {
+        "headers": {
+          "doesNotContain": ["x-amz-meta-"]
+        }
+      }
+    }
   }
 ]

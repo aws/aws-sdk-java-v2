@@ -67,9 +67,9 @@ public final class Partition {
 
     public Partition(@JsonProperty(value = "partition") String partition,
                      @JsonProperty(value = "regions") Map<String, PartitionRegion>
-                             regions,
+                         regions,
                      @JsonProperty(value = "services") Map<String,
-                             Service> services) {
+                         Service> services) {
         this.partition = Validate.paramNotNull(partition, "Partition");
         this.regions = regions;
         this.services = services;

@@ -45,6 +45,12 @@
       "output_token": "NextToken",
       "limit_key": "PageSize"
     },
+    "ListEmailIdentityCertificates": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "PageSize",
+      "result_key": "Certificates"
+    },
     "ListEmailTemplates": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -71,10 +77,34 @@
       "output_token": "NextToken",
       "limit_key": "PageSize"
     },
+    "ListReputationEntities": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "PageSize",
+      "result_key": "ReputationEntities"
+    },
+    "ListResourceTenants": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "PageSize",
+      "result_key": "ResourceTenants"
+    },
     "ListSuppressedDestinations": {
       "input_token": "NextToken",
       "output_token": "NextToken",
       "limit_key": "PageSize"
+    },
+    "ListTenantResources": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "PageSize",
+      "result_key": "TenantResources"
+    },
+    "ListTenants": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "PageSize",
+      "result_key": "Tenants"
     }
   }
 }

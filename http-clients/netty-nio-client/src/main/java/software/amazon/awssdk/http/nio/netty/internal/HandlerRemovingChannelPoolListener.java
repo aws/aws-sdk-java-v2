@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.http.nio.netty.internal;
 
+import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.WRITE_IDLE_STATE_HANDLER_NAME;
 import static software.amazon.awssdk.http.nio.netty.internal.utils.ChannelUtils.removeIfExists;
 
 import io.netty.channel.Channel;
@@ -52,7 +53,9 @@ public final class HandlerRemovingChannelPoolListener implements ChannelPoolList
                            FlushOnReadHandler.class,
                            ResponseHandler.class,
                            ReadTimeoutHandler.class,
-                           WriteTimeoutHandler.class);
+                           WriteTimeoutHandler.class,
+                           WriteIdleTimeoutHandler.class);
+            removeIfExists(channel.pipeline(), WRITE_IDLE_STATE_HANDLER_NAME);
         }
     }
 }

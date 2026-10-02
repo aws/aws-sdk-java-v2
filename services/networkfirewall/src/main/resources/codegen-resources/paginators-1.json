@@ -12,6 +12,12 @@
       "limit_key": "MaxResults",
       "result_key": "AnalysisReports"
     },
+    "ListContainerAssociations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ContainerAssociations"
+    },
     "ListFirewallPolicies": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -23,6 +29,36 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "Firewalls"
+    },
+    "ListFlowOperationResults": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Flows"
+    },
+    "ListFlowOperations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "FlowOperations"
+    },
+    "ListProxies": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "Proxies"
+    },
+    "ListProxyConfigurations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ProxyConfigurations"
+    },
+    "ListProxyRuleGroups": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "ProxyRuleGroups"
     },
     "ListRuleGroups": {
       "input_token": "NextToken",
@@ -41,6 +77,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "Tags"
+    },
+    "ListVpcEndpointAssociations": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "VpcEndpointAssociations"
     }
   }
 }

@@ -31,19 +31,24 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
 import software.amazon.awssdk.awscore.AwsRequest;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.awscore.retry.AwsRetryStrategy;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -55,6 +60,7 @@ import software.amazon.awssdk.core.internal.util.ClassLoaderHelper;
 import software.amazon.awssdk.core.signer.NoOpSigner;
 import software.amazon.awssdk.crt.io.ExponentialBackoffRetryOptions;
 import software.amazon.awssdk.crt.io.StandardRetryOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
@@ -70,14 +76,23 @@ import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.internal.s3express.S3ExpressUtils;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
+import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient implements S3CrtAsyncClient {
     public static final ExecutionAttribute<Path> OBJECT_FILE_PATH = new ExecutionAttribute<>("objectFilePath");
+    public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
+    public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
+        new ExecutionAttribute<>("responseFileOption");
+    public static final ExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
+        new ExecutionAttribute<>("responseFileDeleteOnFailure");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -105,6 +120,24 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     }
 
     @Override
+    public CompletableFuture<GetObjectResponse> getObject(GetObjectRequest getObjectRequest, Path destinationPath) {
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+            new CrtResponseFileResponseTransformer<>();
+
+        AwsRequestOverrideConfiguration overrideConfig =
+            getObjectRequest.overrideConfiguration()
+                            .map(AwsRequestOverrideConfiguration::toBuilder)
+                            .orElseGet(AwsRequestOverrideConfiguration::builder)
+                            .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath)
+                            .putExecutionAttribute(RESPONSE_FILE_OPTION,
+                                                   S3MetaRequestOptions.ResponseFileOption.CREATE_NEW)
+                            .putExecutionAttribute(RESPONSE_FILE_DELETE_ON_FAILURE, true)
+                            .build();
+
+        return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
+    }
+
+    @Override
     public CompletableFuture<CopyObjectResponse> copyObject(CopyObjectRequest copyObjectRequest) {
         return copyObjectHelper.copyObject(copyObjectRequest);
     }
@@ -124,6 +157,10 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         if (builder.executionInterceptors != null) {
             builder.executionInterceptors.forEach(overrideConfigurationBuilder::addExecutionInterceptor);
+        }
+
+        if (builder.credentialsProvider == null) {
+            builder = builder.credentialsProvider(DefaultCredentialsProvider.builder().build());
         }
 
         DefaultS3CrtClientBuilder finalBuilder = resolveChecksumConfiguration(builder);
@@ -193,7 +230,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                        .readBufferSizeInBytes(builder.readBufferSizeInBytes)
                                        .httpConfiguration(builder.httpConfiguration)
                                        .thresholdInBytes(builder.thresholdInBytes)
-                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes);
+                                       .maxNativeMemoryLimitInBytes(builder.maxNativeMemoryLimitInBytes)
+                                       .advancedOptions(builder.advancedOptions.build());
 
         if (builder.retryConfiguration != null) {
             nativeClientBuilder.standardRetryOptions(
@@ -228,9 +266,17 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private Executor futureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
 
+        private AttributeMap.Builder advancedOptions = AttributeMap.builder();
+
+        @Override
+        public DefaultS3CrtClientBuilder credentialsProvider(AwsCredentialsProvider credentialsProvider) {
+            this.credentialsProvider = credentialsProvider;
+            return this;
+        }
+
         @Override
         public DefaultS3CrtClientBuilder credentialsProvider(
-                IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
+            IdentityProvider<? extends AwsCredentialsIdentity> credentialsProvider) {
             this.credentialsProvider = credentialsProvider;
             return this;
         }
@@ -353,6 +399,18 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         }
 
         @Override
+        public <T> DefaultS3CrtClientBuilder advancedOption(SdkAdvancedAsyncClientOption<T> option, T value) {
+            this.advancedOptions.put(option, value);
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder advancedOptions(Map<SdkAdvancedAsyncClientOption<?>, ?> advancedOptions) {
+            this.advancedOptions.putAll(advancedOptions);
+            return this;
+        }
+
+        @Override
         public S3CrtAsyncClient build() {
             return new DefaultS3CrtAsyncClient(this);
         }
@@ -370,20 +428,39 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                                          existingHttpAttributes.toBuilder() :
                                                          SdkHttpExecutionAttributes.builder();
 
-            SdkHttpExecutionAttributes attributes =
-                builder.put(OPERATION_NAME,
-                            executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
-                       .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
-                       .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
-                       .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
-                            executionAttributes.getAttribute(OBJECT_FILE_PATH))
-                       .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.useS3ExpressAuthScheme(executionAttributes))
-                       .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
-                       .put(REQUEST_CHECKSUM_CALCULATION,
-                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
-                       .put(RESPONSE_CHECKSUM_VALIDATION,
-                            executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
-                       .build();
+            builder.put(OPERATION_NAME,
+                        executionAttributes.getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                   .put(HTTP_CHECKSUM, executionAttributes.getAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM))
+                   .put(SIGNING_REGION, executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNING_REGION))
+                   .put(S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH,
+                        executionAttributes.getAttribute(OBJECT_FILE_PATH))
+                   .put(USE_S3_EXPRESS_AUTH, S3ExpressUtils.isS3ExpressAuthRequest(context.request(), executionAttributes))
+                   .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
+                   .put(REQUEST_CHECKSUM_CALCULATION,
+                        executionAttributes.getAttribute(SdkInternalExecutionAttribute.REQUEST_CHECKSUM_CALCULATION))
+                   .put(RESPONSE_CHECKSUM_VALIDATION,
+                        executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION))
+                   .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
+                        executionAttributes.getAttribute(RESPONSE_FILE_PATH))
+                   .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
+                        executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
+                   .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE,
+                        executionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE));
+
+            SdkRequest request = context.request();
+            if (request instanceof AwsRequest) {
+                ((AwsRequest) request).overrideConfiguration().ifPresent(config -> {
+                    AwsRequestOverrideConfiguration awsConfig = (AwsRequestOverrideConfiguration) config;
+                    awsConfig.credentialsIdentityProvider().ifPresent(credentialsProvider -> {
+                        CrtCredentialsProviderAdapter adapter =
+                            new CrtCredentialsProviderAdapter(credentialsProvider);
+                        builder.put(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER,
+                                    adapter);
+                    });
+                });
+            }
+
+            SdkHttpExecutionAttributes attributes = builder.build();
 
             // We rely on CRT to perform checksum validation, disable SDK flexible checksum implementation
             executionAttributes.putAttribute(SdkInternalExecutionAttribute.HTTP_CHECKSUM, null);
@@ -391,6 +468,20 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
             executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
                                              attributes);
+        }
+
+        @Override
+        public void beforeTransmission(Context.BeforeTransmission context,
+                                       ExecutionAttributes executionAttributes) {
+            SdkHttpExecutionAttributes httpAttributes = executionAttributes.getAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES);
+            if (httpAttributes != null) {
+                executionAttributes.putAttribute(SDK_HTTP_EXECUTION_ATTRIBUTES,
+                    httpAttributes.toBuilder()
+                                  .put(SIGNING_REGION, executionAttributes.getAttribute(
+                                      AwsSignerExecutionAttribute.SIGNING_REGION))
+                                  .put(SIGNING_NAME, executionAttributes.getAttribute(SERVICE_SIGNING_NAME))
+                                  .build());
+            }
         }
     }
 
@@ -409,11 +500,6 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                     (AwsRequestOverrideConfiguration) request.overrideConfiguration().get();
                 if (overrideConfiguration.signer().isPresent()) {
                     throw new UnsupportedOperationException("Request-level signer override is not supported");
-                }
-
-                // TODO: support request-level credential override
-                if (overrideConfiguration.credentialsIdentityProvider().isPresent()) {
-                    throw new UnsupportedOperationException("Request-level credentials override is not supported");
                 }
 
                 if (!CollectionUtils.isNullOrEmpty(overrideConfiguration.metricPublishers())) {
@@ -435,5 +521,11 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                                             + "software.amazon.awssdk.crt:crt is a required dependency; make sure you have it "
                                             + "on the classpath.", e);
         }
+    }
+
+    @Override
+    public AsyncPresignedUrlExtension presignedUrlExtension() {
+        // TODO: Implement presigned URL extension support for CRT client
+        throw new UnsupportedOperationException("Presigned URL extension is not supported for CRT client");
     }
 }

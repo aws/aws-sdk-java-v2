@@ -51,4 +51,9 @@ public final class CrtContentLengthOnlyAsyncFileRequestBody implements AsyncRequ
         });
 
     }
+
+    @Override
+    public String body() {
+        return asyncRequestBody.body();
+    }
 }

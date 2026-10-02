@@ -15,23 +15,20 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.AUTH_SOURCE;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.BUSINESS_METADATA;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.CONFIG_METADATA;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SLASH;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.SPACE;
 import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.appendSpaceAndField;
-import static software.amazon.awssdk.core.internal.useragent.UserAgentConstant.uaPair;
 import static software.amazon.awssdk.utils.StringUtils.trim;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.ApiName;
-import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
@@ -40,11 +37,10 @@ import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.MutableRequestToRequestPipeline;
-import software.amazon.awssdk.core.internal.useragent.IdentityProviderNameMapping;
+import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.identity.spi.Identity;
-import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
@@ -52,7 +48,7 @@ import software.amazon.awssdk.utils.StringUtils;
 
 /**
  * A stage for adding the user agent header to the request, after retrieving the current string
- * from execution attributes and adding any additional information. 
+ * from execution attributes and adding any additional information.
  */
 @SdkInternalApi
 public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
@@ -71,8 +67,36 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
     @Override
     public SdkHttpFullRequest.Builder execute(SdkHttpFullRequest.Builder request,
                                               RequestExecutionContext context) throws Exception {
+
+        if (hasUserAgentInAdditionalHeaders() || hasUserAgentInRequestConfig(context)) {
+            return request;
+        }
         String headerValue = finalizeUserAgent(context);
         return request.putHeader(HEADER_USER_AGENT, headerValue);
+    }
+
+    /**
+     * Checks if User-Agent header is present in ADDITIONAL_HTTP_HEADERS configuration.
+     * We skip adding user-agent in the ApplyUserAgentStage if user has set "User-Agent" header in additional header of client
+     */
+    private boolean hasUserAgentInAdditionalHeaders() {
+        Map<String, List<String>> additionalHeaders = clientConfig.option(SdkClientOption.ADDITIONAL_HTTP_HEADERS);
+        if (additionalHeaders == null) {
+            return false;
+        }
+        return additionalHeaders.containsKey(HEADER_USER_AGENT);
+    }
+
+    /**
+     * Checks if User-Agent header is present in request override configs.
+     * We skip adding user-agent in the ApplyUserAgentStage if user has set "User-Agent" header at request level
+     */
+    private boolean hasUserAgentInRequestConfig(RequestExecutionContext context) {
+        Map<String, List<String>> requestHeaders = context.requestConfig().headers();
+        if (requestHeaders == null) {
+            return false;
+        }
+        return requestHeaders.containsKey(HEADER_USER_AGENT);
     }
 
     /**
@@ -110,9 +134,12 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
 
         javaUserAgent.append(clientUserAgent);
 
-        //add remaining SDK user agent properties
-        identityProviderName(context.executionAttributes()).ifPresent(
-            authSource -> appendSpaceAndField(javaUserAgent, CONFIG_METADATA, uaPair(AUTH_SOURCE, authSource)));
+        //add useragent metadata from execution context
+        List<AdditionalMetadata> userAgentMetadata =
+            context.executionAttributes().getAttribute(SdkInternalExecutionAttribute.USER_AGENT_METADATA);
+        if (userAgentMetadata != null) {
+            userAgentMetadata.forEach(s -> javaUserAgent.append(SPACE).append(s));
+        }
 
         Optional<String> businessMetrics = getBusinessMetricsString(context.executionAttributes(), groupedApiNames.right());
         businessMetrics.ifPresent(
@@ -148,29 +175,33 @@ public class ApplyUserAgentStage implements MutableRequestToRequestPipeline {
                                                              Collection<String> metricsFromApiNames) {
         BusinessMetricCollection businessMetrics =
             executionAttributes.getAttribute(SdkInternalExecutionAttribute.BUSINESS_METRICS);
-        if (businessMetrics == null && CollectionUtils.isNullOrEmpty(metricsFromApiNames)) {
-            return Optional.empty();
-        }
         if (businessMetrics == null) {
             businessMetrics = new BusinessMetricCollection();
         }
         businessMetrics.merge(metricsFromApiNames);
+
+        credentialProviderBusinessMetrics(executionAttributes).ifPresent(businessMetrics::merge);
+
+        if (businessMetrics.recordedMetrics().isEmpty()) {
+            return Optional.empty();
+        }
+
         return Optional.of(businessMetrics.asBoundedString());
     }
 
-    private static Optional<String> identityProviderName(ExecutionAttributes executionAttributes) {
-        SelectedAuthScheme<?> selectedAuthScheme = executionAttributes
-            .getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
-        if (selectedAuthScheme == null) {
-            return Optional.empty();
-        }
-        return providerNameFromIdentity(selectedAuthScheme);
-    }
-
-    private static <T extends Identity> Optional<String> providerNameFromIdentity(SelectedAuthScheme<T> selectedAuthScheme) {
-        CompletableFuture<? extends T> identityFuture = selectedAuthScheme.identity();
-        T identity = CompletableFutureUtils.joinLikeSync(identityFuture);
-        return identity.providerName().flatMap(IdentityProviderNameMapping::mapFrom);
+    private static Optional<Collection<String>> credentialProviderBusinessMetrics(
+        ExecutionAttributes executionAttributes) {
+        return Optional.ofNullable(
+                           executionAttributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME))
+                       .map(selectedAuthScheme ->
+                                CompletableFutureUtils.joinLikeSync(selectedAuthScheme.identity()))
+                       .flatMap(Identity::providerName)
+                       .map(providerName -> {
+                           if (StringUtils.isBlank(providerName)) {
+                               return Collections.emptyList();
+                           }
+                           return Collections.singletonList(providerName);
+                       });
     }
 
     /**

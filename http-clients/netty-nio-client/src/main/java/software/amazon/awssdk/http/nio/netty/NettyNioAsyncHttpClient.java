@@ -50,6 +50,7 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.internal.AwaitCloseChannelPoolMap;
 import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.NettyRequestExecutor;
+import software.amazon.awssdk.http.nio.netty.internal.NettyRequestMetrics;
 import software.amazon.awssdk.http.nio.netty.internal.NonManagedEventLoopGroup;
 import software.amazon.awssdk.http.nio.netty.internal.RequestContext;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelOptions;
@@ -60,6 +61,7 @@ import software.amazon.awssdk.http.nio.netty.internal.utils.NettyClientLogger;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.Either;
 import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * An implementation of {@link SdkAsyncHttpClient} that uses a Netty non-blocking HTTP client to communicate with the service.
@@ -131,7 +133,9 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     public CompletableFuture<Void> execute(AsyncExecuteRequest request) {
         failIfAlpnUsedWithHttp(request);
         RequestContext ctx = createRequestContext(request);
-        ctx.metricCollector().reportMetric(HTTP_CLIENT_NAME, clientName()); // TODO: Can't this be done in core?
+        NettyRequestMetrics.ifMetricsAreEnabled(
+            ctx.metricCollector(),
+            c -> c.reportMetric(HTTP_CLIENT_NAME, clientName())); // TODO: Can't this be done in core?
         return new NettyRequestExecutor(ctx).execute();
     }
 
@@ -169,8 +173,8 @@ public final class NettyNioAsyncHttpClient implements SdkAsyncHttpClient {
     }
 
     private static URI poolKey(SdkHttpRequest sdkRequest) {
-        return invokeSafely(() -> new URI(sdkRequest.protocol(), null, sdkRequest.host(),
-                                          sdkRequest.port(), null, null, null));
+        return invokeSafely(() -> SdkUri.getInstance().newUri(sdkRequest.protocol(), null, sdkRequest.host(),
+                                                              sdkRequest.port(), null, null, null));
     }
 
     private SslProvider resolveSslProvider(DefaultBuilder builder) {

@@ -62,6 +62,14 @@
       "input":{"shape":"MembersInHeadersInput"},
       "output":{"shape":"MembersInHeadersInput"}
     },
+    "MapInHeaders":{
+      "name":"MapInHeaders",
+      "http":{
+        "method":"POST",
+        "requestUri":"/2016-03-11/mapInHeaders"
+      },
+      "input":{"shape":"MapInHeadersInput"}
+    },
     "MembersInQueryParams":{
       "name":"MembersInQueryParams",
       "http":{
@@ -643,6 +651,16 @@
     },
     "MetadataKey":{"type":"string"},
     "MetadataValue":{"type":"string"},
+    "MapInHeadersInput":{
+      "type":"structure",
+      "members":{
+        "MetadataMember":{
+          "shape":"Metadata",
+          "location":"header",
+          "locationName":"x-amz-meta-"
+        }
+      }
+    },
     "EventStreamOperationRequest": {
       "type": "structure",
       "members": {

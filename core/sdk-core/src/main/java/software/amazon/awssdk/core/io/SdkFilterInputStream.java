@@ -35,7 +35,7 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
 
     /**
      * Aborts with subclass specific abortion logic executed if needed.
-     * Note the interrupted status of the thread is cleared by this method.
+     * Note the interrupted status of the thread will not be cleared by this method.
      *
      * @throws AbortedException if found necessary.
      */

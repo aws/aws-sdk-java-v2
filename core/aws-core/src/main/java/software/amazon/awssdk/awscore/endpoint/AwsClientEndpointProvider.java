@@ -41,6 +41,7 @@ import software.amazon.awssdk.utils.OptionalUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.internal.SystemSettingUtils;
+import software.amazon.awssdk.utils.uri.SdkUri;
 
 /**
  * An implementation of {@link ClientEndpointProvider} that loads the default client endpoint from:
@@ -50,6 +51,7 @@ import software.amazon.awssdk.utils.internal.SystemSettingUtils;
  *     <li>The service-agnostic endpoint override system property (i.e. 'aws.endpointUrl')</li>
  *     <li>The service-specific endpoint override environment variable (e.g. 'AWS_ENDPOINT_URL_S3')</li>
  *     <li>The service-agnostic endpoint override environment variable (i.e. 'AWS_ENDPOINT_URL')</li>
+ *     <li>The service-specific endpoint override from services section (e.g. '[services dev] s3.endpoint_url')</li>
  *     <li>The service-specific endpoint override profile property (e.g. 's3.endpoint_url')</li>
  *     <li>The service-agnostic endpoint override profile property (i.e. 'endpoint_url')</li>
  *     <li>The {@link ServiceMetadata} for the service</li>
@@ -93,7 +95,8 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         return clientEndpoint.getValue().isEndpointOverridden;
     }
 
-    private ClientEndpoint resolveClientEndpoint(Builder builder) {
+    // TODO: Remove once all callers are migrated to use resolveFromOverrides
+    private static ClientEndpoint resolveClientEndpoint(Builder builder) {
         return OptionalUtils.firstPresent(clientEndpointFromClientOverride(builder),
                                           () -> clientEndpointFromEnvironment(builder),
                                           () -> clientEndpointFromServiceMetadata(builder))
@@ -105,14 +108,20 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                          AwsClientEndpointProvider.class.getName() + " for more information.");
     }
 
-    private Optional<ClientEndpoint> clientEndpointFromClientOverride(Builder builder) {
+    private static Optional<ClientEndpoint> clientEndpointFromClientOverride(Builder builder) {
         Optional<ClientEndpoint> result = Optional.ofNullable(builder.clientEndpointOverride)
                                                   .map(uri -> new ClientEndpoint(uri, true));
         result.ifPresent(e -> log.trace(() -> "Client was configured with endpoint override: " + e.clientEndpoint));
         return result;
     }
 
-    private Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
+    private static Optional<ClientEndpoint> clientEndpointFromEnvironment(Builder builder) {
+        initializeProfileFileDefaults(builder);
+        if (shouldIgnoreConfiguredEndpointUrls(builder)) {
+            log.debug(() -> "Configured endpoint URLs are being ignored because ignore_configured_endpoint_urls is true.");
+            return Optional.empty();
+        }
+
         if (builder.serviceEndpointOverrideEnvironmentVariable == null ||
             builder.serviceEndpointOverrideSystemProperty == null ||
             builder.serviceProfileProperty == null) {
@@ -129,6 +138,15 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                           () -> systemProperty(GLOBAL_ENDPOINT_OVERRIDE_SYSTEM_PROPERTY),
                                           () -> environmentVariable(builder.serviceEndpointOverrideEnvironmentVariable),
                                           () -> environmentVariable(GLOBAL_ENDPOINT_OVERRIDE_ENVIRONMENT_VARIABLE),
+                                          () -> servicesProperty(builder),
+
+                                          /*
+                                          * This is a deviation from the cross-SDK standard.
+                                          * There should not have been support for service-specific
+                                          * endpoint override under the [profile] section.
+                                          * It is in this order to maintain backwards compatibility, and to reflect that
+                                          * service-specific endpoint overrides from the [services] section should be preferred.
+                                          */
                                           () -> profileProperty(builder,
                                                                 builder.serviceProfileProperty + "."
                                                                 + ProfileProperty.ENDPOINT_URL),
@@ -136,19 +154,19 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                             .map(uri -> new ClientEndpoint(uri, true));
     }
 
-    private Optional<URI> systemProperty(String systemProperty) {
+    private static Optional<URI> systemProperty(String systemProperty) {
         // CHECKSTYLE:OFF - We have to read system properties directly here to match the load order of the other SDKs
         return createUri("system property " + systemProperty,
                          Optional.ofNullable(System.getProperty(systemProperty)));
         // CHECKSTYLE:ON
     }
 
-    private Optional<URI> environmentVariable(String environmentVariable) {
+    private static Optional<URI> environmentVariable(String environmentVariable) {
         return createUri("environment variable " + environmentVariable,
                          SystemSettingUtils.resolveEnvironmentVariable(environmentVariable));
     }
 
-    private Optional<URI> profileProperty(Builder builder, String profileProperty) {
+    private static Optional<URI> profileProperty(Builder builder, String profileProperty) {
         initializeProfileFileDefaults(builder);
         return createUri("profile property " + profileProperty,
                          Optional.ofNullable(builder.profileFile.get())
@@ -156,7 +174,30 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                  .flatMap(p -> p.property(profileProperty)));
     }
 
-    private Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {
+    private static Optional<URI> servicesProperty(Builder builder) {
+        Optional<ProfileFile> profileFile = Optional.ofNullable(builder.profileFile.get());
+        Optional<String> servicesSectionName = profileFile
+            .flatMap(pf -> pf.profile(builder.profileName))
+            .flatMap(p -> p.property("services"));
+
+        Optional<String> serviceEndpoint = servicesSectionName
+            .flatMap(name -> profileFile.flatMap(pf -> pf.getSection("services", name)))
+            .flatMap(p -> p.property(builder.serviceProfileProperty
+                                                                 + "." + ProfileProperty.ENDPOINT_URL));
+
+        return createUri("services section property", serviceEndpoint);
+    }
+
+    private static boolean shouldIgnoreConfiguredEndpointUrls(Builder builder) {
+        return IgnoreConfiguredEndpointUrlsProvider.builder()
+                                                   .profileFile(builder.profileFile)
+                                                   .profileName(builder.profileName)
+                                                   .build()
+                                                   .ignoreConfiguredEndpointUrls()
+                                                   .orElse(false);
+    }
+
+    private static Optional<ClientEndpoint> clientEndpointFromServiceMetadata(Builder builder) {
         // This value is generally overridden after endpoints 2.0. It seems to exist for backwards-compatibility
         // with older client versions or interceptors.
 
@@ -214,7 +255,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
                                                           .region(builder.region)
                                                           .tags(endpointTags)
                                                           .build());
-        URI endpoint = URI.create(builder.protocol + "://" + endpointWithoutProtocol);
+        URI endpoint = SdkUri.getInstance().create(builder.protocol + "://" + endpointWithoutProtocol);
         if (endpoint.getHost() == null) {
             String error = "Configured region (" + builder.region + ") and tags (" + endpointTags + ") resulted in "
                            + "an invalid URI: " + endpoint + ". This is usually caused by an invalid region "
@@ -233,10 +274,10 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         return Optional.of(new ClientEndpoint(endpoint, false));
     }
 
-    private Optional<URI> createUri(String source, Optional<String> uri) {
+    private static Optional<URI> createUri(String source, Optional<String> uri) {
         return uri.map(u -> {
             try {
-                URI parsedUri = new URI(uri.get());
+                URI parsedUri = SdkUri.getInstance().newUri(uri.get());
                 log.trace(() -> "Client endpoint was loaded from the " + source + ": " + parsedUri);
                 return parsedUri;
             } catch (URISyntaxException e) {
@@ -245,7 +286,7 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
         });
     }
 
-    private void initializeProfileFileDefaults(Builder builder) {
+    private static void initializeProfileFileDefaults(Builder builder) {
         if (builder.profileFile == null) {
             builder.profileFile = new Lazy<>(ProfileFile::defaultProfileFile)::getValue;
         }
@@ -454,8 +495,28 @@ public final class AwsClientEndpointProvider implements ClientEndpointProvider {
             return this;
         }
 
+        /**
+         * @deprecated This method triggers expensive ServiceMetadata
+         * initialization and is no longer used by the SDK. Service endpoint resolution is handled
+         * by Endpoints 2.0 at request time.
+         */
+        @Deprecated
         public AwsClientEndpointProvider build() {
             return new AwsClientEndpointProvider(this);
+        }
+
+        /**
+         * Resolve an endpoint from overrides and environment configuration.
+         * Checks client override, system properties, environment variables, and profile configuration.
+         * Returns {@link Optional#empty()} if no override is configured, allowing callers to provide
+         * their own fallback.
+         */
+        public Optional<URI> resolveFromOverrides() {
+            Builder copy = new Builder(this);
+            initializeProfileFileDefaults(copy);
+            return OptionalUtils.firstPresent(clientEndpointFromClientOverride(copy),
+                                              () -> clientEndpointFromEnvironment(copy))
+                                .map(endpoint -> endpoint.clientEndpoint);
         }
     }
 }

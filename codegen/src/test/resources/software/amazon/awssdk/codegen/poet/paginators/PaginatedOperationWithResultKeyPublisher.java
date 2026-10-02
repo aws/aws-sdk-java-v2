@@ -1,14 +1,10 @@
 package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
@@ -107,14 +103,7 @@ public class PaginatedOperationWithResultKeyPublisher implements SdkPublisher<Pa
      * and then applies that consumer to each response returned by the service.
      */
     public final SdkPublisher<SimpleStruct> items() {
-        Function<PaginatedOperationWithResultKeyResponse, Iterator<SimpleStruct>> getIterator = response -> {
-            if (response != null && response.items() != null) {
-                return response.items().iterator();
-            }
-            return Collections.emptyIterator();
-        };
-        return PaginatedItemsPublisher.builder().nextPageFetcher(new PaginatedOperationWithResultKeyResponseFetcher())
-                                      .iteratorFunction(getIterator).isLastPage(isLastPage).build();
+        return this.flatMapIterable(response -> response.items());
     }
 
     private class PaginatedOperationWithResultKeyResponseFetcher implements

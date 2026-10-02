@@ -25,6 +25,7 @@ import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.Before;
@@ -335,6 +336,69 @@ public class DefaultNamingStrategyTest {
         model.setMetadata(metadata);
 
         strategy.validateCustomerVisibleNaming(model);
+    }
+
+    @Test
+    public void validateAllowsSpecificUnderscoresWithAllowlist() {
+        CustomizationConfig customization =
+            CustomizationConfig.create();
+        customization.setAllowedUnderscoreNames(Arrays.asList("checksumXXHASH3_64", "foo_bar"));
+
+        NamingStrategy strategy = new DefaultNamingStrategy(serviceModel, customization);
+        Metadata metadata = new Metadata();
+
+        metadata.setAsyncBuilderInterface("foo_bar");
+        IntermediateModel model = new IntermediateModel();
+        model.setMetadata(metadata);
+        strategy.validateCustomerVisibleNaming(model);
+    }
+
+    @Test
+    public void validateRejectsSpecificUnderscoresWithAllowlist() {
+        CustomizationConfig customization =
+            CustomizationConfig.create();
+        customization.setAllowedUnderscoreNames(Arrays.asList("checksumXXHASH3_64", "foo_bar"));
+
+        NamingStrategy strategy = new DefaultNamingStrategy(serviceModel, customization);
+        Metadata metadata = new Metadata();
+
+        metadata.setAsyncBuilderInterface("fizz_buzz");
+        IntermediateModel model = new IntermediateModel();
+        model.setMetadata(metadata);
+        assertThatThrownBy(() -> strategy.validateCustomerVisibleNaming(model)).isInstanceOf(RuntimeException.class);
+    }
+
+    @Test
+    public void getSigningNameForEnvironmentVariables_convertsDashAndUppercases() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn("signing-name");
+
+        assertThat(strat.getSigningNameForEnvironmentVariables()).isEqualTo("SIGNING_NAME");
+    }
+
+    @Test
+    public void getSigningNameForSystemProperties_convertsDashAndUppercasesWords() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn("signing-name");
+
+        assertThat(strat.getSigningNameForSystemProperties()).isEqualTo("SigningName");
+    }
+
+    @Test
+    public void getSigningName_Uses_EndpointPrefix_whenSigningNameUnset() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn(null);
+        when(serviceMetadata.getEndpointPrefix()).thenReturn("EndpointPrefixFoo");
+
+        assertThat(strat.getSigningName()).isEqualTo("EndpointPrefixFoo");
+    }
+
+    @Test
+    public void getSigningName_Uses_SigningName() {
+        when(serviceModel.getMetadata()).thenReturn(serviceMetadata);
+        when(serviceMetadata.getSigningName()).thenReturn("Foo");
+
+        assertThat(strat.getSigningName()).isEqualTo("Foo");
     }
 
     @Test

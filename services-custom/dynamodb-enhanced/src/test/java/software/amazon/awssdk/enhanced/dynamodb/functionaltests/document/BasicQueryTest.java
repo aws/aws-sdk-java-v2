@@ -48,7 +48,6 @@ import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 import software.amazon.awssdk.enhanced.dynamodb.EnhancedType;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
-import software.amazon.awssdk.enhanced.dynamodb.JsonTestUtils;
 import software.amazon.awssdk.enhanced.dynamodb.Key;
 import software.amazon.awssdk.enhanced.dynamodb.NestedAttributeName;
 import software.amazon.awssdk.enhanced.dynamodb.TableMetadata;
@@ -61,14 +60,10 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.NestedTes
 import software.amazon.awssdk.enhanced.dynamodb.model.Page;
 import software.amazon.awssdk.enhanced.dynamodb.model.PageIterable;
 import software.amazon.awssdk.enhanced.dynamodb.model.QueryEnhancedRequest;
-import software.amazon.awssdk.protocols.jsoncore.JsonNode;
-import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.Select;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonParser;
-import software.amazon.awssdk.thirdparty.jackson.core.JsonToken;
 
 public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
     private DynamoDbClient lowLevelClient;
@@ -252,7 +247,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                .select(Select.SPECIFIC_ATTRIBUTES)
+                .select("SPECIFIC_ATTRIBUTES")
                 .attributesToProject("value")
             ).iterator();
 
@@ -293,7 +288,7 @@ public class BasicQueryTest extends LocalDynamoDbSyncTestBase {
         Iterator<Page<EnhancedDocument>> results =
             docMappedtable.query(b -> b
                 .queryConditional(keyEqualTo(k -> k.partitionValue("id-value")))
-                .select(Select.COUNT)
+                .select("COUNT")
             ).iterator();
 
 

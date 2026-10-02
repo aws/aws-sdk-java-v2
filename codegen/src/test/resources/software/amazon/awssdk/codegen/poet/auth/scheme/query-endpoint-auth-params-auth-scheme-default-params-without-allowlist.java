@@ -82,6 +82,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     }
 
     @Override
+    public String regionId() {
+        return region == null ? null : region.id();
+    }
+
+    @Override
     public RegionSet regionSet() {
         return regionSet;
     }

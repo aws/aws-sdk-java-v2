@@ -16,13 +16,16 @@
 package software.amazon.awssdk.utils.cache.lru;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -40,6 +43,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ExtendWith(MockitoExtension.class)
 public class LruCacheTest {
@@ -244,6 +248,39 @@ public class LruCacheTest {
         } finally {
             executor.shutdownNow();
         }
+    }
+
+    @Test
+    void evictAll_noEntries_returnsEmptyList() {
+        LruCache<Integer, String> cache = simpleCache.get();
+        assertThat(cache.evictAll()).isEmpty();
+    }
+
+    @Test
+    void evictAll_maxEntries_returnsAllEntries() {
+        LruCache<Integer, String> cache = simpleCache.get();
+       List<String> expected = new ArrayList<>();
+        for (int i = 0; i < MAX_SIMPLE_CACHE_SIZE; ++i) {
+            expected.add(cache.get(i));
+        }
+        assertThat(cache.evictAll()).containsExactlyInAnyOrder(expected.toArray(new String[0]));
+    }
+
+    @Test
+    void evictAll_closesEvictedEntries() {
+        LruCache<Integer, SdkAutoCloseable> cache = LruCache.
+            <Integer, SdkAutoCloseable>builder(k -> mock(SdkAutoCloseable.class))
+            .maxSize(MAX_SIMPLE_CACHE_SIZE)
+            .build();
+
+        for (int i = 0; i < MAX_SIMPLE_CACHE_SIZE; ++i) {
+            cache.get(i);
+        }
+
+        List<SdkAutoCloseable> evicted = cache.evictAll();
+
+        assertThat(evicted).isNotEmpty();
+        assertThat(evicted).allSatisfy(e -> verify(e).close());
     }
 
     private static Stream<Arguments> concurrencyTestValues() {

@@ -25,12 +25,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.protocols.jsoncore.JsonNode;
 import software.amazon.awssdk.protocols.jsoncore.JsonNodeParser;
 import software.amazon.awssdk.utils.DateUtils;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Platform;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
+import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
@@ -64,7 +66,8 @@ public final class ProcessCredentialsProvider
     implements AwsCredentialsProvider,
                SdkAutoCloseable,
                ToCopyableBuilder<ProcessCredentialsProvider.Builder, ProcessCredentialsProvider> {
-    private static final String PROVIDER_NAME = "ProcessCredentialsProvider";
+    private static final String CLASS_NAME = "ProcessCredentialsProvider";
+    private static final String PROVIDER_NAME = BusinessMetricFeatureId.CREDENTIALS_PROCESS.value();
     private static final JsonNodeParser PARSER = JsonNodeParser.builder()
                                                                .removeErrorLocations(true)
                                                                .build();
@@ -82,6 +85,9 @@ public final class ProcessCredentialsProvider
 
     private final Boolean asyncCredentialUpdateEnabled;
 
+    private final String sourceChain;
+    private final String providerName;
+
     /**
      * @see #builder()
      */
@@ -93,6 +99,10 @@ public final class ProcessCredentialsProvider
         this.commandAsListOfStringsFromBuilder = builder.commandAsListOfStrings;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.staticAccountId = builder.staticAccountId;
+        this.sourceChain = builder.sourceChain;
+        this.providerName = StringUtils.isEmpty(builder.sourceChain)
+            ? PROVIDER_NAME 
+            : builder.sourceChain + "," + PROVIDER_NAME;
 
         CachedSupplier.Builder<AwsCredentials> cacheBuilder = CachedSupplier.builder(this::refreshCredentials)
                                                                             .cachedValueName(toString());
@@ -192,13 +202,13 @@ public final class ProcessCredentialsProvider
                                     .sessionToken(sessionToken)
                                     .expirationTime(credentialExpirationTime(credentialsJson))
                                     .accountId(resolvedAccountId)
-                                    .providerName(PROVIDER_NAME)
+                                    .providerName(this.providerName)
                                     .build() :
                AwsBasicCredentials.builder()
                                   .accessKeyId(accessKeyId)
                                   .secretAccessKey(secretAccessKey)
                                   .accountId(resolvedAccountId)
-                                  .providerName(PROVIDER_NAME)
+                                  .providerName(this.providerName)
                                   .build();
     }
 
@@ -270,6 +280,7 @@ public final class ProcessCredentialsProvider
         private Duration credentialRefreshThreshold = Duration.ofSeconds(15);
         private long processOutputLimit = 64000;
         private String staticAccountId;
+        private String sourceChain;
 
         /**
          * @see #builder()
@@ -284,6 +295,7 @@ public final class ProcessCredentialsProvider
             this.credentialRefreshThreshold = provider.credentialRefreshThreshold;
             this.processOutputLimit = provider.processOutputLimit;
             this.staticAccountId = provider.staticAccountId;
+            this.sourceChain = provider.sourceChain;
         }
 
         /**
@@ -357,6 +369,16 @@ public final class ProcessCredentialsProvider
             return this;
         }
 
+        /**
+         * An optional string denoting previous credentials providers that are chained with this one.
+         * <p><b>Note:</b> This method is primarily intended for use by AWS SDK internal components
+         * and should not be used directly by external users.</p>
+         */
+        public Builder sourceChain(String sourceChain) {
+            this.sourceChain = sourceChain;
+            return this;
+        }
+
         public ProcessCredentialsProvider build() {
             return new ProcessCredentialsProvider(this);
         }
@@ -364,7 +386,7 @@ public final class ProcessCredentialsProvider
 
     @Override
     public String toString() {
-        return ToString.builder(PROVIDER_NAME)
+        return ToString.builder(CLASS_NAME)
                        .add("cmd", executableCommand)
                        .build();
     }

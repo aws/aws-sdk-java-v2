@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import java.io.IOException;
@@ -34,15 +35,18 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
@@ -71,6 +75,8 @@ class MultipartClientChecksumTest {
 
     public static Stream<ChecksumAlgorithm> checksumAlgorithmParams() {
         List<ChecksumAlgorithm> checksumAlgorithms = new ArrayList<>(ChecksumAlgorithm.knownValues());
+        // MD5 calculation is not supported in the SDK
+        checksumAlgorithms.remove(ChecksumAlgorithm.MD5);
         checksumAlgorithms.add(null);
         return checksumAlgorithms.stream();
     }
@@ -122,25 +128,13 @@ class MultipartClientChecksumTest {
 
         PutObjectRequest.Builder requestBuilder = putObjectRequestBuilder();
         if (checksumAlgorithm != null) {
-            switch (checksumAlgorithm) {
-                case CRC32:
-                    requestBuilder.checksumCRC32("checksumVal");
-                    break;
-                case SHA256:
-                    requestBuilder.checksumSHA256("checksumVal");
-                    break;
-                case CRC32_C:
-                    requestBuilder.checksumCRC32C("checksumVal");
-                    break;
-                case SHA1:
-                    requestBuilder.checksumSHA1("checksumVal");
-                    break;
-                case CRC64_NVME:
-                    requestBuilder.checksumCRC64NVME("checksumVal");
-                    break;
-                default:
-                    throw new UnsupportedOperationException("Unsupported checksum algorithm: " + checksumAlgorithm);
-            }
+            String checksumFieldName = "Checksum" + checksumAlgorithm;
+            requestBuilder.sdkFields().stream()
+                          .filter(f -> f.memberName().equals(checksumFieldName))
+                          .findFirst()
+                          .orElseThrow(() -> new UnsupportedOperationException(
+                              "No SdkField found for checksum algorithm: " + checksumAlgorithm))
+                          .set(requestBuilder, "checksumVal");
         }
 
         String expectedChecksumAlgo = checksumAlgorithm == null ? "CRC32" : checksumAlgorithm.toString();
@@ -156,6 +150,33 @@ class MultipartClientChecksumTest {
             assertThat(checksumCapturingInterceptor.completeMpuChecksumType).isEqualTo(ChecksumType.FULL_OBJECT.toString());
         }
         assertThat(checksumCapturingInterceptor.completeMpuMpObjectSize).isEqualTo(FILE_SIZE);
+    }
+
+    @Test
+    public void multipartUpload_withMd5ChecksumValueProvided_shouldPassThrough() {
+        stubSuccessfulResponses();
+
+        PutObjectRequest putObjectRequest = putObjectRequestBuilder().checksumMD5("checksumVal").build();
+
+        multipartS3.putObject(putObjectRequest, testFile).join();
+        assertThat(checksumCapturingInterceptor.createMpuChecksumAlgorithm).isEqualTo("MD5");
+        assertThat(checksumCapturingInterceptor.uploadPartChecksumAlgorithm).isEqualTo("MD5");
+        assertThat(checksumCapturingInterceptor.completeMpuHeaders.get("x-amz-checksum-md5")).contains("checksumVal");
+        assertThat(checksumCapturingInterceptor.createMpuChecksumType).isEqualTo(ChecksumType.FULL_OBJECT.toString());
+        assertThat(checksumCapturingInterceptor.completeMpuChecksumType).isEqualTo(ChecksumType.FULL_OBJECT.toString());
+        assertThat(checksumCapturingInterceptor.completeMpuMpObjectSize).isEqualTo(FILE_SIZE);
+    }
+
+    @Test
+    public void multipartUpload_withMd5ChecksumAlgorithmProvided_shouldThrowException() {
+        stubSuccessfulResponses();
+
+        PutObjectRequest putObjectRequest = putObjectRequestBuilder().checksumAlgorithm(ChecksumAlgorithm.MD5).build();
+
+        assertThatThrownBy(() -> multipartS3.putObject(putObjectRequest, testFile).join())
+            .isInstanceOf(CompletionException.class)
+            .hasCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("MD5 is not supported");
     }
 
     private PutObjectRequest.Builder putObjectRequestBuilder() {

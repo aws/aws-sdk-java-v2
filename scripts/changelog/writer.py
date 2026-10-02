@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from changelog.git import stage_file
 from changelog.util import load_all_released_changes, load_unreleased_changes, version_cmp
 from functools import cmp_to_key
@@ -13,6 +14,8 @@ class ChangelogWriter(object):
         - ...
       - ### __Bugfixes__
         - ...
+      - ### __Performance Improvements__
+        - ...
       - ### __Deprecations__
         - ...
     """
@@ -27,6 +30,7 @@ class ChangelogWriter(object):
             self.write_category_header(s)
             self.write_items_for_category(s, self.features, "Features")
             self.write_items_for_category(s, self.bugfixes, "Bugfixes")
+            self.write_items_for_category(s, self.perf_improvements, "Performance Improvements")
             self.write_items_for_category(s, self.deprecations, "Deprecations")
             self.write_items_for_category(s, self.removals, "Removals")
             self.write_items_for_category(s, self.documentations, "Documentations")
@@ -56,6 +60,7 @@ class ChangelogWriter(object):
     def reset_maps(self):
         self.features = {}
         self.bugfixes = {}
+        self.perf_improvements = {}
         self.deprecations = {}
         self.removals = {}
         self.documentations = {}
@@ -69,9 +74,6 @@ class ChangelogWriter(object):
 
     def get_sorted_categories(self):
         return sorted(list(self.categories))
-
-    def is_service_category(self,s):
-        return s.lower() not in NON_SERVICE_CATEGORIES
 
     def write_header(self):
         version_string = self.current_changes.version
@@ -115,6 +117,8 @@ class ChangelogWriter(object):
             return self.features
         elif t == 'bugfix':
             return self.bugfixes
+        elif t == 'perf-improvement':
+            return self.perf_improvements
         elif t == 'deprecation':
             return self.deprecations
         elif t == 'removal':

@@ -1,0 +1,345 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2025-10-01",
+    "auth":["aws.auth#sigv4"],
+    "endpointPrefix":"runtime.sagemaker",
+    "protocol":"rest-json",
+    "protocolSettings":{"h2":"required"},
+    "protocols":["rest-json"],
+    "serviceFullName":"Amazon SageMaker Runtime HTTP2",
+    "serviceId":"SageMaker Runtime HTTP2",
+    "signatureVersion":"v4",
+    "signingName":"sagemaker",
+    "uid":"sagemaker-runtime-http2-2025-10-01"
+  },
+  "operations":{
+    "InvokeEndpointWithBidirectionalStream":{
+      "name":"InvokeEndpointWithBidirectionalStream",
+      "http":{
+        "method":"POST",
+        "requestUri":"/endpoints/{EndpointName}/invocations-bidirectional-stream",
+        "responseCode":200
+      },
+      "input":{"shape":"InvokeEndpointWithBidirectionalStreamInput"},
+      "output":{"shape":"InvokeEndpointWithBidirectionalStreamOutput"},
+      "errors":[
+        {"shape":"InternalServerError"},
+        {"shape":"InputValidationError"},
+        {"shape":"ServiceUnavailableError"},
+        {"shape":"ModelStreamError"},
+        {"shape":"ModelError"},
+        {"shape":"InternalStreamFailure"}
+      ],
+      "documentation":"<p>Invokes a model endpoint with bidirectional streaming capabilities. This operation establishes a persistent connection that allows you to send multiple requests and receive streaming responses from the model in real-time.</p> <p>Bidirectional streaming is useful for interactive applications such as chatbots, real-time translation, or any scenario where you need to maintain a conversation-like interaction with the model. The connection remains open, allowing you to send additional input and receive responses without establishing a new connection for each request.</p> <p>For an overview of Amazon SageMaker AI, see <a href=\"https://docs.aws.amazon.com/sagemaker/latest/dg/how-it-works.html\">How It Works</a>.</p> <p>Amazon SageMaker AI strips all POST headers except those supported by the API. Amazon SageMaker AI might add additional headers. You should not rely on the behavior of headers outside those enumerated in the request syntax. </p> <p>Calls to <code>InvokeEndpointWithBidirectionalStream</code> are authenticated by using Amazon Web Services Signature Version 4. For information, see <a href=\"https://docs.aws.amazon.com/AmazonS3/latest/API/sig-v4-authenticating-requests.html\">Authenticating Requests (Amazon Web Services Signature Version 4)</a> in the <i>Amazon S3 API Reference</i>.</p> <p>The bidirectional stream maintains the connection until either the client closes it or the model indicates completion. Each request and response in the stream is sent as an event with optional headers for data type and completion state.</p> <note> <p>Endpoints are scoped to an individual account, and are not public. The URL does not contain the account ID, but Amazon SageMaker AI determines the account ID from the authentication token that is supplied by the caller.</p> </note>"
+    }
+  },
+  "shapes":{
+    "InputValidationError":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Error message.</p>"
+        },
+        "ErrorCode":{
+          "shape":"String",
+          "documentation":"<p>Error code.</p>"
+        }
+      },
+      "documentation":"<p>The input fails to satisfy the constraints specified by an AWS service.</p>",
+      "error":{
+        "httpStatusCode":400,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "Integer":{
+      "type":"integer",
+      "box":true
+    },
+    "InternalServerError":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Error message.</p>"
+        },
+        "ErrorCode":{
+          "shape":"String",
+          "documentation":"<p>Error code.</p>"
+        }
+      },
+      "documentation":"<p>The request processing has failed because of an unknown error, exception or failure.</p>",
+      "error":{"httpStatusCode":500},
+      "exception":true,
+      "fault":true
+    },
+    "InternalStreamFailure":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Error message.</p>"
+        }
+      },
+      "documentation":"<p>Internal stream failure that occurs during streaming.</p>",
+      "exception":true,
+      "fault":true
+    },
+    "InvokeEndpointWithBidirectionalStreamInput":{
+      "type":"structure",
+      "required":[
+        "EndpointName",
+        "Body"
+      ],
+      "members":{
+        "EndpointName":{
+          "shape":"InvokeEndpointWithBidirectionalStreamInputEndpointNameString",
+          "documentation":"<p>The name of the endpoint to invoke.</p>",
+          "location":"uri",
+          "locationName":"EndpointName"
+        },
+        "Body":{
+          "shape":"RequestStreamEvent",
+          "documentation":"<p>The request payload stream.</p>"
+        },
+        "TargetVariant":{
+          "shape":"InvokeEndpointWithBidirectionalStreamInputTargetVariantString",
+          "documentation":"<p>Target variant for the request.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-SageMaker-Target-Variant"
+        },
+        "ModelInvocationPath":{
+          "shape":"InvokeEndpointWithBidirectionalStreamInputModelInvocationPathString",
+          "documentation":"<p>Model invocation path.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-SageMaker-Model-Invocation-Path"
+        },
+        "ModelQueryString":{
+          "shape":"InvokeEndpointWithBidirectionalStreamInputModelQueryStringString",
+          "documentation":"<p>Model query string.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-SageMaker-Model-Query-String"
+        }
+      },
+      "payload":"Body"
+    },
+    "InvokeEndpointWithBidirectionalStreamInputEndpointNameString":{
+      "type":"string",
+      "max":63,
+      "min":0,
+      "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9])*.*"
+    },
+    "InvokeEndpointWithBidirectionalStreamInputModelInvocationPathString":{
+      "type":"string",
+      "max":100,
+      "min":0,
+      "pattern":"[A-Za-z0-9\\-._]+(?:/[A-Za-z0-9\\-._]+)*"
+    },
+    "InvokeEndpointWithBidirectionalStreamInputModelQueryStringString":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"[a-zA-Z0-9][A-Za-z0-9_-]*=(?:[A-Za-z0-9._~\\-]|%[0-9A-Fa-f]{2})+(?:&[a-zA-Z0-9][A-Za-z0-9_-]*=(?:[A-Za-z0-9._~\\-]|%[0-9A-Fa-f]{2})+)*"
+    },
+    "InvokeEndpointWithBidirectionalStreamInputTargetVariantString":{
+      "type":"string",
+      "max":63,
+      "min":0,
+      "pattern":"[a-zA-Z0-9](-*[a-zA-Z0-9])*.*"
+    },
+    "InvokeEndpointWithBidirectionalStreamOutput":{
+      "type":"structure",
+      "required":["Body"],
+      "members":{
+        "Body":{
+          "shape":"ResponseStreamEvent",
+          "documentation":"<p>The response payload stream.</p>"
+        },
+        "InvokedProductionVariant":{
+          "shape":"InvokeEndpointWithBidirectionalStreamOutputInvokedProductionVariantString",
+          "documentation":"<p>The invoked production variant.</p>",
+          "location":"header",
+          "locationName":"X-Amzn-Invoked-Production-Variant"
+        }
+      },
+      "payload":"Body"
+    },
+    "InvokeEndpointWithBidirectionalStreamOutputInvokedProductionVariantString":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "pattern":".*\\p{ASCII}*.*"
+    },
+    "ModelError":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Error message.</p>"
+        },
+        "OriginalStatusCode":{
+          "shape":"Integer",
+          "documentation":"<p>HTTP status code returned by model.</p>"
+        },
+        "OriginalMessage":{
+          "shape":"String",
+          "documentation":"<p>Original error message from the model.</p>"
+        },
+        "LogStreamArn":{
+          "shape":"String",
+          "documentation":"<p>CloudWatch log stream ARN.</p>"
+        },
+        "ErrorCode":{
+          "shape":"String",
+          "documentation":"<p>Error code.</p>"
+        }
+      },
+      "documentation":"<p>An error occurred while processing the model.</p>",
+      "error":{
+        "httpStatusCode":424,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "ModelStreamError":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Error message.</p>"
+        },
+        "ErrorCode":{
+          "shape":"String",
+          "documentation":"<p>Error code.</p>"
+        }
+      },
+      "documentation":"<p>Model stream error that occurs during streaming.</p>",
+      "exception":true
+    },
+    "RequestPayloadPart":{
+      "type":"structure",
+      "members":{
+        "Bytes":{
+          "shape":"SensitiveBlob",
+          "documentation":"<p>The payload bytes.</p>",
+          "eventpayload":true
+        },
+        "DataType":{
+          "shape":"RequestPayloadPartDataTypeString",
+          "documentation":"<p>Data type header. Can be one of these possible values: \"UTF8\", \"BINARY\".</p>",
+          "eventheader":true
+        },
+        "CompletionState":{
+          "shape":"RequestPayloadPartCompletionStateString",
+          "documentation":"<p>Completion state header. Can be one of these possible values: \"PARTIAL\", \"COMPLETE\".</p>",
+          "eventheader":true
+        },
+        "P":{
+          "shape":"String",
+          "documentation":"<p>Padding string for alignment.</p>",
+          "eventheader":true
+        }
+      },
+      "documentation":"<p>Request payload part structure.</p>",
+      "event":true
+    },
+    "RequestPayloadPartCompletionStateString":{
+      "type":"string",
+      "pattern":"(PARTIAL)$|^(COMPLETE)"
+    },
+    "RequestPayloadPartDataTypeString":{
+      "type":"string",
+      "pattern":"(UTF8)$|^(BINARY)"
+    },
+    "RequestStreamEvent":{
+      "type":"structure",
+      "members":{
+        "PayloadPart":{
+          "shape":"RequestPayloadPart",
+          "documentation":"<p>Payload part event.</p>"
+        }
+      },
+      "documentation":"<p>Request stream event union.</p>",
+      "eventstream":true
+    },
+    "ResponsePayloadPart":{
+      "type":"structure",
+      "members":{
+        "Bytes":{
+          "shape":"SensitiveBlob",
+          "documentation":"<p>The payload bytes.</p>",
+          "eventpayload":true
+        },
+        "DataType":{
+          "shape":"ResponsePayloadPartDataTypeString",
+          "documentation":"<p>Data type header. Can be one of these possible values: \"UTF8\", \"BINARY\".</p>",
+          "eventheader":true
+        },
+        "CompletionState":{
+          "shape":"ResponsePayloadPartCompletionStateString",
+          "documentation":"<p>Completion state header. Can be one of these possible values: \"PARTIAL\", \"COMPLETE\".</p>",
+          "eventheader":true
+        },
+        "P":{
+          "shape":"String",
+          "documentation":"<p>Padding string for alignment.</p>",
+          "eventheader":true
+        }
+      },
+      "documentation":"<p>Response payload part structure.</p>",
+      "event":true
+    },
+    "ResponsePayloadPartCompletionStateString":{
+      "type":"string",
+      "pattern":"(PARTIAL)$|^(COMPLETE)"
+    },
+    "ResponsePayloadPartDataTypeString":{
+      "type":"string",
+      "pattern":"(UTF8)$|^(BINARY)"
+    },
+    "ResponseStreamEvent":{
+      "type":"structure",
+      "members":{
+        "PayloadPart":{
+          "shape":"ResponsePayloadPart",
+          "documentation":"<p>Payload part event.</p>"
+        },
+        "ModelStreamError":{
+          "shape":"ModelStreamError",
+          "documentation":"<p>Model stream error event.</p>"
+        },
+        "InternalStreamFailure":{
+          "shape":"InternalStreamFailure",
+          "documentation":"<p>Internal stream failure event.</p>"
+        }
+      },
+      "documentation":"<p>Response stream event union.</p>",
+      "eventstream":true
+    },
+    "SensitiveBlob":{
+      "type":"blob",
+      "sensitive":true
+    },
+    "ServiceUnavailableError":{
+      "type":"structure",
+      "members":{
+        "Message":{
+          "shape":"String",
+          "documentation":"<p>Error message.</p>"
+        },
+        "ErrorCode":{
+          "shape":"String",
+          "documentation":"<p>Error code.</p>"
+        }
+      },
+      "documentation":"<p>The request has failed due to a temporary failure of the server.</p>",
+      "error":{"httpStatusCode":503},
+      "exception":true,
+      "fault":true
+    },
+    "String":{"type":"string"}
+  },
+  "documentation":"<p> The Amazon SageMaker AI runtime HTTP/2 API. </p>"
+}

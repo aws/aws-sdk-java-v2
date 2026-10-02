@@ -26,6 +26,9 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Map;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
@@ -33,10 +36,12 @@ import software.amazon.awssdk.core.exception.RetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
+import software.amazon.awssdk.core.internal.io.GzipAvailabilityInputStream;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.internal.EnumUtils;
 
 /**
  * Interface for processing a streaming response from a service in a synchronous fashion. This interfaces gives
@@ -94,42 +99,63 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
     }
 
     /**
+     * Each ResponseTransformer should return a well-formed name that can be used to identify the implementation.
+     * The Transformer name should only include alphanumeric characters.
+     *
+     * @return String containing the identifying name of this RequestTransformer.
+     */
+    default String name() {
+        return TransformerType.UNKNOWN.name();
+    }
+
+    /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * then a {@link FileAlreadyExistsException} will be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link NoSuchFileException} will be thrown if they are missing.
      *
      * @param path        Path to file to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toFile(Path path) {
-        return (resp, in) -> {
-            try {
-                InterruptMonitor.checkInterrupted();
-                Files.copy(in, path);
-                return resp;
-            } catch (IOException copyException) {
-                String copyError = "Failed to read response into file: " + path;
-
-                if (shouldThrowIOException(copyException)) {
-                    throw new IOException(copyError, copyException);
-                }
-
-                // Try to clean up the file so that we can retry the request. If we can't delete it, don't retry the request.
+        return new ResponseTransformer<ResponseT, ResponseT>() {
+            @Override
+            public ResponseT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
                 try {
-                    Files.deleteIfExists(path);
-                } catch (IOException deletionException) {
-                    Logger.loggerFor(ResponseTransformer.class)
-                          .error(() -> "Failed to delete destination file '" + path +
-                                       "' after reading the service response " +
-                                       "failed.", deletionException);
+                    InterruptMonitor.checkInterrupted();
+                    Files.copy(inputStream, path);
+                    return response;
+                } catch (IOException copyException) {
+                    String copyError = copyErrorMessage(path, copyException);
 
-                    throw new IOException(copyError + ". Additionally, the file could not be cleaned up (" +
-                                          deletionException.getMessage() + "), so the request will not be retried.",
-                                          copyException);
+                    if (shouldThrowIOException(copyException)) {
+                        throw new IOException(copyError, copyException);
+                    }
+
+                    // Try to clean up the file so that we can retry the request. If we can't delete it, don't retry the request.
+                    try {
+                        Files.deleteIfExists(path);
+                    } catch (IOException deletionException) {
+                        Logger.loggerFor(ResponseTransformer.class)
+                              .error(() -> "Failed to delete destination file '" + path +
+                                           "' after reading the service response " +
+                                           "failed.", deletionException);
+
+                        throw new IOException(copyError + ". Additionally, the file could not be cleaned up (" +
+                                              deletionException.getMessage() + "), so the request will not be retried.",
+                                              copyException);
+                    }
+
+                    // Retry the request
+                    throw RetryableException.builder().message(copyError).cause(copyException).build();
                 }
+            }
 
-                // Retry the request
-                throw RetryableException.builder().message(copyError).cause(copyException).build();
+            @Override
+            public String name() {
+                return TransformerType.FILE.getName();
             }
         };
     }
@@ -145,9 +171,21 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
                copyException instanceof AccessDeniedException;
     }
 
+    static String copyErrorMessage(Path path, IOException copyException) {
+        String baseMessage = "Failed to read response into file: " + path;
+        if (copyException instanceof NoSuchFileException) {
+            return baseMessage + ". Verify that the file's parent directories exist."
+                   + " The SDK will not auto-create them.";
+        }
+        return baseMessage;
+    }
+
     /**
      * Creates a response transformer that writes all response content to the specified file. If the file already exists
-     * then a {@link java.nio.file.FileAlreadyExistsException} will be thrown.
+     * then a {@link FileAlreadyExistsException} will be thrown.
+     *
+     * <p>The file's parent directories must already exist. The SDK will not auto-create directories, and a
+     * {@link NoSuchFileException} will be thrown if they are missing.
      *
      * @param file        File to write to.
      * @param <ResponseT> Type of unmarshalled response POJO.
@@ -166,10 +204,18 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return ResponseTransformer instance.
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseT> toOutputStream(OutputStream outputStream) {
-        return (resp, in) -> {
-            InterruptMonitor.checkInterrupted();
-            IoUtils.copy(in, outputStream);
-            return resp;
+        return new ResponseTransformer<ResponseT, ResponseT>() {
+            @Override
+            public ResponseT transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
+                InterruptMonitor.checkInterrupted();
+                IoUtils.copy(inputStream, outputStream);
+                return response;
+            }
+
+            @Override
+            public String name() {
+                return TransformerType.STREAM.getName();
+            }
         };
     }
 
@@ -181,12 +227,20 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
      * @return The streaming response transformer that can be used on the client streaming method.
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseBytes<ResponseT>> toBytes() {
-        return (response, inputStream) -> {
-            try {
-                InterruptMonitor.checkInterrupted();
-                return ResponseBytes.fromByteArrayUnsafe(response, IoUtils.toByteArray(inputStream));
-            } catch (IOException e) {
-                throw RetryableException.builder().message("Failed to read response.").cause(e).build();
+        return new ResponseTransformer<ResponseT, ResponseBytes<ResponseT>>() {
+            @Override
+            public ResponseBytes<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) throws Exception {
+                try {
+                    InterruptMonitor.checkInterrupted();
+                    return ResponseBytes.fromByteArrayUnsafe(response, IoUtils.toByteArray(inputStream));
+                } catch (IOException e) {
+                    throw RetryableException.builder().message("Failed to read response.").cause(e).build();
+                }
+            }
+
+            @Override
+            public String name() {
+                return TransformerType.BYTES.getName();
             }
         };
     }
@@ -194,16 +248,107 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
     /**
      * Creates a response transformer that returns an unmanaged input stream with the response content. This input stream must
      * be explicitly closed to release the connection. The unmarshalled response object can be obtained via the {@link
-     * ResponseInputStream#response} method.
+     * ResponseInputStream#response()} method.
+     * <p>
+     * The stream has a default timeout of 60 seconds that starts when the response stream is ready. If no read operation occurs
+     * within this time, the connection will be automatically aborted. Use {@link #toInputStream(Duration)} to specify a custom
+     * timeout.
      * <p>
      * Note that the returned stream is not subject to the retry policy or timeout settings (except for socket timeout)
      * of the client. No retries will be performed in the event of a socket read failure or connection reset.
      *
      * @param <ResponseT> Type of unmarshalled response POJO.
      * @return ResponseTransformer instance.
+     * @see #toInputStream(Duration)
      */
     static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream() {
-        return unmanaged(ResponseInputStream::new);
+        return toInputStream(null);
+    }
+
+    /**
+     * Creates a response transformer that returns an unmanaged input stream adapted for reading concatenated GZIP content with
+     * {@link java.util.zip.GZIPInputStream}. This input stream must be explicitly closed to release the connection.
+     * <p>
+     * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
+     * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP
+     * member boundary as the end of the complete stream. Because this can cause a read after {@code available()} to block, this
+     * transformer should only be used when the response will be read with {@code GZIPInputStream}.
+     * <p>
+     * The stream has the default first-read timeout of 60 seconds. Use
+     * {@link #toGzipCompatibleInputStream(Duration)} to specify a custom timeout.
+     *
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     * @see #toInputStream()
+     * @see #toGzipCompatibleInputStream(Duration)
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toGzipCompatibleInputStream() {
+        return toGzipCompatibleInputStream(null);
+    }
+
+    /**
+     * Creates a response transformer that returns an unmanaged input stream with the response content and a custom timeout.
+     * This input stream must be explicitly closed to release the connection.
+     * <p>
+     * The timeout starts when the response stream is ready. If no read operation occurs within the specified timeout, the
+     * connection will be automatically aborted. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
+     *
+     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} or a negative
+     * {@link Duration} to disable timeout.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     * @see #toInputStream()
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toInputStream(Duration timeout) {
+        return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
+            @Override
+            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
+                return new ResponseInputStream<>(response, inputStream, timeout);
+            }
+
+            @Override
+            public String name() {
+                return TransformerType.STREAM.getName();
+            }
+        });
+    }
+
+    /**
+     * Creates a response transformer that returns an unmanaged input stream adapted for reading concatenated GZIP content with
+     * {@link java.util.zip.GZIPInputStream} and a custom timeout. This input stream must be explicitly closed to release the
+     * connection.
+     * <p>
+     * GZIP response streams are adapted so that {@link InputStream#available()} does not temporarily return {@code 0} while the
+     * stream is still open. This works around {@code GZIPInputStream} treating a temporary {@code 0} at a concatenated GZIP
+     * member boundary as the end of the complete stream. Because this can cause a read after {@code available()} to block, this
+     * transformer should only be used when the response will be read with {@code GZIPInputStream}.
+     * <p>
+     * The timeout starts when the response stream is ready. If no read operation occurs within the specified timeout, the
+     * connection will be automatically aborted. To disable the timeout, pass {@link Duration#ZERO} or a negative
+     * {@link Duration}.
+     *
+     * @param timeout Maximum time to wait for first read operation before aborting. Use {@link Duration#ZERO} or a negative
+     *                {@link Duration} to disable timeout.
+     * @param <ResponseT> Type of unmarshalled response POJO.
+     * @return ResponseTransformer instance.
+     * @see #toGzipCompatibleInputStream()
+     * @see #toInputStream(Duration)
+     */
+    static <ResponseT> ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>> toGzipCompatibleInputStream(
+        Duration timeout) {
+        return unmanaged(new ResponseTransformer<ResponseT, ResponseInputStream<ResponseT>>() {
+            @Override
+            public ResponseInputStream<ResponseT> transform(ResponseT response, AbortableInputStream inputStream) {
+                AbortableInputStream content = GzipAvailabilityInputStream.wrap(inputStream, inputStream);
+                return new ResponseInputStream<>(response, content, timeout);
+            }
+
+            @Override
+            public String name() {
+                return TransformerType.STREAM.getName();
+            }
+        });
     }
 
     /**
@@ -228,7 +373,43 @@ public interface ResponseTransformer<ResponseT, ReturnT> {
             public boolean needsConnectionLeftOpen() {
                 return true;
             }
-        };
 
+            @Override
+            public String name() {
+                return transformer.name();
+            }
+        };
+    }
+
+    @SdkProtectedApi
+    enum TransformerType {
+        FILE("File", "f"),
+        BYTES("Bytes", "b"),
+        STREAM("Stream", "s"),
+        UNKNOWN("Unknown", "u");
+
+        private static final Map<String, TransformerType> VALUE_MAP =
+            EnumUtils.uniqueIndex(TransformerType.class, TransformerType::getName);
+
+        private final String name;
+        private final String shortValue;
+
+
+        TransformerType(String name, String shortValue) {
+            this.name = name;
+            this.shortValue = shortValue;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public String getShortValue() {
+            return shortValue;
+        }
+
+        public static String shortValueFromName(String name) {
+            return VALUE_MAP.getOrDefault(name, UNKNOWN).getShortValue();
+        }
     }
 }

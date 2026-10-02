@@ -30,6 +30,7 @@ public enum JavaSystemSetting implements SystemSetting {
 
     OS_NAME("os.name"),
     OS_VERSION("os.version"),
+    OS_ARCH("os.arch"),
 
     USER_HOME("user.home"),
     USER_LANGUAGE("user.language"),

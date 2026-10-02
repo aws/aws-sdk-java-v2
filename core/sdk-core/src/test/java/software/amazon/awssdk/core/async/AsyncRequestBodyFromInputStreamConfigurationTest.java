@@ -59,12 +59,12 @@ public class AsyncRequestBodyFromInputStreamConfigurationTest {
 
 
     @Test
-    void executorIsNull_shouldThrowException() {
-        assertThatThrownBy(() ->
-                               AsyncRequestBodyFromInputStreamConfiguration.builder()
-                                                                           .inputStream(mock(InputStream.class))
-                                                                           .build())
-            .isInstanceOf(NullPointerException.class).hasMessageContaining("executor");
+    void executorIsNull_shouldUseDefault() {
+        AsyncRequestBodyFromInputStreamConfiguration config =
+            AsyncRequestBodyFromInputStreamConfiguration.builder()
+                                                        .inputStream(mock(InputStream.class))
+                                                        .build();
+        assertThat(config.executor()).isNull();
     }
 
     @ParameterizedTest

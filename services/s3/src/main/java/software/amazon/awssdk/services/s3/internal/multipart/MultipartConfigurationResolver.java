@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
+import software.amazon.awssdk.services.s3.multipart.ParallelConfiguration;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -26,9 +27,14 @@ import software.amazon.awssdk.utils.Validate;
 public final class MultipartConfigurationResolver {
 
     private static final long DEFAULT_MIN_PART_SIZE = 8L * 1024 * 1024;
+
+    // Using 50 as the default since maxConcurrency for http client is also 50
+    private static final int DEFAULT_MAX_IN_FLIGHT_PARTS = 50;
+
     private final long minimalPartSizeInBytes;
     private final long apiCallBufferSize;
     private final long thresholdInBytes;
+    private final int maxInFlightParts;
 
     public MultipartConfigurationResolver(MultipartConfiguration multipartConfiguration) {
         Validate.notNull(multipartConfiguration, "multipartConfiguration");
@@ -37,6 +43,13 @@ public final class MultipartConfigurationResolver {
         this.apiCallBufferSize = Validate.getOrDefault(multipartConfiguration.apiCallBufferSizeInBytes(),
                                                        () -> minimalPartSizeInBytes * 4);
         this.thresholdInBytes = Validate.getOrDefault(multipartConfiguration.thresholdInBytes(), () -> minimalPartSizeInBytes);
+        ParallelConfiguration parallelConfiguration = multipartConfiguration.parallelConfiguration();
+        if (parallelConfiguration == null) {
+            this.maxInFlightParts = DEFAULT_MAX_IN_FLIGHT_PARTS;
+        } else {
+            this.maxInFlightParts = Validate.getOrDefault(multipartConfiguration.parallelConfiguration().maxInFlightParts(),
+                                                          () -> DEFAULT_MAX_IN_FLIGHT_PARTS);
+        }
     }
 
     public long minimalPartSizeInBytes() {
@@ -49,5 +62,9 @@ public final class MultipartConfigurationResolver {
 
     public long apiCallBufferSize() {
         return apiCallBufferSize;
+    }
+
+    public int maxInFlightParts() {
+        return maxInFlightParts;
     }
 }

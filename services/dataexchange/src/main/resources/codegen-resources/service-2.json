@@ -243,7 +243,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about an asset.</p>"
+      "documentation":"<p>This operation returns information about an asset.</p>",
+      "readonly":true
     },
     "GetDataGrant":{
       "name":"GetDataGrant",
@@ -261,7 +262,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about a data grant.</p>"
+      "documentation":"<p>This operation returns information about a data grant.</p>",
+      "readonly":true
     },
     "GetDataSet":{
       "name":"GetDataSet",
@@ -278,7 +280,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about a data set.</p>"
+      "documentation":"<p>This operation returns information about a data set.</p>",
+      "readonly":true
     },
     "GetEventAction":{
       "name":"GetEventAction",
@@ -295,7 +298,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation retrieves information about an event action.</p>"
+      "documentation":"<p>This operation retrieves information about an event action.</p>",
+      "readonly":true
     },
     "GetJob":{
       "name":"GetJob",
@@ -312,7 +316,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about a job.</p>"
+      "documentation":"<p>This operation returns information about a job.</p>",
+      "readonly":true
     },
     "GetReceivedDataGrant":{
       "name":"GetReceivedDataGrant",
@@ -330,7 +335,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about a received data grant.</p>"
+      "documentation":"<p>This operation returns information about a received data grant.</p>",
+      "readonly":true
     },
     "GetRevision":{
       "name":"GetRevision",
@@ -347,7 +353,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about a revision.</p>"
+      "documentation":"<p>This operation returns information about a revision.</p>",
+      "readonly":true
     },
     "ListDataGrants":{
       "name":"ListDataGrants",
@@ -365,7 +372,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about all data grants.</p>"
+      "documentation":"<p>This operation returns information about all data grants.</p>",
+      "readonly":true
     },
     "ListDataSetRevisions":{
       "name":"ListDataSetRevisions",
@@ -382,7 +390,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation lists a data set's revisions sorted by CreatedAt in descending order.</p>"
+      "documentation":"<p>This operation lists a data set's revisions sorted by CreatedAt in descending order.</p>",
+      "readonly":true
     },
     "ListDataSets":{
       "name":"ListDataSets",
@@ -399,7 +408,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation lists your data sets. When listing by origin OWNED, results are sorted by CreatedAt in descending order. When listing by origin ENTITLED, there is no order.</p>"
+      "documentation":"<p>This operation lists your data sets. When listing by origin OWNED, results are sorted by CreatedAt in descending order. When listing by origin ENTITLED, there is no order.</p>",
+      "readonly":true
     },
     "ListEventActions":{
       "name":"ListEventActions",
@@ -416,7 +426,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation lists your event actions.</p>"
+      "documentation":"<p>This operation lists your event actions.</p>",
+      "readonly":true
     },
     "ListJobs":{
       "name":"ListJobs",
@@ -433,7 +444,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation lists your jobs sorted by CreatedAt in descending order.</p>"
+      "documentation":"<p>This operation lists your jobs sorted by CreatedAt in descending order.</p>",
+      "readonly":true
     },
     "ListReceivedDataGrants":{
       "name":"ListReceivedDataGrants",
@@ -451,7 +463,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation returns information about all received data grants.</p>"
+      "documentation":"<p>This operation returns information about all received data grants.</p>",
+      "readonly":true
     },
     "ListRevisionAssets":{
       "name":"ListRevisionAssets",
@@ -468,7 +481,8 @@
         {"shape":"ValidationException"},
         {"shape":"InternalServerException"}
       ],
-      "documentation":"<p>This operation lists a revision's assets sorted alphabetically in descending order.</p>"
+      "documentation":"<p>This operation lists a revision's assets sorted alphabetically in descending order.</p>",
+      "readonly":true
     },
     "ListTagsForResource":{
       "name":"ListTagsForResource",
@@ -479,7 +493,8 @@
       },
       "input":{"shape":"ListTagsForResourceRequest"},
       "output":{"shape":"ListTagsForResourceResponse"},
-      "documentation":"<p>This operation lists the tags on the resource.</p>"
+      "documentation":"<p>This operation lists the tags on the resource.</p>",
+      "readonly":true
     },
     "RevokeRevision":{
       "name":"RevokeRevision",
@@ -815,6 +830,16 @@
       "documentation":"<p>The API Gateway API that is the asset.</p>"
     },
     "Arn":{"type":"string"},
+    "AssetConfiguration":{
+      "type":"structure",
+      "members":{
+        "Tags":{
+          "shape":"ListOfTag",
+          "documentation":"<p>The tags to be applied to assets created by the job.</p>"
+        }
+      },
+      "documentation":"<p>The configuration for the asset, which can include tags.</p>"
+    },
     "AssetDestinationEntry":{
       "type":"structure",
       "required":[
@@ -990,7 +1015,7 @@
       "required":["JobId"],
       "members":{
         "JobId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a job.</p>",
           "location":"uri",
           "locationName":"JobId"
@@ -1245,6 +1270,10 @@
         "Event":{
           "shape":"Event",
           "documentation":"<p>What occurs to start an action.</p>"
+        },
+        "Tags":{
+          "shape":"MapOf__string",
+          "documentation":"<p>Key-value pairs that you can associate with the event action.</p>"
         }
       }
     },
@@ -1271,6 +1300,10 @@
           "shape":"Id",
           "documentation":"<p>The unique identifier for the event action.</p>"
         },
+        "Tags":{
+          "shape":"MapOf__string",
+          "documentation":"<p>The tags for the event action.</p>"
+        },
         "UpdatedAt":{
           "shape":"Timestamp",
           "documentation":"<p>The date and time that the event action was last updated, in ISO 8601 format.</p>"
@@ -1284,6 +1317,10 @@
         "Type"
       ],
       "members":{
+        "AssetConfiguration":{
+          "shape":"AssetConfiguration",
+          "documentation":"<p>The configuration for the asset, including tags to be applied to assets created by the job.</p>"
+        },
         "Details":{
           "shape":"RequestDetails",
           "documentation":"<p>The details for the CreateJob request.</p>"
@@ -1300,6 +1337,10 @@
         "Arn":{
           "shape":"Arn",
           "documentation":"<p>The ARN for the job.</p>"
+        },
+        "AssetConfiguration":{
+          "shape":"AssetConfiguration",
+          "documentation":"<p>The configuration for the asset, including tags applied to assets created by the job.</p>"
         },
         "CreatedAt":{
           "shape":"Timestamp",
@@ -1340,7 +1381,7 @@
           "documentation":"<p>An optional comment about the revision.</p>"
         },
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -1649,19 +1690,19 @@
       ],
       "members":{
         "AssetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for an asset.</p>",
           "location":"uri",
           "locationName":"AssetId"
         },
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -1685,7 +1726,7 @@
       "required":["DataSetId"],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -1712,13 +1753,13 @@
       ],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -1986,19 +2027,19 @@
       ],
       "members":{
         "AssetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for an asset.</p>",
           "location":"uri",
           "locationName":"AssetId"
         },
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -2043,6 +2084,10 @@
         "SourceId":{
           "shape":"Id",
           "documentation":"<p>The asset ID of the owned asset corresponding to the entitled asset being viewed. This parameter is returned when an asset owner is viewing the entitled copy of its owned asset.</p>"
+        },
+        "Tags":{
+          "shape":"MapOf__string",
+          "documentation":"<p>The tags for the asset.</p>"
         },
         "UpdatedAt":{
           "shape":"Timestamp",
@@ -2145,7 +2190,7 @@
       "required":["DataSetId"],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -2236,6 +2281,10 @@
           "shape":"Id",
           "documentation":"<p>The unique identifier for the event action.</p>"
         },
+        "Tags":{
+          "shape":"MapOf__string",
+          "documentation":"<p>The tags for the event action.</p>"
+        },
         "UpdatedAt":{
           "shape":"Timestamp",
           "documentation":"<p>The date and time that the event action was last updated, in ISO 8601 format.</p>"
@@ -2247,7 +2296,7 @@
       "required":["JobId"],
       "members":{
         "JobId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a job.</p>",
           "location":"uri",
           "locationName":"JobId"
@@ -2260,6 +2309,10 @@
         "Arn":{
           "shape":"Arn",
           "documentation":"<p>The ARN for the job.</p>"
+        },
+        "AssetConfiguration":{
+          "shape":"AssetConfiguration",
+          "documentation":"<p>The configuration for the asset, including tags applied to assets created by the job.</p>"
         },
         "CreatedAt":{
           "shape":"Timestamp",
@@ -2379,13 +2432,13 @@
       ],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -2452,7 +2505,10 @@
         "NONE"
       ]
     },
-    "Id":{"type":"string"},
+    "Id":{
+      "type":"string",
+      "pattern":"[a-zA-Z0-9]{30,40}"
+    },
     "ImportAssetFromApiGatewayApiRequestDetails":{
       "type":"structure",
       "required":[
@@ -2833,6 +2889,10 @@
           "shape":"Arn",
           "documentation":"<p>The ARN for the job.</p>"
         },
+        "AssetConfiguration":{
+          "shape":"AssetConfiguration",
+          "documentation":"<p>The configuration for the asset, including tags applied to assets created by the job.</p>"
+        },
         "CreatedAt":{
           "shape":"Timestamp",
           "documentation":"<p>The date and time that the job was created, in ISO 8601 format.</p>"
@@ -3131,7 +3191,7 @@
       "required":["DataSetId"],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -3367,6 +3427,12 @@
       "type":"list",
       "member":{"shape":"TableTagPolicyLFPermission"}
     },
+    "ListOfTag":{
+      "type":"list",
+      "member":{"shape":"Tag"},
+      "max":50,
+      "min":0
+    },
     "ListOf__string":{
       "type":"list",
       "member":{"shape":"__string"}
@@ -3416,7 +3482,7 @@
       ],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -3434,7 +3500,7 @@
           "locationName":"nextToken"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -3879,13 +3945,13 @@
       ],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -4184,7 +4250,7 @@
           "documentation":"<p>Free-form text field for providers to add information about their notifications.</p>"
         },
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>Affected data set of the notification.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -4201,8 +4267,7 @@
     },
     "SendDataSetNotificationResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "SenderPrincipal":{
       "type":"string",
@@ -4244,7 +4309,7 @@
       "required":["JobId"],
       "members":{
         "JobId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a job.</p>",
           "location":"uri",
           "locationName":"JobId"
@@ -4253,8 +4318,7 @@
     },
     "StartJobResponse":{
       "type":"structure",
-      "members":{
-      }
+      "members":{}
     },
     "State":{
       "type":"string",
@@ -4303,6 +4367,24 @@
         "DESCRIBE",
         "SELECT"
       ]
+    },
+    "Tag":{
+      "type":"structure",
+      "required":[
+        "Key",
+        "Value"
+      ],
+      "members":{
+        "Key":{
+          "shape":"__string",
+          "documentation":"<p>The key of the tag.</p>"
+        },
+        "Value":{
+          "shape":"__string",
+          "documentation":"<p>The value of the tag.</p>"
+        }
+      },
+      "documentation":"<p>A tag consisting of a key-value pair that can be applied to a resource.</p>"
     },
     "TagResourceRequest":{
       "type":"structure",
@@ -4389,13 +4471,13 @@
       ],
       "members":{
         "AssetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for an asset.</p>",
           "location":"uri",
           "locationName":"AssetId"
         },
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -4405,7 +4487,7 @@
           "documentation":"<p>The name of the asset. When importing from Amazon S3, the Amazon S3 object key is used as the asset name. When exporting to Amazon S3, the asset name is used as default target Amazon S3 object key. When importing from Amazon API Gateway API, the API name is used as the asset name. When importing from Amazon Redshift, the datashare name is used as the asset name. When importing from AWS Lake Formation, the static values of \"Database(s) included in the LF-tag policy\" or \"Table(s) included in LF-tag policy\" are used as the name.</p>"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"
@@ -4462,7 +4544,7 @@
       "required":["DataSetId"],
       "members":{
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -4579,7 +4661,7 @@
           "documentation":"<p>An optional comment about the revision.</p>"
         },
         "DataSetId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a data set.</p>",
           "location":"uri",
           "locationName":"DataSetId"
@@ -4589,7 +4671,7 @@
           "documentation":"<p>Finalizing a revision tells AWS Data Exchange that your changes to the assets in the revision are complete. After it's in this read-only state, you can publish the revision to your products.</p>"
         },
         "RevisionId":{
-          "shape":"__string",
+          "shape":"Id",
           "documentation":"<p>The unique identifier for a revision.</p>",
           "location":"uri",
           "locationName":"RevisionId"

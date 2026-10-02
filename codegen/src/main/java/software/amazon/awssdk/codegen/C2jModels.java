@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen;
 
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.EndpointBddModel;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.awssdk.codegen.model.service.Paginators;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
@@ -32,6 +33,7 @@ public class C2jModels {
     private final Waiters waitersModel;
     private final EndpointRuleSetModel endpointRuleSetModel;
     private final EndpointTestSuiteModel endpointTestSuiteModel;
+    private final EndpointBddModel endpointBddModel;
     private final CustomizationConfig customizationConfig;
     private final Paginators paginatorsModel;
 
@@ -39,12 +41,14 @@ public class C2jModels {
                       Waiters waitersModel,
                       EndpointRuleSetModel endpointRuleSetModel,
                       EndpointTestSuiteModel endpointTestSuiteModel,
+                      EndpointBddModel endpointBddModel,
                       CustomizationConfig customizationConfig,
                       Paginators paginatorsModel) {
         this.serviceModel = serviceModel;
         this.waitersModel = waitersModel;
         this.endpointRuleSetModel = endpointRuleSetModel;
         this.endpointTestSuiteModel = endpointTestSuiteModel;
+        this.endpointBddModel = endpointBddModel;
         this.customizationConfig = customizationConfig;
         this.paginatorsModel = paginatorsModel;
     }
@@ -77,12 +81,17 @@ public class C2jModels {
         return endpointTestSuiteModel;
     }
 
+    public EndpointBddModel endpointBddModel() {
+        return endpointBddModel;
+    }
+
     public static class Builder implements SdkBuilder<Builder, C2jModels> {
 
         private ServiceModel serviceModel;
         private Waiters waitersModel;
         private EndpointRuleSetModel endpointRuleSetModel;
         private EndpointTestSuiteModel endpointTestSuiteModel;
+        private EndpointBddModel endpointBddModel;
         private CustomizationConfig customizationConfig;
         private Paginators paginatorsModel;
 
@@ -119,12 +128,17 @@ public class C2jModels {
             return this;
         }
 
+        public Builder endpointBddModel(EndpointBddModel endpointBddModel) {
+            this.endpointBddModel = endpointBddModel;
+            return this;
+        }
+
         @Override
         public C2jModels build() {
             Waiters waiters = waitersModel != null ? waitersModel : Waiters.none();
             Paginators paginators = paginatorsModel != null ? paginatorsModel : Paginators.none();
-            return new C2jModels(serviceModel, waiters, endpointRuleSetModel, endpointTestSuiteModel, customizationConfig,
-                                 paginators);
+            return new C2jModels(serviceModel, waiters, endpointRuleSetModel, endpointTestSuiteModel, endpointBddModel,
+                                 customizationConfig, paginators);
         }
     }
 }

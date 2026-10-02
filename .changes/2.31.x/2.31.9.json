@@ -1,0 +1,54 @@
+{
+    "version": "2.31.9",
+    "date": "2025-03-26",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS ARC - Zonal Shift",
+            "contributor": "",
+            "description": "Add new shiftType field for ARC zonal shifts."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Direct Connect",
+            "contributor": "",
+            "description": "With this release, AWS Direct Connect allows you to tag your Direct Connect gateways. Tags are metadata that you can create and use to manage your Direct Connect gateways. For more information about tagging, see AWS Tagging Strategies."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release adds a configurable Quality Level setting for the top rendition of Auto ABR jobs"
+        },
+        {
+            "type": "feature",
+            "category": "AWS MediaTailor",
+            "contributor": "",
+            "description": "Add support for log filtering which allow customers to filter out selected event types from logs."
+        },
+        {
+            "type": "feature",
+            "category": "AWS WAFV2",
+            "contributor": "",
+            "description": "This release adds the ability to associate an AWS WAF v2 web ACL with an AWS Amplify App."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Added support for the new voice - Jihye (ko-KR). Jihye is available as a Neural voice only."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Relational Database Service",
+            "contributor": "",
+            "description": "Add note about the Availability Zone where RDS restores the DB cluster for the RestoreDBClusterToPointInTime operation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

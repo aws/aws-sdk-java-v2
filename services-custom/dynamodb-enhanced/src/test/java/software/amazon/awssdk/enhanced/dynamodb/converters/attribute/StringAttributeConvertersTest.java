@@ -56,6 +56,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.Url
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.UuidAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneIdAttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.internal.converter.attribute.ZoneOffsetAttributeConverter;
+import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.utils.ImmutableMap;
 
 public class StringAttributeConvertersTest {
@@ -253,5 +254,17 @@ public class StringAttributeConvertersTest {
     public void stringSetAttributeConverter_ReturnsSSType() {
         SetAttributeConverter<Set<String>> converter = SetAttributeConverter.setConverter(StringAttributeConverter.create());
         assertThat(converter.attributeValueType()).isEqualTo(AttributeValueType.SS);
+    }
+
+    @Test
+    public void stringAttributeConverter_convertsMapWithNullValue() {
+        StringAttributeConverter converter = StringAttributeConverter.create();
+
+        String result = transformTo(converter, fromMap(ImmutableMap.of(
+            "stringField", AttributeValue.builder().s("value").build(),
+            "nullField", AttributeValue.builder().nul(true).build())));
+
+        assertThat(result).contains("stringField=value");
+        assertThat(result).contains("nullField=null");
     }
 }

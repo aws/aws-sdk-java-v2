@@ -65,7 +65,7 @@ public class ClientReflector implements SdkAutoCloseable {
     public Object invokeMethod(TestCase testCase, Object... params) throws Exception {
         String operationName = testCase.getWhen().getOperationName();
         Method operationMethod = getOperationMethod(operationName, params);
-        return operationMethod.invoke(client, params);
+        return operationMethod.invoke(getRequestClient(testCase), params);
     }
 
     /**
@@ -80,7 +80,15 @@ public class ClientReflector implements SdkAutoCloseable {
                                         ResponseTransformer<?, ?> responseHandler) throws Exception {
         String operationName = testCase.getWhen().getOperationName();
         Method operationMethod = getOperationMethod(operationName, requestObject.getClass(), ResponseTransformer.class);
-        return operationMethod.invoke(client, requestObject, responseHandler);
+        return operationMethod.invoke(getRequestClient(testCase), requestObject, responseHandler);
+    }
+
+    private Object getRequestClient(TestCase testCase) {
+        Object requestClient = this.client;
+        if (testCase.getGiven().getHost() != null) {
+            requestClient = createClientWithEndpoint("https://" + testCase.getGiven().getHost());
+        }
+        return requestClient;
     }
 
     @Override
@@ -94,13 +102,20 @@ public class ClientReflector implements SdkAutoCloseable {
      * Create the sync client to use in the tests.
      */
     private Object createClient() {
+        return createClientWithEndpoint(getEndpoint());
+    }
+
+    /**
+     * Create the sync client to use in the tests.
+     */
+    private Object createClientWithEndpoint(String endpoint) {
         try {
             // Reflectively create a builder, configure it, and then create the client.
             Object untypedBuilder = interfaceClass.getMethod("builder").invoke(null);
             AwsClientBuilder<?, ?> builder = (AwsClientBuilder<?, ?>) untypedBuilder;
             return builder.credentialsProvider(getMockCredentials())
                           .region(Region.US_EAST_1)
-                          .endpointOverride(URI.create(getEndpoint()))
+                          .endpointOverride(URI.create(endpoint))
                           .build();
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e) {
             throw new RuntimeException(e);

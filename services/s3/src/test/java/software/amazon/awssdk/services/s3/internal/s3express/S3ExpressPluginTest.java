@@ -27,7 +27,7 @@ import software.amazon.awssdk.identity.spi.IdentityProviders;
 import software.amazon.awssdk.services.s3.S3ServiceClientConfiguration;
 import software.amazon.awssdk.services.s3.auth.scheme.S3AuthSchemeProvider;
 import software.amazon.awssdk.services.s3.auth.scheme.internal.DefaultS3AuthSchemeProvider;
-import software.amazon.awssdk.services.s3.auth.scheme.internal.ModeledS3AuthSchemeProvider;
+import software.amazon.awssdk.services.s3.auth.scheme.internal.FallbackS3AuthSchemeProvider;
 import software.amazon.awssdk.services.s3.internal.S3ServiceClientConfigurationBuilder;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressAuthScheme;
 
@@ -68,12 +68,12 @@ class S3ExpressPluginTest {
     @Test
     void s3Config_withExistingModeledS3AuthSchemeProvider_wrapsExistingProvider() {
         S3ServiceClientConfiguration.Builder s3Config = new S3ServiceClientConfigurationBuilder()
-            .authSchemeProvider(ModeledS3AuthSchemeProvider.create());
-        assertThat(s3Config.authSchemeProvider()).isInstanceOf(ModeledS3AuthSchemeProvider.class);
+            .authSchemeProvider(FallbackS3AuthSchemeProvider.create());
+        assertThat(s3Config.authSchemeProvider()).isInstanceOf(FallbackS3AuthSchemeProvider.class);
 
         S3_EXPRESS_PLUGIN.configureClient(s3Config);
         assertThat(s3Config.authSchemeProvider()).isInstanceOf(S3ExpressAuthSchemeProvider.class);
-        assertThat(getDelegateProvider(s3Config)).isInstanceOf(ModeledS3AuthSchemeProvider.class);
+        assertThat(getDelegateProvider(s3Config)).isInstanceOf(FallbackS3AuthSchemeProvider.class);
     }
 
     private S3AuthSchemeProvider getDelegateProvider(S3ServiceClientConfiguration.Builder s3Config) {

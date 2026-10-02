@@ -1,14 +1,10 @@
 package software.amazon.awssdk.services.jsonprotocoltests.paginators;
 
-import java.util.Collections;
-import java.util.Iterator;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.Generated;
 import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.pagination.async.AsyncPageFetcher;
-import software.amazon.awssdk.core.pagination.async.PaginatedItemsPublisher;
 import software.amazon.awssdk.core.pagination.async.ResponsesSubscription;
 import software.amazon.awssdk.core.util.PaginatorUtils;
 import software.amazon.awssdk.services.jsonprotocoltests.JsonProtocolTestsAsyncClient;
@@ -85,7 +81,7 @@ public class SameTokenPaginationApiPublisher implements SdkPublisher<SameTokenPa
     }
 
     private SameTokenPaginationApiPublisher(JsonProtocolTestsAsyncClient client, SameTokenPaginationApiRequest firstRequest,
-            boolean isLastPage) {
+                                            boolean isLastPage) {
         this.client = client;
         this.firstRequest = firstRequest;
         this.isLastPage = isLastPage;
@@ -94,7 +90,7 @@ public class SameTokenPaginationApiPublisher implements SdkPublisher<SameTokenPa
     @Override
     public void subscribe(Subscriber<? super SameTokenPaginationApiResponse> subscriber) {
         subscriber.onSubscribe(ResponsesSubscription.builder().subscriber(subscriber)
-                .nextPageFetcher(new SameTokenPaginationApiResponseFetcher()).build());
+                                                    .nextPageFetcher(new SameTokenPaginationApiResponseFetcher()).build());
     }
 
     /**
@@ -103,14 +99,7 @@ public class SameTokenPaginationApiPublisher implements SdkPublisher<SameTokenPa
      * and then applies that consumer to each response returned by the service.
      */
     public final SdkPublisher<SimpleStruct> items() {
-        Function<SameTokenPaginationApiResponse, Iterator<SimpleStruct>> getIterator = response -> {
-            if (response != null && response.items() != null) {
-                return response.items().iterator();
-            }
-            return Collections.emptyIterator();
-        };
-        return PaginatedItemsPublisher.builder().nextPageFetcher(new SameTokenPaginationApiResponseFetcher())
-                .iteratorFunction(getIterator).isLastPage(isLastPage).build();
+        return this.flatMapIterable(response -> response.items());
     }
 
     private class SameTokenPaginationApiResponseFetcher implements AsyncPageFetcher<SameTokenPaginationApiResponse> {

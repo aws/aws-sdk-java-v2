@@ -75,12 +75,16 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.mockito.stubbing.Answer;
+import software.amazon.awssdk.http.EmptyPublisher;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.HttpTestUtils;
+import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.SdkHttpConfigurationOption;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
@@ -93,6 +97,7 @@ import software.amazon.awssdk.http.nio.netty.internal.NettyConfiguration;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPool;
 import software.amazon.awssdk.http.nio.netty.internal.SdkChannelPoolMap;
 import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.AttributeMap;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -734,6 +739,31 @@ public class NettyNioAsyncHttpClientWireMockTest {
         assertThat(metrics.metricValues(HttpMetric.PENDING_CONCURRENCY_ACQUIRES)).containsExactly(0);
         assertThat(metrics.metricValues(HttpMetric.LEASED_CONCURRENCY)).containsExactly(0);
         assertThat(metrics.metricValues(HttpMetric.AVAILABLE_CONCURRENCY).get(0)).isBetween(0, 1);
+    }
+
+    @Test
+    public void metricReportingThrowException_shouldNotFailRequest() throws Exception {
+        try (SdkAsyncHttpClient client = NettyNioAsyncHttpClient.builder()
+                                                                .protocol(Protocol.HTTP2)
+                                                                .maxConcurrency(10)
+                                                                .http2Configuration(c -> c.maxStreams(3L)
+                                                                                          .initialWindowSize(65535 * 3))
+                                                                .build()) {
+            MetricCollector metricCollector = Mockito.mock(MetricCollector.class);
+            Mockito.doThrow(new RuntimeException()).when(metricCollector).reportMetric(ArgumentMatchers.any(), ArgumentMatchers.any());
+
+            String body = randomAlphabetic(10);
+            URI uri = URI.create("http://localhost:" + mockServer.port());
+            stubFor(any(urlPathEqualTo("/")).willReturn(aResponse().withBody(body)));
+            SdkHttpRequest request = createRequest(uri);
+            AsyncExecuteRequest asyncRequest = AsyncExecuteRequest.builder()
+                                                           .request(request)
+                                                           .requestContentPublisher(new EmptyPublisher())
+                                                           .responseHandler(new RecordingResponseHandler())
+                .metricCollector(metricCollector)
+                                                           .build();
+            Assertions.assertDoesNotThrow(() -> client.execute(asyncRequest).join());
+        }
     }
 
     private void verifyChannelRelease(Channel channel) throws InterruptedException {

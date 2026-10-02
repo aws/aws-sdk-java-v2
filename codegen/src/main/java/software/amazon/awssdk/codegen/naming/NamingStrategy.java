@@ -93,6 +93,11 @@ public interface NamingStrategy {
      * Retrieve the batchManager package name that should be used based on the service name.
      */
     String getBatchManagerPackageName(String serviceName);
+    
+    /**
+     * Retrieve the presignedUrl package name that should be used based on the service name.
+     */
+    String getPresignedUrlPackageName(String serviceName);
 
     /**
      * Retrieve the smote test package name that should be used based on the service name.
@@ -123,6 +128,13 @@ public interface NamingStrategy {
      * @return Appropriate name to use for a Java variable or field.
      */
     String getVariableName(String name);
+
+    /**
+     * @param name Some contextual name to derive variable name from (i.e. member name, java class name, etc).
+     * @param parentShape The shape containing the member, used to check for shape-specific reserved names.
+     * @return Appropriate name to use for a Java variable or field.
+     */
+    String getVariableName(String name, Shape parentShape);
 
     /**
      * @param enumValue Enum value as defined in the service model used to derive the java name.
@@ -199,6 +211,21 @@ public interface NamingStrategy {
      * @return Name of an existence check method.
      */
     String getExistenceCheckMethodName(String memberName, Shape parentShape);
+
+    /**
+     * Retrieve the service's signing name that should be used based on the model.
+     */
+    String getSigningName();
+
+    /**
+     * Retrieve the service's signing name that should be used for environment variables.
+     */
+    String getSigningNameForEnvironmentVariables();
+
+    /**
+     * Retrieve the service's signing name that should be used for system properties.
+     */
+    String getSigningNameForSystemProperties();
 
     /**
      * Verify the customer-visible naming in the provided intermediate model will compile and is idiomatic to Java.

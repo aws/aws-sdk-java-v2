@@ -48,18 +48,28 @@ public final class UploadObjectHelper {
                                                                    SdkPojoConversionUtils::toPutObjectResponse);
         this.apiCallBufferSize = resolver.apiCallBufferSize();
         this.multipartUploadThresholdInBytes = resolver.thresholdInBytes();
+        int maxInFlightParts = resolver.maxInFlightParts();
         this.uploadWithKnownContentLength = new UploadWithKnownContentLengthHelper(s3AsyncClient,
                                                                                    partSizeInBytes,
                                                                                    multipartUploadThresholdInBytes,
-                                                                                   apiCallBufferSize);
+                                                                                   apiCallBufferSize,
+                                                                                   maxInFlightParts);
         this.uploadWithUnknownContentLength = new UploadWithUnknownContentLengthHelper(s3AsyncClient,
                                                                                        partSizeInBytes,
                                                                                        multipartUploadThresholdInBytes,
-                                                                                       apiCallBufferSize);
+                                                                                       apiCallBufferSize,
+                                                                                       maxInFlightParts);
     }
 
     public CompletableFuture<PutObjectResponse> uploadObject(PutObjectRequest putObjectRequest,
                                                              AsyncRequestBody asyncRequestBody) {
+
+        // Propagate content-type from AsyncRequestBody if not explicitly set on the request
+        if (putObjectRequest.contentType() == null && asyncRequestBody.contentType() != null) {
+            putObjectRequest = putObjectRequest.toBuilder()
+                                               .contentType(asyncRequestBody.contentType())
+                                               .build();
+        }
         Long contentLength = asyncRequestBody.contentLength().orElseGet(putObjectRequest::contentLength);
 
         if (contentLength == null) {

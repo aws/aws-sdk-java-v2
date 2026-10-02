@@ -4,8 +4,7 @@
     "apiVersion":"2023-03-10",
     "auth":["aws.auth#sigv4"],
     "endpointPrefix":"smithyrpcv2protocol",
-    "protocol":"smithy-rpc-v2-cbor",
-    "protocols":["smithy-rpc-v2-cbor"],
+    "protocols":["smithy-rpc-v2-cbor", "json", "query"],
     "serviceFullName":"RpcV2 Protocol Service",
     "serviceId":"SmithyRpcV2Protocol",
     "signatureVersion":"v4",
@@ -16,35 +15,19 @@
   "operations":{
     "EmptyInputOutput":{
       "name":"EmptyInputOutput",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"EmptyStructure"},
       "output":{"shape":"EmptyStructure"}
     },
     "Float16":{
       "name":"Float16",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "output":{"shape":"Float16Output"}
     },
     "FractionalSeconds":{
       "name":"FractionalSeconds",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "output":{"shape":"FractionalSecondsOutput"}
     },
     "GreetingWithErrors":{
       "name":"GreetingWithErrors",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "output":{"shape":"GreetingWithErrorsOutput"},
       "errors":[
         {"shape":"ComplexError"},
@@ -53,18 +36,10 @@
       "idempotent":true
     },
     "NoInputOutput":{
-      "name":"NoInputOutput",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      }
+      "name":"NoInputOutput"
     },
     "OperationWithDefaults":{
       "name":"OperationWithDefaults",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"OperationWithDefaultsInput"},
       "output":{"shape":"OperationWithDefaultsOutput"},
       "errors":[
@@ -73,28 +48,16 @@
     },
     "OptionalInputOutput":{
       "name":"OptionalInputOutput",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"SimpleStructure"},
       "output":{"shape":"SimpleStructure"}
     },
     "RecursiveShapes":{
       "name":"RecursiveShapes",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"RecursiveShapesInputOutput"},
       "output":{"shape":"RecursiveShapesInputOutput"}
     },
     "RpcV2CborDenseMaps":{
       "name":"RpcV2CborDenseMaps",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"RpcV2CborDenseMapsInputOutput"},
       "output":{"shape":"RpcV2CborDenseMapsInputOutput"},
       "errors":[
@@ -103,10 +66,6 @@
     },
     "RpcV2CborLists":{
       "name":"RpcV2CborLists",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"RpcV2CborListInputOutput"},
       "output":{"shape":"RpcV2CborListInputOutput"},
       "errors":[
@@ -116,10 +75,6 @@
     },
     "RpcV2CborSparseMaps":{
       "name":"RpcV2CborSparseMaps",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"RpcV2CborSparseMapsInputOutput"},
       "output":{"shape":"RpcV2CborSparseMapsInputOutput"},
       "errors":[
@@ -128,19 +83,11 @@
     },
     "SimpleScalarProperties":{
       "name":"SimpleScalarProperties",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"SimpleScalarStructure"},
       "output":{"shape":"SimpleScalarStructure"}
     },
     "SparseNullsOperation":{
       "name":"SparseNullsOperation",
-      "http":{
-        "method":"POST",
-        "requestUri":"/"
-      },
       "input":{"shape":"SparseNullsOperationInputOutput"},
       "output":{"shape":"SparseNullsOperationInputOutput"}
     }

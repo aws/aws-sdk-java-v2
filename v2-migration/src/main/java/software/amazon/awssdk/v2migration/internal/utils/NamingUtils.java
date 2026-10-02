@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.v2migration.internal.utils;
 
+import org.openrewrite.Cursor;
+import org.openrewrite.java.JavaTemplate;
+import org.openrewrite.java.tree.J;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.awssdk.utils.internal.CodegenNamingUtils;
@@ -59,6 +62,11 @@ public final class NamingUtils {
     }
 
     public static boolean isGetter(String name) {
-        return !StringUtils.isBlank(name) && name.startsWith("get") && !name.equals("get");
+        return !StringUtils.isBlank(name) && name.startsWith("get") && !"get".equals(name);
+    }
+
+    public static J.MethodInvocation transformMethodName(J.MethodInvocation method, String newMethodName, Cursor cursor) {
+        return JavaTemplate.builder("#{any()}." + newMethodName).build()
+                           .apply(cursor, method.getCoordinates().replace(), method.getSelect());
     }
 }

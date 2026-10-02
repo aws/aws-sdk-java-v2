@@ -1,0 +1,66 @@
+{
+    "version": "2.32.3",
+    "date": "2025-07-17",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix generation of credentialType(bearer) for non-priority bearer operations"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms ML",
+            "contributor": "",
+            "description": "This release introduces Parquet result format support for ML Input Channel models in AWS Clean Rooms ML."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This release expands the range of supported audio outputs to include xHE, 192khz FLAC and the deprecation of dual mono for AC3."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Step Functions",
+            "contributor": "",
+            "description": "Align input with style guidelines."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon CloudFront",
+            "contributor": "",
+            "description": "Doc only update for CloudFront that fixes some customer-reported issues"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "AWS Free Tier Version2 Support"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Keyspaces Streams",
+            "contributor": "",
+            "description": "Doc only update for the Amazon Keyspaces Streams API."
+        },
+        {
+            "type": "feature",
+            "category": "MailManager",
+            "contributor": "",
+            "description": "Allow underscores in the local part of the input of the \"Email recipients rewrite\" action in rule sets."
+        },
+        {
+            "type": "feature",
+            "category": "Synthetics",
+            "contributor": "",
+            "description": "This feature allows AWS Synthetics customers to provide code dependencies using lambda layer while creating a canary"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

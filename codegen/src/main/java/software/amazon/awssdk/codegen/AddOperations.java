@@ -37,6 +37,7 @@ import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.model.service.Shape;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 
 /**
  * Constructs the operation model for every operation defined by the service.
@@ -164,7 +165,7 @@ final class AddOperations {
             OperationModel operationModel = new OperationModel();
 
             operationModel.setOperationName(operationName);
-            operationModel.setServiceProtocol(serviceModel.getMetadata().getProtocol());
+            operationModel.setServiceProtocol(ProtocolUtils.resolveProtocol(serviceModel.getMetadata()));
             operationModel.setDeprecated(op.isDeprecated());
             operationModel.setDeprecatedMessage(op.getDeprecatedMessage());
             operationModel.setDocumentation(op.getDocumentation());
@@ -277,6 +278,6 @@ final class AddOperations {
     }
 
     private boolean isPaginated(Operation op) {
-        return paginators.containsKey(op.getName()) && paginators.get(op.getName()).isValid();
+        return paginators.containsKey(op.getName()) && paginators.get(op.getName()).hasAllRequiredFields();
     }
 }

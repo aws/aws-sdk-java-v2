@@ -55,6 +55,13 @@ public final class ChecksumConstant {
      */
     public static final int S3_MD5_CHECKSUM_LENGTH = 16;
 
+    public static final String CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE =
+        "Data read has a different checksum than expected. Was 0x%s, "
+        + "but expected 0x%s. Common causes: (1) The data was corrupted during transfer between S3 and the client. "
+        + "(2) A custom ExecutionInterceptor modified the HTTP response content before checksum validation. "
+        + "Note: The response data may have already been delivered to the configured response transformer "
+        + "and should not be considered reliable.";
+
     private ChecksumConstant() {
     }
 }

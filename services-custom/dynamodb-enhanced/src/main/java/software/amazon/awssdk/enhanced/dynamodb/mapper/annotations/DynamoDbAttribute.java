@@ -28,8 +28,7 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  *
  * <p>
  * Example using {@link DynamoDbAttribute}:
- * <pre>
- * {@code
+ * {@snippet :
  * @DynamoDbBean
  * public class Bean {
  *      private String internalKey;
@@ -40,11 +39,10 @@ import software.amazon.awssdk.annotations.SdkPublicApi;
  *      }
  *
  *      public void setInternalKey(String internalKey) {
- *          return this.internalKey = internalKey;}
+ *          this.internalKey = internalKey;
  *      }
  * }
  * }
- * </pre>
  */
 @Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)

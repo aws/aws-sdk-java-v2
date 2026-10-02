@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.retries;
 
+import java.time.Duration;
 import java.util.function.Predicate;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
@@ -64,15 +65,35 @@ public interface AdaptiveRetryStrategy extends RetryStrategy {
      * </pre>
      */
     static AdaptiveRetryStrategy.Builder builder() {
+        return builder(false);
+    }
+
+    /**
+     * Create a new {@link AdaptiveRetryStrategy.Builder} with v2.0 or v2.1 retry constants.
+     *
+     * @param retries2026Enabled when {@code true}, uses v2.1 constants (50ms base delay, differentiated token costs); when
+     *                           {@code false}, uses v2.0 constants (100ms base delay, uniform token costs)
+     */
+    static AdaptiveRetryStrategy.Builder builder(Boolean retries2026Enabled) {
+        boolean retries21 = Boolean.TRUE.equals(retries2026Enabled);
+
+        Duration baseDelay = retries21 ? DefaultRetryStrategy.Standard.BASE_DELAY_V21
+                                       : DefaultRetryStrategy.Standard.BASE_DELAY_V20;
+        int exceptionCost = retries21 ? DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V21
+                                      : DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST_V20;
+        // v2.0 does not treat throttling exceptions differently from others
+        int throttlingCost = retries21 ? DefaultRetryStrategy.Standard.THROTTLING_EXCEPTION_TOKEN_COST_V21
+                                       : exceptionCost;
         return DefaultAdaptiveRetryStrategy
             .builder()
             .maxAttempts(DefaultRetryStrategy.Adaptive.MAX_ATTEMPTS)
             .tokenBucketStore(TokenBucketStore.builder()
                                               .tokenBucketMaxCapacity(DefaultRetryStrategy.Standard.TOKEN_BUCKET_SIZE)
                                               .build())
-            .tokenBucketExceptionCost(DefaultRetryStrategy.Standard.DEFAULT_EXCEPTION_TOKEN_COST)
+            .tokenBucketExceptionCost(exceptionCost)
+            .throttlingTokenBucketExceptionCost(throttlingCost)
             .rateLimiterTokenBucketStore(RateLimiterTokenBucketStore.builder().build())
-            .backoffStrategy(BackoffStrategy.exponentialDelay(DefaultRetryStrategy.Standard.BASE_DELAY,
+            .backoffStrategy(BackoffStrategy.exponentialDelay(baseDelay,
                                                               DefaultRetryStrategy.Standard.MAX_BACKOFF))
             .throttlingBackoffStrategy(BackoffStrategy.exponentialDelay(
                 DefaultRetryStrategy.Standard.THROTTLED_BASE_DELAY,

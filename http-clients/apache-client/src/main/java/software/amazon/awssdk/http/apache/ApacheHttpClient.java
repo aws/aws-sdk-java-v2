@@ -92,15 +92,22 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An implementation of {@link SdkHttpClient} that uses Apache HTTP client to communicate with the service. This is the most
- * powerful synchronous client that adds an extra dependency and additional startup latency in exchange for more functionality,
- * like support for HTTP proxies.
+ *
+ * An implementation of {@link SdkHttpClient} that uses Apache HttpClient 4.x to communicate with the service. This is a
+ * full-featured synchronous client that adds an extra dependency and higher startup latency compared to
+ * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration-url.html">UrlConnectionHttpClient</a>
+ * in exchange for more functionality, like support for HTTP proxies.
  *
  * <p>See software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient for an alternative implementation.</p>
  *
  * <p>This can be created via {@link #builder()}</p>
+ *
+ * @deprecated Apache 4.x is in maintenance mode. Users are encouraged to switch to the
+ * <a href="https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/http/apache5/Apache5HttpClient.html">Apache 5 HTTP Client</a>
+ * which is feature compatible with this client.
  */
 @SdkPublicApi
+@Deprecated
 public final class ApacheHttpClient implements SdkHttpClient {
 
     public static final String CLIENT_NAME = "Apache";
@@ -343,6 +350,9 @@ public final class ApacheHttpClient implements SdkHttpClient {
      *                     .socketTimeout(Duration.ofSeconds(10))
      *                     .build();
      * </pre>
+     * @deprecated Apache 4.x is in maintenance mode. Users are encouraged to switch to the
+     * <a href="https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/http/apache5/Apache5HttpClient.html">Apache 5 HTTP Client</a>
+     * which is feature compatible with this client.
      */
     public interface Builder extends SdkHttpClient.Builder<ApacheHttpClient.Builder> {
 

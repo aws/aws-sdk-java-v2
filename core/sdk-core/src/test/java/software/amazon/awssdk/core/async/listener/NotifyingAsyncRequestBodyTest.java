@@ -15,16 +15,24 @@
 
 package software.amazon.awssdk.core.async.listener;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
+import java.io.IOException;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Consumer;
+import com.google.common.jimfs.Configuration;
+import com.google.common.jimfs.Jimfs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.async.AsyncRequestBody.BodyType;
 import software.amazon.awssdk.core.async.AsyncRequestBodySplitConfiguration;
 
 public class NotifyingAsyncRequestBodyTest {
@@ -53,6 +61,35 @@ public class NotifyingAsyncRequestBodyTest {
 
         notifying.contentType();
         verify(mockRequestBody).contentType();
+    }
+
+    @Test
+    public void body_delegatesCall() {
+        AsyncRequestBodyListener.NotifyingAsyncRequestBody notifying =
+            new AsyncRequestBodyListener.NotifyingAsyncRequestBody(mockRequestBody, mockListener);
+
+        notifying.body();
+        verify(mockRequestBody).body();
+    }
+
+    @Test
+    public void body_wrappingFileRequestBody_returnsFile() throws IOException {
+        FileSystem fs = Jimfs.newFileSystem(Configuration.unix());
+        Path path = fs.getPath("./test");
+        Files.write(path, "Hello world".getBytes());
+
+        AsyncRequestBodyListener.NotifyingAsyncRequestBody notifying =
+            new AsyncRequestBodyListener.NotifyingAsyncRequestBody(AsyncRequestBody.fromFile(path), mockListener);
+
+        assertThat(notifying.body()).isEqualTo(BodyType.FILE.getName());
+    }
+
+    @Test
+    public void body_wrappingBytesRequestBody_returnsBytes() {
+        AsyncRequestBodyListener.NotifyingAsyncRequestBody notifying =
+            new AsyncRequestBodyListener.NotifyingAsyncRequestBody(AsyncRequestBody.fromString("Hello world"), mockListener);
+
+        assertThat(notifying.body()).isEqualTo(BodyType.BYTES.getName());
     }
 
     @Test

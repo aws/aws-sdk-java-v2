@@ -1,0 +1,36 @@
+{
+    "version": "2.32.26",
+    "date": "2025-08-19",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fix a potential NullPointerException that may be thrown when API call timeout is configured"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Clean Rooms Service",
+            "contributor": "",
+            "description": "Support error message configuration for analysis templates"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Avoid extra byte array copying when downloading to memory with AsyncResponseTransformer"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Add support for \"warning\" volume status."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Polly",
+            "contributor": "",
+            "description": "Added support for new output format - Opus."
+        }
+    ]
+}

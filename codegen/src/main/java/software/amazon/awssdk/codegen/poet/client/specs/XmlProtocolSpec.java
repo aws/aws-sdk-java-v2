@@ -36,7 +36,6 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.poet.PoetExtension;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumRequiredTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.HttpChecksumTrait;
-import software.amazon.awssdk.codegen.poet.client.traits.NoneAuthTypeRequestTrait;
 import software.amazon.awssdk.codegen.poet.client.traits.RequestCompressionTrait;
 import software.amazon.awssdk.codegen.poet.eventstream.EventStreamUtils;
 import software.amazon.awssdk.codegen.poet.model.EventStreamSpecHelper;
@@ -135,13 +134,11 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                                                     discoveredEndpoint(opModel))
                                                .add(credentialType(opModel, model))
                                                .add(".withRequestConfiguration(clientConfiguration)")
-                                               .add(".withInput($L)", opModel.getInput().getVariableName())
+                     .add(".withInput($L)", opModel.getInput().getVariableName())
+                     .add(".withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)\n")
+                     .add(".withEndpointResolver(this::resolveEndpoint)\n")
                                                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                                                .add(HttpChecksumTrait.create(opModel));
-
-        if (!useSraAuth) {
-            codeBlock.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
 
         codeBlock.add(RequestCompressionTrait.create(opModel, model));
 
@@ -217,14 +214,12 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
 
         builder.add(hostPrefixExpression(opModel))
                .add(credentialType(opModel, model))
-               .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(".withMetricCollector(apiCallMetricCollector)\n")
+                     .add(".withAuthSchemeOptionsResolver(this::resolveAuthSchemeOptions)\n")
+                     .add(".withEndpointResolver(this::resolveEndpoint)\n")
                .add(asyncRequestBody(opModel))
                .add(HttpChecksumRequiredTrait.putHttpChecksumAttribute(opModel))
                .add(HttpChecksumTrait.create(opModel));
-
-        if (!useSraAuth) {
-            builder.add(NoneAuthTypeRequestTrait.create(opModel));
-        }
 
         builder.add(RequestCompressionTrait.create(opModel, model));
 
@@ -245,7 +240,7 @@ public final class XmlProtocolSpec extends QueryProtocolSpec {
                     whenCompleteBlock(opModel, "asyncResponseHandler",
                                       eventStreamTransformFutureName));
         } else {
-            builder.addStatement("$N = executeFuture$L", whenCompleteFutureName, publishMetricsWhenComplete());
+            builder.addStatement("$N = $L", whenCompleteFutureName, publishMetricsWhenComplete("executeFuture"));
         }
 
         builder.addStatement("$T.forwardExceptionTo($N, executeFuture)", CompletableFutureUtils.class,

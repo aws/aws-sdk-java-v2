@@ -62,13 +62,19 @@ public final class OutputStreamPublisher extends CancellableOutputStream impleme
     @Override
     public void write(byte[] b) {
         flush();
-        send(ByteBuffer.wrap(b));
+        ByteBuffer buffer = ByteBuffer.allocate(b.length);
+        buffer.put(b);
+        buffer.flip();
+        send(buffer.asReadOnlyBuffer());
     }
 
     @Override
     public void write(byte[] b, int off, int len) {
         flush();
-        send(ByteBuffer.wrap(b, off, len));
+        ByteBuffer buffer = ByteBuffer.allocate(len);
+        buffer.put(b, off, len);
+        buffer.flip();
+        send(buffer.asReadOnlyBuffer());
     }
 
     @Override

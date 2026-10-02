@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.DIRECTORY_TRANSFER_MAX_CONCURRENCY;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.TRANSFER_MANAGER_DEFAULTS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS;
 import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationOption.UPLOAD_DIRECTORY_MAX_DEPTH;
@@ -42,6 +43,7 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
         AttributeMap.Builder standardOptions = AttributeMap.builder();
         standardOptions.put(UPLOAD_DIRECTORY_FOLLOW_SYMBOLIC_LINKS, builder.uploadDirectoryFollowSymbolicLinks);
         standardOptions.put(UPLOAD_DIRECTORY_MAX_DEPTH, builder.uploadDirectoryMaxDepth);
+        standardOptions.put(DIRECTORY_TRANSFER_MAX_CONCURRENCY, builder.transferDirectoryMaxConcurrency);
         finalizeExecutor(builder, standardOptions);
         options = standardOptions.build().merge(TRANSFER_MANAGER_DEFAULTS);
     }
@@ -97,6 +99,7 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
 
         private Boolean uploadDirectoryFollowSymbolicLinks;
         private Integer uploadDirectoryMaxDepth;
+        private Integer transferDirectoryMaxConcurrency;
         private Executor executor;
 
 
@@ -107,6 +110,11 @@ public class TransferManagerConfiguration implements SdkAutoCloseable {
 
         public Builder uploadDirectoryMaxDepth(Integer uploadDirectoryMaxDepth) {
             this.uploadDirectoryMaxDepth = uploadDirectoryMaxDepth;
+            return this;
+        }
+
+        public Builder transferDirectoryMaxConcurrency(Integer transferDirectoryMaxConcurrency) {
+            this.transferDirectoryMaxConcurrency = transferDirectoryMaxConcurrency;
             return this;
         }
 

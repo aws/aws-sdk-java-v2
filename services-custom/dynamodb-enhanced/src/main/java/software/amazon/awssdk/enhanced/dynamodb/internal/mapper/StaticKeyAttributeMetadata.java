@@ -18,19 +18,26 @@ package software.amazon.awssdk.enhanced.dynamodb.internal.mapper;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
 import software.amazon.awssdk.enhanced.dynamodb.KeyAttributeMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.Order;
 
 @SdkInternalApi
 public class StaticKeyAttributeMetadata implements KeyAttributeMetadata {
     private final String name;
     private final AttributeValueType attributeValueType;
+    private final Order order;
 
-    private StaticKeyAttributeMetadata(String name, AttributeValueType attributeValueType) {
+    private StaticKeyAttributeMetadata(String name, AttributeValueType attributeValueType, Order order) {
         this.name = name;
         this.attributeValueType = attributeValueType;
+        this.order = order;
     }
 
     public static StaticKeyAttributeMetadata create(String name, AttributeValueType attributeValueType) {
-        return new StaticKeyAttributeMetadata(name, attributeValueType);
+        return new StaticKeyAttributeMetadata(name, attributeValueType, Order.UNSPECIFIED);
+    }
+
+    public static StaticKeyAttributeMetadata create(String name, AttributeValueType attributeValueType, Order order) {
+        return new StaticKeyAttributeMetadata(name, attributeValueType, order);
     }
 
     @Override
@@ -41,6 +48,11 @@ public class StaticKeyAttributeMetadata implements KeyAttributeMetadata {
     @Override
     public AttributeValueType attributeValueType() {
         return this.attributeValueType;
+    }
+
+    @Override
+    public Order order() {
+        return this.order;
     }
 
     @Override
@@ -57,13 +69,17 @@ public class StaticKeyAttributeMetadata implements KeyAttributeMetadata {
         if (name != null ? !name.equals(staticKey.name) : staticKey.name != null) {
             return false;
         }
-        return attributeValueType == staticKey.attributeValueType;
+        if (attributeValueType != staticKey.attributeValueType) {
+            return false;
+        }
+        return order == staticKey.order;
     }
 
     @Override
     public int hashCode() {
         int result = name != null ? name.hashCode() : 0;
         result = 31 * result + (attributeValueType != null ? attributeValueType.hashCode() : 0);
+        result = 31 * result + order.hashCode();
         return result;
     }
 }

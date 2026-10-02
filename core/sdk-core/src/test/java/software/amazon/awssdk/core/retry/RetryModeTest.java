@@ -44,34 +44,57 @@ public class RetryModeTest {
     public static Collection<Object> data() {
         return Arrays.asList(new Object[] {
             // Test defaults
-            new TestData(null, null, null, null, RetryMode.LEGACY),
-            new TestData(null, null, "PropertyNotSet", null, RetryMode.LEGACY),
+            new TestData(null, null, null, null, null, null, null, RetryMode.LEGACY),
+            new TestData(null, null, "PropertyNotSet", null, null, null, null, RetryMode.LEGACY),
+
+            // default + new retries 2026
+            new TestData(null, null, null, null, "true", null, null, RetryMode.STANDARD),
+            new TestData(null, null, null, null, null, "true", null, RetryMode.STANDARD),
+            new TestData(null, null, null, null, null, null, true, RetryMode.STANDARD),
+
+            // new retries 2026 precedence
+            new TestData(null, null, null, null, "false", null, true, RetryMode.LEGACY),
+            new TestData(null, null, null, null, null, "false", true, RetryMode.LEGACY),
 
             // Test resolution
-            new TestData("legacy", null, null, null, RetryMode.LEGACY),
-            new TestData("standard", null, null, null, RetryMode.STANDARD),
-            new TestData("adaptive", null, null, null, RetryMode.ADAPTIVE_V2),
-            new TestData("lEgAcY", null, null, null, RetryMode.LEGACY),
-            new TestData("sTanDaRd", null, null, null, RetryMode.STANDARD),
-            new TestData("aDaPtIvE", null, null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("legacy", null, null, null, null, null, null, RetryMode.LEGACY),
+            new TestData("standard", null, null, null, null, null, null, RetryMode.STANDARD),
+            new TestData("adaptive", null, null, null, null, null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("lEgAcY", null, null, null, null, null, null, RetryMode.LEGACY),
+            new TestData("sTanDaRd", null, null, null, null, null, null, RetryMode.STANDARD),
+            new TestData("aDaPtIvE", null, null, null, null, null, null, RetryMode.ADAPTIVE_V2),
+
+            // new retries 2026 does not have an effect if retry mode set explicitly
+            new TestData("legacy", null, null, null, "true", null, null, RetryMode.LEGACY),
+            new TestData("standard", null, null, null, "true", null, null, RetryMode.STANDARD),
+            new TestData("adaptive", null, null, null, "true", null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("lEgAcY", null, null, null, "true", null, null, RetryMode.LEGACY),
+            new TestData("sTanDaRd", null, null, null, "true", null, null, RetryMode.STANDARD),
+            new TestData("aDaPtIvE", null, null, null, "true", null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("legacy", null, null, null, "false", null, null, RetryMode.LEGACY),
+            new TestData("standard", null, null, null, "false", null, null, RetryMode.STANDARD),
+            new TestData("adaptive", null, null, null, "false", null, null, RetryMode.ADAPTIVE_V2),
+            new TestData("lEgAcY", null, null, null, "false", null, null, RetryMode.LEGACY),
+            new TestData("sTanDaRd", null, null, null, "false", null, null, RetryMode.STANDARD),
+            new TestData("aDaPtIvE", null, null, null, "false", null, null, RetryMode.ADAPTIVE_V2),
 
             // Test precedence
-            new TestData("standard", "legacy", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),
-            new TestData("standard", null, null, RetryMode.LEGACY, RetryMode.STANDARD),
-            new TestData(null, "standard", "PropertySetToLegacy", RetryMode.LEGACY, RetryMode.STANDARD),
-            new TestData(null, "standard", null, RetryMode.LEGACY, RetryMode.STANDARD),
-            new TestData(null, null, "PropertySetToStandard", RetryMode.LEGACY, RetryMode.STANDARD),
-            new TestData(null, null, null, RetryMode.STANDARD, RetryMode.STANDARD),
+            new TestData("standard", "legacy", "PropertySetToLegacy", RetryMode.LEGACY, null, null, null, RetryMode.STANDARD),
+            new TestData("standard", null, null, RetryMode.LEGACY, null, null, null, RetryMode.STANDARD),
+            new TestData(null, "standard", "PropertySetToLegacy", RetryMode.LEGACY, null, null, null, RetryMode.STANDARD),
+            new TestData(null, "standard", null, RetryMode.LEGACY, null, null, null, RetryMode.STANDARD),
+            new TestData(null, null, "PropertySetToStandard", RetryMode.LEGACY, null, null, null, RetryMode.STANDARD),
+            new TestData(null, null, null, RetryMode.STANDARD, null, null, null, RetryMode.STANDARD),
 
             // Test invalid values
-            new TestData("wrongValue", null, null, null, IllegalStateException.class),
-            new TestData(null, "wrongValue", null, null, IllegalStateException.class),
-            new TestData(null, null, "PropertySetToUnsupportedValue", null, IllegalStateException.class),
+            new TestData("wrongValue", null, null, null, null, null, null, IllegalStateException.class),
+            new TestData(null, "wrongValue", null, null, null, null, null, IllegalStateException.class),
+            new TestData(null, null, "PropertySetToUnsupportedValue", null, null, null, null, IllegalStateException.class),
 
             // Test capitalization standardization
-            new TestData("sTaNdArD", null, null, null, RetryMode.STANDARD),
-            new TestData(null, "sTaNdArD", null, null, RetryMode.STANDARD),
-            new TestData(null, null, "PropertyMixedCase", null, RetryMode.STANDARD),
+            new TestData("sTaNdArD", null, null, null, null, null, null, RetryMode.STANDARD),
+            new TestData(null, "sTaNdArD", null, null, null, null, null, RetryMode.STANDARD),
+            new TestData(null, null, "PropertyMixedCase", null, null, null, null, RetryMode.STANDARD),
             });
     }
 
@@ -82,6 +105,8 @@ public class RetryModeTest {
         System.clearProperty(SdkSystemSetting.AWS_RETRY_MODE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_PROFILE.property());
         System.clearProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property());
+
+        System.clearProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property());
     }
 
     @Test
@@ -101,7 +126,18 @@ public class RetryModeTest {
             System.setProperty(ProfileFileSystemSetting.AWS_CONFIG_FILE.property(), diskLocationForFile);
         }
 
-        Callable<RetryMode> result = RetryMode.resolver().defaultRetryMode(testData.defaultMode)::resolve;
+        if (testData.newRetries2026EnvVarValue != null) {
+            ENVIRONMENT_VARIABLE_HELPER.set(SdkSystemSetting.AWS_NEW_RETRIES_2026.environmentVariable(),
+                                            testData.newRetries2026EnvVarValue);
+        }
+
+        if (testData.newRetries2026SystemProperty != null) {
+            System.setProperty(SdkSystemSetting.AWS_NEW_RETRIES_2026.property(), testData.newRetries2026SystemProperty);
+        }
+
+        Callable<RetryMode> result = RetryMode.resolver()
+                                              .defaultRetryMode(testData.defaultMode)
+                                              .defaultNewRetries2026(testData.defaultNewRetries2026)::resolve;
         if (testData.expected instanceof Class<?>) {
             Class<?> expectedClassType = (Class<?>) testData.expected;
             assertThatThrownBy(result::call).isInstanceOf(expectedClassType);
@@ -120,13 +156,24 @@ public class RetryModeTest {
         private final String systemProperty;
         private final String configFile;
         private final RetryMode defaultMode;
+
+        private final String newRetries2026SystemProperty;
+        private final String newRetries2026EnvVarValue;
+        private final Boolean defaultNewRetries2026;
+
+
         private final Object expected;
 
-        TestData(String systemProperty, String envVarValue, String configFile, RetryMode defaultMode, Object expected) {
+        TestData(String systemProperty, String envVarValue, String configFile, RetryMode defaultMode,
+                 String newRetries2026SystemProperty, String newRetries2026EnvVarValue, Boolean defaultNewRetries2026,
+                 Object expected) {
             this.envVarValue = envVarValue;
             this.systemProperty = systemProperty;
             this.configFile = configFile;
             this.defaultMode = defaultMode;
+            this.newRetries2026SystemProperty = newRetries2026SystemProperty;
+            this.newRetries2026EnvVarValue = newRetries2026EnvVarValue;
+            this.defaultNewRetries2026 = defaultNewRetries2026;
             this.expected = expected;
         }
     }

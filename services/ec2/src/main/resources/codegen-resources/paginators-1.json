@@ -54,11 +54,35 @@
       "output_token": "NextToken",
       "result_key": "CapacityBlockOfferings"
     },
+    "DescribeCapacityBlockStatus": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityBlockStatuses"
+    },
+    "DescribeCapacityBlocks": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityBlocks"
+    },
+    "DescribeCapacityManagerDataExports": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityManagerDataExports"
+    },
     "DescribeCapacityReservationBillingRequests": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "CapacityReservationBillingRequests"
+    },
+    "DescribeCapacityReservationDateChangeQuotes": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityReservationModificationQuotes"
     },
     "DescribeCapacityReservationFleets": {
       "input_token": "NextToken",
@@ -201,6 +225,24 @@
       "output_token": "NextToken",
       "result_key": "IamInstanceProfileAssociations"
     },
+    "DescribeImageReferences": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "ImageReferences"
+    },
+    "DescribeImageUsageReportEntries": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "ImageUsageReportEntries"
+    },
+    "DescribeImageUsageReports": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "ImageUsageReports"
+    },
     "DescribeImages": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -279,11 +321,29 @@
       "output_token": "NextToken",
       "result_key": "InternetGateways"
     },
+    "DescribeIpamPoolAllocations": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPoolAllocations"
+    },
     "DescribeIpamPools": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "IpamPools"
+    },
+    "DescribeIpamPrefixListResolverTargets": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPrefixListResolverTargets"
+    },
+    "DescribeIpamPrefixListResolvers": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPrefixListResolvers"
     },
     "DescribeIpamResourceDiscoveries": {
       "input_token": "NextToken",
@@ -371,6 +431,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "MacHosts"
+    },
+    "DescribeMacModificationTasks": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MacModificationTasks"
     },
     "DescribeManagedPrefixLists": {
       "input_token": "NextToken",
@@ -479,6 +545,24 @@
       "output_token": "NextToken",
       "result_key": "ReservedInstancesOfferings"
     },
+    "DescribeRouteServerEndpoints": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "RouteServerEndpoints"
+    },
+    "DescribeRouteServerPeers": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "RouteServerPeers"
+    },
+    "DescribeRouteServers": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "RouteServers"
+    },
     "DescribeRouteTables": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -496,6 +580,24 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "ScheduledInstanceSet"
+    },
+    "DescribeSecondaryInterfaces": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecondaryInterfaces"
+    },
+    "DescribeSecondaryNetworks": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecondaryNetworks"
+    },
+    "DescribeSecondarySubnets": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "SecondarySubnets"
     },
     "DescribeSecurityGroupRules": {
       "input_token": "NextToken",
@@ -749,6 +851,12 @@
       "output_token": "NextToken",
       "result_key": "Vpcs"
     },
+    "DescribeVpnConcentrators": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "VpnConcentrators"
+    },
     "DescribeVpnConnections": {
       "result_key": "VpnConnections"
     },
@@ -766,6 +874,24 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "DataResponses"
+    },
+    "GetCapacityManagerMetricData": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricDataResults"
+    },
+    "GetCapacityManagerMetricDimensions": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricDimensionResults"
+    },
+    "GetCapacityManagerMonitoredTagKeys": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "CapacityManagerTagKeys"
     },
     "GetGroupsForCapacityReservation": {
       "input_token": "NextToken",
@@ -808,6 +934,24 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "IpamPoolCidrs"
+    },
+    "GetIpamPrefixListResolverRules": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "Rules"
+    },
+    "GetIpamPrefixListResolverVersionEntries": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "Entries"
+    },
+    "GetIpamPrefixListResolverVersions": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "IpamPrefixListResolverVersions"
     },
     "GetIpamResourceCidrs": {
       "input_token": "NextToken",
@@ -863,6 +1007,12 @@
       "output_token": "NextToken",
       "result_key": "Associations"
     },
+    "GetTransitGatewayPolicyTableEntries": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "TransitGatewayPolicyTableEntries"
+    },
     "GetTransitGatewayPrefixListReferences": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -910,6 +1060,13 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "MulticastGroups"
+    },
+    "SearchTransitGatewayRoutes": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "more_results": "AdditionalRoutesAvailable",
+      "output_token": "NextToken",
+      "result_key": "Routes"
     }
   }
 }

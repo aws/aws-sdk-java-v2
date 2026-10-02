@@ -35,6 +35,7 @@ import software.amazon.awssdk.http.ContentStreamProvider;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumInputStream;
 import software.amazon.awssdk.http.auth.aws.internal.signer.io.ChecksumSubscriber;
+import software.amazon.awssdk.http.auth.spi.signer.PayloadChecksumStore;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -44,10 +45,12 @@ import software.amazon.awssdk.utils.Validate;
  */
 @SdkInternalApi
 public final class FlexibleChecksummer implements Checksummer {
+    private final PayloadChecksumStore cache;
     private final Collection<Option> options;
     private final Map<Option, SdkChecksum> optionToSdkChecksum;
 
-    public FlexibleChecksummer(Option... options) {
+    public FlexibleChecksummer(PayloadChecksumStore cache, Option... options) {
+        this.cache = cache;
         this.options = Arrays.asList(options);
         this.optionToSdkChecksum = this.options.stream().collect(
             Collectors.toMap(Function.identity(), o -> fromChecksumAlgorithm(o.algorithm))
@@ -78,16 +81,22 @@ public final class FlexibleChecksummer implements Checksummer {
         }
 
         payload.subscribe(checksumSubscriber);
-        CompletableFuture<Publisher<ByteBuffer>> result = checksumSubscriber.completeFuture();
-        result.thenRun(() -> addChecksums(request));
-        return result;
+        return checksumSubscriber.completeFuture().thenApply(checksummedPayload -> {
+            addChecksums(request);
+            return checksummedPayload;
+        });
     }
 
     private void addChecksums(SdkHttpRequest.Builder request) {
         optionToSdkChecksum.forEach(
-            (option, sdkChecksum) -> request.putHeader(
-                option.headerName,
-                option.formatter.apply(sdkChecksum.getChecksumBytes()))
+            (option, sdkChecksum) -> {
+                byte[] checksumValue = cache.getChecksumValue(option.algorithm);
+                if (checksumValue == null) {
+                    checksumValue = sdkChecksum.getChecksumBytes();
+                    cache.putChecksumValue(option.algorithm, checksumValue);
+                }
+                request.putHeader(option.headerName, option.formatter.apply(checksumValue));
+            }
         );
     }
 

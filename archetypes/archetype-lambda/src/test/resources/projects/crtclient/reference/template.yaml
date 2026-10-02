@@ -6,7 +6,7 @@ Resources:
   MyCrtFunctionFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Runtime: java17
+      Runtime: java25
       Handler: software.amazonaws.test.MyCrtFunction::handleRequest
       Timeout: 60
       MemorySize: 512
