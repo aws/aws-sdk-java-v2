@@ -82,11 +82,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     private final S3NativeClientConfiguration s3NativeClientConfiguration;
     private final S3ClientOptions s3ClientOptions;
     private final List<MetricPublisher> metricPublishers;
+    private final S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     private S3CrtAsyncHttpClient(Builder builder) {
         s3NativeClientConfiguration = builder.clientConfiguration;
         this.s3ClientOptions = createS3ClientOption();
         this.metricPublishers = builder.metricPublishers == null ? Collections.emptyList() : builder.metricPublishers;
+        this.metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
 
         this.crtS3Client = new S3Client(s3ClientOptions);
     }
@@ -97,6 +99,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         s3NativeClientConfiguration = builder.clientConfiguration;
         s3ClientOptions = createS3ClientOption();
         this.metricPublishers = builder.metricPublishers == null ? Collections.emptyList() : builder.metricPublishers;
+        this.metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
         this.crtS3Client = crtS3Client;
     }
 
@@ -186,7 +189,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             new S3CrtResponseHandlerAdapter(executeFuture,
                                             asyncRequest.responseHandler(),
                                             adapterAttributes,
-                                            s3MetaRequestFuture);
+                                            s3MetaRequestFuture,
+                                            metricPublisherDispatcher);
 
         URI endpoint = getEndpoint(uri);
 
@@ -341,8 +345,13 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
     @Override
     public void close() {
-        s3NativeClientConfiguration.close();
-        crtS3Client.close();
+        CompletableFuture<Void> shutdownCompleteFuture = crtS3Client.getShutdownCompleteFuture();
+        shutdownCompleteFuture.whenComplete((ignored, throwable) -> metricPublisherDispatcher.closeAsync());
+        try {
+            crtS3Client.close();
+        } finally {
+            s3NativeClientConfiguration.close();
+        }
     }
 
     public static Builder builder() {

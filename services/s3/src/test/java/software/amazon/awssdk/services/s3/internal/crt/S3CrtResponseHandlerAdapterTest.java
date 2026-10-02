@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -64,15 +65,23 @@ public class S3CrtResponseHandlerAdapterTest {
     @Mock
     private S3MetaRequestWrapper s3MetaRequest;
     private CompletableFuture<Void> future;
+    private S3CrtMetricPublisherDispatcher metricPublisherDispatcher;
 
     @Before
     public void setup() {
         future = new CompletableFuture<>();
         sdkResponseHandler = spy(new TestResponseHandler());
+        metricPublisherDispatcher = new S3CrtMetricPublisherDispatcher();
         responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
                                                                  sdkResponseHandler,
                                                                  SdkHttpExecutionAttributes.builder().build(),
-                                                                 CompletableFuture.completedFuture(s3MetaRequest));
+                                                                 CompletableFuture.completedFuture(s3MetaRequest),
+                                                                 metricPublisherDispatcher);
+    }
+
+    @After
+    public void teardown() {
+        metricPublisherDispatcher.close();
     }
 
     @Test
@@ -106,7 +115,8 @@ public class S3CrtResponseHandlerAdapterTest {
                                                                                              sdkResponseHandler,
                                                                                              SdkHttpExecutionAttributes.builder().build(),
                                                                                              new CompletableFuture<>(),
-                                                                                             Duration.ofMillis(10));
+                                                                                             Duration.ofMillis(10),
+                                                                                             metricPublisherDispatcher);
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
         responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);
