@@ -425,6 +425,38 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         assertThat(executeFuture).isCompletedExceptionally();
     }
 
+    @Test
+    void borrowedCallback_whenStreamStartFailsAfterHandoff_shouldNotReleaseTheHandedOffBuffer() {
+        CompletableFuture<Void> executeFuture = new CompletableFuture<>();
+        AtomicReference<S3CrtBorrowedBuffer> delivered = new AtomicReference<>();
+        S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
+        // The stream takes the buffer, and only then does starting the stream fail.
+        when(streamHandler.onBorrowedBuffer(any())).thenAnswer(invocation -> {
+            delivered.set(invocation.getArgument(0));
+            return true;
+        });
+        doAnswer(invocation -> {
+            throw new IllegalStateException("stream start failed");
+        }).when(streamHandler).onBorrowedStreamStart(any());
+        S3CrtBorrowedBufferResponseHandlerAdapter handler =
+            new S3CrtBorrowedBufferResponseHandlerAdapter(executeFuture,
+                                                          mock(SdkAsyncHttpResponseHandler.class),
+                                                          null,
+                                                          CompletableFuture.completedFuture(
+                                                              mock(S3MetaRequestWrapper.class)),
+                                                          new AtomicLong(),
+                                                          streamHandler);
+        S3BorrowedBuffer crtBuffer = directCrtBuffer(3);
+
+        assertThat(handler.onResponseBody(crtBuffer, 0, 3)).isZero();
+
+        // The buffer is queued in the stream, where a reader can still reach it. Releasing it here too would hand the
+        // pooled memory back while it is still readable, so the release has to be left to the stream's own cleanup.
+        assertThat(delivered.get()).isNotNull();
+        verify(crtBuffer, never()).close();
+        assertThat(executeFuture).isCompletedExceptionally();
+    }
+
     private static S3BorrowedBuffer directCrtBuffer(int size) {
         S3BorrowedBuffer buffer = mock(S3BorrowedBuffer.class);
         when(buffer.asByteBuffer()).thenReturn(ByteBuffer.allocateDirect(size));

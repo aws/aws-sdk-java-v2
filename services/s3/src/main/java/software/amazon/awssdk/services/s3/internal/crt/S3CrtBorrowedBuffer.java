@@ -33,14 +33,30 @@ final class S3CrtBorrowedBuffer {
                         long byteCount,
                         Runnable releaseAction,
                         LongConsumer readWindowAction) {
-        this.buffer = Validate.paramNotNull(buffer, "buffer");
+        Validate.paramNotNull(buffer, "buffer");
         this.releaseAction = Validate.paramNotNull(releaseAction, "releaseAction");
         this.readWindowAction = Validate.paramNotNull(readWindowAction, "readWindowAction");
         Validate.isTrue(byteCount == buffer.remaining(), "byteCount must match the buffer's remaining bytes");
+        // Duplicate rather than store the view CRT handed us. CRT returns the lease's own ByteBuffer instance, so
+        // reading through it here would advance the position of a buffer CRT may hand out again after the lease is
+        // released. The duplicate shares the same memory, which is the entire point, but keeps our cursor private.
+        this.buffer = buffer.duplicate();
         this.byteCount = byteCount;
     }
 
+    /**
+     * The readable view of the pooled memory.
+     *
+     * @throws IllegalStateException if the lease has already been released, because the pooled memory may by then have
+     *         been handed to another request or returned to the allocator. Reading it would yield whatever now occupies
+     *         it, so this fails loudly instead of returning another request's data or freed memory as object content.
+     */
     ByteBuffer buffer() {
+        if (terminal.get()) {
+            throw new IllegalStateException(
+                "Borrowed buffer was read after its lease was released. The pooled memory it referenced is no longer "
+                + "owned by this request.");
+        }
         return buffer;
     }
 

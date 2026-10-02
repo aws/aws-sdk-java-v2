@@ -101,6 +101,7 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
     @Override
     public int onResponseBody(S3BorrowedBuffer crtBuffer, long objectRangeStart, long objectRangeEnd) {
         S3CrtBorrowedBuffer sdkBuffer = null;
+        boolean acceptedByStream = false;
         try {
             Validate.paramNotNull(crtBuffer, "crtBuffer");
             delegate.initiateResponseHandlingForBorrowedResponse();
@@ -110,10 +111,13 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
                 directView.remaining(),
                 crtBuffer::close,
                 this::incrementReadWindow);
-            validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);
+            acceptedByStream = validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);
             initiateStream();
         } catch (Throwable t) {
-            failBorrowedResponse(t, sdkBuffer, crtBuffer);
+            // Once the stream has taken the buffer it owns the release, and the buffer is already queued where a reader
+            // can reach it. Releasing it here as well would return the pooled memory while it is still readable, so the
+            // cleanup is skipped and left to the stream's own close/discard path.
+            failBorrowedResponse(t, acceptedByStream ? null : sdkBuffer, acceptedByStream ? null : crtBuffer);
         }
         return 0;
     }
@@ -154,7 +158,10 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
         return 0;
     }
 
-    private void validateAndAcceptBuffer(
+    /**
+     * @return true if the stream took ownership of the buffer, meaning the caller must not release it.
+     */
+    private boolean validateAndAcceptBuffer(
         S3CrtBorrowedBuffer buffer,
         long objectRangeStart,
         long objectRangeEnd) {
@@ -191,7 +198,9 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
                 expectedObjectRangeStart = objectRangeEnd;
                 rangeStarted = true;
                 responseBytesRead.addAndGet(buffer.byteCount());
+                return true;
             }
+            return false;
         }
     }
 

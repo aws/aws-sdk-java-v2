@@ -49,8 +49,48 @@ class S3CrtBorrowedBufferTest {
 
         assertThat(actions).containsExactly("release", "credit");
         assertThat(credited).hasValue(3);
+        // The credited count is the byte count the lease was created with, not whatever remains in the view now.
         assertThat(buffer.byteCount()).isEqualTo(3);
-        assertThat(buffer.buffer()).isSameAs(view);
+    }
+
+    @Test
+    void buffer_afterRelease_throwsRatherThanExposingReleasedMemory() {
+        S3CrtBorrowedBuffer consumedBuffer = buffer(2, () -> {
+        }, bytes -> {
+        });
+        consumedBuffer.buffer().get(new byte[2]);
+        consumedBuffer.consumed();
+
+        // Once the lease is released the pooled memory can belong to another request, so handing the view back out
+        // would silently serve someone else's bytes as this object's content.
+        assertThatThrownBy(consumedBuffer::buffer)
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("after its lease was released");
+
+        S3CrtBorrowedBuffer discardedBuffer = buffer(2, () -> {
+        }, bytes -> {
+        });
+        discardedBuffer.discard();
+        assertThatThrownBy(discardedBuffer::buffer).isInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    void buffer_doesNotShareItsCursorWithTheViewCrtHandedOut() {
+        ByteBuffer crtView = ByteBuffer.allocateDirect(4);
+        S3CrtBorrowedBuffer buffer = new S3CrtBorrowedBuffer(crtView, 4, () -> {
+        }, bytes -> {
+        });
+
+        // CRT returns the lease's own ByteBuffer instance and may hand it out again after the lease is released, so
+        // reading here must not move its position.
+        buffer.buffer().get(new byte[4]);
+        assertThat(buffer.buffer().hasRemaining()).isFalse();
+        assertThat(crtView.position()).isZero();
+        assertThat(crtView.remaining()).isEqualTo(4);
+
+        // The reverse direction too: CRT moving its own cursor must not shorten what we deliver.
+        crtView.get();
+        assertThat(buffer.byteCount()).isEqualTo(4);
     }
 
     @Test

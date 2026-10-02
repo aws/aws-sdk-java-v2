@@ -38,8 +38,17 @@ final class S3CrtBorrowedBufferBlockingResponseTransformer
 
     @Override
     public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
+        Attempt previous = currentAttempt;
         Attempt attempt = new Attempt();
         currentAttempt = attempt;
+        // A retry or a cross-region redirect calls prepare() again, which displaces the previous attempt. Nothing else
+        // ever cleans that attempt up: it is only reached through this field, and its own adapter only notifies it when
+        // its execute future completes exceptionally, which does not happen for an HTTP error response. Left alone it
+        // keeps accepting buffers and holds any it has already queued, so the leases are only reclaimed later by CRT's
+        // GC fallback.
+        if (previous != null) {
+            previous.abandon();
+        }
         if (aborted.get()) {
             attempt.abort();
         }
@@ -131,6 +140,7 @@ final class S3CrtBorrowedBufferBlockingResponseTransformer
         private final DeferredCancellation cancellation = new DeferredCancellation();
         private final S3CrtBorrowedBufferInputStream inputStream =
             new S3CrtBorrowedBufferInputStream(cancellation::cancel);
+        private final AtomicBoolean streamPublished = new AtomicBoolean();
         private volatile GetObjectResponse response;
 
         private Attempt() {
@@ -153,11 +163,27 @@ final class S3CrtBorrowedBufferBlockingResponseTransformer
             inputStream.abort();
         }
 
+        /**
+         * Releases what a displaced attempt is holding, after a retry has replaced it.
+         *
+         * <p>Deliberately conservative: if this attempt ever tried to hand a stream to the caller, it is left
+         * untouched, because the caller may be holding that stream and reading from it. Only an attempt that never
+         * published can be certain to have no reader, and closing that one discards buffers nobody can reach.
+         */
+        private void abandon() {
+            if (!streamPublished.get()) {
+                inputStream.abort();
+            }
+        }
+
         @Override
         public void onBorrowedStreamStart(Runnable cancellationAction) {
             GetObjectResponse currentResponse = response;
             Validate.validState(currentResponse != null, "onResponse() must be called before borrowed delivery starts");
             cancellation.set(cancellationAction);
+            // Set before completing, so a prepare() that races this can never mistake a published stream for an
+            // abandoned one and close it under its reader.
+            streamPublished.set(true);
             future.complete(new ResponseInputStream<>(currentResponse, inputStream));
         }
 
