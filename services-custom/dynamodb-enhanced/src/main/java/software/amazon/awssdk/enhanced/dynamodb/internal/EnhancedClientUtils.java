@@ -46,7 +46,7 @@ import software.amazon.awssdk.utils.StringUtils;
 public final class EnhancedClientUtils {
     private static final Set<Character> SPECIAL_CHARACTERS = Stream.of(
         '*', '.', '-', '#', '+', ':', '/', '(', ')', ' ',
-        '&', '<', '>', '?', '=', '!', '@', '%', '$', '|').collect(Collectors.toSet());
+        '&', '<', '>', '?', '=', '!', '@', '%', '$', '|', '[', ']').collect(Collectors.toSet());
     private static final Pattern NESTED_OBJECT_PATTERN = Pattern.compile(NESTED_OBJECT_UPDATE);
 
     private EnhancedClientUtils() {
