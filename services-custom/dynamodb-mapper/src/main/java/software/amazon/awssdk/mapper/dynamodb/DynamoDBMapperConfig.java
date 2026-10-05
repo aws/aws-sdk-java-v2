@@ -946,6 +946,28 @@ public final class DynamoDBMapperConfig {
         return overrides == null || this == overrides ? this : builder().merge(this).merge(overrides).build();
     }
 
+    /**
+     * Returns a new builder initialized with every value of this configuration,
+     * so a variant can be derived without restating the other values.
+     * Changes to the builder do not affect this configuration.
+     * <p>
+     * Values that are unset in this configuration stay unset in the builder;
+     * nothing is filled in from {@link #DEFAULT}. A configuration derived from
+     * a per-operation config therefore still overrides only the values that
+     * are set.
+     *
+     * <pre class="brush: java">
+     * DynamoDBMapperConfig consistent = config.toBuilder()
+     *                                         .withConsistentReads(ConsistentReads.CONSISTENT)
+     *                                         .build();
+     * </pre>
+     *
+     * @return a new builder holding a copy of this configuration's values
+     */
+    public Builder toBuilder() {
+        return builder().merge(this);
+    }
+
     public BatchLoadRetryStrategy getBatchLoadRetryStrategy() {
         return batchLoadRetryStrategy;
     }

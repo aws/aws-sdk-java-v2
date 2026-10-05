@@ -17,7 +17,13 @@ package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 
 public class DynamoDBMapperConfigTest {
@@ -57,5 +63,87 @@ public class DynamoDBMapperConfigTest {
                      readOnly.getByteBufferReadBehavior());
         assertEquals(DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY,
                      DynamoDBMapperConfig.DEFAULT.merge(readOnly).getByteBufferReadBehavior());
+    }
+
+    @Test
+    public void toBuilder_withNoChanges_copiesEveryField() throws IllegalAccessException {
+        DynamoDBMapperConfig original = fullyPopulatedConfig();
+
+        DynamoDBMapperConfig copy = original.toBuilder().build();
+
+        // Reflective so that a field added to the config later cannot be silently dropped by toBuilder().
+        for (Field field : instanceFields()) {
+            assertNotNull("fullyPopulatedConfig() must set " + field.getName(), field.get(original));
+            assertSame(field.getName(), field.get(original), field.get(copy));
+        }
+    }
+
+    @Test
+    public void toBuilder_withOverride_changesOnlyThatField() {
+        DynamoDBMapperConfig original = fullyPopulatedConfig();
+
+        DynamoDBMapperConfig derived = original.toBuilder()
+                                               .withConsistentReads(DynamoDBMapperConfig.ConsistentReads.EVENTUAL)
+                                               .build();
+
+        assertEquals(DynamoDBMapperConfig.ConsistentReads.EVENTUAL, derived.getConsistentReads());
+        assertEquals(DynamoDBMapperConfig.ConsistentReads.CONSISTENT, original.getConsistentReads());
+        assertSame(original.getSaveBehavior(), derived.getSaveBehavior());
+        assertSame(original.getConversionSchema(), derived.getConversionSchema());
+        assertSame(original.getTableNameOverride(), derived.getTableNameOverride());
+    }
+
+    @Test
+    public void toBuilder_onPartialConfig_leavesUnsetFieldsUnset() throws IllegalAccessException {
+        DynamoDBMapperConfig partial = DynamoDBMapperConfig.builder()
+                                                           .withSaveBehavior(DynamoDBMapperConfig.SaveBehavior.CLOBBER)
+                                                           .build();
+
+        DynamoDBMapperConfig copy = partial.toBuilder().build();
+
+        assertEquals(DynamoDBMapperConfig.SaveBehavior.CLOBBER, copy.getSaveBehavior());
+        for (Field field : instanceFields()) {
+            if (!"saveBehavior".equals(field.getName())) {
+                assertNull("toBuilder() must not fill in " + field.getName() + " from DEFAULT", field.get(copy));
+            }
+        }
+    }
+
+    @Test
+    public void toBuilder_onDefault_copiesDefaultValues() {
+        DynamoDBMapperConfig copy = DynamoDBMapperConfig.DEFAULT.toBuilder().build();
+
+        assertSame(DynamoDBMapperConfig.DEFAULT.getConversionSchema(), copy.getConversionSchema());
+        assertSame(DynamoDBMapperConfig.DEFAULT.getTypeConverterFactory(), copy.getTypeConverterFactory());
+        assertSame(DynamoDBMapperConfig.DEFAULT.getTableNameResolver(), copy.getTableNameResolver());
+    }
+
+    private static DynamoDBMapperConfig fullyPopulatedConfig() {
+        // Every value differs from DEFAULT so a copy that fell back to DEFAULT would be caught.
+        return DynamoDBMapperConfig.builder()
+            .withSaveBehavior(DynamoDBMapperConfig.SaveBehavior.CLOBBER)
+            .withConsistentReads(DynamoDBMapperConfig.ConsistentReads.CONSISTENT)
+            .withTableNameOverride(DynamoDBMapperConfig.TableNameOverride.withTableNamePrefix("dev_"))
+            .withTableNameResolver((clazz, config) -> "ClassTable")
+            .withObjectTableNameResolver((object, config) -> "ObjectTable")
+            .withPaginationLoadingStrategy(DynamoDBMapperConfig.PaginationLoadingStrategy.EAGER_LOADING)
+            .withConversionSchema(ConversionSchemas.V1)
+            .withByteBufferReadBehavior(DynamoDBMapperConfig.ByteBufferReadBehavior.READ_ONLY)
+            .withBatchWriteRetryStrategy(new DynamoDBMapperConfig.DefaultBatchWriteRetryStrategy(3))
+            .withBatchLoadRetryStrategy(DynamoDBMapperConfig.NoRetryBatchLoadRetryStrategy.INSTANCE)
+            .withTypeConverterFactory(DynamoDBTypeConverterFactory.standard().override().build())
+            .build();
+    }
+
+    private static List<Field> instanceFields() {
+        List<Field> fields = new ArrayList<>();
+        for (Field field : DynamoDBMapperConfig.class.getDeclaredFields()) {
+            if (!Modifier.isStatic(field.getModifiers())) {
+                field.setAccessible(true);
+                fields.add(field);
+            }
+        }
+        assertEquals("unexpected number of DynamoDBMapperConfig fields", 11, fields.size());
+        return fields;
     }
 }
