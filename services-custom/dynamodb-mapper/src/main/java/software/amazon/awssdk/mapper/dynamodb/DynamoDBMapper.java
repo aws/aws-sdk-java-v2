@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.mapper.dynamodb.internal.DynamoDBMapperModelFactory;
 import software.amazon.awssdk.mapper.dynamodb.internal.UpdateExpressionGenerator;
@@ -77,6 +78,8 @@ import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 import com.amazonaws.services.s3.model.Region;
 
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.Validate;
+import software.amazon.awssdk.utils.builder.SdkBuilder;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -90,6 +93,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.function.Consumer;
 
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
@@ -159,7 +163,9 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * them using the {@link DynamoDBMapper} class, as in the following example.
  *
  * <pre class="brush: java">
- * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
+ * DynamoDBMapper mapper = DynamoDBMapper.builder()
+ *                                       .dynamoDbClient(dynamoDBClient)
+ *                                       .build();
  * Long hashKey = 105L;
  * double rangeKey = 1.0d;
  * TestClass obj = mapper.load(TestClass.class, hashKey, rangeKey);
@@ -174,7 +180,7 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  *
  * <pre class="brush: java">
  * DynamoDbClient dynamoDBClient = DynamoDbClient.create();
- * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient);
+ * DynamoDBMapper mapper = DynamoDBMapper.builder().dynamoDbClient(dynamoDBClient).build();
  * CreateTableRequest req = mapper.generateCreateTableRequest(TestClass.class)
  *                                .toBuilder()
  *                                // Table provision throughput is still required since it cannot be specified in your POJO
@@ -193,6 +199,24 @@ import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.Tra
  * exceptions will always be propagated as {@link SdkClientException}, and
  * DynamoDB-specific subclasses such as {@link ConditionalCheckFailedException}
  * will be used when possible.
+ * <p>
+ * {@link #builder()} is the recommended way to create a mapper. The public
+ * constructors are kept so that code ported from the v1 mapper compiles
+ * unchanged; each one has an equivalent builder form:
+ *
+ * <pre class="brush: java">
+ * // v1-style constructor
+ * DynamoDBMapper mapper = new DynamoDBMapper(dynamoDBClient, config, transformer);
+ * // equivalent builder
+ * DynamoDBMapper mapper = DynamoDBMapper.builder()
+ *                                       .dynamoDbClient(dynamoDBClient)
+ *                                       .mapperConfig(config)
+ *                                       .attributeTransformer(transformer)
+ *                                       .build();
+ * </pre>
+ * <p>
+ * The constructors that take an S3 credentials provider have no builder
+ * equivalent yet; S3Link support has not been ported to the v2 SDK.
  * <p>
  * This class is thread-safe and can be shared between threads.
  *
@@ -238,15 +262,41 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
     private static final Logger log = Logger.loggerFor(DynamoDBMapper.class);
 
+    /**
+     * Creates a builder for a {@link DynamoDBMapper}. This is the recommended
+     * way to create a mapper.
+     *
+     * <pre class="brush: java">
+     * DynamoDBMapper mapper = DynamoDBMapper.builder()
+     *                                       .dynamoDbClient(DynamoDbClient.create())
+     *                                       .mapperConfig(c -&gt; c.withSaveBehavior(SaveBehavior.CLOBBER))
+     *                                       .build();
+     * </pre>
+     *
+     * @return a new builder
+     */
+    public static Builder builder() {
+        return new DefaultBuilder();
+    }
 
+    private DynamoDBMapper(final DefaultBuilder builder) {
+        this(Validate.paramNotNull(builder.dynamoDbClient, "dynamoDbClient"),
+             builder.mapperConfig,
+             builder.attributeTransformer,
+             null);
+    }
 
     /**
      * Constructs a new mapper with the service object given, using the default
      * configuration.
+     * <p>
+     * Kept for compatibility with the v1 mapper. Prefer
+     * {@code DynamoDBMapper.builder().dynamoDbClient(dynamoDB).build()}.
      *
      * @param dynamoDB
      *            The service object to use for all service calls.
      * @see DynamoDBMapperConfig#DEFAULT
+     * @see #builder()
      */
     public DynamoDBMapper(final DynamoDbClient dynamoDB) {
         this(dynamoDB, DynamoDBMapperConfig.DEFAULT, null, null);
@@ -254,12 +304,16 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
     /**
      * Constructs a new mapper with the service object and configuration given.
+     * <p>
+     * Kept for compatibility with the v1 mapper. Prefer
+     * {@code DynamoDBMapper.builder().dynamoDbClient(dynamoDB).mapperConfig(config).build()}.
      *
      * @param dynamoDB
      *            The service object to use for all service calls.
      * @param config
      *            The default configuration to use for all service calls. It can
      *            be overridden on a per-operation basis.
+     * @see #builder()
      */
     public DynamoDBMapper(
             final DynamoDbClient dynamoDB,
@@ -289,6 +343,10 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
     /**
      * Constructs a new mapper with the given service object, configuration,
      * and transform hook.
+     * <p>
+     * Kept for compatibility with the v1 mapper. Prefer {@link #builder()} with
+     * {@link Builder#mapperConfig(DynamoDBMapperConfig)} and
+     * {@link Builder#attributeTransformer(AttributeTransformer)}.
      *
      * @param dynamoDB
      *            the service object to use for all service calls
@@ -298,6 +356,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @param transformer
      *            The custom attribute transformer to invoke when serializing or
      *            deserializing an object.
+     * @see #builder()
      */
     public DynamoDBMapper(
             final DynamoDbClient dynamoDB,
@@ -2612,4 +2671,122 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
         return delete.build();
     }
 
+    /**
+     * Builder for a {@link DynamoDBMapper}. Create one with
+     * {@link DynamoDBMapper#builder()}.
+     */
+    @NotThreadSafe
+    public interface Builder extends SdkBuilder<Builder, DynamoDBMapper> {
+
+        /**
+         * The low-level DynamoDB client the mapper uses for every service call.
+         * Required.
+         * <p>
+         * The mapper does not take ownership of the client and never closes
+         * it; the caller manages the client's lifecycle.
+         *
+         * @param dynamoDbClient an initialized {@link DynamoDbClient}
+         * @return this builder
+         */
+        Builder dynamoDbClient(DynamoDbClient dynamoDbClient);
+
+        /**
+         * The default configuration for all mapper operations. Any value it
+         * leaves unset falls back to {@link DynamoDBMapperConfig#DEFAULT}, and
+         * each value can be overridden for a single call by passing a config to
+         * that operation. Optional; defaults to {@link DynamoDBMapperConfig#DEFAULT}.
+         *
+         * @param mapperConfig the mapper-level configuration
+         * @return this builder
+         */
+        Builder mapperConfig(DynamoDBMapperConfig mapperConfig);
+
+        /**
+         * Convenience overload of {@link #mapperConfig(DynamoDBMapperConfig)}
+         * that creates the configuration with {@link DynamoDBMapperConfig#builder()}
+         * and applies the given consumer to it, avoiding the need to build it
+         * manually.
+         *
+         * <pre class="brush: java">
+         * DynamoDBMapper.builder()
+         *               .dynamoDbClient(client)
+         *               .mapperConfig(c -&gt; c.withSaveBehavior(SaveBehavior.CLOBBER)
+         *                                   .withConsistentReads(ConsistentReads.CONSISTENT))
+         *               .build();
+         * </pre>
+         *
+         * @param mapperConfig a consumer that configures a new
+         *                     {@link DynamoDBMapperConfig.Builder}
+         * @return this builder
+         */
+        default Builder mapperConfig(Consumer<DynamoDBMapperConfig.Builder> mapperConfig) {
+            DynamoDBMapperConfig.Builder builder = DynamoDBMapperConfig.builder();
+            mapperConfig.accept(builder);
+            return mapperConfig(builder.build());
+        }
+
+        /**
+         * A transformer the mapper invokes on the attribute map after an object
+         * is converted for writing and before an item is converted back into an
+         * object on read. Optional; by default no transformer is applied. Use
+         * {@link AttributeTransformerChain} to apply more than one.
+         *
+         * @param attributeTransformer the attribute transformer
+         * @return this builder
+         */
+        Builder attributeTransformer(AttributeTransformer attributeTransformer);
+
+        /**
+         * Builds a mapper from the values set on this builder.
+         *
+         * @return a new {@link DynamoDBMapper}
+         * @throws NullPointerException if {@link #dynamoDbClient(DynamoDbClient)} was not set
+         */
+        @Override
+        DynamoDBMapper build();
+    }
+
+    private static final class DefaultBuilder implements Builder {
+        private DynamoDbClient dynamoDbClient;
+        private DynamoDBMapperConfig mapperConfig;
+        private AttributeTransformer attributeTransformer;
+
+        private DefaultBuilder() {
+        }
+
+        @Override
+        public Builder dynamoDbClient(DynamoDbClient dynamoDbClient) {
+            this.dynamoDbClient = dynamoDbClient;
+            return this;
+        }
+
+        public void setDynamoDbClient(DynamoDbClient dynamoDbClient) {
+            dynamoDbClient(dynamoDbClient);
+        }
+
+        @Override
+        public Builder mapperConfig(DynamoDBMapperConfig mapperConfig) {
+            this.mapperConfig = mapperConfig;
+            return this;
+        }
+
+        public void setMapperConfig(DynamoDBMapperConfig mapperConfig) {
+            mapperConfig(mapperConfig);
+        }
+
+        @Override
+        public Builder attributeTransformer(AttributeTransformer attributeTransformer) {
+            this.attributeTransformer = attributeTransformer;
+            return this;
+        }
+
+        public void setAttributeTransformer(AttributeTransformer attributeTransformer) {
+            attributeTransformer(attributeTransformer);
+        }
+
+        @Override
+        public DynamoDBMapper build() {
+            return new DynamoDBMapper(this);
+        }
+    }
 }
