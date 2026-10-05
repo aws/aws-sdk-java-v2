@@ -17,8 +17,19 @@ package software.amazon.awssdk.regions;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertSame;
 
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.function.BooleanSupplier;
 import org.junit.Test;
 
 public class RegionTest {
@@ -94,5 +105,103 @@ public class RegionTest {
         assertThat(Region.of("aws-iso-global").id()).isEqualTo("aws-iso-global");
         assertThat(Region.of("aws-iso-b-global").id()).isEqualTo("aws-iso-b-global");
         assertThat(Region.of("aws-iso-f-global").id()).isEqualTo("aws-iso-f-global");
+    }
+
+    @Test
+    public void unreferencedCustomRegionIsCollectable() throws Exception {
+        String id = "osrs-weak-" + UUID.randomUUID();
+        WeakReference<Region> ref = createUnreferencedRegion(id);
+
+        gcUntil(() -> ref.get() == null);
+        assertThat(ref.get()).isNull();
+
+        // Trigger the expunge step so the cleared entry is removed from the cache.
+        gcUntil(() -> {
+            Region.of("osrs-weak-trigger");
+            return !regionCacheValues().containsKey(id);
+        });
+        assertThat(regionCacheValues()).doesNotContainKey(id);
+    }
+
+    @Test
+    public void manyDistinctRegionsDoNotAccumulate() throws Exception {
+        int count = 50_000;
+        String prefix = "osrs-many-" + UUID.randomUUID() + "-";
+        for (int i = 0; i < count; i++) {
+            Region.of(prefix + i);
+        }
+
+        int limit = Region.regions().size() + 1000;
+        gcUntil(() -> {
+            Region.of("osrs-many-trigger");
+            return regionCacheValues().size() < limit;
+        });
+        assertThat(regionCacheValues().size()).isLessThan(limit);
+    }
+
+    @Test
+    public void liveCustomRegionKeepsIdentity() throws Exception {
+        String id = "osrs-live-" + UUID.randomUUID();
+        Region region = Region.of(id);
+
+        for (int i = 0; i < 5; i++) {
+            System.gc();
+            byte[] garbage = new byte[1 << 20];
+            Thread.sleep(50);
+        }
+
+        assertThat(Region.of(id)).isSameAs(region);
+        assertThat(regionCacheValues()).containsKey(id);
+    }
+
+    @Test
+    public void concurrentOfCallsReturnSameInstance() throws Exception {
+        String id = "osrs-race-" + UUID.randomUUID();
+        int threads = 8;
+        CountDownLatch start = new CountDownLatch(1);
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            List<Future<Region>> futures = new ArrayList<>();
+            for (int i = 0; i < threads; i++) {
+                futures.add(executor.submit(() -> {
+                    start.await();
+                    return Region.of(id);
+                }));
+            }
+            start.countDown();
+
+            List<Region> results = new ArrayList<>();
+            for (Future<Region> future : futures) {
+                results.add(future.get(10, TimeUnit.SECONDS));
+            }
+            for (Region result : results) {
+                assertThat(result).isSameAs(results.get(0));
+            }
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
+    private static WeakReference<Region> createUnreferencedRegion(String id) {
+        return new WeakReference<>(Region.of(id));
+    }
+
+    private static void gcUntil(BooleanSupplier condition) throws InterruptedException {
+        for (int i = 0; i < 50 && !condition.getAsBoolean(); i++) {
+            System.gc();
+            byte[] garbage = new byte[1 << 20];
+            Thread.sleep(50);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, ?> regionCacheValues() {
+        try {
+            Field values = Class.forName("software.amazon.awssdk.regions.Region$RegionCache").getDeclaredField("VALUES");
+            values.setAccessible(true);
+            return (Map<String, ?>) values.get(null);
+        } catch (ReflectiveOperationException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
