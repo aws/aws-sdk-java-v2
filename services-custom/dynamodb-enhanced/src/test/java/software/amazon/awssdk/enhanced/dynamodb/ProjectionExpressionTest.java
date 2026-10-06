@@ -22,7 +22,7 @@ public class ProjectionExpressionTest {
     static {
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_attribute", "attribute");
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_Attribute", "Attribute");
-        EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_firstiteminlist[0]", "firstiteminlist[0]");
+        EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_firstiteminlist_0_", "firstiteminlist[0]");
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_March_2021", "March-2021");
         EXPECTED_ATTRIBUTE_NAMES.put("#AMZN_MAPPED_Why_Make_This_An_Attribute_Name", "Why.Make-This*An:Attribute:Name");
     }
