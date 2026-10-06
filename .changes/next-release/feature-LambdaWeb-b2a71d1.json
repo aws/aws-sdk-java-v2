@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Lambda Web",
-    "contributor": "",
-    "description": "Removes operations that are not yet generally available from the Lambda Web."
-}
