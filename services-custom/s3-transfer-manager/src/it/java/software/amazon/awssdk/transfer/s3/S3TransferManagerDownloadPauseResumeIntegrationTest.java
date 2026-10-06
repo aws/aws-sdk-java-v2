@@ -253,7 +253,8 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
         resumedFileDownload.completionFuture().join();
 
-        // The file must match the full part content
+        // For a non-multipart-uploaded object, part 1 == the full object, so comparing against
+        // sourceFile is valid.
         assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
         path.toFile().delete();
     }

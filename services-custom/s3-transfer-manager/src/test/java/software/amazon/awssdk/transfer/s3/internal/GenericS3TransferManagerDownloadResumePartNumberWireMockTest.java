@@ -16,10 +16,14 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
+import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -133,6 +137,10 @@ class GenericS3TransferManagerDownloadResumePartNumberWireMockTest {
                 fullPartContent.length, 3000 + fullPartContent.length)
             .isEqualTo(fullPartContent.length);
         assertThat(destination).hasBinaryContent(fullPartContent);
+
+        verify(getRequestedFor(urlPathEqualTo("/" + BUCKET + "/" + KEY))
+                   .withQueryParam("partNumber", equalTo(String.valueOf(PART_NUMBER)))
+                   .withoutHeader("Range"));
     }
 
     /**
@@ -175,6 +183,9 @@ class GenericS3TransferManagerDownloadResumePartNumberWireMockTest {
           .join();
 
         assertThat(destination).hasBinaryContent(fullPartContent);
+
+        verify(getRequestedFor(urlPathEqualTo("/" + BUCKET + "/" + KEY))
+                   .withHeader("Range", matching("bytes=.*")));
     }
 
     private void stubHeadObject() {
@@ -187,6 +198,7 @@ class GenericS3TransferManagerDownloadResumePartNumberWireMockTest {
 
     private void stubGetObjectWithFullPart() {
         stubFor(get(urlPathEqualTo("/" + BUCKET + "/" + KEY))
+                    .withQueryParam("partNumber", equalTo(String.valueOf(PART_NUMBER)))
                     .willReturn(aResponse().withStatus(200)
                                            .withHeader("ETag", E_TAG)
                                            .withHeader("Content-Length", String.valueOf(fullPartContent.length))

@@ -275,7 +275,6 @@ class ResumableRequestConverterTest {
         transformer.onStream(SdkPublisher.adapt(Flowable.just(ByteBuffer.wrap(fullPartContent))));
         future.get(5, TimeUnit.SECONDS);
 
-        // The file should contain exactly the full part (which would be 1500 bytes)
         assertThat(file.length()).isEqualTo(fullPartContent.length);
         assertThat(file).hasBinaryContent(fullPartContent);
     }
