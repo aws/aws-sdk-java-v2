@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.transfer.s3.internal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.fail;
 
 import com.sun.net.httpserver.Headers;
@@ -41,7 +42,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.assertj.core.api.SoftAssertions;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -193,20 +193,18 @@ class S3TransferManagerDoublePauseResumeTest {
         byte[] actual = Files.readAllBytes(destination);
         byte[] expected = Arrays.copyOfRange(CONTENT, (int) fileStart, (int) lastByte + 1);
 
-        SoftAssertions softly = new SoftAssertions();
-        softly.assertThat(firstPause.bytesTransferred())
+        assertThat(firstPause.bytesTransferred())
               .as("bytesTransferred of the first pause").isEqualTo(FIRST_PAUSE);
-        softly.assertThat(secondPause.bytesTransferred())
+        assertThat(secondPause.bytesTransferred())
               .as("bytesTransferred of the second pause").isEqualTo(SECOND_PAUSE);
-        softly.assertThat(requestedOffset(ranges, firstGetOfFirstResume))
+        assertThat(requestedOffset(ranges, firstGetOfFirstResume))
               .as("offset the first resume continued from (GETs: %s)", ranges).isEqualTo(fileStart + FIRST_PAUSE);
-        softly.assertThat(requestedOffset(ranges, firstGetOfSecondResume))
+        assertThat(requestedOffset(ranges, firstGetOfSecondResume))
               .as("offset the second resume continued from (GETs: %s)", ranges).isEqualTo(fileStart + SECOND_PAUSE);
-        softly.assertThat(firstDifference(actual, expected))
+        assertThat(firstDifference(actual, expected))
               .as("first offset at which the destination file (%d bytes) differs from the requested bytes (%d bytes)",
                   actual.length, expected.length)
               .isEqualTo(-1);
-        softly.assertAll();
     }
 
     private FileDownload track(FileDownload download) {
