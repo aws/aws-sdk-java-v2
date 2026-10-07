@@ -65,6 +65,9 @@ public abstract class PresignedRequest {
      * will fail.
      * <p/>
      * This may differ from the local clock, based on the skew between the local and AWS service clocks.
+     * <p/>
+     * If the signing credentials expire before the requested duration ends, this is capped at the credential expiration,
+     * truncated to whole seconds. No cap is applied if less than one second of the credential lifetime remains.
      */
     public Instant expiration() {
         return expiration;
