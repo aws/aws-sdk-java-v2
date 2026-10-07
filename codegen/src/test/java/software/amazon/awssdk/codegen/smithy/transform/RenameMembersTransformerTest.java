@@ -26,6 +26,7 @@ import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.DocumentationTrait;
+import software.amazon.smithy.model.traits.EndpointTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.JsonNameTrait;
@@ -82,6 +83,42 @@ class RenameMembersTransformerTest {
 
         assertThat(result.expectShape(ShapeId.from("demo#Get")).expectTrait(HttpTrait.class).getUri().toString())
             .isEqualTo("/things/{ThingId}");
+    }
+
+    @Test
+    void renamedGreedyUriLabel_keepsTheGreedyMarker() {
+        Model model = model(
+            REST_JSON_PREFIX
+            + "service DemoService { version: \"2024-01-01\", operations: [GetFile] }\n"
+            + "@readonly @http(method: \"GET\", uri: \"/files/{Path+}\")\n"
+            + "operation GetFile { input: GetFileRequest, output: GetFileResponse }\n"
+            + "structure GetFileRequest { @required @httpLabel Path: String }\n"
+            + "structure GetFileResponse {}\n");
+
+        Model result = apply(transformer, model,
+                             "{\"renamed\": {\"demo#GetFileRequest$Path\": {\"name\": \"FilePath\"}}}");
+
+        assertThat(result.expectShape(ShapeId.from("demo#GetFile")).expectTrait(HttpTrait.class).getUri().toString())
+            .isEqualTo("/files/{FilePath+}");
+    }
+
+    @Test
+    void renamedHostLabel_isRenamedInTheHostPrefix() {
+        Model model = model(
+            REST_JSON_PREFIX
+            + "service DemoService { version: \"2024-01-01\", operations: [Put] }\n"
+            + "@endpoint(hostPrefix: \"{AccountId}.\")\n"
+            + "@http(method: \"POST\", uri: \"/put\")\n"
+            + "operation Put { input: PutRequest, output: PutResponse }\n"
+            + "structure PutRequest { @required @hostLabel AccountId: String }\n"
+            + "structure PutResponse {}\n");
+
+        Model result = apply(transformer, model,
+                             "{\"renamed\": {\"demo#PutRequest$AccountId\": {\"name\": \"Account\"}}}");
+
+        assertThat(result.expectShape(ShapeId.from("demo#Put")).expectTrait(EndpointTrait.class).getHostPrefix()
+                         .toString())
+            .isEqualTo("{Account}.");
     }
 
     @Test
