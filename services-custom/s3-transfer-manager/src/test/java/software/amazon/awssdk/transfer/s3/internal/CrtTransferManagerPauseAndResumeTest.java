@@ -39,6 +39,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -229,8 +230,9 @@ class CrtTransferManagerPauseAndResumeTest {
         assertThat(newResumable.totalSizeInBytes()).isEqualTo(originalResumable.totalSizeInBytes());
         assertThat(newResumable.fileLastModified()).isEqualTo(originalResumable.fileLastModified());
 
-        // Download will be modified now that we finished the head request
-        assertThat(newResumable.downloadFileRequest()).isNotEqualTo(originalResumable.downloadFileRequest());
+        // The pause token should preserve the original download request so that
+        // double-resume computes the correct range offset
+        assertThat(newResumable.downloadFileRequest()).isEqualTo(originalResumable.downloadFileRequest());
 
         assertThat(fileDownload.completionFuture()).isCancelled();
         assertThat(getFuture).isCancelled();
@@ -323,6 +325,97 @@ class CrtTransferManagerPauseAndResumeTest {
         GetObjectRequest actualRequest = capturedGetObjectRequest();
         assertThat(actualRequest.range()).isNull();
         assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
+    }
+
+    @Test
+    void resumeDownloadFile_rangedDownload_shouldSetCorrectResumedRange() {
+        long originalRangeStart = 2048;
+        long originalRangeEnd = 6143;
+        String originalRange = "bytes=" + originalRangeStart + "-" + originalRangeEnd;
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .range(originalRange)
+                                                            .build();
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        Instant s3ObjectLastModified = Instant.now();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
+
+        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                                                                  .downloadFileRequest(downloadFileRequest)
+                                                                                  .fileLastModified(fileLastModified)
+                                                                                  .s3ObjectLastModified(s3ObjectLastModified))
+                                                        .completionFuture()
+                                                        .join();
+        assertThat(completedFileDownload.response()).isEqualTo(response);
+
+        // file.length() is 1000 bytes. Resumed range should be (2048+1000)-6143 = bytes=3048-6143
+        String expectedRange = "bytes=" + (originalRangeStart + file.length()) + "-" + originalRangeEnd;
+        verifyActualGetObjectRequest(getObjectRequest, expectedRange);
+    }
+
+    @Test
+    void resumeRangedDownload_pauseAfterHead_secondResumeShouldUseCorrectRange() {
+        long originalRangeStart = 2048;
+        long originalRangeEnd = 6143;
+        String originalRange = "bytes=" + originalRangeStart + "-" + originalRangeEnd;
+
+        GetObjectRequest rangedGetRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .range(originalRange)
+                                                            .build();
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(rangedGetRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        CompletableFuture<?> getFuture = new CompletableFuture<>();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(getFuture);
+
+        Instant s3LastModified = Instant.now();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
+
+        ResumableFileDownload firstToken = ResumableFileDownload.builder()
+                                                                .bytesTransferred(file.length())
+                                                                .downloadFileRequest(downloadFileRequest)
+                                                                .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                                                .s3ObjectLastModified(s3LastModified)
+                                                                .totalSizeInBytes(2000L)
+                                                                .build();
+
+        FileDownload firstDownload = tm.resumeDownloadFile(firstToken);
+        ResumableFileDownload pauseToken = firstDownload.pause();
+        assertThat(pauseToken.downloadFileRequest().getObjectRequest().range()).isEqualTo(originalRange);
+
+        Mockito.reset(mockS3Crt);
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
+
+        tm.resumeDownloadFile(pauseToken).completionFuture().join();
+
+        // file.length() is 1000. Expected: bytes=(2048+1000)-6143 = bytes=3048-6143
+        String expectedRange = "bytes=" + (originalRangeStart + file.length()) + "-" + originalRangeEnd;
+        verifyActualGetObjectRequest(rangedGetRequest, expectedRange);
     }
 
     private void stubGetObject() {

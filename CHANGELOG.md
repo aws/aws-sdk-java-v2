@@ -1,4 +1,17 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.12__ __2026-10-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade jackson-databind to 2.21.7
+
+  - ### Bugfixes
+    - The internal cache used by `Region.of` now holds regions weakly, so regions with no remaining references are garbage collected.
+
+## __Lambda Web__
+  - ### Features
+    - Removes operations that are not yet generally available from the Lambda Web.
+
 # __2.55.11__ __2026-10-02__
 ## __AWS Elemental MediaPackage v2__
   - ### Features
