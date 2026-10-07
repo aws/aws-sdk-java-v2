@@ -1,5 +1,147 @@
 # How the smithy-java bridge works
 
+## Design at a glance
+
+The bridge swaps the engine under the AWS SDK for Java v2 and leaves the API above it unchanged. Customer
+code and the customer's own SDK components stay the same. smithy-java's client pipeline replaces v2's
+internal request pipeline, and thin adapters plug the v2 components into it.
+
+```mermaid
+%%{init: {"flowchart": {"subGraphTitleMargin": {"top": 0, "bottom": 30}}}}%%
+flowchart LR
+    app(["Customer<br/>application"])
+
+    subgraph v2pkg["Java SDK v2"]
+        direction TB
+        subgraph client["Java SDK v2 Client"]
+            direction TB
+            bridgeClient["SmithyBridgeClient"]
+            subgraph cfg["SdkConfiguration"]
+                direction TB
+                interceptors["interceptors"]
+                creds["credentialsProvider"]
+                endpointProvider["endpointProvider"]
+                authSchemes["v2 signer"]
+                httpClient["httpClient"]
+                retryStrategy["retryStrategy"]
+            end
+        end
+        interceptorBridge["V2InterceptorBridge"]
+        identityBridge["V2IdentityResolver"]
+        endpointBridge["V2EndpointResolverBridge"]
+        signerBridge["V2SigningAuthScheme"]
+        transportBridge["V2TransportBridge"]
+    end
+
+    subgraph sjpkg["smithy-java"]
+        direction TB
+        subgraph smithyClient["<br/>SmithyClient"]
+            direction TB
+            hooks["interceptor hooks"]
+            s2["a. resolve identity"]
+            s3["b. resolve endpoint"]
+            s4["c. sign"]
+            s5["d. send"]
+            s6["e. deserialize"]
+            loop["retry loop<br/>(SdkRetryStrategy)"]
+        end
+    end
+
+    aws(("AWS<br/>service"))
+
+    app ==>|"1. getItem()"| bridgeClient
+    bridgeClient ==>|"2. call()"| hooks
+
+    interceptors -.-> interceptorBridge -.-> hooks
+    creds -.-> identityBridge -.-> s2
+    endpointProvider -.-> endpointBridge -.-> s3
+    authSchemes -.-> signerBridge -.-> s4
+    httpClient -.-> transportBridge -.-> s5
+    transportBridge -.-> s6
+    retryStrategy -.-> loop
+
+    s5 ==>|"3. HTTP"| aws
+
+    classDef bridge fill:#e8f4ea,stroke:#4a8a5a
+    class interceptorBridge,identityBridge,endpointBridge,signerBridge,transportBridge bridge
+```
+
+How to read it:
+
+- **The two large boxes show package ownership.** Everything in "Java SDK v2" ships in the v2 SDK,
+  including the green bridge classes (`core/smithy-java-bridge`). Everything in "smithy-java" is
+  smithy-java's.
+- **Solid arrows are the request flow.** The v2 client delegates each call to its `SmithyBridgeClient`
+  (a thin subclass of smithy-java's `Client`), which hands the v2 request object to smithy-java as-is;
+  smithy-java serializes it directly and runs the steps. The response is deserialized straight into the
+  v2 response object, and `SmithyBridgeClient` maps any error back to the v2 exception type.
+- **Dotted arrows are the component bridges.** Each component configured on the v2 client is wrapped by a
+  bridge that implements the matching smithy-java extension point: interceptor, identity resolver,
+  endpoint resolver, auth scheme, or transport. `V2TransportBridge` stands for both transports; async
+  clients use `V2AsyncTransportBridge` over Netty or CRT. The one exception is the retry strategy, which
+  is wrapped by `SdkRetryStrategy`, an adapter smithy-java ships.
+
+The same picture, as a before and after:
+
+```mermaid
+flowchart LR
+    subgraph today["Today: stock v2"]
+        direction TB
+        t1["v2 public API"] --> t2["v2 request pipeline<br/>marshallers, execution stages, signer"] --> t3["v2 HTTP client"]
+    end
+
+    subgraph bridged["With the bridge"]
+        direction TB
+        b1["v2 public API<br/>(same)"] --> b2["smithy-java pipeline<br/>schema serde, orchestration, retries"] --> b3["v2 HTTP client<br/>(same)"]
+        b4["v2 components<br/>credentials, endpoints, retry policy,<br/>interceptors, signer"] -.->|"plugged in"| b2
+    end
+```
+
+Who owns what:
+
+| Stays v2 (reused) | Moves to smithy-java | New bridge code |
+|---|---|---|
+| Public API, models, exceptions | Serialization and deserialization | Adapters for each reused v2 component |
+| Credential providers | Call orchestration and the retry loop | Translating errors back into v2 exceptions |
+| HTTP clients (sync and async) | SigV4 signing when no v2-only signing feature is needed (every DynamoDB call) | Timeouts and request-level overrides |
+| Endpoint rules and retry strategies | Wire protocols (awsJson, rest-xml) | The async envelope (one virtual thread per call) |
+| Interceptors, and v2's signer for calls that need it | | |
+
+smithy-java's pipeline is synchronous. The async clients get their async behavior from the bridge: each
+call parks a lightweight virtual thread until response headers arrive, while request and response bytes
+move on the HTTP client's own event loop.
+
+```mermaid
+sequenceDiagram
+    participant C as Caller
+    participant B as Bridge<br/>(virtual thread per call)
+    participant S as smithy-java pipeline
+    participant H as v2 async HTTP client<br/>(Netty or CRT)
+    C->>B: getItem(request)
+    B-->>C: CompletableFuture, returned immediately
+    B->>S: run the call
+    S->>H: send request
+    H-->>S: response headers
+    S-->>B: response
+    B-->>C: complete the future
+    Note over H,C: Body bytes stream on the HTTP client's event loop. No thread is held per request.
+```
+
+Key design choices:
+
+- **Unchanged API, new engine.** Bridging is turned on per service by a code-generation flag, currently
+  for DynamoDB and S3. Event-stream operations stay on the stock pipeline.
+- **No translation layer for data.** The generated v2 model classes are themselves smithy shapes, so
+  requests and responses are never copied into a second object model.
+- **Reuse v2 code where the behavior lives.** Credentials, endpoint rules, retry policy and interceptors
+  keep running, inside smithy-java's pipeline. So does v2's signer, for calls that need its S3-specific
+  behavior (checksums, streaming payloads); other calls use smithy-java's signer. This avoids
+  reimplementing them.
+
+---
+
+## Detailed overview
+
 The v2 public API (clients, builders, request/response POJOs, exceptions, `ExecutionInterceptor`,
 `ClientOverrideConfiguration`) is unchanged. Underneath, each generated client (sync or async) hands
 every call to a single smithy-java `Client`, which owns serialization, endpoint resolution, identity,
