@@ -27,10 +27,22 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Transforms a borrowed-buffer GetObject on the CRT client into a {@link ResponseInputStream} backed by
+ * {@link S3CrtBorrowedBufferInputStream}.
+ *
+ * <p>Body bytes arrive through the handler returned by {@link #currentAttempt()}, not through {@link #onStream}, whose
+ * publisher is drained and ignored. The returned future completes when the first body data or the completion arrives.
+ *
+ * <p>Each {@link #prepare()} starts a new attempt with its own future, stream and cancellation. There is more than one
+ * attempt only when cross-region access is enabled and S3 redirects the first request to the bucket's region.
+ * {@link #currentAttempt()} returns the handler bound to one attempt, so late callbacks from the redirected attempt cannot
+ * reach the stream of the next one. {@link #abort()} aborts the current attempt, and every later attempt starts out
+ * aborted.
+ */
 @SdkInternalApi
-final class S3CrtBorrowedBufferBlockingResponseTransformer
+public final class S3CrtBorrowedBufferBlockingResponseTransformer
     implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>>,
-    S3CrtBorrowedBufferStreamHandler,
     S3CrtBorrowedBufferStreamHandlerFactory {
 
     private final AtomicBoolean aborted = new AtomicBoolean();
@@ -59,45 +71,6 @@ final class S3CrtBorrowedBufferBlockingResponseTransformer
     @Override
     public S3CrtBorrowedBufferStreamHandler currentAttempt() {
         return currentAttemptState();
-    }
-
-    @Override
-    public void onBorrowedStreamStart(Runnable cancellationAction) {
-        currentAttemptState().onBorrowedStreamStart(cancellationAction);
-    }
-
-    @Override
-    public boolean onBorrowedBuffer(S3CrtBorrowedBuffer buffer) {
-        return currentAttemptState().onBorrowedBuffer(buffer);
-    }
-
-    @Override
-    public void onBorrowedStreamComplete() {
-        currentAttemptState().onBorrowedStreamComplete();
-    }
-
-    @Override
-    public void onBorrowedStreamError(Throwable error) {
-        Attempt attempt = currentAttempt;
-        if (attempt != null) {
-            attempt.onBorrowedStreamError(error);
-        }
-    }
-
-    @Override
-    public void onBorrowedStreamAbort() {
-        Attempt attempt = currentAttempt;
-        if (attempt != null) {
-            attempt.onBorrowedStreamAbort();
-        }
-    }
-
-    @Override
-    public void onBorrowedStreamAbort(Throwable error) {
-        Attempt attempt = currentAttempt;
-        if (attempt != null) {
-            attempt.onBorrowedStreamAbort(error);
-        }
     }
 
     void abort() {
@@ -162,7 +135,7 @@ final class S3CrtBorrowedBufferBlockingResponseTransformer
         }
 
         @Override
-        public boolean onBorrowedBuffer(S3CrtBorrowedBuffer buffer) {
+        public boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer) {
             return inputStream.onBuffer(buffer);
         }
 

@@ -30,13 +30,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.Test;
 
-class S3CrtBorrowedBufferTest {
+class S3CrtBorrowedBufferLeaseTest {
     @Test
     void consumed_releasesBeforeCreditingOriginalByteCount() {
         List<String> actions = new ArrayList<>();
         AtomicLong credited = new AtomicLong();
         ByteBuffer view = ByteBuffer.allocateDirect(3);
-        S3CrtBorrowedBuffer buffer = new S3CrtBorrowedBuffer(
+        S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(
             view, 3, () -> actions.add("release"), bytes -> {
                 actions.add("credit");
                 credited.addAndGet(bytes);
@@ -55,7 +55,7 @@ class S3CrtBorrowedBufferTest {
 
     @Test
     void buffer_afterRelease_throwsRatherThanExposingReleasedMemory() {
-        S3CrtBorrowedBuffer consumedBuffer = buffer(2, () -> {
+        S3CrtBorrowedBufferLease consumedBuffer = buffer(2, () -> {
         }, bytes -> {
         });
         consumedBuffer.buffer().get(new byte[2]);
@@ -67,7 +67,7 @@ class S3CrtBorrowedBufferTest {
             .isInstanceOf(IllegalStateException.class)
             .hasMessageContaining("after its lease was released");
 
-        S3CrtBorrowedBuffer discardedBuffer = buffer(2, () -> {
+        S3CrtBorrowedBufferLease discardedBuffer = buffer(2, () -> {
         }, bytes -> {
         });
         discardedBuffer.discard();
@@ -77,7 +77,7 @@ class S3CrtBorrowedBufferTest {
     @Test
     void buffer_doesNotShareItsCursorWithTheViewCrtHandedOut() {
         ByteBuffer crtView = ByteBuffer.allocateDirect(4);
-        S3CrtBorrowedBuffer buffer = new S3CrtBorrowedBuffer(crtView, 4, () -> {
+        S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(crtView, 4, () -> {
         }, bytes -> {
         });
 
@@ -94,7 +94,7 @@ class S3CrtBorrowedBufferTest {
     void discard_releasesWithoutCredit() {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBuffer buffer = buffer(2, releases::incrementAndGet, credited::addAndGet);
+        S3CrtBorrowedBufferLease buffer = buffer(2, releases::incrementAndGet, credited::addAndGet);
 
         buffer.discard();
         buffer.consumed();
@@ -108,7 +108,7 @@ class S3CrtBorrowedBufferTest {
     void racingTerminalOperations_chooseOnePath() throws Exception {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
-        S3CrtBorrowedBuffer buffer = buffer(4, releases::incrementAndGet, credited::addAndGet);
+        S3CrtBorrowedBufferLease buffer = buffer(4, releases::incrementAndGet, credited::addAndGet);
         ExecutorService executor = Executors.newFixedThreadPool(8);
         CountDownLatch ready = new CountDownLatch(8);
         CountDownLatch start = new CountDownLatch(1);
@@ -147,7 +147,7 @@ class S3CrtBorrowedBufferTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credited = new AtomicLong();
         RuntimeException failure = new RuntimeException("release failed");
-        S3CrtBorrowedBuffer buffer = buffer(2, () -> {
+        S3CrtBorrowedBufferLease buffer = buffer(2, () -> {
             releases.incrementAndGet();
             throw failure;
         }, credited::addAndGet);
@@ -164,7 +164,7 @@ class S3CrtBorrowedBufferTest {
     void creditFailure_occursAfterReleaseAndIsNotRetried() {
         List<String> actions = new ArrayList<>();
         RuntimeException failure = new RuntimeException("credit failed");
-        S3CrtBorrowedBuffer buffer = buffer(2, () -> actions.add("release"), bytes -> {
+        S3CrtBorrowedBufferLease buffer = buffer(2, () -> actions.add("release"), bytes -> {
             actions.add("credit");
             throw failure;
         });
@@ -176,7 +176,7 @@ class S3CrtBorrowedBufferTest {
         assertThat(actions).containsExactly("release", "credit");
     }
 
-    private static S3CrtBorrowedBuffer buffer(int size, Runnable release, java.util.function.LongConsumer credit) {
-        return new S3CrtBorrowedBuffer(ByteBuffer.allocateDirect(size), size, release, credit);
+    private static S3CrtBorrowedBufferLease buffer(int size, Runnable release, java.util.function.LongConsumer credit) {
+        return new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(size), size, release, credit);
     }
 }

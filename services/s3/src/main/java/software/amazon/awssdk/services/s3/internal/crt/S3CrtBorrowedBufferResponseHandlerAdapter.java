@@ -37,7 +37,7 @@ import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
-final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestResponseHandler {
+public final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestResponseHandler {
     private static final long USE_FIRST_CALLBACK_START = -1;
 
     private final S3CrtResponseHandlerAdapter delegate;
@@ -100,13 +100,13 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
 
     @Override
     public int onResponseBody(S3BorrowedBuffer crtBuffer, long objectRangeStart, long objectRangeEnd) {
-        S3CrtBorrowedBuffer sdkBuffer = null;
+        S3CrtBorrowedBufferLease sdkBuffer = null;
         boolean acceptedByStream = false;
         try {
             Validate.paramNotNull(crtBuffer, "crtBuffer");
             delegate.initiateResponseHandlingForBorrowedResponse();
             ByteBuffer directView = crtBuffer.asByteBuffer();
-            sdkBuffer = new S3CrtBorrowedBuffer(
+            sdkBuffer = new S3CrtBorrowedBufferLease(
                 directView,
                 directView.remaining(),
                 crtBuffer::close,
@@ -164,7 +164,7 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
     }
 
     private boolean validateAndAcceptBuffer(
-        S3CrtBorrowedBuffer buffer,
+        S3CrtBorrowedBufferLease buffer,
         long objectRangeStart,
         long objectRangeEnd) {
         synchronized (rangeLock) {
@@ -230,7 +230,7 @@ final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestRe
 
     private void failBorrowedResponse(
         Throwable failure,
-        S3CrtBorrowedBuffer sdkBuffer,
+        S3CrtBorrowedBufferLease sdkBuffer,
         S3BorrowedBuffer crtBuffer) {
         try {
             if (sdkBuffer != null) {

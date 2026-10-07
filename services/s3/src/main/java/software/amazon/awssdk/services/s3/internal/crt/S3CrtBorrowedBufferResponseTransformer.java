@@ -28,9 +28,6 @@ public final class S3CrtBorrowedBufferResponseTransformer
     implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>>,
     S3CrtBorrowedBufferResponseTransformerMarker {
 
-    private static final String UNSUPPORTED_MESSAGE =
-        "This transformer requires an S3 CRT async client with a configured direct buffer pool";
-
     @Override
     public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
         throw unsupportedOperation();
@@ -56,6 +53,7 @@ public final class S3CrtBorrowedBufferResponseTransformer
     }
 
     private static UnsupportedOperationException unsupportedOperation() {
-        return new UnsupportedOperationException(UNSUPPORTED_MESSAGE);
+        return new UnsupportedOperationException(
+            "This transformer requires an S3 CRT async client with a configured direct buffer pool");
     }
 }

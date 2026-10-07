@@ -364,7 +364,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicInteger creditCalls = new AtomicInteger();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
-        stream.onBuffer(new S3CrtBorrowedBuffer(ByteBuffer.allocateDirect(0), 0,
+        stream.onBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(0), 0,
                                               releases::incrementAndGet, bytes -> creditCalls.incrementAndGet()));
         stream.onComplete();
 
@@ -412,11 +412,11 @@ class S3CrtBorrowedBufferInputStreamTest {
         throw new AssertionError("Close thread did not block on the active read");
     }
 
-    private static S3CrtBorrowedBuffer buffer(String value, Runnable release, AtomicLong credited) {
+    private static S3CrtBorrowedBufferLease buffer(String value, Runnable release, AtomicLong credited) {
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         ByteBuffer view = ByteBuffer.allocateDirect(bytes.length);
         view.put(bytes).flip();
-        return new S3CrtBorrowedBuffer(view, bytes.length, release, credited::addAndGet);
+        return new S3CrtBorrowedBufferLease(view, bytes.length, release, credited::addAndGet);
     }
 
 }

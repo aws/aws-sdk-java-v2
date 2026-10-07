@@ -18,10 +18,10 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-interface S3CrtBorrowedBufferStreamHandler {
+public interface S3CrtBorrowedBufferStreamHandler {
     void onBorrowedStreamStart(Runnable cancellationAction);
 
-    boolean onBorrowedBuffer(S3CrtBorrowedBuffer buffer);
+    boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer);
 
     void onBorrowedStreamComplete();
 

@@ -145,6 +145,9 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
     /**
      * Configures the client-wide direct buffer pool used by the CRT-based S3 client.
      *
+     * <p>See {@link S3CrtDirectBufferPoolConfiguration} for how to size the pool when many downloads use borrowed
+     * buffers.
+     *
      * @param configuration the direct buffer pool configuration
      * @return this builder for method chaining
      */

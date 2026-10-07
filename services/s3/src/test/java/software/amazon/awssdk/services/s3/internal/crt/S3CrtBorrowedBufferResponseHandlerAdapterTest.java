@@ -50,7 +50,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         SdkAsyncHttpResponseHandler responseHandler = mock(SdkAsyncHttpResponseHandler.class);
         S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
         CompletableFuture<S3MetaRequestWrapper> metaRequestFuture = CompletableFuture.completedFuture(metaRequest);
-        AtomicReference<S3CrtBorrowedBuffer> delivered = new AtomicReference<>();
+        AtomicReference<S3CrtBorrowedBufferLease> delivered = new AtomicReference<>();
         S3CrtBorrowedBufferResponseHandlerAdapter handler =
             new S3CrtBorrowedBufferResponseHandlerAdapter(executeFuture,
                                                           responseHandler,
@@ -296,7 +296,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         AtomicLong responseBytesRead = new AtomicLong();
         S3CrtBorrowedBufferStreamHandler streamHandler = mock(S3CrtBorrowedBufferStreamHandler.class);
         when(streamHandler.onBorrowedBuffer(any())).thenAnswer(invocation -> {
-            S3CrtBorrowedBuffer buffer = invocation.getArgument(0);
+            S3CrtBorrowedBufferLease buffer = invocation.getArgument(0);
             buffer.discard();
             return false;
         });
@@ -321,7 +321,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         S3MetaRequestWrapper metaRequest = mock(S3MetaRequestWrapper.class);
         CompletableFuture<S3MetaRequestWrapper> metaRequestFuture = new CompletableFuture<>();
-        AtomicReference<S3CrtBorrowedBuffer> delivered = new AtomicReference<>();
+        AtomicReference<S3CrtBorrowedBufferLease> delivered = new AtomicReference<>();
         S3CrtBorrowedBufferResponseHandlerAdapter handler =
             new S3CrtBorrowedBufferResponseHandlerAdapter(executeFuture,
                                                           mock(SdkAsyncHttpResponseHandler.class),
@@ -457,14 +457,14 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     private static final class BlockingBufferHandler implements S3CrtBorrowedBufferStreamHandler {
         private final CountDownLatch bufferEntered = new CountDownLatch(1);
         private final CountDownLatch continueBuffer = new CountDownLatch(1);
-        private final AtomicReference<S3CrtBorrowedBuffer> buffer = new AtomicReference<>();
+        private final AtomicReference<S3CrtBorrowedBufferLease> buffer = new AtomicReference<>();
 
         @Override
         public void onBorrowedStreamStart(Runnable cancellationAction) {
         }
 
         @Override
-        public boolean onBorrowedBuffer(S3CrtBorrowedBuffer borrowedBuffer) {
+        public boolean onBorrowedBuffer(S3CrtBorrowedBufferLease borrowedBuffer) {
             buffer.set(borrowedBuffer);
             bufferEntered.countDown();
             try {
@@ -497,7 +497,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         }
 
         private void discardBuffer() {
-            S3CrtBorrowedBuffer borrowedBuffer = buffer.getAndSet(null);
+            S3CrtBorrowedBufferLease borrowedBuffer = buffer.getAndSet(null);
             if (borrowedBuffer != null) {
                 borrowedBuffer.discard();
             }
@@ -505,7 +505,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     }
 
     private static final class FailingStreamStartHandler implements S3CrtBorrowedBufferStreamHandler {
-        private final AtomicReference<S3CrtBorrowedBuffer> buffer = new AtomicReference<>();
+        private final AtomicReference<S3CrtBorrowedBufferLease> buffer = new AtomicReference<>();
         private Throwable abortError;
 
         @Override
@@ -514,7 +514,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
         }
 
         @Override
-        public boolean onBorrowedBuffer(S3CrtBorrowedBuffer borrowedBuffer) {
+        public boolean onBorrowedBuffer(S3CrtBorrowedBufferLease borrowedBuffer) {
             buffer.set(borrowedBuffer);
             return true;
         }
@@ -539,7 +539,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
 
         private void discard(Throwable error) {
             abortError = error;
-            S3CrtBorrowedBuffer borrowedBuffer = buffer.getAndSet(null);
+            S3CrtBorrowedBufferLease borrowedBuffer = buffer.getAndSet(null);
             if (borrowedBuffer != null) {
                 borrowedBuffer.discard();
             }
@@ -547,7 +547,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
     }
 
     private static S3CrtBorrowedBufferStreamHandler capturingHandler(
-        AtomicReference<S3CrtBorrowedBuffer> delivered,
+        AtomicReference<S3CrtBorrowedBufferLease> delivered,
         boolean failOnNext) {
         return new S3CrtBorrowedBufferStreamHandler() {
             @Override
@@ -555,7 +555,7 @@ class S3CrtBorrowedBufferResponseHandlerAdapterTest {
             }
 
             @Override
-            public boolean onBorrowedBuffer(S3CrtBorrowedBuffer buffer) {
+            public boolean onBorrowedBuffer(S3CrtBorrowedBufferLease buffer) {
                 if (failOnNext) {
                     throw new RuntimeException("callback failed");
                 }

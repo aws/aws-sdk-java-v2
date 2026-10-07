@@ -36,6 +36,9 @@ public final class S3AsyncResponseTransformer {
      * buffer pool configured through {@link S3CrtAsyncClientBuilder#directBufferPoolConfiguration}. Unsupported clients
      * fail before transmitting the request.
      *
+     * <p>Concurrent downloads that share a pool can stall if the pool is too small. See
+     * {@link software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration} for how to size it.
+     *
      * @return a transformer that produces a blocking response stream
      */
     public static AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>>

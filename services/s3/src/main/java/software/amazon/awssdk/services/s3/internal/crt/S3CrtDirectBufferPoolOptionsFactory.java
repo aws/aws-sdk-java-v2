@@ -21,7 +21,7 @@ import software.amazon.awssdk.crt.s3.S3DirectBufferPoolOptions;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 
 @SdkInternalApi
-final class S3CrtDirectBufferPoolOptionsFactory {
+public final class S3CrtDirectBufferPoolOptionsFactory {
     private S3CrtDirectBufferPoolOptionsFactory() {
     }
 

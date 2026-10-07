@@ -24,6 +24,15 @@ import software.amazon.awssdk.utils.Validate;
 
 /**
  * Configuration for the client-wide direct buffer pool used by the CRT-based S3 client.
+ *
+ * <p>Downloads that use
+ * {@link software.amazon.awssdk.services.s3.S3AsyncResponseTransformer#toBlockingInputStreamWithBorrowedBuffers()} hold
+ * pool memory until the application reads it. When several of these downloads share a pool smaller than the number of
+ * concurrent downloads multiplied by
+ * {@link software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder#initialReadBufferSizeInBytes(Long)}, some downloads
+ * can receive no data for a long time while others continue, and the delay grows with object size. To avoid this, size
+ * the pool to at least that product. For predictable capacity, use a {@link #fixed(long)} pool at least that large,
+ * because an {@link #auto()} pool can use a smaller effective ceiling.
  */
 @SdkPublicApi
 @Immutable

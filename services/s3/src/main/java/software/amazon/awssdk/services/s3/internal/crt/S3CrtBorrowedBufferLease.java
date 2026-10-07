@@ -21,15 +21,22 @@ import java.util.function.LongConsumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * A CRT borrowed buffer held by the SDK reader, which must be released exactly once.
+ *
+ * <p>{@link #consumed()} returns the pool memory and grows the CRT read window by {@link #byteCount()}, for a buffer whose
+ * bytes have all been read. {@link #discard()} returns the memory without growing the window. Only the first of these calls
+ * has an effect. After it, {@link #buffer()} throws, because the pool may already have given the memory to another request.
+ */
 @SdkInternalApi
-final class S3CrtBorrowedBuffer {
+public final class S3CrtBorrowedBufferLease {
     private final ByteBuffer buffer;
     private final long byteCount;
     private final Runnable releaseAction;
     private final LongConsumer readWindowAction;
     private final AtomicBoolean terminal = new AtomicBoolean();
 
-    S3CrtBorrowedBuffer(ByteBuffer buffer,
+    S3CrtBorrowedBufferLease(ByteBuffer buffer,
                         long byteCount,
                         Runnable releaseAction,
                         LongConsumer readWindowAction) {

@@ -31,8 +31,21 @@ import software.amazon.awssdk.http.Abortable;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * An {@link InputStream} that reads response data directly from CRT pooled buffers instead of copying it to the heap.
+ *
+ * <p>Data arrives as {@link S3CrtBorrowedBufferLease}s through {@link #onBuffer}, until {@link #onComplete} or
+ * {@link #onError}. Each lease holds pool memory until all of its bytes have been read. The memory is then returned to the
+ * pool and the CRT read window grows by the lease's byte count, so the download advances only as fast as the application
+ * reads.
+ *
+ * <p>A read blocks until at least one byte is available and may return fewer bytes than requested. Reads are serialized.
+ * {@link #close()} and {@link #abort()} may be called from any thread, including while a read is blocked. They release every
+ * lease still held, cancel the request if it has not finished, and make later reads throw. Leases that arrive after close
+ * are released immediately. After a read fails, every later read throws the same exception.
+ */
 @SdkInternalApi
-final class S3CrtBorrowedBufferInputStream extends InputStream implements Abortable {
+public final class S3CrtBorrowedBufferInputStream extends InputStream implements Abortable {
 
     private static final Logger log = Logger.loggerFor(S3CrtBorrowedBufferInputStream.class);
 
@@ -58,11 +71,10 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
     }
 
     private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
-    // Reads nest readLock -> terminalLock -> stateLock; close wakes blocked readers before taking readLock.
-    private final Object stateLock = new Object();
+    // Lock order: readLock, terminalLock, stateLock
     private final Object readLock = new Object();
+    private final Object stateLock = new Object();
     private final Object terminalLock = new Object();
-    private final byte[] singleByte = new byte[1];
     private final Runnable cancellationAction;
     private final AtomicReference<CloseReason> closeReason = new AtomicReference<>();
     private final AtomicBoolean cancellationStarted = new AtomicBoolean();
@@ -71,13 +83,13 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
     private volatile boolean upstreamTerminal;
     private volatile boolean complete;
     private volatile Throwable readFailure;
-    private S3CrtBorrowedBuffer current;
+    private S3CrtBorrowedBufferLease current;
 
     S3CrtBorrowedBufferInputStream(Runnable cancellationAction) {
         this.cancellationAction = Validate.paramNotNull(cancellationAction, "cancellationAction");
     }
 
-    boolean onBuffer(S3CrtBorrowedBuffer buffer) {
+    boolean onBuffer(S3CrtBorrowedBufferLease buffer) {
         Objects.requireNonNull(buffer, "buffer");
         boolean accepted;
         synchronized (stateLock) {
@@ -115,6 +127,7 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
 
     @Override
     public int read() throws IOException {
+        byte[] singleByte = new byte[1];
         int result = read(singleByte, 0, 1);
         return result < 0 ? result : singleByte[0] & 0xff;
     }
@@ -144,8 +157,8 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
                     if (event == null) {
                         return copied;
                     }
-                    if (event instanceof S3CrtBorrowedBuffer) {
-                        current = (S3CrtBorrowedBuffer) event;
+                    if (event instanceof S3CrtBorrowedBufferLease) {
+                        current = (S3CrtBorrowedBufferLease) event;
                     } else if (event == Signal.COMPLETE) {
                         complete = true;
                         return copied == 0 ? -1 : copied;
@@ -165,7 +178,7 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
                     ByteBufferReader reader = new ByteBufferReader(current);
                     copied += reader.read(destination, offset + copied, length - copied);
                     if (reader.exhausted()) {
-                        S3CrtBorrowedBuffer consumed = current;
+                        S3CrtBorrowedBufferLease consumed = current;
                         current = null;
                         try {
                             consumed.consumed();
@@ -201,6 +214,7 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
         synchronized (terminalLock) {
             synchronized (stateLock) {
                 accepting = false;
+                // Wake a reader blocked in take() while holding readLock, so we can take readLock below.
                 enqueue(Signal.CLOSED);
             }
         }
@@ -283,14 +297,14 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
     private Throwable discardQueued(Throwable failure) {
         Object event;
         while ((event = events.poll()) != null) {
-            if (event instanceof S3CrtBorrowedBuffer) {
-                failure = discard((S3CrtBorrowedBuffer) event, failure);
+            if (event instanceof S3CrtBorrowedBufferLease) {
+                failure = discard((S3CrtBorrowedBufferLease) event, failure);
             }
         }
         return failure;
     }
 
-    private static Throwable discard(S3CrtBorrowedBuffer buffer, Throwable failure) {
+    private static Throwable discard(S3CrtBorrowedBufferLease buffer, Throwable failure) {
         if (buffer != null) {
             try {
                 buffer.discard();
@@ -331,9 +345,9 @@ final class S3CrtBorrowedBufferInputStream extends InputStream implements Aborta
     }
 
     private static final class ByteBufferReader {
-        private final S3CrtBorrowedBuffer source;
+        private final S3CrtBorrowedBufferLease source;
 
-        private ByteBufferReader(S3CrtBorrowedBuffer source) {
+        private ByteBufferReader(S3CrtBorrowedBufferLease source) {
             this.source = source;
         }
 
