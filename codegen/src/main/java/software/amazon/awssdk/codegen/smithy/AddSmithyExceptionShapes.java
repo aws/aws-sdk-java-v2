@@ -26,6 +26,8 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.smithy.aws.traits.protocols.AwsQueryErrorTrait;
+import software.amazon.smithy.aws.traits.protocols.AwsQueryTrait;
+import software.amazon.smithy.aws.traits.protocols.Ec2QueryTrait;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
 import software.amazon.smithy.model.knowledge.OperationIndex;
@@ -93,7 +95,7 @@ final class AddSmithyExceptionShapes extends AddSmithyShapes implements Intermed
      * otherwise the error shape's name.
      */
     private String resolveErrorCode(StructureShape errorShape) {
-        if (protocolSupportsErrorCodeOverride()) {
+        if (protocolSupportsErrorCodeOverride() && serviceListsQueryProtocol()) {
             String override = errorShape.getTrait(AwsQueryErrorTrait.class)
                                         .map(AwsQueryErrorTrait::getCode)
                                         .orElse(null);
@@ -108,5 +110,12 @@ final class AddSmithyExceptionShapes extends AddSmithyShapes implements Intermed
         String protocol = getProtocol();
         // awsJson and rpcv2Cbor always use the shape name as the code.
         return !"json".equals(protocol) && !"smithy-rpc-v2-cbor".equals(protocol);
+    }
+
+    /**
+     * Only these services' C2J models carry the {@code @awsQueryError} code.
+     */
+    private boolean serviceListsQueryProtocol() {
+        return getService().hasTrait(AwsQueryTrait.class) || getService().hasTrait(Ec2QueryTrait.class);
     }
 }
