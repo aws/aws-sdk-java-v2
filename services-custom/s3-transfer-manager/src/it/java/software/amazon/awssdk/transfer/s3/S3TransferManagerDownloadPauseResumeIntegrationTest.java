@@ -235,6 +235,30 @@ public class S3TransferManagerDownloadPauseResumeIntegrationTest extends S3Integ
         verifyFileDownload(path, resumableFileDownload, OBJ_SIZE, tm);
     }
 
+    @ParameterizedTest
+    @MethodSource("transferManagers")
+    void pauseAndResume_partNumberSet_shouldRestartAndMatchPartContent(S3TransferManager tm) {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        DownloadFileRequest request = DownloadFileRequest.builder()
+                                                         .getObjectRequest(b -> b.bucket(BUCKET).key(KEY).partNumber(1))
+                                                         .destination(path)
+                                                         .build();
+        FileDownload download = tm.downloadFile(request);
+
+        // Pause immediately, even if the download already completed, resumeDownloadFile must not
+        // add a Range header (which S3 rejects with 400 when partNumber is set).
+        ResumableFileDownload resumableFileDownload = download.pause();
+        log.debug(() -> "Paused partNumber download: " + resumableFileDownload);
+
+        FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
+        resumedFileDownload.completionFuture().join();
+
+        // For a non-multipart-uploaded object, part 1 == the full object, so comparing against
+        // sourceFile is valid.
+        assertThat(path.toFile()).hasSameBinaryContentAs(sourceFile);
+        path.toFile().delete();
+    }
+
     private static void verifyFileDownload(Path path, ResumableFileDownload resumableFileDownload,
                                            long expectedBytesTransferred, S3TransferManager tm) {
         FileDownload resumedFileDownload = tm.resumeDownloadFile(resumableFileDownload);
