@@ -54,7 +54,7 @@ import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
  * <p>
  * This converter can read any values written by itself, or values with zero offset written by
  * {@link OffsetDateTimeAsStringAttributeConverter}, and values with zero offset and without time zone named written by
- * {@link ZoneOffsetAttributeConverter}. Offset and zoned times will be automatically converted to the
+ * {@link ZonedDateTimeAsStringAttributeConverter}. Offset and zoned times will be automatically converted to the
  * equivalent {@link Instant}.
  *
  * <p>
