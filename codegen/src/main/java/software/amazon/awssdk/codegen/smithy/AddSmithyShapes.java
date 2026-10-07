@@ -97,7 +97,7 @@ import software.amazon.smithy.rulesengine.traits.ContextParamTrait;
  *
  * <p>Event stream membership has no dedicated trait, so it is computed once
  * at construction: a union carrying {@code @streaming} is an event stream,
- * and the structures that appear as its members are events.
+ * and the structures that appear as its members are events, except errors.
  */
 abstract class AddSmithyShapes {
 
@@ -158,7 +158,9 @@ abstract class AddSmithyShapes {
             Shape target = model.expectShape(member.getTarget());
             if (target.isUnionShape() && target.hasTrait(StreamingTrait.class)) {
                 for (MemberShape eventMember : target.asUnionShape().get().members()) {
-                    events.add(eventMember.getTarget());
+                    if (!model.expectShape(eventMember.getTarget()).hasTrait(ErrorTrait.class)) {
+                        events.add(eventMember.getTarget());
+                    }
                 }
             }
         }
