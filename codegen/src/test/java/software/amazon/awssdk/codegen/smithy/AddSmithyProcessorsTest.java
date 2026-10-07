@@ -136,6 +136,7 @@ class AddSmithyProcessorsTest {
         assertThat(shapes).containsKey("PingResponse");
         assertThat(shapes.get("PingResponse").getMembers()).isEmpty();
         assertThat(shapes.get("PingResponse").getUnmarshaller()).isNotNull();
+        assertThat(shapes).doesNotContainKey("Unit");
     }
 
     @Test
@@ -271,6 +272,22 @@ class AddSmithyProcessorsTest {
 
         assertThat(shapes.get("StreamFailureException").getType()).isEqualTo(ShapeType.Exception.getValue());
         assertThat(shapes.get("StreamFailureException").getErrorCode()).isEqualTo("StreamFailure");
+    }
+
+    @Test
+    void unionMemberTargetingUnit_producesEmptyUnitShape() {
+        Model model = loadModel(
+            "service DemoService { version: \"2024-01-01\", operations: [Put] }\n"
+            + "@http(method: \"POST\", uri: \"/put\")\n"
+            + "operation Put { input: PutInput, output: Unit }\n"
+            + "structure PutInput { auth: Auth }\n"
+            + "union Auth { none: Unit, token: String }\n");
+
+        Map<String, ShapeModel> shapes = runProcessorChain(model, "rest-json");
+
+        assertThat(shapes.get("Unit").getType()).isEqualTo(ShapeType.Model.getValue());
+        assertThat(shapes.get("Unit").getMembers()).isEmpty();
+        assertThat(shapes.get("Auth").findMemberModelByC2jName("none").getC2jShape()).isEqualTo("Unit");
     }
 
     @Test
