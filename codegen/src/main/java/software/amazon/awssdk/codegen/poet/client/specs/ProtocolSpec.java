@@ -105,12 +105,24 @@ public interface ProtocolSpec {
 
         Protocol protocol = model.getMetadata().getProtocol();
 
-        if (statusCode == null
-            && (protocol == Protocol.AWS_JSON || protocol == Protocol.CBOR)) {
-            if (shapeModel.isFault()) {
-                statusCode = 500;
-            } else {
-                statusCode = 400;
+        if (statusCode == null && protocol != null) {
+            switch (protocol) {
+                case AWS_JSON:
+                case CBOR:
+                case SMITHY_RPC_V2_CBOR:
+                    if (shapeModel.isFault()) {
+                        statusCode = 500;
+                    } else {
+                        statusCode = 400;
+                    }
+                    break;
+                case EC2:
+                case QUERY:
+                case REST_XML:
+                case REST_JSON:
+                    break;
+                default:
+                    throw new RuntimeException("Don't know how to map default error status code for protocol " + protocol);
             }
         }
         return statusCode != null ? String.format(".httpStatusCode(%d)", statusCode) : "";

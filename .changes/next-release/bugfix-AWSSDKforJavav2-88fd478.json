@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fix an issue where RPCv2 error responses without an HTTP status code (for example constructed from an eventstream event) always get mapped to 400 instead of using 500 when it's a modeled as a server side fault."
+}
