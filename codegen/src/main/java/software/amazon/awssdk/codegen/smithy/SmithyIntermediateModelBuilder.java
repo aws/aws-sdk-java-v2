@@ -51,6 +51,7 @@ import software.amazon.smithy.model.knowledge.TopDownIndex;
 import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ServiceShape;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.transform.ModelTransformer;
 import software.amazon.smithy.rulesengine.traits.ClientContextParamsTrait;
 
 /**
@@ -77,7 +78,8 @@ public final class SmithyIntermediateModelBuilder {
     private final List<IntermediateModelShapeProcessor> shapeProcessors;
 
     public SmithyIntermediateModelBuilder(SmithyModels models) {
-        this.model = models.model();
+        // Shipped models still use Smithy 1.0 enums (string with @enum); the translator reads only enum shapes.
+        this.model = ModelTransformer.create().changeStringEnumsToEnumShapes(models.model(), true);
         this.service = resolveService(model);
         this.customConfig = models.customizationConfig();
         this.namingStrategy = new DefaultSmithyNamingStrategy(model, service, customConfig);
