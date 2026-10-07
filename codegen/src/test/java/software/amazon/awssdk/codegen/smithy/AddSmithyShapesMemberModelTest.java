@@ -441,6 +441,51 @@ class AddSmithyShapesMemberModelTest {
         assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("MyField");
     }
 
+    @Test
+    void xmlName_overridesLocationName_forQuery() {
+        Model model = modelOf(
+            "structure Parent {\n"
+            + "    @xmlName(\"Filter\")\n"
+            + "    filters: String\n"
+            + "}\n");
+        MemberModel mm = probe(model, "query").translate(
+            struct(model, "Parent").getMember("filters").get(), struct(model, "Parent"), null);
+
+        assertThat(mm.getHttp().getMarshallLocationName()).isEqualTo("Filter");
+        assertThat(mm.getHttp().getUnmarshallLocationName()).isEqualTo("Filter");
+    }
+
+    @Test
+    void listElementXmlName_isElementWireName_forQuery() {
+        Model model = modelOf(
+            "list TagList {\n"
+            + "    @xmlName(\"Tag\")\n"
+            + "    member: String\n"
+            + "}\n"
+            + "structure Parent { tags: TagList }\n");
+        MemberModel mm = probe(model, "query").translate(
+            struct(model, "Parent").getMember("tags").get(), struct(model, "Parent"), null);
+
+        assertThat(mm.getListModel().getMemberLocationName()).isEqualTo("Tag");
+        assertThat(mm.getListModel().getListMemberModel().getHttp().getMarshallLocationName()).isEqualTo("Tag");
+        assertThat(mm.getListModel().getListMemberModel().getHttp().getUnmarshallLocationName()).isEqualTo("Tag");
+    }
+
+    @Test
+    void listElementXmlName_isIgnored_forAwsJson() {
+        Model model = modelOf(
+            "list TagList {\n"
+            + "    @xmlName(\"item\")\n"
+            + "    member: String\n"
+            + "}\n"
+            + "structure Parent { tags: TagList }\n");
+        MemberModel mm = probe(model, "json").translate(
+            struct(model, "Parent").getMember("tags").get(), struct(model, "Parent"), null);
+
+        assertThat(mm.getListModel().getMemberLocationName()).isNull();
+        assertThat(mm.getListModel().getListMemberModel().getHttp().getMarshallLocationName()).isEqualTo("member");
+    }
+
     // ---- EC2 uppercase-first-char convention ------------------------------
 
     @Test
