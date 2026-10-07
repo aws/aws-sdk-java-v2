@@ -28,6 +28,7 @@ import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.intermediate.ShapeUnmarshaller;
 import software.amazon.awssdk.codegen.model.intermediate.VariableModel;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.smithy.aws.traits.protocols.AwsQueryTrait;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
@@ -103,8 +104,9 @@ final class AddSmithyOutputShapes extends AddSmithyShapes implements Intermediat
         ShapeUnmarshaller unmarshaller = new ShapeUnmarshaller();
         unmarshaller.setFlattened(outputShape.hasTrait(XmlFlattenedTrait.class));
         // awsQuery wraps each response in a <OperationNameResult> element, which C2J records as
-        // output.resultWrapper. ec2Query and rest-xml responses are not result-wrapped.
-        if (Protocol.QUERY.getValue().equals(getProtocol())) {
+        // output.resultWrapper, also for awsQuery services on another protocol. ec2Query and rest-xml
+        // responses are not result-wrapped.
+        if (Protocol.QUERY.getValue().equals(getProtocol()) || getService().hasTrait(AwsQueryTrait.class)) {
             unmarshaller.setResultWrapper(op.toShapeId().getName() + "Result");
         }
         return unmarshaller;

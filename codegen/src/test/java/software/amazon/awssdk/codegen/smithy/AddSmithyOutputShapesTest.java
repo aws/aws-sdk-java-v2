@@ -74,6 +74,15 @@ class AddSmithyOutputShapesTest {
     }
 
     @Test
+    void serviceListingAwsQuery_setsResultWrapper_underAnotherProtocol() {
+        Model model = modelOf(
+            "use aws.protocols#awsQuery\nuse smithy.protocols#rpcv2Cbor\n",
+            "@rpcv2Cbor\n@awsQuery\n@xmlNamespace(uri: \"https://demo.amazonaws.com/doc/2024-01-01/\")\n");
+        assertThat(outputs(model, "smithy-rpc-v2-cbor").get("OpResponse").getUnmarshaller().getResultWrapper())
+            .isEqualTo("OpResult");
+    }
+
+    @Test
     void ec2Query_hasNoResultWrapper() {
         // ec2Query responses are not result-wrapped; the ec2 C2J models carry no resultWrapper.
         Model model = modelOf(
