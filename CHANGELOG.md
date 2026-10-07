@@ -1,4 +1,95 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.12__ __2026-10-06__
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade jackson-databind to 2.21.7
+
+  - ### Bugfixes
+    - The internal cache used by `Region.of` now holds regions weakly, so regions with no remaining references are garbage collected.
+
+## __Lambda Web__
+  - ### Features
+    - Removes operations that are not yet generally available from the Lambda Web.
+
+# __2.55.11__ __2026-10-02__
+## __AWS Elemental MediaPackage v2__
+  - ### Features
+    - Dynamic Multiview enables viewers to watch multiple live video streams in a single combined output. Static filter configuration allows users to configure endpoints with layouts and sources without using query parameters. The number of sources per multiview channel has been increased to 50.
+
+## __AWS Glue__
+  - ### Features
+    - Added refresh token grant type to Glue Connection supported OAuth 2.0 grant types
+
+## __AWS Invoicing__
+  - ### Features
+    - API and doc updates related to adding MarketplacePunchOutEnabled and MarketplacePunchOutPreference fields to ProcurementPortalPreferences related APIs
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Added opt-in GZIPInputStream compatibility for blocking response streams to prevent concatenated (multi-member) gzip responses from being truncated when available() temporarily returns 0 at a member boundary. Enable it with ResponseTransformer.toGzipCompatibleInputStream() or AsyncResponseTransformer.toGzipCompatibleBlockingInputStream().
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds trigger filters that control which pull request events, target branches, and labels start an automatic code review.
+
+## __Amazon Cognito Identity Provider__
+  - ### Features
+    - Amazon Cognito User Pools now supports the OIDC-standard authentication context class reference (ACR) and authentication methods reference (AMR) claims on issued access and Id tokens. Amazon Cognito User Pools also now supports step-up authentication via our existing authentication APIs.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - AWS End User Messaging SMS CarrierLookup API now supports phone number cleansing on customer opt-in. when selected, the response includes the additional field "OriginalPhoneNumber". It can also return additional PhoneNumberType enums, VOIP and PREPAID.
+
+## __Lambda Web__
+  - ### Features
+    - Documentation update for AWS Lambda Web Functions, clarifies that the LambdaWeb APIs are experimental and not yet available to external customers.
+
+# __2.55.10__ __2026-10-01__
+## __AWS End User Messaging__
+  - ### Features
+    - AWS End User Messaging now supports Brand profiles and Notify code configurations. Brand profiles capture your sender details once to reuse across phone number registrations. Notify code configurations let you define your OTP policy and delivery settings to send passcodes in minutes.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - Adds DescribeServiceLifecycle operation returning lifecycle information for AWS services, including end-of-support dates, version recommendations, and lifecycle events.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adds GetRemediationsV2 and ListExposuresByRemediationV2 APIs. This feature allows customers to see their highest priority remediations for their Exposure findings. Remediations target key changes customers can make to resources to drive finding resolution.
+
+## __AWS Transfer Family__
+  - ### Features
+    - AWS Transfer Family Workflows adds support for the structuredLogDestinations option, enabling customers to specify a custom Amazon CloudWatch Logs log group for managed workflow execution logs.
+
+## __Agents for Amazon Bedrock__
+  - ### Features
+    - Adds an optional textReadyAt field to ListIngestionJobs and GetIngestionJob for Managed Knowledge Bases data source sync jobs. The field denotes the timestamp at which all the documents in the scope of a sync job had their text content indexed and are available for retrieval.
+
+## __Amazon CloudFront__
+  - ### Features
+    - Added always-amz-auth as a supported signing behavior for Origin Access Control (OAC), enabling CloudFront to authenticate requests to Lambda-Web origins.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - This release launches the AMI tag sharing feature, which lets AMI owners share tags alongside their AMIs, eliminating the need to build and maintain custom tag replication workflows.
+
+## __Amazon QuickSight__
+  - ### Features
+    - This release adds HierarchyFilter support for Amazon QuickSight analysis and dashboard and 2 legged OAuth for databricks datasources.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Release support for c8a.16xlarge and m8a.16xlarge instance types for SageMaker HyperPod
+
+## __Lambda Web__
+  - ### Features
+    - Lambda Web Functions GA launch. Lambda Web Functions enable customers to run web applications and API backends
+
 # __2.55.9__ __2026-09-30__
 ## __AWS Account__
   - ### Features
