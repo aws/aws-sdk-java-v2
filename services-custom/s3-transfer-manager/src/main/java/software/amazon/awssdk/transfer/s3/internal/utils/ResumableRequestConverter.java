@@ -86,6 +86,15 @@ public final class ResumableRequestConverter {
                                                             originalDownloadRequest,
                                                             getObjectRequest,
                                                             headObjectResponse);
+        if (newDownloadFileRequest == null) {
+            log.debug(() -> "Could not compute resumed range for the original range '"
+                            + getObjectRequest.range()
+                            + "'. The SDK will re-download the object from the beginning.");
+            newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+                fileAsyncResponseTransformer(newDownloadFileRequest, false);
+            return Pair.of(newDownloadFileRequest, responseTransformer);
+        }
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             fileAsyncResponseTransformer(newDownloadFileRequest, true);
         return Pair.of(newDownloadFileRequest, responseTransformer);
@@ -139,8 +148,15 @@ public final class ResumableRequestConverter {
         }
 
         log.debug(() -> "Resuming the paused download with a range GET for the remaining bytes.");
-        return resumedDownloadFileRequest(resumableFileDownload, originalDownloadRequest, getObjectRequest,
-                                          headObjectResponse);
+        DownloadFileRequest resumed = resumedDownloadFileRequest(resumableFileDownload, originalDownloadRequest,
+                                                                  getObjectRequest, headObjectResponse);
+        if (resumed == null) {
+            log.debug(() -> "Could not compute resumed range for the original range '"
+                            + getObjectRequest.range()
+                            + "'. The SDK will re-download the object from the beginning.");
+            return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+        }
+        return resumed;
     }
 
     private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {
@@ -206,18 +222,100 @@ public final class ResumableRequestConverter {
                                                                   DownloadFileRequest downloadRequest,
                                                                   GetObjectRequest getObjectRequest,
                                                                   HeadObjectResponse headObjectResponse) {
-        DownloadFileRequest newDownloadFileRequest;
         long bytesTransferred = resumableFileDownload.bytesTransferred();
+        String resumedRange = computeResumedRange(getObjectRequest.range(), bytesTransferred,
+                                                  headObjectResponse.contentLength());
+
+        if (resumedRange == null) {
+            return null;
+        }
+
         GetObjectRequest newGetObjectRequest =
             getObjectRequest.toBuilder()
                             .ifUnmodifiedSince(headObjectResponse.lastModified())
-                            .range("bytes=" + bytesTransferred + "-" + headObjectResponse.contentLength())
+                            .range(resumedRange)
                             .build();
 
-        newDownloadFileRequest = downloadRequest.toBuilder()
-                                                .getObjectRequest(newGetObjectRequest)
-                                                .build();
-        return newDownloadFileRequest;
+        return downloadRequest.toBuilder()
+                              .getObjectRequest(newGetObjectRequest)
+                              .build();
+    }
+
+    /**
+     * Returns {@code true} if the original request has a range that cannot be safely resumed.
+     */
+    public static boolean hasUnresumableRange(DownloadFileRequest downloadRequest, long bytesTransferred,
+                                              long contentLength) {
+        String range = downloadRequest.getObjectRequest().range();
+        if (range == null) {
+            return false;
+        }
+        long[] parsed = parseRange(range, contentLength);
+        if (parsed == null) {
+            return true;
+        }
+        long resumedStart = parsed[0] + bytesTransferred;
+        return resumedStart > parsed[1];
+    }
+
+    /**
+     * Computes the Range header for a resumed download. Returns {@code null} if the original range
+     * cannot be parsed and the download should restart from the beginning.
+     */
+    private static String computeResumedRange(String originalRange, long bytesTransferred, long contentLength) {
+        if (originalRange != null) {
+            long[] parsedRange = parseRange(originalRange, contentLength);
+            if (parsedRange != null) {
+                long originalStart = parsedRange[0];
+                long originalEnd = parsedRange[1];
+                long resumedStart = originalStart + bytesTransferred;
+                if (resumedStart > originalEnd) {
+                    return null;
+                }
+                return "bytes=" + resumedStart + "-" + originalEnd;
+            }
+            // Range was present but could not be parsed (multi-range or malformed).
+            // We cannot safely compute the resumed offset, so signal the caller to restart from the beginning.
+            return null;
+        }
+        return "bytes=" + bytesTransferred + "-" + contentLength;
+    }
+
+    /**
+     * Parses a "bytes=start-end", "bytes=start-", or "bytes=-suffix" range header into [start, end].
+     * Open-ended ranges use contentLength - 1 as the end.
+     * Suffix ranges are resolved to absolute offsets using contentLength.
+     * Returns null for multi-range values or malformed input.
+     */
+    private static long[] parseRange(String range, long contentLength) {
+        if (range == null || !range.startsWith("bytes=")) {
+            return null;
+        }
+        String rangeValue = range.substring("bytes=".length());
+        int dashIndex = rangeValue.indexOf('-');
+        if (dashIndex < 0) {
+            return null;
+        }
+        if (dashIndex == 0) {
+            try {
+                long suffixLength = Long.parseLong(rangeValue.substring(1));
+                if (suffixLength <= 0) {
+                    return null;
+                }
+                long start = contentLength - suffixLength;
+                return new long[]{Math.max(0, start), contentLength - 1};
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        try {
+            long start = Long.parseLong(rangeValue.substring(0, dashIndex));
+            String endPart = rangeValue.substring(dashIndex + 1);
+            long end = endPart.isEmpty() ? contentLength - 1 : Long.parseLong(endPart);
+            return new long[]{start, end};
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static DownloadFileRequest newDownloadFileRequest(DownloadFileRequest originalDownloadRequest,
