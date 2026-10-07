@@ -15,8 +15,11 @@
 
 package software.amazon.awssdk.codegen.smithy;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import software.amazon.awssdk.codegen.IntermediateModelShapeProcessor;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
@@ -30,15 +33,20 @@ import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
 import software.amazon.smithy.model.knowledge.OperationIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
+import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ServiceShape;
+import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StructureShape;
+import software.amazon.smithy.model.traits.ErrorTrait;
 import software.amazon.smithy.model.traits.HttpErrorTrait;
+import software.amazon.smithy.model.traits.StreamingTrait;
 
 /**
  * Builds an exception {@link ShapeModel} for every error shape referenced by a reachable
- * operation. An error shared by several operations is translated once.
+ * operation or by an event stream in an operation's input or output. An error shared by several
+ * operations is translated once.
  */
 final class AddSmithyExceptionShapes extends AddSmithyShapes implements IntermediateModelShapeProcessor {
 
@@ -72,20 +80,56 @@ final class AddSmithyExceptionShapes extends AddSmithyShapes implements Intermed
                     continue;
                 }
 
-                ShapeModel shapeModel = generateShapeModel(javaClassName, errorShape,
-                                                           httpBindingsHonored()
-                                                               ? bindingIndex.getResponseBindings(errorId)
-                                                               : Collections.emptyMap());
-                shapeModel.setType(ShapeType.Exception.getValue());
-                shapeModel.setErrorCode(resolveErrorCode(errorShape));
-                errorShape.getTrait(HttpErrorTrait.class)
-                          .ifPresent(t -> shapeModel.setHttpStatusCode(t.getCode()));
-
-                shapes.put(javaClassName, shapeModel);
+                shapes.put(javaClassName, exceptionShapeModel(javaClassName, errorShape, bindingIndex));
             }
         }
 
+        // Errors that appear only in an event stream are not listed by any operation.
+        for (StructureShape errorShape : eventStreamErrors(topDown)) {
+            String javaClassName = naming.getExceptionName(errorShape.getId().getName());
+            if (shapes.containsKey(javaClassName) || currentShapes.containsKey(javaClassName)) {
+                continue;
+            }
+            shapes.put(javaClassName, exceptionShapeModel(javaClassName, errorShape, bindingIndex));
+        }
+
         return shapes;
+    }
+
+    private ShapeModel exceptionShapeModel(String javaClassName,
+                                           StructureShape errorShape,
+                                           HttpBindingIndex bindingIndex) {
+        ShapeModel shapeModel = generateShapeModel(javaClassName, errorShape,
+                                                   httpBindingsHonored()
+                                                       ? bindingIndex.getResponseBindings(errorShape.getId())
+                                                       : Collections.emptyMap());
+        shapeModel.setType(ShapeType.Exception.getValue());
+        shapeModel.setErrorCode(resolveErrorCode(errorShape));
+        errorShape.getTrait(HttpErrorTrait.class)
+                  .ifPresent(t -> shapeModel.setHttpStatusCode(t.getCode()));
+        return shapeModel;
+    }
+
+    private List<StructureShape> eventStreamErrors(TopDownIndex topDown) {
+        Model model = getModel();
+        List<StructureShape> errors = new ArrayList<>();
+        for (OperationShape op : topDown.getContainedOperations(getService())) {
+            for (ShapeId ioShape : Arrays.asList(op.getInputShape(), op.getOutputShape())) {
+                for (MemberShape member : model.expectShape(ioShape).members()) {
+                    Shape target = model.expectShape(member.getTarget());
+                    if (!target.isUnionShape() || !target.hasTrait(StreamingTrait.class)) {
+                        continue;
+                    }
+                    for (MemberShape streamMember : target.members()) {
+                        model.expectShape(streamMember.getTarget())
+                             .asStructureShape()
+                             .filter(shape -> shape.hasTrait(ErrorTrait.class))
+                             .ifPresent(errors::add);
+                    }
+                }
+            }
+        }
+        return errors;
     }
 
     /**

@@ -255,6 +255,25 @@ class AddSmithyProcessorsTest {
     }
 
     @Test
+    void eventStreamOnlyError_producesExceptionShape() {
+        Model model = loadModel(
+            "service DemoService { version: \"2024-01-01\", operations: [Subscribe] }\n"
+            + "@http(method: \"POST\", uri: \"/subscribe\")\n"
+            + "operation Subscribe { input: Unit, output: SubscribeOutput }\n"
+            + "structure SubscribeOutput { @httpPayload events: Events }\n"
+            + "@streaming\n"
+            + "union Events { tick: Tick, failure: StreamFailure }\n"
+            + "structure Tick { seq: Integer }\n"
+            + "@error(\"server\")\n"
+            + "structure StreamFailure { message: String }\n");
+
+        Map<String, ShapeModel> shapes = runProcessorChain(model, "rest-json");
+
+        assertThat(shapes.get("StreamFailureException").getType()).isEqualTo(ShapeType.Exception.getValue());
+        assertThat(shapes.get("StreamFailureException").getErrorCode()).isEqualTo("StreamFailure");
+    }
+
+    @Test
     void modelShapesProcessor_skipsShapesUnreferencedByOperations() {
         Model model = loadModel(
             "service DemoService { version: \"2024-01-01\", operations: [GetOne] }\n"
