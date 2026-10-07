@@ -24,8 +24,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,11 +43,18 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.EmptyPublisher;
+import software.amazon.awssdk.core.async.ResponsePublisher;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.core.protocol.VoidSdkResponse;
 import software.amazon.awssdk.core.retry.RetryPolicy;
@@ -167,6 +176,52 @@ public class AsyncClientHandlerTest {
         verifyNoMoreInteractions(responseHandler); // Response handler is not called
     }
 
+    @Test
+    public void afterExecutionThrows_streamingResponse_abortsHttpRequestAndPreservesInterceptorFailure() throws Exception {
+        RuntimeException interceptorException = new RuntimeException("interceptor failure");
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context,
+                                       ExecutionAttributes executionAttributes) {
+                throw interceptorException;
+            }
+        };
+        SdkAsyncClientHandler handler =
+            new SdkAsyncClientHandler(clientConfiguration().toBuilder()
+                                                           .option(SdkClientOption.EXECUTION_INTERCEPTORS,
+                                                                   Collections.singletonList(interceptor))
+                                                           .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
+                                                                   Runnable::run)
+                                                           .build());
+        CompletableFuture<Void> activeHttpRequest = new CompletableFuture<>();
+        ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
+        RecordingPublisherTransformer transformer = new RecordingPublisherTransformer();
+
+        expectRetrievalFromMocks();
+        when(httpClient.execute(executeRequest.capture())).thenAnswer(invocation -> {
+            AsyncExecuteRequest request = invocation.getArgument(0);
+            activeHttpRequest.whenComplete((ignored, failure) -> {
+                if (failure != null) {
+                    request.responseHandler().onError(failure);
+                }
+            });
+            return activeHttpRequest;
+        });
+        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
+
+        CompletableFuture<ResponsePublisher<SdkResponse>> responseFuture =
+            handler.execute(clientExecutionParams(), transformer);
+        SdkAsyncHttpResponseHandler capturedHandler = executeRequest.getValue().responseHandler();
+        capturedHandler.onHeaders(SdkHttpFullResponse.builder().statusCode(200).build());
+        capturedHandler.onStream(new EmptyPublisher<>());
+
+        assertThatThrownBy(() -> responseFuture.get(1, TimeUnit.SECONDS))
+            .hasRootCause(interceptorException);
+        assertThat(activeHttpRequest).isCompletedExceptionally();
+        assertThat(transformer.failure).isSameAs(interceptorException);
+        assertThat(transformer.failureCount).isEqualTo(1);
+    }
+
     private void expectRetrievalFromMocks() {
         when(marshaller.marshall(request)).thenReturn(marshalledRequest);
     }
@@ -187,5 +242,36 @@ public class AsyncClientHandlerTest {
                             .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
             .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE, exec)
                             .build();
+    }
+
+    private static final class RecordingPublisherTransformer
+        implements AsyncResponseTransformer<SdkResponse, ResponsePublisher<SdkResponse>> {
+
+        private final AsyncResponseTransformer<SdkResponse, ResponsePublisher<SdkResponse>> delegate =
+            AsyncResponseTransformer.toPublisher(Duration.ZERO);
+        private Throwable failure;
+        private int failureCount;
+
+        @Override
+        public CompletableFuture<ResponsePublisher<SdkResponse>> prepare() {
+            return delegate.prepare();
+        }
+
+        @Override
+        public void onResponse(SdkResponse response) {
+            delegate.onResponse(response);
+        }
+
+        @Override
+        public void onStream(SdkPublisher<ByteBuffer> publisher) {
+            delegate.onStream(publisher);
+        }
+
+        @Override
+        public void exceptionOccurred(Throwable error) {
+            failure = error;
+            failureCount++;
+            delegate.exceptionOccurred(error);
+        }
     }
 }

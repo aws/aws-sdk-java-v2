@@ -21,6 +21,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.common.FileSource;
@@ -48,8 +49,12 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtAsyncHttpClient;
 import software.amazon.awssdk.http.crt.AwsCrtHttpClient;
@@ -58,6 +63,7 @@ import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 import software.amazon.awssdk.utils.IoUtils;
@@ -75,9 +81,11 @@ class GetObjectResponseInputStreamConnectionManagementTest {
 
     private static final String BUCKET = "test-bucket";
     private static final String KEY = "test-key";
+    private static final String INTERCEPTOR_FAILURE_MESSAGE = "Interceptor failure";
     private static final byte[] LARGE_BODY = new byte[24 * 1024 * 1024];
     private static final byte[] SMALL_BODY = "hello".getBytes();
     private static final Duration CONNECTION_ACQUIRE_TIMEOUT = Duration.ofSeconds(5);
+    private static final Duration MAX_INTERCEPTOR_FAILURE_LATENCY = Duration.ofSeconds(5);
 
     private static StaticCredentialsProvider credentials() {
         return StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret"));
@@ -136,6 +144,99 @@ class GetObjectResponseInputStreamConnectionManagementTest {
                          AwsCrtAsyncHttpClient.builder().connectionAcquisitionTimeout(CONNECTION_ACQUIRE_TIMEOUT)
                                               .maxConcurrency(1).build())
         );
+    }
+
+    static Stream<Arguments> interceptorFailureSyncHttpClients() {
+        return Stream.of(
+            Arguments.of("Apache4",
+                         ApacheHttpClient.builder().connectionAcquisitionTimeout(CONNECTION_ACQUIRE_TIMEOUT)
+                                         .maxConnections(1).build()),
+            Arguments.of("Apache5",
+                         Apache5HttpClient.builder().connectionAcquisitionTimeout(CONNECTION_ACQUIRE_TIMEOUT)
+                                          .maxConnections(1).build()),
+            Arguments.of("UrlConnection",
+                         UrlConnectionHttpClient.builder().build()),
+            Arguments.of("CrtSync",
+                         AwsCrtHttpClient.builder().connectionAcquisitionTimeout(CONNECTION_ACQUIRE_TIMEOUT)
+                                         .maxConcurrency(1).build())
+        );
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("interceptorFailureSyncHttpClients")
+    void syncGetObject_afterTransmissionThrows_doesNotWaitForResponseBodyDrain(
+            String name, SdkHttpClient httpClient, WireMockRuntimeInfo wm) {
+        stubSlowGetAndHead();
+
+        ExecutionInterceptor throwingInterceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterTransmission(Context.AfterTransmission context,
+                                          ExecutionAttributes executionAttributes) {
+                throw new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+            }
+        };
+
+        try (S3Client s3 = S3Client.builder()
+                                   .httpClient(httpClient)
+                                   .region(Region.US_EAST_1)
+                                   .endpointOverride(URI.create(wm.getHttpBaseUrl()))
+                                   .forcePathStyle(true)
+                                   .credentialsProvider(credentials())
+                                   .overrideConfiguration(c -> c.addExecutionInterceptor(throwingInterceptor))
+                                   .build()) {
+
+            long start = System.nanoTime();
+            assertThatThrownBy(() -> s3.getObject(r -> r.bucket(BUCKET).key(KEY)))
+                .isExactlyInstanceOf(RuntimeException.class)
+                .hasMessage(INTERCEPTOR_FAILURE_MESSAGE);
+            Duration elapsed = Duration.ofNanos(System.nanoTime() - start);
+
+            assertThat(elapsed)
+                .as("%s interceptor failure latency", name)
+                .isLessThan(MAX_INTERCEPTOR_FAILURE_LATENCY);
+        }
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("asyncHttpClients")
+    @Timeout(30)
+    void asyncGetObject_afterExecutionThrows_abortsRequestWithoutWaitingForResponseBody(
+            String name, SdkAsyncHttpClient httpClient, WireMockRuntimeInfo wm) {
+        stubSlowGetAndHead();
+
+        RuntimeException interceptorException = new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+        ExecutionInterceptor throwingInterceptor = new ExecutionInterceptor() {
+            @Override
+            public void afterExecution(Context.AfterExecution context,
+                                       ExecutionAttributes executionAttributes) {
+                if (context.request() instanceof GetObjectRequest) {
+                    throw interceptorException;
+                }
+            }
+        };
+
+        try (S3AsyncClient s3 = S3AsyncClient.builder()
+                                             .httpClient(httpClient)
+                                             .region(Region.US_EAST_1)
+                                             .endpointOverride(URI.create(wm.getHttpBaseUrl()))
+                                             .forcePathStyle(true)
+                                             .credentialsProvider(credentials())
+                                             .overrideConfiguration(c -> c.addExecutionInterceptor(throwingInterceptor))
+                                             .build()) {
+
+            long start = System.nanoTime();
+            assertThatThrownBy(() -> s3.getObject(r -> r.bucket(BUCKET).key(KEY),
+                                                 AsyncResponseTransformer.toPublisher()).join())
+                .hasRootCause(interceptorException);
+            Duration elapsed = Duration.ofNanos(System.nanoTime() - start);
+
+            assertThat(elapsed)
+                .as("%s interceptor failure latency", name)
+                .isLessThan(MAX_INTERCEPTOR_FAILURE_LATENCY);
+
+            HeadObjectResponse headResponse = s3.headObject(r -> r.bucket(BUCKET).key(KEY)).join();
+            assertThat(headResponse.sdkHttpResponse().isSuccessful()).isTrue();
+        }
     }
 
     @ParameterizedTest(name = "{0}")
