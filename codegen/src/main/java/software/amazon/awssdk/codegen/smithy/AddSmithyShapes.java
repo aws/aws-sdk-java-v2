@@ -62,6 +62,7 @@ import software.amazon.smithy.model.traits.EventHeaderTrait;
 import software.amazon.smithy.model.traits.EventPayloadTrait;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.IdempotencyTokenTrait;
+import software.amazon.smithy.model.traits.MediaTypeTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.model.traits.RequiresLengthTrait;
 import software.amazon.smithy.model.traits.RetryableTrait;
@@ -420,6 +421,12 @@ abstract class AddSmithyShapes {
         memberModel.setRequired(member.hasTrait(RequiredTrait.class));
 
         memberModel.setSensitive(isSensitive(member, targetShape));
+
+        // C2J's jsonvalue, which the Smithy models carry as @mediaType("application/json").
+        memberModel.setJsonValue(targetShape.isStringShape()
+                                 && targetShape.getTrait(MediaTypeTrait.class)
+                                               .map(mediaType -> "application/json".equals(mediaType.getValue()))
+                                               .orElse(false));
 
         if (member.hasTrait(IdempotencyTokenTrait.class)) {
             if (!variableType.equals(String.class.getSimpleName())) {

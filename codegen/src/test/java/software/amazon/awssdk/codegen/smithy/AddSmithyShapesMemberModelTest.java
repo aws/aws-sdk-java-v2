@@ -216,6 +216,22 @@ class AddSmithyShapesMemberModelTest {
     // ---- Idempotency token ------------------------------------------------
 
     @Test
+    void jsonMediaTypeTarget_setsJsonValue() {
+        Model model = modelOf(
+            "@mediaType(\"application/json\")\n"
+            + "string Policy\n"
+            + "@mediaType(\"text/plain\")\n"
+            + "string Note\n"
+            + "structure Parent { policy: Policy, note: Note }\n");
+        Probe probe = probe(model, "rest-json");
+
+        assertThat(probe.translate(struct(model, "Parent").getMember("policy").get(), struct(model, "Parent"), null)
+                        .isJsonValue()).isTrue();
+        assertThat(probe.translate(struct(model, "Parent").getMember("note").get(), struct(model, "Parent"), null)
+                        .isJsonValue()).isFalse();
+    }
+
+    @Test
     void idempotencyToken_onStringMember_isMarked() {
         Model model = modelOf(
             "structure Parent {\n"
