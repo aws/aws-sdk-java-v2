@@ -60,8 +60,10 @@ public final class ResumableRequestConverter {
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;
 
-        if (!canResumeDownload(resumableFileDownload, headObjectResponse)) {
-            // modification detected: new download request for the whole object from the beginning
+        // partNumber and Range cannot coexist, S3 rejects with 400 InvalidRequest.
+        // When partNumber is set, restart the part download from the beginning with CREATE_OR_REPLACE
+        if (getObjectRequest.partNumber() != null
+            || !canResumeDownload(resumableFileDownload, headObjectResponse)) {
             newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
 
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =

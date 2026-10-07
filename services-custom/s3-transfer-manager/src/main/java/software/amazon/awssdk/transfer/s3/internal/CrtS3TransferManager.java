@@ -197,7 +197,8 @@ class CrtS3TransferManager extends GenericS3TransferManager {
                                            || hasCompletedParts(resumableFileDownload)
                                            || hasUnresumableRange(originalDownloadRequest,
                                                                   resumableFileDownload.bytesTransferred(),
-                                                                  headObjectResponse.contentLength());
+                                                                  headObjectResponse.contentLength())
+                                           || getObjectRequest.partNumber() != null;
 
             DownloadFileRequest newDownloadFileRequest = toCrtDownloadFileRequest(resumableFileDownload, headObjectResponse,
                                                                                  originalDownloadRequest,
