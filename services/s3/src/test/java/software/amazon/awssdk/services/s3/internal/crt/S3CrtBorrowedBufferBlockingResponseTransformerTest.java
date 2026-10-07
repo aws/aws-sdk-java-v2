@@ -221,6 +221,22 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
     }
 
     @Test
+    void exceptionOccurredAfterPublication_shouldRemainVisibleToReader() throws Exception {
+        RuntimeException failure = new RuntimeException("request failed");
+        S3CrtBorrowedBufferBlockingResponseTransformer transformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        CompletableFuture<ResponseInputStream<GetObjectResponse>> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+        transformer.currentAttempt().onBorrowedStreamStart(() -> { });
+
+        try (ResponseInputStream<GetObjectResponse> stream = future.join()) {
+            transformer.exceptionOccurred(failure);
+
+            assertThatThrownBy(stream::read).isInstanceOf(IOException.class).hasCause(failure);
+        }
+    }
+
+    @Test
     void remoteErrorAfterPublication_shouldLeaveAcceptedBytesReadableBeforeFailing() throws Exception {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credit = new AtomicLong();

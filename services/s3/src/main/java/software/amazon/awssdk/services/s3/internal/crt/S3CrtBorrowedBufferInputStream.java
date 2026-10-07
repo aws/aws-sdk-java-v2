@@ -32,17 +32,16 @@ import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * An {@link InputStream} that reads response data directly from CRT pooled buffers instead of copying it to the heap.
+ * An {@link InputStream} that reads CRT pooled buffers, delivered as {@link S3CrtBorrowedBufferLease}s.
  *
- * <p>Data arrives as {@link S3CrtBorrowedBufferLease}s through {@link #onBuffer}, until {@link #onComplete} or
- * {@link #onError}. Each lease holds pool memory until all of its bytes have been read. The memory is then returned to the
- * pool and the CRT read window grows by the lease's byte count, so the download advances only as fast as the application
- * reads.
+ * <p>Fully reading a lease returns its memory to the pool and credits the CRT read window by its byte count.
  *
- * <p>A read blocks until at least one byte is available and may return fewer bytes than requested. Reads are serialized.
- * {@link #close()} and {@link #abort()} may be called from any thread, including while a read is blocked. They release every
- * lease still held, cancel the request if it has not finished, and make later reads throw. Leases that arrive after close
- * are released immediately. After a read fails, every later read throws the same exception.
+ * <p>A read waits only when nothing is queued. It returns the queued bytes, which may be fewer than requested. If the end or
+ * a failure arrives partway through a read, that read returns the bytes it copied and the next read reports it. Reads are
+ * serialized.
+ *
+ * <p>{@link #close()} and {@link #abort()} may be called from any thread, including during a blocked read. They release unread
+ * leases and cancel the request if it is still running.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferInputStream extends InputStream implements Abortable {
@@ -71,10 +70,9 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
     }
 
     private final BlockingQueue<Object> events = new LinkedBlockingQueue<>();
-    // Lock order: readLock, terminalLock, stateLock
+    // Lock order: readLock, stateLock
     private final Object readLock = new Object();
     private final Object stateLock = new Object();
-    private final Object terminalLock = new Object();
     private final Runnable cancellationAction;
     private final AtomicReference<CloseReason> closeReason = new AtomicReference<>();
     private final AtomicBoolean cancellationStarted = new AtomicBoolean();
@@ -170,22 +168,20 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
                     }
                 }
 
-                synchronized (terminalLock) {
-                    CloseReason terminalReason = closeReason.get();
-                    if (terminalReason != null) {
-                        return copied == 0 ? throwClosed(terminalReason) : copied;
-                    }
-                    ByteBufferReader reader = new ByteBufferReader(current);
-                    copied += reader.read(destination, offset + copied, length - copied);
-                    if (reader.exhausted()) {
-                        S3CrtBorrowedBufferLease consumed = current;
-                        current = null;
-                        try {
-                            consumed.consumed();
-                        } catch (Throwable t) {
-                            failLocally(t);
-                            return copied == 0 ? throwFailure(t) : copied;
-                        }
+                CloseReason terminalReason = closeReason.get();
+                if (terminalReason != null) {
+                    return copied == 0 ? throwClosed(terminalReason) : copied;
+                }
+                ByteBufferReader reader = new ByteBufferReader(current);
+                copied += reader.read(destination, offset + copied, length - copied);
+                if (reader.exhausted()) {
+                    S3CrtBorrowedBufferLease consumed = current;
+                    current = null;
+                    try {
+                        consumed.consumed();
+                    } catch (Throwable t) {
+                        failLocally(t);
+                        return copied == 0 ? throwFailure(t) : copied;
                     }
                 }
             }
@@ -211,12 +207,10 @@ public final class S3CrtBorrowedBufferInputStream extends InputStream implements
         if (!closeReason.compareAndSet(null, new CloseReason(error))) {
             return;
         }
-        synchronized (terminalLock) {
-            synchronized (stateLock) {
-                accepting = false;
-                // Wake a reader blocked in take() while holding readLock, so we can take readLock below.
-                enqueue(Signal.CLOSED);
-            }
+        synchronized (stateLock) {
+            accepting = false;
+            // Wake a reader blocked in take() while holding readLock, so we can take readLock below.
+            enqueue(Signal.CLOSED);
         }
 
         Throwable failure = cancelUpstream(null);

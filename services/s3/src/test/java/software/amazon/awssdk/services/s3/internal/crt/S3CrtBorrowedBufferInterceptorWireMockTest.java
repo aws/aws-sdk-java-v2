@@ -57,11 +57,7 @@ import software.amazon.awssdk.services.s3.S3AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
-/**
- * Interceptor behavior for pool-enabled borrowed downloads.
- *
- * <p>The response-content publisher is present and subscribed, but emits no object-body events.
- */
+/** Verifies that response-content interceptors do not receive borrowed object-body data. */
 @WireMockTest
 @Timeout(20)
 class S3CrtBorrowedBufferInterceptorWireMockTest {
@@ -236,7 +232,6 @@ class S3CrtBorrowedBufferInterceptorWireMockTest {
         }
     }
 
-    /** Passes the body through untouched while counting it, so the ordinary path's byte count can be compared. */
     private static final class CountingSubscriber implements Subscriber<ByteBuffer> {
         private final Subscriber<? super ByteBuffer> delegate;
         private final IntConsumer counter;

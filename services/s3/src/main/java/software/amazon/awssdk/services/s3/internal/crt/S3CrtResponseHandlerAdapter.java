@@ -204,15 +204,12 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     }
 
     /**
-     * Whether the CRT failure carries an S3 error response for the SDK response pipeline to unmarshall.
+     * Returns whether the CRT failure includes an S3 error response for the SDK response pipeline to unmarshal.
      *
-     * <p>CRT reports a successful response status together with an empty error payload when the HTTP exchange itself
-     * succeeded but the meta request failed for another reason, such as a full-object checksum mismatch. There is no
-     * error document to unmarshall in that case, so the failure has to surface as a client-side error instead of being
-     * handed to the response pipeline, which would see a successful response and complete the request normally.
-     *
-     * <p>A failing status still goes through the response pipeline when the payload is empty, because S3 returns
-     * bodiless error responses for operations such as HeadObject.
+     * <p>CRT reports a successful status with an empty payload when the exchange succeeded but the meta request failed
+     * afterward, for example on a full-object checksum mismatch. That is a client-side failure, because the response pipeline
+     * would complete it as a success. An error status with an empty payload can be a bodiless S3 error response, such as from
+     * HeadObject.
      */
     private static boolean hasServiceErrorResponse(int responseStatus, byte[] errorPayload) {
         if (!isServiceError(responseStatus) || errorPayload == null) {

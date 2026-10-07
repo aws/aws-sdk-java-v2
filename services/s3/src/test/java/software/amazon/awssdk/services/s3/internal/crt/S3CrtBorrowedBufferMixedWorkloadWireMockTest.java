@@ -56,15 +56,7 @@ import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
-/**
- * A single pool-enabled client serving all three shapes of traffic at once: a borrowed download whose reader is slow
- * and holds a lease open, an ordinary download that copies into the heap, and an upload.
- *
- * <p>This is the configuration most likely to go wrong in a real application, because the borrowed stream holds pool
- * capacity for as long as the caller takes to read it, while unrelated requests on the same client need capacity of
- * their own. Each one must complete with exact bytes, and the held-open stream must still deliver the rest of its
- * object afterwards.
- */
+/** Verifies that borrowed streams coexist with ordinary downloads and uploads on a shared pooled client. */
 @WireMockTest
 @Timeout(60)
 class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
@@ -147,7 +139,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
         }
     }
 
-    /** Concatenates every recorded PUT body in part-number order (an unnumbered single PUT sorts first). */
+    /** Reassembles recorded single-part or multipart upload bodies. */
     private static byte[] reassembleUploadedParts() throws IOException {
         List<LoggedRequest> puts = new ArrayList<>(findAll(putRequestedFor(anyUrl())));
         puts.sort(Comparator.comparingInt(request -> {
@@ -199,9 +191,7 @@ class S3CrtBorrowedBufferMixedWorkloadWireMockTest {
                                                    .withBody(body)));
     }
 
-    /**
-     * Covers both upload shapes, because which one CRT picks depends on how it sizes parts for this content length.
-     */
+    /** Stubs both single-part and multipart upload responses. */
     private static void stubUpload() {
         stubFor(post(anyUrl()).withQueryParam("uploads", equalTo(""))
                               .willReturn(aResponse().withStatus(200)

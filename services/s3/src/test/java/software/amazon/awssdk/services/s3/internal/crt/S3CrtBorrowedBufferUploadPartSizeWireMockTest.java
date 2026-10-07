@@ -48,19 +48,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
-/**
- * How a direct buffer pool changes multipart upload sizing.
- *
- * <p>Without a pool, CRT treats a configured part size as a floor and raises it when an upload needs a larger one —
- * S3 allows at most 10,000 parts of at least 5 MiB, so CRT computes the smallest legal part size for the content
- * length and uses that. With a pool, the part size determines the pool's block size and so cannot be changed after the
- * pool is built; CRT therefore rejects the upload instead of resizing.
- *
- * <p>That makes this a behavior change on the <em>upload</em> path caused by a download-oriented feature: a client
- * configured with a part size below 5 MiB uploads fine today and fails once a pool is attached. These tests pin both
- * sides of it so the difference is a documented decision rather than a surprise, and so that the rejection stays fast
- * and actionable rather than becoming a hang or a generic error.
- */
+/** Verifies that direct buffer pools prevent CRT from enlarging multipart upload part sizes. */
 @WireMockTest
 @Timeout(60)
 class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
@@ -99,9 +87,6 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
             .containsExactly("PUT");
     }
 
-    /**
-     * The same multipart upload without a pool succeeds because CRT can raise the part size.
-     */
     @Test
     void uploadBelowMultipartMinimum_withoutPool_shouldSucceed(WireMockRuntimeInfo wireMock) throws Exception {
         stubUpload();
@@ -112,11 +97,6 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
         }
     }
 
-    /**
-     * A content length too large for 10,000 parts at the configured part size. The rejection has to happen from the
-     * declared length alone, before any body data is requested — otherwise an application streaming an object of
-     * unknown-but-large size would push gigabytes through the client before being told no.
-     */
     @Test
     void uploadNeedingMoreThanMaxParts_withPool_shouldFailBeforeReadingBody(WireMockRuntimeInfo wireMock) {
         stubUpload();
@@ -143,7 +123,6 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
                                 AsyncRequestBody.fromBytes(CONTENT));
     }
 
-    /** Declares a content length and then never produces a byte, so only the sizing decision is exercised. */
     private static AsyncRequestBody neverProducingBody(long declaredLength, AtomicBoolean bodyRequested) {
         return new AsyncRequestBody() {
             @Override
@@ -179,7 +158,6 @@ class S3CrtBorrowedBufferUploadPartSizeWireMockTest {
         return poolBytes > 0 ? builder.withPool(poolBytes) : builder.withoutPool();
     }
 
-    /** Keeps the client variants identical apart from direct-pool configuration. */
     private static final class S3CrtAsyncClientBuilderShim {
         private final WireMockRuntimeInfo wireMock;
         private final long partSize;

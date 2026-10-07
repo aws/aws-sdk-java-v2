@@ -22,11 +22,10 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * A CRT borrowed buffer held by the SDK reader, which must be released exactly once.
+ * A lease of a CRT pooled buffer.
  *
- * <p>{@link #consumed()} returns the pool memory and grows the CRT read window by {@link #byteCount()}, for a buffer whose
- * bytes have all been read. {@link #discard()} returns the memory without growing the window. Only the first of these calls
- * has an effect. After it, {@link #buffer()} throws, because the pool may already have given the memory to another request.
+ * <p>{@link #consumed()} releases the buffer and credits its bytes to the CRT read window; {@link #discard()} only releases
+ * it. The first terminal action invalidates {@link #buffer()}.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferLease {

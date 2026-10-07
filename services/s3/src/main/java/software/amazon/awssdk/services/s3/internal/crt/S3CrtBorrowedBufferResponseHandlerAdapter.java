@@ -36,6 +36,11 @@ import software.amazon.awssdk.utils.ContentRangeParser;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.Validate;
 
+/**
+ * Adapts borrowed-buffer GetObject response callbacks to a {@link S3CrtBorrowedBufferStreamHandler}.
+ *
+ * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}.
+ */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRequestResponseHandler {
     private static final long USE_FIRST_CALLBACK_START = -1;
@@ -63,6 +68,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRe
         this.streamHandler = Validate.paramNotNull(streamHandler, "streamHandler");
         this.metaRequestFuture = Validate.paramNotNull(metaRequestFuture, "metaRequestFuture");
         this.responseBytesRead = Validate.paramNotNull(responseBytesRead, "responseBytesRead");
+        // A timeout or cancellation discards queued data. Other failures reach the reader after queued data.
         executeFuture.whenComplete((ignored, error) -> {
             if (error != null) {
                 try {
@@ -124,6 +130,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRe
             }
             failBorrowedResponse(t, acceptedByStream ? null : sdkBuffer, acceptedByStream ? null : crtBuffer);
         }
+        // The read window grows only as the reader consumes leases.
         return 0;
     }
 

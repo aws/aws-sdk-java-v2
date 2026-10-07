@@ -28,17 +28,10 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.utils.Validate;
 
 /**
- * Transforms a borrowed-buffer GetObject on the CRT client into a {@link ResponseInputStream} backed by
- * {@link S3CrtBorrowedBufferInputStream}.
+ * Transforms a borrowed-buffer GetObject on the CRT client into a {@link ResponseInputStream}.
  *
- * <p>Body bytes arrive through the handler returned by {@link #currentAttempt()}, not through {@link #onStream}, whose
- * publisher is drained and ignored. The returned future completes when the first body data or the completion arrives.
- *
- * <p>Each {@link #prepare()} starts a new attempt with its own future, stream and cancellation. There is more than one
- * attempt only when cross-region access is enabled and S3 redirects the first request to the bucket's region.
- * {@link #currentAttempt()} returns the handler bound to one attempt, so late callbacks from the redirected attempt cannot
- * reach the stream of the next one. {@link #abort()} aborts the current attempt, and every later attempt starts out
- * aborted.
+ * <p>Body bytes arrive through {@link #currentAttempt()}. The publisher passed to {@link #onStream} is drained and ignored.
+ * The future returned by {@link #prepare()} completes when the first body data or the successful completion arrives.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferBlockingResponseTransformer
@@ -99,6 +92,10 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
         return Validate.notNull(currentAttempt, "prepare() must be called before borrowed delivery starts");
     }
 
+    /**
+     * The stream and borrowed-buffer callbacks for one request attempt. A cross-region redirect starts a second attempt, and
+     * binding callbacks to an attempt keeps late callbacks from the first attempt out of the second attempt's stream.
+     */
     private static final class Attempt implements S3CrtBorrowedBufferStreamHandler {
         private final CompletableFuture<ResponseInputStream<GetObjectResponse>> future = new CompletableFuture<>();
         private final DeferredCancellation cancellation = new DeferredCancellation();
