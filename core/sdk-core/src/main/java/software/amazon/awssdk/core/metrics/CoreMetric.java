@@ -66,7 +66,7 @@ public final class CoreMetric {
      * {@link java.util.concurrent.CompletableFuture} completes, which for a streaming operation is when the response
      * transformer completes.
      *
-     * <p>{@code API_CALL_DURATION ~= CREDENTIALS_FETCH_DURATION + MARSHALLING_DURATION + ENDPOINT_RESOLVE_DURATION +
+     * <p>{@code API_CALL_DURATION ~= SUM_ALL(CREDENTIALS_FETCH_DURATION) + MARSHALLING_DURATION + ENDPOINT_RESOLVE_DURATION +
      * SUM_ALL(BACKOFF_DELAY_DURATION) + SUM_ALL(SIGNING_DURATION) + SUM_ALL(SERVICE_CALL_DURATION) +
      * SUM_ALL(UNMARSHALLING_DURATION)}
      *
@@ -82,12 +82,16 @@ public final class CoreMetric {
 
     /**
      * The duration of time taken to fetch signing credentials for the API call.
+     *
+     * <p>Credentials are fetched again for each retry attempt, so an API call that retries reports more than one value.
      */
     public static final SdkMetric<Duration> CREDENTIALS_FETCH_DURATION =
         metric("CredentialsFetchDuration", Duration.class, MetricLevel.INFO);
 
     /**
-     * The duration of time taken to fetch signing credentials for the API call.
+     * The duration of time taken to fetch the signing token for the API call.
+     *
+     * <p>The token is fetched again for each retry attempt, so an API call that retries reports more than one value.
      */
     public static final SdkMetric<Duration> TOKEN_FETCH_DURATION =
         metric("TokenFetchDuration", Duration.class, MetricLevel.INFO);

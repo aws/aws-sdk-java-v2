@@ -562,51 +562,124 @@ public class InstanceProfileCredentialsProviderTest {
         stubSecureCredentialsResponse(aResponse().withStatus(500));
         AwsCredentials credentials10MinutesAgo = credentialsProvider.resolveCredentials();
 
-        // Set the time to 10 seconds before expiration, and verify that we still call IMDS to try to get credentials in at the
-        // last moment before expiration
-        clock.time = now.minus(10, SECONDS);
+        // The failed refresh arms the 5-10 minute refresh backoff, so IMDS must not be called again while it is in effect,
+        // even as the credentials approach expiration. A minute later the backoff is still active for any backoff value.
+        clock.time = now.minus(9, MINUTES);
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-        AwsCredentials credentials10SecondsAgo = credentialsProvider.resolveCredentials();
+        AwsCredentials credentials9MinutesAgo = credentialsProvider.resolveCredentials();
+
+        // Once the backoff has certainly elapsed, IMDS is called again and the new credentials are adopted.
+        clock.time = now.plus(11, MINUTES);
+        AwsCredentials credentialsAfterBackoff = credentialsProvider.resolveCredentials();
 
         assertThat(credentials24HoursAgo).isEqualTo(credentials10MinutesAgo);
+        assertThat(credentials24HoursAgo).isEqualTo(credentials9MinutesAgo);
         assertThat(credentials24HoursAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        assertThat(credentials10SecondsAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+        assertThat(credentialsAfterBackoff.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    @Test
+    void resolveCredentials_advisoryWindowIsNotJittered() {
+        // A 30 minute lifetime selects the 15 minute advisory refresh window, which must be honored exactly. A jittered
+        // window would open at a random point between 15 and 2 minutes before expiration instead, so the refresh below
+        // would not happen when the window opens.
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+        Instant expiration = now.plus(30, MINUTES);
+        Instant advisoryWindowOpens = expiration.minus(15, MINUTES);
+
+        String initialCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+            + "}";
+
+        String refreshedCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
+            + "}";
+
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(initialCredentialsResponse));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        // One second before the advisory window opens, IMDS must not be called again.
+        clock.time = advisoryWindowOpens.minusSeconds(1);
+        stubSecureCredentialsResponse(aResponse().withBody(refreshedCredentialsResponse));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        // Exactly when the advisory window opens, IMDS must be called.
+        clock.time = advisoryWindowOpens;
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    @Test
+    void resolveCredentials_immediateRefreshWhenRemainingLifetimeLessThanAdvisoryWindow() {
+        // IMDS sessions are never shorter than the 5 minute advisory refresh window in practice, but if one is, the
+        // credentials are inside their advisory window as soon as they arrive and the provider refreshes right away.
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+        String shortLivedCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(3, MINUTES)) + '"'
+            + "}";
+
+        String refreshedCredentialsResponse =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
+            + "}";
+
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(shortLivedCredentialsResponse));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        stubSecureCredentialsResponse(aResponse().withBody(refreshedCredentialsResponse));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
     }
 
     @Test
     void imdsCallFrequencyIsLimited() {
-        // Requires running the test multiple times to account for refresh jitter
-        for (int i = 0; i < 10; i++) {
-            AdjustableClock clock = new AdjustableClock();
-            AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
-            Instant now = Instant.now();
-            String successfulCredentialsResponse1 =
-                "{"
-                + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
-                + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-                + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now) + '"'
-                + "}";
+        // Verify that IMDS is not called again if we haven't reached the prefetch window
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+        Instant expiration = now.plus(6, HOURS);
+        String successfulCredentialsResponse1 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+            + "}";
 
-            String successfulCredentialsResponse2 =
-                "{"
-                + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
-                + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
-                + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
-                + "}";
+        String successfulCredentialsResponse2 =
+            "{"
+            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
+            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
+            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration.plus(6, HOURS)) + '"'
+            + "}";
 
-            // Set the time to 5 minutes before expiration and call IMDS
-            clock.time = now.minus(5, MINUTES);
-            stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
-            AwsCredentials credentials5MinutesAgo = credentialsProvider.resolveCredentials();
+        // Prime the cache at the current time
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
+        AwsCredentials credentialsAtStart = credentialsProvider.resolveCredentials();
 
-            // Set the time to 2 seconds before expiration, and verify that do not call IMDS because it hasn't been 5 minutes yet
-            clock.time = now.minus(2, SECONDS);
-            stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-            AwsCredentials credentials2SecondsAgo = credentialsProvider.resolveCredentials();
+        // Move time forward but still before the prefetch window (60 min before expiry for 6h credentials).
+        // Since dynamic prefetchTime = expiration - 60min = now + 5h, anything before that should not trigger refresh.
+        clock.time = now.plus(4, HOURS);
+        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
+        AwsCredentials credentialsLater = credentialsProvider.resolveCredentials();
 
-            assertThat(credentials2SecondsAgo).isEqualTo(credentials5MinutesAgo);
-            assertThat(credentials5MinutesAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-        }
+        assertThat(credentialsLater).isEqualTo(credentialsAtStart);
+        assertThat(credentialsAtStart.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
     }
 
     @Test
@@ -632,21 +705,22 @@ public class InstanceProfileCredentialsProviderTest {
 
 
         Duration staleTime = Duration.ofMinutes(5);
-        AwsCredentialsProvider provider = credentialsProviderWithClock(clock, staleTime);
+        AwsCredentialsProvider provider = credentialsProviderWithClock(clock, staleTime, Duration.ofMinutes(10));
 
         // cache expiration with expiration = 6 hours
         clock.time = now;
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse));
         AwsCredentials validCreds = provider.resolveCredentials();
 
-        // failure while cache is stale
+        // Source returns stale credentials (expiration in the past) — treated as a failed refresh.
+        // The SDK retains the previously cached credentials and applies backoff.
         clock.time = expiration.minus(staleTime.minus(Duration.ofMinutes(2)));
         stubTokenFetchErrorResponse(aResponse().withFixedDelay(2000).withBody(STUB_CREDENTIALS), 500);
         stubSecureCredentialsResponse(aResponse().withBody(staleResponse));
         AwsCredentials refreshedWhileStale = provider.resolveCredentials();
 
-        assertThat(refreshedWhileStale).isNotEqualTo(validCreds);
-        assertThat(refreshedWhileStale.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY_2");
+        // Per spec: stale credentials from source are treated as a failure — original creds retained
+        assertThat(refreshedWhileStale).isEqualTo(validCreds);
     }
 
     @Test
@@ -704,10 +778,15 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock, Duration staleTime) {
+        return credentialsProviderWithClock(clock, staleTime, Duration.ofMinutes(5));
+    }
+
+    private AwsCredentialsProvider credentialsProviderWithClock(Clock clock, Duration staleTime, Duration prefetchTime) {
         InstanceProfileCredentialsProvider.BuilderImpl builder =
             (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
         builder.clock(clock);
         builder.staleTime(staleTime);
+        builder.prefetchTime(prefetchTime);
         return builder.build();
     }
 
@@ -729,6 +808,61 @@ public class InstanceProfileCredentialsProviderTest {
         public Instant instant() {
             return time;
         }
+    }
+
+    @Test
+    void invalidate_matchingAccessKeyId_invalidatesCache() {
+        String accessKeyId = "ACCESS_KEY_ID";
+        String expirationFarFuture = DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)));
+        String credentialsJson = "{\"AccessKeyId\":\"" + accessKeyId + "\","
+                                 + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+                                 + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsJson));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        AwsCredentials firstCredentials = provider.resolveCredentials();
+        assertThat(firstCredentials.accessKeyId()).isEqualTo(accessKeyId);
+
+        String newAccessKeyId = "NEW_ACCESS_KEY_ID";
+        String newCredentialsJson = "{\"AccessKeyId\":\"" + newAccessKeyId + "\","
+                                    + "\"SecretAccessKey\":\"NEW_SECRET_ACCESS_KEY\","
+                                    + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+        stubSecureCredentialsResponse(aResponse().withBody(newCredentialsJson));
+
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create(accessKeyId, "SECRET_ACCESS_KEY");
+        provider.invalidate(identity).join();
+
+        AwsCredentials refreshedCredentials = provider.resolveCredentials();
+        assertThat(refreshedCredentials.accessKeyId()).isEqualTo(newAccessKeyId);
+    }
+
+    @Test
+    void invalidate_nonMatchingAccessKeyId_doesNotInvalidateCache() {
+        String accessKeyId = "ACCESS_KEY_ID";
+        String expirationFarFuture = DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofDays(1)));
+        String credentialsJson = "{\"AccessKeyId\":\"" + accessKeyId + "\","
+                                 + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
+                                 + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsJson));
+
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder().build();
+
+        AwsCredentials firstCredentials = provider.resolveCredentials();
+        assertThat(firstCredentials.accessKeyId()).isEqualTo(accessKeyId);
+
+        String newCredentialsJson = "{\"AccessKeyId\":\"NEW_ACCESS_KEY_ID\","
+                                    + "\"SecretAccessKey\":\"NEW_SECRET_ACCESS_KEY\","
+                                    + "\"Expiration\":\"" + expirationFarFuture + "\"}";
+        stubSecureCredentialsResponse(aResponse().withBody(newCredentialsJson));
+
+        AwsCredentialsIdentity differentIdentity = AwsBasicCredentials.create("DIFFERENT_KEY", "SECRET");
+        provider.invalidate(differentIdentity).join();
+
+        AwsCredentials secondCredentials = provider.resolveCredentials();
+        assertThat(secondCredentials.accessKeyId()).isEqualTo(accessKeyId);
     }
 
     private static ProfileFileSupplier supply(Iterable<ProfileFile> iterable) {

@@ -214,11 +214,11 @@ public class SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
-                                                                                 checksumAlgorithm)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.CHECKSUM_ALGORITHM,
+                                                                                    checksumAlgorithm)))
+                         .build();
     }
 
     private static class UnsetIdentity implements Identity {

@@ -41,6 +41,18 @@ public class AwsRetryPolicyTest {
     }
 
     @Test
+    public void retriesOnAuthenticationErrorCodes() {
+        assertTrue(shouldRetry(applyErrorCode("ExpiredToken")));
+        assertTrue(shouldRetry(applyErrorCode("InvalidToken")));
+    }
+
+    @Test
+    public void doesNotRetryOnAuthorizationErrorCodes() {
+        assertFalse(shouldRetry(applyErrorCode("AccessDenied")));
+        assertFalse(shouldRetry(applyErrorCode("AccessDeniedException")));
+    }
+
+    @Test
     public void retriesOnThrottlingExceptions() {
         assertTrue(shouldRetry(applyErrorCode("ThrottlingException")));
         assertTrue(shouldRetry(applyErrorCode("ThrottledException")));

@@ -59,6 +59,7 @@ public final class RetryableStage<OutputT> implements RequestToResponsePipeline<
         while (true) {
             try {
                 retryableStageHelper.startingAttempt();
+                retryableStageHelper.resolveIdentityForAttempt();
                 Response<OutputT> response = executeRequest(retryableStageHelper, context);
                 retryableStageHelper.recordAttemptSucceeded();
                 return response;

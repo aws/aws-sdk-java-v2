@@ -30,6 +30,7 @@ import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
 import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
 import software.amazon.awssdk.http.auth.spi.signer.SignerProperty;
 import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
 
 class S3SignerExecutionAttributeTest {
     private static final SelectedAuthScheme<Identity> EMPTY_SELECTED_AUTH_SCHEME =
@@ -54,6 +55,30 @@ class S3SignerExecutionAttributeTest {
     public void enablePayloadSigning_oldAndNewAttributeAreMirrored() {
         assertOldAndNewBooleanAttributesAreMirrored(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING,
                                                     AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED);
+    }
+
+    @Test
+    public void enableChunkedEncodingWrite_preservesIdentityProvider() {
+        assertAttributeWritePreservesIdentityProvider(S3SignerExecutionAttribute.ENABLE_CHUNKED_ENCODING);
+    }
+
+    @Test
+    public void enablePayloadSigningWrite_preservesIdentityProvider() {
+        assertAttributeWritePreservesIdentityProvider(S3SignerExecutionAttribute.ENABLE_PAYLOAD_SIGNING);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void assertAttributeWritePreservesIdentityProvider(ExecutionAttribute<Boolean> attribute) {
+        IdentityProvider<Identity> identityProvider = Mockito.mock(IdentityProvider.class);
+        attributes.putAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                EMPTY_SELECTED_AUTH_SCHEME.toBuilder().identityProvider(identityProvider).build());
+
+        attributes.putAttribute(attribute, true);
+
+        SelectedAuthScheme<?> updated = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        assertThat(updated.identityProvider()).isSameAs(identityProvider);
+        assertThat(updated.identity()).isSameAs(EMPTY_SELECTED_AUTH_SCHEME.identity());
+        assertThat(updated.signer()).isSameAs(EMPTY_SELECTED_AUTH_SCHEME.signer());
     }
 
     private void assertOldAndNewBooleanAttributesAreMirrored(ExecutionAttribute<Boolean> attribute,
