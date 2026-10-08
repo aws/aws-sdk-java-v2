@@ -24,6 +24,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.function.Supplier;
+import software.amazon.awssdk.annotations.SdkAdvancedApi;
+import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.IoUtils;
@@ -41,6 +43,13 @@ import software.amazon.awssdk.utils.internal.EnumUtils;
  */
 @SdkPublicApi
 @FunctionalInterface
+@SdkAdvancedApi(
+    cautionWhen = Usage.IMPLEMENTED,
+    guidance = "newStream() must return a stream positioned at the start of the content on every call, closing any "
+          + "previous stream it opened. A stale or unreset stream corrupts the request body and breaks retries, "
+          + "which re-read the content.",
+    saferAlternative = "Prefer the ContentStreamProvider.fromInputStream/fromByteArray/fromString factories, which "
+          + "handle reset correctly.")
 public interface ContentStreamProvider {
     /**
      * Create {@link ContentStreamProvider} from a byte array. This will copy the contents of the byte array.

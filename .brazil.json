@@ -94,7 +94,7 @@
         "http-clients": { "skipImport": true },
         "metric-publishers": { "skipImport": true },
         "module-path-tests": { "skipImport": true },
-        "old-client-version-compatibility-test": { "skipImport": true },
+        "service-client-backward-compat-test": { "skipImport": true },
         "protocol-tests": { "skipImport": true },
         "protocol-tests-core": { "skipImport": true },
         "protocols": { "skipImport": true },
@@ -117,7 +117,8 @@
         "crt-unavailable-tests": { "skipImport": true },
         "bundle-shading-tests": { "skipImport": true },
         "architecture-tests": {"skipImport":  true},
-        "s3-tests": {"skipImport":  true}
+        "s3-tests": {"skipImport":  true},
+        "warmup-tests": { "skipImport": true }
     },
 
     "dependencies": {

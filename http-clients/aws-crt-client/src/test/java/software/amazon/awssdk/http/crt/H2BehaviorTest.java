@@ -49,6 +49,7 @@ import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.SslProvider;
 import io.netty.handler.ssl.SupportedCipherSuiteFilter;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -85,10 +86,24 @@ public class H2BehaviorTest {
         crt = null;
     }
 
+
     @Test
     public void sendH2Request_overTls() throws Exception {
         CompletableFuture<?> request = sendGetRequest(server.port(), crt);
         request.join();
+    }
+
+    @Test
+    public void buildH2HttpsClient_withCustomTlsNegotiationTimeout_doesNotNpeAndRequestSucceeds() throws Exception {
+        try (SdkAsyncHttpClient h2Client = AwsCrtAsyncHttpClient.builder()
+                                                                .tlsNegotiationTimeout(Duration.ofSeconds(3))
+                                                                .buildWithDefaults(AttributeMap.builder()
+                                                                                               .put(TRUST_ALL_CERTIFICATES, true)
+                                                                                               .put(PROTOCOL, Protocol.HTTP2)
+                                                                                               .build())) {
+            CompletableFuture<?> request = sendGetRequest(server.port(), h2Client);
+            request.join();
+        }
     }
 
     @Test

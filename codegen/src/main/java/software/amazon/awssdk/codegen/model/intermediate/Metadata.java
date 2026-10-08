@@ -73,6 +73,8 @@ public class Metadata {
 
     private String batchManagerPackageName;
 
+    private String presignedUrlPackageName;
+
     private String endpointRulesPackageName;
 
     private String authSchemePackageName;
@@ -112,6 +114,8 @@ public class Metadata {
     private boolean supportsH2;
 
     private String serviceId;
+
+    private Long defaultReadWriteTimeoutMillis;
 
     private List<AuthType> auth;
 
@@ -708,6 +712,24 @@ public class Metadata {
         return this;
     }
 
+    /**
+     * The default read/write inactivity timeout baked for this service by the exemption processor, in milliseconds, or
+     * {@code null} when the service is not listed in the exemption artifact. A value of {@code -1} marks a fully-exempt service
+     * (no default timeout); a positive value is the applied timeout in milliseconds.
+     */
+    public Long getDefaultReadWriteTimeoutMillis() {
+        return defaultReadWriteTimeoutMillis;
+    }
+
+    public void setDefaultReadWriteTimeoutMillis(Long defaultReadWriteTimeoutMillis) {
+        this.defaultReadWriteTimeoutMillis = defaultReadWriteTimeoutMillis;
+    }
+
+    public Metadata withDefaultReadWriteTimeoutMillis(Long defaultReadWriteTimeoutMillis) {
+        setDefaultReadWriteTimeoutMillis(defaultReadWriteTimeoutMillis);
+        return this;
+    }
+
     public String getWaitersPackageName() {
         return waitersPackageName;
     }
@@ -775,6 +797,10 @@ public class Metadata {
         return joinPackageNames(getFullClientPackageName(), "internal");
     }
 
+    public String getFullWarmUpInternalPackageName() {
+        return joinPackageNames(getFullInternalPackageName(), "warmup");
+    }
+
     public Metadata setJmesPathPackageName(String jmesPathPackageName) {
         this.jmesPathPackageName = jmesPathPackageName;
         return this;
@@ -815,4 +841,20 @@ public class Metadata {
         return joinPackageNames(rootPackageName, getBatchManagerPackageName());
     }
 
+    public Metadata withPresignedUrlPackageName(String presignedUrlPackageName) {
+        setPresignedUrlPackageName(presignedUrlPackageName);
+        return this;
+    }
+
+    public String getPresignedUrlPackageName() {
+        return presignedUrlPackageName;
+    }
+
+    public void setPresignedUrlPackageName(String presignedUrlPackageName) {
+        this.presignedUrlPackageName = presignedUrlPackageName;
+    }
+
+    public String getFullPresignedUrlPackageName() {
+        return joinPackageNames(rootPackageName, getPresignedUrlPackageName());
+    }
 }

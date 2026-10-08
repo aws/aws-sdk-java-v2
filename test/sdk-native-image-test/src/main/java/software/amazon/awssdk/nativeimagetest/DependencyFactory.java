@@ -20,6 +20,7 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClient;
 import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.urlconnection.UrlConnectionHttpClient;
 import software.amazon.awssdk.metrics.LoggingMetricPublisher;
 import software.amazon.awssdk.regions.Region;
@@ -57,6 +58,15 @@ public class DependencyFactory {
         return S3Client.builder()
                        .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
                        .httpClientBuilder(ApacheHttpClient.builder())
+                       .overrideConfiguration(o -> o.addMetricPublisher(LoggingMetricPublisher.create()))
+                       .region(Region.US_WEST_2)
+                       .build();
+    }
+
+    public static S3Client s3Apache5HttpClient() {
+        return S3Client.builder()
+                       .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                       .httpClientBuilder(Apache5HttpClient.builder())
                        .overrideConfiguration(o -> o.addMetricPublisher(LoggingMetricPublisher.create()))
                        .region(Region.US_WEST_2)
                        .build();

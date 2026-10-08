@@ -226,6 +226,16 @@ public class CustomizationConfig {
     private RetryMode defaultRetryMode;
 
     /**
+     * Whether the client will use retry 2.1 behavior by default.
+     */
+    private Boolean defaultNewRetries2026;
+
+    /**
+     * Whether the client will apply a default read/write timeout by default.
+     */
+    private Boolean defaultEnableSocketTimeout2026;
+
+    /**
      * Whether to generate an abstract decorator class that delegates to the async service client
      */
     private boolean delegateAsyncClientClass;
@@ -310,11 +320,6 @@ public class CustomizationConfig {
     private boolean s3ExpressAuthSupport;
 
     /**
-     * Set to true to enable compiled endpoint rules. Currently defaults to false.
-     */
-    private boolean enableGenerateCompiledEndpointRules = false;
-
-    /**
      * Customization related to auth scheme derived from endpoints.
      */
     private EndpointAuthSchemeConfig endpointAuthSchemeConfig;
@@ -347,6 +352,11 @@ public class CustomizationConfig {
     private boolean batchManagerSupported;
 
     /**
+     * A boolean flag to indicate if Presigned URL Extension is supported.
+     */
+    private boolean presignedUrlExtensionSupported;
+
+    /**
      * A boolean flag to indicate if the fast unmarshaller code path is enabled.
      */
     private boolean enableFastUnmarshaller;
@@ -357,6 +367,11 @@ public class CustomizationConfig {
      * `AWS_BEARER_TOKEN_[SigningName]` environment variable.
      */
     private boolean enableEnvironmentBearerToken = false;
+
+    /**
+     * List of union shape names for which to generate per-member direct static factories (createX) that bypass the builder.
+     */
+    private List<String> generateDirectUnionConstructors = Collections.emptyList();
 
     /**
      * A boolean flag to indicate if the code-generated endpoint providers class should cache the calls to URI constructors.
@@ -714,6 +729,22 @@ public class CustomizationConfig {
         this.defaultRetryMode = defaultRetryMode;
     }
 
+    public Boolean getDefaultNewRetries2026() {
+        return defaultNewRetries2026;
+    }
+
+    public void setDefaultNewRetries2026(Boolean defaultNewRetries2026) {
+        this.defaultNewRetries2026 = defaultNewRetries2026;
+    }
+
+    public Boolean getDefaultEnableSocketTimeout2026() {
+        return defaultEnableSocketTimeout2026;
+    }
+
+    public void setDefaultEnableSocketTimeout2026(Boolean defaultEnableSocketTimeout2026) {
+        this.defaultEnableSocketTimeout2026 = defaultEnableSocketTimeout2026;
+    }
+
     public ServiceConfig getServiceConfig() {
         return serviceConfig;
     }
@@ -792,14 +823,6 @@ public class CustomizationConfig {
 
     public void setUseS3ExpressSessionAuth(boolean useS3ExpressSessionAuth) {
         this.useS3ExpressSessionAuth = useS3ExpressSessionAuth;
-    }
-
-    public boolean isEnableGenerateCompiledEndpointRules() {
-        return enableGenerateCompiledEndpointRules;
-    }
-
-    public void setEnableGenerateCompiledEndpointRules(boolean enableGenerateCompiledEndpointRules) {
-        this.enableGenerateCompiledEndpointRules = enableGenerateCompiledEndpointRules;
     }
 
     public Map<String, String> getSkipEndpointTests() {
@@ -933,6 +956,14 @@ public class CustomizationConfig {
         this.batchManagerSupported = batchManagerSupported;
     }
 
+    public boolean getPresignedUrlExtensionSupported() {
+        return presignedUrlExtensionSupported;
+    }
+
+    public void setPresignedUrlExtensionSupported(boolean presignedUrlExtensionSupported) {
+        this.presignedUrlExtensionSupported = presignedUrlExtensionSupported;
+    }
+
     public boolean getEnableFastUnmarshaller() {
         return enableFastUnmarshaller;
     }
@@ -963,5 +994,13 @@ public class CustomizationConfig {
 
     public void setAllowedUnderscoreNames(List<String> allowedUnderscoreNames) {
         this.allowedUnderscoreNames = allowedUnderscoreNames;
+    }
+
+    public List<String> getGenerateDirectUnionConstructors() {
+        return generateDirectUnionConstructors;
+    }
+
+    public void setGenerateDirectUnionConstructors(List<String> generateDirectUnionConstructors) {
+        this.generateDirectUnionConstructors = generateDirectUnionConstructors;
     }
 }

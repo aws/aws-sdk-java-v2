@@ -57,7 +57,7 @@ public class HandlerPublisherVerificationTest extends PublisherVerification<Long
 
     @Factory(dataProvider = "data")
     public HandlerPublisherVerificationTest(int batchSize, int publishInitial, boolean scheduled) {
-        super(new TestEnvironment(200));
+        super(new TestEnvironment(2000, 200, 200));
         this.batchSize = batchSize;
         this.publishInitial = publishInitial;
         this.scheduled = scheduled;

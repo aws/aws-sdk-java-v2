@@ -36,11 +36,12 @@ public abstract class BaseJavaS3ClientBenchmark implements Benchmark {
     protected final List<String> buckets;
     protected final byte[] contents;
     private final S3Client adminClient;
+    private final InMemoryMetricPublisher metricPublisher;
 
-
-    protected BaseJavaS3ClientBenchmark(BenchmarkConfig config) {
+    protected BaseJavaS3ClientBenchmark(BenchmarkConfig config, InMemoryMetricPublisher metricPublisher) {
         this.iteration = Validate.getOrDefault(config.iteration(), () -> DEFAULT_BENCHMARK_ITERATIONS);
         this.benchmarkConfig = config;
+        this.metricPublisher = metricPublisher;
         this.buckets = new ArrayList<>();
         this.adminClient = S3BenchmarkTestUtils.s3ClientBuilder(config.region())
                                                .credentialsProvider(config.credentialsProvider())
@@ -54,12 +55,12 @@ public abstract class BaseJavaS3ClientBenchmark implements Benchmark {
             setup();
             LOGGER.info(() -> "Starting warm up");
             warmUp();
+            metricPublisher.reset();
             LOGGER.info(() -> "Run benchmark");
             doRunBenchmark();
-        } catch (Exception e) {
-            LOGGER.error(() -> "Exception occurred", e);
         } finally {
             LOGGER.info(() -> "Starting clean up");
+            cleanup();
         }
     }
 
@@ -70,17 +71,24 @@ public abstract class BaseJavaS3ClientBenchmark implements Benchmark {
         if (useS3Express) {
             bucketNameSuffix = String.format(S3EXPRESS_BUCKET_PATTERN, benchmarkConfig.az());
         }
+        String sizeTag = benchmarkConfig.contentLengthInKb() + "k";
         for (int i = 0; i < numTestBuckets; i++) {
-            String bucketName = S3BenchmarkTestUtils.getTemporaryBucketName(i, bucketNameSuffix).toLowerCase(Locale.ENGLISH);
+            String bucketName = S3BenchmarkTestUtils.getTemporaryBucketName(sizeTag + "-" + i, bucketNameSuffix)
+                                                    .toLowerCase(Locale.ENGLISH);
             buckets.add(bucketName);
-            createBucketSafely(adminClient, bucketName, useS3Express);
+            createBucketSafely(adminClient, bucketName, useS3Express, benchmarkConfig.az());
         }
     }
 
-    protected void warmUp() throws Exception {
+    protected void warmUp() {
         for (int i = 0; i < 3; i++) {
             sendOneRequest();
-            Thread.sleep(500);
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -94,5 +102,12 @@ public abstract class BaseJavaS3ClientBenchmark implements Benchmark {
 
     protected String key(int i) {
         return keyNameFromPrefix(i, benchmarkConfig.contentLengthInKb().toString());
+    }
+
+    protected void cleanup() {
+        for (String bucket : buckets) {
+            S3BenchmarkTestUtils.deleteBucketAndContentSafely(adminClient, bucket);
+        }
+        adminClient.close();
     }
 }

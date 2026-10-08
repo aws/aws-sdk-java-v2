@@ -37,7 +37,7 @@ import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeDefinition;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.CreateTableRequest;
@@ -132,7 +132,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         // sign the request
         SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, constructExecutionAttributes());
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         HttpExecuteRequest request = HttpExecuteRequest.builder()
                                                        .request(signedRequest)
@@ -156,7 +156,7 @@ public class SignersIntegrationTest extends DynamoDBTestBase {
         // sign the request
         SdkHttpFullRequest signedRequest = signer.sign(httpFullRequest, constructSignerParams());
 
-        SdkHttpClient httpClient = ApacheHttpClient.builder().build();
+        SdkHttpClient httpClient = Apache5HttpClient.builder().build();
 
         HttpExecuteRequest request = HttpExecuteRequest.builder()
                                                        .request(signedRequest)

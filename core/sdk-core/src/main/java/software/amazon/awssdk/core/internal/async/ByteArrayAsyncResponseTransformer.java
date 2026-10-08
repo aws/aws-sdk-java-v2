@@ -72,7 +72,7 @@ public final class ByteArrayAsyncResponseTransformer<ResponseT> implements
     public SplitResult<ResponseT, ResponseBytes<ResponseT>> split(SplittingTransformerConfiguration splitConfig) {
         CompletableFuture<ResponseBytes<ResponseT>> future = new CompletableFuture<>();
         SdkPublisher<AsyncResponseTransformer<ResponseT, ResponseT>> transformer =
-            new ByteArraySplittingTransformer<>(this, future);
+            new ByteArraySplittingTransformer<>(this, future, splitConfig.responseMapper());
         return AsyncResponseTransformer.SplitResult.<ResponseT, ResponseBytes<ResponseT>>builder()
                                                    .publisher(transformer)
                                                    .resultFuture(future)

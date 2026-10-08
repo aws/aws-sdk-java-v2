@@ -1,0 +1,54 @@
+{
+  "version": "1.2",
+  "serviceId": "NoRegionService",
+  "parameters": {
+    "Endpoint": {
+      "type": "string",
+      "builtIn": "SDK::Endpoint",
+      "documentation": "Override the endpoint used to send this request"
+    }
+  },
+  "rules": [
+    {
+      "conditions": [
+        {
+          "fn": "isSet",
+          "argv": [
+            {
+              "ref": "Endpoint"
+            }
+          ]
+        }
+      ],
+      "endpoint": {
+        "url": "{Endpoint}",
+        "properties": {
+          "authSchemes": [
+            {
+              "name": "sigv4",
+              "signingRegion": "us-east-1",
+              "signingName": "noregionservice"
+            }
+          ]
+        }
+      },
+      "type": "endpoint"
+    },
+    {
+      "conditions": [],
+      "endpoint": {
+        "url": "https://noregionservice.us-east-1.amazonaws.com",
+        "properties": {
+          "authSchemes": [
+            {
+              "name": "sigv4",
+              "signingRegion": "us-east-1",
+              "signingName": "noregionservice"
+            }
+          ]
+        }
+      },
+      "type": "endpoint"
+    }
+  ]
+}

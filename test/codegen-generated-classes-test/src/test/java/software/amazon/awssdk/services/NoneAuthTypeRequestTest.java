@@ -113,14 +113,14 @@ public class NoneAuthTypeRequestTest {
 
     @Test
     public void async_json_authorization_is_absent_for_noneAuthType() {
-        jsonAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true));
+        jsonAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true)).join();
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
         verify(credentialsProvider, times(0)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void async_json_authorization_is_present_for_defaultAuth() {
-        jsonAsyncClient.jsonValuesOperation();
+        jsonAsyncClient.jsonValuesOperation().join();
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isPresent();
         verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
@@ -141,14 +141,14 @@ public class NoneAuthTypeRequestTest {
 
     @Test
     public void async_xml_authorization_is_absent_for_noneAuthType() {
-        xmlAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true));
+        xmlAsyncClient.operationWithNoneAuthType(o -> o.booleanMember(true)).join();
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isNotPresent();
         verify(credentialsProvider, times(0)).resolveIdentity(any(ResolveIdentityRequest.class));
     }
 
     @Test
     public void async_xml_authorization_is_present_for_defaultAuth() {
-        xmlAsyncClient.jsonValuesOperation(json -> json.jsonValueMember("one"));
+        xmlAsyncClient.jsonValuesOperation(json -> json.jsonValueMember("one")).join();
         assertThat(getAsyncRequest().firstMatchingHeader("Authorization")).isPresent();
         verify(credentialsProvider, times(1)).resolveIdentity(any(ResolveIdentityRequest.class));
     }

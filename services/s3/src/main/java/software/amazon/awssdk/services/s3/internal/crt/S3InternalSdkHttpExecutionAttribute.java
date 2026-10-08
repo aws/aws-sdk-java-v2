@@ -64,6 +64,9 @@ public final class S3InternalSdkHttpExecutionAttribute<T> extends SdkHttpExecuti
     public static final S3InternalSdkHttpExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
         new S3InternalSdkHttpExecutionAttribute<>(S3MetaRequestOptions.ResponseFileOption.class);
 
+    public static final S3InternalSdkHttpExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
+        new S3InternalSdkHttpExecutionAttribute<>(Boolean.class);
+
     public static final S3InternalSdkHttpExecutionAttribute<CrtCredentialsProviderAdapter> CRT_CREDENTIALS_PROVIDER_ADAPTER =
         new S3InternalSdkHttpExecutionAttribute<>(CrtCredentialsProviderAdapter.class);
 

@@ -31,6 +31,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.ec2.Ec2Client;
@@ -48,16 +49,14 @@ import software.amazon.awssdk.services.ec2.model.Filter;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V2Ec2RoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private Ec2Client client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("ec2-protocol/describe-instances-response.xml");
+        byte[] response = MockHttpServer.loadFixture("ec2-protocol/describe-instances-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "text/xml");
         server.start();
 
         client = Ec2Client.builder()

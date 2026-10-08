@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.core.internal.retry.ClockSkewAdjuster;
@@ -48,6 +50,7 @@ import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.retries.api.RetryToken;
 import software.amazon.awssdk.retries.api.TokenAcquisitionFailedException;
+import software.amazon.awssdk.utils.Either;
 
 /**
  * Contains the logic shared by {@link RetryableStage} and {@link AsyncRetryableStage} when querying and interacting with a
@@ -58,8 +61,10 @@ public final class RetryableStageHelper {
     public static final String SDK_RETRY_INFO_HEADER = "amz-sdk-request";
     public static final ExecutionAttribute<Duration> LAST_BACKOFF_DELAY_DURATION =
         new ExecutionAttribute<>("LastBackoffDuration");
+    private static final String RETRY_TOKEN_SCOPE = "GLOBAL";
 
     private final SdkHttpFullRequest request;
+    private final boolean isLongPollingOperation;
     private final RequestExecutionContext context;
     private RetryPolicyAdapter retryPolicyAdapter;
     private final RetryStrategy retryStrategy;
@@ -69,11 +74,13 @@ public final class RetryableStageHelper {
     private SdkHttpResponse lastResponse;
     private SdkException lastException;
 
+
     public RetryableStageHelper(SdkHttpFullRequest request,
                                 RequestExecutionContext context,
                                 HttpClientDependencies dependencies) {
         this.request = request;
         this.context = context;
+        this.isLongPollingOperation = isLongPollingOperation(this.context);
         RetryPolicy retryPolicy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_POLICY);
         RetryStrategy retryStrategy = dependencies.clientConfiguration().option(SdkClientOption.RETRY_STRATEGY);
         if (retryPolicy != null) {
@@ -102,14 +109,31 @@ public final class RetryableStageHelper {
      * value is {@link AdaptiveRetryStrategy}.
      */
     public Duration acquireInitialToken() {
-        String scope = "GLOBAL";
-        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(scope);
-        AcquireInitialTokenResponse acquireResponse = retryStrategy().acquireInitialToken(acquireRequest);
-        RetryToken retryToken = acquireResponse.token();
-        Duration delay = acquireResponse.delay();
-        context.executionAttributes().putAttribute(RETRY_TOKEN, retryToken);
-        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, delay);
-        return delay;
+        AcquireInitialTokenResponse result = doBlockAcquireInitialToken();
+        context.executionAttributes().putAttribute(RETRY_TOKEN, result.token());
+        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, result.delay());
+        return result.delay();
+    }
+
+    private AcquireInitialTokenResponse doBlockAcquireInitialToken() {
+        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(RETRY_TOKEN_SCOPE);
+
+        return retryStrategy().acquireInitialToken(acquireRequest);
+    }
+
+    public CompletableFuture<Duration> acquireInitialTokenAsync() {
+        AcquireInitialTokenRequest acquireRequest = AcquireInitialTokenRequest.create(RETRY_TOKEN_SCOPE);
+
+        return retryStrategy().acquireInitialTokenAsync(acquireRequest).whenComplete(
+                                  (result, t) -> {
+                                      if (t != null) {
+                                          return;
+                                      }
+
+                                      context.executionAttributes().putAttribute(RETRY_TOKEN, result.token());
+                                      context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, result.delay());
+                                  })
+                              .thenApply(AcquireInitialTokenResponse::delay);
     }
 
     /**
@@ -123,33 +147,92 @@ public final class RetryableStageHelper {
     }
 
     /**
-     * Invoked after a failed attempt and before retrying. The returned optional will be non-empty if the client can retry or
-     * empty if the retry-strategy disallows the retry. The calling code is expected to wait the delay represented in the duration
-     * if present before retrying the request.
+     * Invoked after a failed attempt and before retrying. The returned {@link Either} will have its <b>left</b> be populated
+     * if the refresh is successful. The <b>right</b> is populated if the refresh is unsuccessful. In either case, the calling
+     * code is expected to wait the delay represented in the duration before retrying the request or exiting the retry loop.
      *
      * @param suggestedDelay A suggested delay, presumably coming from the server response. The response when present will be at
      *                       least this amount.
-     * @return An optional time to wait. If the value is not present the retry strategy disallowed the retry and the calling code
-     * should not retry.
+     * @return An optional time to wait, regardless of whether the refresh is successful. If the left value is present, the
+     * retry strategy allowed the retry. If the right value is present the retry strategy disallowed the retry and the calling
+     * code should not retry.
      */
-    public Optional<Duration> tryRefreshToken(Duration suggestedDelay) {
-        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
-        RefreshRetryTokenResponse refreshResponse;
+    public Either<Duration, Duration> tryRefreshToken(Duration suggestedDelay) {
+        RetryToken retryToken;
+        Duration attemptDelay;
         try {
-            RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
-                                                                              .failure(this.lastException)
-                                                                              .token(retryToken)
-                                                                              .suggestedDelay(suggestedDelay)
-                                                                              .build();
-            refreshResponse = retryStrategy().refreshRetryToken(refreshRequest);
+            RefreshRetryTokenResponse tryRefreshResult = doBlockingRefreshRetryToken(suggestedDelay);
+            attemptDelay = tryRefreshResult.delay();
+            retryToken = tryRefreshResult.token();
         } catch (TokenAcquisitionFailedException e) {
             context.executionAttributes().putAttribute(RETRY_TOKEN, e.token());
-            return Optional.empty();
+            Optional<Duration> acquireFailureDelay = e.delay();
+            if (acquireFailureDelay.isPresent()) {
+                Duration acquireDelay = acquireFailureDelay.get();
+                context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireDelay);
+                return Either.right(acquireDelay);
+            }
+            return Either.right(Duration.ZERO);
         }
-        Duration delay = refreshResponse.delay();
-        context.executionAttributes().putAttribute(RETRY_TOKEN, refreshResponse.token());
-        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, delay);
-        return Optional.of(delay);
+        Duration acquireSuccessDelay = attemptDelay;
+        context.executionAttributes().putAttribute(RETRY_TOKEN, retryToken);
+        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireSuccessDelay);
+        return Either.left(acquireSuccessDelay);
+    }
+
+    private RefreshRetryTokenResponse doBlockingRefreshRetryToken(Duration suggestedDelay) {
+        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
+
+        RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
+                                                                          .failure(this.lastException)
+                                                                          .token(retryToken)
+                                                                          .isLongPolling(isLongPollingOperation)
+                                                                          .suggestedDelay(suggestedDelay)
+                                                                          .build();
+
+        return retryStrategy().refreshRetryToken(refreshRequest);
+    }
+
+    public CompletableFuture<Either<Duration, Duration>> tryRefreshTokenAsync(Duration suggestedDelay) {
+        CompletableFuture<Either<Duration, Duration>> cf = new CompletableFuture<>();
+
+        RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
+
+        RefreshRetryTokenRequest refreshRequest = RefreshRetryTokenRequest.builder()
+                                                                          .failure(this.lastException)
+                                                                          .token(retryToken)
+                                                                          .isLongPolling(isLongPollingOperation)
+                                                                          .suggestedDelay(suggestedDelay)
+                                                                          .build();
+
+        retryStrategy().refreshRetryTokenAsync(refreshRequest).whenComplete((r, t) -> {
+            if (t != null) {
+                Throwable cause = t instanceof CompletionException ? t.getCause() : t;
+                if (cause instanceof TokenAcquisitionFailedException) {
+                    TokenAcquisitionFailedException e = (TokenAcquisitionFailedException) cause;
+
+                    context.executionAttributes().putAttribute(RETRY_TOKEN, e.token());
+                    Optional<Duration> acquireFailureDelay = e.delay();
+                    if (acquireFailureDelay.isPresent()) {
+                        Duration acquireDelay = acquireFailureDelay.get();
+                        context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireDelay);
+                        cf.complete(Either.right(acquireDelay));
+                        return;
+                    }
+                    cf.complete(Either.right(Duration.ZERO));
+                } else {
+                    cf.completeExceptionally(t);
+                }
+                return;
+            }
+
+            Duration acquireSuccessDelay = r.delay();
+            context.executionAttributes().putAttribute(RETRY_TOKEN, r.token());
+            context.executionAttributes().putAttribute(LAST_BACKOFF_DELAY_DURATION, acquireSuccessDelay);
+            cf.complete(Either.left(acquireSuccessDelay));
+        });
+
+        return cf;
     }
 
     /**
@@ -178,6 +261,12 @@ public final class RetryableStageHelper {
     public void logBackingOff(Duration backoffDelay) {
         SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Retryable error detected. Will retry in " +
                                                      backoffDelay.toMillis() + "ms. Request attempt number " +
+                                                     attemptNumber, lastException);
+    }
+
+    public void logAcquireFailureBackingOff(Duration acquireFailureBackoffDelay) {
+        SdkStandardLogger.REQUEST_LOGGER.debug(() -> "Unable to acquire sufficient retry quota to retry. Will cease retrying in "
+                                                     + acquireFailureBackoffDelay.toMillis() + "ms. Request attempt number " +
                                                      attemptNumber, lastException);
     }
 
@@ -241,6 +330,10 @@ public final class RetryableStageHelper {
         this.lastResponse = lastResponse;
     }
 
+    public SdkHttpResponse getLastResponse() {
+        return lastResponse;
+    }
+
     /**
      * Returns true if this is the first attempt.
      */
@@ -295,5 +388,11 @@ public final class RetryableStageHelper {
                                  .executionAttributes(context.executionAttributes())
                                  .httpStatusCode(lastResponse == null ? null : lastResponse.statusCode())
                                  .build();
+    }
+
+    private boolean isLongPollingOperation(RequestExecutionContext context) {
+        return context.executionAttributes()
+                      .getOptionalAttribute(SdkInternalExecutionAttribute.IS_LONG_POLLING)
+                      .orElse(false);
     }
 }

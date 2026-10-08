@@ -35,6 +35,7 @@ import org.openjdk.jmh.annotations.State;
 import org.openjdk.jmh.annotations.TearDown;
 import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 
 /**
  * V1 roundtrip benchmark for Query protocol using STS AssumeRole via HTTP servlet.
@@ -47,16 +48,14 @@ import org.openjdk.jmh.infra.Blackhole;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V1QueryRoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private AWSSecurityTokenService client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("query-protocol/assumerole-response.xml");
+        byte[] response = MockHttpServer.loadFixture("query-protocol/assumerole-response.xml");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "text/xml");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "text/xml");
         server.start();
 
         client = AWSSecurityTokenServiceClientBuilder.standard()

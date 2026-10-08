@@ -29,12 +29,14 @@ import software.amazon.awssdk.utils.Validate;
 public final class RefreshRetryTokenRequestImpl implements RefreshRetryTokenRequest {
     private final RetryToken token;
     private final Duration suggestedDelay;
+    private final boolean isLongPolling;
     private final Throwable failure;
 
     private RefreshRetryTokenRequestImpl(Builder builder) {
         this.token = Validate.paramNotNull(builder.token, "token");
         this.suggestedDelay = Validate.paramNotNull(builder.suggestedDelay, "suggestedDelay");
         Validate.isNotNegative(this.suggestedDelay, "suggestedDelay");
+        this.isLongPolling = builder.isLongPolling;
         this.failure = Validate.paramNotNull(builder.failure, "failure");
     }
 
@@ -46,6 +48,11 @@ public final class RefreshRetryTokenRequestImpl implements RefreshRetryTokenRequ
     @Override
     public Optional<Duration> suggestedDelay() {
         return Optional.of(suggestedDelay);
+    }
+
+    @Override
+    public boolean isLongPolling() {
+        return isLongPolling;
     }
 
     @Override
@@ -68,11 +75,13 @@ public final class RefreshRetryTokenRequestImpl implements RefreshRetryTokenRequ
     public static final class Builder implements RefreshRetryTokenRequest.Builder {
         private RetryToken token;
         private Duration suggestedDelay = Duration.ZERO;
+        private boolean isLongPolling;
         private Throwable failure;
 
         Builder(RefreshRetryTokenRequestImpl refreshRetryTokenRequest) {
             this.token = refreshRetryTokenRequest.token;
             this.suggestedDelay = refreshRetryTokenRequest.suggestedDelay;
+            this.isLongPolling = refreshRetryTokenRequest.isLongPolling;
             this.failure = refreshRetryTokenRequest.failure;
         }
 
@@ -88,6 +97,12 @@ public final class RefreshRetryTokenRequestImpl implements RefreshRetryTokenRequ
         @Override
         public Builder suggestedDelay(Duration duration) {
             this.suggestedDelay = duration;
+            return this;
+        }
+
+        @Override
+        public RefreshRetryTokenRequest.Builder isLongPolling(boolean isLongPolling) {
+            this.isLongPolling = isLongPolling;
             return this;
         }
 

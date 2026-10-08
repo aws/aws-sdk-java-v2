@@ -44,6 +44,7 @@ import software.amazon.awssdk.core.metrics.CoreMetric;
 import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricPublisher;
+import software.amazon.awssdk.services.metrics.ApiCallDurationAssertions;
 import software.amazon.awssdk.services.protocolrestjson.model.EmptyModeledException;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -268,6 +269,11 @@ public abstract class BaseAsyncCoreMetricsTest {
         verifyApiCallCollection(capturedCollection);
         assertThat(capturedCollection.metricValues(CoreMetric.RETRY_COUNT)).containsExactly(0);
         assertThat(capturedCollection.metricValues(CoreMetric.API_CALL_SUCCESSFUL)).containsExactly(true);
+        // Note: the javadoc additivity formula is deliberately not asserted as a whole here, only per component in
+        // verifyApiCallCollection. On async the phases are not disjoint: SERVICE_CALL_DURATION does not stop at time to
+        // first byte, as noted on CoreMetric.TIME_TO_FIRST_BYTE, so for a streaming operation it overlaps
+        // UNMARSHALLING_DURATION and their sum can marginally exceed ApiCallDuration. That is a separate defect in
+        // SERVICE_CALL_DURATION, not in the window measured here.
     }
 
     private void verifyApiCallCollection(MetricCollection capturedCollection) {
@@ -284,6 +290,9 @@ public abstract class BaseAsyncCoreMetricsTest {
             .isGreaterThan(FIXED_DELAY);
         assertThat(capturedCollection.metricValues(CoreMetric.SERVICE_ENDPOINT).get(0)).toString()
             .startsWith("http://localhost");
+        // The async client used to measure ApiCallDuration from the signing stage onwards, which excluded marshalling
+        // and endpoint resolution. Guard against that regression, and against the two clients diverging again.
+        ApiCallDurationAssertions.assertEnclosesComponents(capturedCollection);
     }
 
     void stubSuccessfulResponse() {

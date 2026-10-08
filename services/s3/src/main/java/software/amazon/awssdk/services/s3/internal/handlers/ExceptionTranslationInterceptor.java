@@ -75,6 +75,17 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
                                             .message(message)
                                             .build();
             }
+        } else if (exception.statusCode() == 503) {
+            if ("Slow Down".equals(errorDetails.sdkHttpResponse().statusText().orElse(null))) {
+                return S3Exception.builder()
+                                  .awsErrorDetails(fillErrorDetails(errorDetails, "SlowDown",
+                                                                    "Please reduce your request rate."))
+                                  .statusCode(503)
+                                  .requestId(requestId)
+                                  .extendedRequestId(extendedRequestId)
+                                  .message(message)
+                                  .build();
+            }
         } else if (errorDetails.errorMessage() == null) {
             // Populate the error message using the HTTP response status text. Usually that's just the value from the
             // HTTP spec (e.g. "Forbidden"), but sometimes S3 throws some more useful things in there, like "Slow Down".

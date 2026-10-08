@@ -44,7 +44,7 @@ import software.amazon.awssdk.core.waiters.WaiterAcceptor;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.http.auth.aws.signer.SignerConstant;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -314,7 +314,7 @@ public class S3MrapIntegrationTest extends S3ControlIntegrationTestBase {
                 builder.contentStreamProvider(() -> new StringInputStream(content));
             }
             HttpExecuteRequest request = builder.build();
-            HttpExecuteResponse response = ApacheHttpClient.create().prepareRequest(request).call();
+            HttpExecuteResponse response = Apache5HttpClient.create().prepareRequest(request).call();
             return response.responseBody()
                            .map(stream -> invokeSafely(() -> IoUtils.toUtf8String(stream)))
                            .orElseThrow(() -> new IOException("No input stream"));

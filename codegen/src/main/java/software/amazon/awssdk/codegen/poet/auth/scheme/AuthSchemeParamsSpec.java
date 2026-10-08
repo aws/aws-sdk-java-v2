@@ -60,12 +60,40 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                       .addModifiers(Modifier.PUBLIC)
                                       .addAnnotation(SdkPublicApi.class)
                                       .addJavadoc(interfaceJavadoc())
-                                      .addMethod(builderMethod())
-                                      .addType(builderInterfaceSpec());
+                                      .addMethod(builderMethod());
+
+        if (authSchemeSpecUtils.generateEndpointBasedParams()) {
+            b.addMethod(fromEndpointParamsMethod());
+        }
+
+        b.addType(builderInterfaceSpec());
 
         addAccessorMethods(b);
         addToBuilder(b);
         return b.build();
+    }
+
+    private MethodSpec fromEndpointParamsMethod() {
+        ClassName endpointParamsClass = endpointRulesSpecUtils.parametersClassName();
+        MethodSpec.Builder builder = MethodSpec.methodBuilder("fromEndpointParams")
+                                               .addModifiers(Modifier.PUBLIC, Modifier.STATIC)
+                                               .addParameter(endpointParamsClass, "endpointParams")
+                                               .returns(authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName())
+                                               .addJavadoc("Create a builder pre-populated with endpoint parameters.\n"
+                                                           + "@param endpointParams the endpoint parameters to copy\n"
+                                                           + "@return a builder with values from the endpoint parameters");
+
+        builder.addStatement("$T builder = builder()", authSchemeSpecUtils.parametersInterfaceBuilderInterfaceName());
+
+        parameters().forEach((name, model) -> {
+            if (authSchemeSpecUtils.includeParamForProvider(name)) {
+                String methodName = endpointRulesSpecUtils.paramMethodName(name);
+                builder.addStatement("builder.$1N(endpointParams.$1N())", methodName);
+            }
+        });
+
+        builder.addStatement("return builder");
+        return builder.build();
     }
 
     private CodeBlock interfaceJavadoc() {
@@ -118,6 +146,13 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
                                   .returns(Region.class)
                                   .addJavadoc("Returns the region. The region parameter may be used with the $S auth scheme.",
                                               AwsV4AuthScheme.SCHEME_ID)
+                                  .build());
+            b.addMethod(MethodSpec.methodBuilder("regionId")
+                                  .addModifiers(Modifier.PUBLIC, Modifier.DEFAULT)
+                                  .returns(String.class)
+                                  .addJavadoc("Returns the region ID as a string. Returns null if region is not set.")
+                                  .addStatement("$T region = region()", Region.class)
+                                  .addStatement("return region == null ? null : region.id()")
                                   .build());
         }
 
@@ -200,7 +235,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
     }
 
     private Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 
     private TypeName toCopyableBuilderInterface() {

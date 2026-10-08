@@ -58,7 +58,7 @@ public final class ZoneOffsetAttributeConverter implements AttributeConverter<Zo
 
     @Override
     public AttributeValue transformFrom(ZoneOffset input) {
-        return AttributeValue.builder().s(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.createS(STRING_CONVERTER.toString(input));
     }
 
     @Override

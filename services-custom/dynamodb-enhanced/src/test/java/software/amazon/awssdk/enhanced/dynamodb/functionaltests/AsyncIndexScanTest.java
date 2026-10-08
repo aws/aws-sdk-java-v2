@@ -17,7 +17,9 @@ package software.amazon.awssdk.enhanced.dynamodb.functionaltests;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.numberValue;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
@@ -50,6 +52,7 @@ import software.amazon.awssdk.enhanced.dynamodb.model.ScanEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DeleteTableRequest;
 import software.amazon.awssdk.services.dynamodb.model.ProjectionType;
+import software.amazon.awssdk.services.dynamodb.model.ReturnConsumedCapacity;
 
 public class AsyncIndexScanTest extends LocalDynamoDbAsyncTestBase {
     private static class Record {
@@ -206,6 +209,19 @@ public class AsyncIndexScanTest extends LocalDynamoDbAsyncTestBase {
 
         assertThat(page.items(), is(KEYS_ONLY_RECORDS));
         assertThat(page.lastEvaluatedKey(), is(nullValue()));
+    }
+
+    @Test
+    public void scanAllRecords_withConsumedCapacity_shouldReturnIndexMetrics() {
+        insertRecords();
+        SdkPublisher<Page<Record>> publisher =
+            keysOnlyMappedIndex.scan(r -> r.returnConsumedCapacity(ReturnConsumedCapacity.INDEXES));
+        Page<Record> page = drainPublisher(publisher, 1).get(0);
+        assertThat(page.items(), is(KEYS_ONLY_RECORDS));
+        assertThat(page.consumedCapacity(), is(notNullValue()));
+        assertThat(page.consumedCapacity().globalSecondaryIndexes(), is(notNullValue()));
+        assertThat(page.count(), equalTo(10));
+        assertThat(page.scannedCount(), equalTo(10));
     }
 
     @Test

@@ -40,6 +40,11 @@ public interface SubAsyncRequestBody extends CloseableAsyncRequestBody {
     void complete();
 
     /**
+     * Signal that the stream has terminated with an error. No more {@link #send(ByteBuffer)} calls will be made.
+     */
+    void error(Throwable error);
+
+    /**
      * The maximum length of the content this AsyncRequestBody can hold. If the upstream content length is known, this should be
      * the same as receivedBytesLength
      */

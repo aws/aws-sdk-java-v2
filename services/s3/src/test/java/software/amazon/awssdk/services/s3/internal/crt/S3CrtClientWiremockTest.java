@@ -37,17 +37,23 @@ import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.CrtResource;
@@ -220,6 +226,52 @@ public class S3CrtClientWiremockTest {
                 SdkClientException exception = (SdkClientException) throwable;
                 assertThat(exception.getMessage()).contains("Failed to send the request");
             });
+    }
+
+    @Test
+    public void putObject_requestBodyPublisherErrors_futureCompletesWithOriginalError(WireMockRuntimeInfo wiremock) {
+        // Match all methods with a 200. WireMock waits for the full request body before responding, so when the body
+        // errors mid-send the body error (not a server response) is the meta request's terminal event.
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200)));
+        IllegalArgumentException bodyError = new IllegalArgumentException("test error");
+
+        // A small, known content length keeps this a single-part PutObject (avoids the @BeforeEach client's tiny part
+        // size that would otherwise force a multipart CreateMultipartUpload before the body is ever read).
+        AsyncRequestBody erroringBody = new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.of(16L);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        subscriber.onError(bodyError);
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
+
+        try (S3AsyncClient singlePartClient =
+                 S3AsyncClient.crtBuilder()
+                              .region(Region.US_EAST_1)
+                              .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                              .credentialsProvider(
+                                  StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                              .build()) {
+            // Bounded wait so a regression that swallows the body error (leaving CRT waiting on the declared 16 bytes)
+            // fails fast instead of hanging to the global surefire timeout.
+            assertThatThrownBy(() -> singlePartClient.putObject(r -> r.bucket(BUCKET).key(KEY), erroringBody)
+                                                     .get(5, TimeUnit.SECONDS))
+                .hasRootCauseInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseMessage("test error");
+        }
     }
 
     @Test

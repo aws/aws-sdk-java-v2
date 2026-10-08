@@ -24,6 +24,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
@@ -39,6 +40,7 @@ import software.amazon.awssdk.enhanced.dynamodb.internal.converter.ConverterProv
 import software.amazon.awssdk.enhanced.dynamodb.internal.document.DefaultEnhancedDocument;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticImmutableTableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.StaticTableMetadata;
+import software.amazon.awssdk.enhanced.dynamodb.model.EnhancedVectorIndex;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 
@@ -204,6 +206,42 @@ public final class DocumentTableSchema implements TableSchema<EnhancedDocument> 
         public Builder addIndexSortKey(String indexName, String attributeName, AttributeValueType attributeValueType) {
             staticTableMetaDataBuilder.addIndexSortKey(indexName, attributeName, attributeValueType);
             return this;
+        }
+
+        /**
+         * Adds one or more vector indexes to the table metadata. Vector indexes are distinct from global and local secondary
+         * indexes.
+         *
+         * @param vectorIndexes the vector index definitions to add
+         */
+        public Builder vectorIndexes(EnhancedVectorIndex... vectorIndexes) {
+            for (EnhancedVectorIndex vectorIndex : vectorIndexes) {
+                staticTableMetaDataBuilder.addVectorIndex(vectorIndex);
+            }
+            return this;
+        }
+
+        /**
+         * Adds one or more vector indexes to the table metadata. Vector indexes are distinct from global and local secondary
+         * indexes.
+         *
+         * @param vectorIndexes the vector index definitions to add
+         */
+        public Builder vectorIndexes(List<EnhancedVectorIndex> vectorIndexes) {
+            vectorIndexes.forEach(staticTableMetaDataBuilder::addVectorIndex);
+            return this;
+        }
+
+        /**
+         * Adds a vector index to the table metadata using a builder consumer. Vector indexes are distinct from global and local
+         * secondary indexes.
+         *
+         * @param vectorIndex a consumer that configures the vector index builder
+         */
+        public Builder vectorIndex(Consumer<EnhancedVectorIndex.Builder> vectorIndex) {
+            EnhancedVectorIndex.Builder builder = EnhancedVectorIndex.builder();
+            vectorIndex.accept(builder);
+            return vectorIndexes(builder.build());
         }
 
         /**

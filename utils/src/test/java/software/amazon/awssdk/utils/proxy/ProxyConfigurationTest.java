@@ -25,8 +25,10 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.ProxyConfigProvider;
@@ -207,6 +209,41 @@ public class ProxyConfigurationTest {
         setEnvironmentProperties(envSystemSetting, "https");
         assertProxyEquals(ProxyConfigProvider.fromSystemPropertySettings("https"), expectedProxySetting);
         assertProxyEquals(ProxyConfigProvider.fromEnvironmentSettings("https"), expectedProxySetting);
+    }
+
+    @ParameterizedTest(name = "http.nonProxyHosts \"{0}\" -> raw \"{1}\" (no regex rewrite)")
+    @CsvSource({
+        "*.greedy.org, *.greedy.org",
+        "'*',          '*'",
+        "greedy*,      greedy*",
+        "192.168.*,    192.168.*",
+        "Example.COM,  example.com"
+    })
+    void rawNonProxyHosts_systemProperty_notRewrittenToRegex(String token, String expected) {
+        System.setProperty("http.nonProxyHosts", token);
+        assertThat(ProxyConfigProvider.fromSystemPropertySettings("http").rawNonProxyHosts())
+            .containsExactly(expected);
+    }
+
+    @ParameterizedTest(name = "no_proxy \"{0}\" -> raw \"{1}\" (no regex rewrite)")
+    @CsvSource({
+        "*.greedy.org, *.greedy.org",
+        "'*',          '*'",
+        "greedy*,      greedy*",
+        "192.168.*,    192.168.*",
+        "Example.COM,  example.com"
+    })
+    void rawNonProxyHosts_environmentVariable_notRewrittenToRegex(String token, String expected) {
+        ENVIRONMENT_VARIABLE_HELPER.set("no_proxy", token);
+        assertThat(ProxyConfigProvider.fromEnvironmentSettings("http").rawNonProxyHosts())
+            .containsExactly(expected);
+    }
+
+    @Test
+    void nonProxyHosts_systemProperty_stillRewritesWildcardToRegex() {
+        System.setProperty("http.nonProxyHosts", "example.com|*greedy.org");
+        assertThat(ProxyConfigProvider.fromSystemPropertySettings("http").nonProxyHosts())
+            .containsExactlyInAnyOrder("example.com", ".*?greedy.org");
     }
 
     private static class ExpectedProxySetting {

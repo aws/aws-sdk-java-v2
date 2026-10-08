@@ -83,7 +83,9 @@ public class TransactUpdateItemEnhancedRequest<T> {
 
     /**
      * Returns if the update operation should ignore attributes with null values, or false if it has not been set.
-     * This is deprecated in favour of ignoreNullsMode()
+     *
+     * @deprecated Use {@link #ignoreNullsMode()} instead, which provides more granular control
+     * over null handling behavior.
      */
     @Deprecated
     public Boolean ignoreNulls() {
@@ -190,6 +192,10 @@ public class TransactUpdateItemEnhancedRequest<T> {
          *
          * @param ignoreNulls the boolean value
          * @return a builder of this type
+         * @deprecated Use {@link #ignoreNullsMode(IgnoreNullsMode)} instead, which provides more granular control
+         * over null handling behavior.
+         * {@code ignoreNulls(true)} is equivalent to {@link IgnoreNullsMode#MAPS_ONLY};
+         * {@code ignoreNulls(false)} is equivalent to {@link IgnoreNullsMode#DEFAULT}.
          */
         @Deprecated
         public Builder<T> ignoreNulls(Boolean ignoreNulls) {
@@ -197,6 +203,12 @@ public class TransactUpdateItemEnhancedRequest<T> {
             return this;
         }
 
+        /**
+         * Sets the mode that determines how null-valued attributes are handled during the update operation.
+         *
+         * @param ignoreNullsMode the {@link IgnoreNullsMode} to use
+         * @return a builder of this type
+         */
         public Builder<T> ignoreNullsMode(IgnoreNullsMode ignoreNullsMode) {
             this.ignoreNullsMode = ignoreNullsMode;
             return this;

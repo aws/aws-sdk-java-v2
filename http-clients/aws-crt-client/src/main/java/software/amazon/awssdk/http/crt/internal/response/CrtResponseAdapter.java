@@ -19,6 +19,7 @@ import static software.amazon.awssdk.http.crt.internal.CrtUtils.wrapWithIoExcept
 
 import java.nio.ByteBuffer;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.crt.CRT;
@@ -49,6 +50,11 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
     private final SdkHttpResponse.Builder responseBuilder;
     private final ResponseHandlerHelper responseHandlerHelper;
 
+    // Guards the single terminal responseHandler.onError. A request-body error (failRequest) completes the future,
+    // which triggers closeConnection -> cancel -> a cancel-derived onResponseComplete; this guard stops that from
+    // notifying onError a second time. See #6715.
+    private final AtomicBoolean onErrorInvoked = new AtomicBoolean(false);
+
     private CrtResponseAdapter(CompletableFuture<Void> completionFuture,
                                SdkAsyncHttpResponseHandler responseHandler) {
         this(completionFuture, responseHandler, new SimplePublisher<>());
@@ -65,7 +71,7 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         this.responseHandlerHelper = new ResponseHandlerHelper(responseBuilder);
     }
 
-    public static HttpStreamBaseResponseHandler toCrtResponseHandler(
+    public static CrtResponseAdapter toCrtResponseHandler(
         CompletableFuture<Void> requestFuture,
         SdkAsyncHttpResponseHandler responseHandler) {
         return new CrtResponseAdapter(requestFuture, responseHandler);
@@ -133,16 +139,37 @@ public final class CrtResponseAdapter implements HttpStreamBaseResponseHandler {
         responseHandlerHelper.closeConnection();
     }
 
+    /**
+     * Fail the request from outside the CRT response callbacks (e.g. a request-body read error): deliver the error to
+     * the response handler and complete the request future. Completing the future triggers the executor's
+     * connection-eviction which cancels the stream; the cancel-derived {@code onResponseComplete} is suppressed by the
+     * one-shot guard in {@link #callResponseHandlerOnError}, so the handler is notified exactly once. See #6715.
+     */
+    public void failRequest(Throwable error) {
+        failResponseHandlerAndFuture(error);
+    }
+
     private void failResponseHandlerAndFuture(Throwable error) {
         callResponseHandlerOnError(error);
         completionFuture.completeExceptionally(error);
     }
 
     private void callResponseHandlerOnError(Throwable error) {
+        if (!onErrorInvoked.compareAndSet(false, true)) {
+            return;
+        }
         try {
             responseHandler.onError(error);
         } catch (RuntimeException e) {
             log.warn(() -> "Exception raised from SdkAsyncHttpResponseHandler#onError.", e);
         }
+    }
+
+    public void onAcquireStream(HttpStreamBase stream) {
+        responseHandlerHelper.onAcquireStream(stream);
+    }
+
+    public void closeConnection() {
+        responseHandlerHelper.closeConnection();
     }
 }

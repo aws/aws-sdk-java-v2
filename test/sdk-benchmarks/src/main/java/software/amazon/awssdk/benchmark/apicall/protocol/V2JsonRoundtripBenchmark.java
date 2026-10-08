@@ -33,6 +33,7 @@ import org.openjdk.jmh.annotations.Warmup;
 import org.openjdk.jmh.infra.Blackhole;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.benchmark.utils.MockHttpServer;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
@@ -51,16 +52,14 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 @OutputTimeUnit(TimeUnit.SECONDS)
 public class V2JsonRoundtripBenchmark {
 
-    private ProtocolRoundtripServer server;
+    private MockHttpServer server;
     private DynamoDbClient client;
 
     @Setup(Level.Trial)
     public void setup() throws Exception {
-        byte[] response = ProtocolRoundtripServer.loadFixture("json-protocol/putitem-response.json");
+        byte[] response = MockHttpServer.loadFixture("json-protocol/putitem-response.json");
 
-        ProtocolRoundtripServlet servlet = new ProtocolRoundtripServlet(response, "application/x-amz-json-1.0");
-
-        server = new ProtocolRoundtripServer(servlet);
+        server = new MockHttpServer(response, "application/x-amz-json-1.0");
         server.start();
 
         client = DynamoDbClient.builder()

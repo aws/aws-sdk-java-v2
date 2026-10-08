@@ -12,25 +12,25 @@
             "type": "feature",
             "category": "AWS Compute Optimizer",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol."
         },
         {
             "type": "feature",
             "category": "AWS Marketplace Entitlement Service",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol."
         },
         {
             "type": "feature",
             "category": "Compute Optimizer Automation",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol."
         },
         {
             "type": "feature",
             "category": "Amazon Cognito Identity Provider",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Adding dutch language support for Cognito Managed Login and Terms on Console"
         },
         {
             "type": "feature",
@@ -42,7 +42,7 @@
             "type": "feature",
             "category": "AWS Network Firewall",
             "contributor": "",
-            "description": "Service Release Notes"
+            "description": "Support for new types of partner managed rulegroups for Network Firewall Service"
         },
         {
             "type": "feature",

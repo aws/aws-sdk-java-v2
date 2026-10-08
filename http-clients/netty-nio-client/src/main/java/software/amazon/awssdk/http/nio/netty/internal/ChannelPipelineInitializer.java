@@ -24,11 +24,9 @@ import static software.amazon.awssdk.http.nio.netty.internal.utils.NettyUtils.ne
 import static software.amazon.awssdk.utils.NumericUtils.saturatedCast;
 import static software.amazon.awssdk.utils.StringUtils.lowerCase;
 
-import io.netty.buffer.UnpooledByteBufAllocator;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInitializer;
-import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.pool.AbstractChannelPoolHandler;
 import io.netty.channel.pool.ChannelPool;
@@ -44,7 +42,6 @@ import io.netty.handler.ssl.ApplicationProtocolNames;
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler;
 import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslHandler;
-import io.netty.handler.ssl.SslProvider;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
@@ -64,7 +61,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     private final Protocol protocol;
     private final ProtocolNegotiation protocolNegotiation;
     private final SslContext sslCtx;
-    private final SslProvider sslProvider;
     private final long clientMaxStreams;
     private final int clientInitialWindowSize;
     private final Duration healthCheckPingPeriod;
@@ -75,7 +71,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
     public ChannelPipelineInitializer(Protocol protocol,
                                       ProtocolNegotiation protocolNegotiation,
                                       SslContext sslCtx,
-                                      SslProvider sslProvider,
                                       long clientMaxStreams,
                                       int clientInitialWindowSize,
                                       Duration healthCheckPingPeriod,
@@ -85,7 +80,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
         this.protocol = protocol;
         this.protocolNegotiation = protocolNegotiation;
         this.sslCtx = sslCtx;
-        this.sslProvider = sslProvider;
         this.clientMaxStreams = clientMaxStreams;
         this.clientInitialWindowSize = clientInitialWindowSize;
         this.healthCheckPingPeriod = healthCheckPingPeriod;
@@ -108,12 +102,6 @@ public final class ChannelPipelineInitializer extends AbstractChannelPoolHandler
 
             pipeline.addLast(sslHandler);
             pipeline.addLast(SslCloseCompletionEventHandler.getInstance());
-
-            // Use unpooled allocator to avoid increased heap memory usage from Netty 4.1.43.
-            // See https://github.com/netty/netty/issues/9768
-            if (sslProvider == SslProvider.JDK) {
-                ch.config().setOption(ChannelOption.ALLOCATOR, UnpooledByteBufAllocator.DEFAULT);
-            }
         }
 
         configureProtocolHandlers(ch, pipeline, protocol, sslCtxPresent);

@@ -26,78 +26,78 @@ import org.junit.jupiter.api.Test;
 public class PaginatorDefinitionTest {
 
     @Test
-    public void isValid_ReturnsFalse_WhenInputToken_IsNullOrEmpty() {
+    public void hasAllRequiredFields_ReturnsFalse_WhenInputToken_IsNullOrEmpty() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
 
         assertNull(paginatorDefinition.getInputToken());
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
 
         paginatorDefinition.setInputToken(Collections.emptyList());
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsFalse_WhenOutputToken_IsNullOrEmpty() {
+    public void hasAllRequiredFields_ReturnsFalse_WhenOutputToken_IsNullOrEmpty() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
 
         assertNull(paginatorDefinition.getOutputToken());
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
 
         paginatorDefinition.setOutputToken(Collections.emptyList());
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsFalse_WhenInputTokenIsPresent_AndOutputTokenIsMissing() {
+    public void hasAllRequiredFields_ReturnsFalse_WhenInputTokenIsPresent_AndOutputTokenIsMissing() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
 
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsTrue_WhenBothInputTokenAndOutputToken_ArePresent() {
+    public void hasAllRequiredFields_ReturnsTrue_WhenBothInputTokenAndOutputToken_ArePresent() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
         paginatorDefinition.setOutputToken(Arrays.asList("foo", "bar"));
 
-        assertTrue(paginatorDefinition.isValid());
+        assertTrue(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsTrue_WhenResultKey_IsNull() {
+    public void hasAllRequiredFields_ReturnsTrue_WhenResultKey_IsNull() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setInputToken(Arrays.asList("inputToken"));
         paginatorDefinition.setOutputToken(Arrays.asList("foo", "bar"));
 
         assertNull(paginatorDefinition.getResultKey());
-        assertTrue(paginatorDefinition.isValid());
+        assertTrue(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsTrue_WhenOutputTokenList_ContainsValidString() {
+    public void hasAllRequiredFields_ReturnsTrue_WhenOutputTokenList_ContainsValidString() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setOutputToken(Arrays.asList("Foo", "Foo.Bar"));
         paginatorDefinition.setInputToken(Arrays.asList("token"));
 
-        assertTrue(paginatorDefinition.isValid());
+        assertTrue(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsFalse_WhenOutputTokenList_ContainsAListMember() {
+    public void hasAllRequiredFields_ReturnsFalse_WhenOutputTokenList_ContainsAListMember() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setOutputToken(Arrays.asList("Contents[-1]"));
         paginatorDefinition.setInputToken(Arrays.asList("token"));
 
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
     }
 
     @Test
-    public void isValid_ReturnsTrue_WhenOutputTokenList_ContainsOrCharacter() {
+    public void hasAllRequiredFields_ReturnsTrue_WhenOutputTokenList_ContainsOrCharacter() {
         PaginatorDefinition paginatorDefinition = new PaginatorDefinition();
         paginatorDefinition.setOutputToken(Arrays.asList("NextMarker || Contents"));
         paginatorDefinition.setInputToken(Arrays.asList("token"));
 
-        assertFalse(paginatorDefinition.isValid());
+        assertFalse(paginatorDefinition.hasAllRequiredFields());
     }
 }

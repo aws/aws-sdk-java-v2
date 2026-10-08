@@ -105,9 +105,9 @@ public class HttpChecksumInHeaderTest {
     }
 
     @Test
-    public void aync_json_nonStreaming_unsignedPayload_with_Sha1_in_header() {
+    public void async_json_nonStreaming_unsignedPayload_with_Sha1_in_header() {
         jsonAsyncClient.operationWithChecksumNonStreaming(
-            r -> r.checksumAlgorithm(ChecksumAlgorithm.SHA1).stringMember("Hello world").build());
+            r -> r.checksumAlgorithm(ChecksumAlgorithm.SHA1).stringMember("Hello world").build()).join();
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
         //Note that content will be of form "{"stringMember":"Hello world"}"
         assertThat(getAsyncRequest().firstMatchingHeader("x-amz-checksum-sha1")).hasValue("M68rRwFal7o7B3KEMt3m0w39TaA=");
@@ -132,7 +132,7 @@ public class HttpChecksumInHeaderTest {
     }
 
     @Test
-    public void aync_xml_nonStreaming_unsignedPayload_with_Sha1_in_header() {
+    public void async_xml_nonStreaming_unsignedPayload_with_Sha1_in_header() {
         xmlAsyncClient.operationWithChecksumNonStreaming(r -> r.stringMember("Hello world")
                                                                .checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build()).join();
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();
@@ -141,7 +141,7 @@ public class HttpChecksumInHeaderTest {
     }
 
     @Test
-    public void aync_xml_nonStreaming_unsignedEmptyPayload_with_Sha1_in_header() {
+    public void async_xml_nonStreaming_unsignedEmptyPayload_with_Sha1_in_header() {
         xmlAsyncClient.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(software.amazon.awssdk.services.protocolrestxml.model.ChecksumAlgorithm.SHA1).build()).join();
 
         assertThat(getAsyncRequest().firstMatchingHeader("Content-MD5")).isNotPresent();

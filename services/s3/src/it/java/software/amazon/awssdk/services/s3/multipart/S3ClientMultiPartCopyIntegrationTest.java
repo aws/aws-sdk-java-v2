@@ -33,6 +33,7 @@ import java.util.stream.Stream;
 import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -48,6 +49,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.MultipartS3AsyncClient;
+import software.amazon.awssdk.services.s3.model.BucketVersioningStatus;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
 import software.amazon.awssdk.services.s3.model.CopyObjectResponse;
 import software.amazon.awssdk.services.s3.model.EncryptionType;
@@ -58,6 +60,7 @@ import software.amazon.awssdk.utils.Md5Utils;
 @Timeout(value = 3, unit = TimeUnit.MINUTES)
 public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase {
     private static final String BUCKET = temporaryBucketName(S3ClientMultiPartCopyIntegrationTest.class);
+    private static final String VERSIONED_BUCKET = temporaryBucketName("mpu-copy-versioned");
     private static final CapturingInterceptor CAPTURING_INTERCEPTOR = new CapturingInterceptor();
     private static final String ORIGINAL_OBJ = "test_file.dat";
     private static final String COPIED_OBJ = "test_file_copy.dat";
@@ -72,6 +75,10 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
     public static void setUp() throws Exception {
         S3IntegrationTestBase.setUp();
         createBucket(BUCKET);
+        createBucket(VERSIONED_BUCKET);
+
+        s3.putBucketVersioning(r -> r.bucket(VERSIONED_BUCKET)
+                                     .versioningConfiguration(v -> v.status(BucketVersioningStatus.ENABLED)));
 
         s3.putBucketEncryption(r -> r.bucket(BUCKET)
                                      .serverSideEncryptionConfiguration(c -> c.rules(
@@ -99,6 +106,7 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         s3CrtAsyncClient.close();
         s3MpuClient.close();
         deleteBucketAndAllContents(BUCKET);
+        deleteBucketAndAllContents(VERSIONED_BUCKET);
     }
 
     public static Stream<S3AsyncClient> s3AsyncClient() {
@@ -171,6 +179,28 @@ public class S3ClientMultiPartCopyIntegrationTest extends S3IntegrationTestBase 
         assertThat(copyObjectResponse.responseMetadata().requestId()).isNotNull();
         assertThat(copyObjectResponse.sdkHttpResponse()).isNotNull();
         verifyCopyContainsCrc32Header(s3AsyncClient);
+    }
+
+    @Test
+    void copy_fromVersionedBucket_withoutExplicitVersionId_shouldSucceed() {
+        byte[] originalContent = randomBytes(OBJ_SIZE);
+        String sourceKey = "versioned-source";
+        String destKey = "versioned-dest";
+
+        s3MpuClient.putObject(r -> r.bucket(VERSIONED_BUCKET).key(sourceKey),
+                              AsyncRequestBody.fromBytes(originalContent)).join();
+
+        CopyObjectResponse response = s3MpuClient.copyObject(c -> c
+            .sourceBucket(VERSIONED_BUCKET)
+            .sourceKey(sourceKey)
+            .destinationBucket(VERSIONED_BUCKET)
+            .destinationKey(destKey)).join();
+
+        assertThat(response.responseMetadata().requestId()).isNotNull();
+
+        ResponseBytes<GetObjectResponse> copiedObject = s3.getObject(
+            r -> r.bucket(VERSIONED_BUCKET).key(destKey), ResponseTransformer.toBytes());
+        assertThat(computeCheckSum(copiedObject.asByteBuffer())).isEqualTo(computeCheckSum(ByteBuffer.wrap(originalContent)));
     }
 
     private static byte[] generateSecretKey() {

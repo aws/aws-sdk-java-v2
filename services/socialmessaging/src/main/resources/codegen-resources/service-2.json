@@ -32,6 +32,49 @@
       ],
       "documentation":"<p>This is only used through the Amazon Web Services console during sign-up to associate your WhatsApp Business Account to your Amazon Web Services account.</p>"
     },
+    "CreateWhatsAppDataset":{
+      "name":"CreateWhatsAppDataset",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/waba/dataset",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateWhatsAppDatasetInput"},
+      "output":{"shape":"CreateWhatsAppDatasetOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Creates a Meta Conversions API dataset for a WhatsApp Business Account.</p>",
+      "idempotent":true
+    },
+    "CreateWhatsAppFlow":{
+      "name":"CreateWhatsAppFlow",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/flow/create",
+        "responseCode":200
+      },
+      "input":{"shape":"CreateWhatsAppFlowInput"},
+      "output":{"shape":"CreateWhatsAppFlowOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Creates a new WhatsApp Flow. Flows enable businesses to create rich, interactive forms and experiences that users can complete without leaving WhatsApp. The Flow is created in DRAFT status. If <code>publish</code> is set to <code>true</code> and a valid <code>flowJson</code> is provided, the Flow is published immediately.</p>"
+    },
     "CreateWhatsAppMessageTemplate":{
       "name":"CreateWhatsAppMessageTemplate",
       "http":{
@@ -46,6 +89,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
@@ -66,6 +110,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
@@ -86,11 +131,34 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
       ],
       "documentation":"<p>Uploads media for use in a WhatsApp message template.</p>"
+    },
+    "DeleteWhatsAppFlow":{
+      "name":"DeleteWhatsAppFlow",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/v1/whatsapp/flow",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteWhatsAppFlowInput"},
+      "output":{"shape":"DeleteWhatsAppFlowOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Deletes a WhatsApp Flow permanently. Only Flows in DRAFT status can be deleted. Published or deprecated Flows cannot be deleted.</p>",
+      "idempotent":true
     },
     "DeleteWhatsAppMessageMedia":{
       "name":"DeleteWhatsAppMessageMedia",
@@ -128,12 +196,34 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
       ],
       "documentation":"<p>Deletes a WhatsApp message template.</p>",
       "idempotent":true
+    },
+    "DeprecateWhatsAppFlow":{
+      "name":"DeprecateWhatsAppFlow",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/flow/deprecate",
+        "responseCode":200
+      },
+      "input":{"shape":"DeprecateWhatsAppFlowInput"},
+      "output":{"shape":"DeprecateWhatsAppFlowOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Deprecates a published WhatsApp Flow, marking it as no longer recommended for use. The Flow must be in PUBLISHED status. This is an irreversible operation.</p>"
     },
     "DisassociateWhatsAppBusinessAccount":{
       "name":"DisassociateWhatsAppBusinessAccount",
@@ -197,6 +287,93 @@
       "documentation":"<p>Retrieve the WABA account id and phone number details of a WhatsApp business account phone number.</p>",
       "readonly":true
     },
+    "GetWhatsAppBusinessPublicKey":{
+      "name":"GetWhatsAppBusinessPublicKey",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/whatsapp/business-public-key",
+        "responseCode":200
+      },
+      "input":{"shape":"GetWhatsAppBusinessPublicKeyInput"},
+      "output":{"shape":"GetWhatsAppBusinessPublicKeyOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Retrieves the business public key for a phone number and its signature status.</p>",
+      "readonly":true
+    },
+    "GetWhatsAppCallPermission":{
+      "name":"GetWhatsAppCallPermission",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/call/permission/get",
+        "responseCode":200
+      },
+      "input":{"shape":"GetWhatsAppCallPermissionInput"},
+      "output":{"shape":"GetWhatsAppCallPermissionOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Retrieves the current calling permission for a WhatsApp end user, along with the calling actions the business is allowed to take with that user. Provide the destination phone number or the business-scoped user ID to identify the end user.</p>"
+    },
+    "GetWhatsAppFlow":{
+      "name":"GetWhatsAppFlow",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/whatsapp/flow",
+        "responseCode":200
+      },
+      "input":{"shape":"GetWhatsAppFlowInput"},
+      "output":{"shape":"GetWhatsAppFlowOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Retrieves the metadata and status of a WhatsApp Flow, including validation errors, preview information, and health status.</p>",
+      "readonly":true
+    },
+    "GetWhatsAppFlowPreview":{
+      "name":"GetWhatsAppFlowPreview",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/whatsapp/flow/preview",
+        "responseCode":200
+      },
+      "input":{"shape":"GetWhatsAppFlowPreviewInput"},
+      "output":{"shape":"GetWhatsAppFlowPreviewOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Generates a web preview URL for testing a WhatsApp Flow before publishing. Preview URLs expire in 30 days and can be shared with stakeholders for review.</p>",
+      "readonly":true
+    },
     "GetWhatsAppMessageMedia":{
       "name":"GetWhatsAppMessageMedia",
       "http":{
@@ -232,6 +409,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
@@ -278,6 +456,50 @@
       "documentation":"<p>List all tags associated with a resource, such as a phone number or WABA.</p>",
       "readonly":true
     },
+    "ListWhatsAppFlowAssets":{
+      "name":"ListWhatsAppFlowAssets",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/whatsapp/flow/assets",
+        "responseCode":200
+      },
+      "input":{"shape":"ListWhatsAppFlowAssetsInput"},
+      "output":{"shape":"ListWhatsAppFlowAssetsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Lists the assets (Flow JSON definition) of a WhatsApp Flow with presigned download URLs. Download URLs are generated by Meta and expire after a short period.</p>",
+      "readonly":true
+    },
+    "ListWhatsAppFlows":{
+      "name":"ListWhatsAppFlows",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v1/whatsapp/flow/list",
+        "responseCode":200
+      },
+      "input":{"shape":"ListWhatsAppFlowsInput"},
+      "output":{"shape":"ListWhatsAppFlowsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Lists all WhatsApp Flows for a WhatsApp Business Account. Returns summary information including Flow ID, name, status, and categories.</p>",
+      "readonly":true
+    },
     "ListWhatsAppMessageTemplates":{
       "name":"ListWhatsAppMessageTemplates",
       "http":{
@@ -292,6 +514,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
@@ -313,6 +536,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
@@ -341,6 +565,27 @@
       ],
       "documentation":"<p>Upload a media file to the WhatsApp service. Only the specified <code>originationPhoneNumberId</code> has the permissions to send the media file when using <a href=\"https://docs.aws.amazon.com/social-messaging/latest/APIReference/API_SendWhatsAppMessage.html\">SendWhatsAppMessage</a>. You must use either <code>sourceS3File</code> or <code>sourceS3PresignedUrl</code> for the source. If both or neither are specified then an <code>InvalidParameterException</code> is returned.</p>"
     },
+    "PublishWhatsAppFlow":{
+      "name":"PublishWhatsAppFlow",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/flow/publish",
+        "responseCode":200
+      },
+      "input":{"shape":"PublishWhatsAppFlowInput"},
+      "output":{"shape":"PublishWhatsAppFlowOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Publishes a WhatsApp Flow, making it available for use in template messages. The Flow must be in DRAFT status with valid Flow JSON that passes Meta's validation. This is an irreversible operation.</p>"
+    },
     "PutWhatsAppBusinessAccountEventDestinations":{
       "name":"PutWhatsAppBusinessAccountEventDestinations",
       "http":{
@@ -359,6 +604,71 @@
       ],
       "documentation":"<p>Add an event destination to log event data from WhatsApp for a WhatsApp Business Account (WABA). A WABA can only have one event destination at a time. All resources associated with the WABA use the same event destination.</p>",
       "idempotent":true
+    },
+    "PutWhatsAppBusinessPublicKey":{
+      "name":"PutWhatsAppBusinessPublicKey",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/v1/whatsapp/business-public-key",
+        "responseCode":200
+      },
+      "input":{"shape":"PutWhatsAppBusinessPublicKeyInput"},
+      "output":{"shape":"PutWhatsAppBusinessPublicKeyOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Sets the business public key used to encrypt the data exchanged with the endpoint of a data exchange Flow.</p>",
+      "idempotent":true
+    },
+    "SendWhatsAppCallEvent":{
+      "name":"SendWhatsAppCallEvent",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/call/event",
+        "responseCode":200
+      },
+      "input":{"shape":"SendWhatsAppCallEventInput"},
+      "output":{"shape":"SendWhatsAppCallEventOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"ConflictException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Sends a WhatsApp calling event, such as connecting or terminating a call, for a business phone number. This operation passes the event through to Meta. To use this operation, the origination phone number must belong to a WhatsApp Business Account that is linked to your Amazon Web Services account.</p>"
+    },
+    "SendWhatsAppConversionEvent":{
+      "name":"SendWhatsAppConversionEvent",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/waba/dataset/events",
+        "responseCode":200
+      },
+      "input":{"shape":"SendWhatsAppConversionEventInput"},
+      "output":{"shape":"SendWhatsAppConversionEventOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Sends a conversion event to Meta's Conversions API for the specified WhatsApp Business Account dataset.</p>"
     },
     "SendWhatsAppMessage":{
       "name":"SendWhatsAppMessage",
@@ -416,6 +726,70 @@
       ],
       "documentation":"<p>Removes the specified tags from a resource. </p>"
     },
+    "UpdateLinkedWhatsAppBusinessAccountPhoneNumber":{
+      "name":"UpdateLinkedWhatsAppBusinessAccountPhoneNumber",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/v1/whatsapp/waba/phone",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateLinkedWhatsAppBusinessAccountPhoneNumberInput"},
+      "output":{"shape":"UpdateLinkedWhatsAppBusinessAccountPhoneNumberOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Updates the calling settings for a linked WhatsApp business phone number, such as whether calling is enabled and the hours during which the business accepts calls.</p>",
+      "idempotent":true
+    },
+    "UpdateWhatsAppFlow":{
+      "name":"UpdateWhatsAppFlow",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/flow/update",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateWhatsAppFlowInput"},
+      "output":{"shape":"UpdateWhatsAppFlowOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Updates the metadata of a WhatsApp Flow, such as its name or categories. This does not update the Flow JSON definition. Use <a href=\"https://docs.aws.amazon.com/social-messaging/latest/APIReference/API_UpdateWhatsAppFlowAssets.html\">UpdateWhatsAppFlowAssets</a> to update the Flow JSON.</p>"
+    },
+    "UpdateWhatsAppFlowAssets":{
+      "name":"UpdateWhatsAppFlowAssets",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v1/whatsapp/flow/assets/update",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateWhatsAppFlowAssetsInput"},
+      "output":{"shape":"UpdateWhatsAppFlowAssetsOutput"},
+      "errors":[
+        {"shape":"ValidationException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
+        {"shape":"ThrottledRequestException"},
+        {"shape":"InternalServiceException"},
+        {"shape":"DependencyException"}
+      ],
+      "documentation":"<p>Updates the Flow JSON definition (assets) of a WhatsApp Flow. Updating a published Flow's assets reverts it to DRAFT status, requiring re-publishing.</p>"
+    },
     "UpdateWhatsAppMessageTemplate":{
       "name":"UpdateWhatsAppMessageTemplate",
       "http":{
@@ -430,6 +804,7 @@
         {"shape":"AccessDeniedException"},
         {"shape":"ResourceNotFoundException"},
         {"shape":"InvalidParametersException"},
+        {"shape":"AccessDeniedByMetaException"},
         {"shape":"ThrottledRequestException"},
         {"shape":"InternalServiceException"},
         {"shape":"DependencyException"}
@@ -513,12 +888,26 @@
         "statusCode":{
           "shape":"Integer",
           "documentation":"<p>The status code for the response.</p>"
+        },
+        "linkedWhatsAppBusinessAccountId":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account that was linked to your Amazon Web Services account.</p>"
         }
       }
     },
     "Boolean":{
       "type":"boolean",
       "box":true
+    },
+    "BusinessPublicKeyPem":{
+      "type":"string",
+      "max":8192,
+      "min":1
+    },
+    "BusinessPublicKeySignatureStatus":{
+      "type":"string",
+      "max":20,
+      "min":1
     },
     "ButtonType":{
       "type":"string",
@@ -528,6 +917,89 @@
     "CodeExpirationMinutes":{
       "type":"integer",
       "box":true
+    },
+    "ConflictException":{
+      "type":"structure",
+      "members":{
+        "message":{"shape":"ErrorMessage"}
+      },
+      "documentation":"<p>Your request has conflicting operations. This can occur if you're trying to perform more than one operation on the same resource at the same time.</p>",
+      "error":{
+        "httpStatusCode":409,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "CreateWhatsAppDatasetInput":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account to create a dataset for, formatted as <code>waba-01234567890123456789012345678901</code>.</p>"
+        }
+      }
+    },
+    "CreateWhatsAppDatasetOutput":{
+      "type":"structure",
+      "required":["datasetId"],
+      "members":{
+        "datasetId":{
+          "shape":"WhatsAppDatasetId",
+          "documentation":"<p>The Meta-generated dataset ID, a numeric string of 10 to 20 digits.</p>"
+        }
+      }
+    },
+    "CreateWhatsAppFlowInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowName",
+        "categories"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account to associate with this Flow.</p>"
+        },
+        "flowName":{
+          "shape":"MetaFlowName",
+          "documentation":"<p>The name of the Flow. Must be unique within the WhatsApp Business Account.</p>"
+        },
+        "categories":{
+          "shape":"MetaFlowCategoryList",
+          "documentation":"<p>The categories that classify the business purpose of the Flow. At least one category is required.</p>"
+        },
+        "flowJson":{
+          "shape":"MetaFlowJsonBlob",
+          "documentation":"<p>The Flow JSON definition that describes the screens, components, and logic of the Flow. Maximum size is 10 MB.</p>"
+        },
+        "publish":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to <code>true</code> to publish the Flow immediately after creation. Requires a valid <code>flowJson</code> that passes Meta's validation.</p>"
+        },
+        "cloneFlowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The ID of an existing Flow within the same WhatsApp Business Account to clone.</p>"
+        },
+        "endpointUri":{
+          "shape":"MetaFlowEndpointUri",
+          "documentation":"<p>The HTTPS endpoint that Meta calls for a data exchange Flow.</p>"
+        }
+      }
+    },
+    "CreateWhatsAppFlowOutput":{
+      "type":"structure",
+      "members":{
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier assigned to the Flow by Meta.</p>"
+        },
+        "validationErrors":{
+          "shape":"ValidationErrorList",
+          "documentation":"<p>A list of validation errors returned by Meta, if any. Validation errors must be resolved before the Flow can be published.</p>"
+        }
+      }
     },
     "CreateWhatsAppMessageTemplateFromLibraryInput":{
       "type":"structure",
@@ -621,6 +1093,31 @@
       "type":"boolean",
       "box":true
     },
+    "DeleteWhatsAppFlowInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>",
+          "location":"querystring",
+          "locationName":"id"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow to delete.</p>",
+          "location":"querystring",
+          "locationName":"flowId"
+        }
+      }
+    },
+    "DeleteWhatsAppFlowOutput":{
+      "type":"structure",
+      "members":{}
+    },
     "DeleteWhatsAppMessageMediaInput":{
       "type":"structure",
       "required":[
@@ -698,6 +1195,27 @@
       "exception":true,
       "fault":true,
       "retryable":{"throttling":false}
+    },
+    "DeprecateWhatsAppFlowInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow to deprecate.</p>"
+        }
+      }
+    },
+    "DeprecateWhatsAppFlowOutput":{
+      "type":"structure",
+      "members":{}
     },
     "DisassociateWhatsAppBusinessAccountInput":{
       "type":"structure",
@@ -779,6 +1297,193 @@
         "linkedWhatsAppBusinessAccountId":{
           "shape":"LinkedWhatsAppBusinessAccountId",
           "documentation":"<p>The WABA identifier linked to the phone number, formatted as <code>waba-01234567890123456789012345678901</code>.</p>"
+        },
+        "callSettings":{
+          "shape":"WhatsAppCallSettings",
+          "documentation":"<p>The calling settings configured for the phone number. This value is absent when calling is not configured.</p>"
+        }
+      }
+    },
+    "GetWhatsAppBusinessPublicKeyInput":{
+      "type":"structure",
+      "required":["originationPhoneNumberId"],
+      "members":{
+        "originationPhoneNumberId":{
+          "shape":"WhatsAppPhoneNumberId",
+          "documentation":"<p>The unique identifier of the phone number whose business public key to retrieve.</p>",
+          "location":"querystring",
+          "locationName":"originationPhoneNumberId"
+        }
+      }
+    },
+    "GetWhatsAppBusinessPublicKeyOutput":{
+      "type":"structure",
+      "members":{
+        "businessPublicKey":{
+          "shape":"BusinessPublicKeyPem",
+          "documentation":"<p>The stored PEM-encoded 2048-bit RSA public key.</p>"
+        },
+        "businessPublicKeySignatureStatus":{
+          "shape":"BusinessPublicKeySignatureStatus",
+          "documentation":"<p>The signature status of the stored business public key. Valid values are VALID and MISMATCH.</p>"
+        }
+      }
+    },
+    "GetWhatsAppCallPermissionInput":{
+      "type":"structure",
+      "required":["originationPhoneNumberId"],
+      "members":{
+        "originationPhoneNumberId":{
+          "shape":"WhatsAppPhoneNumberId",
+          "documentation":"<p>The unique identifier of the business phone number for which to retrieve the calling permission. The phone number identifiers are formatted as <code>phone-number-id-01234567890123456789012345678901</code>.</p>"
+        },
+        "destinationPhoneNumber":{
+          "shape":"WhatsAppDestinationPhoneNumber",
+          "documentation":"<p>The end user's phone number, in E.164 format, for which to retrieve the calling permission.</p>"
+        },
+        "endUserBsuid":{
+          "shape":"WhatsAppBusinessScopedUserId",
+          "documentation":"<p>The business-scoped user identifier (BSUID) of the end user for which to retrieve the calling permission.</p>"
+        }
+      }
+    },
+    "GetWhatsAppCallPermissionOutput":{
+      "type":"structure",
+      "required":[
+        "permission",
+        "actions"
+      ],
+      "members":{
+        "permission":{
+          "shape":"WhatsAppCallPermission",
+          "documentation":"<p>The current calling permission state for the end user.</p>"
+        },
+        "actions":{
+          "shape":"WhatsAppCallPermissionActionList",
+          "documentation":"<p>The calling actions the business can take with the end user, and any limits that apply to each action.</p>"
+        }
+      }
+    },
+    "GetWhatsAppFlowInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>",
+          "location":"querystring",
+          "locationName":"id"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow to retrieve.</p>",
+          "location":"querystring",
+          "locationName":"flowId"
+        }
+      }
+    },
+    "GetWhatsAppFlowOutput":{
+      "type":"structure",
+      "required":[
+        "flowId",
+        "flowName",
+        "flowStatus"
+      ],
+      "members":{
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow.</p>"
+        },
+        "flowName":{
+          "shape":"MetaFlowName",
+          "documentation":"<p>The name of the Flow.</p>"
+        },
+        "flowStatus":{
+          "shape":"MetaFlowStatus",
+          "documentation":"<p>The lifecycle status of the Flow. Valid values are DRAFT, PUBLISHED, DEPRECATED, BLOCKED, and THROTTLED.</p>"
+        },
+        "categories":{
+          "shape":"MetaFlowCategoryList",
+          "documentation":"<p>The categories that classify the business purpose of the Flow.</p>"
+        },
+        "validationErrors":{
+          "shape":"ValidationErrorList",
+          "documentation":"<p>A list of validation errors from Meta, if any.</p>"
+        },
+        "jsonVersion":{
+          "shape":"MetaFlowJsonVersion",
+          "documentation":"<p>The version of the Flow JSON schema used by this Flow (for example, 7.3).</p>"
+        },
+        "dataApiVersion":{
+          "shape":"MetaFlowDataApiVersion",
+          "documentation":"<p>The data API version for data exchange endpoint Flows.</p>"
+        },
+        "endpointUri":{
+          "shape":"MetaFlowEndpointUri",
+          "documentation":"<p>The HTTPS endpoint that Meta calls for a data exchange Flow.</p>"
+        },
+        "preview":{
+          "shape":"MetaFlowPreviewInfo",
+          "documentation":"<p>The preview URL and its expiration timestamp for testing the Flow.</p>"
+        },
+        "whatsAppBusinessAccount":{
+          "shape":"MetaFlowWhatsAppBusinessAccountInfo",
+          "documentation":"<p>The WhatsApp Business Account information from Meta associated with this Flow.</p>"
+        },
+        "application":{
+          "shape":"MetaFlowApplicationInfo",
+          "documentation":"<p>The Meta application information associated with this Flow.</p>"
+        },
+        "healthStatus":{
+          "shape":"MetaFlowHealthStatus",
+          "documentation":"<p>The health status information for this Flow from Meta.</p>"
+        }
+      }
+    },
+    "GetWhatsAppFlowPreviewInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>",
+          "location":"querystring",
+          "locationName":"id"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow to preview.</p>",
+          "location":"querystring",
+          "locationName":"flowId"
+        },
+        "invalidate":{
+          "shape":"Boolean",
+          "documentation":"<p>Set to <code>true</code> to force generation of a new preview URL. Use this if the previous URL has been compromised or you want a fresh expiration period.</p>",
+          "location":"querystring",
+          "locationName":"invalidate"
+        }
+      }
+    },
+    "GetWhatsAppFlowPreviewOutput":{
+      "type":"structure",
+      "required":[
+        "flowId",
+        "preview"
+      ],
+      "members":{
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow.</p>"
+        },
+        "preview":{
+          "shape":"MetaFlowPreviewInfo",
+          "documentation":"<p>The preview URL and its expiration timestamp.</p>"
         }
       }
     },
@@ -826,10 +1531,7 @@
     },
     "GetWhatsAppMessageTemplateInput":{
       "type":"structure",
-      "required":[
-        "metaTemplateId",
-        "id"
-      ],
+      "required":["id"],
       "members":{
         "metaTemplateId":{
           "shape":"MetaTemplateId",
@@ -842,6 +1544,18 @@
           "documentation":"<p>The ID of the WhatsApp Business Account associated with this template.</p>",
           "location":"querystring",
           "locationName":"id"
+        },
+        "templateName":{
+          "shape":"MetaTemplateName",
+          "documentation":"<p>The name of the message template. Use together with <code>templateLanguageCode</code> as an alternative to <code>metaTemplateId</code> to identify a template.</p>",
+          "location":"querystring",
+          "locationName":"templateName"
+        },
+        "templateLanguageCode":{
+          "shape":"MetaTemplateLanguage",
+          "documentation":"<p>The language code of the message template (for example, <code>en</code> or <code>en_US</code>). Use together with <code>templateName</code> as an alternative to <code>metaTemplateId</code> to identify a template.</p>",
+          "location":"querystring",
+          "locationName":"templateLanguageCode"
         }
       }
     },
@@ -858,6 +1572,11 @@
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"}
+    },
+    "IanaTimezone":{
+      "type":"string",
+      "max":100,
+      "min":1
     },
     "Integer":{
       "type":"integer",
@@ -886,9 +1605,20 @@
       },
       "exception":true
     },
+    "Iso8601Duration":{
+      "type":"string",
+      "max":20,
+      "min":1
+    },
     "IsoCountryCode":{
       "type":"string",
       "pattern":"[A-Z]{2}"
+    },
+    "KmsKeyArn":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "pattern":"arn:aws[a-z-]*:kms:[a-z0-9-]+:[0-9]{12}:(key/.+|alias/.+)"
     },
     "LibraryTemplateBodyInputs":{
       "type":"structure",
@@ -1038,6 +1768,14 @@
           "shape":"WhatsAppBusinessAccountEventDestinations",
           "documentation":"<p>The event destinations for the linked WhatsApp Business Account.</p>"
         },
+        "marketingMessagesOnboardingStatus":{
+          "shape":"WhatsAppBusinessAccountMarketingMessagesOnboardingStatus",
+          "documentation":"<p>The onboarding status for the Marketing Messages API. This value is fetched from Meta and indicates whether the WhatsApp Business Account is onboarded for Meta's Marketing Messages API.</p>"
+        },
+        "datasetId":{
+          "shape":"WhatsAppDatasetId",
+          "documentation":"<p>The Meta Conversions API dataset ID associated with this WhatsApp Business Account. This value is a numeric string of 10 to 20 digits. This field is not present when no dataset has been created for this account.</p>"
+        },
         "phoneNumbers":{
           "shape":"WhatsAppPhoneNumberSummaryList",
           "documentation":"<p>The phone numbers associated with the Linked WhatsApp Business Account.</p>"
@@ -1118,6 +1856,14 @@
         "eventDestinations":{
           "shape":"WhatsAppBusinessAccountEventDestinations",
           "documentation":"<p>The event destinations for the linked WhatsApp Business Account.</p>"
+        },
+        "marketingMessagesOnboardingStatus":{
+          "shape":"WhatsAppBusinessAccountMarketingMessagesOnboardingStatus",
+          "documentation":"<p>The onboarding status for the Marketing Messages API. This value is fetched from Meta and indicates whether the WhatsApp Business Account is onboarded for Meta's Marketing Messages API.</p>"
+        },
+        "datasetId":{
+          "shape":"WhatsAppDatasetId",
+          "documentation":"<p>The Meta Conversions API dataset ID associated with this WhatsApp Business Account. This value is a numeric string of 10 to 20 digits. This field is not present when no dataset has been created for this account.</p>"
         }
       },
       "documentation":"<p>The details of a linked WhatsApp Business Account.</p>"
@@ -1184,6 +1930,91 @@
         "tags":{
           "shape":"TagList",
           "documentation":"<p>The tags for the resource.</p>"
+        }
+      }
+    },
+    "ListWhatsAppFlowAssetsInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>",
+          "location":"querystring",
+          "locationName":"id"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow whose assets to list.</p>",
+          "location":"querystring",
+          "locationName":"flowId"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next page of results.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return per page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        }
+      }
+    },
+    "ListWhatsAppFlowAssetsOutput":{
+      "type":"structure",
+      "required":["flowAssets"],
+      "members":{
+        "flowAssets":{
+          "shape":"MetaFlowAssetList",
+          "documentation":"<p>A list of Flow assets with download URLs.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to retrieve the next page of results, if any.</p>"
+        }
+      }
+    },
+    "ListWhatsAppFlowsInput":{
+      "type":"structure",
+      "required":["id"],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account to list Flows for.</p>",
+          "location":"querystring",
+          "locationName":"id"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token for the next page of results.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of results to return per page.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        }
+      }
+    },
+    "ListWhatsAppFlowsOutput":{
+      "type":"structure",
+      "required":["flows"],
+      "members":{
+        "flows":{
+          "shape":"MetaFlowSummaryList",
+          "documentation":"<p>A list of Flow summaries.</p>"
+        },
+        "nextToken":{
+          "shape":"NextToken",
+          "documentation":"<p>The token to retrieve the next page of results, if any.</p>"
         }
       }
     },
@@ -1270,6 +2101,309 @@
       "box":true,
       "max":100,
       "min":1
+    },
+    "MetaFlowApplicationId":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "MetaFlowApplicationInfo":{
+      "type":"structure",
+      "required":[
+        "name",
+        "id"
+      ],
+      "members":{
+        "link":{
+          "shape":"MetaFlowApplicationLink",
+          "documentation":"<p>The URL link for the Meta application.</p>"
+        },
+        "name":{
+          "shape":"MetaFlowApplicationName",
+          "documentation":"<p>The name of the Meta application.</p>"
+        },
+        "id":{
+          "shape":"MetaFlowApplicationId",
+          "documentation":"<p>The unique identifier of the Meta application.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Meta application metadata associated with a WhatsApp Flow.</p>"
+    },
+    "MetaFlowApplicationLink":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "MetaFlowApplicationName":{
+      "type":"string",
+      "max":200,
+      "min":1
+    },
+    "MetaFlowAsset":{
+      "type":"structure",
+      "required":[
+        "name",
+        "assetType",
+        "downloadUrl"
+      ],
+      "members":{
+        "name":{
+          "shape":"MetaFlowAssetName",
+          "documentation":"<p>The filename of the asset (for example, flow.json).</p>"
+        },
+        "assetType":{
+          "shape":"MetaFlowAssetType",
+          "documentation":"<p>The type of asset. Currently the only supported value is FLOW_JSON.</p>"
+        },
+        "downloadUrl":{
+          "shape":"MetaFlowAssetDownloadUrl",
+          "documentation":"<p>A presigned URL from Meta for downloading the asset. The URL expires after a short period.</p>"
+        }
+      },
+      "documentation":"<p>Represents a single asset file associated with a WhatsApp Flow, including a presigned download URL.</p>"
+    },
+    "MetaFlowAssetDownloadUrl":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "MetaFlowAssetList":{
+      "type":"list",
+      "member":{"shape":"MetaFlowAsset"}
+    },
+    "MetaFlowAssetName":{
+      "type":"string",
+      "max":100,
+      "min":1
+    },
+    "MetaFlowAssetType":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "MetaFlowCategory":{
+      "type":"string",
+      "documentation":"<p>The category that classifies the business purpose of a WhatsApp Flow.</p>",
+      "enum":[
+        "SIGN_UP",
+        "SIGN_IN",
+        "APPOINTMENT_BOOKING",
+        "LEAD_GENERATION",
+        "SHOPPING",
+        "CONTACT_US",
+        "CUSTOMER_SUPPORT",
+        "SURVEY",
+        "OTHER"
+      ]
+    },
+    "MetaFlowCategoryList":{
+      "type":"list",
+      "member":{"shape":"MetaFlowCategory"},
+      "max":9,
+      "min":1
+    },
+    "MetaFlowDataApiVersion":{
+      "type":"string",
+      "max":10,
+      "min":1
+    },
+    "MetaFlowEndpointUri":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "MetaFlowHealthEntity":{
+      "type":"structure",
+      "required":[
+        "entityType",
+        "id",
+        "canSendMessage"
+      ],
+      "members":{
+        "entityType":{
+          "shape":"MetaFlowHealthEntityType",
+          "documentation":"<p>The type of entity (for example, FLOW, WABA, BUSINESS, or APP).</p>"
+        },
+        "id":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the entity.</p>"
+        },
+        "canSendMessage":{
+          "shape":"MetaFlowHealthStatusAvailability",
+          "documentation":"<p>The messaging availability status for this entity (for example, AVAILABLE, LIMITED, or BLOCKED).</p>"
+        }
+      },
+      "documentation":"<p>Represents a single entity in the health status check for a WhatsApp Flow.</p>"
+    },
+    "MetaFlowHealthEntityList":{
+      "type":"list",
+      "member":{"shape":"MetaFlowHealthEntity"}
+    },
+    "MetaFlowHealthEntityType":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "MetaFlowHealthStatus":{
+      "type":"structure",
+      "required":["canSendMessage"],
+      "members":{
+        "canSendMessage":{
+          "shape":"MetaFlowHealthStatusAvailability",
+          "documentation":"<p>The overall messaging availability status (for example, AVAILABLE, LIMITED, or BLOCKED).</p>"
+        },
+        "entities":{
+          "shape":"MetaFlowHealthEntityList",
+          "documentation":"<p>A list of health status entities with per-entity availability information.</p>"
+        }
+      },
+      "documentation":"<p>Contains the overall health status and per-entity breakdown for a WhatsApp Flow.</p>"
+    },
+    "MetaFlowHealthStatusAvailability":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "MetaFlowId":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "pattern":"[0-9]+"
+    },
+    "MetaFlowJsonBlob":{
+      "type":"blob",
+      "max":10485760,
+      "min":1
+    },
+    "MetaFlowJsonVersion":{
+      "type":"string",
+      "max":10,
+      "min":1
+    },
+    "MetaFlowName":{
+      "type":"string",
+      "max":200,
+      "min":1
+    },
+    "MetaFlowPreviewInfo":{
+      "type":"structure",
+      "required":[
+        "previewUrl",
+        "expiresAt"
+      ],
+      "members":{
+        "previewUrl":{
+          "shape":"MetaFlowPreviewUrl",
+          "documentation":"<p>The web URL for previewing the Flow. Can be shared with stakeholders for review.</p>"
+        },
+        "expiresAt":{
+          "shape":"MetaFlowTimestamp",
+          "documentation":"<p>The timestamp when the preview URL expires.</p>"
+        }
+      },
+      "documentation":"<p>Contains the preview URL for testing a WhatsApp Flow and its expiration timestamp.</p>"
+    },
+    "MetaFlowPreviewUrl":{
+      "type":"string",
+      "max":2048,
+      "min":1
+    },
+    "MetaFlowStatus":{
+      "type":"string",
+      "max":20,
+      "min":1
+    },
+    "MetaFlowSummary":{
+      "type":"structure",
+      "required":[
+        "flowId",
+        "flowName",
+        "flowStatus",
+        "flowCategories",
+        "validationErrors"
+      ],
+      "members":{
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow assigned by Meta.</p>"
+        },
+        "flowName":{
+          "shape":"MetaFlowName",
+          "documentation":"<p>The name of the Flow.</p>"
+        },
+        "flowStatus":{
+          "shape":"MetaFlowStatus",
+          "documentation":"<p>The lifecycle status of the Flow (DRAFT, PUBLISHED, DEPRECATED, BLOCKED, or THROTTLED).</p>"
+        },
+        "flowCategories":{
+          "shape":"MetaFlowCategoryList",
+          "documentation":"<p>The categories that classify the business purpose of the Flow.</p>"
+        },
+        "validationErrors":{
+          "shape":"ValidationErrorList",
+          "documentation":"<p>A list of validation errors from Meta, if any.</p>"
+        }
+      },
+      "documentation":"<p>Contains summary information about a WhatsApp Flow, including its ID, name, status, and categories.</p>"
+    },
+    "MetaFlowSummaryList":{
+      "type":"list",
+      "member":{"shape":"MetaFlowSummary"}
+    },
+    "MetaFlowTimestamp":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "MetaFlowValidationError":{
+      "type":"string",
+      "max":1048576,
+      "min":0
+    },
+    "MetaFlowWabaCurrency":{
+      "type":"string",
+      "max":10,
+      "min":1
+    },
+    "MetaFlowWabaTemplateNamespace":{
+      "type":"string",
+      "max":200,
+      "min":1
+    },
+    "MetaFlowWabaTimezoneId":{
+      "type":"string",
+      "max":10,
+      "min":1
+    },
+    "MetaFlowWhatsAppBusinessAccountInfo":{
+      "type":"structure",
+      "required":[
+        "id",
+        "name"
+      ],
+      "members":{
+        "id":{
+          "shape":"WhatsAppBusinessAccountId",
+          "documentation":"<p>The WhatsApp Business Account ID from Meta.</p>"
+        },
+        "name":{
+          "shape":"WhatsAppBusinessAccountName",
+          "documentation":"<p>The name of the WhatsApp Business Account.</p>"
+        },
+        "currency":{
+          "shape":"MetaFlowWabaCurrency",
+          "documentation":"<p>The currency code for the WhatsApp Business Account (for example, USD).</p>"
+        },
+        "timezoneId":{
+          "shape":"MetaFlowWabaTimezoneId",
+          "documentation":"<p>The timezone ID for the WhatsApp Business Account.</p>"
+        },
+        "messageTemplateNamespace":{
+          "shape":"MetaFlowWabaTemplateNamespace",
+          "documentation":"<p>The message template namespace for the WhatsApp Business Account.</p>"
+        }
+      },
+      "documentation":"<p>Contains WhatsApp Business Account metadata associated with a Flow, as returned by Meta.</p>"
     },
     "MetaIndustries":{
       "type":"list",
@@ -1526,6 +2660,27 @@
         }
       }
     },
+    "PublishWhatsAppFlowInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow to publish.</p>"
+        }
+      }
+    },
+    "PublishWhatsAppFlowOutput":{
+      "type":"structure",
+      "members":{}
+    },
     "PutWhatsAppBusinessAccountEventDestinationsInput":{
       "type":"structure",
       "required":[
@@ -1544,6 +2699,28 @@
       }
     },
     "PutWhatsAppBusinessAccountEventDestinationsOutput":{
+      "type":"structure",
+      "members":{}
+    },
+    "PutWhatsAppBusinessPublicKeyInput":{
+      "type":"structure",
+      "required":["originationPhoneNumberId"],
+      "members":{
+        "originationPhoneNumberId":{
+          "shape":"WhatsAppPhoneNumberId",
+          "documentation":"<p>The unique identifier of the phone number to associate with the business public key.</p>"
+        },
+        "businessPublicKey":{
+          "shape":"BusinessPublicKeyPem",
+          "documentation":"<p>The PEM-encoded 2048-bit RSA public key to set. Mutually exclusive with <code>kmsKeyArn</code>.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of a customer managed asymmetric RSA key in Amazon Web Services KMS. Mutually exclusive with <code>businessPublicKey</code>.</p>"
+        }
+      }
+    },
+    "PutWhatsAppBusinessPublicKeyOutput":{
       "type":"structure",
       "members":{}
     },
@@ -1624,6 +2801,70 @@
       "max":2000,
       "min":1,
       "pattern":"https://(.*)s3(.*).amazonaws.com/(.*)"
+    },
+    "SendWhatsAppCallEventInput":{
+      "type":"structure",
+      "required":[
+        "originationPhoneNumberId",
+        "metaApiVersion",
+        "callEvent"
+      ],
+      "members":{
+        "originationPhoneNumberId":{
+          "shape":"WhatsAppPhoneNumberId",
+          "documentation":"<p>The unique identifier of the origination phone number for the call. The phone number identifiers are formatted as <code>phone-number-id-01234567890123456789012345678901</code>. Use <code>GetLinkedWhatsAppBusinessAccount</code> to find a phone number's ID.</p>"
+        },
+        "metaApiVersion":{
+          "shape":"String",
+          "documentation":"<p>The version of the Meta Graph API to use for the request.</p>"
+        },
+        "callEvent":{
+          "shape":"WhatsAppCallEventBlob",
+          "documentation":"<p>The call event payload to send, as a JSON blob in the format defined by the Meta calling API.</p>"
+        }
+      }
+    },
+    "SendWhatsAppCallEventOutput":{
+      "type":"structure",
+      "required":["callId"],
+      "members":{
+        "callId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier that Meta assigns to the call.</p>"
+        }
+      }
+    },
+    "SendWhatsAppConversionEventInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "datasetId",
+        "eventData"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with the dataset, formatted as <code>waba-01234567890123456789012345678901</code>.</p>"
+        },
+        "datasetId":{
+          "shape":"WhatsAppDatasetId",
+          "documentation":"<p>The Meta-generated dataset ID to send the event to.</p>"
+        },
+        "eventData":{
+          "shape":"WhatsAppConversionEventBlob",
+          "documentation":"<p>The raw Meta Conversions API event payload as a JSON blob. See <a href=\"https://developers.facebook.com/docs/marketing-api/conversions-api/parameters/server-event\">Meta's server event parameters</a> for the supported format.</p>"
+        }
+      }
+    },
+    "SendWhatsAppConversionEventOutput":{
+      "type":"structure",
+      "required":["requestId"],
+      "members":{
+        "requestId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier for the conversion event request.</p>"
+        }
+      }
     },
     "SendWhatsAppMessageInput":{
       "type":"structure",
@@ -1784,6 +3025,7 @@
       "exception":true,
       "retryable":{"throttling":false}
     },
+    "Timestamp":{"type":"timestamp"},
     "TwoFactorPin":{
       "type":"string",
       "max":6,
@@ -1816,12 +3058,106 @@
         }
       }
     },
-    "UpdateWhatsAppMessageTemplateInput":{
+    "UpdateLinkedWhatsAppBusinessAccountPhoneNumberInput":{
       "type":"structure",
       "required":[
         "id",
-        "metaTemplateId"
+        "callSettings"
       ],
+      "members":{
+        "id":{
+          "shape":"WhatsAppPhoneNumberId",
+          "documentation":"<p>The unique identifier of the phone number to update. The phone number identifiers are formatted as <code>phone-number-id-01234567890123456789012345678901</code>.</p>",
+          "location":"querystring",
+          "locationName":"id"
+        },
+        "callSettings":{
+          "shape":"WhatsAppCallSettings",
+          "documentation":"<p>The calling settings to apply to the phone number.</p>"
+        }
+      }
+    },
+    "UpdateLinkedWhatsAppBusinessAccountPhoneNumberOutput":{
+      "type":"structure",
+      "required":["phoneNumberId"],
+      "members":{
+        "phoneNumberId":{
+          "shape":"WhatsAppPhoneNumberId",
+          "documentation":"<p>The unique identifier of the phone number that was updated.</p>"
+        }
+      }
+    },
+    "UpdateWhatsAppFlowAssetsInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId",
+        "flowJson"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow whose assets to update.</p>"
+        },
+        "flowJson":{
+          "shape":"MetaFlowJsonBlob",
+          "documentation":"<p>The updated Flow JSON definition. Maximum size is 10 MB.</p>"
+        }
+      }
+    },
+    "UpdateWhatsAppFlowAssetsOutput":{
+      "type":"structure",
+      "members":{
+        "validationErrors":{
+          "shape":"ValidationErrorList",
+          "documentation":"<p>A list of validation errors returned by Meta, if any. Validation errors must be resolved before the Flow can be published.</p>"
+        }
+      }
+    },
+    "UpdateWhatsAppFlowInput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "flowId"
+      ],
+      "members":{
+        "id":{
+          "shape":"LinkedWhatsAppBusinessAccountId",
+          "documentation":"<p>The ID of the WhatsApp Business Account associated with this Flow.</p>"
+        },
+        "flowId":{
+          "shape":"MetaFlowId",
+          "documentation":"<p>The unique identifier of the Flow to update.</p>"
+        },
+        "flowName":{
+          "shape":"MetaFlowName",
+          "documentation":"<p>The updated name for the Flow.</p>"
+        },
+        "categories":{
+          "shape":"MetaFlowCategoryList",
+          "documentation":"<p>The updated categories for the Flow.</p>"
+        },
+        "endpointUri":{
+          "shape":"MetaFlowEndpointUri",
+          "documentation":"<p>The updated HTTPS endpoint for a data exchange Flow.</p>"
+        },
+        "metaAppId":{
+          "shape":"MetaFlowApplicationId",
+          "documentation":"<p>The ID of the Meta application to attach to the Flow.</p>"
+        }
+      }
+    },
+    "UpdateWhatsAppFlowOutput":{
+      "type":"structure",
+      "members":{}
+    },
+    "UpdateWhatsAppMessageTemplateInput":{
+      "type":"structure",
+      "required":["id"],
       "members":{
         "id":{
           "shape":"LinkedWhatsAppBusinessAccountId",
@@ -1830,6 +3166,14 @@
         "metaTemplateId":{
           "shape":"MetaTemplateId",
           "documentation":"<p>The numeric ID of the template assigned by Meta.</p>"
+        },
+        "templateName":{
+          "shape":"MetaTemplateName",
+          "documentation":"<p>The name of the message template. Use together with <code>templateLanguageCode</code> as an alternative to <code>metaTemplateId</code> to identify a template.</p>"
+        },
+        "templateLanguageCode":{
+          "shape":"MetaTemplateLanguage",
+          "documentation":"<p>The language code of the message template (for example, <code>en</code> or <code>en_US</code>). Use together with <code>templateName</code> as an alternative to <code>metaTemplateId</code> to identify a template.</p>"
         },
         "parameterFormat":{
           "shape":"MetaParameterFormat",
@@ -1852,6 +3196,10 @@
     "UpdateWhatsAppMessageTemplateOutput":{
       "type":"structure",
       "members":{}
+    },
+    "ValidationErrorList":{
+      "type":"list",
+      "member":{"shape":"MetaFlowValidationError"}
     },
     "ValidationException":{
       "type":"structure",
@@ -1940,13 +3288,241 @@
       "min":1
     },
     "WhatsAppBusinessAccountLinkDate":{"type":"timestamp"},
+    "WhatsAppBusinessAccountMarketingMessagesOnboardingStatus":{
+      "type":"string",
+      "max":100,
+      "min":0
+    },
     "WhatsAppBusinessAccountName":{
       "type":"string",
       "max":200,
       "min":0
     },
+    "WhatsAppBusinessScopedUserId":{
+      "type":"string",
+      "max":100,
+      "min":1,
+      "sensitive":true
+    },
+    "WhatsAppCallEventBlob":{
+      "type":"blob",
+      "max":2048000,
+      "min":1,
+      "sensitive":true
+    },
+    "WhatsAppCallHours":{
+      "type":"structure",
+      "required":[
+        "enabled",
+        "timezone",
+        "weeklyOperatingHours"
+      ],
+      "members":{
+        "enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether call hours are enforced. When disabled, the business accepts calls at any time.</p>"
+        },
+        "timezone":{
+          "shape":"IanaTimezone",
+          "documentation":"<p>The IANA time zone in which the operating hours are interpreted, such as <code>America/New_York</code>.</p>"
+        },
+        "weeklyOperatingHours":{
+          "shape":"WhatsAppWeeklyOperatingHoursList",
+          "documentation":"<p>The weekly schedule of hours during which the business accepts calls.</p>"
+        },
+        "holidaySchedule":{
+          "shape":"WhatsAppHolidayScheduleList",
+          "documentation":"<p>Date-specific overrides to the weekly operating hours, such as holidays.</p>"
+        }
+      },
+      "documentation":"<p>The operating hours during which a business phone number accepts WhatsApp calls, including the time zone, weekly schedule, and any holiday overrides.</p>"
+    },
+    "WhatsAppCallIconVisibility":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "WhatsAppCallPermission":{
+      "type":"structure",
+      "required":["status"],
+      "members":{
+        "status":{
+          "shape":"WhatsAppCallPermissionStatus",
+          "documentation":"<p>The permission status for the end user.</p>"
+        },
+        "expirationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when a temporary permission expires. This value is absent for permanent permissions and when there is no permission.</p>"
+        }
+      },
+      "documentation":"<p>The current calling permission state for a business phone number and a specific WhatsApp end user.</p>"
+    },
+    "WhatsAppCallPermissionAction":{
+      "type":"structure",
+      "required":[
+        "actionName",
+        "canPerformAction",
+        "limits"
+      ],
+      "members":{
+        "actionName":{
+          "shape":"WhatsAppCallPermissionActionName",
+          "documentation":"<p>The name of the calling action.</p>"
+        },
+        "canPerformAction":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether the business can currently perform the action.</p>"
+        },
+        "limits":{
+          "shape":"WhatsAppCallPermissionLimitList",
+          "documentation":"<p>The time-bound limits that apply to the action.</p>"
+        }
+      },
+      "documentation":"<p>Describes a single calling action the business can take with an end user, including whether the action is currently allowed and any limits that apply to it. Returned as an item in the actions list from <code>GetWhatsAppCallPermission</code>.</p>"
+    },
+    "WhatsAppCallPermissionActionList":{
+      "type":"list",
+      "member":{"shape":"WhatsAppCallPermissionAction"}
+    },
+    "WhatsAppCallPermissionActionName":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "WhatsAppCallPermissionLimit":{
+      "type":"structure",
+      "required":[
+        "timePeriod",
+        "maxAllowed",
+        "currentUsage"
+      ],
+      "members":{
+        "timePeriod":{
+          "shape":"Iso8601Duration",
+          "documentation":"<p>The time period over which the limit applies, as an ISO 8601 duration.</p>"
+        },
+        "maxAllowed":{
+          "shape":"Integer",
+          "documentation":"<p>The maximum number of times the action is allowed within the time period.</p>"
+        },
+        "currentUsage":{
+          "shape":"Integer",
+          "documentation":"<p>The number of times the action has been used within the current time period.</p>"
+        },
+        "limitExpirationTime":{
+          "shape":"Timestamp",
+          "documentation":"<p>The time when the limit resets. This value is present only when the current usage has reached the maximum allowed.</p>"
+        }
+      },
+      "documentation":"<p>A time-bound restriction on a calling action, such as the number of calls allowed within a time period.</p>"
+    },
+    "WhatsAppCallPermissionLimitList":{
+      "type":"list",
+      "member":{"shape":"WhatsAppCallPermissionLimit"},
+      "max":10,
+      "min":0
+    },
+    "WhatsAppCallPermissionStatus":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "WhatsAppCallSettings":{
+      "type":"structure",
+      "required":["callEnabled"],
+      "members":{
+        "callEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether calling is enabled for the phone number.</p>"
+        },
+        "callHours":{
+          "shape":"WhatsAppCallHours",
+          "documentation":"<p>The hours during which the business accepts calls on the phone number.</p>"
+        },
+        "callIconVisibility":{
+          "shape":"WhatsAppCallIconVisibility",
+          "documentation":"<p>The visibility setting for the call icon shown to end users in WhatsApp.</p>"
+        },
+        "callbackPermissionStatus":{
+          "shape":"WhatsAppCallbackPermissionStatus",
+          "documentation":"<p>The callback permission status for the phone number.</p>"
+        }
+      },
+      "documentation":"<p>The calling configuration for a WhatsApp business phone number.</p>"
+    },
+    "WhatsAppCallbackPermissionStatus":{
+      "type":"string",
+      "max":50,
+      "min":1
+    },
+    "WhatsAppConversionEventBlob":{
+      "type":"blob",
+      "max":1024000,
+      "min":1,
+      "sensitive":true
+    },
+    "WhatsAppDatasetId":{
+      "type":"string",
+      "max":20,
+      "min":10,
+      "pattern":"[0-9]+"
+    },
+    "WhatsAppDate":{
+      "type":"string",
+      "max":10,
+      "min":10,
+      "pattern":"[0-9]{4}-[0-9]{2}-[0-9]{2}"
+    },
+    "WhatsAppDayOfWeek":{
+      "type":"string",
+      "enum":[
+        "MONDAY",
+        "TUESDAY",
+        "WEDNESDAY",
+        "THURSDAY",
+        "FRIDAY",
+        "SATURDAY",
+        "SUNDAY"
+      ]
+    },
+    "WhatsAppDestinationPhoneNumber":{
+      "type":"string",
+      "max":20,
+      "min":1,
+      "pattern":"\\+[1-9]\\d{1,14}",
+      "sensitive":true
+    },
     "WhatsAppDisplayPhoneNumber":{
       "type":"string",
+      "max":20,
+      "min":0
+    },
+    "WhatsAppHolidayScheduleEntry":{
+      "type":"structure",
+      "required":[
+        "date",
+        "startTime",
+        "endTime"
+      ],
+      "members":{
+        "date":{
+          "shape":"WhatsAppDate",
+          "documentation":"<p>The date that the override applies to, in ISO 8601 format (<code>YYYY-MM-DD</code>).</p>"
+        },
+        "startTime":{
+          "shape":"WhatsAppTimeOfDay",
+          "documentation":"<p>The time of day when the business begins accepting calls on the override date.</p>"
+        },
+        "endTime":{
+          "shape":"WhatsAppTimeOfDay",
+          "documentation":"<p>The time of day when the business stops accepting calls on the override date.</p>"
+        }
+      },
+      "documentation":"<p>A date-specific override to the weekly operating hours, such as a holiday.</p>"
+    },
+    "WhatsAppHolidayScheduleList":{
+      "type":"list",
+      "member":{"shape":"WhatsAppHolidayScheduleEntry"},
       "max":20,
       "min":0
     },
@@ -2149,6 +3725,65 @@
         }
       },
       "documentation":"<p>Contains the results of WhatsAppSignupCallback.</p>"
+    },
+    "WhatsAppTimeOfDay":{
+      "type":"structure",
+      "required":[
+        "hours",
+        "minutes"
+      ],
+      "members":{
+        "hours":{
+          "shape":"WhatsAppTimeOfDayHoursInteger",
+          "documentation":"<p>The hour of the day, from 0 to 23.</p>"
+        },
+        "minutes":{
+          "shape":"WhatsAppTimeOfDayMinutesInteger",
+          "documentation":"<p>The minute of the hour, from 0 to 59.</p>"
+        }
+      },
+      "documentation":"<p>A time of day, expressed as an hour and minute.</p>"
+    },
+    "WhatsAppTimeOfDayHoursInteger":{
+      "type":"integer",
+      "box":true,
+      "max":23,
+      "min":0
+    },
+    "WhatsAppTimeOfDayMinutesInteger":{
+      "type":"integer",
+      "box":true,
+      "max":59,
+      "min":0
+    },
+    "WhatsAppWeeklyOperatingHoursEntry":{
+      "type":"structure",
+      "required":[
+        "dayOfWeek",
+        "openTime",
+        "closeTime"
+      ],
+      "members":{
+        "dayOfWeek":{
+          "shape":"WhatsAppDayOfWeek",
+          "documentation":"<p>The day of the week that the entry applies to.</p>"
+        },
+        "openTime":{
+          "shape":"WhatsAppTimeOfDay",
+          "documentation":"<p>The time of day when the business begins accepting calls.</p>"
+        },
+        "closeTime":{
+          "shape":"WhatsAppTimeOfDay",
+          "documentation":"<p>The time of day when the business stops accepting calls.</p>"
+        }
+      },
+      "documentation":"<p>A single entry in a weekly calling schedule, defining the open and close times for one day of the week.</p>"
+    },
+    "WhatsAppWeeklyOperatingHoursList":{
+      "type":"list",
+      "member":{"shape":"WhatsAppWeeklyOperatingHoursEntry"},
+      "max":14,
+      "min":0
     },
     "ZeroTapTermsAccepted":{
       "type":"boolean",

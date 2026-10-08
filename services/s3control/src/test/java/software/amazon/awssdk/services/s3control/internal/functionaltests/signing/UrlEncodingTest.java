@@ -84,7 +84,7 @@ public class UrlEncodingTest {
         }
 
         @Override
-        public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+        public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
             signerDoubleUrlEncode = executionAttributes.getAttribute(AwsSignerExecutionAttribute.SIGNER_DOUBLE_URL_ENCODE);
         }
 

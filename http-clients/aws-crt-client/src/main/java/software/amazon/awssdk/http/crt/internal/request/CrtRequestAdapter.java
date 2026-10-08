@@ -19,6 +19,7 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpRequest;
@@ -36,7 +37,7 @@ public final class CrtRequestAdapter {
     private CrtRequestAdapter() {
     }
 
-    public static HttpRequestBase toAsyncCrtRequest(CrtAsyncRequestContext request) {
+    public static HttpRequestBase toAsyncCrtRequest(CrtAsyncRequestContext request, Consumer<Throwable> onBodyError) {
         AsyncExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.request();
 
@@ -51,7 +52,8 @@ public final class CrtRequestAdapter {
                                               .orElse("");
         String path = encodedPath + encodedQueryString;
         CrtRequestBodyAdapter crtRequestBodyAdapter = new CrtRequestBodyAdapter(sdkExecuteRequest.requestContentPublisher(),
-                                                                                request.readBufferSize());
+                                                                                request.readBufferSize(),
+                                                                                onBodyError);
         HttpHeader[] crtHeaderArray = asArray(createAsyncHttpHeaderList(sdkRequest.getUri(), sdkExecuteRequest,
                                                                         request.protocol()));
         return new HttpRequest(method,
@@ -60,7 +62,7 @@ public final class CrtRequestAdapter {
                                crtRequestBodyAdapter);
     }
 
-    public static HttpRequest toCrtRequest(CrtRequestContext request) {
+    public static HttpRequest toCrtRequest(CrtRequestContext request, Consumer<Throwable> onBodyError) {
 
         HttpExecuteRequest sdkExecuteRequest = request.sdkRequest();
         SdkHttpRequest sdkRequest = sdkExecuteRequest.httpRequest();
@@ -82,7 +84,7 @@ public final class CrtRequestAdapter {
                                 .map(provider -> new HttpRequest(method,
                                                                  finalEncodedPath,
                                                                  crtHeaderArray,
-                                                                 new CrtRequestInputStreamAdapter(provider)))
+                                                                 new CrtRequestInputStreamAdapter(provider, onBodyError)))
                                 .orElse(new HttpRequest(method,
                                                         finalEncodedPath,
                                                         crtHeaderArray, null));
@@ -108,9 +110,11 @@ public final class CrtRequestAdapter {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
 
-        // Set Content-Length if needed
+        // Set Content-Length if needed, but never alongside Transfer-Encoding. RFC 7230 forbids sending both
         Optional<Long> contentLength = sdkExecuteRequest.requestContentPublisher().contentLength();
-        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent() && contentLength.isPresent()) {
+        if (!sdkRequest.firstMatchingHeader(Header.CONTENT_LENGTH).isPresent()
+            && !sdkRequest.firstMatchingHeader(Header.TRANSFER_ENCODING).isPresent()
+            && contentLength.isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONTENT_LENGTH, Long.toString(contentLength.get())));
         }
 
@@ -134,8 +138,6 @@ public final class CrtRequestAdapter {
         if (!sdkRequest.firstMatchingHeader(Header.CONNECTION).isPresent()) {
             crtHeaderList.add(new HttpHeader(Header.CONNECTION, Header.KEEP_ALIVE_VALUE));
         }
-
-        // We assume content length was set by the caller if a stream was present, so don't set it here.
 
         // Add the rest of the Headers
         sdkRequest.forEachHeader((key, value) -> value.stream().map(val -> new HttpHeader(key, val)).forEach(crtHeaderList::add));

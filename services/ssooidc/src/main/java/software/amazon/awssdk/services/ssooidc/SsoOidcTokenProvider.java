@@ -116,29 +116,29 @@ public final class SsoOidcTokenProvider implements SdkTokenProvider, SdkAutoClos
         Builder sessionName(String sessionName);
 
         /**
-         *
          * Client to fetch token from SSO OIDC service.
          */
         Builder ssoOidcClient(SsoOidcClient ssoOidcClient);
 
         /**
-         * Configure the amount of time, relative to Sso-Oidc token , that the cached tokens in refresher are considered
+         * Configure the amount of time, relative to SSO OIDC token expiration, that the cached tokens in refresher are considered
          * stale and should no longer be used.
          *
-         * <p>By default, this is 5 minute.</p>
+         * <p>By default, this is 1 minute.</p>
          */
         Builder staleTime(Duration onDiskStaleDuration);
 
         /**
+         * Configure the amount of time, relative to SSO OIDC token expiration, that the cached tokens in refresher are considered
+         * close to stale and should be prefetched from the service.
          *
-         * Configure the amount of time, relative to Sso-Oidc token , that the cached tokens in refresher are considered
-         * prefetched from service..
+         * <p>By default, this is 5 minutes.</p>
          */
         Builder prefetchTime(Duration prefetchTime);
 
         /**
          * Configure whether the provider should fetch tokens asynchronously in the background. If this is true,
-         * threads are less likely to block when token are loaded, but additional resources are used to maintain
+         * threads are less likely to block when tokens are loaded, but additional resources are used to maintain
          * the provider.
          *
          * <p>By default, this is disabled.</p>

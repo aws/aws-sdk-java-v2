@@ -15,17 +15,25 @@
 
 package software.amazon.awssdk.messagemanager.sns.internal;
 
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.Signature;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,6 +41,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.messagemanager.sns.model.SignatureVersion;
@@ -44,12 +53,17 @@ class SignatureValidatorTest {
     private static final String SIGNING_CERT_RESOURCE = "SimpleNotificationService-7506a1e35b36ef5a444dd1a8e7cc3ed8.pem";
     private static final SignatureValidator VALIDATOR = new SignatureValidator();
     private static X509Certificate signingCertificate;
+    private static KeyPair signingKeyPair;
 
     @BeforeAll
-    static void setup() throws CertificateException {
+    static void setup() throws Exception {
         InputStream is = resourceAsStream(SIGNING_CERT_RESOURCE);
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
         signingCertificate = (X509Certificate) factory.generateCertificate(is);
+
+        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
+        keyPairGenerator.initialize(2048);
+        signingKeyPair = keyPairGenerator.generateKeyPair();
     }
 
     @ParameterizedTest(name = "{0}")
@@ -58,6 +72,18 @@ class SignatureValidatorTest {
         SnsMessageUnmarshaller unmarshaller = new SnsMessageUnmarshaller();
         SnsMessage msg = unmarshaller.unmarshall(resourceAsStream(tc.messageJsonResource));
         VALIDATOR.validateSignature(msg, signingCertificate.getPublicKey());
+    }
+
+    @ParameterizedTest(name = "timestamp={0}")
+    @ValueSource(strings = {
+        "2024-01-01T00:00:00.000Z", // whole second: Instant#toString() drops the ".000", changing the canonical string
+        "2024-06-15T12:30:45.123Z"  // non-zero milliseconds: control that validates regardless
+    })
+    void validateSignature_signatureCoversRawMillisecondTimestamp_doesNotThrow(String timestamp) throws Exception {
+        SnsMessage notification = signedNotification(timestamp, signingKeyPair);
+
+        assertThatCode(() -> VALIDATOR.validateSignature(notification, signingKeyPair.getPublic()))
+            .doesNotThrowAnyException();
     }
 
     @Test
@@ -180,6 +206,40 @@ class SignatureValidatorTest {
 
     private static InputStream resourceAsStream(String resourceName) {
         return SignatureValidatorTest.class.getResourceAsStream(RESOURCE_ROOT + resourceName);
+    }
+
+    private static SnsMessage signedNotification(String timestamp, KeyPair keyPair) throws Exception {
+        String message = "This notification is signed over a millisecond-precision timestamp.";
+        String messageId = "11111111-2222-3333-4444-555555555555";
+        String topicArn = "arn:aws:sns:us-east-1:123456789012:my-topic";
+
+        String canonicalMessage = String.join("\n",
+                                              "Message", message,
+                                              "MessageId", messageId,
+                                              "Timestamp", timestamp,
+                                              "TopicArn", topicArn,
+                                              "Type", "Notification") + "\n";
+
+        String signature = sign(canonicalMessage, keyPair.getPrivate());
+
+        String json = "{\n"
+                      + "  \"Type\" : \"Notification\",\n"
+                      + "  \"MessageId\" : \"" + messageId + "\",\n"
+                      + "  \"TopicArn\" : \"" + topicArn + "\",\n"
+                      + "  \"Message\" : \"" + message + "\",\n"
+                      + "  \"Timestamp\" : \"" + timestamp + "\",\n"
+                      + "  \"SignatureVersion\" : \"1\",\n"
+                      + "  \"Signature\" : \"" + signature + "\"\n"
+                      + "}";
+
+        return new SnsMessageUnmarshaller().unmarshall(new ByteArrayInputStream(json.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static String sign(String canonicalMessage, PrivateKey privateKey) throws Exception {
+        Signature signer = Signature.getInstance("SHA1withRSA");
+        signer.initSign(privateKey);
+        signer.update(canonicalMessage.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(signer.sign());
     }
 
     private static class TestCase {

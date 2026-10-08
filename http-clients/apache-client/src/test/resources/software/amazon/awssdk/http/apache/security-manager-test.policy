@@ -1,0 +1,8 @@
+grant {
+    permission java.util.PropertyPermission "*", "read,write";
+    permission java.lang.RuntimePermission "modifyThread";
+    permission java.lang.RuntimePermission "setContextClassLoader";
+    permission java.lang.RuntimePermission "setSecurityManager";
+    permission java.lang.reflect.ReflectPermission "suppressAccessChecks";
+    permission java.net.SocketPermission "*", "connect,accept";
+};

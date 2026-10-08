@@ -55,6 +55,11 @@ public interface CookiesForCustomPolicy extends SignedCookie,
          * Configure the cookie policy header value
          */
         Builder policyHeaderValue(String policyHeaderValue);
+
+        /**
+         * Configure the cookie hash-algorithm header value
+         */
+        Builder hashAlgorithmHeaderValue(String hashAlgorithmHeaderValue);
     }
 
 }

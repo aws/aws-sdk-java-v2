@@ -2,13 +2,6 @@ name: Build SDK
 on:
   merge_group:
   pull_request:
-  push:
-    branches:
-      - master
-    paths-ignore:
-      - '**.md'
-      - '.all-contributorsrc'
-      - 'docs/**'
 
 concurrency:
   group: start-pull-request-build-${{ github.ref }}
@@ -53,4 +46,4 @@ jobs:
             --branch "$HEAD_REF" \
             --pr-number "$PR_NUMBER" \
             --run-id "${{ github.run_id }}"
-        timeout-minutes: 120
+        timeout-minutes: 180

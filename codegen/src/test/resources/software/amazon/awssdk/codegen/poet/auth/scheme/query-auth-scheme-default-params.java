@@ -48,6 +48,11 @@ public final class DefaultQueryAuthSchemeParams implements QueryAuthSchemeParams
     }
 
     @Override
+    public String regionId() {
+        return region == null ? null : region.id();
+    }
+
+    @Override
     public QueryAuthSchemeParams.Builder toBuilder() {
         return new Builder(this);
     }

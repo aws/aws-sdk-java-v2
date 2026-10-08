@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.crt.CrtResource;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3IntegrationTestBase;
+import software.amazon.awssdk.services.s3.utils.S3TestUtils;
 import software.amazon.awssdk.services.s3.model.CSVInput;
 import software.amazon.awssdk.services.s3.model.CSVOutput;
 import software.amazon.awssdk.services.s3.model.CompressionType;
@@ -61,7 +62,8 @@ public class SelectObjectContentIntegrationTest extends S3IntegrationTestBase {
     @BeforeAll
     public static void setup() throws Exception {
         S3IntegrationTestBase.setUp();
-        s3.createBucket(r -> r.bucket(BUCKET_NAME));
+        s3.createBucket(r -> r.bucket(BUCKET_NAME)
+                              .createBucketConfiguration(cfg -> cfg.tags(S3TestUtils.integTestTag())));
         s3.waiter().waitUntilBucketExists(r -> r.bucket(BUCKET_NAME));
         s3.putObject(r -> r.bucket(BUCKET_NAME).key(KEY), RequestBody.fromString(CSV_CONTENTS));
         s3CrtClient = crtClientBuilder().build();

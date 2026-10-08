@@ -92,7 +92,7 @@ public abstract class CrtProxyConfiguration {
         if (builder.nonProxyHosts != null || proxyConfigProvider == null) {
             return builder.nonProxyHosts;
         }
-        return proxyConfigProvider.nonProxyHosts();
+        return proxyConfigProvider.rawNonProxyHosts();
     }
 
     /**
@@ -259,6 +259,9 @@ public abstract class CrtProxyConfiguration {
          * are not provided during building the {@link CrtProxyConfiguration} object. To disable this behaviour, set this value to
          * false.It is important to note that when this property is set to "true," all proxy settings will exclusively originate
          * from system properties, and no partial settings will be obtained from EnvironmentVariableValues.
+         * <p>Pipe-separated host names in the {@code http.nonProxyHosts} system property indicate multiple hosts to exclude
+         * from proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com|b.com"} and
+         * {@code "a.com | b.com"} are accepted.
          *
          * @param useSystemPropertyValues The option whether to use system property values
          * @return This object for method chaining.
@@ -272,7 +275,8 @@ public abstract class CrtProxyConfiguration {
          * value to false.It is important to note that when this property is set to "true," all proxy settings will exclusively
          * originate from environment variableValues, and no partial settings will be obtained from SystemPropertyValues.
          * <p>Comma-separated host names in the NO_PROXY environment variable indicate multiple hosts to exclude from
-         * proxy settings.
+         * proxy settings. Surrounding empty spaces around each host name are trimmed, so both {@code "a.com,b.com"} and
+         * {@code "a.com, b.com"} are accepted.
          *
          * @param useEnvironmentVariableValues The option whether to use environment variable values
          * @return This object for method chaining.
@@ -280,19 +284,33 @@ public abstract class CrtProxyConfiguration {
         Builder useEnvironmentVariableValues(Boolean useEnvironmentVariableValues);
 
         /**
-         * Configure the hosts that the client is allowed to access without going through the proxy.
-         * The only wildcard available is a single "*" character, which matches all hosts.
-         * IP addresses specified to this option can be provided using CIDR notation: an appended slash and number
-         * specifies the number of "network bits" out of the address to use in the comparison.
+         * Configure the hosts that the client is allowed to access without going through the proxy. Each entry accepts the
+         * same forms as the {@code http.nonProxyHosts} system property:
+         * <ul>
+         *     <li>an exact host name, such as {@code example.com}, which matches {@code example.com} and its subdomains;</li>
+         *     <li>a host name with a leading {@code *} wildcard, such as {@code *.example.com}, which matches
+         *     {@code example.com} and its subdomains;</li>
+         *     <li>a single {@code *}, which matches all hosts;</li>
+         *     <li>an IP range in CIDR notation, such as {@code 10.0.0.0/8}.</li>
+         * </ul>
+         * Entries must not carry surrounding whitespace; a leading or trailing space is treated as part of the host and
+         * prevents matching (for example the space in a comma-space {@code no_proxy=a.com, *.foo.com} value).
          */
         Builder nonProxyHosts(Set<String> nonProxyHosts);
 
 
         /**
-         * Add a host that the client is allowed to access without going through the proxy.
-         * The only wildcard available is a single "*" character, which matches all hosts.
-         * IP addresses specified to this option can be provided using CIDR notation: an appended slash and number
-         * specifies the number of "network bits" out of the address to use in the comparison.
+         * Add a host that the client is allowed to access without going through the proxy. The entry accepts the same forms
+         * as the {@code http.nonProxyHosts} system property:
+         * <ul>
+         *     <li>an exact host name, such as {@code example.com}, which matches {@code example.com} and its subdomains;</li>
+         *     <li>a host name with a leading {@code *} wildcard, such as {@code *.example.com}, which matches
+         *     {@code example.com} and its subdomains;</li>
+         *     <li>a single {@code *}, which matches all hosts;</li>
+         *     <li>an IP range in CIDR notation, such as {@code 10.0.0.0/8}.</li>
+         * </ul>
+         * The entry must not carry surrounding whitespace; a leading or trailing space is treated as part of the host and
+         * prevents matching.
          */
         Builder addNonProxyHost(String nonProxyHost);
 

@@ -55,7 +55,7 @@ public final class ByteAttributeConverter implements AttributeConverter<Byte>, P
 
     @Override
     public AttributeValue transformFrom(Byte input) {
-        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.createN(STRING_CONVERTER.toString(input));
     }
 
     @Override

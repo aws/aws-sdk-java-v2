@@ -16,6 +16,7 @@
 package software.amazon.awssdk.http.nio.netty;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -23,9 +24,12 @@ import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
 import java.util.stream.Stream;
+import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.http.ProxyAuthScheme;
+import software.amazon.awssdk.testutils.LogCaptor;
 
 /**
  * Tests for {@link ProxyConfiguration}.
@@ -148,6 +152,100 @@ public class ProxyConfigurationTest {
     }
 
     @Test
+    void build_basicAuthSchemeWithoutCredentials_throws() {
+        ProxyConfiguration.Builder builder = ProxyConfiguration.builder()
+                                                               .host("localhost")
+                                                               .port(8888)
+                                                               .proxyAuthScheme(ProxyAuthScheme.BASIC);
+
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("username and password must be configured");
+    }
+
+    @Test
+    void build_basicAuthSchemeWithoutPassword_throws() {
+        ProxyConfiguration.Builder builder = ProxyConfiguration.builder()
+                                                               .host("localhost")
+                                                               .port(8888)
+                                                               .proxyAuthScheme(ProxyAuthScheme.BASIC)
+                                                               .username("user");
+
+        assertThatThrownBy(builder::build)
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("username and password must be configured");
+    }
+
+    @Test
+    void build_basicAuthSchemeWithCredentials_doesNotThrow() {
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .host("localhost")
+                                                   .port(8888)
+                                                   .proxyAuthScheme(ProxyAuthScheme.BASIC)
+                                                   .username("user")
+                                                   .password("pass")
+                                                   .build();
+
+        assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.BASIC);
+    }
+
+    @Test
+    void build_basicAuthSchemeWithSystemPropertyCredentials_doesNotThrow() {
+        setHttpProxyProperties();
+
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .proxyAuthScheme(ProxyAuthScheme.BASIC)
+                                                   .build();
+
+        assertThat(cfg.username()).isEqualTo(TEST_USER);
+        assertThat(cfg.password()).isEqualTo(TEST_PASSWORD);
+    }
+
+    @Test
+    void build_negotiateAuthSchemeWithoutCredentials_doesNotThrow() {
+        ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                   .host("localhost")
+                                                   .port(8888)
+                                                   .proxyAuthScheme(ProxyAuthScheme.NEGOTIATE)
+                                                   .build();
+
+        assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.NEGOTIATE);
+    }
+
+    @Test
+    void build_negotiateAuthSchemeWithCredentials_warnsAndKeepsBuilding() {
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            ProxyConfiguration cfg = ProxyConfiguration.builder()
+                                                       .host("localhost")
+                                                       .port(8888)
+                                                       .proxyAuthScheme(ProxyAuthScheme.NEGOTIATE)
+                                                       .username(TEST_USER)
+                                                       .password(TEST_PASSWORD)
+                                                       .build();
+
+            assertThat(cfg.proxyAuthScheme()).isEqualTo(ProxyAuthScheme.NEGOTIATE);
+            assertThat(logCaptor.loggedEvents()).singleElement()
+                                                .satisfies(event -> assertThat(event.getMessage().getFormattedMessage())
+                                                    .contains("NEGOTIATE")
+                                                    .contains("will be ignored"));
+        }
+    }
+
+    @Test
+    void build_negotiateAuthSchemeWithSystemPropertyCredentials_doesNotWarn() {
+        setHttpProxyProperties();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.WARN)) {
+            ProxyConfiguration.builder()
+                              .proxyAuthScheme(ProxyAuthScheme.NEGOTIATE)
+                              .build();
+
+            // Credentials the caller did not set here are not their mistake to fix, so warning about them would be noise.
+            assertThat(logCaptor.loggedEvents()).isEmpty();
+        }
+    }
+
+    @Test
     void toBuilderModified_doesNotModifySource() {
         ProxyConfiguration original = allPropertiesSetConfig();
 
@@ -185,7 +283,11 @@ public class ProxyConfigurationTest {
             setter.invoke(o, randomSet());
         } else if (Boolean.class.equals(paramClass)) {
             setter.invoke(o, RNG.nextBoolean());
-        } else {
+        } else if (ProxyAuthScheme.class.equals(paramClass)) {
+            ProxyAuthScheme authScheme = ProxyAuthScheme.values()[RNG.nextInt(ProxyAuthScheme.values().length)];
+            setter.invoke(o, authScheme);
+        }
+        else {
             throw new RuntimeException("Don't know how create random value for type " + paramClass);
         }
     }

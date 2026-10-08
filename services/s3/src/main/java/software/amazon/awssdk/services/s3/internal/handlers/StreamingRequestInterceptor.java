@@ -22,10 +22,14 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartRequest;
+import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.Logger;
 
 /**
  * Interceptor to add an 'Expect: 100-continue' header to the HTTP Request if it represents a PUT Object or Upload Part
@@ -34,6 +38,8 @@ import software.amazon.awssdk.services.s3.model.UploadPartRequest;
 @SdkInternalApi
 //TODO: This should be generalized for all streaming requests
 public final class StreamingRequestInterceptor implements ExecutionInterceptor {
+
+    private static final Logger log = Logger.loggerFor(StreamingRequestInterceptor.class);
 
     private static final String DECODED_CONTENT_LENGTH_HEADER = "x-amz-decoded-content-length";
     private static final String CONTENT_LENGTH_HEADER = "Content-Length";
@@ -56,8 +62,23 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
         }
 
         S3Configuration s3Config = getS3Configuration(executionAttributes);
+        boolean expectContinueEnabled = s3Config == null || s3Config.expectContinueEnabled();
+        boolean crossRegionAccessEnabled = isCrossRegionAccessEnabled(executionAttributes);
 
-        if (s3Config != null && !s3Config.expectContinueEnabled()) {
+        // For cross region PUT, the header defaults to on: sending the body unconditionally to the wrong region where S3
+        // responds with a 3xx and closes the connection can surface as an I/O error before the client can retry based on the
+        // region in the 3xx response. Users who explicitly disable expectContinueEnabled opt out of this.
+        if (crossRegionAccessEnabled && expectContinueEnabled) {
+            return true;
+        }
+
+        if (!expectContinueEnabled) {
+            if (crossRegionAccessEnabled) {
+                log.debug(() -> "Expect: 100-continue is explicitly disabled while cross region access is enabled. The "
+                                + "header will not be added, so the first call to a bucket whose region "
+                                + "has not yet been resolved may fail with an I/O error instead of being transparently "
+                                + "redirected.");
+            }
             return false;
         }
 
@@ -87,5 +108,13 @@ public final class StreamingRequestInterceptor implements ExecutionInterceptor {
         return decodedLength.isPresent()
                ? decodedLength
                : httpRequest.firstMatchingHeader(CONTENT_LENGTH_HEADER);
+    }
+
+    private boolean isCrossRegionAccessEnabled(ExecutionAttributes executionAttributes) {
+        Optional<AttributeMap> ctxParams = executionAttributes.getOptionalAttribute(
+            SdkInternalExecutionAttribute.CLIENT_CONTEXT_PARAMS);
+
+        return ctxParams.map(p -> Boolean.TRUE.equals(p.get(S3ClientContextParams.CROSS_REGION_ACCESS_ENABLED)))
+                        .orElse(false);
     }
 }

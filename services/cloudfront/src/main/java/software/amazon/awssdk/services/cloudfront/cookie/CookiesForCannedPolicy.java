@@ -55,6 +55,11 @@ public interface CookiesForCannedPolicy extends SignedCookie,
          * Configure the cookie expires header value
          */
         Builder expiresHeaderValue(String expiresHeaderValue);
+
+        /**
+         * Configure the cookie hash-algorithm header value
+         */
+        Builder hashAlgorithmHeaderValue(String hashAlgorithmHeaderValue);
     }
 
 }

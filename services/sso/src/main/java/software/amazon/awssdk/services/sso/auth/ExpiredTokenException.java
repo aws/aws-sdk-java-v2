@@ -31,6 +31,10 @@ import software.amazon.awssdk.core.exception.SdkClientException;
 @SdkPublicApi
 public final class ExpiredTokenException extends SdkClientException {
 
+    private static final String DEFAULT_MESSAGE =
+        "The SSO session associated with this profile has expired or is otherwise invalid."
+        + " To refresh this SSO session run aws sso login with the corresponding profile.";
+
     private static final List<SdkField<?>> SDK_FIELDS = Collections.unmodifiableList(Arrays.asList());
 
     private ExpiredTokenException(Builder b) {
@@ -88,6 +92,9 @@ public final class ExpiredTokenException extends SdkClientException {
 
         @Override
         public ExpiredTokenException build() {
+            if (this.message == null) {
+                this.message = DEFAULT_MESSAGE;
+            }
             return new ExpiredTokenException(this);
         }
 

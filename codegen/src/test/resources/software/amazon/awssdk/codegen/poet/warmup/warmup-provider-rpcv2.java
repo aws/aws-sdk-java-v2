@@ -1,0 +1,54 @@
+package software.amazon.awssdk.services.smithyrpcv2protocol.internal.warmup;
+
+import java.net.URI;
+import software.amazon.awssdk.annotations.Generated;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
+import software.amazon.awssdk.core.ClientType;
+import software.amazon.awssdk.core.warmup.SdkWarmUpProvider;
+import software.amazon.awssdk.core.warmup.http.CannedResponseAsyncHttpClient;
+import software.amazon.awssdk.core.warmup.http.CannedResponseHttpClient;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.smithyrpcv2protocol.SmithyRpcV2ProtocolAsyncClient;
+import software.amazon.awssdk.services.smithyrpcv2protocol.SmithyRpcV2ProtocolClient;
+import software.amazon.awssdk.services.smithyrpcv2protocol.model.EmptyInputOutputRequest;
+
+@Generated("software.amazon.awssdk:codegen")
+@SdkInternalApi
+public final class SmithyRpcV2ProtocolWarmUpProvider implements SdkWarmUpProvider {
+    private static final byte[] CANNED_RESPONSE = new byte[] { (byte) 0xA0 };
+
+    @Override
+    public String syncClientClassName() {
+        return "software.amazon.awssdk.services.smithyrpcv2protocol.SmithyRpcV2ProtocolClient";
+    }
+
+    @Override
+    public String asyncClientClassName() {
+        return "software.amazon.awssdk.services.smithyrpcv2protocol.SmithyRpcV2ProtocolAsyncClient";
+    }
+
+    @Override
+    public void warmUpClient(ClientType clientType) {
+        if (clientType == ClientType.SYNC) {
+            SdkHttpClient httpClient = CannedResponseHttpClient.builder().responseBody(CANNED_RESPONSE).statusCode(200).build();
+            try (SmithyRpcV2ProtocolClient client = SmithyRpcV2ProtocolClient.builder().httpClient(httpClient)
+                    .credentialsProvider(AnonymousCredentialsProvider.create())
+                    .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                client.emptyInputOutput(EmptyInputOutputRequest.builder().build());
+            }
+        }
+        if (clientType == ClientType.ASYNC) {
+            SdkAsyncHttpClient asyncHttpClient = CannedResponseAsyncHttpClient.builder().responseBody(CANNED_RESPONSE)
+                    .statusCode(200).build();
+            try (SmithyRpcV2ProtocolAsyncClient asyncClient = SmithyRpcV2ProtocolAsyncClient.builder()
+                    .httpClient(asyncHttpClient)
+                    .credentialsProvider(AnonymousCredentialsProvider.create())
+                    .region(Region.US_EAST_1).endpointOverride(URI.create("http://localhost")).build()) {
+                asyncClient.emptyInputOutput(EmptyInputOutputRequest.builder().build()).join();
+            }
+        }
+    }
+}
