@@ -25,6 +25,7 @@ import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
+import software.amazon.awssdk.core.protocol.MarshallLocation;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.HttpBinding;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
@@ -215,6 +216,22 @@ class AddSmithyShapesMemberModelTest {
     // ---- Idempotency token ------------------------------------------------
 
     @Test
+    void jsonMediaTypeTarget_setsJsonValue() {
+        Model model = modelOf(
+            "@mediaType(\"application/json\")\n"
+            + "string Policy\n"
+            + "@mediaType(\"text/plain\")\n"
+            + "string Note\n"
+            + "structure Parent { policy: Policy, note: Note }\n");
+        Probe probe = probe(model, "rest-json");
+
+        assertThat(probe.translate(struct(model, "Parent").getMember("policy").get(), struct(model, "Parent"), null)
+                        .isJsonValue()).isTrue();
+        assertThat(probe.translate(struct(model, "Parent").getMember("note").get(), struct(model, "Parent"), null)
+                        .isJsonValue()).isFalse();
+    }
+
+    @Test
     void idempotencyToken_onStringMember_isMarked() {
         Model model = modelOf(
             "structure Parent {\n"
@@ -349,6 +366,30 @@ class AddSmithyShapesMemberModelTest {
             requestBindings(model, "Op"));
 
         assertThat(mm.getHttp().getLocation()).isEqualTo(Location.URI);
+        assertThat(mm.getHttp().isGreedy()).isFalse();
+    }
+
+    @Test
+    void greedyHttpLabel_isGreedy() {
+        Model model = modelWithOp(
+            "@http(method: \"GET\", uri: \"/things/{id}/files/{path+}\")\n"
+            + "operation Op { input: In, output: Out }\n"
+            + "structure In {\n"
+            + "    @required @httpLabel\n"
+            + "    id: String\n"
+            + "    @required @httpLabel\n"
+            + "    path: String\n"
+            + "}\n"
+            + "structure Out {}\n");
+        Probe probe = probe(model, "rest-json");
+        Map<String, HttpBinding> bindings = requestBindings(model, "Op");
+
+        MemberModel path = probe.translate(struct(model, "In").getMember("path").get(), struct(model, "In"), bindings);
+        MemberModel id = probe.translate(struct(model, "In").getMember("id").get(), struct(model, "In"), bindings);
+
+        assertThat(path.getHttp().isGreedy()).isTrue();
+        assertThat(path.getHttp().getMarshallLocation()).isEqualTo(MarshallLocation.GREEDY_PATH);
+        assertThat(id.getHttp().isGreedy()).isFalse();
     }
 
     @Test

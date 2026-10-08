@@ -48,6 +48,8 @@ import software.amazon.smithy.model.traits.XmlFlattenedTrait;
  */
 final class AddSmithyModelShapes extends AddSmithyShapes implements IntermediateModelShapeProcessor {
 
+    private static final ShapeId UNIT = ShapeId.from("smithy.api#Unit");
+
     AddSmithyModelShapes(Model model,
                          ServiceShape service,
                          NamingStrategy namingStrategy,
@@ -110,17 +112,42 @@ final class AddSmithyModelShapes extends AddSmithyShapes implements Intermediate
                 continue;
             }
 
-            ShapeModel shapeModel = generateShapeModel(javaClassName, shape, null);
-            shapeModel.setType(isEnumKind(shape) ? ShapeType.Enum.getValue() : ShapeType.Model.getValue());
+            newShapes.put(javaClassName, modelShapeModel(javaClassName, shape));
+        }
 
-            ShapeUnmarshaller unmarshaller = new ShapeUnmarshaller();
-            unmarshaller.setFlattened(shape.hasTrait(XmlFlattenedTrait.class));
-            shapeModel.setUnmarshaller(unmarshaller);
-
-            newShapes.put(javaClassName, shapeModel);
+        // C2J models a member target of smithy.api#Unit as an empty structure named Unit.
+        if (isTargetedByMember(UNIT, processed)) {
+            String javaClassName = naming.getShapeClassName(UNIT.getName());
+            if (currentShapes.containsKey(javaClassName) || newShapes.containsKey(javaClassName)) {
+                throw new IllegalStateException("A member targets " + UNIT + ", but the service already defines a shape "
+                                                + "that generates the class " + javaClassName);
+            }
+            newShapes.put(javaClassName, modelShapeModel(javaClassName, model.expectShape(UNIT)));
         }
 
         return newShapes;
+    }
+
+    private ShapeModel modelShapeModel(String javaClassName, Shape shape) {
+        ShapeModel shapeModel = generateShapeModel(javaClassName, shape, null);
+        shapeModel.setType(isEnumKind(shape) ? ShapeType.Enum.getValue() : ShapeType.Model.getValue());
+
+        ShapeUnmarshaller unmarshaller = new ShapeUnmarshaller();
+        unmarshaller.setFlattened(shape.hasTrait(XmlFlattenedTrait.class));
+        shapeModel.setUnmarshaller(unmarshaller);
+        return shapeModel;
+    }
+
+    private boolean isTargetedByMember(ShapeId target, Set<ShapeId> reachableShapes) {
+        for (ShapeId shapeId : reachableShapes) {
+            Shape shape = getModel().getShape(shapeId).orElse(null);
+            if (shape != null
+                && (shape.isStructureShape() || shape.isUnionShape())
+                && shape.members().stream().anyMatch(m -> m.getTarget().equals(target))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // intEnum is excluded deliberately: C2J models it as a plain integer with no generated shape.

@@ -19,7 +19,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeType;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.smithy.model.Model;
 
@@ -109,5 +111,42 @@ class SmithyIntermediateModelBuilderTest {
             .usingRecursiveComparison()
             .isEqualTo(EndpointRuleSetModel.defaultRules(model.getMetadata().getEndpointPrefix()));
         assertThat(model.getEndpointTestSuiteModel().getTestCases()).isEmpty();
+    }
+
+    @Test
+    void stringWithEnumTrait_isTranslatedAsEnum() {
+        String src =
+            "$version: \"2.0\"\nnamespace demo\n\n"
+            + "use aws.api#service\n"
+            + "use aws.auth#sigv4\n"
+            + "use aws.protocols#restJson1\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@sigv4(name: \"demo\")\n"
+            + "@restJson1\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest { color: Color }\n"
+            + "structure OpResponse {}\n"
+            + "@enum([{ value: \"red\" }, { value: \"dark-blue\" }])\n"
+            + "string Color\n";
+        Model smithyModel = Model.assembler()
+                                 .discoverModels(Model.class.getClassLoader())
+                                 .addUnparsedModel("test.smithy", src)
+                                 .assemble()
+                                 .unwrap();
+
+        IntermediateModel model = new SmithyIntermediateModelBuilder(
+            SmithyModels.builder()
+                        .model(smithyModel)
+                        .customizationConfig(CustomizationConfig.create())
+                        .build()).build();
+
+        assertThat(model.getShapes().get("Color").getType()).isEqualTo(ShapeType.Enum.getValue());
+        assertThat(model.getShapes().get("Color").getEnums())
+            .extracting(EnumModel::getValue)
+            .containsExactly("red", "dark-blue");
+        assertThat(model.getShapes().get("OpRequest").findMemberModelByC2jName("color").getEnumType())
+            .isEqualTo("Color");
     }
 }

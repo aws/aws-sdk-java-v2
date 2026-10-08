@@ -42,6 +42,7 @@ import software.amazon.smithy.aws.traits.clientendpointdiscovery.ClientEndpointD
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.HttpBinding;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
+import software.amazon.smithy.model.knowledge.OperationIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
 import software.amazon.smithy.model.shapes.EnumShape;
 import software.amazon.smithy.model.shapes.IntEnumShape;
@@ -59,7 +60,9 @@ import software.amazon.smithy.model.traits.EnumValueTrait;
 import software.amazon.smithy.model.traits.ErrorTrait;
 import software.amazon.smithy.model.traits.EventHeaderTrait;
 import software.amazon.smithy.model.traits.EventPayloadTrait;
+import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.IdempotencyTokenTrait;
+import software.amazon.smithy.model.traits.MediaTypeTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.model.traits.RequiresLengthTrait;
 import software.amazon.smithy.model.traits.RetryableTrait;
@@ -97,7 +100,7 @@ import software.amazon.smithy.rulesengine.traits.ContextParamTrait;
  *
  * <p>Event stream membership has no dedicated trait, so it is computed once
  * at construction: a union carrying {@code @streaming} is an event stream,
- * and the structures that appear as its members are events.
+ * and the structures that appear as its members are events, except errors.
  */
 abstract class AddSmithyShapes {
 
@@ -158,7 +161,9 @@ abstract class AddSmithyShapes {
             Shape target = model.expectShape(member.getTarget());
             if (target.isUnionShape() && target.hasTrait(StreamingTrait.class)) {
                 for (MemberShape eventMember : target.asUnionShape().get().members()) {
-                    events.add(eventMember.getTarget());
+                    if (!model.expectShape(eventMember.getTarget()).hasTrait(ErrorTrait.class)) {
+                        events.add(eventMember.getTarget());
+                    }
                 }
             }
         }
@@ -417,6 +422,12 @@ abstract class AddSmithyShapes {
 
         memberModel.setSensitive(isSensitive(member, targetShape));
 
+        // C2J's jsonvalue, which the Smithy models carry as @mediaType("application/json").
+        memberModel.setJsonValue(targetShape.isStringShape()
+                                 && targetShape.getTrait(MediaTypeTrait.class)
+                                               .map(mediaType -> "application/json".equals(mediaType.getValue()))
+                                               .orElse(false));
+
         if (member.hasTrait(IdempotencyTokenTrait.class)) {
             if (!variableType.equals(String.class.getSimpleName())) {
                 throw new IllegalArgumentException(memberName
@@ -616,17 +627,28 @@ abstract class AddSmithyShapes {
         boolean flattened = member.hasTrait(XmlFlattenedTrait.class)
                             || targetShape.hasTrait(XmlFlattenedTrait.class);
 
-        // TODO(smithy-migration): isGreedy is left false. It applies only to @httpLabel members
-        // bound to a greedy URI segment ({member+}) and requires threading the operation's request
-        // URI into this per-member builder. Zero first-batch impact; needed for the S3 family.
         mapping.withLocation(location)
                .withPayload(isPayload)
                .withStreaming(streaming)
                .withRequiresLength(requiresLength)
                .withFlattened(flattened)
                .withUnmarshallLocationName(unmarshallLocationName)
-               .withMarshallLocationName(marshallLocationName);
+               .withMarshallLocationName(marshallLocationName)
+               .withIsGreedy(location == Location.URI && isGreedyLabel(member));
 
         return mapping;
+    }
+
+    private boolean isGreedyLabel(MemberShape member) {
+        for (OperationShape operation : OperationIndex.of(model).getInputBindings(member.getContainer())) {
+            boolean greedy = operation.getTrait(HttpTrait.class)
+                                      .flatMap(http -> http.getUri().getGreedyLabel())
+                                      .filter(label -> label.getContent().equals(member.getMemberName()))
+                                      .isPresent();
+            if (greedy) {
+                return true;
+            }
+        }
+        return false;
     }
 }
