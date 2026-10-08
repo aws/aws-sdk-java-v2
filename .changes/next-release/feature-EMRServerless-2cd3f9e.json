@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "EMR Serverless",
+    "contributor": "",
+    "description": "This release adds support for system profile logs for lakeformation enabled Spark connect sessions ."
+}
