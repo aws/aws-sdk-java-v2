@@ -258,6 +258,34 @@ public class AwsCredentialsProviderChainTest {
         verify(mockProvider3, times(1)).invalidate(identity);
     }
 
+    @Test
+    public void invalidate_reuseEnabled_lastProviderThrowsSynchronously_completesNormally() {
+        AwsCredentialsProvider throwingProvider = new AwsCredentialsProvider() {
+            @Override
+            public AwsCredentials resolveCredentials() {
+                return AwsBasicCredentials.create("key1", "secret1");
+            }
+
+            @Override
+            public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+                throw new RuntimeException("invalidate failed");
+            }
+        };
+
+        AwsCredentialsProviderChain chain = AwsCredentialsProviderChain.builder()
+                                                                       .credentialsProviders(throwingProvider)
+                                                                       .reuseLastProviderEnabled(true)
+                                                                       .build();
+
+        // Sets the last used provider, so invalidate only calls the throwing provider.
+        chain.resolveCredentials();
+
+        AwsCredentialsIdentity identity = AwsBasicCredentials.create("key1", "secret1");
+        CompletableFuture<Void> result = chain.invalidate(identity);
+
+        assertThat(result).isCompletedWithValue(null);
+    }
+
     private static final class TrackingCredentialsProvider implements AwsCredentialsProvider {
         private final AwsBasicCredentials credentials;
         int invalidateCallCount = 0;

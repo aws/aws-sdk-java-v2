@@ -53,7 +53,9 @@ public final class SelectedAuthScheme<T extends Identity> {
     private final IdentityProvider<T> identityProvider;
 
     /**
-     * @deprecated Use {@link #builder()} instead.
+     * @deprecated Use {@link #builder()} or {@link #toBuilder()} instead. Instances created with this constructor have no
+     * identity provider, so they do not support invalidation on authentication errors or identity re-resolution per retry
+     * attempt.
      */
     @Deprecated
     public SelectedAuthScheme(CompletableFuture<? extends T> identity,

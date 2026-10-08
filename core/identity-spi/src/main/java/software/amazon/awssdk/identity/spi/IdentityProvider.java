@@ -159,18 +159,19 @@ public interface IdentityProvider<IdentityT extends Identity> {
     }
 
     /**
-     * Invalidate cached credentials associated with the given rejected identity.
+     * Invalidate the cached identity if it is the given rejected identity.
      *
-     * <p>When a target service rejects credentials with an authentication error,
-     * the SDK calls this method so the provider can mark its cache for refresh.
-     * The next call to {@link #resolveIdentity} will attempt to fetch fresh credentials.
+     * <p>When a service rejects an identity with an authentication error, the SDK calls this method so the provider can
+     * mark its cached identity for refresh. The next call to {@link #resolveIdentity} should then fetch a fresh identity,
+     * subject to any refresh backoff the provider applies.
      *
-     * <p>Implementations MUST only invalidate if the currently-cached identity matches
-     * the rejected identity (e.g., same access key ID).
+     * <p>Implementations MUST only invalidate if the currently-cached identity matches the rejected identity (e.g., same
+     * access key ID). Implementations must not block, because the SDK may call this method from an I/O thread.
      *
      * <p>The default implementation is a no-op, suitable for providers that do not cache.
      *
      * @param identity The identity that was rejected by the service.
+     * @return A future that completes when invalidation finishes. The SDK does not wait for it and ignores a failed future.
      */
     default CompletableFuture<Void> invalidate(IdentityT identity) {
         return CompletableFuture.completedFuture(null);

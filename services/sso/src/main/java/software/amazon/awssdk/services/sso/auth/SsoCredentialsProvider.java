@@ -125,6 +125,7 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
         return RefreshResult.builder(credentials)
                             .staleTime(actualTokenExpiration.minus(staleTime))
                             .prefetchTime(actualTokenExpiration.minus(effectivePrefetchWindow))
+                            .expiration(actualTokenExpiration)
                             .build();
     }
 
@@ -154,6 +155,9 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
     /**
      * The amount of time, relative to credential expiration, that defines the advisory refresh window. When credentials are
      * within this window, the provider proactively attempts to refresh them.
+     *
+     * <p>Returns {@code null} if not configured, in which case the advisory refresh window is computed from each credential's
+     * lifetime.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -231,7 +235,9 @@ public final class SsoCredentialsProvider implements AwsCredentialsProvider, Sdk
          * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
          * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
          * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
-         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed. If the failure is
+         * non-recoverable (for example, an expired SSO token or an {@code UnauthorizedException} from SSO, which require
+         * running {@code aws sso login}), the error is raised immediately instead and no backoff is applied.
          *
          * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
          * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform

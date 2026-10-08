@@ -166,6 +166,7 @@ public final class LoginCredentialsProvider implements
             return RefreshResult.builder(credentials)
                                 .staleTime(currentExpirationTime.minus(staleTime))
                                 .prefetchTime(currentExpirationTime.minus(effectivePrefetch))
+                                .expiration(currentExpirationTime)
                                 .build();
         }
 
@@ -210,6 +211,7 @@ public final class LoginCredentialsProvider implements
                                 .staleTime(newExpiration.minus(staleTime))
                                 .prefetchTime(newExpiration.minus(
                                     CacheRefreshUtils.computePrefetchWindow(newExpiration, prefetchTime, Instant.now())))
+                                .expiration(newExpiration)
                                 .build();
         } catch (AccessDeniedException accessDeniedException) {
             if (accessDeniedException.error() == null) {
@@ -218,10 +220,15 @@ public final class LoginCredentialsProvider implements
 
             switch (accessDeniedException.error()) {
                 case TOKEN_EXPIRED:
+                    throw SdkClientException.create(
+                        "Your session has expired. Please reauthenticate.",
+                        accessDeniedException);
                 case USER_CREDENTIALS_CHANGED:
-                    // Let the original AccessDeniedException propagate — the nonRecoverableErrorPredicate
-                    // on CachedSupplier will identify it and bypass static stability.
-                    throw accessDeniedException;
+                    throw SdkClientException.create(
+                        "Unable to refresh credentials because of a change in your password. "
+                        + "Please reauthenticate with your new password.",
+                        accessDeniedException
+                    );
                 case INSUFFICIENT_PERMISSIONS:
                     // Wrap with a helpful message, but still non-recoverable — the predicate checks the cause.
                     throw SdkClientException.create(
@@ -280,6 +287,9 @@ public final class LoginCredentialsProvider implements
     /**
      * The amount of time, relative to credential expiration, that defines the advisory refresh window. When credentials are
      * within this window, the provider proactively attempts to refresh them.
+     *
+     * <p>Returns {@code null} if not configured, in which case the advisory refresh window is computed from each credential's
+     * lifetime.
      */
     public Duration prefetchTime() {
         return prefetchTime;
@@ -366,7 +376,10 @@ public final class LoginCredentialsProvider implements
          * Configure the amount of time, relative to credential expiration, that defines the advisory refresh window. When
          * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
          * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
-         * credentials without error and will not attempt another refresh until a backoff period has elapsed.
+         * credentials without error and will not attempt another refresh until a backoff period has elapsed. If the failure is
+         * non-recoverable (for example, a missing login token cache, or an {@code AccessDeniedException} with
+         * {@code TOKEN_EXPIRED}, which require re-authenticating), the error is raised immediately instead and no backoff is
+         * applied.
          *
          * <p>When {@link #asyncCredentialUpdateEnabled(Boolean)} is true, advisory refreshes happen in a background thread
          * and callers immediately receive the current cached credentials. When it is false, one caller will block to perform

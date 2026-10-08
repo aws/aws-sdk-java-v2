@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.sts.internal;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.auth.credentials.AnonymousCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
@@ -24,6 +25,7 @@ import software.amazon.awssdk.auth.credentials.WebIdentityTokenCredentialsProvid
 import software.amazon.awssdk.auth.credentials.internal.WebIdentityTokenCredentialProperties;
 import software.amazon.awssdk.core.retry.conditions.OrRetryCondition;
 import software.amazon.awssdk.core.retry.conditions.RetryCondition;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
@@ -109,6 +111,11 @@ public final class StsWebIdentityCredentialsProviderFactory implements WebIdenti
         @Override
         public AwsCredentials resolveCredentials() {
             return this.credentialsProvider.resolveCredentials();
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+            return this.credentialsProvider.invalidate(identity);
         }
 
         @Override

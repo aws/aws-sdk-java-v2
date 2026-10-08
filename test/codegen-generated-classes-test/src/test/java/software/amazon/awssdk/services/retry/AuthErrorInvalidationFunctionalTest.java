@@ -50,6 +50,7 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonAsyncClient;
 import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClient;
+import software.amazon.awssdk.services.protocolrestjson.model.ChecksumAlgorithm;
 import software.amazon.awssdk.testutils.service.http.MockAsyncHttpClient;
 import software.amazon.awssdk.testutils.service.http.MockSyncHttpClient;
 import software.amazon.awssdk.utils.Pair;
@@ -82,6 +83,44 @@ public class AuthErrorInvalidationFunctionalTest {
 
             assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
             assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0", "key-1");
+        }
+    }
+
+    /**
+     * An operation with a request checksum rewrites the selected auth scheme to add the checksum algorithm. The identity
+     * provider must survive that rewrite, or the rejected credentials are never invalidated and every retry reuses them.
+     */
+    @Test
+    public void checksumOperation_authError_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
+        MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
+
+        try (ProtocolRestJsonClient client = syncClient(mockHttpClient, credentialsProvider)) {
+            mockHttpClient.stubResponses(authErrorResponse("ExpiredToken"), successResponse());
+
+            client.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32));
+
+            assertThat(mockHttpClient.getRequests().get(0).firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
+            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0", "key-1");
+        }
+    }
+
+    @Test
+    public void async_checksumOperation_authError_invalidatesCredentials_andRetryUsesRefreshedCredentials() {
+        MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
+        TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
+
+        try (ProtocolRestJsonAsyncClient client = asyncClient(mockHttpClient, credentialsProvider)) {
+            mockHttpClient.stubResponses(authErrorResponse("ExpiredToken"), successResponse());
+
+            client.operationWithChecksumNonStreaming(r -> r.checksumAlgorithm(ChecksumAlgorithm.CRC32)).join();
+
+            assertThat(mockHttpClient.getRequests().get(0).firstMatchingHeader("x-amz-checksum-crc32")).isPresent();
+            assertThat(credentialsProvider.invalidateCallCount()).isEqualTo(1);
+            assertThat(accessKeysUsed(mockHttpClient.getRequests())).containsExactly("key-0", "key-1");
+        } finally {
+            mockHttpClient.close();
         }
     }
 
@@ -333,6 +372,7 @@ public class AuthErrorInvalidationFunctionalTest {
                                      .region(Region.US_EAST_1)
                                      .endpointOverride(URI.create("http://localhost"))
                                      .httpClient(httpClient)
+                                     .overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD))
                                      .build();
     }
 
@@ -343,6 +383,7 @@ public class AuthErrorInvalidationFunctionalTest {
                                           .region(Region.US_EAST_1)
                                           .endpointOverride(URI.create("http://localhost"))
                                           .httpClient(httpClient)
+                                          .overrideConfiguration(o -> o.retryStrategy(RetryMode.STANDARD))
                                           .build();
     }
 

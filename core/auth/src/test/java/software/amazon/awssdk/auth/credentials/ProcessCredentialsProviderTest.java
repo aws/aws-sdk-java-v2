@@ -396,6 +396,37 @@ public class ProcessCredentialsProviderTest {
     }
 
     @Test
+    void build_negativeStaleTime_throws() {
+        assertThatThrownBy(() -> ProcessCredentialsProvider.builder()
+                                                           .command(scriptLocation)
+                                                           .staleTime(Duration.ofSeconds(-1))
+                                                           .prefetchTime(Duration.ofSeconds(15))
+                                                           .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("staleTime must not be negative");
+    }
+
+    @Test
+    void build_negativeCredentialRefreshThreshold_throws() {
+        assertThatThrownBy(() -> ProcessCredentialsProvider.builder()
+                                                           .command(scriptLocation)
+                                                           .credentialRefreshThreshold(Duration.ofSeconds(-1))
+                                                           .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("prefetchTime must not be negative");
+    }
+
+    @Test
+    void build_zeroDurations_succeeds() {
+        ProcessCredentialsProvider provider = ProcessCredentialsProvider.builder()
+                                                                        .command(scriptLocation)
+                                                                        .staleTime(Duration.ZERO)
+                                                                        .prefetchTime(Duration.ZERO)
+                                                                        .build();
+        provider.close();
+    }
+
+    @Test
     void commandAsListOfStrings_isNotExecutedInAShell() {
         ProcessCredentialsProvider providerWithSingleStringCommand =
             ProcessCredentialsProvider.builder()

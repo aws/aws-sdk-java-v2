@@ -284,9 +284,9 @@ public class LoginCredentialsProviderTest {
         tokenManager.storeToken(token);
 
         stubAccessDeniedException(OAuth2ErrorCode.TOKEN_EXPIRED);
-        AccessDeniedException e = assertThrows(AccessDeniedException.class,
-                                               () -> loginCredentialsProvider.resolveCredentials());
-        assertNotNull(e);
+        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertTrue(e.getMessage().contains("Your session has expired"));
+        assertInstanceOf(AccessDeniedException.class, e.getCause());
     }
 
     @Test
@@ -297,9 +297,9 @@ public class LoginCredentialsProviderTest {
         tokenManager.storeToken(token);
 
         stubAccessDeniedException(OAuth2ErrorCode.USER_CREDENTIALS_CHANGED);
-        AccessDeniedException e = assertThrows(AccessDeniedException.class,
-                                               () -> loginCredentialsProvider.resolveCredentials());
-        assertNotNull(e);
+        SdkClientException e = assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertTrue(e.getMessage().contains("change in your password"));
+        assertInstanceOf(AccessDeniedException.class, e.getCause());
     }
 
     @Test
@@ -325,11 +325,11 @@ public class LoginCredentialsProviderTest {
         stubAccessDeniedException(OAuth2ErrorCode.TOKEN_EXPIRED);
 
         // First call: hits service, gets non-recoverable error — thrown and cached
-        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertEquals(1, mockHttpClient.getRequests().size());
 
         // Second call: immediate retry — should re-raise cached error without calling service
-        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertEquals(1, mockHttpClient.getRequests().size()); // Still 1 — service NOT called again
     }
 
@@ -358,11 +358,11 @@ public class LoginCredentialsProviderTest {
         stubAccessDeniedException(OAuth2ErrorCode.USER_CREDENTIALS_CHANGED);
 
         // First call: hits service, gets non-recoverable error — thrown and cached
-        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertEquals(1, mockHttpClient.getRequests().size());
 
         // Second call: immediate retry — should re-raise cached error without calling service
-        assertThrows(AccessDeniedException.class, () -> loginCredentialsProvider.resolveCredentials());
+        assertThrows(SdkClientException.class, () -> loginCredentialsProvider.resolveCredentials());
         assertEquals(1, mockHttpClient.getRequests().size()); // Still 1 — service NOT called again
     }
 

@@ -133,29 +133,33 @@ public final class AwsCredentialsProviderChain
 
     @Override
     public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
-        if (reuseLastProviderEnabled && lastUsedProvider != null) {
-            return invalidateProvider(lastUsedProvider, identity)
-                .exceptionally(e -> {
-                    log.debug(() -> "Failed to invalidate provider " + lastUsedProvider + ": " + e.getMessage(), e);
-                    return null;
-                });
+        IdentityProvider<? extends AwsCredentialsIdentity> lastUsed = this.lastUsedProvider;
+        if (reuseLastProviderEnabled && lastUsed != null) {
+            return invalidateQuietly(lastUsed, identity);
         }
 
         CompletableFuture<?>[] futures = credentialsProviders.stream()
-            .map(provider -> {
-                try {
-                    return invalidateProvider(provider, identity)
-                        .exceptionally(e -> {
-                            log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
-                            return null;
-                        });
-                } catch (Exception e) {
-                    log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
-                    return CompletableFuture.<Void>completedFuture(null);
-                }
-            })
+            .map(provider -> invalidateQuietly(provider, identity))
             .toArray(CompletableFuture<?>[]::new);
         return CompletableFuture.allOf(futures);
+    }
+
+    /**
+     * Invalidate the given provider, logging and ignoring any failure, whether it is thrown synchronously or returned as a
+     * failed future.
+     */
+    private static CompletableFuture<Void> invalidateQuietly(IdentityProvider<? extends AwsCredentialsIdentity> provider,
+                                                             AwsCredentialsIdentity identity) {
+        try {
+            return invalidateProvider(provider, identity)
+                .exceptionally(e -> {
+                    log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
+                    return null;
+                });
+        } catch (Exception e) {
+            log.debug(() -> "Failed to invalidate provider " + provider + ": " + e.getMessage(), e);
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     /**

@@ -122,6 +122,8 @@ public final class ProcessCredentialsProvider
             : builder.sourceChain + "," + PROVIDER_NAME;
         this.staleTime = Optional.ofNullable(builder.staleTime).orElse(DEFAULT_STALE_TIME);
         this.prefetchTime = Optional.ofNullable(builder.prefetchTime).orElse(DEFAULT_PREFETCH_TIME);
+        Validate.isNotNegative(this.staleTime, "staleTime");
+        Validate.isNotNegative(this.prefetchTime, "prefetchTime");
         Validate.isTrue(this.staleTime.compareTo(this.prefetchTime) <= 0,
                         "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
 

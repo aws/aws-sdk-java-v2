@@ -254,10 +254,10 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption().copy(o -> o.putSignerProperty(AwsV4HttpSigner.REGION_NAME,
-                                                                                                    regionString)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4HttpSigner.REGION_NAME, regionString)))
+                         .build();
     }
 
     private static RegionScope signingRegionScopeReadMapping(SelectedAuthScheme<?> authScheme) {
@@ -288,10 +288,10 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption().copy(o -> o.putSignerProperty(AwsV4aHttpSigner.REGION_SET,
-                                                                                                    regionSet)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4aHttpSigner.REGION_SET, regionSet)))
+                         .build();
     }
 
     private static String serviceSigningNameReadMapping(SelectedAuthScheme<?> authScheme) {
@@ -316,11 +316,11 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME,
-                                                                                 signingName)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME,
+                                                                                    signingName)))
+                         .build();
     }
 
     private static Boolean signerDoubleUrlEncodeReadMapping(SelectedAuthScheme<?> authScheme) {
@@ -346,11 +346,11 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.DOUBLE_URL_ENCODE,
-                                                                                 doubleUrlEncode)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.DOUBLE_URL_ENCODE,
+                                                                                    doubleUrlEncode)))
+                         .build();
     }
 
     private static Boolean signerNormalizePathReadMapping(SelectedAuthScheme<?> authScheme) {
@@ -376,11 +376,11 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.NORMALIZE_PATH,
-                                                                                 normalizePath)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.NORMALIZE_PATH,
+                                                                                    normalizePath)))
+                         .build();
     }
 
     private static Clock signingClockReadMapping(SelectedAuthScheme<?> authScheme) {
@@ -404,10 +404,10 @@ public final class AwsSignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(HttpSigner.SIGNING_CLOCK, clock)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(HttpSigner.SIGNING_CLOCK, clock)))
+                         .build();
     }
 
     private static class UnsetIdentity implements Identity {

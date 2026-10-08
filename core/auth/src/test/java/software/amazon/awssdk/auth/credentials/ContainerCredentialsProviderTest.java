@@ -222,4 +222,37 @@ public class ContainerCredentialsProviderTest {
         assertThatThrownBy(credentialsProvider::resolveCredentials)
             .isInstanceOf(SdkClientException.class);
     }
+
+    /**
+     * A refresh that returns new credentials that are inside the mandatory refresh window (expiring in less than a minute) but
+     * have not expired must use them, rather than treating them as a failed refresh. Only credentials whose expiration is at or
+     * before now count as a failed refresh. Because they are inside the mandatory refresh window, the next call refreshes again.
+     */
+    @Test
+    public void resolveCredentials_refreshReturnsUnexpiredCredentialsInsideMandatoryWindow_usesThem() {
+        ContainerCredentialsProvider provider =
+            ContainerCredentialsProvider.builder()
+                                        .endpoint("http://localhost:" + mockServer.port())
+                                        .build();
+
+        stubFor200Response(credentialsBody("first", EXPIRATION_TIME));
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("first");
+
+        provider.invalidate(AwsBasicCredentials.create("first", "x")).join();
+
+        stubFor200Response(credentialsBody("second", DateUtils.formatIso8601Date(Instant.now().plusSeconds(30))));
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("second");
+
+        // No refresh backoff was applied, so the next call contacts the endpoint again.
+        mockServer.resetRequests();
+        assertThat(provider.resolveCredentials().accessKeyId()).isEqualTo("second");
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    private static String credentialsBody(String accessKeyId, String expiration) {
+        return "{\"AccessKeyId\":\"" + accessKeyId + "\"," +
+               "\"SecretAccessKey\":\"" + SECRET_ACCESS_KEY + "\"," +
+               "\"Token\":\"" + TOKEN + "\"," +
+               "\"Expiration\":\"" + expiration + "\"}";
+    }
 }

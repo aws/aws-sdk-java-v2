@@ -191,6 +191,7 @@ public final class InstanceProfileCredentialsProvider
             return RefreshResult.builder(credentials.getAwsCredentials())
                                 .staleTime(staleTime(expiration))
                                 .prefetchTime(prefetchTime(expiration))
+                                .expiration(expiration)
                                 .build();
         } catch (RuntimeException e) {
             throw SdkClientException.create("Failed to load credentials from IMDS.", e);

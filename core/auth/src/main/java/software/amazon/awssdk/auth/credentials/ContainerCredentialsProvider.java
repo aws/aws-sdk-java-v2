@@ -163,6 +163,7 @@ public final class ContainerCredentialsProvider
         return RefreshResult.builder(loadedCredentials.getAwsCredentials())
                             .staleTime(staleTime(expiration))
                             .prefetchTime(prefetchTime(expiration))
+                            .expiration(expiration)
                             .build();
     }
 
