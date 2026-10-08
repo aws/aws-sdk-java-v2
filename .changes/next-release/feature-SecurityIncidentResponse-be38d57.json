@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Security Incident Response",
-    "contributor": "",
-    "description": "Adds support for retrieving finding-lifecycle metrics for an AWS Security Incident Response membership."
-}

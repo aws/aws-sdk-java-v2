@@ -1,4 +1,110 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.13__ __2026-10-08__
+## __AWS Budgets__
+  - ### Features
+    - Adds a product attribute dimension to CreateBudget and UpdateBudget, letting customers filter AWS Budgets costs by structured attributes such as Amazon Bedrock model, provider, inference type, and feature.
+
+## __AWS CloudFormation__
+  - ### Features
+    - CloudFormation introduces force rollback, a new opt-in capability that lets your stacks complete a rollback even when an individual resource cannot be reverted. Set ForceRollback on ContinueUpdateRollback and CloudFormation records each resource that fails as skipped, completing the rollback.
+
+## __AWS CodeConnections__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __AWS Cost Explorer Service__
+  - ### Features
+    - Adds a product attribute dimension to GetCostAndUsage, GetCostAndUsageWithResources, and GetDimensionValues, letting customers group, filter, and discover Cost Explorer costs by structured attributes such as Amazon Bedrock model, provider, inference type, and feature.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds release management associations with private network access to AWS DevOps Agent, and a releaseManagementAssociationId field on GitHub and GitLab associations. This helps release management agents (Release-readiness review and Release Testing) access customer resources that are behind a VPC.
+
+## __AWS Elemental MediaLive__
+  - ### Features
+    - AWS Elemental MediaLive Workflow Monitor now supports AWS Elemental Inference feeds as a target resource type for CloudWatch alarm templates.
+
+## __AWS Glue__
+  - ### Features
+    - Introduced GetSystemLogsForJobRun and GetSystemLogsForSession APIs, enabling account admins to retrieve system-space logs for FGAC-enabled Glue jobs and sessions.
+
+## __AWS Health APIs and Notifications__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda now supports OAuth 2.0 (OAUTHBEARER), IAM, and IAM with OAUTHBEARER authentication for self-managed Apache Kafka event source mappings, including optional OAuth scope, audience, logical cluster, and identity pool parameters. OAuth 2.0 is also available for Confluent Schema Registry.
+
+## __AWS Marketplace Agreement Service__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __AWS Performance Insights__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __AWS SDK for Java v2__
+  - ### Bugfixes
+    - Fix an issue where RPCv2 error responses without an HTTP status code (for example constructed from an eventstream event) always get mapped to 400 instead of using 500 when it's a modeled as a server side fault.
+
+## __AWS Security Agent__
+  - ### Features
+    - Include model field for suggested remediation steps as part of findings
+
+## __AWS SecurityHub__
+  - ### Features
+    - Release findings export APIs - StartExportJobV2, GetExportJobV2, ListExportJobsV2, and CancelExportJobV2. This supports exporting findings from AWS Security Hub to Amazon S3 bucket.
+
+## __Amazon DataZone__
+  - ### Features
+    - Adds support for multi-file notebook import. StartNotebookImport now accepts an s3Files source location with an ordered list of Amazon S3 objects, creating one notebook cell per file, plus a type field to create either a DATA or SQL notebook.
+
+## __Amazon Elastic Kubernetes Service__
+  - ### Features
+    - Configurations support for EKS ACK Capabilities, including EnableCrossNamespace and DisableServices configuration.
+
+## __Amazon GameLift__
+  - ### Features
+    - Amazon GameLift Servers container fleets now support CPU bursting for game server container groups. The TotalVcpuLimit property of a game server container group definition is now optional. When you omit it, the group has no CPU cap and its containers can burst into unused CPU on the instance.
+
+## __Amazon GuardDuty__
+  - ### Features
+    - Added support for GuardDuty RDS Data Activity Monitoring
+
+## __Amazon Keyspaces__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.0. The SDK will prioritize its most performant protocol.
+
+## __Amazon OpenSearch Service__
+  - ### Features
+    - This release adds a new EncryptionMode option (DISK or NATIVE) to EncryptionAtRestOptions for the CreateDomain and UpdateDomainConfig operations, enabling selection of engine-native index-level encryption on supported Amazon OpenSearch Service domains.
+
+## __Amazon Simple Email Service__
+  - ### Features
+    - SESV2 DEED - Documentation Update
+
+## __Amazon Translate__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __EMR Serverless__
+  - ### Features
+    - This release adds support for system profile logs for lakeformation enabled Spark connect sessions .
+
+## __Firewall Management Service__
+  - ### Features
+    - This release adds Smithy RPC v2 CBOR as an additional protocol alongside the existing AWS JSON 1.1. The SDK will prioritize its most performant protocol.
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed `S3TransferManager.resumeDownloadFile` to correctly compute the Range header when resuming ranged downloads.
+    - `S3TransferManager#resumeDownloadFile` now restarts a part-scoped download (a `GetObjectRequest` with `partNumber` set) from the beginning of the part, instead of sending a `Range` with `partNumber`, which S3 rejected with `400 InvalidRequest`.
+
+## __Security Incident Response__
+  - ### Features
+    - Adds support for retrieving finding-lifecycle metrics for an AWS Security Incident Response membership.
+
 # __2.55.12__ __2026-10-06__
 ## __AWS SDK for Java v2__
   - ### Features
