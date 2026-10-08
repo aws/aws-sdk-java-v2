@@ -71,4 +71,74 @@
         </dependencies>
     </dependencyManagement>
 
+    <profiles>
+        <!-- Generates META-INF/software.amazon.awssdk/<artifactId>/version.properties into
+             generated-resources/sdk-resources, which the parent pom adds as a resource root. Build tooling reads the SDK
+             version from this output directory and from the jar, so do not change the output directory, resource path,
+             or key without coordinating with that tooling. Activated per module, so the aggregator poms are skipped. -->
+        <profile>
+            <id>generate-version-properties</id>
+            <activation>
+                <file>
+                    <exists>${basedir}/src/main/java</exists>
+                </file>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>generate-version-properties</id>
+                                <phase>generate-resources</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}</outputDirectory>
+                                    <overwrite>true</overwrite>
+                                    <resources>
+                                        <resource>
+                                            <directory>${maven.multiModuleProjectDirectory}/core/src/main/templates</directory>
+                                            <includes>
+                                                <include>version.properties</include>
+                                            </includes>
+                                            <filtering>true</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <!-- The resources plugin silently skips a template directory that does not resolve. -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-enforcer-plugin</artifactId>
+                        <version>${maven-enforcer-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>require-version-properties</id>
+                                <phase>process-resources</phase>
+                                <goals>
+                                    <goal>enforce</goal>
+                                </goals>
+                                <configuration>
+                                    <rules>
+                                        <requireFilesExist>
+                                            <message>version.properties was not generated. Check that ${maven.multiModuleProjectDirectory}/core/src/main/templates/version.properties exists.</message>
+                                            <files>
+                                                <file>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}/version.properties</file>
+                                            </files>
+                                        </requireFilesExist>
+                                    </rules>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
 </project>
