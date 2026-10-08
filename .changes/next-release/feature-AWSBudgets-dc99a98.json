@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Budgets",
+    "contributor": "",
+    "description": "Adds a product attribute dimension to CreateBudget and UpdateBudget, letting customers filter AWS Budgets costs by structured attributes such as Amazon Bedrock model, provider, inference type, and feature."
+}
