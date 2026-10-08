@@ -17,8 +17,8 @@ package software.amazon.awssdk.checksums.internal;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Deque;
-import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -39,7 +39,10 @@ public enum DigestAlgorithm {
 
     private static final int MAX_CACHED_DIGESTS = 10_000;
     private final String algorithmName;
-    private final Deque<MessageDigest> digestCache = new LinkedBlockingDeque<>(MAX_CACHED_DIGESTS); // LIFO
+    // ConcurrentLinkedDeque avoids ReentrantLock used by LinkedBlockingDeque, which BlockHound
+    // flags as blocking on async SDK paths (see #6590). Capacity is enforced with AtomicInteger.
+    private final ConcurrentLinkedDeque<MessageDigest> digestCache = new ConcurrentLinkedDeque<>();
+    private final AtomicInteger cachedDigestCount = new AtomicInteger();
 
     DigestAlgorithm(String algorithmName) {
         this.algorithmName = algorithmName;
@@ -55,6 +58,7 @@ public enum DigestAlgorithm {
     public CloseableMessageDigest getDigest() {
         MessageDigest digest = digestCache.pollFirst();
         if (digest != null) {
+            cachedDigestCount.decrementAndGet();
             digest.reset();
             return new CloseableMessageDigest(digest);
         }
@@ -74,6 +78,7 @@ public enum DigestAlgorithm {
     static void clearCaches() {
         for (DigestAlgorithm value : values()) {
             value.digestCache.clear();
+            value.cachedDigestCount.set(0);
         }
     }
 
@@ -115,10 +120,15 @@ public enum DigestAlgorithm {
                 return;
             }
 
-            // Drop this digest is the cache is full.
-            digestCache.offerFirst(digest.get());
-
+            MessageDigest toCache = digest.get();
             digest = CLOSED_DIGEST;
+
+            // Soft capacity limit without locking/blocking. Drop the digest if the cache is full.
+            if (cachedDigestCount.incrementAndGet() <= MAX_CACHED_DIGESTS) {
+                digestCache.offerFirst(toCache);
+            } else {
+                cachedDigestCount.decrementAndGet();
+            }
         }
 
         @Override
