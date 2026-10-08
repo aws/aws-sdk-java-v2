@@ -42,6 +42,7 @@ import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpStatusFamily;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
@@ -195,11 +196,22 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
 
-        if (isServiceError(responseStatus) && errorPayload != null) {
+        if (hasServiceErrorResponse(responseStatus, errorPayload)) {
             handleServiceError(responseStatus, headers, errorPayload);
         } else {
             handleIoError(context, crtCode);
         }
+    }
+
+    /**
+     * A successful status with an empty payload is a CRT-side failure.
+     * A non-successful status can be a bodiless S3 error.
+     */
+    private static boolean hasServiceErrorResponse(int responseStatus, byte[] errorPayload) {
+        if (!isServiceError(responseStatus) || errorPayload == null) {
+            return false;
+        }
+        return errorPayload.length > 0 || !HttpStatusFamily.of(responseStatus).isOneOf(HttpStatusFamily.SUCCESSFUL);
     }
 
     private void handleIoError(S3FinishedResponseContext context, int crtCode) {
