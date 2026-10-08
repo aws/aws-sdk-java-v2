@@ -114,7 +114,6 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter implements S3MetaRe
             ByteBuffer directView = crtBuffer.asByteBuffer();
             sdkBuffer = new S3CrtBorrowedBufferLease(
                 directView,
-                directView.remaining(),
                 crtBuffer::close,
                 this::incrementReadWindow);
             acceptedByStream = validateAndAcceptBuffer(sdkBuffer, objectRangeStart, objectRangeEnd);

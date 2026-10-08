@@ -34,13 +34,11 @@ class S3AsyncResponseTransformerTest {
     private static final String FACTORY_CLASS = "software.amazon.awssdk.services.s3.S3AsyncResponseTransformer";
     private static final String SENTINEL_CLASS =
         "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferResponseTransformer";
-    private static final String MARKER_CLASS =
-        "software.amazon.awssdk.services.s3.internal.crt.S3CrtBorrowedBufferResponseTransformerMarker";
 
     @Test
     void borrowedFactory_withoutCrtClasses_shouldLoadAndFailClearlyWhenExecuted() throws Exception {
         NoCrtClassLoader classLoader = new NoCrtClassLoader(getClass().getClassLoader(),
-                                                            FACTORY_CLASS, SENTINEL_CLASS, MARKER_CLASS);
+                                                            FACTORY_CLASS, SENTINEL_CLASS);
         Class<?> factory = Class.forName(FACTORY_CLASS, true, classLoader);
         Object transformer = factory.getMethod("toBlockingInputStreamWithBorrowedBuffers").invoke(null);
 

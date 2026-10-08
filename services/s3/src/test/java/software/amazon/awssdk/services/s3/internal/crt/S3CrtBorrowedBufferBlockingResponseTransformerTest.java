@@ -46,7 +46,6 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credit = new AtomicLong();
         S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                                         3,
                                                                          releases::incrementAndGet,
                                                                          credit::addAndGet);
         S3CrtBorrowedBufferBlockingResponseTransformer transformer =
@@ -93,7 +92,6 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
 
         firstAttempt.onBorrowedStreamError(new IOException("late attempt failure"));
         secondAttempt.onBorrowedBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                                     3,
                                                                      () -> {
                                                                      },
                                                                      ignored -> {
@@ -138,7 +136,6 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicLong credit = new AtomicLong();
         S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                                         3,
                                                                          releases::incrementAndGet,
                                                                          credit::addAndGet);
         S3CrtBorrowedBufferBlockingResponseTransformer transformer =
@@ -186,7 +183,6 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         transformer.onResponse(GetObjectResponse.builder().contentLength(3L).build());
         S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
         handler.onBorrowedBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                               3,
                                                                releases::incrementAndGet,
                                                                credit::addAndGet));
 
@@ -210,7 +206,6 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         future.completeExceptionally(new RuntimeException("request failed"));
         handler.onBorrowedStreamStart(cancellations::incrementAndGet);
         assertThat(handler.onBorrowedBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                                          3,
                                                                           releases::incrementAndGet,
                                                                           credit::addAndGet))).isFalse();
 
@@ -248,7 +243,6 @@ class S3CrtBorrowedBufferBlockingResponseTransformerTest {
         S3CrtBorrowedBufferStreamHandler handler = transformer.currentAttempt();
         handler.onBorrowedStreamStart(() -> { });
         handler.onBorrowedBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.wrap("abc".getBytes(UTF_8)),
-                                                               3,
                                                                releases::incrementAndGet,
                                                                credit::addAndGet));
         handler.onBorrowedStreamError(failure);

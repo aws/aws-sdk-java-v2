@@ -148,7 +148,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     public <ReturnT> CompletableFuture<ReturnT> getObject(
         GetObjectRequest getObjectRequest,
         AsyncResponseTransformer<GetObjectResponse, ReturnT> asyncResponseTransformer) {
-        if (!(asyncResponseTransformer instanceof S3CrtBorrowedBufferResponseTransformerMarker)) {
+        if (!(asyncResponseTransformer instanceof S3CrtBorrowedBufferResponseTransformer)) {
             return super.getObject(getObjectRequest, asyncResponseTransformer);
         }
 

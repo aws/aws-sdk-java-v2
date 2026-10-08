@@ -36,16 +36,14 @@ public final class S3CrtBorrowedBufferLease {
     private final AtomicBoolean terminal = new AtomicBoolean();
 
     S3CrtBorrowedBufferLease(ByteBuffer buffer,
-                        long byteCount,
-                        Runnable releaseAction,
-                        LongConsumer readWindowAction) {
+                              Runnable releaseAction,
+                              LongConsumer readWindowAction) {
         Validate.paramNotNull(buffer, "buffer");
         this.releaseAction = Validate.paramNotNull(releaseAction, "releaseAction");
         this.readWindowAction = Validate.paramNotNull(readWindowAction, "readWindowAction");
-        Validate.isTrue(byteCount == buffer.remaining(), "byteCount must match the buffer's remaining bytes");
         // CRT's asByteBuffer() returns a shared view, so retain an independent cursor for the SDK reader.
         this.buffer = buffer.duplicate();
-        this.byteCount = byteCount;
+        this.byteCount = this.buffer.remaining();
     }
 
     ByteBuffer buffer() {

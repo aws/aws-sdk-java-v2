@@ -25,8 +25,7 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 
 @SdkInternalApi
 public final class S3CrtBorrowedBufferResponseTransformer
-    implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>>,
-    S3CrtBorrowedBufferResponseTransformerMarker {
+    implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> {
 
     @Override
     public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {

@@ -37,7 +37,7 @@ class S3CrtBorrowedBufferLeaseTest {
         AtomicLong credited = new AtomicLong();
         ByteBuffer view = ByteBuffer.allocateDirect(3);
         S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(
-            view, 3, () -> actions.add("release"), bytes -> {
+            view, () -> actions.add("release"), bytes -> {
                 actions.add("credit");
                 credited.addAndGet(bytes);
             });
@@ -77,7 +77,7 @@ class S3CrtBorrowedBufferLeaseTest {
     @Test
     void buffer_doesNotShareItsCursorWithTheViewCrtHandedOut() {
         ByteBuffer crtView = ByteBuffer.allocateDirect(4);
-        S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(crtView, 4, () -> {
+        S3CrtBorrowedBufferLease buffer = new S3CrtBorrowedBufferLease(crtView, () -> {
         }, bytes -> {
         });
 
@@ -177,6 +177,6 @@ class S3CrtBorrowedBufferLeaseTest {
     }
 
     private static S3CrtBorrowedBufferLease buffer(int size, Runnable release, java.util.function.LongConsumer credit) {
-        return new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(size), size, release, credit);
+        return new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(size), release, credit);
     }
 }

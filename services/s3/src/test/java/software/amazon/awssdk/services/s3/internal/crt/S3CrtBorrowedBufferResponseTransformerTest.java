@@ -27,11 +27,11 @@ import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 class S3CrtBorrowedBufferResponseTransformerTest {
 
     @Test
-    void factory_shouldReturnMarkedStreamTransformer() {
+    void factory_shouldReturnBorrowedStreamTransformer() {
         AsyncResponseTransformer<GetObjectResponse, ?> transformer =
             S3AsyncResponseTransformer.toBlockingInputStreamWithBorrowedBuffers();
 
-        assertThat(transformer).isInstanceOf(S3CrtBorrowedBufferResponseTransformerMarker.class);
+        assertThat(transformer).isInstanceOf(S3CrtBorrowedBufferResponseTransformer.class);
         assertThat(transformer.name()).isEqualTo(AsyncResponseTransformer.TransformerType.STREAM.getName());
     }
 

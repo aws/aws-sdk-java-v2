@@ -46,7 +46,7 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
         Attempt attempt = new Attempt();
         currentAttempt = attempt;
         if (aborted.get()) {
-            attempt.abort();
+            attempt.onBorrowedStreamAbort();
         }
         return attempt.future();
     }
@@ -70,7 +70,7 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
         aborted.set(true);
         Attempt attempt = currentAttempt;
         if (attempt != null) {
-            attempt.abort();
+            attempt.onBorrowedStreamAbort();
         }
     }
 
@@ -117,10 +117,6 @@ public final class S3CrtBorrowedBufferBlockingResponseTransformer
 
         private void onResponse(GetObjectResponse response) {
             this.response = response;
-        }
-
-        private void abort() {
-            inputStream.abort();
         }
 
         @Override

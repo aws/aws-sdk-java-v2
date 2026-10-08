@@ -364,7 +364,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         AtomicInteger releases = new AtomicInteger();
         AtomicInteger creditCalls = new AtomicInteger();
         S3CrtBorrowedBufferInputStream stream = new S3CrtBorrowedBufferInputStream(() -> { });
-        stream.onBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(0), 0,
+        stream.onBuffer(new S3CrtBorrowedBufferLease(ByteBuffer.allocateDirect(0),
                                               releases::incrementAndGet, bytes -> creditCalls.incrementAndGet()));
         stream.onComplete();
 
@@ -416,7 +416,7 @@ class S3CrtBorrowedBufferInputStreamTest {
         byte[] bytes = value.getBytes(StandardCharsets.UTF_8);
         ByteBuffer view = ByteBuffer.allocateDirect(bytes.length);
         view.put(bytes).flip();
-        return new S3CrtBorrowedBufferLease(view, bytes.length, release, credited::addAndGet);
+        return new S3CrtBorrowedBufferLease(view, release, credited::addAndGet);
     }
 
 }
