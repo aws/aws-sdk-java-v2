@@ -193,7 +193,11 @@ public final class Apache5HttpClient implements SdkHttpClient {
                //This is done to keep backward compatibility with Apache 4.x
                .disableRedirectHandling()
                // SDK handles retries , we do not need additional retries on Http clients.
-               .disableAutomaticRetries();
+               .disableAutomaticRetries()
+               // Same rationale as ApacheHttpClient: per-request null user tokens never match
+               // pooled mTLS connections, so disable connection-state tracking for reuse.
+               // See https://github.com/aws/aws-sdk-java-v2/issues/7405
+               .disableConnectionState();
 
         addProxyConfig(builder, configuration);
 

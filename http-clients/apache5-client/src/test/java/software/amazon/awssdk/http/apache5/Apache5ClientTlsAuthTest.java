@@ -209,6 +209,49 @@ public class Apache5ClientTlsAuthTest extends ClientTlsAuthTestBase {
         Mockito.verifyNoInteractions(socketFactoryMock);
     }
 
+    /**
+     * Regression for https://github.com/aws/aws-sdk-java-v2/issues/7405:
+     * with a client certificate, pooled connections must be reused across sequential requests.
+     */
+    @Test
+    public void reusesPooledConnectionsWhenClientCertificateConfigured() throws Exception {
+        client = Apache5HttpClient.builder()
+                .tlsKeyManagersProvider(keyManagersProvider)
+                .build();
+
+        final int requests = 5;
+        for (int i = 0; i < requests; i++) {
+            HttpExecuteResponse response = makeRequestWithHttpClient(client);
+            assertThat(response.httpResponse().isSuccessful()).isTrue();
+            if (response.responseBody().isPresent()) {
+                try (java.io.InputStream body = response.responseBody().get()) {
+                    byte[] buf = new byte[1024];
+                    while (body.read(buf) != -1) {
+                        // drain so the connection can return to the pool
+                    }
+                }
+            }
+        }
+
+        org.apache.hc.core5.pool.PoolStats stats = poolStats((Apache5HttpClient) client);
+        assertThat(stats.getLeased())
+                .as("all requests should have completed")
+                .isZero();
+        assertThat(stats.getAvailable())
+                .as("mTLS requests should reuse a single pooled connection (not one per request)")
+                .isEqualTo(1);
+    }
+
+    private static org.apache.hc.core5.pool.PoolStats poolStats(Apache5HttpClient httpClient) throws Exception {
+        java.lang.reflect.Field field = Apache5HttpClient.class.getDeclaredField("httpClient");
+        field.setAccessible(true);
+        software.amazon.awssdk.http.apache5.internal.impl.ConnectionManagerAwareHttpClient apache =
+                (software.amazon.awssdk.http.apache5.internal.impl.ConnectionManagerAwareHttpClient) field.get(httpClient);
+        org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager cm =
+                (org.apache.hc.client5.http.impl.io.PoolingHttpClientConnectionManager) apache.getHttpClientConnectionManager();
+        return cm.getTotalStats();
+    }
+
     private HttpExecuteResponse makeRequestWithHttpClient(SdkHttpClient httpClient) throws IOException {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)
