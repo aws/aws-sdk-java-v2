@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWSMarketplace Metering",
-    "contributor": "",
-    "description": "AWS Marketplace Metering Service adds AgreementId to ResolveCustomer API response."
-}

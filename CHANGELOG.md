@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.14__ __2026-10-09__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Fixed an issue in the AWS CRT-based S3 client where a CRT-reported failure with a 2xx response and no error document, including a download that failed full-object checksum validation, could complete successfully.
+
+## __AWS MediaTailor__
+  - ### Features
+    - Add caching settings to http functions
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds a test scope field to specify whether a pentest targets a web application or a generative AI application.
+
+## __AWSDeadlineCloud__
+  - ### Features
+    - The new ListMemberships API enables users to discover their memberships across Deadline Cloud resources, enabling scoped users of Deadline resources to discover and interact with the resources they have been provided scoped access to.
+
+## __AWSMarketplace Metering__
+  - ### Features
+    - AWS Marketplace Metering Service adds AgreementId to ResolveCustomer API response.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds granular custom permissions for the Gong action connector (GongAction, CreateAndUpdateGongAction, ShareGongAction, UseGongAction) and for create, update, and share operations on 45 data source connectors, such as Amazon S3 and Snowflake, through the Custom Permissions APIs.
+
 # __2.55.13__ __2026-10-08__
 ## __AWS Budgets__
   - ### Features
