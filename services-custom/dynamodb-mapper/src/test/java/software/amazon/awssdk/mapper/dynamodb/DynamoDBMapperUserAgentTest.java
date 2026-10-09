@@ -16,6 +16,7 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.not;
@@ -60,6 +61,7 @@ public class DynamoDBMapperUserAgentTest {
 
     private static final String TARGET_HEADER = "X-Amz-Target";
     private static final String USER_AGENT_HEADER = "User-Agent";
+    private static final String LEGACY_ENHANCED_CLIENT_API_NAME = "hll/ddb-enh";
     private static final Pattern METRICS_SECTION = Pattern.compile("(?:^|\\s)m/([A-Za-z0-9+\\-,]+)");
     private static final String FIRST_PAGE_WITH_MORE =
         "{\"Count\":0,\"Items\":[],\"LastEvaluatedKey\":{\"id\":{\"S\":\"next\"}}}";
@@ -150,6 +152,9 @@ public class DynamoDBMapperUserAgentTest {
             // The mapper's metric is its own ID, not the enhanced client's "d". (The only enhanced client on this
             // test classpath is the 2.16.x one DynamoDBLocal pulls in, which tags the legacy "hll/ddb-enh" instead.)
             assertThat(userAgent, metrics, not(hasItem(BusinessMetricFeatureId.DDB_MAPPER.value())));
+            // That enhanced client's classpath interceptor must survive alongside the mapper's, which proves the two
+            // interceptors are not collapsed by ClasspathInterceptorChainFactory's simple-class-name de-duplication.
+            assertThat(userAgent, containsString(LEGACY_ENHANCED_CLIENT_API_NAME));
         }
     }
 

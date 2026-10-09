@@ -34,14 +34,14 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
-import software.amazon.awssdk.mapper.dynamodb.internal.ApplyUserAgentInterceptor;
+import software.amazon.awssdk.mapper.dynamodb.internal.ApplyMapperUserAgentInterceptor;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 
 /**
- * Direct cost of the v2 mapper's {@link ApplyUserAgentInterceptor#modifyRequest}, which rebuilds each request via
+ * Direct cost of the v2 mapper's {@link ApplyMapperUserAgentInterceptor#modifyRequest}, which rebuilds each request via
  * {@code toBuilder().overrideConfiguration(...)}. {@code baseline} returns the request unchanged and measures the
  * harness cost.
  */
@@ -54,7 +54,7 @@ import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
 public class V2MapperApplyUserAgentInterceptorBenchmark {
     private static final V2MapperItemFactory ITEM_FACTORY = new V2MapperItemFactory();
 
-    private final ApplyUserAgentInterceptor interceptor = new ApplyUserAgentInterceptor();
+    private final ApplyMapperUserAgentInterceptor interceptor = new ApplyMapperUserAgentInterceptor();
     private final ExecutionAttributes executionAttributes = new ExecutionAttributes();
 
     @Param({"GET_ITEM", "PUT_ITEM_TINY", "PUT_ITEM_HUGE", "PUT_ITEM_HUGE_FLAT"})

@@ -28,9 +28,13 @@ import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
 
 /**
  * Apply the DynamoDB mapper v2 specific user agent business metric to each DynamoDB request.
+ * <p>
+ * The simple class name must differ from the enhanced client's {@code ApplyUserAgentInterceptor}:
+ * {@code ClasspathInterceptorChainFactory} de-duplicates classpath interceptors by simple class name, so a shared name
+ * would drop one of the two metrics when both jars are on the classpath.
  */
 @SdkInternalApi
-public final class ApplyUserAgentInterceptor implements ExecutionInterceptor {
+public final class ApplyMapperUserAgentInterceptor implements ExecutionInterceptor {
     private static final ApiName API_NAME = ApiName.builder()
                                                    .name("sdk-metrics")
                                                    .version(BusinessMetricFeatureId.DYNAMODB_MAPPER_V2.value())

@@ -36,11 +36,11 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
 
-public class ApplyUserAgentInterceptorTest {
+public class ApplyMapperUserAgentInterceptorTest {
 
     private static final String SDK_METRICS = "sdk-metrics";
 
-    private final ApplyUserAgentInterceptor interceptor = new ApplyUserAgentInterceptor();
+    private final ApplyMapperUserAgentInterceptor interceptor = new ApplyMapperUserAgentInterceptor();
 
     @Test
     public void modifyRequest_ddbRequest_addsMapperV2SdkMetricsApiName() {

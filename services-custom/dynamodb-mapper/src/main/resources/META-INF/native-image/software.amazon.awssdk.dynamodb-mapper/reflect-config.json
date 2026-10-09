@@ -1,6 +1,6 @@
 [
   {
-    "name": "software.amazon.awssdk.mapper.dynamodb.internal.ApplyUserAgentInterceptor",
+    "name": "software.amazon.awssdk.mapper.dynamodb.internal.ApplyMapperUserAgentInterceptor",
     "methods": [
       {
         "name": "<init>",
