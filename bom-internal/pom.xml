@@ -30,11 +30,6 @@
         <dependencies>
             <!-- Non-Test Dependencies -->
             <dependency>
-                <groupId>software.amazon.eventstream</groupId>
-                <artifactId>eventstream</artifactId>
-                <version>${eventstream.version}</version>
-            </dependency>
-            <dependency>
                 <groupId>commons-io</groupId>
                 <artifactId>commons-io</artifactId>
                 <version>${commons.io.version}</version>

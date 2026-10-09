@@ -47,12 +47,12 @@ import org.mockito.Mockito;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
+import software.amazon.awssdk.eventstream.MessageDecoder;
 import software.amazon.awssdk.http.auth.aws.internal.signer.CredentialScope;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
-import software.amazon.eventstream.MessageDecoder;
 
 public class SigV4DataFramePublisherTest {
 

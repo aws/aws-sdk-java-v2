@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventstream;
+package software.amazon.awssdk.eventstream.internal;
 
 import static java.lang.String.format;
 
@@ -21,11 +21,12 @@ import java.nio.ByteBuffer;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.eventstream.Message;
 
 @SdkInternalApi
-final class Prelude {
+public final class Prelude {
     static final int LENGTH = 8;
-    static final int LENGTH_WITH_CRC = LENGTH + 4;
+    public static final int LENGTH_WITH_CRC = LENGTH + 4;
 
     private final int totalLength;
     private final long headersLength;
@@ -35,7 +36,7 @@ final class Prelude {
         this.headersLength = headersLength;
     }
 
-    static Prelude decode(ByteBuffer buf) {
+    public static Prelude decode(ByteBuffer buf) {
         buf = buf.duplicate();
 
         long computedPreludeCrc = computePreludeCrc(buf);
@@ -70,11 +71,11 @@ final class Prelude {
         return crc.getValue();
     }
 
-    int getTotalLength() {
+    public int getTotalLength() {
         return totalLength;
     }
 
-    long getHeadersLength() {
+    public long getHeadersLength() {
         return headersLength;
     }
 }
