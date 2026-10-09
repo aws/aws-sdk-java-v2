@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventstream;
+package software.amazon.awssdk.eventstream.internal;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -23,7 +23,7 @@ import java.nio.ByteBuffer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-final class Utils {
+public final class Utils {
 
     private Utils() {
     }
@@ -36,7 +36,7 @@ final class Utils {
         return new String(bytes, UTF_8);
     }
 
-    static String readString(ByteBuffer buf) {
+    public static String readString(ByteBuffer buf) {
         int length = buf.getShort() & 0xFFFF;
         checkStringBounds(length, 32767);
         byte[] bytes = new byte[length];
@@ -44,7 +44,7 @@ final class Utils {
         return new String(bytes, UTF_8);
     }
 
-    static byte[] readBytes(ByteBuffer buf) {
+    public static byte[] readBytes(ByteBuffer buf) {
         int length = buf.getShort() & 0xFFFF;
         checkByteArrayBounds(length);
         byte[] bytes = new byte[length];
@@ -59,13 +59,13 @@ final class Utils {
         dos.write(bytes);
     }
 
-    static void writeString(DataOutputStream dos, String string) throws IOException {
+    public static void writeString(DataOutputStream dos, String string) throws IOException {
         byte[] bytes = string.getBytes(UTF_8);
         checkStringBounds(bytes.length, 32767);
         writeBytes(dos, bytes);
     }
 
-    static void writeBytes(DataOutputStream dos, byte[] bytes) throws IOException {
+    public static void writeBytes(DataOutputStream dos, byte[] bytes) throws IOException {
         checkByteArrayBounds(bytes.length);
         dos.writeShort((short) bytes.length);
         dos.write(bytes);

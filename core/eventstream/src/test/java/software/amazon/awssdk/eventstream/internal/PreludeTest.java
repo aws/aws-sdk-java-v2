@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventstream;
+package software.amazon.awssdk.eventstream.internal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
