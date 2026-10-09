@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Agent",
+    "contributor": "",
+    "description": "Adds a test scope field to specify whether a pentest targets a web application or a generative AI application."
+}
