@@ -296,7 +296,6 @@
                                 <include>com.google.errorprone:error_prone_annotations</include>
                                 <inlcude>org.checkerframework:checker-qual</inlcude>
                                 <include>commons-logging:*</include>
-                                <include>software.amazon.eventstream:eventstream</include>
                             </includes>
                         </artifactSet>
                         <filters>

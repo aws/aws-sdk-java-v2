@@ -59,6 +59,8 @@ import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
@@ -71,8 +73,6 @@ import software.amazon.awssdk.services.protocolrestjson.model.EventStream;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.EventStreamOperationResponseHandler;
 import software.amazon.awssdk.utils.AttributeMap;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
 
 public class EventStreamExceptionUnmarshallingTest {
     private static final AwsCredentialsProvider TEST_CREDENTIALS = StaticCredentialsProvider.create(

@@ -110,12 +110,13 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon.eventstream</groupId>
-            <artifactId>eventstream</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>utils-lite</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>utils-lite</artifactId>
+            <artifactId>eventstream</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
 

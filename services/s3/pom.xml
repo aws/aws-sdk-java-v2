@@ -215,13 +215,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>software.amazon.eventstream</groupId>
-            <artifactId>eventstream</artifactId>
+            <groupId>nl.jqno.equalsverifier</groupId>
+            <artifactId>equalsverifier</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>nl.jqno.equalsverifier</groupId>
-            <artifactId>equalsverifier</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>eventstream</artifactId>
+            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
