@@ -18,11 +18,13 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.METAREQUEST_PAUSE_OBSERVABLE;
 import static software.amazon.awssdk.services.s3.internal.crt.CrtChecksumUtils.checksumConfig;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_RESPONSE_TRANSFORMER;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OBJECT_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
@@ -56,13 +58,16 @@ import software.amazon.awssdk.crt.s3.FileIoOptions;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
+import software.amazon.awssdk.crt.s3.S3DirectBufferPoolOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
+import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.Header;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.NumericUtils;
 import software.amazon.awssdk.utils.http.SdkHttpUtils;
@@ -134,6 +139,16 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
                 .ifPresent(options::withHttpMonitoringOptions);
         Optional.ofNullable(s3NativeClientConfiguration.memoryBufferDisabled())
             .ifPresent(memoryBufferDisabled -> options.withFileIoOptions(new FileIoOptions(memoryBufferDisabled, 0.0, false)));
+        S3CrtDirectBufferPoolConfiguration directBufferPoolConfiguration =
+            s3NativeClientConfiguration.directBufferPoolConfiguration();
+        // Pool API calls should remain guarded for older CRT runtime compatibility.
+        if (directBufferPoolConfiguration != null) {
+            S3DirectBufferPoolOptions directBufferPoolOptions =
+                directBufferPoolConfiguration.memoryLimitInBytes() == null
+                ? S3DirectBufferPoolOptions.auto()
+                : S3DirectBufferPoolOptions.fixed(directBufferPoolConfiguration.memoryLimitInBytes());
+            options.withDirectBufferPoolOptions(directBufferPoolOptions);
+        }
         return options;
     }
 
@@ -164,12 +179,8 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
         Boolean responseFileDeleteOnFailure = httpExecutionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE);
 
-        S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(
-                executeFuture,
-                asyncRequest.responseHandler(),
-                httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
-                s3MetaRequestFuture);
+        S3MetaRequestResponseHandler responseHandler =
+            responseHandler(asyncRequest, executeFuture, s3MetaRequestFuture);
 
         URI endpoint = getEndpoint(uri);
 
@@ -231,6 +242,26 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         }
 
         return executeFuture;
+    }
+
+    private static S3MetaRequestResponseHandler responseHandler(AsyncExecuteRequest asyncRequest,
+                                                                CompletableFuture<Void> executeFuture,
+                                                                CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture) {
+        SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
+        S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
+            httpExecutionAttributes.getAttribute(BORROWED_BUFFER_RESPONSE_TRANSFORMER);
+        if (borrowedBufferResponseTransformer == null) {
+            return new S3CrtResponseHandlerAdapter(executeFuture,
+                                                   asyncRequest.responseHandler(),
+                                                   httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                                                   s3MetaRequestFuture);
+        }
+        return new S3CrtBorrowedBufferResponseHandlerAdapter(executeFuture,
+                                                             asyncRequest.responseHandler(),
+                                                             httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER),
+                                                             s3MetaRequestFuture,
+                                                             httpExecutionAttributes.getAttribute(RESPONSE_BYTES_READ),
+                                                             borrowedBufferResponseTransformer.currentAttempt());
     }
 
     private static boolean isResponseFileAlreadyExistsError(Throwable throwable, Path responseFilePath) {
