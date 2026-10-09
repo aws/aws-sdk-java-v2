@@ -1,0 +1,189 @@
+{
+  "version":"2.0",
+  "metadata":{
+    "apiVersion":"2025-03-07",
+    "auth":["aws.auth#sigv4"],
+    "endpointPrefix":"lambda",
+    "protocol":"rest-json",
+    "protocols":["rest-json"],
+    "serviceFullName":"Lambda Web",
+    "serviceId":"Lambda Web",
+    "signatureVersion":"v4",
+    "signingName":"lambda",
+    "uid":"lambda-web-2025-03-07"
+  },
+  "operations":{
+    "GetWebAccountSettings":{
+      "name":"GetWebAccountSettings",
+      "http":{
+        "method":"GET",
+        "requestUri":"/2025-03-07/web-account-settings",
+        "responseCode":200
+      },
+      "input":{"shape":"GetWebAccountSettingsRequest"},
+      "output":{"shape":"GetWebAccountSettingsResponse"},
+      "errors":[
+        {"shape":"AccessDeniedException"},
+        {"shape":"InternalServerException"},
+        {"shape":"ThrottlingException"}
+      ],
+      "documentation":"<p>Retrieves details about your AWS Lambda Web Functions account settings for the current AWS Region, including the quotas that apply to web functions and your current usage.</p> <note> <p>This API is experimental and for internal AWS use only. It is not yet available to external customers.</p> </note>",
+      "readonly":true
+    }
+  },
+  "shapes":{
+    "AccessDeniedException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A message describing the access denied error.</p>"
+        }
+      },
+      "documentation":"<p>You do not have sufficient permissions to perform this operation.</p>",
+      "error":{
+        "httpStatusCode":403,
+        "senderFault":true
+      },
+      "exception":true
+    },
+    "AccountQuotas":{
+      "type":"structure",
+      "required":[
+        "maxTotalArmVCpus",
+        "maxTotalRateLimit",
+        "maxRevisionsPerFunction",
+        "maxEndpointsPerFunction"
+      ],
+      "members":{
+        "maxTotalArmVCpus":{
+          "shape":"AccountQuotasMaxTotalArmVCpusInteger",
+          "documentation":"<p>The maximum total number of Arm vCPUs that you can allocate across all of your web functions in the current AWS Region.</p>"
+        },
+        "maxTotalRateLimit":{
+          "shape":"AccountQuotasMaxTotalRateLimitInteger",
+          "documentation":"<p>The maximum number of requests per second allowed across all of your web function endpoints in your account in the current AWS Region.</p>"
+        },
+        "maxRevisionsPerFunction":{
+          "shape":"AccountQuotasMaxRevisionsPerFunctionInteger",
+          "documentation":"<p>The maximum number of revisions that a single web function can have.</p>"
+        },
+        "maxEndpointsPerFunction":{
+          "shape":"AccountQuotasMaxEndpointsPerFunctionInteger",
+          "documentation":"<p>The maximum number of endpoints that a single web function can have.</p>"
+        }
+      },
+      "documentation":"<p>The quotas that apply to web functions in your account in the current AWS Region.</p>"
+    },
+    "AccountQuotasMaxEndpointsPerFunctionInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "AccountQuotasMaxRevisionsPerFunctionInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "AccountQuotasMaxTotalArmVCpusInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "AccountQuotasMaxTotalRateLimitInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "AccountUsage":{
+      "type":"structure",
+      "required":["functionCount"],
+      "members":{
+        "functionCount":{
+          "shape":"AccountUsageFunctionCountInteger",
+          "documentation":"<p>The number of web functions in your account in the current AWS Region.</p>"
+        }
+      },
+      "documentation":"<p>Contains your current web function usage for the current AWS Region.</p>"
+    },
+    "AccountUsageFunctionCountInteger":{
+      "type":"integer",
+      "box":true,
+      "min":0
+    },
+    "GetWebAccountSettingsRequest":{
+      "type":"structure",
+      "members":{}
+    },
+    "GetWebAccountSettingsResponse":{
+      "type":"structure",
+      "required":[
+        "accountQuotas",
+        "accountUsage"
+      ],
+      "members":{
+        "accountQuotas":{
+          "shape":"AccountQuotas",
+          "documentation":"<p>The quotas that apply to web functions in your account in the current AWS Region.</p>"
+        },
+        "accountUsage":{
+          "shape":"AccountUsage",
+          "documentation":"<p>The current web function usage for your account in the current AWS Region.</p>"
+        }
+      },
+      "documentation":"<p>Contains your AWS Lambda Web Functions account quotas and usage for the current AWS Region.</p>"
+    },
+    "Integer":{
+      "type":"integer",
+      "box":true
+    },
+    "InternalServerException":{
+      "type":"structure",
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A message describing the internal error.</p>"
+        }
+      },
+      "documentation":"<p>An internal server error occurred. Try again later.</p>",
+      "error":{"httpStatusCode":500},
+      "exception":true,
+      "fault":true,
+      "retryable":{"throttling":false}
+    },
+    "String":{"type":"string"},
+    "ThrottlingException":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"String",
+          "documentation":"<p>A message describing the throttling error.</p>"
+        },
+        "retryAfterSeconds":{
+          "shape":"Integer",
+          "documentation":"<p>The number of seconds to wait before retrying the request.</p>",
+          "location":"header",
+          "locationName":"Retry-After"
+        },
+        "serviceCode":{
+          "shape":"String",
+          "documentation":"<p>The service code of the throttled service.</p>"
+        },
+        "quotaCode":{
+          "shape":"String",
+          "documentation":"<p>The quota code that was exceeded, if applicable.</p>"
+        }
+      },
+      "documentation":"<p>The request was throttled. Reduce the frequency of requests and try again.</p>",
+      "error":{
+        "httpStatusCode":429,
+        "senderFault":true
+      },
+      "exception":true,
+      "retryable":{"throttling":true}
+    }
+  },
+  "documentation":"<p><note> <p>The AWS Lambda Web Functions APIs (<code>LambdaWeb</code> namespace) are experimental and for internal AWS use only. They are not yet available to external customers.</p> </note></p>"
+}
