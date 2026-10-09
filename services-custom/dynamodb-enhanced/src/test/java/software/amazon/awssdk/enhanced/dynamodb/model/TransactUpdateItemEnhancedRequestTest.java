@@ -22,6 +22,8 @@ import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.nullValue;
 import static software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem.createUniqueFakeItem;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.AttributeValues.stringValue;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.LEGACY;
+import static software.amazon.awssdk.enhanced.dynamodb.model.UpdateExpressionMergeStrategy.PRIORITIZE_HIGHER_SOURCE;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -34,7 +36,7 @@ import software.amazon.awssdk.services.dynamodb.model.ReturnValuesOnConditionChe
 public class TransactUpdateItemEnhancedRequestTest {
 
     @Test
-    public void builder_minimal() {
+    public void emptyBuilder_optionalFieldsAreNull_mergeStrategyIsLegacy() {
         TransactUpdateItemEnhancedRequest<FakeItem> builtObject =
             TransactUpdateItemEnhancedRequest.builder(FakeItem.class).build();
 
@@ -42,6 +44,7 @@ public class TransactUpdateItemEnhancedRequestTest {
         assertThat(builtObject.ignoreNulls(), is(nullValue()));
         assertThat(builtObject.conditionExpression(), is(nullValue()));
         assertThat(builtObject.returnValuesOnConditionCheckFailure(), is(nullValue()));
+        assertThat(builtObject.updateExpressionMergeStrategy(), is(LEGACY));
     }
 
     @Test
@@ -283,5 +286,15 @@ public class TransactUpdateItemEnhancedRequestTest {
                                                                                                    .returnValuesOnConditionCheckFailure(returnValues)
                                                                                                    .build();
         assertThat(builtObject.returnValuesOnConditionCheckFailureAsString(), is(returnValues));
+    }
+
+    @Test
+    public void toBuilder_preservesPrioritizeHigherSourceMergeStrategy() {
+        TransactUpdateItemEnhancedRequest<FakeItem> request =
+            TransactUpdateItemEnhancedRequest.builder(FakeItem.class)
+                                             .updateExpressionMergeStrategy(PRIORITIZE_HIGHER_SOURCE)
+                                             .build();
+
+        assertThat(request.toBuilder().build().updateExpressionMergeStrategy(), is(PRIORITIZE_HIGHER_SOURCE));
     }
 }
