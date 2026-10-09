@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS SDK for Java v2",
-    "contributor": "",
-    "description": "The SDK's core modules (such as `sdk-core`, `aws-core`, `regions`, `auth`, and the protocol modules) now include a generated `META-INF/software.amazon.awssdk/<artifactId>/version.properties` resource whose `version` key contains the SDK version."
-}

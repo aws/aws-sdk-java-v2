@@ -36,7 +36,7 @@ public final class VersionInfoTest {
     }
 
     @Test
-    public void versionProperties_content_isExactlySdkVersion() throws IOException {
+    public void versionProperties_content_isExactlySdkMinorVersion() throws IOException {
         String resource = "META-INF/software.amazon.awssdk/sdk-core/version.properties";
         String content;
         try (InputStream propertiesFile = VersionInfo.class.getClassLoader().getResourceAsStream(resource)) {
@@ -44,7 +44,9 @@ public final class VersionInfoTest {
             content = IoUtils.toUtf8String(propertiesFile);
         }
 
-        assertThat(content.replaceFirst("\\r?\\n$", "")).isEqualTo("version=" + VersionInfo.SDK_VERSION);
+        String[] versionParts = VersionInfo.SDK_VERSION.split("\\.");
+        String minorVersion = versionParts[0] + "." + versionParts[1] + ".x";
+        assertThat(content.replaceFirst("\\r?\\n$", "")).isEqualTo("version=" + minorVersion);
     }
 
     private String getSdkVersionFromPom() throws URISyntaxException, IOException {

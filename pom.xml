@@ -411,6 +411,82 @@
                                 </resources>
                             </configuration>
                         </execution>
+                        <!-- version.properties generation, see the note on maven-resources-plugin below. -->
+                        <execution>
+                            <id>parse-sdk-version</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>parse-version</goal>
+                            </goals>
+                            <configuration>
+                                <versionString>${awsjavasdk.version}</versionString>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- Generates META-INF/software.amazon.awssdk/<artifactId>/version.properties into
+                     generated-resources/sdk-resources, which add-generated-resources registers as a resource root. Build
+                     tooling reads the SDK minor version (for example 2.56.x) from this output directory and from the jar,
+                     so do not change the output directory, resource path, key, or value format without coordinating with
+                     that tooling. The parse-sdk-version, generate-version-properties, and require-version-properties
+                     executions are unbound (phase none) here; core/pom.xml and services/pom.xml bind them in profiles so
+                     that only those module families produce the file. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>generate-version-properties</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>copy-resources</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}</outputDirectory>
+                                <overwrite>true</overwrite>
+                                <resources>
+                                    <resource>
+                                        <directory>${maven.multiModuleProjectDirectory}/build-tools/src/main/templates</directory>
+                                        <includes>
+                                            <include>version.properties</include>
+                                        </includes>
+                                        <filtering>true</filtering>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- The resources plugin silently skips a template directory that does not resolve, and leaves an
+                     unresolved ${parsedVersion.*} placeholder in place if parse-sdk-version did not run. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>require-version-properties</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireFilesExist>
+                                        <message>version.properties was not generated. Check that ${maven.multiModuleProjectDirectory}/build-tools/src/main/templates/version.properties exists.</message>
+                                        <files>
+                                            <file>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}/version.properties</file>
+                                        </files>
+                                    </requireFilesExist>
+                                    <requireProperty>
+                                        <property>parsedVersion.minorVersion</property>
+                                        <message>The SDK minor version could not be parsed from ${awsjavasdk.version}, so version.properties would contain an unresolved placeholder. Check that the parse-sdk-version execution is bound in the same profile as generate-version-properties.</message>
+                                        <regex>\d+</regex>
+                                        <regexMessage>The SDK minor version parsed from ${awsjavasdk.version} is "${parsedVersion.minorVersion}", not a number, so version.properties would contain an invalid version.</regexMessage>
+                                    </requireProperty>
+                                </rules>
+                            </configuration>
+                        </execution>
                     </executions>
                 </plugin>
                 <plugin>
