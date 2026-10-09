@@ -647,6 +647,7 @@
                             <includeModule>imds</includeModule>
                             <includeModule>retries</includeModule>
                             <includeModule>retries-spi</includeModule>
+                            <includeModule>eventstream</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>

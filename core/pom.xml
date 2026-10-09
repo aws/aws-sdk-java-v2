@@ -57,6 +57,7 @@
         <module>retries</module>
         <module>checksums-spi</module>
         <module>checksums</module>
+        <module>eventstream</module>
     </modules>
 
     <dependencyManagement>
