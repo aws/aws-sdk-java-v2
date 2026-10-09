@@ -26,6 +26,7 @@ import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
@@ -42,6 +43,7 @@ import java.time.Duration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -73,6 +75,7 @@ import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.AttributeMap;
@@ -148,6 +151,25 @@ public class S3CrtAsyncHttpClientTest {
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.GET_OBJECT);
         assertThat(actual.getOperationName()).isEqualTo("GetObject");
+        assertThat(actual.getResponseHandler()).isInstanceOf(S3CrtResponseHandlerAdapter.class);
+    }
+
+    @Test
+    void getObject_withBorrowedHandler_shouldSelectBorrowedResponseAdapter() {
+        S3CrtBorrowedBufferBlockingResponseTransformer borrowedBufferResponseTransformer =
+            new S3CrtBorrowedBufferBlockingResponseTransformer();
+        borrowedBufferResponseTransformer.prepare();
+        AsyncExecuteRequest asyncExecuteRequest =
+            getExecuteRequestBuilder().putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+                                      .putHttpExecutionAttribute(
+                                          S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_RESPONSE_TRANSFORMER,
+                                          borrowedBufferResponseTransformer)
+                                      .putHttpExecutionAttribute(RESPONSE_BYTES_READ, new AtomicLong())
+                                      .build();
+
+        S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
+
+        assertThat(actual.getResponseHandler()).isInstanceOf(S3CrtBorrowedBufferResponseHandlerAdapter.class);
     }
 
     @Test
@@ -480,6 +502,33 @@ public class S3CrtAsyncHttpClientTest {
             assertThat(clientOptions.getFileIoOptions().getDiskThroughputGbps()).isZero();
             assertThat(clientOptions.getFileIoOptions().getDirectIo()).isFalse();
         }
+    }
+
+    @Test
+    void build_withoutDirectBufferPoolConfiguration_shouldLeavePoolDisabled() {
+        assertThat(asyncHttpClient.s3ClientOptions().getDirectBufferPoolOptions()).isNull();
+    }
+
+    @ParameterizedTest
+    @MethodSource("directBufferPoolConfigurations")
+    void build_withDirectBufferPoolConfiguration_shouldConfigureCrtPool(
+        S3CrtDirectBufferPoolConfiguration poolConfiguration) {
+        S3NativeClientConfiguration configuration =
+            S3NativeClientConfiguration.builder()
+                                       .credentialsProvider(StaticCredentialsProvider.create(
+                                           AwsBasicCredentials.create("test", "test")))
+                                       .directBufferPoolConfiguration(poolConfiguration)
+                                       .build();
+        try (S3CrtAsyncHttpClient client =
+                 new S3CrtAsyncHttpClient(s3Client,
+                                          S3CrtAsyncHttpClient.builder().s3ClientConfiguration(configuration))) {
+            assertThat(client.s3ClientOptions().getDirectBufferPoolOptions()).isNotNull();
+        }
+    }
+
+    private static Stream<Arguments> directBufferPoolConfigurations() {
+        return Stream.of(Arguments.of(S3CrtDirectBufferPoolConfiguration.auto()),
+                         Arguments.of(S3CrtDirectBufferPoolConfiguration.fixed(8L * 1024 * 1024)));
     }
 
     @Test

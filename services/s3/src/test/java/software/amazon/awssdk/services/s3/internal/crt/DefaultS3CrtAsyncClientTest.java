@@ -19,6 +19,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.nio.file.Path;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -31,6 +32,7 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -41,8 +43,11 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3AsyncResponseTransformer;
+import software.amazon.awssdk.services.s3.crt.S3CrtDirectBufferPoolConfiguration;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.MapUtils;
@@ -125,6 +130,70 @@ class DefaultS3CrtAsyncClientTest {
             .isEqualTo(ResponseFileOption.CREATE_NEW);
         assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE))
             .isTrue();
+    }
+
+    @Test
+    void borrowedTransformer_withoutPool_shouldFailBeforeDelegation() {
+        try (S3AsyncClient client = S3AsyncClient.crtBuilder().build()) {
+            assertThatThrownBy(() -> client.getObject(
+                r -> r.bucket("bucket").key("key"),
+                S3AsyncResponseTransformer.toBlockingInputStreamWithBorrowedBuffers()).join())
+                .hasCauseInstanceOf(IllegalStateException.class)
+                .hasMessageContaining("direct buffer pool");
+        }
+    }
+
+    @Test
+    void borrowedTransformer_withPool_shouldCopyRequestAndPropagateHandler() {
+        AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+        AtomicReference<AtomicLong> responseBytesRead = new AtomicReference<>();
+        AtomicReference<String> capturedCallerAttribute = new AtomicReference<>();
+        ExecutionAttribute<String> callerAttribute = new ExecutionAttribute<>("callerAttribute");
+        ExecutionInterceptor captor = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                capturedAttributes.set(
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                responseBytesRead.set(executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESPONSE_BYTES_READ));
+                capturedCallerAttribute.set(executionAttributes.getAttribute(callerAttribute));
+                throw new RuntimeException("STOP");
+            }
+        };
+        GetObjectRequest request = GetObjectRequest.builder()
+                                                   .bucket("bucket")
+                                                   .key("key")
+                                                   .overrideConfiguration(c -> c.putExecutionAttribute(callerAttribute, "value"))
+                                                   .build();
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(captor);
+
+        try (S3AsyncClient client = builder.region(Region.US_EAST_1)
+                                           .credentialsProvider(StaticCredentialsProvider.create(
+                                               AwsBasicCredentials.create("key", "secret")))
+                                           .directBufferPoolConfiguration(
+                                               S3CrtDirectBufferPoolConfiguration.fixed(
+                                                   S3NativeClientConfiguration.DEFAULT_PART_SIZE_IN_BYTES))
+                                           .build()) {
+            assertThatThrownBy(() -> client.getObject(
+                request, S3AsyncResponseTransformer.toBlockingInputStreamWithBorrowedBuffers()).join())
+                .hasMessageContaining("STOP");
+        }
+
+        S3CrtBorrowedBufferBlockingResponseTransformer handler = capturedAttributes.get().getAttribute(
+            S3InternalSdkHttpExecutionAttribute.BORROWED_BUFFER_RESPONSE_TRANSFORMER);
+        assertThat(handler).isInstanceOf(S3CrtBorrowedBufferBlockingResponseTransformer.class);
+        assertThat(responseBytesRead.get()).isNotNull();
+        assertThat(capturedAttributes.get().getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_BYTES_READ))
+            .isSameAs(responseBytesRead.get());
+        assertThat(((AsyncResponseTransformer<?, ?>) handler).name())
+            .isEqualTo(AsyncResponseTransformer.TransformerType.STREAM.getName());
+        assertThat(capturedCallerAttribute).hasValue("value");
+        assertThat(request.overrideConfiguration().get().executionAttributes().getAttribute(callerAttribute))
+            .isEqualTo("value");
+        assertThat(request.overrideConfiguration().get().executionAttributes()
+                          .getAttribute(DefaultS3CrtAsyncClient.BORROWED_BUFFER_RESPONSE_TRANSFORMER))
+            .isNull();
     }
 
     @ParameterizedTest

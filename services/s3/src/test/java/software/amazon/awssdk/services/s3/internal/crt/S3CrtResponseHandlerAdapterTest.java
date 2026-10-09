@@ -122,7 +122,7 @@ public class S3CrtResponseHandlerAdapterTest {
 
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, httpHeaders);
-        responseHandlerAdapter.onResponseBody(null, 0, 0);
+        responseHandlerAdapter.onResponseBody((ByteBuffer) null, 0, 0);
 
         Throwable actualException = sdkResponseHandler.error;
         assertThat(actualException).isInstanceOf(IllegalStateException.class).hasMessageContaining("ByteBuffer delivered is "
