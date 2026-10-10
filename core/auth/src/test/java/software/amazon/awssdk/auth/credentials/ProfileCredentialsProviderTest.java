@@ -25,7 +25,13 @@ import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -272,6 +278,52 @@ public class ProfileCredentialsProviderTest {
     }
 
     @Test
+    void resolveCredentials_concurrentInitialCalls_loadProfileFileSerially() throws Exception {
+        ProfileFile file = profileFile("[default]\naws_access_key_id = akid\n"
+                                       + "aws_secret_access_key = sak\n");
+        AtomicInteger supplierCalls = new AtomicInteger();
+        CountDownLatch firstSupplierCallStarted = new CountDownLatch(1);
+        CountDownLatch secondSupplierCallStarted = new CountDownLatch(1);
+        CountDownLatch releaseFirstSupplierCall = new CountDownLatch(1);
+        CountDownLatch secondTaskStarted = new CountDownLatch(1);
+        Supplier<ProfileFile> supplier = () -> {
+            int call = supplierCalls.incrementAndGet();
+            if (call == 1) {
+                firstSupplierCallStarted.countDown();
+                await(releaseFirstSupplierCall);
+            } else if (call == 2) {
+                secondSupplierCallStarted.countDown();
+            }
+            return file;
+        };
+        ProfileCredentialsProvider provider = ProfileCredentialsProvider.builder()
+                                                                        .profileFile(supplier)
+                                                                        .profileName("default")
+                                                                        .build();
+        ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        try {
+            Future<AwsCredentials> firstResult = executor.submit(provider::resolveCredentials);
+            assertThat(firstSupplierCallStarted.await(5, TimeUnit.SECONDS)).isTrue();
+            Future<AwsCredentials> secondResult = executor.submit(() -> {
+                secondTaskStarted.countDown();
+                return provider.resolveCredentials();
+            });
+            assertThat(secondTaskStarted.await(5, TimeUnit.SECONDS)).isTrue();
+
+            assertThat(secondSupplierCallStarted.await(1, TimeUnit.SECONDS)).isFalse();
+            releaseFirstSupplierCall.countDown();
+
+            assertThat(firstResult.get(5, TimeUnit.SECONDS).accessKeyId()).isEqualTo("akid");
+            assertThat(secondResult.get(5, TimeUnit.SECONDS).accessKeyId()).isEqualTo("akid");
+            assertThat(supplierCalls).hasValue(1);
+        } finally {
+            releaseFirstSupplierCall.countDown();
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     void create_noProfileName_returnsProfileCredentialsProviderToResolveWithDefaults() {
         ProfileCredentialsProvider provider = ProfileCredentialsProvider.create();
         String toString = provider.toString();
@@ -344,6 +396,15 @@ public class ProfileCredentialsProviderTest {
 
     private ProfileFile profileFile(String string) {
         return ProfileFile.builder().content(new StringInputStream(string)).type(ProfileFile.Type.CONFIGURATION).build();
+    }
+
+    private static void await(CountDownLatch latch) {
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
     }
 
     private Path generateTestFile(String contents, String filename) {
