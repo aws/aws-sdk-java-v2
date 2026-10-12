@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.environmenttokenprovider;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.core.useragent.BusinessMetricCollection.METRIC_SEARCH_PATTERN;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -135,10 +136,10 @@ public class EnvironmentTokenProviderTest {
 
         if (testCase.expectBusinessMetricSet) {
             assertThat(loggedRequest.firstMatchingHeader("User-Agent").get())
-                .matches(".*m\\/[A-Za-z0-9,]+" + BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS);
+                .matches(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS.value()));
         } else {
             assertThat(loggedRequest.firstMatchingHeader("User-Agent").get())
-                .doesNotMatch(".*m\\/[A-Za-z0-9,]+" + BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS);
+                .doesNotMatch(METRIC_SEARCH_PATTERN.apply(BusinessMetricFeatureId.BEARER_SERVICE_ENV_VARS.value()));
         }
     }
 

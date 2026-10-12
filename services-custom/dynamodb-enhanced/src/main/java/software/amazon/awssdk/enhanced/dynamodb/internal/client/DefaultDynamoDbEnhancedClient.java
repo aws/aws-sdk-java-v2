@@ -126,6 +126,7 @@ public final class DefaultDynamoDbEnhancedClient implements DynamoDbEnhancedClie
         return transactWriteItemsWithResponse(builder.build());
     }
 
+    @Override
     public DynamoDbClient dynamoDbClient() {
         return dynamoDbClient;
     }

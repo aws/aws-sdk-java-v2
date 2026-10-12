@@ -84,4 +84,9 @@ public class ProxySystemPropertyConfigProvider implements ProxyConfigProvider {
     public Set<String> nonProxyHosts() {
         return parseNonProxyHostsProperty();
     }
+
+    @Override
+    public Set<String> rawNonProxyHosts() {
+        return ProxyUtils.splitToGlobTokens(ProxySystemSetting.NON_PROXY_HOSTS.getStringValue().orElse(null));
+    }
 }

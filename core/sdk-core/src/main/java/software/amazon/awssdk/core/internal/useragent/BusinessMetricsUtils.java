@@ -15,7 +15,9 @@
 
 package software.amazon.awssdk.core.internal.useragent;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.checksums.DefaultChecksumAlgorithm;
 import software.amazon.awssdk.checksums.spi.ChecksumAlgorithm;
@@ -24,6 +26,7 @@ import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.core.retry.RetryPolicy;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
+import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.retries.AdaptiveRetryStrategy;
 import software.amazon.awssdk.retries.LegacyRetryStrategy;
 import software.amazon.awssdk.retries.StandardRetryStrategy;
@@ -90,7 +93,22 @@ public final class BusinessMetricsUtils {
         }
     }
 
-    public static Optional<String> resolveChecksumAlgorithmMetric(ChecksumAlgorithm algorithm) {
+    public static Set<String> resolveChecksumAlgorithmFeatureIds(ChecksumAlgorithm algorithm,
+                                                                 SdkHttpFullRequest.Builder request) {
+        Set<String> ids = new HashSet<>(8);
+        request.forEachHeader((header, values) -> {
+            String id = headerToChecksumFeatureId(header);
+            if (id != null) {
+                ids.add(id);
+            }
+        });
+
+        resolveChecksumAlgorithmMetric(algorithm).ifPresent(ids::add);
+
+        return ids;
+    }
+
+    private static Optional<String> resolveChecksumAlgorithmMetric(ChecksumAlgorithm algorithm) {
         if (algorithm == null) {
             return Optional.empty();
         }
@@ -133,6 +151,34 @@ public final class BusinessMetricsUtils {
         }
 
         return Optional.empty();
+    }
+
+    // pkg private for testing
+    static String headerToChecksumFeatureId(String h) {
+        switch (h) {
+            case "x-amz-checksum-crc32":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32.value();
+            case "x-amz-checksum-crc32c":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC32C.value();
+            case "x-amz-checksum-crc64nvme":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_CRC64.value();
+            case "x-amz-checksum-sha256":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA256.value();
+            case "x-amz-checksum-sha512":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA512.value();
+            case "x-amz-checksum-sha1":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_SHA1.value();
+            case "x-amz-checksum-md5":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_MD5.value();
+            case "x-amz-checksum-xxhash64":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH64.value();
+            case "x-amz-checksum-xxhash3":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH3.value();
+            case "x-amz-checksum-xxhash128":
+                return BusinessMetricFeatureId.FLEXIBLE_CHECKSUMS_REQ_XXHASH128.value();
+            default:
+                return null;
+        }
     }
 
 }

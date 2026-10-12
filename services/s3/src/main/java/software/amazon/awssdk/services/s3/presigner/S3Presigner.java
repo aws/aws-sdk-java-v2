@@ -294,6 +294,12 @@ public interface S3Presigner extends SdkPresigner {
      * signing or authentication.
      * <p/>
      *
+     * <b>Checksum support:</b> Setting {@code checksumMode(ChecksumMode.ENABLED)} on the
+     * {@code GetObjectRequest} enables the downloader to receive checksums from S3 for data integrity
+     * validation. The resulting URL will not be browser-executable (requires the
+     * {@code x-amz-checksum-mode} header at download time, which the SDK sends automatically).
+     * <p/>
+     *
      * <b>Example Usage</b>
      * <p/>
      *

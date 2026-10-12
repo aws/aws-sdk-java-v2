@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -43,7 +44,9 @@ import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.config.customization.UnderscoresInNameBehavior;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
+import software.amazon.awssdk.codegen.model.intermediate.ShapeModel;
 import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteModel;
+import software.amazon.awssdk.codegen.model.service.Location;
 import software.amazon.awssdk.codegen.model.service.ServiceModel;
 import software.amazon.awssdk.codegen.poet.ClientTestModels;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
@@ -177,6 +180,41 @@ public class CodeGeneratorTest {
     }
 
     @Test
+    void execute_uriLocationOnNonInputShape_isIgnored() throws IOException {
+        C2jModels models = C2jModels.builder()
+                                    .customizationConfig(CustomizationConfig.create())
+                                    .serviceModel(getUriOnNonInputShapeServiceModel())
+                                    .build();
+
+        // Per the Smithy spec, httpLabel on non-input shapes has no meaning and is simply ignored.
+        assertThatNoException().isThrownBy(
+            () -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()));
+
+        IntermediateModel intermediateModel = new IntermediateModelBuilder(models).build();
+
+        ShapeModel inputShape = intermediateModel.getShapes().get("SomeOperationRequest");
+        assertThat(inputShape.findMemberModelByC2jName("thingId").getHttp().getLocation()).isEqualTo(Location.URI);
+
+        ShapeModel nestedShape = intermediateModel.getShapes().get("NestedOptions");
+        assertThat(nestedShape.findMemberModelByC2jName("pageSize").getHttp().getLocation()).isNull();
+        assertThat(nestedShape.findMemberModelByC2jName("pageSize").getHttp().isGreedy()).isFalse();
+        assertThat(nestedShape.findMemberModelByC2jName("headerParam").getHttp().getLocation()).isNull();
+        assertThat(nestedShape.findMemberModelByC2jName("queryParam").getHttp().getLocation()).isNull();
+        assertThat(nestedShape.findMemberModelByC2jName("prefixHeaders").getHttp().getLocation()).isNull();
+
+        ShapeModel sharedShape = intermediateModel.getShapes().get("SharedShapeOperationRequest");
+        assertThat(sharedShape.findMemberModelByC2jName("sharedId").getHttp().getLocation()).isEqualTo(Location.URI);
+
+        Path generatedNestedOptions = Files.walk(outputDir)
+            .filter(p -> p.getFileName().toString().equals("NestedOptions.java"))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("NestedOptions.java not found in generated output"));
+        String actual = new String(Files.readAllBytes(generatedNestedOptions), StandardCharsets.UTF_8);
+        String expected = resourceAsString("expected-nested-options.java");
+        assertThat(actual).isEqualTo(expected);
+    }
+
+    @Test
     void execute_operationHasNoRequestUri_throwsValidationError() throws IOException {
         C2jModels models = C2jModels.builder()
                                     .customizationConfig(CustomizationConfig.create())
@@ -186,7 +224,10 @@ public class CodeGeneratorTest {
         assertThatThrownBy(() -> generateCodeFromC2jModels(models, outputDir, true, Collections.emptyList()))
             .isInstanceOf(ModelInvalidException.class)
             .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getErrorId()
-                          == ValidationErrorId.REQUEST_URI_NOT_FOUND);
+                          == ValidationErrorId.REQUEST_URI_NOT_FOUND)
+            .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getDetailMessage()
+                          .equals("Operation referencing input shape 'OperationWithUriMappedParamRequest'"
+                                  + " has no requestUri configured in its HTTP binding."));
     }
 
     private void generateCodeFromC2jModels(C2jModels c2jModels, Path outputDir) {
@@ -241,6 +282,11 @@ public class CodeGeneratorTest {
 
     private ServiceModel getMissingRequestUriServiceModel() throws IOException {
         String json = resourceAsString("no-request-uri-operation-service.json");
+        return Jackson.load(ServiceModel.class, json);
+    }
+
+    private ServiceModel getUriOnNonInputShapeServiceModel() throws IOException {
+        String json = resourceAsString("uri-on-non-input-shape-service.json");
         return Jackson.load(ServiceModel.class, json);
     }
 

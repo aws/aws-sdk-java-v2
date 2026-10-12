@@ -17,7 +17,7 @@ package software.amazon.awssdk.services.sts.internal;
 
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
-import software.amazon.awssdk.services.sts.endpoints.internal.Arn;
+import software.amazon.awssdk.services.sts.endpoints.internal.RuleArn;
 import software.amazon.awssdk.services.sts.model.AssumedRoleUser;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
@@ -31,9 +31,11 @@ public final class StsAuthUtils {
         if (assumedRoleUser == null) {
             return null;
         }
-        return Arn.parse(assumedRoleUser.arn())
-                  .map(Arn::accountId)
-                  .orElse(null);
+        RuleArn arn = RuleArn.parse(assumedRoleUser.arn());
+        if (arn == null) {
+            return null;
+        }
+        return arn.accountId();
     }
 
     public static AwsSessionCredentials fromStsCredentials(Credentials credentials, String provider) {

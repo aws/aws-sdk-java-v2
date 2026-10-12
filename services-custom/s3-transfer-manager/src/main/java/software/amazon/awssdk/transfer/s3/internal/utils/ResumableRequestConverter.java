@@ -59,22 +59,11 @@ public final class ResumableRequestConverter {
 
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         DownloadFileRequest newDownloadFileRequest;
-        Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
-        String resumableFileDownloadEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
 
-        String s3ObjectEtag = headObjectResponse.eTag();
-        boolean etagModified = resumableFileDownloadEtag != null &&
-                               !resumableFileDownloadEtag.equals(s3ObjectEtag);
-
-
-        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
-        boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
-                                                resumableFileDownload.fileLastModified(),
-                                                resumableFileDownload.downloadFileRequest().destination());
-
-        if (fileModified || s3ObjectModified || etagModified) {
-            // modification detected: new download request for the whole object from the beginning
-            logIfNeeded(originalDownloadRequest, getObjectRequest, fileModified, s3ObjectModified, etagModified);
+        // partNumber and Range cannot coexist, S3 rejects with 400 InvalidRequest.
+        // When partNumber is set, restart the part download from the beginning with CREATE_OR_REPLACE
+        if (getObjectRequest.partNumber() != null
+            || !canResumeDownload(resumableFileDownload, headObjectResponse)) {
             newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
 
             AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
@@ -99,9 +88,77 @@ public final class ResumableRequestConverter {
                                                             originalDownloadRequest,
                                                             getObjectRequest,
                                                             headObjectResponse);
+        if (newDownloadFileRequest == null) {
+            log.debug(() -> "Could not compute resumed range for the original range '"
+                            + getObjectRequest.range()
+                            + "'. The SDK will re-download the object from the beginning.");
+            newDownloadFileRequest = newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+            AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
+                fileAsyncResponseTransformer(newDownloadFileRequest, false);
+            return Pair.of(newDownloadFileRequest, responseTransformer);
+        }
         AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> responseTransformer =
             fileAsyncResponseTransformer(newDownloadFileRequest, true);
         return Pair.of(newDownloadFileRequest, responseTransformer);
+    }
+
+    /**
+     * Determines whether a paused download can continue from where it left off, or whether it has to be restarted from the
+     * beginning because either the S3 object or the local file was modified while the download was paused. Logs the reason at
+     * debug level when a restart is required.
+     *
+     * @return true if the remaining bytes can be fetched, false if the whole object must be downloaded again
+     */
+    public static boolean canResumeDownload(ResumableFileDownload resumableFileDownload,
+                                            HeadObjectResponse headObjectResponse) {
+        DownloadFileRequest downloadRequest = resumableFileDownload.downloadFileRequest();
+        Instant lastModified = resumableFileDownload.s3ObjectLastModified().orElse(null);
+        String resumableFileDownloadEtag = resumableFileDownload.s3ObjectEtag().orElse(null);
+
+        String s3ObjectEtag = headObjectResponse.eTag();
+        boolean etagModified = resumableFileDownloadEtag != null &&
+                               !resumableFileDownloadEtag.equals(s3ObjectEtag);
+
+        boolean s3ObjectModified = !headObjectResponse.lastModified().equals(lastModified);
+        boolean fileModified = !fileNotModified(resumableFileDownload.bytesTransferred(),
+                                                resumableFileDownload.fileLastModified(),
+                                                downloadRequest.destination());
+
+        if (fileModified || s3ObjectModified || etagModified) {
+            logIfNeeded(downloadRequest, downloadRequest.getObjectRequest(), fileModified, s3ObjectModified, etagModified);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * Builds the {@link DownloadFileRequest} for resuming a paused download that is being written to the destination file by
+     * CRT rather than by an {@link AsyncResponseTransformer}. Unlike
+     * {@link #toDownloadFileRequestAndTransformer(ResumableFileDownload, HeadObjectResponse, DownloadFileRequest)} there is no
+     * transformer to pair the request with, and no part-GET variant to consider, since the CRT-based client always downloads
+     * an object with a single meta request.
+     *
+     * @param restartFromBeginning whether the whole object should be downloaded again rather than only the remaining bytes
+     */
+    public static DownloadFileRequest toCrtDownloadFileRequest(ResumableFileDownload resumableFileDownload,
+                                                              HeadObjectResponse headObjectResponse,
+                                                              DownloadFileRequest originalDownloadRequest,
+                                                              boolean restartFromBeginning) {
+        GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
+        if (restartFromBeginning) {
+            return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+        }
+
+        log.debug(() -> "Resuming the paused download with a range GET for the remaining bytes.");
+        DownloadFileRequest resumed = resumedDownloadFileRequest(resumableFileDownload, originalDownloadRequest,
+                                                                  getObjectRequest, headObjectResponse);
+        if (resumed == null) {
+            log.debug(() -> "Could not compute resumed range for the original range '"
+                            + getObjectRequest.range()
+                            + "'. The SDK will re-download the object from the beginning.");
+            return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
+        }
+        return resumed;
     }
 
     private static boolean hasRemainingParts(GetObjectRequest getObjectRequest) {
@@ -167,18 +224,100 @@ public final class ResumableRequestConverter {
                                                                   DownloadFileRequest downloadRequest,
                                                                   GetObjectRequest getObjectRequest,
                                                                   HeadObjectResponse headObjectResponse) {
-        DownloadFileRequest newDownloadFileRequest;
         long bytesTransferred = resumableFileDownload.bytesTransferred();
+        String resumedRange = computeResumedRange(getObjectRequest.range(), bytesTransferred,
+                                                  headObjectResponse.contentLength());
+
+        if (resumedRange == null) {
+            return null;
+        }
+
         GetObjectRequest newGetObjectRequest =
             getObjectRequest.toBuilder()
                             .ifUnmodifiedSince(headObjectResponse.lastModified())
-                            .range("bytes=" + bytesTransferred + "-" + headObjectResponse.contentLength())
+                            .range(resumedRange)
                             .build();
 
-        newDownloadFileRequest = downloadRequest.toBuilder()
-                                                .getObjectRequest(newGetObjectRequest)
-                                                .build();
-        return newDownloadFileRequest;
+        return downloadRequest.toBuilder()
+                              .getObjectRequest(newGetObjectRequest)
+                              .build();
+    }
+
+    /**
+     * Returns {@code true} if the original request has a range that cannot be safely resumed.
+     */
+    public static boolean hasUnresumableRange(DownloadFileRequest downloadRequest, long bytesTransferred,
+                                              long contentLength) {
+        String range = downloadRequest.getObjectRequest().range();
+        if (range == null) {
+            return false;
+        }
+        long[] parsed = parseRange(range, contentLength);
+        if (parsed == null) {
+            return true;
+        }
+        long resumedStart = parsed[0] + bytesTransferred;
+        return resumedStart > parsed[1];
+    }
+
+    /**
+     * Computes the Range header for a resumed download. Returns {@code null} if the original range
+     * cannot be parsed and the download should restart from the beginning.
+     */
+    private static String computeResumedRange(String originalRange, long bytesTransferred, long contentLength) {
+        if (originalRange != null) {
+            long[] parsedRange = parseRange(originalRange, contentLength);
+            if (parsedRange != null) {
+                long originalStart = parsedRange[0];
+                long originalEnd = parsedRange[1];
+                long resumedStart = originalStart + bytesTransferred;
+                if (resumedStart > originalEnd) {
+                    return null;
+                }
+                return "bytes=" + resumedStart + "-" + originalEnd;
+            }
+            // Range was present but could not be parsed (multi-range or malformed).
+            // We cannot safely compute the resumed offset, so signal the caller to restart from the beginning.
+            return null;
+        }
+        return "bytes=" + bytesTransferred + "-" + contentLength;
+    }
+
+    /**
+     * Parses a "bytes=start-end", "bytes=start-", or "bytes=-suffix" range header into [start, end].
+     * Open-ended ranges use contentLength - 1 as the end.
+     * Suffix ranges are resolved to absolute offsets using contentLength.
+     * Returns null for multi-range values or malformed input.
+     */
+    private static long[] parseRange(String range, long contentLength) {
+        if (range == null || !range.startsWith("bytes=")) {
+            return null;
+        }
+        String rangeValue = range.substring("bytes=".length());
+        int dashIndex = rangeValue.indexOf('-');
+        if (dashIndex < 0) {
+            return null;
+        }
+        if (dashIndex == 0) {
+            try {
+                long suffixLength = Long.parseLong(rangeValue.substring(1));
+                if (suffixLength <= 0) {
+                    return null;
+                }
+                long start = contentLength - suffixLength;
+                return new long[]{Math.max(0, start), contentLength - 1};
+            } catch (NumberFormatException e) {
+                return null;
+            }
+        }
+        try {
+            long start = Long.parseLong(rangeValue.substring(0, dashIndex));
+            String endPart = rangeValue.substring(dashIndex + 1);
+            long end = endPart.isEmpty() ? contentLength - 1 : Long.parseLong(endPart);
+            return new long[]{start, end};
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     private static DownloadFileRequest newDownloadFileRequest(DownloadFileRequest originalDownloadRequest,

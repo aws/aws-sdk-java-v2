@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.checksums;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -107,7 +108,7 @@ public class S3ChecksumValidatingInputStreamTest {
                 IoUtils.toByteArray(validatingInputStream);
                 fail("Corruption at byte " + i + " was not detected.");
             } catch (SdkClientException e) {
-                // Expected
+                assertThat(e.getMessage()).contains("Data read has a different checksum than expected");
             }
         }
     }

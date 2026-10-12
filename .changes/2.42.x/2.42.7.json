@@ -1,0 +1,54 @@
+{
+    "version": "2.42.7",
+    "date": "2026-03-05",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Fixed a thread leak in ResponseInputStream and ResponsePublisher where the internal timeout scheduler thread persisted for the lifetime of the JVM, even when no streams were active. The thread now terminates after being idle for 60 seconds."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Multi-party Approval",
+            "contributor": "",
+            "description": "Updates to multi-party approval (MPA) service to add support for approval team baseline operations."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Savings Plans",
+            "contributor": "",
+            "description": "Added support for OpenSearch and Neptune Analytics to Database Savings Plans."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "Added metadata field to CapacityAllocation."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon GuardDuty",
+            "contributor": "",
+            "description": "Added MALICIOUS FILE to IndicatorType enum in MDC Sequence"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Adds support for S3 Bucket Ownership validation for SageMaker Managed MLflow."
+        },
+        {
+            "type": "feature",
+            "category": "Connect Health",
+            "contributor": "",
+            "description": "Connect-Health SDK is AWS's unified SDK for the Amazon Connect Health offering. It allows healthcare developers to integrate purpose-built agents - such as patient insights, ambient documentation, and medical coding - into their existing applications, including EHRs, telehealth, and revenue cycle."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

@@ -19,7 +19,9 @@ import java.nio.charset.StandardCharsets;
 import java.time.Clock;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ import software.amazon.awssdk.metrics.MetricCategory;
 import software.amazon.awssdk.metrics.MetricCollection;
 import software.amazon.awssdk.metrics.MetricRecord;
 import software.amazon.awssdk.metrics.SdkMetric;
+import software.amazon.awssdk.metrics.publishers.emf.PropertiesFactory;
 import software.amazon.awssdk.protocols.jsoncore.JsonWriter;
 import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.MetricValueNormalizer;
@@ -61,17 +64,21 @@ public class MetricEmfConverter {
      */
     private static final int MAX_METRIC_NUM = 100;
 
+    private static final String AWS_METADATA_KEY = "_aws";
+
     private static final Logger logger = Logger.loggerFor(MetricEmfConverter.class);
     private final List<String> dimensions = new ArrayList<>();
     private final EmfMetricConfiguration config;
     private final boolean metricCategoriesContainsAll;
     private final Clock clock;
+    private final PropertiesFactory propertiesFactory;
 
     @SdkTestInternalApi
     public MetricEmfConverter(EmfMetricConfiguration config, Clock clock) {
         this.config = config;
         this.clock = clock;
         this.metricCategoriesContainsAll = config.metricCategories().contains(MetricCategory.ALL);
+        this.propertiesFactory = config.propertiesFactory();
     }
 
     public MetricEmfConverter(EmfMetricConfiguration config) {
@@ -136,7 +143,18 @@ public class MetricEmfConverter {
             }
         }
 
-        return createEmfStrings(aggregatedMetrics);
+        Map<String, String> properties = resolveProperties(metricCollection);
+        return createEmfStrings(aggregatedMetrics, properties);
+    }
+
+    private Map<String, String> resolveProperties(MetricCollection metricCollection) {
+        try {
+            Map<String, String> result = propertiesFactory.create(metricCollection);
+            return result == null ? Collections.emptyMap() : result;
+        } catch (Exception e) {
+            logger.warn(() -> "Properties factory threw an exception, publishing without custom properties", e);
+            return Collections.emptyMap();
+        }
     }
 
     /**
@@ -188,7 +206,8 @@ public class MetricEmfConverter {
         }
     }
 
-    private List<String> createEmfStrings(Map<SdkMetric<?>, List<MetricRecord<?>>> aggregatedMetrics) {
+    private List<String> createEmfStrings(Map<SdkMetric<?>, List<MetricRecord<?>>> aggregatedMetrics,
+                                          Map<String, String> properties) {
         List<String> emfStrings = new ArrayList<>();
         Map<SdkMetric<?>, List<MetricRecord<?>>> currentMetricBatch = new HashMap<>();
 
@@ -204,26 +223,28 @@ public class MetricEmfConverter {
             }
 
             if (currentMetricBatch.size() == MAX_METRIC_NUM) {
-                emfStrings.add(createEmfString(currentMetricBatch));
+                emfStrings.add(createEmfString(currentMetricBatch, properties));
                 currentMetricBatch = new HashMap<>();
             }
 
             currentMetricBatch.put(metric, records);
         }
 
-        emfStrings.add(createEmfString(currentMetricBatch));
+        emfStrings.add(createEmfString(currentMetricBatch, properties));
 
         return emfStrings;
     }
 
 
-    private String createEmfString(Map<SdkMetric<?>, List<MetricRecord<?>>> metrics) {
+    private String createEmfString(Map<SdkMetric<?>, List<MetricRecord<?>>> metrics,
+                                    Map<String, String> properties) {
 
         JsonWriter jsonWriter = JsonWriter.create();
         jsonWriter.writeStartObject();
 
         writeAwsObject(jsonWriter, metrics.keySet());
         writeMetricValues(jsonWriter, metrics);
+        writeCustomProperties(jsonWriter, properties, metrics.keySet());
 
         jsonWriter.writeEndObject();
 
@@ -231,8 +252,26 @@ public class MetricEmfConverter {
 
     }
 
+    private void writeCustomProperties(JsonWriter jsonWriter, Map<String, String> properties,
+                                        Set<SdkMetric<?>> metrics) {
+        if (properties.isEmpty()) {
+            return;
+        }
+        Set<String> reservedKeys = new HashSet<>();
+        reservedKeys.add(AWS_METADATA_KEY);
+        for (SdkMetric<?> metric : metrics) {
+            reservedKeys.add(metric.name());
+        }
+        for (Map.Entry<String, String> entry : properties.entrySet()) {
+            if (!reservedKeys.contains(entry.getKey())) {
+                jsonWriter.writeFieldName(entry.getKey());
+                jsonWriter.writeValue(entry.getValue());
+            }
+        }
+    }
+
     private void writeAwsObject(JsonWriter jsonWriter, Set<SdkMetric<?>> metricNames) {
-        jsonWriter.writeFieldName("_aws");
+        jsonWriter.writeFieldName(AWS_METADATA_KEY);
         jsonWriter.writeStartObject();
 
         jsonWriter.writeFieldName("Timestamp");

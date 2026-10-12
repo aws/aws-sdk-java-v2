@@ -93,7 +93,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for the null DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().nul(true).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createNul(true))}
      *
      * <p>
      * This call should never fail with an {@link Exception}.
@@ -106,7 +106,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a map (m) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().m(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createM(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided map is null or has null keys.
@@ -121,7 +121,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a string (s) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().s(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createS(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
@@ -139,7 +139,7 @@ public final class EnhancedAttributeValue {
      * This is a String, because it matches the underlying DynamoDB representation.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().n(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createN(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
@@ -154,7 +154,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a bytes (b) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().b(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createB(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
@@ -170,7 +170,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a boolean (bool) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bool(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createBool(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null. Use {@link #nullValue()} for
@@ -185,7 +185,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-strings (ss) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ss(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createSs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -201,7 +201,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-strings (ss) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ss(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createSs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -217,7 +217,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-strings (ss) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ss(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createSs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -234,7 +234,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-numbers (ns) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ns(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createNs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -250,7 +250,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-numbers (ns) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ns(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createNs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -266,7 +266,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-numbers (ns) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().ns(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createNs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -283,7 +283,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-bytes (bs) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bs(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createBs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -299,7 +299,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-bytes (bs) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bs(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createBs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -315,7 +315,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a set-of-bytes (bs) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().bs(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createBs(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -332,7 +332,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a list-of-attributes (l) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().l(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createL(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -347,7 +347,7 @@ public final class EnhancedAttributeValue {
      * Create an {@link EnhancedAttributeValue} for a list-of-attributes (l) DynamoDB type.
      *
      * <p>
-     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.builder().l(...).build())}
+     * Equivalent to: {@code EnhancedAttributeValue.fromGeneratedAttributeValue(AttributeValue.createL(...))}
      *
      * <p>
      * This call will fail with a {@link RuntimeException} if the provided value is null or contains a null value. Use
@@ -748,52 +748,52 @@ public final class EnhancedAttributeValue {
 
         @Override
         public AttributeValue convertNull() {
-            return AttributeValue.builder().nul(true).build();
+            return AttributeValue.createNul(true);
         }
 
         @Override
         public AttributeValue convertMap(Map<String, AttributeValue> value) {
-            return AttributeValue.builder().m(value).build();
+            return AttributeValue.createM(value);
         }
 
         @Override
         public AttributeValue convertString(String value) {
-            return AttributeValue.builder().s(value).build();
+            return AttributeValue.createS(value);
         }
 
         @Override
         public AttributeValue convertNumber(String value) {
-            return AttributeValue.builder().n(value).build();
+            return AttributeValue.createN(value);
         }
 
         @Override
         public AttributeValue convertBytes(SdkBytes value) {
-            return AttributeValue.builder().b(value).build();
+            return AttributeValue.createB(value);
         }
 
         @Override
         public AttributeValue convertBoolean(Boolean value) {
-            return AttributeValue.builder().bool(value).build();
+            return AttributeValue.createBool(value);
         }
 
         @Override
         public AttributeValue convertSetOfStrings(List<String> value) {
-            return AttributeValue.builder().ss(value).build();
+            return AttributeValue.createSs(value);
         }
 
         @Override
         public AttributeValue convertSetOfNumbers(List<String> value) {
-            return AttributeValue.builder().ns(value).build();
+            return AttributeValue.createNs(value);
         }
 
         @Override
         public AttributeValue convertSetOfBytes(List<SdkBytes> value) {
-            return AttributeValue.builder().bs(value).build();
+            return AttributeValue.createBs(value);
         }
 
         @Override
         public AttributeValue convertListOfAttributeValues(List<AttributeValue> value) {
-            return AttributeValue.builder().l(value).build();
+            return AttributeValue.createL(value);
         }
     }
 

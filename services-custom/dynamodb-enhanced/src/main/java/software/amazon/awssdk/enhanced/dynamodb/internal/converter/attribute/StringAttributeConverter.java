@@ -65,12 +65,15 @@ public final class StringAttributeConverter implements AttributeConverter<String
 
     @Override
     public AttributeValue transformFrom(String input) {
-        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.builder().s(input).build();
+        return input == null ? AttributeValues.nullAttributeValue() : AttributeValue.createS(input);
     }
 
     @Override
     public String transformTo(AttributeValue input) {
-        return Visitor.toString(input);
+        if (input.s() != null) {
+            return input.s();
+        }
+        return EnhancedAttributeValue.fromAttributeValue(input).convert(Visitor.INSTANCE);
     }
 
     private static final class Visitor extends TypeConvertingVisitor<String> {

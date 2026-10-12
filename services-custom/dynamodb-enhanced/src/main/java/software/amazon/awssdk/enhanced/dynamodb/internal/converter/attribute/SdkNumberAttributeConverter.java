@@ -64,7 +64,7 @@ public final class SdkNumberAttributeConverter implements AttributeConverter<Sdk
 
     @Override
     public AttributeValue transformFrom(SdkNumber input) {
-        return AttributeValue.builder().n(STRING_CONVERTER.toString(input)).build();
+        return AttributeValue.createN(STRING_CONVERTER.toString(input));
     }
 
     @Override

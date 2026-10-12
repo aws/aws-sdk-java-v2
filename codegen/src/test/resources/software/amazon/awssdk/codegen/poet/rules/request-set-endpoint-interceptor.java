@@ -14,7 +14,7 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 public final class QueryRequestSetEndpointInterceptor implements ExecutionInterceptor {
     @Override
     public SdkHttpRequest modifyHttpRequest(Context.ModifyHttpRequest context, ExecutionAttributes executionAttributes) {
-        if (AwsEndpointProviderUtils.endpointIsDiscovered(executionAttributes)) {
+        if (AwsEndpointProviderUtils.skipEndpointResolution(executionAttributes)) {
             return context.httpRequest();
         }
         Endpoint endpoint = executionAttributes.getAttribute(SdkInternalExecutionAttribute.RESOLVED_ENDPOINT);

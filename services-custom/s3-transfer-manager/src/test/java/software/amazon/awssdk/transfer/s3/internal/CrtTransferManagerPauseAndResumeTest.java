@@ -21,12 +21,16 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_OPTION;
+import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
@@ -35,9 +39,12 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.services.s3.internal.crt.S3CrtAsyncClient;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
@@ -223,19 +230,263 @@ class CrtTransferManagerPauseAndResumeTest {
         assertThat(newResumable.totalSizeInBytes()).isEqualTo(originalResumable.totalSizeInBytes());
         assertThat(newResumable.fileLastModified()).isEqualTo(originalResumable.fileLastModified());
 
-        // Download will be modified now that we finished the head request
-        assertThat(newResumable.downloadFileRequest()).isNotEqualTo(originalResumable.downloadFileRequest());
+        // The pause token should preserve the original download request so that
+        // double-resume computes the correct range offset
+        assertThat(newResumable.downloadFileRequest()).isEqualTo(originalResumable.downloadFileRequest());
 
         assertThat(fileDownload.completionFuture()).isCancelled();
         assertThat(getFuture).isCancelled();
     }
 
 
-    private void verifyActualGetObjectRequest(GetObjectRequest getObjectRequest, String range) {
+    @Test
+    void resumeDownloadFile_objectNotModified_shouldAppendRemainingBytesToDestinationFile() {
+        Instant s3ObjectLastModified = Instant.now();
+        DownloadFileRequest downloadFileRequest = downloadFileRequest();
+        stubGetObject();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3ObjectLastModified, "etag")));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                    .s3ObjectEtag("etag")
+                                    .s3ObjectLastModified(s3ObjectLastModified))
+          .completionFuture()
+          .join();
+
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
+        assertThat(actualRequest.range()).isEqualTo("bytes=1000-2000");
+        assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_APPEND);
+        assertThat(responseFilePath(actualRequest)).isEqualTo(file.toPath());
+    }
+
+    @Test
+    void resumeDownloadFile_objectEtagModified_shouldReplaceDestinationFile() {
+        Instant s3ObjectLastModified = Instant.now();
+        DownloadFileRequest downloadFileRequest = downloadFileRequest();
+        stubGetObject();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3ObjectLastModified, "newEtag")));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                    .s3ObjectEtag("originalEtag")
+                                    .s3ObjectLastModified(s3ObjectLastModified))
+          .completionFuture()
+          .join();
+
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
+        assertThat(actualRequest.range()).isNull();
+        assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
+    }
+
+    @Test
+    void resumeDownloadFile_fileModified_shouldReplaceDestinationFile() {
+        Instant s3ObjectLastModified = Instant.now();
+        DownloadFileRequest downloadFileRequest = downloadFileRequest();
+        stubGetObject();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3ObjectLastModified, "etag")));
+
+        // bytesTransferred no longer matches the length of the file on disk, so the file was modified while paused
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length() - 1)
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                    .s3ObjectEtag("etag")
+                                    .s3ObjectLastModified(s3ObjectLastModified))
+          .completionFuture()
+          .join();
+
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
+        assertThat(actualRequest.range()).isNull();
+        assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
+    }
+
+    @Test
+    void resumeDownloadFile_downloadHadCompletedParts_shouldReplaceDestinationFile() {
+        // A part-by-part download can leave gaps in the file, and CRT can only append, so it must not be continued.
+        Instant s3ObjectLastModified = Instant.now();
+        DownloadFileRequest downloadFileRequest = downloadFileRequest();
+        stubGetObject();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3ObjectLastModified, "etag")));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                    .s3ObjectEtag("etag")
+                                    .s3ObjectLastModified(s3ObjectLastModified)
+                                    .completedParts(Arrays.asList(1, 2)))
+          .completionFuture()
+          .join();
+
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
+        assertThat(actualRequest.range()).isNull();
+        assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
+    }
+
+    @Test
+    void resumeDownloadFile_partNumberSet_shouldRestartFromBeginning() {
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .partNumber(3)
+                                                            .build();
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        Instant s3ObjectLastModified = Instant.now();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(fileLastModified)
+                                    .s3ObjectLastModified(s3ObjectLastModified))
+          .completionFuture()
+          .join();
+
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
+        assertThat(actualRequest.partNumber()).isEqualTo(3);
+        assertThat(actualRequest.range()).isNull();
+        assertThat(responseFileOption(actualRequest)).isEqualTo(ResponseFileOption.CREATE_OR_REPLACE);
+    }
+
+    @Test
+    void resumeDownloadFile_rangedDownload_shouldSetCorrectResumedRange() {
+        long originalRangeStart = 2048;
+        long originalRangeEnd = 6143;
+        String originalRange = "bytes=" + originalRangeStart + "-" + originalRangeEnd;
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .range(originalRange)
+                                                            .build();
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        Instant s3ObjectLastModified = Instant.now();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        HeadObjectResponse headObjectResponse = headObjectResponse(s3ObjectLastModified);
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse));
+
+        CompletedFileDownload completedFileDownload = tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                                                                  .downloadFileRequest(downloadFileRequest)
+                                                                                  .fileLastModified(fileLastModified)
+                                                                                  .s3ObjectLastModified(s3ObjectLastModified))
+                                                        .completionFuture()
+                                                        .join();
+        assertThat(completedFileDownload.response()).isEqualTo(response);
+
+        // file.length() is 1000 bytes. Resumed range should be (2048+1000)-6143 = bytes=3048-6143
+        String expectedRange = "bytes=" + (originalRangeStart + file.length()) + "-" + originalRangeEnd;
+        verifyActualGetObjectRequest(getObjectRequest, expectedRange);
+    }
+
+    @Test
+    void resumeRangedDownload_pauseAfterHead_secondResumeShouldUseCorrectRange() {
+        long originalRangeStart = 2048;
+        long originalRangeEnd = 6143;
+        String originalRange = "bytes=" + originalRangeStart + "-" + originalRangeEnd;
+
+        GetObjectRequest rangedGetRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .range(originalRange)
+                                                            .build();
+
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(rangedGetRequest)
+                                                                     .destination(file)
+                                                                     .build();
+
+        CompletableFuture<?> getFuture = new CompletableFuture<>();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(getFuture);
+
+        Instant s3LastModified = Instant.now();
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
+
+        ResumableFileDownload firstToken = ResumableFileDownload.builder()
+                                                                .bytesTransferred(file.length())
+                                                                .downloadFileRequest(downloadFileRequest)
+                                                                .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                                                .s3ObjectLastModified(s3LastModified)
+                                                                .totalSizeInBytes(2000L)
+                                                                .build();
+
+        FileDownload firstDownload = tm.resumeDownloadFile(firstToken);
+        ResumableFileDownload pauseToken = firstDownload.pause();
+        assertThat(pauseToken.downloadFileRequest().getObjectRequest().range()).isEqualTo(originalRange);
+
+        Mockito.reset(mockS3Crt);
+        GetObjectResponse response = GetObjectResponse.builder().build();
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(response));
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3LastModified)));
+
+        tm.resumeDownloadFile(pauseToken).completionFuture().join();
+
+        // file.length() is 1000. Expected: bytes=(2048+1000)-6143 = bytes=3048-6143
+        String expectedRange = "bytes=" + (originalRangeStart + file.length()) + "-" + originalRangeEnd;
+        verifyActualGetObjectRequest(rangedGetRequest, expectedRange);
+    }
+
+    private void stubGetObject() {
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(GetObjectResponse.builder().build()));
+    }
+
+    private DownloadFileRequest downloadFileRequest() {
+        return DownloadFileRequest.builder()
+                                  .getObjectRequest(getObjectRequest())
+                                  .destination(file)
+                                  .build();
+    }
+
+    private static ResponseFileOption responseFileOption(GetObjectRequest request) {
+        return executionAttributes(request).getAttribute(RESPONSE_FILE_OPTION);
+    }
+
+    private static Path responseFilePath(GetObjectRequest request) {
+        return executionAttributes(request).getAttribute(RESPONSE_FILE_PATH);
+    }
+
+    private static ExecutionAttributes executionAttributes(GetObjectRequest request) {
+        return request.overrideConfiguration().orElseThrow(AssertionError::new).executionAttributes();
+    }
+
+    private GetObjectRequest capturedGetObjectRequest() {
         ArgumentCaptor<GetObjectRequest> getObjectRequestArgumentCaptor =
             ArgumentCaptor.forClass(GetObjectRequest.class);
         verify(mockS3Crt).getObject(getObjectRequestArgumentCaptor.capture(), any(AsyncResponseTransformer.class));
-        GetObjectRequest actualRequest = getObjectRequestArgumentCaptor.getValue();
+        return getObjectRequestArgumentCaptor.getValue();
+    }
+
+    private void verifyActualGetObjectRequest(GetObjectRequest getObjectRequest, String range) {
+        GetObjectRequest actualRequest = capturedGetObjectRequest();
         assertThat(actualRequest.bucket()).isEqualTo(getObjectRequest.bucket());
         assertThat(actualRequest.key()).isEqualTo(getObjectRequest.key());
         assertThat(actualRequest.range()).isEqualTo(range);
@@ -249,10 +500,15 @@ class CrtTransferManagerPauseAndResumeTest {
     }
 
     private static HeadObjectResponse headObjectResponse(Instant s3ObjectLastModified) {
+        return headObjectResponse(s3ObjectLastModified, null);
+    }
+
+    private static HeadObjectResponse headObjectResponse(Instant s3ObjectLastModified, String etag) {
         return HeadObjectResponse
             .builder()
             .contentLength(2000L)
             .lastModified(s3ObjectLastModified)
+            .eTag(etag)
             .build();
     }
 

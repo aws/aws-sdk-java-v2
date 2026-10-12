@@ -35,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Request;
 import software.amazon.awssdk.services.s3.multipart.MultipartConfiguration;
+import software.amazon.awssdk.services.s3.presignedurl.AsyncPresignedUrlExtension;
 import software.amazon.awssdk.utils.Validate;
 
 /**
@@ -52,6 +53,8 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
     private final CopyObjectHelper copyObjectHelper;
     private final DownloadObjectHelper downloadObjectHelper;
     private final boolean checksumEnabled;
+    private final long apiCallBufferSize;
+    private final long minPartSizeInBytes;
 
     private MultipartS3AsyncClient(S3AsyncClient delegate, MultipartConfiguration multipartConfiguration,
                                    boolean checksumEnabled) {
@@ -63,6 +66,8 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
         long threshold = resolver.thresholdInBytes();
         long apiCallBufferSize = resolver.apiCallBufferSize();
         int maxInFlightParts = resolver.maxInFlightParts();
+        this.apiCallBufferSize = apiCallBufferSize;
+        this.minPartSizeInBytes = minPartSizeInBytes;
         mpuHelper = new UploadObjectHelper(delegate, resolver);
         copyObjectHelper = new CopyObjectHelper(delegate, minPartSizeInBytes, threshold);
         downloadObjectHelper = new DownloadObjectHelper(delegate, apiCallBufferSize, maxInFlightParts);
@@ -110,5 +115,15 @@ public final class MultipartS3AsyncClient extends DelegatingS3AsyncClient {
             }
         };
         return new MultipartS3AsyncClient(clientWithUserAgent, multipartConfiguration, checksumEnabled);
+    }
+
+    @Override
+    public AsyncPresignedUrlExtension presignedUrlExtension() {
+        AsyncPresignedUrlExtension delegateExtension = ((S3AsyncClient) delegate()).presignedUrlExtension();
+        return new MultipartAsyncPresignedUrlExtension(
+            (S3AsyncClient) delegate(),
+            delegateExtension,
+            apiCallBufferSize,
+            minPartSizeInBytes);
     }
 }

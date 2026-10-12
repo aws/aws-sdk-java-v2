@@ -32,6 +32,7 @@ import software.amazon.awssdk.auth.token.credentials.ProfileTokenProvider;
 import software.amazon.awssdk.auth.token.credentials.SdkToken;
 import software.amazon.awssdk.auth.token.credentials.SdkTokenProvider;
 import software.amazon.awssdk.auth.token.internal.LazyTokenProvider;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.profiles.Profile;
 import software.amazon.awssdk.profiles.ProfileFile;
 import software.amazon.awssdk.profiles.ProfileProperty;
@@ -63,7 +64,7 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
      */
     @Override
     public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext) {
-        return new SsoProfileCredentialsProvider(credentialsContext, sdkTokenProvider(credentialsContext));
+        return new SsoProfileCredentialsProvider(credentialsContext, sdkTokenProvider(credentialsContext), null);
     }
 
     /**
@@ -73,7 +74,18 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
     @SdkTestInternalApi
     public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext,
                                          SdkTokenProvider tokenProvider) {
-        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider);
+        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider, null);
+    }
+
+    /**
+     * Alternative method to create the {@link SsoProfileCredentialsProvider} with a customized {@link SdkTokenProvider}
+     * and {@link SsoClient}. This method is only used for testing.
+     */
+    @SdkTestInternalApi
+    public AwsCredentialsProvider create(ProfileProviderCredentialsContext credentialsContext,
+                                         SdkTokenProvider tokenProvider,
+                                         SsoClient ssoClient) {
+        return new SsoProfileCredentialsProvider(credentialsContext, tokenProvider, ssoClient);
     }
 
     /**
@@ -87,30 +99,34 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         private final SsoCredentialsProvider credentialsProvider;
 
         private SsoProfileCredentialsProvider(ProfileProviderCredentialsContext credentialsContext,
-                                              SdkTokenProvider tokenProvider) {
+                                              SdkTokenProvider tokenProvider,
+                                              SsoClient ssoClient) {
             Profile profile = credentialsContext.profile();
             String ssoAccountId = profile.properties().get(ProfileProperty.SSO_ACCOUNT_ID);
             String ssoRoleName = profile.properties().get(ProfileProperty.SSO_ROLE_NAME);
             String ssoRegion = regionFromProfileOrSession(profile, credentialsContext.profileFile());
 
-            this.ssoClient = SsoClient.builder()
-                                      .credentialsProvider(AnonymousCredentialsProvider.create())
-                                      .region(Region.of(ssoRegion))
-                                      .build();
+            this.ssoClient = ssoClient != null
+                             ? ssoClient
+                             : SsoClient.builder()
+                                        .credentialsProvider(AnonymousCredentialsProvider.create())
+                                        .region(Region.of(ssoRegion))
+                                        .build();
 
             GetRoleCredentialsRequest request = GetRoleCredentialsRequest.builder()
                                                                          .accountId(ssoAccountId)
                                                                          .roleName(ssoRoleName)
                                                                          .build();
-            SdkToken sdkToken = tokenProvider.resolveToken();
-            Validate.paramNotNull(sdkToken, "Token provided by the TokenProvider is null");
-            Supplier<GetRoleCredentialsRequest> supplier = () -> request.toBuilder()
-                                                                        .accessToken(sdkToken.token())
-                                                                        .build();
+            Supplier<GetRoleCredentialsRequest> supplier = () -> {
+                SdkToken token = resolveTokenOrThrow(tokenProvider);
+                return request.toBuilder()
+                              .accessToken(token.token())
+                              .build();
+            };
 
 
             this.credentialsProvider = SsoCredentialsProvider.builder()
-                                                             .ssoClient(ssoClient)
+                                                             .ssoClient(this.ssoClient)
                                                              .refreshRequest(supplier)
                                                              .sourceChain(credentialsContext.sourceChain())
                                                              .build();
@@ -125,6 +141,25 @@ public class SsoProfileCredentialsProviderFactory implements ProfileCredentialsP
         public void close() {
             IoUtils.closeQuietly(credentialsProvider, null);
             IoUtils.closeQuietly(ssoClient, null);
+        }
+
+        private static SdkToken resolveTokenOrThrow(SdkTokenProvider tokenProvider) {
+            SdkToken token;
+            try {
+                token = tokenProvider.resolveToken();
+            } catch (ExpiredTokenException | SdkServiceException | IllegalArgumentException e) {
+                throw e;
+            } catch (RuntimeException e) {
+                // Any exception raised while trying to read the token file (invalid file, unable to access, does not exist, ect) 
+                // should be treated as an invalid/expired token and requires the user to re-authenticate.
+                throw ExpiredTokenException.builder()
+                                           .cause(e)
+                                           .build();
+            }
+            if (token == null || token.token() == null) {
+                throw ExpiredTokenException.builder().build();
+            }
+            return token;
         }
 
         private static String regionFromProfileOrSession(Profile profile, ProfileFile profileFile) {

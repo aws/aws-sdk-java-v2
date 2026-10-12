@@ -15,9 +15,8 @@
 
 package software.amazon.awssdk.eventnotifications.s3.internal;
 
-import nl.jqno.equalsverifier.Warning;
-
 import nl.jqno.equalsverifier.EqualsVerifier;
+import nl.jqno.equalsverifier.Warning;
 import org.junit.jupiter.api.Test;
 
 class EqualsAndHashCodeTest {

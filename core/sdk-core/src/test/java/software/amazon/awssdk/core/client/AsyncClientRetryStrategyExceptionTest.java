@@ -61,6 +61,7 @@ public class AsyncClientRetryStrategyExceptionTest {
     public void exceptionInInitialTokenReportedInFuture() {
         Exception exception = new RuntimeException(MESSAGE);
         when(retryStrategy.acquireInitialToken(any())).thenThrow(exception);
+        when(retryStrategy.acquireInitialTokenAsync(any())).thenCallRealMethod();
 
         CompletableFuture<SdkResponse> responseFuture = makeRequest();
 
@@ -73,8 +74,11 @@ public class AsyncClientRetryStrategyExceptionTest {
             AcquireInitialTokenResponse.create(new RetryToken() {
             }, Duration.ZERO)
         );
+        when(retryStrategy.acquireInitialTokenAsync(any())).thenCallRealMethod();
+
         Exception exception = new RuntimeException(MESSAGE);
         when(retryStrategy.refreshRetryToken(any())).thenThrow(exception);
+        when(retryStrategy.refreshRetryTokenAsync(any())).thenCallRealMethod();
 
         CompletableFuture<SdkResponse> responseFuture = makeRequest();
 

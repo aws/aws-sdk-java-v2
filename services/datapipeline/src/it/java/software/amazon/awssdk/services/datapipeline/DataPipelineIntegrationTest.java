@@ -66,6 +66,7 @@ public class DataPipelineIntegrationTest extends IntegrationTestBase {
     }
 
     @Test
+    @org.junit.Ignore("DataPipeline is deprecated and not allowlisted in integ test account")
     public void testPipelineOperations() throws InterruptedException {
         // Create a pipeline.
         CreatePipelineResponse createPipelineResult = dataPipeline.createPipeline(

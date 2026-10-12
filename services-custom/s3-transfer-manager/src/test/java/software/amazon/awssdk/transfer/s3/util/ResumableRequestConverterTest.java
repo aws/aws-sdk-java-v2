@@ -21,12 +21,16 @@ import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequest
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
+import io.reactivex.Flowable;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.LogEvent;
@@ -37,6 +41,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
@@ -205,6 +210,73 @@ class ResumableRequestConverterTest {
             toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
                                                 downloadFileRequest);
         verifyActualGetObjectRequest(getObjectRequest, actual.left().getObjectRequest(), null);
+    }
+
+    @Test
+    void toDownloadFileAndTransformer_partNumberSet_shouldRestartFromBeginning() {
+        Instant s3ObjectLastModified = Instant.now();
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .partNumber(3)
+                                                            .build();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                           .bytesTransferred(file.length())
+                                                                           .s3ObjectLastModified(s3ObjectLastModified)
+                                                                           .fileLastModified(fileLastModified)
+                                                                           .downloadFileRequest(downloadFileRequest)
+                                                                           .build();
+        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> actual =
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
+                                                downloadFileRequest);
+        GetObjectRequest actualRequest = actual.left().getObjectRequest();
+        verifyActualGetObjectRequest(getObjectRequest, actualRequest, null);
+        assertThat(actualRequest.partNumber()).isEqualTo(3);
+        assertThat(actualRequest.ifUnmodifiedSince()).isEqualTo(s3ObjectLastModified);
+    }
+
+    @Test
+    void toDownloadFileAndTransformer_partNumberSet_shouldUseCreateOrReplace() throws Exception {
+        Instant s3ObjectLastModified = Instant.now();
+        // Simulate a partial download: 500 bytes already on disk from a 1000-byte part
+        byte[] partialContent = RandomStringUtils.randomAlphanumeric(500).getBytes(StandardCharsets.UTF_8);
+        byte[] fullPartContent = RandomStringUtils.randomAlphanumeric(1000).getBytes(StandardCharsets.UTF_8);
+        Files.write(file.toPath(), partialContent);
+
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                                                            .bucket("bucket")
+                                                            .key("key")
+                                                            .partNumber(3)
+                                                            .build();
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest)
+                                                                     .destination(file)
+                                                                     .build();
+        Instant fileLastModified = Instant.ofEpochMilli(file.lastModified());
+        ResumableFileDownload resumableFileDownload = ResumableFileDownload.builder()
+                                                                           .bytesTransferred((long) partialContent.length)
+                                                                           .s3ObjectLastModified(s3ObjectLastModified)
+                                                                           .fileLastModified(fileLastModified)
+                                                                           .downloadFileRequest(downloadFileRequest)
+                                                                           .build();
+
+        Pair<DownloadFileRequest, AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> actual =
+            toDownloadFileRequestAndTransformer(resumableFileDownload, headObjectResponse(s3ObjectLastModified),
+                                                downloadFileRequest);
+
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer = actual.right();
+        CompletableFuture<GetObjectResponse> future = transformer.prepare();
+        transformer.onResponse(GetObjectResponse.builder().build());
+        transformer.onStream(SdkPublisher.adapt(Flowable.just(ByteBuffer.wrap(fullPartContent))));
+        future.get(5, TimeUnit.SECONDS);
+
+        assertThat(file.length()).isEqualTo(fullPartContent.length);
+        assertThat(file).hasBinaryContent(fullPartContent);
     }
 
     private static void verifyActualGetObjectRequest(GetObjectRequest originalRequest, GetObjectRequest actualRequest,

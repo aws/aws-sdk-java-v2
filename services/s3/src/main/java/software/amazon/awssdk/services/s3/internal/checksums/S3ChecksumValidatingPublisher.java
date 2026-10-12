@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.checksums;
 
 import static java.lang.Math.toIntExact;
+import static software.amazon.awssdk.services.s3.internal.checksums.ChecksumConstant.CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -135,12 +136,7 @@ public final class S3ChecksumValidatingPublisher implements SdkPublisher<ByteBuf
                 byte[] computedChecksum = sdkChecksum.getChecksumBytes();
                 if (!Arrays.equals(computedChecksum, streamChecksum)) {
                     onError(RetryableException.create(
-                        String.format("Data read has a different checksum than expected. Was 0x%s, but expected 0x%s. "
-                                      + "Common causes: (1) You modified a request ByteBuffer before it could be "
-                                      + "written to the service. Please ensure your data source does not modify the "
-                                      + " byte buffers after you pass them to the SDK. (2) The data was corrupted between the "
-                                      + "client and service. Note: Despite this error, the upload still completed and was "
-                                      + "persisted in S3.",
+                        String.format(CHECKSUM_MISMATCH_ERROR_MESSAGE_TEMPLATE,
                                       BinaryUtils.toHex(computedChecksum), BinaryUtils.toHex(streamChecksum))));
                     return; // Return after onError and not call onComplete below
                 }

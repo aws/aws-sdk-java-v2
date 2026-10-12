@@ -1,0 +1,60 @@
+{
+    "version": "2.42.33",
+    "date": "2026-04-10",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Added idle body write detection to proactively close connections when no request body data is written within the write timeout period."
+        },
+        {
+            "type": "feature",
+            "category": "AWS DevOps Agent Service",
+            "contributor": "",
+            "description": "Devops Agent now supports associate Splunk, Datadog and custom MCP server to an Agent Space."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "Adds support for MV-HEVC video output and clear lead for AV1 DRM output."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Conversational Analytics for Email"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon EC2 Container Service",
+            "contributor": "",
+            "description": "Minor updates to exceptions for completeness"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon SageMaker Service",
+            "contributor": "",
+            "description": "Support new SageMaker StartClusterHealthCheck API for on-demand DHC on Hyperpod EKS cluster. Support updated CreateCluster, UpdateCluster, DescribeCluster, BatchAddClusterNodes APIs for flexible instance group on HyperPod cluster"
+        },
+        {
+            "type": "feature",
+            "category": "CloudWatch Observability Admin Service",
+            "contributor": "",
+            "description": "CloudWatch Observability Admin adds support for multi-region telemetry evaluation and telemetry enablement rules."
+        },
+        {
+            "type": "feature",
+            "category": "EC2 Image Builder",
+            "contributor": "",
+            "description": "Image pipelines can now automatically apply tags to images they create. Set the imageTags property when creating or updating your pipelines to get started."
+        },
+        {
+            "type": "feature",
+            "category": "RTBFabric",
+            "contributor": "",
+            "description": "Adds optional health check configuration for Responder Gateways with ASG Managed Endpoints. When provided, RTB Fabric continuously probes customers' instance IPs and routes traffic only to healthy ones, reducing errors during deployments, scaling events, and instance failures."
+        }
+    ]
+}

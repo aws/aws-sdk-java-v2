@@ -105,6 +105,7 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      * <p>
      * Always create a new file. If the file already exists, {@link FileAlreadyExistsException} will be thrown.
      * In the event of an error, the SDK will attempt to delete the file (whatever has been written to it so far).
+     * The file's parent directories must already exist; the SDK will not auto-create them.
      */
     public static FileTransformerConfiguration defaultCreateNew() {
         return builder().fileWriteOption(FileWriteOption.CREATE_NEW)
@@ -116,7 +117,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_REPLACE_EXISTING}
      * <p>
      * Create a new file if it doesn't exist, otherwise replace the existing file.
-     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
+     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
+     * The file's parent directories must already exist; the SDK will not auto-create them.
      */
     public static FileTransformerConfiguration defaultCreateOrReplaceExisting() {
         return builder().fileWriteOption(FileWriteOption.CREATE_OR_REPLACE_EXISTING)
@@ -128,7 +130,8 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
      * Returns the default {@link FileTransformerConfiguration} for {@link FileWriteOption#CREATE_OR_APPEND_TO_EXISTING}
      * <p>
      * Create a new file if it doesn't exist, otherwise append to the existing file.
-     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is
+     * In the event of an error, the SDK will NOT attempt to delete the file, leaving it as-is.
+     * The file's parent directories must already exist; the SDK will not auto-create them.
      */
     public static FileTransformerConfiguration defaultCreateOrAppend() {
         return builder().fileWriteOption(FileWriteOption.CREATE_OR_APPEND_TO_EXISTING)
@@ -179,16 +182,19 @@ public final class FileTransformerConfiguration implements ToCopyableBuilder<Fil
     public enum FileWriteOption {
         /**
          * Always create a new file. If the file already exists, {@link FileAlreadyExistsException} will be thrown.
+         * The file's parent directories must already exist; the SDK will not auto-create them.
          */
         CREATE_NEW,
 
         /**
          * Create a new file if it doesn't exist, otherwise replace the existing file.
+         * The file's parent directories must already exist; the SDK will not auto-create them.
          */
         CREATE_OR_REPLACE_EXISTING,
 
         /**
          * Create a new file if it doesn't exist, otherwise append to the existing file.
+         * The file's parent directories must already exist; the SDK will not auto-create them.
          */
         CREATE_OR_APPEND_TO_EXISTING,
 

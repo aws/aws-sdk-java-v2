@@ -5,12 +5,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.internal.retry.SdkDefaultRetryStrategy;
 import software.amazon.awssdk.core.retry.RetryMode;
 import software.amazon.awssdk.profiles.ProfileFile;
+import software.amazon.awssdk.retries.LegacyRetryStrategy;
+import software.amazon.awssdk.retries.StandardRetryStrategy;
 import software.amazon.awssdk.retries.api.RetryStrategy;
 import software.amazon.awssdk.testutils.EnvironmentVariableHelper;
 import software.amazon.awssdk.utils.StringInputStream;
@@ -126,4 +130,20 @@ class DynamoDbRetryPolicyTest {
         assertThat(retryMode).isEqualTo(RetryMode.LEGACY);
     }
 
+    @ParameterizedTest(name = "V2.1 retries = {0}, max attempts = {1}")
+    @CsvSource({
+        "false,9",
+        "true,4"
+    })
+    void resolve_maxAttemptsAndStrategyCompliantWithRetriesVersion(boolean retries21, int expectedMaxAttempts) {
+        SdkClientConfiguration cfg = SdkClientConfiguration.builder()
+                                                           .option(SdkClientOption.DEFAULT_NEW_RETRIES_2026, retries21)
+                                                           .build();
+        RetryStrategy strategy = DynamoDbRetryPolicy.resolveRetryStrategy(cfg);
+
+        Class<?> expectedStrategy = retries21 ? StandardRetryStrategy.class : LegacyRetryStrategy.class;
+
+        assertThat(strategy).isInstanceOf(expectedStrategy);
+        assertThat(strategy.maxAttempts()).isEqualTo(expectedMaxAttempts);
+    }
 }

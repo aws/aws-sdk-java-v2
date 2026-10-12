@@ -30,7 +30,7 @@ import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.http.SdkHttpRequest;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.http.apache5.Apache5HttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -131,7 +131,10 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
     private void testAccessPointPresigning(String accessPointArn, String key) throws IOException {
         String data = "Hello";
 
-        S3Presigner presigner = S3Presigner.builder().region(Region.US_WEST_2).build();
+        S3Presigner presigner = S3Presigner.builder()
+                                           .region(Region.US_WEST_2)
+                                           .credentialsProvider(CREDENTIALS_PROVIDER_CHAIN)
+                                           .build();
 
         SdkHttpRequest presignedPut = presigner.presignPutObject(r -> r.signatureDuration(Duration.ofDays(7))
                                                                        .putObjectRequest(por -> por.bucket(accessPointArn)
@@ -144,7 +147,7 @@ public class S3AccessPointsIntegrationTest extends S3ControlIntegrationTestBase 
                                                                                                    .key(key)))
                                                .httpRequest();
 
-        try (SdkHttpClient client = ApacheHttpClient.create()) {
+        try (SdkHttpClient client = Apache5HttpClient.create()) {
             client.prepareRequest(HttpExecuteRequest.builder()
                                                     .request(presignedPut)
                                                     .contentStreamProvider(() -> new StringInputStream(data))

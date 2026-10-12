@@ -88,43 +88,40 @@ public class ParallelScanIntegrationTest extends DynamoDBTestBase {
     public void testParallelScan() {
         putTestData();
 
-        /**
-         * Only one segment.
-         */
-        ScanRequest scanRequest = ScanRequest.builder()
-                .tableName(tableName)
-                .scanFilter(Collections.singletonMap(
-                        ATTRIBUTE_RANDOM,
-                        Condition.builder()
-                                .attributeValueList(
-                                        AttributeValue.builder().n("" + itemNumber / 2).build())
-                                .comparisonOperator(
-                                        ComparisonOperator.LT.toString()).build()))
-                .totalSegments(1).segment(0).build();
-        ScanResponse scanResult = dynamo.scan(scanRequest);
-        assertEquals((Object) itemNumber, (Object) scanResult.scannedCount());
-        int filteredItems = scanResult.count();
+        Condition filterCondition = Condition.builder()
+                .attributeValueList(AttributeValue.builder().n("" + itemNumber / 2).build())
+                .comparisonOperator(ComparisonOperator.LT.toString())
+                .build();
+        Map<String, Condition> scanFilter = Collections.singletonMap(ATTRIBUTE_RANDOM, filterCondition);
 
         /**
-         * Multiple segments.
+         * Only one segment — use scanPaginator to handle pagination automatically.
+         */
+        int totalScannedCount = 0;
+        int filteredItems = 0;
+        for (ScanResponse page : dynamo.scanPaginator(ScanRequest.builder()
+                .tableName(tableName)
+                .scanFilter(scanFilter)
+                .totalSegments(1).segment(0)
+                .build())) {
+            totalScannedCount += page.scannedCount();
+            filteredItems += page.count();
+        }
+        assertEquals((Object) itemNumber, (Object) totalScannedCount);
+
+        /**
+         * Multiple segments — use scanPaginator for each segment.
          */
         int totalSegments = 10;
         int filteredItemsInsegments = 0;
         for (int segment = 0; segment < totalSegments; segment++) {
-            scanRequest = ScanRequest.builder()
+            for (ScanResponse page : dynamo.scanPaginator(ScanRequest.builder()
                     .tableName(tableName)
-                    .scanFilter(
-                            Collections.singletonMap(
-                                    ATTRIBUTE_RANDOM,
-                                    Condition.builder().attributeValueList(
-                                            AttributeValue.builder().n(""
-                                                                       + itemNumber / 2).build())
-                                                   .comparisonOperator(
-                                                           ComparisonOperator.LT
-                                                                   .toString()).build()))
-                    .totalSegments(totalSegments).segment(segment).build();
-            scanResult = dynamo.scan(scanRequest);
-            filteredItemsInsegments += scanResult.count();
+                    .scanFilter(scanFilter)
+                    .totalSegments(totalSegments).segment(segment)
+                    .build())) {
+                filteredItemsInsegments += page.count();
+            }
         }
         assertEquals(filteredItems, filteredItemsInsegments);
     }

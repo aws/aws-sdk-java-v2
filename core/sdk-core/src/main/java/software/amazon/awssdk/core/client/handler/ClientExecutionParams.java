@@ -25,11 +25,13 @@ import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.endpoint.EndpointResolver;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.runtime.transform.Marshaller;
+import software.amazon.awssdk.core.spi.identity.AuthSchemeOptionsResolver;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
 import software.amazon.awssdk.metrics.MetricCollector;
@@ -55,6 +57,7 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private AsyncResponseTransformer<OutputT, ?> asyncResponseTransformer;
     private boolean fullDuplex;
     private boolean hasInitialRequestEvent;
+    private boolean longPolling;
     private String hostPrefixExpression;
     private String operationName;
     private SdkProtocolMetadata protocolMetadata;
@@ -63,6 +66,8 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
     private MetricCollector metricCollector;
     private final ExecutionAttributes attributes = new ExecutionAttributes();
     private SdkClientConfiguration requestConfiguration;
+    private AuthSchemeOptionsResolver authSchemeOptionsResolver;
+    private EndpointResolver endpointResolver;
 
     public Marshaller<InputT> getMarshaller() {
         return marshaller;
@@ -168,6 +173,19 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
         return this;
     }
 
+    /**
+     * Whether this is a long polling operation, i.e. a request where the service can wait extended period of time before
+     * sending a response back to the client.
+     */
+    public boolean isLongPolling() {
+        return longPolling;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withLongPolling(boolean longPolling) {
+        this.longPolling = longPolling;
+        return this;
+    }
+
     public boolean hasInitialRequestEvent() {
         return hasInitialRequestEvent;
     }
@@ -259,6 +277,25 @@ public final class ClientExecutionParams<InputT extends SdkRequest, OutputT> {
 
     public <T> ClientExecutionParams<InputT, OutputT> withRequestConfiguration(SdkClientConfiguration requestConfiguration) {
         this.requestConfiguration = requestConfiguration;
+        return this;
+    }
+
+    public AuthSchemeOptionsResolver authSchemeOptionsResolver() {
+        return authSchemeOptionsResolver;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withAuthSchemeOptionsResolver(
+            AuthSchemeOptionsResolver authSchemeOptionsResolver) {
+        this.authSchemeOptionsResolver = authSchemeOptionsResolver;
+        return this;
+    }
+
+    public EndpointResolver endpointResolver() {
+        return endpointResolver;
+    }
+
+    public ClientExecutionParams<InputT, OutputT> withEndpointResolver(EndpointResolver endpointResolver) {
+        this.endpointResolver = endpointResolver;
         return this;
     }
 }

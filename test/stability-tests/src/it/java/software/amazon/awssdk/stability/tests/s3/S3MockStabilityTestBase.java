@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.IntFunction;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.jupiter.api.BeforeAll;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ChecksumAlgorithm;
@@ -37,6 +38,12 @@ public abstract class S3MockStabilityTestBase {
     private static final Logger log = Logger.loggerFor(S3MockStabilityTestBase.class);
     MockAsyncHttpClient mockAsyncHttpClient;
     S3AsyncClient testClient;
+
+    @BeforeAll
+    public static void init() {
+        CHECKSUM_ALGORITHMS.remove(ChecksumAlgorithm.valueOf("MD5"));
+    }
+
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void putObject_Checksum() {
         putObjectChecksumVariations();

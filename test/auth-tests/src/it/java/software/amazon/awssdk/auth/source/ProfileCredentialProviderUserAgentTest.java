@@ -16,10 +16,12 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -99,7 +101,7 @@ class ProfileCredentialProviderUserAgentTest {
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         String userAgent = userAgentHeaders.get(0);
 
-        assertThat(userAgent).contains("m/D,n");
+        assertUserAgentHasFeatureIds(userAgent, Arrays.asList("D", "n"));
 
         credentialsProvider.close();
         stsClient.close();
@@ -141,7 +143,7 @@ class ProfileCredentialProviderUserAgentTest {
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
         String userAgent = userAgentHeaders.get(0);
 
-        assertThat(userAgent).contains("m/D,v,w");
+        assertUserAgentHasFeatureIds(userAgent, Arrays.asList("D", "v", "w"));
 
         credentialsProvider.close();
         stsClient.close();

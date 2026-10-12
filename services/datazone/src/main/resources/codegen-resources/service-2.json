@@ -643,6 +643,28 @@
       ],
       "documentation":"<p>Publishes a listing (a record of an asset at a given time) or removes a listing from the catalog. </p>"
     },
+    "CreateNotebook":{
+      "name":"CreateNotebook",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebooks",
+        "responseCode":201
+      },
+      "input":{"shape":"CreateNotebookInput"},
+      "output":{"shape":"CreateNotebookOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Creates a <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook</a> in Amazon SageMaker Unified Studio. A notebook is a collaborative document within a project that contains code cells for interactive computing.</p>",
+      "idempotent":true
+    },
     "CreateProject":{
       "name":"CreateProject",
       "http":{
@@ -1173,6 +1195,26 @@
       "documentation":"<p>Deletes a business glossary term in Amazon DataZone.</p> <p>Prerequisites:</p> <ul> <li> <p>Glossary term must exist and be active. </p> </li> <li> <p>The term must not be linked to other assets or child terms.</p> </li> <li> <p>Caller must have delete permissions in the domain/glossary.</p> </li> <li> <p>Ensure all associations (such as to assets or parent terms) are removed before deletion.</p> </li> </ul>",
       "idempotent":true
     },
+    "DeleteLineageEvent":{
+      "name":"DeleteLineageEvent",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/v2/domains/{domainIdentifier}/lineage/events/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteLineageEventInput"},
+      "output":{"shape":"DeleteLineageEventOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Deletes the specified lineage event.</p>",
+      "idempotent":true
+    },
     "DeleteListing":{
       "name":"DeleteListing",
       "http":{
@@ -1192,6 +1234,26 @@
         {"shape":"UnauthorizedException"}
       ],
       "documentation":"<p>Deletes a listing (a record of an asset at a given time).</p>",
+      "idempotent":true
+    },
+    "DeleteNotebook":{
+      "name":"DeleteNotebook",
+      "http":{
+        "method":"DELETE",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebooks/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"DeleteNotebookInput"},
+      "output":{"shape":"DeleteNotebookOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Deletes a <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook</a> in Amazon SageMaker Unified Studio.</p>",
       "idempotent":true
     },
     "DeleteProject":{
@@ -1939,6 +2001,66 @@
       "documentation":"<p>Gets a metadata generation run in Amazon DataZone.</p> <p>Prerequisites:</p> <ul> <li> <p>Valid domain and run identifier. </p> </li> <li> <p>The metadata generation run must exist.</p> </li> <li> <p>User must have read access to the metadata run.</p> </li> </ul>",
       "readonly":true
     },
+    "GetNotebook":{
+      "name":"GetNotebook",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebooks/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetNotebookInput"},
+      "output":{"shape":"GetNotebookOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Gets the details of a <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook</a> in Amazon SageMaker Unified Studio.</p>",
+      "readonly":true
+    },
+    "GetNotebookExport":{
+      "name":"GetNotebookExport",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-exports/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetNotebookExportInput"},
+      "output":{"shape":"GetNotebookExportOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Gets the details of a notebook export in Amazon SageMaker Unified Studio.</p>",
+      "readonly":true
+    },
+    "GetNotebookRun":{
+      "name":"GetNotebookRun",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-runs/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"GetNotebookRunInput"},
+      "output":{"shape":"GetNotebookRunOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Gets the details of a <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook run</a> in Amazon SageMaker Unified Studio.</p>",
+      "readonly":true
+    },
     "GetProject":{
       "name":"GetProject",
       "http":{
@@ -2539,6 +2661,44 @@
       "documentation":"<p>Lists all metadata generation runs.</p> <p>Metadata generation runs represent automated processes that leverage AI/ML capabilities to create or enhance asset metadata at scale. This feature helps organizations maintain comprehensive and consistent metadata across large numbers of assets without manual intervention. It can automatically generate business descriptions, tags, and other metadata elements, significantly reducing the time and effort required for metadata management while improving consistency and completeness.</p> <p>Prerequisites:</p> <ul> <li> <p>Valid domain identifier. </p> </li> <li> <p>User must have access to metadata generation runs in the domain.</p> </li> </ul>",
       "readonly":true
     },
+    "ListNotebookRuns":{
+      "name":"ListNotebookRuns",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-runs",
+        "responseCode":200
+      },
+      "input":{"shape":"ListNotebookRunsInput"},
+      "output":{"shape":"ListNotebookRunsOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Lists <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook runs</a> in Amazon SageMaker Unified Studio.</p>",
+      "readonly":true
+    },
+    "ListNotebooks":{
+      "name":"ListNotebooks",
+      "http":{
+        "method":"GET",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebooks",
+        "responseCode":200
+      },
+      "input":{"shape":"ListNotebooksInput"},
+      "output":{"shape":"ListNotebooksOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Lists <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebooks</a> in Amazon SageMaker Unified Studio.</p>",
+      "readonly":true
+    },
     "ListNotifications":{
       "name":"ListNotifications",
       "http":{
@@ -2863,6 +3023,24 @@
       "documentation":"<p>Writes the configuration for the specified environment blueprint in Amazon DataZone.</p>",
       "idempotent":true
     },
+    "QueryGraph":{
+      "name":"QueryGraph",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/graph/query",
+        "responseCode":200
+      },
+      "input":{"shape":"QueryGraphInput"},
+      "output":{"shape":"QueryGraphOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Queries entities in the graph store.</p>"
+    },
     "RejectPredictions":{
       "name":"RejectPredictions",
       "http":{
@@ -3099,6 +3277,114 @@
         {"shape":"UnauthorizedException"}
       ],
       "documentation":"<p>Starts the metadata generation run.</p> <p>Prerequisites:</p> <ul> <li> <p>Asset must be created and belong to the specified domain and project. </p> </li> <li> <p>Asset type must be supported for metadata generation (e.g., Amazon Web Services Glue table).</p> </li> <li> <p>Asset must have a structured schema with valid rows and columns.</p> </li> <li> <p>Valid values for --type: BUSINESS_DESCRIPTIONS, BUSINESS_NAMES, BUSINESS_GLOSSARY_ASSOCIATIONS.</p> </li> <li> <p>The user must have permission to run metadata generation in the domain/project.</p> </li> </ul>",
+      "idempotent":true
+    },
+    "StartNotebookExport":{
+      "name":"StartNotebookExport",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-exports",
+        "responseCode":201
+      },
+      "input":{"shape":"StartNotebookExportInput"},
+      "output":{"shape":"StartNotebookExportOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Starts a notebook export in Amazon SageMaker Unified Studio. This operation exports a notebook to a specified file format and stores the output in Amazon Simple Storage Service.</p>"
+    },
+    "StartNotebookImport":{
+      "name":"StartNotebookImport",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-imports",
+        "responseCode":201
+      },
+      "input":{"shape":"StartNotebookImportInput"},
+      "output":{"shape":"StartNotebookImportOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Starts a notebook import in Amazon SageMaker Unified Studio. This operation imports a notebook from an Amazon Simple Storage Service location into a project.</p>",
+      "idempotent":true
+    },
+    "StartNotebookRun":{
+      "name":"StartNotebookRun",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-runs",
+        "responseCode":201
+      },
+      "input":{"shape":"StartNotebookRunInput"},
+      "output":{"shape":"StartNotebookRunOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Starts a notebook run in Amazon SageMaker Unified Studio. A notebook run represents the execution of an <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">Amazon SageMaker notebook</a> within a project. You can configure compute, network, timeout, and environment settings for the run.</p>",
+      "idempotent":true
+    },
+    "StartNotebookSync":{
+      "name":"StartNotebookSync",
+      "http":{
+        "method":"POST",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-syncs",
+        "responseCode":201
+      },
+      "input":{"shape":"StartNotebookSyncInput"},
+      "output":{"shape":"StartNotebookSyncOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ServiceQuotaExceededException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Starts a notebook sync in Amazon SageMaker Unified Studio. This operation syncs a notebook from a Git repository into a project.</p>",
+      "idempotent":true
+    },
+    "StopNotebookRun":{
+      "name":"StopNotebookRun",
+      "http":{
+        "method":"PUT",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebook-runs/{identifier}/stop",
+        "responseCode":200
+      },
+      "input":{"shape":"StopNotebookRunInput"},
+      "output":{"shape":"StopNotebookRunOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Stops a running <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook run</a> in Amazon SageMaker Unified Studio.</p>",
       "idempotent":true
     },
     "TagResource":{
@@ -3412,6 +3698,27 @@
         {"shape":"UnauthorizedException"}
       ],
       "documentation":"<p>Updates the specified group profile in Amazon DataZone.</p>"
+    },
+    "UpdateNotebook":{
+      "name":"UpdateNotebook",
+      "http":{
+        "method":"PATCH",
+        "requestUri":"/v2/domains/{domainIdentifier}/notebooks/{identifier}",
+        "responseCode":200
+      },
+      "input":{"shape":"UpdateNotebookInput"},
+      "output":{"shape":"UpdateNotebookOutput"},
+      "errors":[
+        {"shape":"InternalServerException"},
+        {"shape":"ResourceNotFoundException"},
+        {"shape":"AccessDeniedException"},
+        {"shape":"ThrottlingException"},
+        {"shape":"ConflictException"},
+        {"shape":"ValidationException"},
+        {"shape":"UnauthorizedException"}
+      ],
+      "documentation":"<p>Updates a <a href=\"https://docs.aws.amazon.com/sagemaker-unified-studio/latest/userguide/notebooks.html\">notebook</a> in Amazon SageMaker Unified Studio.</p>",
+      "idempotent":true
     },
     "UpdateProject":{
       "name":"UpdateProject",
@@ -4064,6 +4371,16 @@
       },
       "documentation":"<p>The details of the policy grant.</p>"
     },
+    "AdditionalAttributes":{
+      "type":"structure",
+      "members":{
+        "formNames":{
+          "shape":"FormNameList",
+          "documentation":"<p>Names of forms on the query entity that can be requested in the response.</p>"
+        }
+      },
+      "documentation":"<p>Additional details on the queried entity that can be requested in the response.</p>"
+    },
     "AggregationAttributeDisplayValue":{"type":"string"},
     "AggregationAttributeValue":{"type":"string"},
     "AggregationDisplayValue":{
@@ -4672,6 +4989,10 @@
         "status":{
           "shape":"String",
           "documentation":"<p>The status of the asset scope.</p>"
+        },
+        "scopeName":{
+          "shape":"String",
+          "documentation":"<p>The name of the materialized asset scope.</p>"
         },
         "errorMessage":{
           "shape":"String",
@@ -5347,6 +5668,10 @@
         }
       }
     },
+    "BlueprintCategory":{
+      "type":"string",
+      "enum":["TOOLING"]
+    },
     "Boolean":{
       "type":"boolean",
       "box":true
@@ -5466,6 +5791,17 @@
         }
       }
     },
+    "CellInformation":{
+      "type":"structure",
+      "members":{},
+      "documentation":"<p>The information about a cell in a notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
+    "CellOrder":{
+      "type":"list",
+      "member":{"shape":"CellInformation"},
+      "max":200,
+      "min":0
+    },
     "ChangeAction":{
       "type":"string",
       "enum":[
@@ -5504,6 +5840,33 @@
       "type":"list",
       "member":{"shape":"String"}
     },
+    "CommitHash":{
+      "type":"string",
+      "max":64,
+      "min":1,
+      "pattern":"[a-zA-Z0-9]+"
+    },
+    "CommitMessage":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "sensitive":true
+    },
+    "CompletedAt":{"type":"timestamp"},
+    "ComputeConfig":{
+      "type":"structure",
+      "members":{
+        "instanceType":{
+          "shape":"InstanceType",
+          "documentation":"<p>The instance type for the notebook run compute.</p>"
+        },
+        "environmentVersion":{
+          "shape":"String",
+          "documentation":"<p>The environment version for the notebook run compute.</p>"
+        }
+      },
+      "documentation":"<p>The compute configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
     "ComputeEnvironments":{
       "type":"string",
       "enum":[
@@ -5517,6 +5880,11 @@
       "member":{"shape":"ComputeEnvironments"},
       "max":50,
       "min":1
+    },
+    "ComputeId":{
+      "type":"string",
+      "max":64,
+      "min":0
     },
     "ConfigurableActionParameter":{
       "type":"structure",
@@ -5565,12 +5933,36 @@
       },
       "documentation":"<p>The configurable action of a Amazon DataZone environment.</p>"
     },
+    "Configuration":{
+      "type":"structure",
+      "members":{
+        "classification":{
+          "shape":"ConfigurationClassificationString",
+          "documentation":"<p>The classification of the connection configuration.</p>"
+        },
+        "properties":{
+          "shape":"PropertyMap",
+          "documentation":"<p>The properties of the connection configuration.</p>"
+        }
+      },
+      "documentation":"<p>The configuration of a connection.</p>"
+    },
+    "ConfigurationClassificationString":{
+      "type":"string",
+      "max":64,
+      "min":0,
+      "pattern":"[\\w][\\w\\.\\-\\_]*"
+    },
     "ConfigurationStatus":{
       "type":"string",
       "enum":[
         "COMPLETED",
         "FAILED"
       ]
+    },
+    "Configurations":{
+      "type":"list",
+      "member":{"shape":"Configuration"}
     },
     "ConflictException":{
       "type":"structure",
@@ -5658,6 +6050,10 @@
           "shape":"S3PropertiesInput",
           "documentation":"<p>The Amazon S3 properties of a connection.</p>"
         },
+        "snowflakeProperties":{
+          "shape":"SnowflakePropertiesInput",
+          "documentation":"<p>The Snowflake-specific connection properties to use when creating the connection.</p>"
+        },
         "amazonQProperties":{
           "shape":"AmazonQPropertiesInput",
           "documentation":"<p>The Amazon Q properties of the connection.</p>"
@@ -5673,6 +6069,18 @@
         "workflowsServerlessProperties":{
           "shape":"WorkflowsServerlessPropertiesInput",
           "documentation":"<p>The MWAA serverless properties of a connection.</p>"
+        },
+        "lakehouseProperties":{
+          "shape":"LakehousePropertiesInput",
+          "documentation":"<p>The lakehouse properties of a connection.</p>"
+        },
+        "vpcProperties":{
+          "shape":"VpcPropertiesInput",
+          "documentation":"<p>The VPC properties of a connection.</p>"
+        },
+        "gitProperties":{
+          "shape":"GitPropertiesInput",
+          "documentation":"<p>The Git properties of a connection.</p>"
         }
       },
       "documentation":"<p>The properties of a connection.</p>",
@@ -5713,6 +6121,10 @@
           "shape":"S3PropertiesOutput",
           "documentation":"<p>The Amazon S3 properties of a connection.</p>"
         },
+        "snowflakeProperties":{
+          "shape":"SnowflakePropertiesOutput",
+          "documentation":"<p>The Snowflake-specific connection properties for an existing connection.</p>"
+        },
         "amazonQProperties":{
           "shape":"AmazonQPropertiesOutput",
           "documentation":"<p>The Amazon Q properties of the connection.</p>"
@@ -5728,6 +6140,18 @@
         "workflowsServerlessProperties":{
           "shape":"WorkflowsServerlessPropertiesOutput",
           "documentation":"<p>The MWAA serverless properties of a connection.</p>"
+        },
+        "lakehouseProperties":{
+          "shape":"LakehousePropertiesOutput",
+          "documentation":"<p>The lakehouse properties of a connection.</p>"
+        },
+        "vpcProperties":{
+          "shape":"VpcPropertiesOutput",
+          "documentation":"<p>The VPC properties of a connection.</p>"
+        },
+        "gitProperties":{
+          "shape":"GitPropertiesOutput",
+          "documentation":"<p>The Git properties of a connection.</p>"
         }
       },
       "documentation":"<p>The properties of a connection.</p>",
@@ -5760,6 +6184,10 @@
           "shape":"S3PropertiesPatch",
           "documentation":"<p>The Amazon S3 properties of a connection properties patch.</p>"
         },
+        "snowflakeProperties":{
+          "shape":"SnowflakePropertiesPatch",
+          "documentation":"<p>The Snowflake-specific connection properties to update.</p>"
+        },
         "amazonQProperties":{
           "shape":"AmazonQPropertiesPatch",
           "documentation":"<p>The Amazon Q properties of the connection.</p>"
@@ -5767,6 +6195,18 @@
         "mlflowProperties":{
           "shape":"MlflowPropertiesPatch",
           "documentation":"<p>The MLflow properties of a connection.</p>"
+        },
+        "lakehouseProperties":{
+          "shape":"LakehousePropertiesPatch",
+          "documentation":"<p>The lakehouse properties of a connection properties patch.</p>"
+        },
+        "vpcProperties":{
+          "shape":"VpcPropertiesPatch",
+          "documentation":"<p>The VPC properties of a connection properties patch.</p>"
+        },
+        "gitProperties":{
+          "shape":"GitPropertiesPatch",
+          "documentation":"<p>The Git properties of a connection properties patch.</p>"
         }
       },
       "documentation":"<p>The connection properties patch.</p>",
@@ -5812,6 +6252,10 @@
         "type"
       ],
       "members":{
+        "configurations":{
+          "shape":"Configurations",
+          "documentation":"<p>The configurations of a connection summary.</p>"
+        },
         "connectionId":{
           "shape":"ConnectionId",
           "documentation":"<p>The ID of a connection.</p>"
@@ -5879,8 +6323,92 @@
         "VERTICA",
         "WORKFLOWS_MWAA",
         "AMAZON_Q",
-        "MLFLOW"
+        "MLFLOW",
+        "VPC",
+        "GIT"
       ]
+    },
+    "ConnectivityProperties":{
+      "type":"structure",
+      "members":{
+        "connectionProperties":{
+          "shape":"ConnectionProperties",
+          "documentation":"<p>The connection properties for this configuration.</p>"
+        },
+        "physicalConnectionRequirements":{
+          "shape":"PhysicalConnectionRequirements",
+          "documentation":"<p>The physical network requirements for the connection, such as the subnet, security group, and VPC settings needed to reach the data source.</p>"
+        },
+        "name":{
+          "shape":"ConnectivityPropertiesNameString",
+          "documentation":"<p>The name of the connectivity configuration.</p>"
+        },
+        "description":{
+          "shape":"ConnectivityPropertiesDescriptionString",
+          "documentation":"<p>The description of the connectivity configuration.</p>"
+        },
+        "validateCredentials":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to validate credentials for the connectivity configuration. Defaults to true if not specified.</p>"
+        },
+        "validateForComputeEnvironments":{
+          "shape":"ComputeEnvironmentsList",
+          "documentation":"<p>The compute environments to use when validating connectivity. The service validates that the connection is reachable from each specified environment.</p>"
+        },
+        "sparkProperties":{
+          "shape":"PropertyMap",
+          "documentation":"<p>The Spark properties for this configuration.</p>"
+        },
+        "athenaProperties":{
+          "shape":"PropertyMap",
+          "documentation":"<p>The Athena properties for this configuration.</p>"
+        },
+        "pythonProperties":{
+          "shape":"PropertyMap",
+          "documentation":"<p>The Python properties for this configuration.</p>"
+        },
+        "authenticationConfiguration":{
+          "shape":"AuthenticationConfigurationInput",
+          "documentation":"<p>The authentication settings for this configuration.</p>"
+        }
+      },
+      "documentation":"<p>Contains the network and authentication settings for a connection, including connection credentials, physical network requirements, and compute-environment validation options.</p>"
+    },
+    "ConnectivityPropertiesDescriptionString":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFF\\r\\n\\t]*"
+    },
+    "ConnectivityPropertiesNameString":{
+      "type":"string",
+      "max":41,
+      "min":1,
+      "pattern":"[\\u0020-\\uD7FF\\uE000-\\uFFFF\\t]*"
+    },
+    "ConnectivityPropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "description":{
+          "shape":"ConnectivityPropertiesPatchDescriptionString",
+          "documentation":"<p>A description of the connectivity properties update.</p>"
+        },
+        "connectionProperties":{
+          "shape":"ConnectionProperties",
+          "documentation":"<p>The connection properties to update.</p>"
+        },
+        "authenticationConfiguration":{
+          "shape":"AuthenticationConfigurationPatch",
+          "documentation":"<p>The authentication settings to update.</p>"
+        }
+      },
+      "documentation":"<p>Contains the connectivity settings to update on an existing connection. Include only the fields you want to change.</p>"
+    },
+    "ConnectivityPropertiesPatchDescriptionString":{
+      "type":"string",
+      "max":2048,
+      "min":0,
+      "pattern":"[\\S\\s]*"
     },
     "CreateAccountPoolInput":{
       "type":"structure",
@@ -6493,6 +7021,10 @@
           "documentation":"<p>A unique, case-sensitive identifier that is provided to ensure the idempotency of the request.</p>",
           "idempotencyToken":true
         },
+        "configurations":{
+          "shape":"Configurations",
+          "documentation":"<p>The configurations of the connection.</p>"
+        },
         "description":{
           "shape":"CreateConnectionInputDescriptionString",
           "documentation":"<p>A connection description.</p>"
@@ -6545,6 +7077,10 @@
         "connectionId":{
           "shape":"ConnectionId",
           "documentation":"<p>The ID of the connection.</p>"
+        },
+        "configurations":{
+          "shape":"Configurations",
+          "documentation":"<p>The configurations of the connection.</p>"
         },
         "description":{
           "shape":"Description",
@@ -6997,10 +7533,7 @@
     },
     "CreateDomainInput":{
       "type":"structure",
-      "required":[
-        "name",
-        "domainExecutionRole"
-      ],
+      "required":["name"],
       "members":{
         "name":{
           "shape":"String",
@@ -7290,6 +7823,10 @@
         "userParameters":{
           "shape":"CustomParameterList",
           "documentation":"<p>The user parameters of this Amazon DataZone blueprint.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the Amazon DataZone blueprint. The only valid value is <code>TOOLING</code>, which creates a blueprint that provisions the tooling resources of a project.</p>"
         }
       }
     },
@@ -7333,6 +7870,10 @@
         "glossaryTerms":{
           "shape":"GlossaryTerms",
           "documentation":"<p>The glossary terms attached to this Amazon DataZone blueprint.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the Amazon DataZone blueprint. The only valid value is <code>TOOLING</code>, which indicates a blueprint that provisions the tooling resources of a project.</p>"
         },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
@@ -7392,7 +7933,7 @@
         },
         "environmentBlueprintIdentifier":{
           "shape":"String",
-          "documentation":"<p>The ID of the blueprint with which the environment is being created.</p>"
+          "documentation":"<p>The ID of the blueprint with which the environment is being created.</p> <note> <p>This parameter is only valid for V1 domains. If provided for a V2 domain, the service returns a ValidationException.</p> </note>"
         },
         "deploymentOrder":{
           "shape":"Integer",
@@ -7401,6 +7942,10 @@
         "environmentConfigurationId":{
           "shape":"String",
           "documentation":"<p>The configuration ID of the environment.</p>"
+        },
+        "environmentConfigurationName":{
+          "shape":"EnvironmentConfigurationName",
+          "documentation":"<p>The configuration name of the environment.</p>"
         }
       }
     },
@@ -7501,6 +8046,10 @@
         "environmentConfigurationId":{
           "shape":"EnvironmentConfigurationId",
           "documentation":"<p>The configuration ID of the environment.</p>"
+        },
+        "environmentConfigurationName":{
+          "shape":"EnvironmentConfigurationName",
+          "documentation":"<p>The configuration name of the environment.</p>"
         }
       }
     },
@@ -7889,10 +8438,7 @@
     },
     "CreateGroupProfileInput":{
       "type":"structure",
-      "required":[
-        "domainIdentifier",
-        "groupIdentifier"
-      ],
+      "required":["domainIdentifier"],
       "members":{
         "domainIdentifier":{
           "shape":"DomainId",
@@ -7903,6 +8449,10 @@
         "groupIdentifier":{
           "shape":"GroupIdentifier",
           "documentation":"<p>The identifier of the group for which the group profile is created.</p>"
+        },
+        "rolePrincipalArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM role that will be associated with the group profile. This role defines the permissions that group members will assume when accessing Amazon DataZone resources.</p>"
         },
         "clientToken":{
           "shape":"String",
@@ -7929,6 +8479,14 @@
         "groupName":{
           "shape":"GroupProfileName",
           "documentation":"<p>The name of the group for which group profile is created.</p>"
+        },
+        "rolePrincipalArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM role principal. This role is associated with the group profile.</p>"
+        },
+        "rolePrincipalId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the IAM role principal. This principal is associated with the group profile.</p>"
         }
       }
     },
@@ -7992,6 +8550,148 @@
         }
       }
     },
+    "CreateNotebookInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "owningProjectIdentifier",
+        "name"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which to create the notebook.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the notebook. The name must be between 1 and 256 characters.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata for the notebook, specified as key-value pairs. You can specify up to 50 entries, with keys up to 128 characters and values up to 1024 characters.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters for the notebook, specified as key-value pairs. You can specify up to 50 entries, with keys up to 128 characters and values up to 1024 characters.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "CreateNotebookOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "name",
+        "owningProjectId",
+        "domainId",
+        "cellOrder",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the notebook.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "cellOrder":{
+          "shape":"CellOrder",
+          "documentation":"<p>The ordered list of cells in the notebook.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the notebook.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook.</p>"
+        },
+        "lockedBy":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the user who locked the notebook.</p>"
+        },
+        "lockedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook was locked.</p>"
+        },
+        "lockExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook lock expires.</p>"
+        },
+        "computeId":{
+          "shape":"ComputeId",
+          "documentation":"<p>The identifier of the compute associated with the notebook.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata of the notebook.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters of the notebook.</p>"
+        },
+        "environmentConfiguration":{
+          "shape":"EnvironmentConfig",
+          "documentation":"<p>The environment configuration of the notebook.</p>"
+        },
+        "error":{
+          "shape":"NotebookError",
+          "documentation":"<p>The error details if the notebook creation failed.</p>"
+        },
+        "gitMetadata":{
+          "shape":"GitMetadata",
+          "documentation":"<p>The Git metadata associated with the notebook.</p>"
+        }
+      }
+    },
     "CreateProjectFromProjectProfilePolicyGrantDetail":{
       "type":"structure",
       "members":{
@@ -8046,6 +8746,18 @@
         "userParameters":{
           "shape":"EnvironmentConfigurationUserParametersList",
           "documentation":"<p>The user parameters of the project.</p>"
+        },
+        "projectCategory":{
+          "shape":"String",
+          "documentation":"<p>The category of the project. Set to 'ADMIN' designates this as an administrative project for the Amazon DataZone domain.</p>"
+        },
+        "projectExecutionRole":{
+          "shape":"RoleArn",
+          "documentation":"<p>The default project IAM role that is used to access project resources and run computes such as Glue and Sagemaker.</p>"
+        },
+        "membershipAssignments":{
+          "shape":"ProjectMembershipAssignments",
+          "documentation":"<p>The members to be assigned to the project.</p>"
         }
       }
     },
@@ -8159,6 +8871,10 @@
         "environmentDeploymentDetails":{
           "shape":"EnvironmentDeploymentDetails",
           "documentation":"<p>The environment deployment details.</p>"
+        },
+        "projectCategory":{
+          "shape":"String",
+          "documentation":"<p>The category of the project.</p>"
         }
       }
     },
@@ -8790,12 +9506,21 @@
           "shape":"UserType",
           "documentation":"<p>The user type of the user for which the user profile is created.</p>"
         },
+        "sessionName":{
+          "shape":"CreateUserProfileInputSessionNameString",
+          "documentation":"<p>The session name for IAM role sessions.</p>"
+        },
         "clientToken":{
           "shape":"String",
           "documentation":"<p>A unique, case-sensitive identifier that is provided to ensure the idempotency of the request.</p>",
           "idempotencyToken":true
         }
       }
+    },
+    "CreateUserProfileInputSessionNameString":{
+      "type":"string",
+      "max":64,
+      "min":2
     },
     "CreateUserProfileOutput":{
       "type":"structure",
@@ -9842,9 +10567,15 @@
         },
         "skipDeletionCheck":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies the optional flag to delete all child entities within the domain.</p>",
+          "documentation":"<p>Specifies whether to skip the check that prevents deletion of a domain that still contains resources. When you use this parameter, Amazon DataZone deletes the domain but might not remove its associated resources, which can leave orphaned resources behind. To delete a domain and fully clean up its associated resources, use <code>cascadeDelete</code> instead. You can't use this parameter together with <code>cascadeDelete</code>.</p>",
           "location":"querystring",
           "locationName":"skipDeletionCheck"
+        },
+        "cascadeDelete":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to delete the domain along with all of its associated resources. When you use this parameter, Amazon DataZone deletes the domain and cleanly removes its associated resources without leaving orphaned resources behind. Amazon DataZone reports deletion progress in the <code>deleteProgress</code> field. Amazon DataZone reports any resources that it can't delete in the <code>failureReasons</code> field of the <code>GetDomain</code> response. You can't use this parameter together with <code>skipDeletionCheck</code>. If you don't specify a value, the default is <code>false</code>.</p>",
+          "location":"querystring",
+          "locationName":"cascadeDelete"
         }
       }
     },
@@ -10074,6 +10805,44 @@
       "type":"structure",
       "members":{}
     },
+    "DeleteLineageEventInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The ID of the domain.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"LineageEventIdentifier",
+          "documentation":"<p>The ID of the lineage event.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "DeleteLineageEventOutput":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"LineageEventIdentifier",
+          "documentation":"<p>The ID of the lineage event.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The ID of the domain.</p>"
+        },
+        "processingStatus":{
+          "shape":"LineageEventProcessingStatus",
+          "documentation":"<p>The progressing status of the lineage event.</p>"
+        }
+      }
+    },
     "DeleteListingInput":{
       "type":"structure",
       "required":[
@@ -10098,6 +10867,41 @@
     "DeleteListingOutput":{
       "type":"structure",
       "members":{}
+    },
+    "DeleteNotebookInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook exists.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook to delete.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "DeleteNotebookOutput":{
+      "type":"structure",
+      "members":{}
+    },
+    "DeleteProgress":{
+      "type":"structure",
+      "members":{
+        "successfullyDeletedProjectCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of projects that Amazon DataZone successfully deleted during the domain deletion.</p>"
+        }
+      },
+      "documentation":"<p>The progress of a domain deletion, including the number of projects that Amazon DataZone successfully deleted. Amazon DataZone returns this structure in the response to a <code>GetDomain</code> request while a cascade deletion is in progress.</p>"
     },
     "DeleteProjectInput":{
       "type":"structure",
@@ -10871,6 +11675,30 @@
       "type":"list",
       "member":{"shape":"OwnerPropertiesOutput"}
     },
+    "EntityPattern":{
+      "type":"structure",
+      "required":[
+        "entityType",
+        "identifier"
+      ],
+      "members":{
+        "entityType":{
+          "shape":"GraphEntityType",
+          "documentation":"<p>The type of entity to be matched during the graph query.</p>"
+        },
+        "identifier":{
+          "shape":"EntityPatternIdentifierString",
+          "documentation":"<p>The identifier of the root entity to start traversal from during the graph query.</p>"
+        },
+        "filters":{"shape":"FilterClause"}
+      },
+      "documentation":"<p>The pattern describing the entities to be matched during the graph query.</p>"
+    },
+    "EntityPatternIdentifierString":{
+      "type":"string",
+      "max":2086,
+      "min":1
+    },
     "EntityType":{
       "type":"string",
       "enum":[
@@ -10958,6 +11786,10 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters of the environment blueprint.</p>"
         },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when an environment blueprint was created.</p>"
@@ -10965,6 +11797,10 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the environment blueprint was updated.</p>"
+        },
+        "resourceConfigurations":{
+          "shape":"ResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
         },
         "provisioningConfigurations":{
           "shape":"ProvisioningConfigurationList",
@@ -11027,9 +11863,27 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the blueprint was enabled.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the environment blueprint. The only valid value is <code>TOOLING</code>.</p>"
         }
       },
       "documentation":"<p>The details of an environment blueprint summary.</p>"
+    },
+    "EnvironmentConfig":{
+      "type":"structure",
+      "members":{
+        "imageVersion":{
+          "shape":"String",
+          "documentation":"<p>The image version for the notebook run environment.</p>"
+        },
+        "packageConfig":{
+          "shape":"PackageConfig",
+          "documentation":"<p>The package configuration for the notebook run environment.</p>"
+        }
+      },
+      "documentation":"<p>The environment configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
     },
     "EnvironmentConfiguration":{
       "type":"structure",
@@ -11415,6 +12269,10 @@
         "environmentConfigurationId":{
           "shape":"EnvironmentConfigurationId",
           "documentation":"<p>The configuration ID with which the environment is created.</p>"
+        },
+        "environmentConfigurationName":{
+          "shape":"EnvironmentConfigurationName",
+          "documentation":"<p>The configuration name with which the environment is created.</p>"
         }
       },
       "documentation":"<p>The details of an environment.</p>"
@@ -11449,6 +12307,10 @@
       "documentation":"<p>The event summary.</p>",
       "union":true
     },
+    "ExportId":{
+      "type":"string",
+      "pattern":"[a-zA-Z0-9_-]{1,36}"
+    },
     "ExternalIdentifier":{
       "type":"string",
       "max":600,
@@ -11470,9 +12332,41 @@
       },
       "documentation":"<p>Specifies the error message that is returned if the operation cannot be successfully completed.</p>"
     },
+    "FailureReason":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the resource that failed to delete.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message associated with the resource that failed to delete.</p>"
+        }
+      },
+      "documentation":"<p>The details of a resource deletion failure during a cascade deletion of the domain.</p>"
+    },
     "FailureReasons":{
       "type":"list",
       "member":{"shape":"ProjectDeletionError"}
+    },
+    "FailureReasonsList":{
+      "type":"list",
+      "member":{"shape":"FailureReason"},
+      "documentation":"<p>A list of <code>FailureReason</code> objects that describe the resources that Amazon DataZone could not delete during a cascade deletion. Amazon DataZone returns this list in the <code>failureReasons</code> field of the <code>GetDomain</code> response.</p>"
+    },
+    "FileFormat":{
+      "type":"string",
+      "documentation":"<p>The file format for a notebook export in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "PDF",
+        "IPYNB"
+      ]
+    },
+    "FileName":{
+      "type":"string",
+      "max":255,
+      "min":1
     },
     "Filter":{
       "type":"structure",
@@ -11687,6 +12581,12 @@
       "max":128,
       "min":1,
       "pattern":"(?![0-9_])\\w+$|^_\\w*[a-zA-Z0-9]\\w*"
+    },
+    "FormNameList":{
+      "type":"list",
+      "member":{"shape":"FormName"},
+      "max":10,
+      "min":1
     },
     "FormOutput":{
       "type":"structure",
@@ -12222,6 +13122,10 @@
           "shape":"ConnectionCredentials",
           "documentation":"<p>Connection credentials.</p>"
         },
+        "configurations":{
+          "shape":"Configurations",
+          "documentation":"<p>The configurations of the connection.</p>"
+        },
         "connectionId":{
           "shape":"ConnectionId",
           "documentation":"<p>The ID of the connection.</p>"
@@ -12704,6 +13608,14 @@
         "serviceRole":{
           "shape":"RoleArn",
           "documentation":"<p>The service role of the domain.</p>"
+        },
+        "failureReasons":{
+          "shape":"FailureReasonsList",
+          "documentation":"<p>The list of failure reasons for resources that Amazon DataZone could not delete during a cascade deletion of the domain.</p>"
+        },
+        "deleteProgress":{
+          "shape":"DeleteProgress",
+          "documentation":"<p>The progress of the current domain deletion, including the number of projects that Amazon DataZone successfully deleted.</p>"
         }
       }
     },
@@ -12899,6 +13811,10 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters of the blueprint.</p>"
         },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when this blueprint was created.</p>"
@@ -12906,6 +13822,10 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when this blueprint was upated.</p>"
+        },
+        "resourceConfigurations":{
+          "shape":"ResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
         },
         "provisioningConfigurations":{
           "shape":"ProvisioningConfigurationList",
@@ -12974,6 +13894,10 @@
         "glossaryTerms":{
           "shape":"GlossaryTerms",
           "documentation":"<p>The glossary terms attached to this Amazon DataZone blueprint.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of this Amazon DataZone blueprint. The only valid value is <code>TOOLING</code>, which indicates a blueprint that provisions the tooling resources of a project.</p>"
         },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
@@ -13146,6 +14070,10 @@
         "environmentConfigurationId":{
           "shape":"EnvironmentConfigurationId",
           "documentation":"<p>The configuration ID that is used to create the environment.</p>"
+        },
+        "environmentConfigurationName":{
+          "shape":"EnvironmentConfigurationName",
+          "documentation":"<p>The configuration name that is used to create the environment.</p>"
         }
       }
     },
@@ -13517,6 +14445,14 @@
         "groupName":{
           "shape":"GroupProfileName",
           "documentation":"<p>The name of the group for which the specified group profile exists.</p>"
+        },
+        "rolePrincipalArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM role principal. This role is associated with the group profile.</p>"
+        },
+        "rolePrincipalId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the IAM role principal. This principal is associated with the group profile.</p>"
         }
       }
     },
@@ -13945,6 +14881,327 @@
         }
       }
     },
+    "GetNotebookExportInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook export exists.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"ExportId",
+          "documentation":"<p>The identifier of the notebook export.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "GetNotebookExportOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "domainId",
+        "owningProjectId",
+        "notebookId",
+        "fileFormat",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"ExportId",
+          "documentation":"<p>The identifier of the notebook export.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "fileFormat":{
+          "shape":"FileFormat",
+          "documentation":"<p>The file format of the notebook export.</p>"
+        },
+        "status":{
+          "shape":"NotebookExportStatus",
+          "documentation":"<p>The status of the notebook export.</p>"
+        },
+        "outputLocation":{
+          "shape":"OutputLocation",
+          "documentation":"<p>The output location of the exported notebook in Amazon Simple Storage Service.</p>"
+        },
+        "error":{
+          "shape":"NotebookExportError",
+          "documentation":"<p>The error details if the notebook export failed.</p>"
+        },
+        "completedAt":{
+          "shape":"CompletedAt",
+          "documentation":"<p>The timestamp of when the notebook export completed.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook export was started.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who started the notebook export.</p>"
+        }
+      }
+    },
+    "GetNotebookInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook exists.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "GetNotebookOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "name",
+        "owningProjectId",
+        "domainId",
+        "cellOrder",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the notebook.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "cellOrder":{
+          "shape":"CellOrder",
+          "documentation":"<p>The ordered list of cells in the notebook.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the notebook.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook.</p>"
+        },
+        "lockedBy":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the user who locked the notebook.</p>"
+        },
+        "lockedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook was locked.</p>"
+        },
+        "lockExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook lock expires.</p>"
+        },
+        "computeId":{
+          "shape":"ComputeId",
+          "documentation":"<p>The identifier of the compute associated with the notebook.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata of the notebook.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters of the notebook.</p>"
+        },
+        "environmentConfiguration":{
+          "shape":"EnvironmentConfig",
+          "documentation":"<p>The environment configuration of the notebook.</p>"
+        },
+        "error":{
+          "shape":"NotebookError",
+          "documentation":"<p>The error details if the notebook is in a failed state.</p>"
+        },
+        "gitMetadata":{
+          "shape":"GitMetadata",
+          "documentation":"<p>The Git metadata associated with the notebook.</p>"
+        }
+      }
+    },
+    "GetNotebookRunInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook run exists.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"NotebookRunId",
+          "documentation":"<p>The identifier of the notebook run.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        }
+      }
+    },
+    "GetNotebookRunOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "domainId",
+        "owningProjectId",
+        "notebookId",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookRunId",
+          "documentation":"<p>The identifier of the notebook run.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook run.</p>"
+        },
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "scheduleId":{
+          "shape":"ScheduleId",
+          "documentation":"<p>The identifier of the schedule associated with the notebook run.</p>"
+        },
+        "status":{
+          "shape":"NotebookRunStatus",
+          "documentation":"<p>The status of the notebook run.</p>"
+        },
+        "cellOrder":{
+          "shape":"CellOrder",
+          "documentation":"<p>The ordered list of cells in the notebook run.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata of the notebook run.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters of the notebook run.</p>"
+        },
+        "computeConfiguration":{
+          "shape":"ComputeConfig",
+          "documentation":"<p>The compute configuration of the notebook run.</p>"
+        },
+        "networkConfiguration":{
+          "shape":"NetworkConfig",
+          "documentation":"<p>The network configuration of the notebook run.</p>"
+        },
+        "timeoutConfiguration":{
+          "shape":"TimeoutConfig",
+          "documentation":"<p>The timeout configuration of the notebook run.</p>"
+        },
+        "environmentConfiguration":{
+          "shape":"EnvironmentConfig",
+          "documentation":"<p>The environment configuration of the notebook run, including image version and package settings.</p>"
+        },
+        "storageConfiguration":{
+          "shape":"StorageConfig",
+          "documentation":"<p>The storage configuration of the notebook run, including the Amazon Simple Storage Service path and KMS key ARN.</p>"
+        },
+        "notificationConfiguration":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>The notification configuration of the notebook run, including the notebook run states that trigger notifications.</p>"
+        },
+        "triggerSource":{
+          "shape":"TriggerSource",
+          "documentation":"<p>The source that triggered the notebook run.</p>"
+        },
+        "error":{
+          "shape":"NotebookRunError",
+          "documentation":"<p>The error details if the notebook run failed.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook run was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook run.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook run was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook run.</p>"
+        },
+        "startedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook run started executing.</p>"
+        },
+        "completedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook run completed.</p>"
+        }
+      }
+    },
     "GetProjectInput":{
       "type":"structure",
       "required":[
@@ -14034,6 +15291,10 @@
         "environmentDeploymentDetails":{
           "shape":"EnvironmentDeploymentDetails",
           "documentation":"<p>The environment deployment status of a project.</p>"
+        },
+        "projectCategory":{
+          "shape":"String",
+          "documentation":"<p>The category of the project.</p>"
         }
       }
     },
@@ -14696,8 +15957,19 @@
           "documentation":"<p>The type of the user profile.</p>",
           "location":"querystring",
           "locationName":"type"
+        },
+        "sessionName":{
+          "shape":"GetUserProfileInputSessionNameString",
+          "documentation":"<p>The session name for IAM role sessions.</p>",
+          "location":"querystring",
+          "locationName":"sessionName"
         }
       }
+    },
+    "GetUserProfileInputSessionNameString":{
+      "type":"string",
+      "max":64,
+      "min":2
     },
     "GetUserProfileOutput":{
       "type":"structure",
@@ -14723,6 +15995,180 @@
           "documentation":"<p>The user profile details.</p>"
         }
       }
+    },
+    "GitBranch":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "sensitive":true
+    },
+    "GitConnectionId":{
+      "type":"string",
+      "max":40,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_-]+"
+    },
+    "GitMetadata":{
+      "type":"structure",
+      "required":[
+        "connectionId",
+        "repository",
+        "branch",
+        "commitHash"
+      ],
+      "members":{
+        "connectionId":{
+          "shape":"GitConnectionId",
+          "documentation":"<p>The identifier of the Git connection.</p>"
+        },
+        "repository":{
+          "shape":"GitRepository",
+          "documentation":"<p>The name of the Git repository.</p>"
+        },
+        "branch":{
+          "shape":"GitBranch",
+          "documentation":"<p>The name of the Git branch.</p>"
+        },
+        "commitHash":{
+          "shape":"CommitHash",
+          "documentation":"<p>The commit hash in the Git repository.</p>"
+        },
+        "fileName":{
+          "shape":"FileName",
+          "documentation":"<p>The name of the file in the Git repository.</p>"
+        },
+        "committedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the commit was made.</p>"
+        },
+        "commitMessage":{
+          "shape":"CommitMessage",
+          "documentation":"<p>The commit message associated with the Git commit.</p>"
+        }
+      },
+      "documentation":"<p>The Git metadata for a notebook sync operation in Amazon SageMaker Unified Studio. Contains information about the Git repository, branch, and commit associated with the notebook.</p>"
+    },
+    "GitPropertiesInput":{
+      "type":"structure",
+      "required":[
+        "codeConnectionArn",
+        "repositoryId",
+        "defaultBranch"
+      ],
+      "members":{
+        "codeConnectionArn":{
+          "shape":"GitPropertiesInputCodeConnectionArnString",
+          "documentation":"<p>The ARN of the CodeConnections connection used to connect to the Git repository.</p>"
+        },
+        "repositoryId":{
+          "shape":"GitPropertiesInputRepositoryIdString",
+          "documentation":"<p>The ID of the Git repository. This is the owner and repository name, for example, owner/repo-name.</p>"
+        },
+        "defaultBranch":{
+          "shape":"GitPropertiesInputDefaultBranchString",
+          "documentation":"<p>The default branch of the Git repository.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Git connection properties that you specify when creating a Git connection.</p>"
+    },
+    "GitPropertiesInputCodeConnectionArnString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[^:]*:(codeconnections|codestar-connections):[a-z0-9\\-]+:\\d{12}:connection/[a-f0-9\\-]+"
+    },
+    "GitPropertiesInputDefaultBranchString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9._\\-/]+"
+    },
+    "GitPropertiesInputRepositoryIdString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9._\\-]+(/[a-zA-Z0-9._\\-]+)+"
+    },
+    "GitPropertiesOutput":{
+      "type":"structure",
+      "required":[
+        "codeConnectionArn",
+        "repositoryId",
+        "defaultBranch"
+      ],
+      "members":{
+        "codeConnectionArn":{
+          "shape":"GitPropertiesOutputCodeConnectionArnString",
+          "documentation":"<p>The ARN of the CodeConnections connection used to connect to the Git repository.</p>"
+        },
+        "repositoryId":{
+          "shape":"GitPropertiesOutputRepositoryIdString",
+          "documentation":"<p>The ID of the Git repository. This is the owner and repository name, for example, owner/repo-name.</p>"
+        },
+        "defaultBranch":{
+          "shape":"GitPropertiesOutputDefaultBranchString",
+          "documentation":"<p>The default branch of the Git repository.</p>"
+        },
+        "status":{
+          "shape":"ConnectionStatus",
+          "documentation":"<p>The status of the Git connection.</p>"
+        },
+        "errorMessage":{
+          "shape":"String",
+          "documentation":"<p>The error message that describes why the Git connection failed. This member is populated when the connection status is CREATE_FAILED or UPDATE_FAILED.</p>"
+        }
+      },
+      "documentation":"<p>The properties of a Git connection returned by get and list operations, including connection status and any error details.</p>"
+    },
+    "GitPropertiesOutputCodeConnectionArnString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[^:]*:(codeconnections|codestar-connections):[a-z0-9\\-]+:\\d{12}:connection/[a-f0-9\\-]+"
+    },
+    "GitPropertiesOutputDefaultBranchString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9._\\-/]+"
+    },
+    "GitPropertiesOutputRepositoryIdString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9._\\-]+(/[a-zA-Z0-9._\\-]+)+"
+    },
+    "GitPropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "codeConnectionArn":{
+          "shape":"GitPropertiesPatchCodeConnectionArnString",
+          "documentation":"<p>The ARN of the CodeConnections connection used to connect to the Git repository.</p>"
+        },
+        "defaultBranch":{
+          "shape":"GitPropertiesPatchDefaultBranchString",
+          "documentation":"<p>The default branch of the Git repository.</p>"
+        }
+      },
+      "documentation":"<p>The properties used to update an existing Git connection, such as the CodeConnections ARN or the default branch.</p>"
+    },
+    "GitPropertiesPatchCodeConnectionArnString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"arn:aws[^:]*:(codeconnections|codestar-connections):[a-z0-9\\-]+:\\d{12}:connection/[a-f0-9\\-]+"
+    },
+    "GitPropertiesPatchDefaultBranchString":{
+      "type":"string",
+      "max":256,
+      "min":0,
+      "pattern":"[a-zA-Z0-9._\\-/]+"
+    },
+    "GitRepository":{
+      "type":"string",
+      "max":512,
+      "min":1,
+      "sensitive":true
     },
     "GlobalParameterMap":{
       "type":"map",
@@ -15104,6 +16550,17 @@
       "max":255,
       "min":1
     },
+    "GlueConnectionName":{
+      "type":"string",
+      "max":64,
+      "min":0
+    },
+    "GlueConnectionNames":{
+      "type":"list",
+      "member":{"shape":"GlueConnectionName"},
+      "max":16,
+      "min":1
+    },
     "GlueConnectionPatch":{
       "type":"structure",
       "members":{
@@ -15358,6 +16815,10 @@
       "documentation":"<p>The details of a listing for which a subscription is to be granted.</p>",
       "union":true
     },
+    "GraphEntityType":{
+      "type":"string",
+      "enum":["LINEAGE_NODE"]
+    },
     "GreaterThanExpression":{
       "type":"structure",
       "required":[
@@ -15460,6 +16921,14 @@
         "groupName":{
           "shape":"GroupProfileName",
           "documentation":"<p>The group name of a group profile.</p>"
+        },
+        "rolePrincipalArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM role principal. This role is associated with the group profile.</p>"
+        },
+        "rolePrincipalId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the IAM role principal. This principal is associated with the group profile.</p>"
         }
       },
       "documentation":"<p>The details of a group profile.</p>"
@@ -15474,7 +16943,8 @@
       "type":"string",
       "enum":[
         "SSO_GROUP",
-        "DATAZONE_SSO_GROUP"
+        "DATAZONE_SSO_GROUP",
+        "IAM_ROLE_SESSION_GROUP"
       ]
     },
     "HyperPodOrchestrator":{
@@ -15531,6 +17001,10 @@
         "glueLineageSyncEnabled":{
           "shape":"Boolean",
           "documentation":"<p>Specifies whether Amazon Web Services Glue lineage sync is enabled for a connection.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the IAM role to associate with the connection as the project user role. To use this operation, you must have <code>iam:PassRole</code> permission for this role.</p>"
         }
       },
       "documentation":"<p>The IAM properties of a connection.</p>"
@@ -15573,9 +17047,32 @@
         "principalId":{
           "shape":"String",
           "documentation":"<p>The principal ID as part of the IAM user profile details.</p>"
+        },
+        "sessionName":{
+          "shape":"String",
+          "documentation":"<p>The session name for IAM role sessions.</p>"
+        },
+        "groupProfileId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the group profile associated with the IAM user profile. This links the user to a specific group profile within the Amazon DataZone domain.</p>"
         }
       },
       "documentation":"<p>The details of the IAM user profile.</p>"
+    },
+    "IdentityMapping":{
+      "type":"structure",
+      "required":["usernameAttribute"],
+      "members":{
+        "usernameAttribute":{
+          "shape":"String",
+          "documentation":"<p>The username attribute used for the identity mapping.</p>"
+        },
+        "prefix":{
+          "shape":"String",
+          "documentation":"<p>The prefix used for the identity mapping.</p>"
+        }
+      },
+      "documentation":"<p>Contains the configuration for mapping user identities to Snowflake users, including the username attribute and optional prefix applied during the mapping.</p>"
     },
     "Import":{
       "type":"structure",
@@ -15618,6 +17115,10 @@
         }
       },
       "documentation":"<p>Specifies whether values are in the expression.</p>"
+    },
+    "InstanceType":{
+      "type":"string",
+      "pattern":"(ml|sc)\\.[a-z][0-9]+[a-z]*\\.[a-z0-9]+"
     },
     "Integer":{
       "type":"integer",
@@ -15792,6 +17293,36 @@
       },
       "documentation":"<p>The Lake Formation configuration of the Data Lake blueprint.</p>"
     },
+    "LakehousePropertiesInput":{
+      "type":"structure",
+      "members":{
+        "glueLineageSyncEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to enable Glue lineage sync for tables managed by Glue crawlers.</p>"
+        }
+      },
+      "documentation":"<p>The lakehouse properties of a connection.</p>"
+    },
+    "LakehousePropertiesOutput":{
+      "type":"structure",
+      "members":{
+        "glueLineageSyncEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether Glue lineage sync is enabled for tables managed by Glue crawlers.</p>"
+        }
+      },
+      "documentation":"<p>The lakehouse properties of a connection.</p>"
+    },
+    "LakehousePropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "glueLineageSyncEnabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to enable Glue lineage sync for tables managed by Glue crawlers.</p>"
+        }
+      },
+      "documentation":"<p>The lakehouse properties of a connection properties patch.</p>"
+    },
     "LambdaExecutionRoleArn":{
       "type":"string",
       "pattern":"arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*"
@@ -15951,6 +17482,81 @@
       "type":"string",
       "max":2086,
       "min":1
+    },
+    "LineageNodeIds":{
+      "type":"list",
+      "member":{"shape":"LineageNodeId"}
+    },
+    "LineageNodeItem":{
+      "type":"structure",
+      "required":[
+        "domainId",
+        "id",
+        "typeName"
+      ],
+      "members":{
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The ID of the domain of the data lineage node.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the data lineage node.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the data lineage node.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp at which the data lineage node was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The user who created the data lineage node.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp at which the data lineage node was updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The user who updated the data lineage node.</p>"
+        },
+        "id":{
+          "shape":"LineageNodeId",
+          "documentation":"<p>The ID of the data lineage node.</p>"
+        },
+        "typeName":{
+          "shape":"String",
+          "documentation":"<p>The name of the type of the data lineage node.</p>"
+        },
+        "typeRevision":{
+          "shape":"Revision",
+          "documentation":"<p>The type of the revision of the data lineage node.</p>"
+        },
+        "sourceIdentifier":{
+          "shape":"String",
+          "documentation":"<p>The alternate ID of the data lineage node.</p>"
+        },
+        "eventTimestamp":{
+          "shape":"Timestamp",
+          "documentation":"<p>The event timestamp of the data lineage node.</p>"
+        },
+        "formsOutput":{
+          "shape":"FormOutputList",
+          "documentation":"<p>The forms included in the additional attributes of a data lineage node.</p>"
+        },
+        "upstreamLineageNodeIds":{
+          "shape":"LineageNodeIds",
+          "documentation":"<p>The IDs of the upstream data lineage nodes.</p>"
+        },
+        "downstreamLineageNodeIds":{
+          "shape":"LineageNodeIds",
+          "documentation":"<p>The IDs of the downstream data lineage nodes.</p>"
+        }
+      },
+      "documentation":"<p>The summary and output forms of a LineageNode</p>"
     },
     "LineageNodeReference":{
       "type":"structure",
@@ -16118,6 +17724,47 @@
       },
       "documentation":"<p>The SQL query run details of a data lineage run.</p>"
     },
+    "LineageSyncInput":{
+      "type":"structure",
+      "required":["enabled"],
+      "members":{
+        "timezone":{
+          "shape":"Timezone",
+          "documentation":"<p>The timezone of the lineage sync schedule.</p>"
+        },
+        "enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether lineage sync is enabled.</p>"
+        },
+        "schedule":{
+          "shape":"LineageSyncScheduleCronString",
+          "documentation":"<p>The schedule of the lineage sync.</p>"
+        }
+      },
+      "documentation":"<p>Contains the settings for configuring lineage sync on a Snowflake connection, including the schedule, timezone, and enabled state.</p>"
+    },
+    "LineageSyncOutput":{
+      "type":"structure",
+      "members":{
+        "lineageJobId":{
+          "shape":"String",
+          "documentation":"<p>The ID of the lineage sync job.</p>"
+        },
+        "timezone":{
+          "shape":"Timezone",
+          "documentation":"<p>The timezone of the lineage sync schedule.</p>"
+        },
+        "enabled":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether lineage sync is enabled.</p>"
+        },
+        "schedule":{
+          "shape":"LineageSyncScheduleCronString",
+          "documentation":"<p>The schedule of the lineage sync.</p>"
+        }
+      },
+      "documentation":"<p>Contains the current state of lineage sync for a Snowflake connection, including the schedule, timezone, enabled state, and the ID of the associated lineage job.</p>"
+    },
     "LineageSyncSchedule":{
       "type":"structure",
       "members":{
@@ -16127,6 +17774,13 @@
         }
       },
       "documentation":"<p>The lineage sync schedule.</p>"
+    },
+    "LineageSyncScheduleCronString":{
+      "type":"string",
+      "documentation":"<p>The cron expression for the lineage sync schedule.</p>",
+      "max":256,
+      "min":1,
+      "pattern":"cron\\((\\b[0-5]?[0-9]\\b) ([*]|\\b2[0-3]\\b|\\b[0-1]?[0-9]\\b) ([-?*,/\\dLW]){1,83} ([-*,/\\d]|[a-zA-Z]{3}){1,23} ([-?#*,/\\dL]|[a-zA-Z]{3}){1,13} ([^\\)]+)\\)"
     },
     "LineageSyncScheduleScheduleString":{
       "type":"string",
@@ -17322,6 +18976,146 @@
         }
       }
     },
+    "ListNotebookRunsInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "owningProjectIdentifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which to list notebook runs.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook runs.</p>",
+          "location":"querystring",
+          "locationName":"owningProjectIdentifier"
+        },
+        "notebookIdentifier":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook to filter runs by.</p>",
+          "location":"querystring",
+          "locationName":"notebookIdentifier"
+        },
+        "status":{
+          "shape":"NotebookRunStatus",
+          "documentation":"<p>The status to filter notebook runs by.</p>",
+          "location":"querystring",
+          "locationName":"status"
+        },
+        "scheduleIdentifier":{
+          "shape":"ScheduleId",
+          "documentation":"<p>The identifier of the schedule to filter notebook runs by.</p>",
+          "location":"querystring",
+          "locationName":"scheduleIdentifier"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of notebook runs to return in a single call. When the number of notebook runs exceeds the value of <code>MaxResults</code>, the response contains a <code>NextToken</code> value.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "sortOrder":{
+          "shape":"SortOrder",
+          "documentation":"<p>The sort order for the results.</p>",
+          "location":"querystring",
+          "locationName":"sortOrder"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>When the number of notebook runs is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of notebook runs, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>ListNotebookRuns</code> to list the next set of notebook runs.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "ListNotebookRunsOutput":{
+      "type":"structure",
+      "members":{
+        "items":{
+          "shape":"NotebookRunSummaryList",
+          "documentation":"<p>The results of the <code>ListNotebookRuns</code> action.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>When the number of notebook runs is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of notebook runs, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>ListNotebookRuns</code> to list the next set of notebook runs.</p>"
+        }
+      }
+    },
+    "ListNotebooksInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "owningProjectIdentifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which to list notebooks.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebooks.</p>",
+          "location":"querystring",
+          "locationName":"owningProjectIdentifier"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of notebooks to return in a single call. When the number of notebooks exceeds the value of <code>MaxResults</code>, the response contains a <code>NextToken</code> value.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "sortOrder":{
+          "shape":"SortOrder",
+          "documentation":"<p>The sort order for the results.</p>",
+          "location":"querystring",
+          "locationName":"sortOrder"
+        },
+        "sortBy":{
+          "shape":"SortKey",
+          "documentation":"<p>The field to sort the results by.</p>",
+          "location":"querystring",
+          "locationName":"sortBy"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status to filter notebooks by.</p>",
+          "location":"querystring",
+          "locationName":"status"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type to filter notebooks by.</p>",
+          "location":"querystring",
+          "locationName":"type"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>When the number of notebooks is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of notebooks, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>ListNotebooks</code> to list the next set of notebooks.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        }
+      }
+    },
+    "ListNotebooksOutput":{
+      "type":"structure",
+      "members":{
+        "items":{
+          "shape":"NotebookSummaryList",
+          "documentation":"<p>The results of the <code>ListNotebooks</code> action.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>When the number of notebooks is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of notebooks, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>ListNotebooks</code> to list the next set of notebooks.</p>"
+        }
+      }
+    },
     "ListNotificationsInput":{
       "type":"structure",
       "required":[
@@ -17594,6 +19388,12 @@
           "documentation":"<p>The name of the project.</p>",
           "location":"querystring",
           "locationName":"name"
+        },
+        "projectCategory":{
+          "shape":"String",
+          "documentation":"<p>A parameter to filter projects by their category.</p>",
+          "location":"querystring",
+          "locationName":"projectCategory"
         },
         "nextToken":{
           "shape":"PaginationToken",
@@ -18328,6 +20128,27 @@
         "USE_ASSET_TYPE"
       ]
     },
+    "MatchClause":{
+      "type":"structure",
+      "members":{
+        "relationPattern":{
+          "shape":"RelationPattern",
+          "documentation":"<p>The pattern describing the query's relational traversal.</p>"
+        },
+        "entityPattern":{
+          "shape":"EntityPattern",
+          "documentation":"<p>The pattern describing the entities for the query to traverse.</p>"
+        }
+      },
+      "documentation":"<p>A clause to match a query pattern</p>",
+      "union":true
+    },
+    "MatchClauses":{
+      "type":"list",
+      "member":{"shape":"MatchClause"},
+      "max":2,
+      "min":2
+    },
     "MatchCriteria":{
       "type":"list",
       "member":{"shape":"String"},
@@ -18414,6 +20235,13 @@
       "max":16384,
       "min":0,
       "sensitive":true
+    },
+    "Metadata":{
+      "type":"map",
+      "key":{"shape":"MetadataKey"},
+      "value":{"shape":"MetadataValue"},
+      "max":50,
+      "min":0
     },
     "MetadataFormEnforcementDetail":{
       "type":"structure",
@@ -18612,10 +20440,21 @@
       "type":"string",
       "enum":["ASSET"]
     },
+    "MetadataKey":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
     "MetadataMap":{
       "type":"map",
       "key":{"shape":"String"},
       "value":{"shape":"String"}
+    },
+    "MetadataValue":{
+      "type":"string",
+      "max":1024,
+      "min":0,
+      "sensitive":true
     },
     "MlflowPropertiesInput":{
       "type":"structure",
@@ -18683,6 +20522,37 @@
       "type":"list",
       "member":{"shape":"NameIdentifier"}
     },
+    "NetworkAccessType":{
+      "type":"string",
+      "documentation":"<p>The network access type for a notebook run in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "PUBLIC_INTERNET_ONLY",
+        "VPC_ONLY"
+      ]
+    },
+    "NetworkConfig":{
+      "type":"structure",
+      "required":["networkAccessType"],
+      "members":{
+        "networkAccessType":{
+          "shape":"NetworkAccessType",
+          "documentation":"<p>The network access type for the notebook run. Valid values are <code>PUBLIC_INTERNET_ONLY</code> and <code>VPC_ONLY</code>.</p>"
+        },
+        "vpcId":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the VPC for the notebook run. This is required when the network access type is <code>VPC_ONLY</code>.</p>"
+        },
+        "subnetIds":{
+          "shape":"SubnetIds",
+          "documentation":"<p>The identifiers of the subnets for the notebook run. You can specify up to 10 subnets.</p>"
+        },
+        "securityGroupIds":{
+          "shape":"SecurityGroupIds",
+          "documentation":"<p>The identifiers of the security groups for the notebook run. You can specify up to 5 security groups.</p>"
+        }
+      },
+      "documentation":"<p>The network configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
     "NotEqualToExpression":{
       "type":"structure",
       "required":[
@@ -18736,6 +20606,256 @@
         }
       },
       "documentation":"<p>Specifies that a value might be not like the expression.</p>"
+    },
+    "NotebookError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"NotebookErrorMessageString",
+          "documentation":"<p>The error message. The maximum length is 256 characters.</p>"
+        }
+      },
+      "documentation":"<p>The error details of a notebook in Amazon SageMaker Unified Studio.</p>"
+    },
+    "NotebookErrorMessageString":{
+      "type":"string",
+      "max":256,
+      "min":0
+    },
+    "NotebookExportError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"NotebookExportErrorMessageString",
+          "documentation":"<p>The error message. The maximum length is 256 characters.</p>"
+        }
+      },
+      "documentation":"<p>The error details of a failed notebook export in Amazon SageMaker Unified Studio.</p>"
+    },
+    "NotebookExportErrorMessageString":{
+      "type":"string",
+      "max":256,
+      "min":0
+    },
+    "NotebookExportStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a notebook export in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "IN_PROGRESS",
+        "SUCCEEDED",
+        "FAILED"
+      ]
+    },
+    "NotebookId":{
+      "type":"string",
+      "pattern":"[a-zA-Z0-9_-]{1,36}"
+    },
+    "NotebookName":{
+      "type":"string",
+      "max":256,
+      "min":1,
+      "sensitive":true
+    },
+    "NotebookRunError":{
+      "type":"structure",
+      "required":["message"],
+      "members":{
+        "message":{
+          "shape":"NotebookRunErrorMessageString",
+          "documentation":"<p>The error message. The maximum length is 1024 characters.</p>"
+        }
+      },
+      "documentation":"<p>The error details of a failed notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
+    "NotebookRunErrorMessageString":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "NotebookRunId":{
+      "type":"string",
+      "pattern":"[a-zA-Z0-9_-]{1,36}"
+    },
+    "NotebookRunStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a notebook run in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "QUEUED",
+        "STARTING",
+        "RUNNING",
+        "STOPPING",
+        "STOPPED",
+        "SUCCEEDED",
+        "FAILED"
+      ]
+    },
+    "NotebookRunSummary":{
+      "type":"structure",
+      "required":[
+        "id",
+        "domainId",
+        "owningProjectId",
+        "notebookId",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookRunId",
+          "documentation":"<p>The identifier of the notebook run.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook run.</p>"
+        },
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "scheduleId":{
+          "shape":"ScheduleId",
+          "documentation":"<p>The identifier of the schedule associated with the notebook run.</p>"
+        },
+        "status":{
+          "shape":"NotebookRunStatus",
+          "documentation":"<p>The status of the notebook run.</p>"
+        },
+        "triggerSource":{
+          "shape":"TriggerSource",
+          "documentation":"<p>The source that triggered the notebook run.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook run was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook run.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook run was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook run.</p>"
+        },
+        "startedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook run started executing.</p>"
+        },
+        "completedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook run completed.</p>"
+        }
+      },
+      "documentation":"<p>The summary of a notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
+    "NotebookRunSummaryList":{
+      "type":"list",
+      "member":{"shape":"NotebookRunSummary"}
+    },
+    "NotebookS3Uri":{
+      "type":"string",
+      "max":1024,
+      "min":6,
+      "pattern":"s3://.+",
+      "sensitive":true
+    },
+    "NotebookStatus":{
+      "type":"string",
+      "documentation":"<p>The status of a notebook in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "ACTIVE",
+        "ARCHIVED",
+        "SYNC_IN_PROGRESS",
+        "SYNC_FAILED"
+      ]
+    },
+    "NotebookSummary":{
+      "type":"structure",
+      "required":[
+        "id",
+        "name",
+        "owningProjectId",
+        "domainId",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the notebook.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the notebook.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook.</p>"
+        }
+      },
+      "documentation":"<p>The summary of a notebook in Amazon SageMaker Unified Studio.</p>"
+    },
+    "NotebookSummaryList":{
+      "type":"list",
+      "member":{"shape":"NotebookSummary"}
+    },
+    "NotebookType":{
+      "type":"string",
+      "documentation":"<p>The type of a notebook in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "DATA",
+        "SQL"
+      ]
+    },
+    "NotificationConfig":{
+      "type":"structure",
+      "required":["notifyOn"],
+      "members":{
+        "notifyOn":{
+          "shape":"NotifyOnStates",
+          "documentation":"<p>Notebook run states that trigger notifications. Ordering is not significant.</p>"
+        }
+      },
+      "documentation":"<p>The notification configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
     },
     "NotificationOutput":{
       "type":"structure",
@@ -18849,6 +20969,25 @@
       "type":"list",
       "member":{"shape":"NotificationOutput"}
     },
+    "NotifyOnState":{
+      "type":"string",
+      "documentation":"<p>A notebook run state that triggers a notification in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "SUCCEEDED",
+        "FAILED",
+        "STOPPED",
+        "QUEUED",
+        "STARTING",
+        "RUNNING",
+        "STOPPING"
+      ]
+    },
+    "NotifyOnStates":{
+      "type":"list",
+      "member":{"shape":"NotifyOnState"},
+      "max":7,
+      "min":0
+    },
     "OAuth2ClientApplication":{
       "type":"structure",
       "members":{
@@ -18956,6 +21095,17 @@
         "OTHER"
       ]
     },
+    "OutputLocation":{
+      "type":"structure",
+      "members":{
+        "s3":{
+          "shape":"S3Destination",
+          "documentation":"<p>The Amazon Simple Storage Service destination for the notebook export.</p>"
+        }
+      },
+      "documentation":"<p>The output location for a notebook export in Amazon SageMaker Unified Studio.</p>",
+      "union":true
+    },
     "OverallDeploymentStatus":{
       "type":"string",
       "enum":[
@@ -19058,15 +21208,58 @@
       },
       "documentation":"<p>The properties of the owner user.</p>"
     },
+    "PackageConfig":{
+      "type":"structure",
+      "required":["packageManager"],
+      "members":{
+        "packageManager":{
+          "shape":"PackageManager",
+          "documentation":"<p>The package manager for the notebook run environment. The default value is <code>UV</code>.</p>"
+        },
+        "packageSpecification":{
+          "shape":"PackageConfigPackageSpecificationString",
+          "documentation":"<p>The package specification content for the notebook run environment. The maximum length is 10240 characters.</p>"
+        }
+      },
+      "documentation":"<p>The package configuration for a notebook run environment in Amazon SageMaker Unified Studio.</p>"
+    },
+    "PackageConfigPackageSpecificationString":{
+      "type":"string",
+      "max":10240,
+      "min":0
+    },
+    "PackageManager":{
+      "type":"string",
+      "documentation":"<p>The package manager for a notebook run environment in Amazon SageMaker Unified Studio.</p>",
+      "enum":["UV"]
+    },
     "PaginationToken":{
       "type":"string",
       "max":8192,
       "min":1
     },
+    "ParameterKey":{
+      "type":"string",
+      "max":128,
+      "min":0
+    },
     "ParameterStorePath":{
       "type":"string",
       "max":2048,
       "min":1
+    },
+    "ParameterValue":{
+      "type":"string",
+      "max":1024,
+      "min":0
+    },
+    "Parameters":{
+      "type":"map",
+      "key":{"shape":"ParameterKey"},
+      "value":{"shape":"ParameterValue"},
+      "max":50,
+      "min":0,
+      "sensitive":true
     },
     "Password":{
       "type":"string",
@@ -19122,6 +21315,10 @@
         "glueConnectionName":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services Glue connection name.</p>"
+        },
+        "glueConnectionNames":{
+          "shape":"GlueConnectionNames",
+          "documentation":"<p>The Amazon Web Services Glue connection names in the physical endpoint.</p>"
         },
         "glueConnection":{
           "shape":"GlueConnection",
@@ -19447,6 +21644,28 @@
       "type":"list",
       "member":{"shape":"ProjectMember"}
     },
+    "ProjectMembershipAssignment":{
+      "type":"structure",
+      "required":[
+        "member",
+        "designation"
+      ],
+      "members":{
+        "member":{
+          "shape":"Member",
+          "documentation":"<p>The details about a project member.</p>"
+        },
+        "designation":{
+          "shape":"UserDesignation",
+          "documentation":"<p>The designation of the project membership.</p>"
+        }
+      },
+      "documentation":"<p>A map of user or group profiles to designations that need to be assigned in the project.</p>"
+    },
+    "ProjectMembershipAssignments":{
+      "type":"list",
+      "member":{"shape":"ProjectMembershipAssignment"}
+    },
     "ProjectName":{
       "type":"string",
       "max":64,
@@ -19609,6 +21828,10 @@
         "domainUnitId":{
           "shape":"DomainUnitId",
           "documentation":"<p>The ID of the domain unit.</p>"
+        },
+        "projectCategory":{
+          "shape":"String",
+          "documentation":"<p>The category of the project.</p>"
         }
       },
       "documentation":"<p>The details of a Amazon DataZone project.</p>"
@@ -19753,6 +21976,14 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters in the environment blueprint.</p>"
         },
+        "resourceConfigurations":{
+          "shape":"PutResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
+        },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "globalParameters":{
           "shape":"GlobalParameterMap",
           "documentation":"<p>Region-agnostic environment blueprint parameters. </p>"
@@ -19798,6 +22029,10 @@
           "shape":"RegionalParameterMap",
           "documentation":"<p>The regional parameters in the environment blueprint.</p>"
         },
+        "allowUserProvidedConfigurations":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether user-provided resource configurations are allowed for the environment blueprint.</p>"
+        },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the environment blueprint was created.</p>"
@@ -19806,9 +22041,99 @@
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the environment blueprint was updated.</p>"
         },
+        "resourceConfigurations":{
+          "shape":"ResourceConfigurations",
+          "documentation":"<p>The resource configurations of the environment blueprint.</p>"
+        },
         "provisioningConfigurations":{
           "shape":"ProvisioningConfigurationList",
           "documentation":"<p>The provisioning configuration of a blueprint.</p>"
+        }
+      }
+    },
+    "PutResourceConfiguration":{
+      "type":"structure",
+      "required":[
+        "name",
+        "region",
+        "parameters"
+      ],
+      "members":{
+        "name":{
+          "shape":"PutResourceConfigurationNameString",
+          "documentation":"<p>The name of the resource configuration.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the resource configuration.</p>"
+        },
+        "region":{
+          "shape":"RegionName",
+          "documentation":"<p>The Amazon Web Services Region of the resource configuration.</p>"
+        },
+        "parameters":{
+          "shape":"ResourceConfigurationParameterMap",
+          "documentation":"<p>The parameters of the resource configuration.</p>"
+        }
+      },
+      "documentation":"<p>The resource configuration that is used to configure the environment blueprint.</p>"
+    },
+    "PutResourceConfigurationNameString":{
+      "type":"string",
+      "max":64,
+      "min":1
+    },
+    "PutResourceConfigurations":{
+      "type":"list",
+      "member":{"shape":"PutResourceConfiguration"},
+      "max":10,
+      "min":0
+    },
+    "QueryGraphInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "match"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon DataZone domain.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "match":{
+          "shape":"MatchClauses",
+          "documentation":"<p>List of query match clauses.</p>"
+        },
+        "maxResults":{
+          "shape":"MaxResults",
+          "documentation":"<p>The maximum number of entities to return in a single call to <code>QueryGraph</code>. When the number of entities to be listed is greater than the value of <code>MaxResults</code>, the response contains a <code>NextToken</code> value that you can use in a subsequent call to <code>QueryGraph</code> to list the next set of entities.</p>",
+          "location":"querystring",
+          "locationName":"maxResults"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>When the number of entities is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of entities, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>QueryGraph</code> to list the next set of entities.</p>",
+          "location":"querystring",
+          "locationName":"nextToken"
+        },
+        "additionalAttributes":{
+          "shape":"AdditionalAttributes",
+          "documentation":"<p>Additional details on the queried entity that can be requested in the response.</p>"
+        }
+      }
+    },
+    "QueryGraphOutput":{
+      "type":"structure",
+      "members":{
+        "items":{
+          "shape":"ResultItemList",
+          "documentation":"<p>The results of the <code>QueryGraph</code> action.</p>"
+        },
+        "nextToken":{
+          "shape":"PaginationToken",
+          "documentation":"<p>When the number of entities is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of entities, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>QueryGraph</code> to list the next set of entities.</p>"
         }
       }
     },
@@ -20405,6 +22730,45 @@
       "max":1,
       "min":1
     },
+    "RelationDirection":{
+      "type":"string",
+      "enum":[
+        "IN",
+        "OUT"
+      ]
+    },
+    "RelationPattern":{
+      "type":"structure",
+      "required":[
+        "relationType",
+        "relationDirection"
+      ],
+      "members":{
+        "relationType":{
+          "shape":"RelationType",
+          "documentation":"<p>The type of relation to query.</p>"
+        },
+        "relationDirection":{
+          "shape":"RelationDirection",
+          "documentation":"<p>The direction to query.</p>"
+        },
+        "maxPathLength":{
+          "shape":"RelationPatternMaxPathLengthInteger",
+          "documentation":"<p>The number of hops to query.</p>"
+        }
+      },
+      "documentation":"<p>The pattern describing the query's relational traversal.</p>"
+    },
+    "RelationPatternMaxPathLengthInteger":{
+      "type":"integer",
+      "box":true,
+      "max":5,
+      "min":1
+    },
+    "RelationType":{
+      "type":"string",
+      "enum":["LINEAGE"]
+    },
     "RelationalFilterConfiguration":{
       "type":"structure",
       "required":["databaseName"],
@@ -20573,6 +22937,49 @@
       },
       "documentation":"<p>The details of a provisioned resource of this Amazon DataZone environment.</p>"
     },
+    "ResourceConfiguration":{
+      "type":"structure",
+      "required":[
+        "identifier",
+        "name",
+        "region",
+        "parameters"
+      ],
+      "members":{
+        "identifier":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the resource configuration.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the resource configuration.</p>"
+        },
+        "description":{
+          "shape":"String",
+          "documentation":"<p>The description of the resource configuration.</p>"
+        },
+        "region":{
+          "shape":"RegionName",
+          "documentation":"<p>The Amazon Web Services Region of the resource configuration.</p>"
+        },
+        "parameters":{
+          "shape":"ResourceConfigurationParameterMap",
+          "documentation":"<p>The parameters of the resource configuration.</p>"
+        }
+      },
+      "documentation":"<p>The details of the resource configuration.</p>"
+    },
+    "ResourceConfigurationParameterMap":{
+      "type":"map",
+      "key":{"shape":"String"},
+      "value":{"shape":"String"}
+    },
+    "ResourceConfigurations":{
+      "type":"list",
+      "member":{"shape":"ResourceConfiguration"},
+      "max":10,
+      "min":0
+    },
     "ResourceList":{
       "type":"list",
       "member":{"shape":"Resource"}
@@ -20648,6 +23055,21 @@
       "member":{"shape":"ResourceTag"},
       "max":25,
       "min":0
+    },
+    "ResultItem":{
+      "type":"structure",
+      "members":{
+        "lineageNode":{
+          "shape":"LineageNodeItem",
+          "documentation":"<p>Resulting data lineage node from the query.</p>"
+        }
+      },
+      "documentation":"<p>Resulting entity from the query.</p>",
+      "union":true
+    },
+    "ResultItemList":{
+      "type":"list",
+      "member":{"shape":"ResultItem"}
     },
     "Revision":{
       "type":"string",
@@ -20746,7 +23168,7 @@
     },
     "RoleArn":{
       "type":"string",
-      "pattern":"arn:aws[^:]*:iam::\\d{12}:(role|role/service-role)/[\\w+=,.@-]*"
+      "pattern":"arn:aws[^:]*:iam::\\d{12}:role(/[a-zA-Z0-9+=,.@_-]+)*/[a-zA-Z0-9+=,.@_-]+"
     },
     "RowFilter":{
       "type":"structure",
@@ -21017,6 +23439,58 @@
       "min":0,
       "pattern":"[a-zA-Z0-9\\-]+"
     },
+    "S3BucketName":{
+      "type":"string",
+      "max":63,
+      "min":3,
+      "pattern":"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]",
+      "sensitive":true
+    },
+    "S3Destination":{
+      "type":"structure",
+      "members":{
+        "uri":{
+          "shape":"NotebookS3Uri",
+          "documentation":"<p>The Amazon Simple Storage Service URI of the exported notebook.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon Simple Storage Service destination for a notebook export in Amazon SageMaker Unified Studio.</p>"
+    },
+    "S3File":{
+      "type":"structure",
+      "required":["key"],
+      "members":{
+        "key":{
+          "shape":"S3ObjectKey",
+          "documentation":"<p>The key of the Amazon Simple Storage Service object to import.</p>"
+        }
+      },
+      "documentation":"<p>A single Amazon Simple Storage Service object to import as a notebook cell.</p>"
+    },
+    "S3FileList":{
+      "type":"list",
+      "member":{"shape":"S3File"},
+      "max":100,
+      "min":1
+    },
+    "S3FilesLocation":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "fileList"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"S3BucketName",
+          "documentation":"<p>The name of the Amazon Simple Storage Service bucket that contains the files to import.</p>"
+        },
+        "fileList":{
+          "shape":"S3FileList",
+          "documentation":"<p>The files to import. Cells are created in the order in which you list the files. You can specify between 1 and 100 files.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon Simple Storage Service objects to import as the cells of a notebook, specified as a bucket and an ordered list of object keys.</p>"
+    },
     "S3Location":{
       "type":"string",
       "max":1024,
@@ -21028,6 +23502,18 @@
       "member":{"shape":"S3Location"},
       "max":20,
       "min":0
+    },
+    "S3ObjectKey":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "sensitive":true
+    },
+    "S3Path":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"s3://.+"
     },
     "S3Permission":{
       "type":"string",
@@ -21052,6 +23538,10 @@
         "s3AccessGrantLocationId":{
           "shape":"S3AccessGrantLocationId",
           "documentation":"<p>The Amazon S3 Access Grant location ID that's part of the Amazon S3 properties of a connection.</p>"
+        },
+        "registerS3AccessGrantLocation":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to register the Amazon S3 Access Grant location.</p>"
         }
       },
       "documentation":"<p>The Amazon S3 properties of a connection.</p>"
@@ -21067,6 +23557,10 @@
         "s3AccessGrantLocationId":{
           "shape":"S3AccessGrantLocationId",
           "documentation":"<p>The Amazon S3 Access Grant location ID that's part of the Amazon S3 properties of a connection.</p>"
+        },
+        "registerS3AccessGrantLocation":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to register the Amazon S3 Access Grant location.</p>"
         },
         "status":{
           "shape":"ConnectionStatus",
@@ -21090,9 +23584,20 @@
         "s3AccessGrantLocationId":{
           "shape":"S3AccessGrantLocationId",
           "documentation":"<p>The Amazon S3 Access Grant location ID that's part of the Amazon S3 properties patch of a connection.</p>"
+        },
+        "registerS3AccessGrantLocation":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to register the Amazon S3 Access Grant location.</p>"
         }
       },
       "documentation":"<p>The Amazon S3 properties patch of a connection.</p>"
+    },
+    "S3SourceLocation":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "pattern":"s3://.+",
+      "sensitive":true
     },
     "S3Uri":{
       "type":"string",
@@ -21165,6 +23670,10 @@
       },
       "documentation":"<p>The details of the schedule of the data source runs.</p>",
       "sensitive":true
+    },
+    "ScheduleId":{
+      "type":"string",
+      "pattern":"[a-zA-Z0-9_-]{1,36}"
     },
     "SearchGroupProfilesInput":{
       "type":"structure",
@@ -21575,6 +24084,12 @@
         }
       }
     },
+    "SecurityGroupId":{
+      "type":"string",
+      "max":32,
+      "min":0,
+      "pattern":"sg-[a-z0-9]+"
+    },
     "SecurityGroupIdList":{
       "type":"list",
       "member":{"shape":"SecurityGroupIdListMemberString"},
@@ -21585,6 +24100,12 @@
       "type":"string",
       "max":255,
       "min":1
+    },
+    "SecurityGroupIds":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "max":5,
+      "min":0
     },
     "SelfGrantStatus":{
       "type":"string",
@@ -21699,6 +24220,89 @@
       "max":100000,
       "min":1
     },
+    "SnowflakePropertiesInput":{
+      "type":"structure",
+      "required":[
+        "snowflakeRole",
+        "identityMapping"
+      ],
+      "members":{
+        "connectivityProperties":{
+          "shape":"ConnectivityProperties",
+          "documentation":"<p>The connectivity properties of the Snowflake connection.</p>"
+        },
+        "snowflakeRole":{
+          "shape":"SnowflakeRole",
+          "documentation":"<p>The Snowflake role used to access Snowflake resources.</p>"
+        },
+        "identityMapping":{
+          "shape":"IdentityMapping",
+          "documentation":"<p>The identity mapping configuration for the Snowflake connection.</p>"
+        },
+        "lineageSync":{
+          "shape":"LineageSyncInput",
+          "documentation":"<p>The lineage sync configuration for the Snowflake connection.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Snowflake-specific settings required when creating or updating a connection, including the Snowflake role, identity mapping, and lineage sync configuration.</p>"
+    },
+    "SnowflakePropertiesOutput":{
+      "type":"structure",
+      "required":[
+        "snowflakeRole",
+        "identityMapping",
+        "lineageSync",
+        "status"
+      ],
+      "members":{
+        "snowflakeRole":{
+          "shape":"SnowflakeRole",
+          "documentation":"<p>The Snowflake role used to access Snowflake resources.</p>"
+        },
+        "identityMapping":{
+          "shape":"IdentityMapping",
+          "documentation":"<p>The identity mapping configuration for the Snowflake connection.</p>"
+        },
+        "lineageSync":{
+          "shape":"LineageSyncOutput",
+          "documentation":"<p>The lineage sync configuration for the Snowflake connection.</p>"
+        },
+        "status":{
+          "shape":"ConnectionStatus",
+          "documentation":"<p>The status of the Snowflake connection.</p>"
+        },
+        "errorMessage":{
+          "shape":"String",
+          "documentation":"<p>An error message returned if the Snowflake connection failed to establish or validate.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Snowflake-specific settings returned for an existing connection, including the current role, identity mapping, lineage sync state, and connection status.</p>"
+    },
+    "SnowflakePropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "connectivityPropertiesPatch":{
+          "shape":"ConnectivityPropertiesPatch",
+          "documentation":"<p>The connectivity properties patch of the Snowflake connection.</p>"
+        },
+        "snowflakeRole":{
+          "shape":"SnowflakeRole",
+          "documentation":"<p>The Snowflake role used to access Snowflake resources.</p>"
+        },
+        "lineageSync":{
+          "shape":"LineageSyncInput",
+          "documentation":"<p>The lineage sync configuration for the Snowflake connection.</p>"
+        }
+      },
+      "documentation":"<p>Contains the Snowflake-specific settings to update on an existing connection. Include only the fields you want to change.</p>"
+    },
+    "SnowflakeRole":{
+      "type":"string",
+      "documentation":"<p>The name of the Snowflake role to use for the connection.</p>",
+      "max":255,
+      "min":1,
+      "pattern":"[a-zA-Z0-9_$]+"
+    },
     "SortFieldAccountPool":{
       "type":"string",
       "enum":["NAME"]
@@ -21724,6 +24328,21 @@
         "ASCENDING",
         "DESCENDING"
       ]
+    },
+    "SourceLocation":{
+      "type":"structure",
+      "members":{
+        "s3":{
+          "shape":"S3SourceLocation",
+          "documentation":"<p>The Amazon Simple Storage Service URI of the notebook source file.</p>"
+        },
+        "s3Files":{
+          "shape":"S3FilesLocation",
+          "documentation":"<p>The Amazon Simple Storage Service objects to import as the notebook's cells. One cell is created for each object, in the order in which you list them.</p>"
+        }
+      },
+      "documentation":"<p>The source location for a notebook import in Amazon SageMaker Unified Studio.</p>",
+      "union":true
     },
     "SparkEmrPropertiesInput":{
       "type":"structure",
@@ -21967,7 +24586,11 @@
         },
         "glueConnectionName":{
           "shape":"SparkGluePropertiesInputGlueConnectionNameString",
-          "documentation":"<p>The Amazon Web Services Glue connection name in the Spark Amazon Web Services Glue properties.</p>"
+          "documentation":"<p>The Amazon Web Services Glue connection name in the Spark Amazon Web Services Glue properties. Specify either <code>glueConnectionName</code> or <code>glueConnectionNames</code>, but not both.</p>"
+        },
+        "glueConnectionNames":{
+          "shape":"GlueConnectionNames",
+          "documentation":"<p>The Amazon Web Services Glue connection names in the Spark Amazon Web Services Glue properties. Specify either <code>glueConnectionName</code> or <code>glueConnectionNames</code>, but not both.</p>"
         },
         "glueVersion":{
           "shape":"SparkGluePropertiesInputGlueVersionString",
@@ -22031,6 +24654,10 @@
         "glueConnectionName":{
           "shape":"String",
           "documentation":"<p>The Amazon Web Services Glue connection name in the Spark Amazon Web Services Glue properties. </p>"
+        },
+        "glueConnectionNames":{
+          "shape":"GlueConnectionNames",
+          "documentation":"<p>The Amazon Web Services Glue connection names in the Spark Amazon Web Services Glue properties.</p>"
         },
         "glueVersion":{
           "shape":"String",
@@ -22254,12 +24881,500 @@
         }
       }
     },
+    "StartNotebookExportInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "notebookIdentifier",
+        "owningProjectIdentifier",
+        "fileFormat"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which to export the notebook.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "notebookIdentifier":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook to export.</p>"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "fileFormat":{
+          "shape":"FileFormat",
+          "documentation":"<p>The file format for the notebook export. Valid values are <code>PDF</code> and <code>IPYNB</code>.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartNotebookExportOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "domainId",
+        "owningProjectId",
+        "notebookId",
+        "fileFormat",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"ExportId",
+          "documentation":"<p>The identifier of the notebook export.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "fileFormat":{
+          "shape":"FileFormat",
+          "documentation":"<p>The file format of the notebook export.</p>"
+        },
+        "status":{
+          "shape":"NotebookExportStatus",
+          "documentation":"<p>The status of the notebook export.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook export was started.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who started the notebook export.</p>"
+        }
+      }
+    },
+    "StartNotebookImportInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "owningProjectIdentifier",
+        "sourceLocation",
+        "name"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which to import the notebook.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that will own the imported notebook.</p>"
+        },
+        "sourceLocation":{
+          "shape":"SourceLocation",
+          "documentation":"<p>The source location of the notebook to import. Specify either a single Amazon Simple Storage Service URI, or a list of objects to import as the notebook's cells.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the imported notebook. The name must be between 1 and 256 characters.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the imported notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook to import. If not specified, defaults to <code>DATA</code>.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartNotebookImportOutput":{
+      "type":"structure",
+      "members":{
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the imported notebook.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status of the notebook import.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the imported notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the imported notebook.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the imported notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the imported notebook.</p>"
+        },
+        "sourceLocation":{
+          "shape":"SourceLocation",
+          "documentation":"<p>The source location from which the notebook was imported.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook import was started.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who started the notebook import.</p>"
+        }
+      }
+    },
+    "StartNotebookRunInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "owningProjectIdentifier",
+        "notebookIdentifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook run is started.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook run.</p>"
+        },
+        "notebookIdentifier":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook to run.</p>"
+        },
+        "scheduleIdentifier":{
+          "shape":"ScheduleId",
+          "documentation":"<p>The identifier of the schedule associated with the notebook run.</p>"
+        },
+        "computeConfiguration":{
+          "shape":"ComputeConfig",
+          "documentation":"<p>The compute configuration for the notebook run, including instance type and environment version.</p>"
+        },
+        "networkConfiguration":{
+          "shape":"NetworkConfig",
+          "documentation":"<p>The network configuration for the notebook run, including network access type and optional VPC settings.</p>"
+        },
+        "timeoutConfiguration":{
+          "shape":"TimeoutConfig",
+          "documentation":"<p>The timeout configuration for the notebook run. The default timeout is 720 minutes (12 hours) and the maximum is 1440 minutes (24 hours).</p>"
+        },
+        "notificationConfiguration":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>The notification configuration for the notebook run. Use this to specify the notebook run states that trigger notifications.</p>"
+        },
+        "triggerSource":{
+          "shape":"TriggerSource",
+          "documentation":"<p>The source that triggered the notebook run.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata for the notebook run, specified as key-value pairs. You can specify up to 50 entries, with keys up to 128 characters and values up to 1024 characters.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters for the notebook run, specified as key-value pairs. You can specify up to 50 entries, with keys up to 128 characters and values up to 1024 characters.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartNotebookRunOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "domainId",
+        "owningProjectId",
+        "notebookId",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookRunId",
+          "documentation":"<p>The identifier of the notebook run.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook run.</p>"
+        },
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "scheduleId":{
+          "shape":"ScheduleId",
+          "documentation":"<p>The identifier of the schedule associated with the notebook run.</p>"
+        },
+        "status":{
+          "shape":"NotebookRunStatus",
+          "documentation":"<p>The status of the notebook run.</p>"
+        },
+        "cellOrder":{
+          "shape":"CellOrder",
+          "documentation":"<p>The ordered list of cells in the notebook run.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata of the notebook run.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters of the notebook run.</p>"
+        },
+        "computeConfiguration":{
+          "shape":"ComputeConfig",
+          "documentation":"<p>The compute configuration of the notebook run.</p>"
+        },
+        "networkConfiguration":{
+          "shape":"NetworkConfig",
+          "documentation":"<p>The network configuration of the notebook run.</p>"
+        },
+        "timeoutConfiguration":{
+          "shape":"TimeoutConfig",
+          "documentation":"<p>The timeout configuration of the notebook run.</p>"
+        },
+        "environmentConfiguration":{
+          "shape":"EnvironmentConfig",
+          "documentation":"<p>The environment configuration of the notebook run, including image version and package settings.</p>"
+        },
+        "storageConfiguration":{
+          "shape":"StorageConfig",
+          "documentation":"<p>The storage configuration of the notebook run, including the Amazon Simple Storage Service path and KMS key ARN.</p>"
+        },
+        "notificationConfiguration":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>The notification configuration of the notebook run, including the notebook run states that trigger notifications.</p>"
+        },
+        "triggerSource":{
+          "shape":"TriggerSource",
+          "documentation":"<p>The source that triggered the notebook run.</p>"
+        },
+        "error":{
+          "shape":"NotebookRunError",
+          "documentation":"<p>The error details if the notebook run failed.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook run was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook run.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook run was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook run.</p>"
+        },
+        "startedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook run started executing.</p>"
+        },
+        "completedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook run completed.</p>"
+        }
+      }
+    },
+    "StartNotebookSyncInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "owningProjectIdentifier",
+        "sourceLocation"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which to sync the notebook.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "owningProjectIdentifier":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that will own the synced notebook.</p>"
+        },
+        "sourceLocation":{
+          "shape":"SourceLocation",
+          "documentation":"<p>The source location of the notebook to sync. This specifies the Amazon Simple Storage Service URI of the notebook file.</p>"
+        },
+        "gitMetadata":{
+          "shape":"GitMetadata",
+          "documentation":"<p>The Git metadata for the notebook sync, including repository, branch, and commit information.</p>"
+        },
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of an existing notebook to sync. If not specified, a new notebook is created.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the notebook. The name must be between 1 and 256 characters.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the notebook.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StartNotebookSyncOutput":{
+      "type":"structure",
+      "members":{
+        "notebookId":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the synced notebook.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status of the notebook sync.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the synced notebook.</p>"
+        },
+        "sourceLocation":{
+          "shape":"SourceLocation",
+          "documentation":"<p>The source location from which the notebook was synced.</p>"
+        },
+        "gitMetadata":{
+          "shape":"GitMetadata",
+          "documentation":"<p>The Git metadata associated with the synced notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the synced notebook.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the synced notebook.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook sync was started.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who started the notebook sync.</p>"
+        }
+      }
+    },
     "Status":{
       "type":"string",
       "enum":[
         "ENABLED",
         "DISABLED"
       ]
+    },
+    "StopNotebookRunInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook run is stopped.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"NotebookRunId",
+          "documentation":"<p>The identifier of the notebook run to stop.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "StopNotebookRunOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "domainId",
+        "owningProjectId",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookRunId",
+          "documentation":"<p>The identifier of the notebook run.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook run.</p>"
+        },
+        "status":{
+          "shape":"NotebookRunStatus",
+          "documentation":"<p>The status of the notebook run.</p>"
+        }
+      }
+    },
+    "StorageConfig":{
+      "type":"structure",
+      "members":{
+        "projectS3Path":{
+          "shape":"S3Path",
+          "documentation":"<p>The Amazon Simple Storage Service path for the project storage.</p>"
+        },
+        "kmsKeyArn":{
+          "shape":"KmsKeyArn",
+          "documentation":"<p>The ARN of the KMS key used for encryption.</p>"
+        }
+      },
+      "documentation":"<p>The storage configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
     },
     "String":{"type":"string"},
     "StringList":{
@@ -22277,6 +25392,12 @@
       "member":{"shape":"SubnetId"},
       "max":50,
       "min":1
+    },
+    "SubnetIds":{
+      "type":"list",
+      "member":{"shape":"String"},
+      "max":10,
+      "min":0
     },
     "SubscribedAsset":{
       "type":"structure",
@@ -23287,6 +26408,22 @@
       "max":128,
       "min":1
     },
+    "TimeoutConfig":{
+      "type":"structure",
+      "members":{
+        "runTimeoutInMinutes":{
+          "shape":"TimeoutConfigRunTimeoutInMinutesInteger",
+          "documentation":"<p>The timeout for the notebook run, in minutes. The minimum value is 60 minutes (1 hour), the maximum value is 1440 minutes (24 hours), and the default value is 720 minutes (12 hours).</p>"
+        }
+      },
+      "documentation":"<p>The timeout configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
+    "TimeoutConfigRunTimeoutInMinutesInteger":{
+      "type":"integer",
+      "box":true,
+      "max":1440,
+      "min":60
+    },
     "Timestamp":{"type":"timestamp"},
     "Timezone":{
       "type":"string",
@@ -23410,6 +26547,29 @@
       "value":{"shape":"TrackingAssetArns"},
       "max":1,
       "min":1
+    },
+    "TriggerSource":{
+      "type":"structure",
+      "members":{
+        "type":{
+          "shape":"TriggerSourceType",
+          "documentation":"<p>The type of the trigger source. Valid values are <code>MANUAL</code>, <code>SCHEDULED</code>, and <code>WORKFLOW</code>.</p>"
+        },
+        "name":{
+          "shape":"String",
+          "documentation":"<p>The name of the trigger source.</p>"
+        }
+      },
+      "documentation":"<p>The source that triggered a notebook run in Amazon SageMaker Unified Studio.</p>"
+    },
+    "TriggerSourceType":{
+      "type":"string",
+      "documentation":"<p>The type of trigger source for a notebook run in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "MANUAL",
+        "SCHEDULED",
+        "WORKFLOW"
+      ]
     },
     "TypeName":{
       "type":"string",
@@ -23661,6 +26821,10 @@
         "identifier"
       ],
       "members":{
+        "configurations":{
+          "shape":"Configurations",
+          "documentation":"<p>The configurations of the connection.</p>"
+        },
         "domainIdentifier":{
           "shape":"DomainId",
           "documentation":"<p>The ID of the domain where a connection is to be updated.</p>",
@@ -23704,6 +26868,10 @@
         "type"
       ],
       "members":{
+        "configurations":{
+          "shape":"Configurations",
+          "documentation":"<p>The configurations of the connection.</p>"
+        },
         "connectionId":{
           "shape":"ConnectionId",
           "documentation":"<p>The ID of the connection.</p>"
@@ -24173,6 +27341,10 @@
         "userParameters":{
           "shape":"CustomParameterList",
           "documentation":"<p>The user parameters to be updated as part of the <code>UpdateEnvironmentBlueprint</code> action.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category to update. The only valid value is <code>TOOLING</code>.</p>"
         }
       }
     },
@@ -24216,6 +27388,10 @@
         "glossaryTerms":{
           "shape":"GlossaryTerms",
           "documentation":"<p>The glossary terms to be updated as part of the <code>UpdateEnvironmentBlueprint</code> action.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the environment blueprint. The only valid value is <code>TOOLING</code>.</p>"
         },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
@@ -24265,6 +27441,10 @@
         "userParameters":{
           "shape":"EnvironmentParametersList",
           "documentation":"<p>The user parameters of the environment.</p>"
+        },
+        "environmentConfigurationName":{
+          "shape":"EnvironmentConfigurationName",
+          "documentation":"<p>The configuration name of the environment.</p>"
         }
       }
     },
@@ -24365,6 +27545,10 @@
         "environmentConfigurationId":{
           "shape":"EnvironmentConfigurationId",
           "documentation":"<p>The configuration ID of the environment.</p>"
+        },
+        "environmentConfigurationName":{
+          "shape":"EnvironmentConfigurationName",
+          "documentation":"<p>The configuration name of the environment.</p>"
         }
       }
     },
@@ -24683,6 +27867,169 @@
         "groupName":{
           "shape":"GroupProfileName",
           "documentation":"<p>The name of the group profile that is updated.</p>"
+        },
+        "rolePrincipalArn":{
+          "shape":"String",
+          "documentation":"<p>The ARN of the IAM role principal. This role is associated with the updated group profile.</p>"
+        },
+        "rolePrincipalId":{
+          "shape":"String",
+          "documentation":"<p>The unique identifier of the IAM role principal. This principal is associated with the updated group profile.</p>"
+        }
+      }
+    },
+    "UpdateNotebookInput":{
+      "type":"structure",
+      "required":[
+        "domainIdentifier",
+        "identifier"
+      ],
+      "members":{
+        "domainIdentifier":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain in which the notebook exists.</p>",
+          "location":"uri",
+          "locationName":"domainIdentifier"
+        },
+        "identifier":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook to update.</p>",
+          "location":"uri",
+          "locationName":"identifier"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The updated description of the notebook.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The updated status of the notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The updated name of the notebook.</p>"
+        },
+        "cellOrder":{
+          "shape":"CellOrder",
+          "documentation":"<p>The updated ordered list of cells in the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The updated type of the notebook.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The updated metadata for the notebook, specified as key-value pairs.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The updated sensitive parameters for the notebook, specified as key-value pairs.</p>"
+        },
+        "environmentConfiguration":{
+          "shape":"EnvironmentConfig",
+          "documentation":"<p>The updated environment configuration for the notebook.</p>"
+        },
+        "clientToken":{
+          "shape":"ClientToken",
+          "documentation":"<p>A unique, case-sensitive identifier to ensure idempotency of the request. This field is automatically populated if not provided.</p>",
+          "idempotencyToken":true
+        }
+      }
+    },
+    "UpdateNotebookOutput":{
+      "type":"structure",
+      "required":[
+        "id",
+        "name",
+        "owningProjectId",
+        "domainId",
+        "cellOrder",
+        "status"
+      ],
+      "members":{
+        "id":{
+          "shape":"NotebookId",
+          "documentation":"<p>The identifier of the notebook.</p>"
+        },
+        "name":{
+          "shape":"NotebookName",
+          "documentation":"<p>The name of the notebook.</p>"
+        },
+        "owningProjectId":{
+          "shape":"ProjectId",
+          "documentation":"<p>The identifier of the project that owns the notebook.</p>"
+        },
+        "domainId":{
+          "shape":"DomainId",
+          "documentation":"<p>The identifier of the Amazon SageMaker Unified Studio domain.</p>"
+        },
+        "cellOrder":{
+          "shape":"CellOrder",
+          "documentation":"<p>The ordered list of cells in the notebook.</p>"
+        },
+        "status":{
+          "shape":"NotebookStatus",
+          "documentation":"<p>The status of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
+        "description":{
+          "shape":"Description",
+          "documentation":"<p>The description of the notebook.</p>"
+        },
+        "createdAt":{
+          "shape":"CreatedAt",
+          "documentation":"<p>The timestamp of when the notebook was created.</p>"
+        },
+        "createdBy":{
+          "shape":"CreatedBy",
+          "documentation":"<p>The identifier of the user who created the notebook.</p>"
+        },
+        "updatedAt":{
+          "shape":"UpdatedAt",
+          "documentation":"<p>The timestamp of when the notebook was last updated.</p>"
+        },
+        "updatedBy":{
+          "shape":"UpdatedBy",
+          "documentation":"<p>The identifier of the user who last updated the notebook.</p>"
+        },
+        "lockedBy":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the user who locked the notebook.</p>"
+        },
+        "lockedAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook was locked.</p>"
+        },
+        "lockExpiresAt":{
+          "shape":"Timestamp",
+          "documentation":"<p>The timestamp of when the notebook lock expires.</p>"
+        },
+        "computeId":{
+          "shape":"ComputeId",
+          "documentation":"<p>The identifier of the compute associated with the notebook.</p>"
+        },
+        "metadata":{
+          "shape":"Metadata",
+          "documentation":"<p>The metadata of the notebook.</p>"
+        },
+        "parameters":{
+          "shape":"Parameters",
+          "documentation":"<p>The sensitive parameters of the notebook.</p>"
+        },
+        "environmentConfiguration":{
+          "shape":"EnvironmentConfig",
+          "documentation":"<p>The environment configuration of the notebook.</p>"
+        },
+        "error":{
+          "shape":"NotebookError",
+          "documentation":"<p>The error details if the notebook is in a failed state.</p>"
+        },
+        "gitMetadata":{
+          "shape":"GitMetadata",
+          "documentation":"<p>The Git metadata associated with the notebook.</p>"
         }
       }
     },
@@ -24814,6 +28161,10 @@
         "environmentDeploymentDetails":{
           "shape":"EnvironmentDeploymentDetails",
           "documentation":"<p>The environment deployment details of the project.</p>"
+        },
+        "projectCategory":{
+          "shape":"String",
+          "documentation":"<p>The category of the project.</p>"
         }
       }
     },
@@ -25460,8 +28811,17 @@
         "status":{
           "shape":"UserProfileStatus",
           "documentation":"<p>The status of the user profile that are to be updated.</p>"
+        },
+        "sessionName":{
+          "shape":"UpdateUserProfileInputSessionNameString",
+          "documentation":"<p>The session name for IAM role sessions.</p>"
         }
       }
+    },
+    "UpdateUserProfileInputSessionNameString":{
+      "type":"string",
+      "max":64,
+      "min":2
     },
     "UpdateUserProfileOutput":{
       "type":"structure",
@@ -25639,7 +28999,8 @@
       "enum":[
         "IAM_USER",
         "IAM_ROLE",
-        "SSO_USER"
+        "SSO_USER",
+        "IAM_ROLE_SESSION"
       ]
     },
     "Username":{
@@ -25678,6 +29039,89 @@
         "senderFault":true
       },
       "exception":true
+    },
+    "VpcConnectionSubnetIdList":{
+      "type":"list",
+      "member":{"shape":"SubnetId"},
+      "max":16,
+      "min":1
+    },
+    "VpcId":{
+      "type":"string",
+      "max":32,
+      "min":0,
+      "pattern":"vpc-[a-z0-9]+"
+    },
+    "VpcPropertiesInput":{
+      "type":"structure",
+      "required":[
+        "vpcId",
+        "subnetIds"
+      ],
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The identifier of the VPC. Must match the pattern <code>^vpc-[a-z0-9]+$</code>. Maximum length of 32.</p>"
+        },
+        "subnetIds":{
+          "shape":"VpcConnectionSubnetIdList",
+          "documentation":"<p>The subnet IDs of the VPC connection. You can specify between 1 and 16 subnet IDs.</p>"
+        },
+        "securityGroupId":{
+          "shape":"SecurityGroupId",
+          "documentation":"<p>The security group ID of the VPC connection. Must match the pattern <code>^sg-[a-z0-9]+$</code>. Maximum length of 32.</p>"
+        }
+      },
+      "documentation":"<p>The VPC connection properties used when creating a connection.</p>"
+    },
+    "VpcPropertiesOutput":{
+      "type":"structure",
+      "required":[
+        "vpcId",
+        "subnetIds",
+        "status"
+      ],
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The identifier of the VPC.</p>"
+        },
+        "subnetIds":{
+          "shape":"VpcConnectionSubnetIdList",
+          "documentation":"<p>The subnet IDs of the VPC connection.</p>"
+        },
+        "status":{
+          "shape":"ConnectionStatus",
+          "documentation":"<p>The status of the VPC connection.</p>"
+        },
+        "securityGroupId":{
+          "shape":"SecurityGroupId",
+          "documentation":"<p>The security group ID of the VPC connection.</p>"
+        },
+        "glueConnectionNames":{
+          "shape":"GlueConnectionNames",
+          "documentation":"<p>The Amazon Web Services Glue connection names associated with the VPC connection.</p>"
+        }
+      },
+      "documentation":"<p>The VPC connection properties returned in responses.</p>"
+    },
+    "VpcPropertiesPatch":{
+      "type":"structure",
+      "members":{
+        "vpcId":{
+          "shape":"VpcId",
+          "documentation":"<p>The identifier of the VPC.</p>"
+        },
+        "subnetIds":{
+          "shape":"VpcConnectionSubnetIdList",
+          "documentation":"<p>The subnet IDs of the VPC connection.</p>"
+        },
+        "securityGroupId":{
+          "shape":"SecurityGroupId",
+          "documentation":"<p>The security group ID of the VPC connection.</p>"
+        }
+      },
+      "documentation":"<p>The VPC connection properties used when updating a connection.</p>"
     },
     "WorkflowsMwaaPropertiesInput":{
       "type":"structure",

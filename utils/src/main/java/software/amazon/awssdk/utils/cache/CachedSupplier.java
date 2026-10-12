@@ -334,8 +334,20 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
     }
 
     private Duration maxStaleFailureJitter(int numFailures) {
+        // prevent cycling back through low values
+        if (numFailures > 63) {
+            return Duration.ofSeconds(10);
+        }
         long exponentialBackoffMillis = (1L << numFailures - 1) * 100;
+        if (exponentialBackoffMillis <= 0) {
+            exponentialBackoffMillis = Long.MAX_VALUE;
+        }
         return ComparableUtils.minimum(Duration.ofMillis(exponentialBackoffMillis), Duration.ofSeconds(10));
+    }
+
+    @SdkTestInternalApi
+    protected Duration maxStaleFailureJitterTest(int numFailures) {
+        return maxStaleFailureJitter(numFailures);
     }
 
     private Instant jitterTime(Instant time, Duration jitterStart, Duration jitterEnd) {

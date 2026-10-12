@@ -1,0 +1,12 @@
+{
+  "Type" : "UnsubscribeConfirmation",
+  "MessageId" : "0b71e34e-42c3-486a-9e32-b1928ec994b5",
+  "Token" : "2336412f37fb687f5d51e6e2425929f52e8e353134fd0284eae5672847af082a982c7dd18215a1485e04e559716f8b42054594757f42dee2d63c46fd3a0fa59b4d688de03db956f8bf9f8cb3167587a28b74c5d325e6a7594d24a43ac534de2dfca614ca89cebd490342c721c30a76ea03def13673437a6a3e450642580119d0",
+  "TopicArn" : "arn:aws:sns:us-west-2:131990247566:dongie-standard-topic",
+  "Message" : "You have chosen to deactivate subscription arn:aws:sns:us-west-2:131990247566:dongie-standard-topic:b24e11a2-06bd-4e73-aa29-0ed2de3b41b5.\nTo cancel this operation and restore the subscription, visit the SubscribeURL included in this message.",
+  "SubscribeURL" : "https://sns.us-west-2.amazonaws.com/?Action=ConfirmSubscription&TopicArn=arn:aws:sns:us-west-2:131990247566:dongie-standard-topic&Token=2336412f37fb687f5d51e6e2425929f52e8e353134fd0284eae5672847af082a982c7dd18215a1485e04e559716f8b42054594757f42dee2d63c46fd3a0fa59b4d688de03db956f8bf9f8cb3167587a28b74c5d325e6a7594d24a43ac534de2dfca614ca89cebd490342c721c30a76ea03def13673437a6a3e450642580119d0",
+  "Timestamp" : "2026-03-06T20:02:25.038Z",
+  "SignatureVersion" : "2",
+  "Signature" : "RLW/cGWZAdY96iEcvXGmAZQ851DUyWehJIUMHT3Qa0/kX7Wu2QimI44TfE8d9hTqyYFreA6ln4AS67m225DuySpBeiUBtzB/ibiU7jdZmfSiT/I/RTEU3eD0lHHZIYW0M7HAlhHyaSXdcSAbtfnhMBMION93IVl6UOR4kWYdJaJ17/u3by3zlSRs8wCIpj06S6BzuzxrINZPJl+NKZYCVdMlrjuT4etX/UfZkC0Tjchpmu/CQcuimAgswlesm8cVue0WqNPXkOr8h7HmsiGVXPN1jjkYKf2/tVJyBxur/lSksMopER8wtAIsrqY1caAZSI8YJkIndg/b+7eCwkjTBA==",
+  "SigningCertURL" : "https://sns.us-west-2.amazonaws.com/SimpleNotificationService-7506a1e35b36ef5a444dd1a8e7cc3ed8.pem"
+}

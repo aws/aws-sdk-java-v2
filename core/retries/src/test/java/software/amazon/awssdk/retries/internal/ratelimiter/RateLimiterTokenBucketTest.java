@@ -16,44 +16,206 @@
 package software.amazon.awssdk.retries.internal.ratelimiter;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForClassTypes.within;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import java.util.Arrays;
 import java.util.Collection;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.MethodSource;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.RejectedExecutionException;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 class RateLimiterTokenBucketTest {
-    private static MutableClock clock = null;
-    private static RateLimiterTokenBucket tokenBucket = null;
     private static final double EPSILON = 0.0001;
+    private MutableClock clock = null;
+    private ScheduledExecutorService scheduler = null;
+    private RateLimiterTokenBucket tokenBucket = null;
 
-    @BeforeAll
-    static void setup() {
+    @BeforeEach
+    void setup() {
         clock = new MutableClock();
-        tokenBucket = new RateLimiterTokenBucket(clock);
+        scheduler = mock(ScheduledExecutorService.class);
+        tokenBucket = new RateLimiterTokenBucket(clock, scheduler);
     }
 
-    @ParameterizedTest
-    @MethodSource("parameters")
-    void testCase(TestCase testCase) {
+    @Test
+    void acquireAsync_bucketClosed_futureCompletedExceptionally() {
+        tokenBucket.close();
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThatThrownBy(f::join).satisfies(t -> {
+            Throwable cause = t.getCause();
+            assertThat(cause).isExactlyInstanceOf(IllegalStateException.class);
+            assertThat(cause).hasMessage("Rate limiter bucket is closed");
+        });
+    }
+
+    @Test
+    void acquireAsync_notEnabled_doesNotScheduleTask() {
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThat(f).isCompleted();
+        verifyNoInteractions(scheduler);
+    }
+
+    @Test
+    void acquireAsync_enabled_schedulesTask() {
+        tokenBucket.updateRateAfterThrottling();
+
+        tokenBucket.acquireAsync();
+        verify(scheduler).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+    }
+
+
+    @Test
+    void acquireAsync_scheduleFails_completesFutureExceptionally() {
+        tokenBucket.updateRateAfterThrottling();
+
+        doThrow(new RejectedExecutionException("no")).when(scheduler).schedule(any(Runnable.class),
+                                                                               anyLong(),
+                                                                               any(TimeUnit.class));
+
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThatThrownBy(f::join).satisfies(t -> {
+            Throwable cause = t.getCause();
+            assertThat(cause).hasMessage("Rate limiter bucket is closed");
+        });
+    }
+
+    @Test
+    void acquireAsync_scheduleFails_futureNotInWaitingDeque() {
+        tokenBucket.updateRateAfterThrottling();
+
+        doThrow(new RejectedExecutionException("no")).when(scheduler).schedule(any(Runnable.class),
+                                                                               anyLong(),
+                                                                               any(TimeUnit.class));
+
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThat(f).isCompletedExceptionally();
+        assertThat(tokenBucket.waiting()).isEmpty();
+    }
+
+    @Test
+    void acquireAsync_scheduleFails_closesBucket() {
+        tokenBucket.updateRateAfterThrottling();
+
+        doThrow(new RejectedExecutionException("no")).when(scheduler).schedule(any(Runnable.class),
+                                                                               anyLong(),
+                                                                               any(TimeUnit.class));
+
+        CompletableFuture<Void> f = tokenBucket.acquireAsync();
+        assertThat(f).isCompletedExceptionally();
+        assertThat(tokenBucket.isClosed()).isTrue();
+    }
+
+    @Test
+    void close_completesAllPendingFutures() {
+        // enable throttling so futures actually get queued instead of being completed immediately
+        tokenBucket.updateRateAfterThrottling();
+
+        List<CompletableFuture<Void>> futures = IntStream.range(0, 10)
+                                                         .mapToObj(i -> tokenBucket.acquireAsync())
+                                                         .collect(Collectors.toList());
+
+        tokenBucket.close();
+
+        assertThat(futures).allSatisfy(f -> {
+            assertThatThrownBy(f::join).satisfies(t -> {
+                Throwable cause = t.getCause();
+                assertThat(cause).isExactlyInstanceOf(IllegalStateException.class);
+                assertThat(cause).hasMessage("Rate limiter bucket is closed");
+            });
+        });
+
+        assertThat(tokenBucket.waiting()).isEmpty();
+    }
+
+    @Test
+    void close_doesShutDownExecutor() {
+        tokenBucket.close();
+        verifyNoInteractions(scheduler);
+    }
+    
+    @Test
+    void doNotify_scheduleRejected_failsFuture() {
+        tokenBucket.updateRateAfterThrottling();
+
+        // Empty bucket at default rate of 0.5 tokens per second should be 2seconds
+        when(scheduler.schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS)))
+            .thenThrow(new RejectedExecutionException("no"));
+
+        // 0L is the initial schedule from acquireAsync, capture the doNotify schedule and execute that.
+        when(scheduler.schedule(any(Runnable.class), eq(0L), any(TimeUnit.class))).thenAnswer(i -> {
+           Runnable r = i.getArgument(0);
+           r.run();
+           return null;
+        });
+
+        tokenBucket.acquireAsync();
+        assertThat(tokenBucket.isClosed()).isTrue();
+    }
+
+    @Test
+    void doNotify_scheduleRejected_closesBucket() {
+        tokenBucket.updateRateAfterThrottling();
+
+        // Empty bucket at default rate of 0.5 tokens per second should be 2seconds
+        when(scheduler.schedule(any(Runnable.class), eq(2000L), eq(TimeUnit.MILLISECONDS)))
+            .thenThrow(new RejectedExecutionException("no"));
+
+        // 0L is the initial schedule from acquireAsync, capture the doNotify schedule and execute that.
+        when(scheduler.schedule(any(Runnable.class), eq(0L), any(TimeUnit.class))).thenAnswer(i -> {
+            Runnable r = i.getArgument(0);
+            r.run();
+            return null;
+        });
+
+        CompletableFuture<Void> future = tokenBucket.acquireAsync();
+        assertThatThrownBy(future::join).hasRootCauseInstanceOf(RejectedExecutionException.class);
+        assertThat(tokenBucket.isClosed()).isTrue();
+    }
+
+    @Test
+    void sendingRateEndToEndTest() {
+        for (TestCase sendingRateTestCase : sendingRateTestCases()) {
+            assertSendingRateTestCase(sendingRateTestCase);
+        }
+    }
+
+    void assertSendingRateTestCase(TestCase testCase) {
         clock.setCurrent(testCase.givenTimestamp);
         RateLimiterUpdateResponse res;
-        tokenBucket.tryAcquire();
+
         if (testCase.throttleResponse) {
             res = tokenBucket.updateRateAfterThrottling();
         } else {
             res = tokenBucket.updateRateAfterSuccess();
         }
         double measuredTxRate = res.measuredTxRate();
-        assertThat(measuredTxRate).isCloseTo(testCase.expectMeasuredTxRate, within(EPSILON));
+        assertThat(measuredTxRate)
+            .as("%s: Measured TX rate", testCase)
+            .isCloseTo(testCase.expectMeasuredTxRate, within(EPSILON));
         double fillRate = res.fillRate();
-        assertThat(fillRate).isCloseTo(testCase.expectFillRate, within(EPSILON));
+        assertThat(fillRate)
+            .as("%s: Fill rate", testCase)
+            .isCloseTo(testCase.expectFillRate, within(EPSILON));
     }
 
-
-    static Collection<TestCase> parameters() {
+    static Collection<TestCase> sendingRateTestCases() {
+        // Note: Test cases are not independent. Each case depends on the state of the bucket being correctly updated from the
+        // previous test.
         return Arrays.asList(
             new TestCase()
                 .givenSuccessResponse()
@@ -174,6 +336,15 @@ class RateLimiterTokenBucketTest {
             return this;
         }
 
+        @Override
+        public String toString() {
+            return "TestCase{" +
+                   "throttleResponse=" + throttleResponse +
+                   ", givenTimestamp=" + givenTimestamp +
+                   ", expectMeasuredTxRate=" + expectMeasuredTxRate +
+                   ", expectFillRate=" + expectFillRate +
+                   '}';
+        }
     }
 
     static class MutableClock implements RateLimiterClock {

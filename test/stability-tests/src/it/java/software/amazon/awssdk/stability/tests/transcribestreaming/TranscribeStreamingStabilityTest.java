@@ -15,41 +15,23 @@
 
 package software.amazon.awssdk.stability.tests.transcribestreaming;
 
-import java.io.InputStream;
 import java.time.Duration;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.IntFunction;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
-import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.http.Protocol;
 import software.amazon.awssdk.http.ProtocolNegotiation;
 import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient;
 import software.amazon.awssdk.services.transcribestreaming.TranscribeStreamingAsyncClient;
-import software.amazon.awssdk.services.transcribestreaming.model.AudioStream;
-import software.amazon.awssdk.services.transcribestreaming.model.LanguageCode;
-import software.amazon.awssdk.services.transcribestreaming.model.MediaEncoding;
-import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTranscriptionResponse;
-import software.amazon.awssdk.services.transcribestreaming.model.StartStreamTranscriptionResponseHandler;
-import software.amazon.awssdk.services.transcribestreaming.model.TranscriptEvent;
-import software.amazon.awssdk.services.transcribestreaming.model.TranscriptResultStream;
 import software.amazon.awssdk.stability.tests.exceptions.StabilityTestsRetryableException;
 import software.amazon.awssdk.testutils.retry.RetryableTest;
-import software.amazon.awssdk.stability.tests.utils.StabilityTestRunner;
-import software.amazon.awssdk.stability.tests.utils.TestEventStreamingResponseHandler;
-import software.amazon.awssdk.stability.tests.utils.TestTranscribeStreamingSubscription;
-import software.amazon.awssdk.testutils.service.AwsTestBase;
-import software.amazon.awssdk.utils.Logger;
 
-public class TranscribeStreamingStabilityTest extends AwsTestBase {
-    private static final Logger log = Logger.loggerFor(TranscribeStreamingStabilityTest.class.getSimpleName());
-    public static final int CONCURRENCY = 2;
-    public static final int TOTAL_RUNS = 1;
+/**
+ * Stability tests for Transcribe Streaming using Netty HTTP client.
+ */
+public class TranscribeStreamingStabilityTest extends TranscribeStreamingBaseStabilityTest {
+
     private static TranscribeStreamingAsyncClient asyncClient;
     private static TranscribeStreamingAsyncClient asyncClientAlpn;
-    private static InputStream audioFileInputStream;
 
     @BeforeAll
     public static void setup() {
@@ -57,9 +39,8 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
         asyncClientAlpn = initClient(ProtocolNegotiation.ALPN);
 
         audioFileInputStream = getInputStream();
-
         if (audioFileInputStream == null) {
-            throw new RuntimeException("fail to get the audio input stream");
+            throw new RuntimeException("Failed to get audio input stream");
         }
     }
 
@@ -82,56 +63,11 @@ public class TranscribeStreamingStabilityTest extends AwsTestBase {
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void startTranscription() {
-        IntFunction<CompletableFuture<?>> futureIntFunction = i ->
-            asyncClient.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)
-                                                       .languageCode(LanguageCode.EN_US)
-                                                       .mediaEncoding(MediaEncoding.PCM),
-                                                 new AudioStreamPublisher(),
-                                                 new TestStartStreamTranscriptionResponseHandler());
-        StabilityTestRunner.newRunner()
-                           .futureFactory(futureIntFunction)
-                           .totalRuns(TOTAL_RUNS)
-                           .requestCountPerRun(CONCURRENCY)
-                           .testName("TranscribeStreamingStabilityTest.startTranscription")
-                           .run();
+        runTranscriptionTest(asyncClient, "TranscribeStreamingStabilityTest.startTranscription");
     }
 
     @RetryableTest(maxRetries = 3, retryableException = StabilityTestsRetryableException.class)
     public void startTranscription_alpnEnabled() {
-        IntFunction<CompletableFuture<?>> futureIntFunction = i ->
-            asyncClientAlpn.startStreamTranscription(b -> b.mediaSampleRateHertz(8_000)
-                                                           .languageCode(LanguageCode.EN_US)
-                                                           .mediaEncoding(MediaEncoding.PCM),
-                                                     new AudioStreamPublisher(),
-                                                     new TestStartStreamTranscriptionResponseHandler());
-        StabilityTestRunner.newRunner()
-                           .futureFactory(futureIntFunction)
-                           .totalRuns(TOTAL_RUNS)
-                           .requestCountPerRun(CONCURRENCY)
-                           .testName("TranscribeStreamingStabilityTest.startTranscription")
-                           .run();
-    }
-
-    private static InputStream getInputStream() {
-        return TranscribeStreamingStabilityTest.class.getResourceAsStream("silence_8kHz.wav");
-    }
-
-    private static class AudioStreamPublisher implements Publisher<AudioStream> {
-
-        @Override
-        public void subscribe(Subscriber<? super AudioStream> s) {
-            s.onSubscribe(new TestTranscribeStreamingSubscription(s, audioFileInputStream));
-        }
-    }
-
-    private static class TestStartStreamTranscriptionResponseHandler extends TestEventStreamingResponseHandler<StartStreamTranscriptionResponse, TranscriptResultStream>
-        implements StartStreamTranscriptionResponseHandler {
-
-        @Override
-        public void onEventStream(SdkPublisher<TranscriptResultStream> publisher) {
-            publisher
-                .filter(TranscriptEvent.class)
-                .subscribe(result -> log.debug(() -> "Record Batch - " + result.transcript().results()));
-        }
+        runTranscriptionTest(asyncClientAlpn, "TranscribeStreamingStabilityTest.startTranscription_alpn");
     }
 }

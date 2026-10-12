@@ -16,7 +16,9 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -78,45 +80,45 @@ class EnvironmentVariableCredentialsProviderUserAgentTest {
     @ParameterizedTest
     @MethodSource("environmentVariableCredentialProviders")
     void userAgentString_containsEnvironmentVariableBusinessMetric_WhenUsingEnvironmentVariableCredentials(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+        IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
-            stsClient(provider, mockHttpClient).getCallerIdentity();
+        stsClient(provider, mockHttpClient).getCallerIdentity();
 
-            SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
-            assertThat(lastRequest).isNotNull();
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
 
-            List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
-            assertThat(userAgentHeaders).isNotNull().hasSize(1);
-            assertThat(userAgentHeaders.get(0)).contains(expected);
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
 
     }
 
     private static Stream<Arguments> environmentVariableCredentialProviders() {
         return Stream.of(
-            Arguments.of(EnvironmentVariableCredentialsProvider.create(), "m/D,g")
+            Arguments.of(EnvironmentVariableCredentialsProvider.create(), Arrays.asList("D", "g"))
         );
     }
 
     @ParameterizedTest
     @MethodSource("environmentVariableCredentialProvidersWithSessionToken")
     void userAgentString_containsEnvironmentVariableBusinessMetric_WhenUsingEnvironmentVariableCredentialsWithSessionToken(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         System.setProperty(SdkSystemSetting.AWS_SESSION_TOKEN.property(), "test-session-token");
 
-            stsClient(provider, mockHttpClient).getCallerIdentity();
+        stsClient(provider, mockHttpClient).getCallerIdentity();
 
-            SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
-            assertThat(lastRequest).isNotNull();
+        SdkHttpRequest lastRequest = mockHttpClient.getLastRequest();
+        assertThat(lastRequest).isNotNull();
 
-            List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
-            assertThat(userAgentHeaders).isNotNull().hasSize(1);
-            assertThat(userAgentHeaders.get(0)).contains(expected);
+        List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
+        assertThat(userAgentHeaders).isNotNull().hasSize(1);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> environmentVariableCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(EnvironmentVariableCredentialsProvider.create(), "m/D,g")
+            Arguments.of(EnvironmentVariableCredentialsProvider.create(), Arrays.asList("D", "g"))
         );
     }
 

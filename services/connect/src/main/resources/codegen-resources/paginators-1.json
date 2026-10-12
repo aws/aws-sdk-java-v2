@@ -37,6 +37,12 @@
       "output_token": "NextToken",
       "result_key": "Origins"
     },
+    "ListAttachedFilesConfigurations": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "AttachedFilesConfigurations"
+    },
     "ListAuthenticationProfiles": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -135,6 +141,12 @@
       "output_token": "NextToken",
       "result_key": "SecurityProfiles"
     },
+    "ListEvaluationFormAIVersions": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "AIVersionSummaries"
+    },
     "ListEvaluationFormVersions": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -146,6 +158,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "EvaluationFormSummaryList"
+    },
+    "ListExtractionDefinitions": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "ExtractionDefinitionSummaryList"
     },
     "ListFlowAssociations": {
       "input_token": "NextToken",
@@ -204,6 +222,12 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "LexBots"
+    },
+    "ListMetrics": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "output_token": "NextToken",
+      "result_key": "MetricSummaryList"
     },
     "ListPhoneNumbers": {
       "input_token": "NextToken",
@@ -293,6 +317,16 @@
       "limit_key": "MaxResults",
       "output_token": "NextToken",
       "result_key": "SecurityKeys"
+    },
+    "ListSecurityProfileAIAgents": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "LastModifiedRegion",
+        "LastModifiedTime"
+      ],
+      "output_token": "NextToken",
+      "result_key": "AllowedAIAgents"
     },
     "ListSecurityProfileApplications": {
       "input_token": "NextToken",
@@ -478,6 +512,15 @@
       "output_token": "NextToken",
       "result_key": "HoursOfOperations"
     },
+    "SearchMetrics": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "ApproximateTotalCount"
+      ],
+      "output_token": "NextToken",
+      "result_key": "Metrics"
+    },
     "SearchPredefinedAttributes": {
       "input_token": "NextToken",
       "limit_key": "MaxResults",
@@ -528,6 +571,15 @@
       ],
       "output_token": "NextToken",
       "result_key": "RoutingProfiles"
+    },
+    "SearchRules": {
+      "input_token": "NextToken",
+      "limit_key": "MaxResults",
+      "non_aggregate_keys": [
+        "ApproximateTotalCount"
+      ],
+      "output_token": "NextToken",
+      "result_key": "Rules"
     },
     "SearchSecurityProfiles": {
       "input_token": "NextToken",

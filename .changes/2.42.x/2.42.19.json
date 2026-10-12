@@ -1,0 +1,42 @@
+{
+    "version": "2.42.19",
+    "date": "2026-03-23",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Netty NIO HTTP Client",
+            "contributor": "",
+            "description": "Fixed an issue where requests with `Expect: 100-continue` over TLS could hang indefinitely when no response is received, because the read timeout handler was prematurely removed by TLS handshake data."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Batch",
+            "contributor": "",
+            "description": "AWS Batch AMI Visibility feature support. Adds read-only batchImageStatus to Ec2Configuration to provide visibility on the status of Batch-vended AMIs used by Compute Environments."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Cases",
+            "contributor": "",
+            "description": "You can now use the UpdateRelatedItem API to update the content of comments and custom related items associated with a case."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Lightsail",
+            "contributor": "",
+            "description": "Add support for tagging of ContactMethod resource type"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Omics",
+            "contributor": "",
+            "description": "Adds support for batch workflow runs in Amazon Omics, enabling users to submit, manage, and monitor multiple runs as a single batch. Includes APIs to create, cancel, and delete batches, track submission statuses and counts, list runs within a batch, and configure default settings."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Added support of Request-level credentials override in DefaultS3CrtAsyncClient. See [#5354](https://github.com/aws/aws-sdk-java-v2/issues/5354)."
+        }
+    ]
+}

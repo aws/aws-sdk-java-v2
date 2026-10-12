@@ -216,6 +216,12 @@
             "name": "operationContextParam"
           }
         },
+        "IntegerMember": {
+          "shape": "Integer"
+        },
+        "DoubleMember": {
+          "shape": "Double"
+        },
         "NestedMember": {
           "shape": "ChecksumStructure"
         }
@@ -453,6 +459,8 @@
       "payload":"Body"
     },
     "String":{"type":"string"},
+    "Integer":{"type":"integer"},
+    "Double":{"type":"double"},
     "BearerAuthOperationRequest": {
       "type": "structure",
       "members": {

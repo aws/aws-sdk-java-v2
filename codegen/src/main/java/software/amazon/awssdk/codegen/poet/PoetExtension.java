@@ -209,4 +209,8 @@ public class PoetExtension {
         return ClassName.get(model.getMetadata().getFullBatchManagerPackageName(),
                              model.getMetadata().getServiceName() + "AsyncBatchManager");
     }
+    
+    public ClassName getPresignedUrlExtensionAsyncInterface() {
+        return ClassName.get(model.getMetadata().getFullPresignedUrlPackageName(), "AsyncPresignedUrlExtension");
+    }
 }

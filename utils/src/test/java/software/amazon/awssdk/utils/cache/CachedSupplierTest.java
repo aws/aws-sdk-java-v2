@@ -27,6 +27,7 @@ import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavi
 
 import java.io.Closeable;
 import java.time.Clock;
+import java.time.Duration;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -360,6 +361,28 @@ public class CachedSupplierTest {
             Thread.sleep(1000);
             assertThat(cachedSupplier.get()).isEqualTo("");
         }
+    }
+
+    @Test
+    public void maxStaleFailureJitter_shouldNotReturnNegativeOrCycleLowValues() {
+        CachedSupplier<String> supplier = CachedSupplier.builder(() -> RefreshResult.builder("v")
+                                                                                    .staleTime(Instant.MAX)
+                                                                                    .build())
+                                                        .build();
+
+        for (int i = 1; i <= 70; i++) {
+            Duration jitter = supplier.maxStaleFailureJitterTest(i);
+            assertThat(jitter)
+                .as("numFailures=%d: jitter must be positive", i)
+                .isPositive();
+
+            if (i > 64) {
+                assertThat(jitter)
+                    .isEqualTo(Duration.ofSeconds(10));
+            }
+        }
+
+        supplier.close();
     }
 
     @Test

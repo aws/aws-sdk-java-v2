@@ -16,7 +16,6 @@
 package software.amazon.awssdk.services.s3.regression.upload;
 
 import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotAccessPointWithPathStyle;
-import static software.amazon.awssdk.services.s3.regression.S3ChecksumsTestUtils.assumeNotMRAP;
 import static software.amazon.awssdk.services.s3.regression.S3ClientFlavor.MULTIPART_ENABLED;
 
 import java.time.Duration;
@@ -49,7 +48,6 @@ public class UploadTransferManagerRegressionTesting extends UploadStreamingRegre
     void putObject(UploadConfig config) throws Exception {
 
         assumeNotAccessPointWithPathStyle(config);
-        assumeNotMRAP(config);
 
         // For testing purposes, ContentProvider is Publisher<ByteBuffer> for async clients
         // There is no way to create AsyncRequestBody with a Publisher<ByteBuffer> and also provide the content length

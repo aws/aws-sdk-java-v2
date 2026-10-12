@@ -16,6 +16,7 @@ package software.amazon.awssdk.regions;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -118,6 +119,54 @@ public class PartitionServiceMetadataTest {
         validateHasGlobalEndpointInPartition(AWS_PARTITION_REGIONALIZED_SERVICES, "aws", false);
         validateHasGlobalEndpointInPartition(AWS_CN_PARTITION_REGIONALIZED_SERVICES, "aws-cn", false);
         validateHasGlobalEndpointInPartition(AWS_US_GOV_PARTITION_REGIONALIZED_SERVICES, "aws-us-gov", false);
+    }
+
+    @Test
+    public void endpointFor_ResolvesCorrectFipsEndpoint() {
+        ServiceEndpointKey key = ServiceEndpointKey.builder()
+                                                   .region(Region.US_EAST_1)
+                                                   .tags(EndpointTag.FIPS)
+                                                   .build();
+        assertThat(ServiceMetadata.of("s3").endpointFor(key))
+            .isEqualTo(URI.create("s3-fips.us-east-1.amazonaws.com"));
+    }
+
+    @Test
+    public void endpointFor_ResolvesCorrectDualstackEndpoint() {
+        ServiceEndpointKey key = ServiceEndpointKey.builder()
+                                                   .region(Region.US_WEST_2)
+                                                   .tags(EndpointTag.DUALSTACK)
+                                                   .build();
+        assertThat(ServiceMetadata.of("s3").endpointFor(key))
+            .isEqualTo(URI.create("s3.dualstack.us-west-2.amazonaws.com"));
+    }
+
+    @Test
+    public void endpointFor_ResolvesGlobalServiceEndpoint() {
+        ServiceEndpointKey key = ServiceEndpointKey.builder()
+                                                   .region(Region.AWS_GLOBAL)
+                                                   .build();
+        assertThat(ServiceMetadata.of("iam").endpointFor(key))
+            .isEqualTo(URI.create("iam.amazonaws.com"));
+    }
+
+    @Test
+    public void endpointFor_ResolvesCorrectFipsDualstackEndpoint() {
+        ServiceEndpointKey key = ServiceEndpointKey.builder()
+                                                   .region(Region.US_WEST_2)
+                                                   .tags(EndpointTag.FIPS, EndpointTag.DUALSTACK)
+                                                   .build();
+        assertThat(ServiceMetadata.of("s3").endpointFor(key))
+            .isEqualTo(URI.create("s3-fips.dualstack.us-west-2.amazonaws.com"));
+    }
+
+    @Test
+    public void signingRegion_ResolvesCorrectly_ForGlobalService() {
+        ServiceEndpointKey key = ServiceEndpointKey.builder()
+                                                   .region(Region.AWS_GLOBAL)
+                                                   .build();
+        assertThat(ServiceMetadata.of("iam").signingRegion(key))
+            .isEqualTo(Region.US_EAST_1);
     }
 
     private void validateHasGlobalEndpointInPartition(List<String> services, String partition, boolean hasGlobalEndpoint) {

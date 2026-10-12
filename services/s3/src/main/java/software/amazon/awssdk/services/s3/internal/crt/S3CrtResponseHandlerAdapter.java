@@ -21,10 +21,14 @@ import static software.amazon.awssdk.utils.FunctionalUtils.runAndLogError;
 
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -37,6 +41,9 @@ import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.s3.S3FinishedResponseContext;
 import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
 import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
+import software.amazon.awssdk.http.AbortableInputStream;
+import software.amazon.awssdk.http.HttpStatusFamily;
+import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.services.s3.model.S3Exception;
@@ -63,6 +70,10 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
 
     private volatile boolean responseHandlingInitiated;
 
+    // Guards the single terminal responseHandler.onError notification. The first error to complete resultFuture wins;
+    // the later cancel-derived AWS_ERROR_S3_CANCELED must not re-notify. See #6715.
+    private final AtomicBoolean responseHandlerNotified = new AtomicBoolean(false);
+
     public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
                                        SdkAsyncHttpResponseHandler responseHandler,
                                        PublisherListener<S3MetaRequestProgress> progressListener,
@@ -78,8 +89,17 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
                                        Duration s3MetaRequestTimeout) {
         this.resultFuture = executeFuture;
         this.metaRequestFuture = metaRequestFuture;
+        this.responseHandler = responseHandler;
+        this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
+        this.s3MetaRequestTimeout = s3MetaRequestTimeout;
 
+        // Registered last: the callback reads responseHandler and s3MetaRequestTimeout, so all fields must be assigned
+        // first in case resultFuture is already complete and the callback runs synchronously here.
         resultFuture.whenComplete((r, t) -> {
+            if (t != null) {
+                notifyResponseHandlerOnError(t);
+            }
+
             S3MetaRequestWrapper s3MetaRequest = s3MetaRequest();
             if (s3MetaRequest == null) {
                 return;
@@ -90,10 +110,6 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             }
             s3MetaRequest.close();
         });
-
-        this.responseHandler = responseHandler;
-        this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
-        this.s3MetaRequestTimeout = s3MetaRequestTimeout;
     }
 
     private S3MetaRequestWrapper s3MetaRequest() {
@@ -180,11 +196,22 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
         int responseStatus = context.getResponseStatus();
         byte[] errorPayload = context.getErrorPayload();
 
-        if (isServiceError(responseStatus) && errorPayload != null) {
+        if (hasServiceErrorResponse(responseStatus, errorPayload)) {
             handleServiceError(responseStatus, headers, errorPayload);
         } else {
             handleIoError(context, crtCode);
         }
+    }
+
+    /**
+     * A successful status with an empty payload is a CRT-side failure.
+     * A non-successful status can be a bodiless S3 error.
+     */
+    private static boolean hasServiceErrorResponse(int responseStatus, byte[] errorPayload) {
+        if (!isServiceError(responseStatus) || errorPayload == null) {
+            return false;
+        }
+        return errorPayload.length > 0 || !HttpStatusFamily.of(responseStatus).isOneOf(HttpStatusFamily.SUCCESSFUL);
     }
 
     private void handleIoError(S3FinishedResponseContext context, int crtCode) {
@@ -220,6 +247,15 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             s3Exception.addSuppressed(sdkClientException);
             failResponseHandlerAndFuture(s3Exception);
             notifyResponsePublisherErrorIfNeeded(s3Exception);
+        } else if (responseStatus == 200) {
+            // handleServiceError is only called when crtCode != SUCCESS. If the response status is 200, this is the
+            // S3 "200 with error in body" case (e.g. CompleteMultipartUpload returning HTTP 200 with <Error> XML).
+            // We wrap the response in ErrorFlaggedSdkHttpResponse which overrides isSuccessful() to return false.
+            // This causes the downstream SDK pipeline (XmlResponseParserUtils, DecorateErrorFromResponseBodyUnmarshaller)
+            // to parse the body and detect the error, producing a properly modeled S3Exception.
+            SdkHttpFullResponse errorFlagged = new ErrorFlaggedSdkHttpResponse(errorResponse.build());
+            initiateResponseHandling(errorFlagged);
+            onErrorResponseComplete(errorPayload);
         } else {
             initiateResponseHandling(errorResponse.build());
             onErrorResponseComplete(errorPayload);
@@ -276,9 +312,15 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     }
 
     private void failResponseHandlerAndFuture(Throwable exception) {
-        runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
-                       () -> responseHandler.onError(exception));
+        notifyResponseHandlerOnError(exception);
         resultFuture.completeExceptionally(exception);
+    }
+
+    private void notifyResponseHandlerOnError(Throwable exception) {
+        if (responseHandlerNotified.compareAndSet(false, true)) {
+            runAndLogError(log.logger(), "Exception thrown in SdkAsyncHttpResponseHandler#onError, ignoring",
+                           () -> responseHandler.onError(exception));
+        }
     }
 
     private static boolean isServiceError(int responseStatus) {
@@ -302,5 +344,149 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     }
 
     private static class NoOpPublisherListener implements PublisherListener<S3MetaRequestProgress> {
+    }
+
+    /**
+     * An {@link SdkHttpFullResponse} wrapper that overrides {@link #isSuccessful()} to always return {@code false}.
+     * This forces the SDK response pipeline ({@code XmlResponseParserUtils}, {@code DecorateErrorFromResponseBodyUnmarshaller})
+     * to parse the response body even for HTTP 200 responses, enabling detection of S3's "200 with error in body" pattern.
+     *
+     * <p>The {@link #toBuilder()} method returns a builder whose {@code build()} also produces an
+     * {@code ErrorFlaggedSdkHttpResponse}, ensuring the override survives the rebuild cycle in
+     * {@code AsyncResponseHandler}.</p>
+     */
+    static final class ErrorFlaggedSdkHttpResponse implements SdkHttpFullResponse {
+        private final SdkHttpFullResponse delegate;
+
+        ErrorFlaggedSdkHttpResponse(SdkHttpResponse delegate) {
+            // Ensure we have a full response to delegate to
+            if (delegate instanceof SdkHttpFullResponse) {
+                this.delegate = (SdkHttpFullResponse) delegate;
+            } else {
+                this.delegate = SdkHttpFullResponse.builder()
+                                                   .statusCode(delegate.statusCode())
+                                                   .headers(delegate.headers())
+                                                   .build();
+            }
+        }
+
+        private ErrorFlaggedSdkHttpResponse(SdkHttpFullResponse delegate, @SuppressWarnings("unused") boolean internal) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isSuccessful() {
+            return false;
+        }
+
+        @Override
+        public int statusCode() {
+            return delegate.statusCode();
+        }
+
+        @Override
+        public Optional<String> statusText() {
+            return delegate.statusText();
+        }
+
+        @Override
+        public Map<String, List<String>> headers() {
+            return delegate.headers();
+        }
+
+        @Override
+        public Optional<AbortableInputStream> content() {
+            return delegate.content();
+        }
+
+        @Override
+        public Builder toBuilder() {
+            return new ErrorFlaggedBuilder(delegate.toBuilder());
+        }
+    }
+
+    /**
+     * A builder that wraps a standard {@link SdkHttpFullResponse.Builder} but produces an
+     * {@link ErrorFlaggedSdkHttpResponse} on {@code build()}, preserving the {@code isSuccessful()=false} override.
+     */
+    private static final class ErrorFlaggedBuilder implements SdkHttpFullResponse.Builder {
+        private final SdkHttpFullResponse.Builder delegate;
+
+        ErrorFlaggedBuilder(SdkHttpFullResponse.Builder delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public SdkHttpFullResponse build() {
+            return new ErrorFlaggedSdkHttpResponse(delegate.build(), true);
+        }
+
+        @Override
+        public String statusText() {
+            return delegate.statusText();
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder statusText(String statusText) {
+            delegate.statusText(statusText);
+            return this;
+        }
+
+        @Override
+        public int statusCode() {
+            return delegate.statusCode();
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder statusCode(int statusCode) {
+            delegate.statusCode(statusCode);
+            return this;
+        }
+
+        @Override
+        public Map<String, List<String>> headers() {
+            return delegate.headers();
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder putHeader(String headerName, List<String> headerValues) {
+            delegate.putHeader(headerName, headerValues);
+            return this;
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder appendHeader(String headerName, String headerValue) {
+            delegate.appendHeader(headerName, headerValue);
+            return this;
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder headers(Map<String, List<String>> headers) {
+            delegate.headers(headers);
+            return this;
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder removeHeader(String headerName) {
+            delegate.removeHeader(headerName);
+            return this;
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder clearHeaders() {
+            delegate.clearHeaders();
+            return this;
+        }
+
+        @Override
+        public AbortableInputStream content() {
+            return delegate.content();
+        }
+
+        @Override
+        public SdkHttpFullResponse.Builder content(AbortableInputStream content) {
+            delegate.content(content);
+            return this;
+        }
     }
 }

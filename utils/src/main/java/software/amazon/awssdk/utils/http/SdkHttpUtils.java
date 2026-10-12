@@ -438,6 +438,7 @@ public final class SdkHttpUtils {
     private static Set<String> extractNonProxyHosts(String nonProxyHosts) {
         if (nonProxyHosts != null && !isEmpty(nonProxyHosts)) {
             return Arrays.stream(nonProxyHosts.split("\\|"))
+                         .map(String::trim)
                          .map(String::toLowerCase)
                          .map(s -> StringUtils.replace(s, "*", ".*?"))
                          .collect(Collectors.toSet());

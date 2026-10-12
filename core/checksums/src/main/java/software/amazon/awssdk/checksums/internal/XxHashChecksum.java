@@ -25,9 +25,16 @@ import software.amazon.awssdk.utils.IoUtils;
 @SdkInternalApi
 public final class XxHashChecksum implements SdkChecksum {
 
-    private final XXHash xxHash;
+    private XXHash xxHash;
+    private final ChecksumAlgorithm algorithm;
 
     public XxHashChecksum(ChecksumAlgorithm algorithm) {
+        this.algorithm = algorithm;
+        xxHash = initializeXxHash(algorithm);
+    }
+
+    private XXHash initializeXxHash(ChecksumAlgorithm algorithm) {
+        XXHash xxHash;
         if (algorithm == DefaultChecksumAlgorithm.XXHASH64) {
             xxHash = XXHash.newXXHash64();
         } else if (algorithm == DefaultChecksumAlgorithm.XXHASH3) {
@@ -37,6 +44,7 @@ public final class XxHashChecksum implements SdkChecksum {
         } else {
             throw new UnsupportedOperationException("Unsupported algorithm: " + algorithm.algorithmId());
         }
+        return xxHash;
     }
 
     @Override
@@ -65,7 +73,8 @@ public final class XxHashChecksum implements SdkChecksum {
 
     @Override
     public void reset() {
-        throw new UnsupportedOperationException("mark and reset is not supported");
+        IoUtils.closeQuietlyV2(xxHash, null);
+        xxHash = initializeXxHash(algorithm);
     }
 
     @Override

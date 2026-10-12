@@ -62,25 +62,26 @@ public final class SigningUtils {
         Validate.notNull(expirationDate, "expirationDate must not be null");
         validateInput(resourceUrl, "resourceUrl");
 
-        JsonWriter writer = JsonWriter.create();
-        writer.writeStartObject()
-              .writeFieldName("Statement")
-              .writeStartArray()
-              .writeStartObject()
-              .writeFieldName("Resource")
-              .writeValue(resourceUrl)
-              .writeFieldName("Condition")
-              .writeStartObject()
-              .writeFieldName("DateLessThan")
-              .writeStartObject()
-              .writeFieldName("AWS:EpochTime")
-              .writeValue(expirationDate.getEpochSecond())
-              .writeEndObject()
-              .writeEndObject()
-              .writeEndObject()
-              .writeEndArray()
-              .writeEndObject();
-        return new String(writer.getBytes(), UTF_8);
+        try (JsonWriter writer = JsonWriter.create()) {
+            writer.writeStartObject()
+                  .writeFieldName("Statement")
+                  .writeStartArray()
+                  .writeStartObject()
+                  .writeFieldName("Resource")
+                  .writeValue(resourceUrl)
+                  .writeFieldName("Condition")
+                  .writeStartObject()
+                  .writeFieldName("DateLessThan")
+                  .writeStartObject()
+                  .writeFieldName("AWS:EpochTime")
+                  .writeValue(expirationDate.getEpochSecond())
+                  .writeEndObject()
+                  .writeEndObject()
+                  .writeEndObject()
+                  .writeEndArray()
+                  .writeEndObject();
+            return new String(writer.getBytes(), UTF_8);
+        }
     }
 
     /**
@@ -102,43 +103,44 @@ public final class SigningUtils {
             validateInput(ipAddress, "ipAddress");
         }
 
-        JsonWriter writer = JsonWriter.create();
-        writer.writeStartObject()
-              .writeFieldName("Statement")
-              .writeStartArray()
-              .writeStartObject()
-              .writeFieldName("Resource")
-              .writeValue(resourceUrl)
-              .writeFieldName("Condition")
-              .writeStartObject()
-              .writeFieldName("DateLessThan")
-              .writeStartObject()
-              .writeFieldName("AWS:EpochTime")
-              .writeValue(expirationDate.getEpochSecond())
-              .writeEndObject();
-
-        if (ipAddress != null) {
-            writer.writeFieldName("IpAddress")
+        try (JsonWriter writer = JsonWriter.create()) {
+            writer.writeStartObject()
+                  .writeFieldName("Statement")
+                  .writeStartArray()
                   .writeStartObject()
-                  .writeFieldName("AWS:SourceIp")
-                  .writeValue(ipAddress)
-                  .writeEndObject();
-        }
-
-        if (activeDate != null) {
-            writer.writeFieldName("DateGreaterThan")
+                  .writeFieldName("Resource")
+                  .writeValue(resourceUrl)
+                  .writeFieldName("Condition")
+                  .writeStartObject()
+                  .writeFieldName("DateLessThan")
                   .writeStartObject()
                   .writeFieldName("AWS:EpochTime")
-                  .writeValue(activeDate.getEpochSecond())
+                  .writeValue(expirationDate.getEpochSecond())
                   .writeEndObject();
+
+            if (ipAddress != null) {
+                writer.writeFieldName("IpAddress")
+                      .writeStartObject()
+                      .writeFieldName("AWS:SourceIp")
+                      .writeValue(ipAddress)
+                      .writeEndObject();
+            }
+
+            if (activeDate != null) {
+                writer.writeFieldName("DateGreaterThan")
+                      .writeStartObject()
+                      .writeFieldName("AWS:EpochTime")
+                      .writeValue(activeDate.getEpochSecond())
+                      .writeEndObject();
+            }
+
+            writer.writeEndObject()
+                  .writeEndObject()
+                  .writeEndArray()
+                  .writeEndObject();
+
+            return new String(writer.getBytes(), UTF_8);
         }
-
-        writer.writeEndObject()
-              .writeEndObject()
-              .writeEndArray()
-              .writeEndObject();
-
-        return new String(writer.getBytes(), UTF_8);
     }
 
     /**
@@ -194,28 +196,11 @@ public final class SigningUtils {
     }
 
     /**
-     * Signs the data given with the private key given, using the SHA1withRSA
-     * algorithm provided by bouncy castle.
+     * Signs the data given with the private key using the specified Java Security signing algorithm.
      */
-    public static byte[] signWithSha1Rsa(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException {
+    public static byte[] sign(byte[] dataToSign, PrivateKey privateKey, String algorithm) throws InvalidKeyException {
         try {
-            Signature signature = Signature.getInstance("SHA1withRSA");
-            SecureRandom random = new SecureRandom();
-            signature.initSign(privateKey, random);
-            signature.update(dataToSign);
-            return signature.sign();
-        } catch (NoSuchAlgorithmException | SignatureException e) {
-            throw new IllegalStateException(e);
-        }
-    }
-
-    /**
-     * Signs the data given with the private key given, using the SHA1withECDSA
-     * algorithm provided by bouncy castle.
-     */
-    public static byte[] signWithSha1ECDSA(byte[] dataToSign, PrivateKey privateKey) throws InvalidKeyException  {
-        try {
-            Signature signature = Signature.getInstance("SHA1withECDSA");
+            Signature signature = Signature.getInstance(algorithm);
             SecureRandom random = new SecureRandom();
             signature.initSign(privateKey, random);
             signature.update(dataToSign);

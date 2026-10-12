@@ -1,0 +1,18 @@
+{
+    "version": "2.46.2",
+    "date": "2026-06-02",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "Amazon Location Service Routes V2",
+            "contributor": "",
+            "description": "Add \"standardRegionalEndpoints\" back to fix 'Could not connect to the endpoint URL'"
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

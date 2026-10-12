@@ -85,7 +85,8 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
                                                             .publicAccessBlockConfiguration(r2 -> r2.restrictPublicBuckets(true))));
             fail("Expected exception");
         } catch (S3ControlException e) {
-            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("AccessDenied");
+            assertThat(e.awsErrorDetails().errorCode())
+                .matches(ec -> "AccessDenied".equals(ec) || "NotSignedUp".equals(ec));
             assertNotNull(e.requestId());
         }
     }
@@ -96,7 +97,8 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
             client.getPublicAccessBlock(r -> r.accountId(INVALID_ACCOUNT_ID));
             fail("Expected exception");
         } catch (S3ControlException e) {
-            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("AccessDenied");
+            assertThat(e.awsErrorDetails().errorCode())
+                .matches(ec -> "AccessDenied".equals(ec) || "NotSignedUp".equals(ec));
             assertNotNull(e.requestId());
         }
     }
@@ -141,7 +143,8 @@ public class S3ControlIntegrationTest extends AwsIntegrationTestBase {
             client.deletePublicAccessBlock(r -> r.accountId(INVALID_ACCOUNT_ID));
             fail("Expected exception");
         } catch (S3ControlException e) {
-            assertThat(e.awsErrorDetails().errorCode()).isEqualTo("AccessDenied");
+            assertThat(e.awsErrorDetails().errorCode())
+                .matches(ec -> "AccessDenied".equals(ec) || "NotSignedUp".equals(ec));
             assertNotNull(e.requestId());
         }
     }

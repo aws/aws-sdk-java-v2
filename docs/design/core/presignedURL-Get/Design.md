@@ -39,7 +39,7 @@ AsyncPresignedUrlExtension presignExtension = s3Client.presignedUrlExtension();
 // Create presigned URL request
 PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
                                                 .presignedUrl(presignedUrl)
-                                                .range("range=0-1024")
+                                                .range("bytes=0-1024")
                                                 .build();
 
 // Async usage
@@ -72,7 +72,7 @@ CompletableFuture<ResponseBytes<GetObjectResponse>> response =
     multipartClient.presignedUrlExtension().getObject(request, AsyncResponseTransformer.toBytes());
 ```
 
-The multipart implementation uses Range headers (e.g., `bytes=0-8388607`) instead of partNumber parameters to preserve presigned URL signatures. The first request downloads the initial part while discovering total object size from the Content-Range header.
+The multipart implementation uses Range headers (e.g., `bytes=0-8388607`) instead of partNumber parameters to preserve presigned URL signatures. The first request downloads the initial part while discovering total object size from the Content-Range header. Subsequent parts include an `If-Match` header with the ETag captured from the first response to detect object mutation mid-download. Each part response is validated to ensure Content-Range alignment and Content-Length match expected values.
 
 ### AsyncPresignedUrlExtension Interface
 
@@ -111,12 +111,52 @@ public final class PresignedUrlDownloadRequest
     
     private final URL presignedUrl;
     private final String range;
+    private final String ifMatch;
     
-    // Standard getters: presignedUrl(), range()
+    // Standard getters: presignedUrl(), range(), ifMatch()
     // Standard builder methods: builder(), toBuilder()
-    // Standard Builder class with presignedUrl(), range() setter methods
+    // Standard Builder class with presignedUrl(), range(), ifMatch() setter methods
 }
 ```
+
+## Transfer Manager Integration
+
+The S3TransferManager extends support for presigned URL downloads, providing high-level benefits like progress tracking and multipart optimization while building on the existing AsyncPresignedUrlExtension infrastructure.
+
+### New Transfer Manager APIs
+
+```java
+// File-based presigned URL download
+PresignedFileDownload download = transferManager.downloadFileWithPresignedUrl(
+    PresignedDownloadFileRequest.builder()
+        .presignedUrlDownloadRequest(PresignedUrlDownloadRequest.builder()
+            .presignedUrl(presignedUrl)
+            .build())
+        .destination(Paths.get("downloaded-file.txt"))
+        .addTransferListener(LoggingTransferListener.create())
+        .build());
+
+// Generic download with custom response transformer
+Download<ResponseBytes<GetObjectResponse>> download = transferManager.downloadWithPresignedUrl(
+    PresignedDownloadRequest.builder()
+        .presignedUrlDownloadRequest(PresignedUrlDownloadRequest.builder()
+            .presignedUrl(presignedUrl)
+            .build())
+        .responseTransformer(AsyncResponseTransformer.toBytes())
+        .build());
+```
+
+### Key Features
+
+- **Progress Tracking**: Full TransferListener support with bytesTransferred callbacks
+- **Multipart Downloads**: Automatic multipart for large objects using HTTP Range headers
+- **Consistent API**: Same FileDownload/Download return types as regular transfers
+- **Error Handling**: Comprehensive validation of Content-Range headers and response integrity
+
+### Limitations
+
+- **No Pause/Resume**: Presigned URL downloads do not support pause/resume functionality due to URL expiration and authentication constraints
+- **S3CrtTransferManager**: Not supported due to signing conflicts with presigned URLs
 
 ## FAQ
 

@@ -29,8 +29,9 @@ public class S3PutGetDeleteAsyncBenchmark extends BaseJavaS3ClientBenchmark {
     private static final Logger LOG = Logger.loggerFor(S3PutGetDeleteAsyncBenchmark.class);
     private final S3AsyncClient s3AsyncClient;
 
-    public S3PutGetDeleteAsyncBenchmark(BenchmarkConfig config, S3AsyncClient s3AsyncClient) {
-        super(config);
+    public S3PutGetDeleteAsyncBenchmark(BenchmarkConfig config, S3AsyncClient s3AsyncClient,
+                                        InMemoryMetricPublisher metricPublisher) {
+        super(config, metricPublisher);
         this.s3AsyncClient = s3AsyncClient;
     }
 

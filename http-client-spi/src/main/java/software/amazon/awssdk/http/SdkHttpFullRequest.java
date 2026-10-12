@@ -214,8 +214,8 @@ public interface SdkHttpFullRequest
         Builder method(SdkHttpMethod httpMethod);
 
         /**
-         * The query parameters, exactly as they were configured with {@link #headers(Map)},
-         * {@link #putHeader(String, String)} and {@link #putHeader(String, List)}.
+         * The headers, exactly as they were configured with {@link #headers(Map)}, {@link #putHeader(String, String)} and
+         * {@link #putHeader(String, List)}.
          */
         @Override
         Map<String, List<String>> headers();

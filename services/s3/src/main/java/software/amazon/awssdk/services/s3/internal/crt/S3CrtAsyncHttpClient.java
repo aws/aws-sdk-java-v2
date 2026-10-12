@@ -24,6 +24,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
@@ -32,6 +33,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -43,6 +45,8 @@ import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.CrtRuntimeException;
+import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpHeader;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
@@ -137,7 +141,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
     public CompletableFuture<Void> execute(AsyncExecuteRequest asyncRequest) {
         CompletableFuture<Void> executeFuture = new CompletableFuture<>();
         URI uri = asyncRequest.request().getUri();
-        HttpRequest httpRequest = toCrtRequest(asyncRequest);
+        HttpRequest httpRequest = toCrtRequest(asyncRequest, executeFuture);
         SdkHttpExecutionAttributes httpExecutionAttributes = asyncRequest.httpExecutionAttributes();
         CompletableFuture<S3MetaRequestWrapper> s3MetaRequestFuture = new CompletableFuture<>();
 
@@ -158,6 +162,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
         Path responseFilePath = httpExecutionAttributes.getAttribute(RESPONSE_FILE_PATH);
         S3MetaRequestOptions.ResponseFileOption responseFileOption = httpExecutionAttributes.getAttribute(RESPONSE_FILE_OPTION);
+        Boolean responseFileDeleteOnFailure = httpExecutionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE);
 
         S3CrtResponseHandlerAdapter responseHandler =
             new S3CrtResponseHandlerAdapter(
@@ -185,6 +190,12 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         if (responseFileOption != null) {
             requestOptions = requestOptions.withResponseFileOption(responseFileOption);
         }
+        if (responseFileDeleteOnFailure != null) {
+            requestOptions = requestOptions.withResponseFileDeleteOnFailure(responseFileDeleteOnFailure);
+        }
+
+        CrtCredentialsProviderAdapter requestCredentialsAdapter =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
 
         try {
             S3MetaRequestWrapper requestWrapper = new S3MetaRequestWrapper(crtS3Client.makeMetaRequest(requestOptions));
@@ -196,16 +207,46 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             if (observable != null) {
                 observable.subscribe(requestWrapper);
             }
+        } catch (Throwable t) {
+            if (requestCredentialsAdapter != null) {
+                requestCredentialsAdapter.close();
+            }
+            if (isResponseFileAlreadyExistsError(t, responseFilePath)) {
+                FileAlreadyExistsException fileAlreadyExistsException =
+                    new FileAlreadyExistsException(responseFilePath.toString());
+                fileAlreadyExistsException.addSuppressed(t);
+                // Native initialization failed before creating a meta-request. Complete its placeholder first because
+                // completing executeFuture invokes the response adapter synchronously, which otherwise waits for a timeout.
+                s3MetaRequestFuture.complete(null);
+                executeFuture.completeExceptionally(fileAlreadyExistsException);
+                return executeFuture;
+            }
+            throw t;
         } finally {
             signingConfig.close();
+        }
+
+        if (requestCredentialsAdapter != null) {
+            executeFuture.whenComplete((result, error) -> requestCredentialsAdapter.close());
         }
 
         return executeFuture;
     }
 
+    private static boolean isResponseFileAlreadyExistsError(Throwable throwable, Path responseFilePath) {
+        return responseFilePath != null
+               && throwable instanceof CrtRuntimeException
+               && "AWS_ERROR_S3_RECV_FILE_ALREADY_EXISTS".equals(((CrtRuntimeException) throwable).errorName);
+    }
+
     private AwsSigningConfig awsSigningConfig(Region signingRegion, SdkHttpExecutionAttributes httpExecutionAttributes) {
+        CrtCredentialsProviderAdapter requestAdapter =
+            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER);
+        CredentialsProvider effectiveCredentials =
+            requestAdapter != null ? requestAdapter.crtCredentials() : s3ClientOptions.getCredentialsProvider();
+
         AwsSigningConfig defaultS3SigningConfig =
-            AwsSigningConfig.getDefaultS3SigningConfig(s3ClientOptions.getRegion(), s3ClientOptions.getCredentialsProvider());
+            AwsSigningConfig.getDefaultS3SigningConfig(s3ClientOptions.getRegion(), effectiveCredentials);
 
         // Override the region only if the signing region has changed from the previously configured region.
         if (signingRegion != null && !s3ClientOptions.getRegion().equals(signingRegion.id())) {
@@ -243,7 +284,7 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
         return S3MetaRequestOptions.MetaRequestType.DEFAULT;
     }
 
-    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest) {
+    private static HttpRequest toCrtRequest(AsyncExecuteRequest asyncRequest, CompletableFuture<Void> executeFuture) {
         SdkHttpRequest sdkRequest = asyncRequest.request();
 
         Path requestFilePath = asyncRequest.httpExecutionAttributes().getAttribute(OBJECT_FILE_PATH);
@@ -262,7 +303,9 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
 
 
         S3CrtRequestBodyStreamAdapter sdkToCrtRequestPublisher =
-            requestFilePath == null ? new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher()) : null;
+            requestFilePath == null
+            ? new S3CrtRequestBodyStreamAdapter(asyncRequest.requestContentPublisher(), executeFuture)
+            : null;
 
         return new HttpRequest(method, encodedPath + encodedQueryString, crtHeaderArray, sdkToCrtRequestPublisher);
     }

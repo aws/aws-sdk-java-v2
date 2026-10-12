@@ -16,7 +16,9 @@
 package software.amazon.awssdk.auth.source;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static software.amazon.awssdk.auth.source.UserAgentTestUtils.assertUserAgentHasFeatureIds;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterAll;
@@ -73,7 +75,7 @@ class SystemPropertyCredentialsProviderUserAgentTest {
     @ParameterizedTest
     @MethodSource("systemPropertyCredentialProviders")
     void userAgentString_containsSystemPropertyBusinessMetric_WhenUsingSystemPropertyCredentials(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
         
         stsClient(provider, mockHttpClient).getCallerIdentity();
 
@@ -82,19 +84,19 @@ class SystemPropertyCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> systemPropertyCredentialProviders() {
         return Stream.of(
-            Arguments.of(SystemPropertyCredentialsProvider.create(), "m/D,f")
+            Arguments.of(SystemPropertyCredentialsProvider.create(), Arrays.asList("D", "f"))
         );
     }
 
     @ParameterizedTest
     @MethodSource("systemPropertyCredentialProvidersWithSessionToken")
     void userAgentString_containsSystemPropertyBusinessMetric_WhenUsingSystemPropertyCredentialsWithSessionToken(
-            IdentityProvider<? extends AwsCredentialsIdentity> provider, String expected) throws Exception {
+            IdentityProvider<? extends AwsCredentialsIdentity> provider, List<String> expectedIds) throws Exception {
 
         System.setProperty("aws.sessionToken", "test-session-token");
         
@@ -105,12 +107,12 @@ class SystemPropertyCredentialsProviderUserAgentTest {
 
         List<String> userAgentHeaders = lastRequest.headers().get("User-Agent");
         assertThat(userAgentHeaders).isNotNull().hasSize(1);
-        assertThat(userAgentHeaders.get(0)).contains(expected);
+        assertUserAgentHasFeatureIds(userAgentHeaders.get(0), expectedIds);
     }
 
     private static Stream<Arguments> systemPropertyCredentialProvidersWithSessionToken() {
         return Stream.of(
-            Arguments.of(SystemPropertyCredentialsProvider.create(), "m/D,f")
+            Arguments.of(SystemPropertyCredentialsProvider.create(), Arrays.asList("D", "f"))
         );
     }
 

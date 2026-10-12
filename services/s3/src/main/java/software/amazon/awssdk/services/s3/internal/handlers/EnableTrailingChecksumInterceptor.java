@@ -48,7 +48,7 @@ public final class EnableTrailingChecksumInterceptor implements ExecutionInterce
 
         SdkRequest request = context.request();
         if (getObjectChecksumEnabledPerRequest(request, executionAttributes)
-            && S3ExpressUtils.useS3Express(executionAttributes)) {
+            && S3ExpressUtils.isS3ExpressBucket(request)) {
             return ((GetObjectRequest) request).toBuilder().checksumMode(ChecksumMode.ENABLED).build();
         }
         return request;
@@ -63,7 +63,7 @@ public final class EnableTrailingChecksumInterceptor implements ExecutionInterce
                                             ExecutionAttributes executionAttributes) {
 
         if (getObjectChecksumEnabledPerRequest(context.request(), executionAttributes)
-            && !S3ExpressUtils.useS3Express(executionAttributes)) {
+            && !S3ExpressUtils.isS3ExpressBucket(context.request())) {
             return context.httpRequest()
                           .toBuilder()
                           .putHeader(ENABLE_CHECKSUM_REQUEST_HEADER, ENABLE_MD5_CHECKSUM_HEADER_VALUE)

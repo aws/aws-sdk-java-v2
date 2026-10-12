@@ -420,6 +420,9 @@ public class S3PutObjectRequestToV2 extends Recipe {
         }
 
         private J.MethodInvocation saveMetadataValueAndRemoveStatement(J.MethodInvocation method) {
+            if (!(method.getSelect() instanceof J.Identifier)) {
+                return method;
+            }
             J.Identifier metadataPojo = (J.Identifier) method.getSelect();
             String variableName = metadataPojo.getSimpleName();
 

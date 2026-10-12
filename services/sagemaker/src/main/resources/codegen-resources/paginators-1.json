@@ -6,6 +6,30 @@
       "limit_key": "MaxResults",
       "result_key": "AuthorizedUrlConfigs"
     },
+    "DescribeTrainingPlanExtensionHistory": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TrainingPlanExtensions"
+    },
+    "ListAIBenchmarkJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIBenchmarkJobs"
+    },
+    "ListAIRecommendationJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIRecommendationJobs"
+    },
+    "ListAIWorkloadConfigs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "AIWorkloadConfigs"
+    },
     "ListActions": {
       "input_token": "NextToken",
       "output_token": "NextToken",
@@ -221,6 +245,18 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "InferenceRecommendationsJobs"
+    },
+    "ListJobSchemaVersions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "JobConfigSchemas"
+    },
+    "ListJobs": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "JobSummaries"
     },
     "ListLabelingJobs": {
       "input_token": "NextToken",
@@ -454,6 +490,12 @@
       "output_token": "NextToken",
       "limit_key": "MaxResults",
       "result_key": "TrainingPlanSummaries"
+    },
+    "ListTrainingSessions": {
+      "input_token": "NextToken",
+      "output_token": "NextToken",
+      "limit_key": "MaxResults",
+      "result_key": "TrainingSessionSummaries"
     },
     "ListTransformJobs": {
       "input_token": "NextToken",

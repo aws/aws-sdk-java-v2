@@ -16,6 +16,8 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,13 +27,16 @@ import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpE
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.OPERATION_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.REQUEST_CHECKSUM_CALCULATION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_CHECKSUM_VALIDATION;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH;
+import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_CREDENTIALS_PROVIDER_ADAPTER;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_NAME;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.SIGNING_REGION;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH;
 
 import java.net.URI;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.time.Duration;
 import java.util.HashMap;
@@ -50,6 +55,8 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.interceptor.trait.HttpChecksum;
+import software.amazon.awssdk.crt.CrtRuntimeException;
+import software.amazon.awssdk.crt.auth.credentials.CredentialsProvider;
 import software.amazon.awssdk.crt.auth.signing.AwsSigningConfig;
 import software.amazon.awssdk.crt.http.HttpProxyEnvironmentVariableSetting;
 import software.amazon.awssdk.crt.http.HttpRequest;
@@ -60,7 +67,6 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
-import software.amazon.awssdk.crt.s3.S3MetaRequestResponseHandler;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
@@ -616,11 +622,88 @@ public class S3CrtAsyncHttpClientTest {
             .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
             .putHttpExecutionAttribute(RESPONSE_FILE_PATH, path)
             .putHttpExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND)
+            .putHttpExecutionAttribute(RESPONSE_FILE_DELETE_ON_FAILURE, true)
             .build();
 
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getResponseFilePath()).isEqualTo(path);
         assertThat(actual.getResponseFileOption()).isEqualTo(S3MetaRequestOptions.ResponseFileOption.CREATE_OR_APPEND);
+        assertThat(actual.getResponseFileDeleteOnFailure()).isTrue();
+    }
+
+    @Test
+    public void responseFileDeleteOnFailureNotSpecified_shouldUseCrtDefault() {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder()
+            .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+            .putHttpExecutionAttribute(RESPONSE_FILE_PATH, path)
+            .build();
+
+        assertThat(makeRequest(asyncExecuteRequest).getResponseFileDeleteOnFailure()).isFalse();
+    }
+
+    @Test
+    public void responseFileAlreadyExists_shouldFailFutureWithFileAlreadyExistsException() {
+        Path path = RandomTempFile.randomUncreatedFile().toPath();
+        CrtRuntimeException crtException =
+            new CrtRuntimeException("aws_last_error: AWS_ERROR_S3_RECV_FILE_ALREADY_EXISTS(14367), file exists");
+        when(s3Client.makeMetaRequest(any(S3MetaRequestOptions.class))).thenThrow(crtException);
+        AsyncExecuteRequest asyncExecuteRequest = getExecuteRequestBuilder()
+            .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+            .putHttpExecutionAttribute(RESPONSE_FILE_PATH, path)
+            .putHttpExecutionAttribute(RESPONSE_FILE_OPTION, S3MetaRequestOptions.ResponseFileOption.CREATE_NEW)
+            .build();
+
+        CompletableFuture<Void> future = assertDoesNotThrow(() -> asyncHttpClient.execute(asyncExecuteRequest));
+
+        assertThatThrownBy(future::join)
+            .hasRootCauseInstanceOf(FileAlreadyExistsException.class)
+            .hasRootCauseMessage(path.toString());
+    }
+
+    @Test
+    public void execute_withRequestLevelCredentials_shouldCloseAdapterOnCompletion() {
+        CrtCredentialsProviderAdapter adapter = Mockito.mock(CrtCredentialsProviderAdapter.class);
+        when(adapter.crtCredentials()).thenReturn(Mockito.mock(CredentialsProvider.class));
+        S3MetaRequest metaRequest = Mockito.mock(S3MetaRequest.class);
+        when(s3Client.makeMetaRequest(any(S3MetaRequestOptions.class))).thenReturn(metaRequest);
+
+        AsyncExecuteRequest asyncExecuteRequest =
+            getExecuteRequestBuilder()
+                .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+                .putHttpExecutionAttribute(SIGNING_REGION, Region.US_WEST_2)
+                .putHttpExecutionAttribute(SIGNING_NAME, "s3")
+                .putHttpExecutionAttribute(CRT_CREDENTIALS_PROVIDER_ADAPTER, adapter)
+                .build();
+
+        CompletableFuture<Void> future = asyncHttpClient.execute(asyncExecuteRequest);
+
+        Mockito.verify(adapter, Mockito.never()).close();
+
+        future.complete(null);
+
+        Mockito.verify(adapter).close();
+    }
+
+    @Test
+    void execute_whenMakeMetaRequestThrows_shouldCloseAdapter() {
+        CrtCredentialsProviderAdapter adapter = Mockito.mock(CrtCredentialsProviderAdapter.class);
+        when(adapter.crtCredentials()).thenReturn(Mockito.mock(CredentialsProvider.class));
+        when(s3Client.makeMetaRequest(any(S3MetaRequestOptions.class)))
+            .thenThrow(new RuntimeException("boom"));
+
+        AsyncExecuteRequest asyncExecuteRequest =
+            getExecuteRequestBuilder()
+                .putHttpExecutionAttribute(OPERATION_NAME, "GetObject")
+                .putHttpExecutionAttribute(SIGNING_REGION, Region.US_WEST_2)
+                .putHttpExecutionAttribute(SIGNING_NAME, "s3")
+                .putHttpExecutionAttribute(CRT_CREDENTIALS_PROVIDER_ADAPTER, adapter)
+                .build();
+
+        assertThatThrownBy(() -> asyncHttpClient.execute(asyncExecuteRequest))
+            .isInstanceOf(RuntimeException.class);
+
+        Mockito.verify(adapter).close();
     }
 
     private AsyncExecuteRequest.Builder getExecuteRequestBuilder() {

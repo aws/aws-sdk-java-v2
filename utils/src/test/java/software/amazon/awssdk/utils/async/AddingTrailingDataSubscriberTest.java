@@ -17,14 +17,14 @@ package software.amazon.awssdk.utils.async;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 
 public class AddingTrailingDataSubscriberTest {
 
@@ -95,5 +95,55 @@ public class AddingTrailingDataSubscriberTest {
             simplePublisher.send(i);
         }
         simplePublisher.complete();
+    }
+
+    @Test
+    void duplicateOnSubscribe_shouldPropagateErrorToDownstream() {
+        AtomicReference<Throwable> downstreamError = new AtomicReference<>();
+        CompletableFuture<Void> future = new CompletableFuture<>();
+
+        Subscriber<Integer> downstream = new Subscriber<Integer>() {
+            @Override
+            public void onSubscribe(Subscription s) {
+                s.request(Long.MAX_VALUE);
+            }
+
+            @Override
+            public void onNext(Integer item) {
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                downstreamError.set(t);
+                future.completeExceptionally(t);
+            }
+
+            @Override
+            public void onComplete() {
+                future.complete(null);
+            }
+        };
+
+        AddingTrailingDataSubscriber<Integer> subscriber =
+            new AddingTrailingDataSubscriber<>(downstream, ArrayList::new);
+
+        // First subscription
+        Subscription firstSub = new Subscription() {
+            @Override
+            public void request(long n) {
+            }
+
+            @Override
+            public void cancel() {
+            }
+        };
+        subscriber.onSubscribe(firstSub);
+
+        // Duplicate subscription should propagate error to downstream
+        subscriber.onSubscribe(firstSub);
+
+        assertThat(downstreamError.get())
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessageContaining("Received duplicate subscription");
     }
 }

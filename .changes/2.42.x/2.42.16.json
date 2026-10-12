@@ -1,0 +1,24 @@
+{
+    "version": "2.42.16",
+    "date": "2026-03-18",
+    "entries": [
+        {
+            "type": "bugfix",
+            "category": "Amazon DynamoDB Enhanced Client",
+            "contributor": "",
+            "description": "Fix NullPointerException in `EnhancedType.hashCode()`, `EnhancedType.equals()`, and `EnhancedType.toString()` when using wildcard types."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental MediaConvert",
+            "contributor": "",
+            "description": "This update adds additional bitrate options for Dolby AC-4 audio outputs."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "The DescribeInstanceTypes API now returns default connection tracking timeout values for TCP, UDP, and UDP stream via the new connectionTrackingConfiguration field on NetworkInfo."
+        }
+    ]
+}

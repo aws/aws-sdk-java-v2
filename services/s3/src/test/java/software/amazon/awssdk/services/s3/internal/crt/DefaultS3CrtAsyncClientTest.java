@@ -18,11 +18,14 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsS3V4Signer;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -31,12 +34,16 @@ import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.DelegatingS3AsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.endpoints.S3ClientContextParams;
 import software.amazon.awssdk.services.s3.internal.crossregion.S3CrossRegionAsyncClient;
+import software.amazon.awssdk.testutils.RandomTempFile;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.MapUtils;
 
@@ -84,6 +91,40 @@ class DefaultS3CrtAsyncClientTest {
             assertThat(attributeMap.get(S3ClientContextParams.USE_ARN_REGION)).isFalse();
             assertThat(attributeMap.get(S3ClientContextParams.DISABLE_MULTI_REGION_ACCESS_POINTS)).isFalse();
         }
+    }
+
+    @Test
+    void getObjectWithPath_shouldConfigureResponseFile() {
+        AtomicReference<SdkHttpExecutionAttributes> capturedAttributes = new AtomicReference<>();
+        ExecutionInterceptor captor = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                capturedAttributes.set(
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES));
+                throw new RuntimeException("STOP");
+            }
+        };
+
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(captor);
+        Path destination = RandomTempFile.randomUncreatedFile().toPath();
+
+        try (S3AsyncClient client = builder.region(Region.US_EAST_1)
+                                           .credentialsProvider(StaticCredentialsProvider.create(
+                                               AwsBasicCredentials.create("key", "secret")))
+                                           .build()) {
+            assertThatThrownBy(() -> client.getObject(r -> r.bucket("bucket").key("key"), destination).join())
+                .hasMessageContaining("STOP");
+        }
+
+        SdkHttpExecutionAttributes attributes = capturedAttributes.get();
+        assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH))
+            .isEqualTo(destination);
+        assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION))
+            .isEqualTo(ResponseFileOption.CREATE_NEW);
+        assertThat(attributes.getAttribute(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE))
+            .isTrue();
     }
 
     @ParameterizedTest
@@ -160,5 +201,76 @@ class DefaultS3CrtAsyncClientTest {
             assertThat(client).isNotNull();
             assertThat(client).isInstanceOf(DefaultS3CrtAsyncClient.class);
         }
+    }
+
+    @Test
+    void s3ExpressBucket_defaultConfig_useS3ExpressAuthIsTrue() {
+        AtomicReference<Boolean> capturedUseS3ExpressAuth = new AtomicReference<>();
+
+        ExecutionInterceptor captor = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                SdkHttpExecutionAttributes httpAttrs =
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES);
+                if (httpAttrs != null) {
+                    capturedUseS3ExpressAuth.set(httpAttrs.getAttribute(S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH));
+                }
+                throw new RuntimeException("STOP");
+            }
+        };
+
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(captor);
+
+        try (S3AsyncClient client = builder
+            .region(Region.US_EAST_1)
+            .credentialsProvider(StaticCredentialsProvider.create(
+                AwsBasicCredentials.create("key", "secret")))
+            .build()) {
+
+            assertThatThrownBy(() -> client.getObject(
+                r -> r.bucket("my-bucket--usw2-az1--x-s3").key("key"),
+                AsyncResponseTransformer.toBytes()).join())
+                .hasMessageContaining("STOP");
+        }
+
+        assertThat(capturedUseS3ExpressAuth.get()).isTrue();
+    }
+
+    @Test
+    void s3ExpressBucket_disableS3ExpressSessionAuth_useS3ExpressAuthIsFalse() {
+        AtomicReference<Boolean> capturedUseS3ExpressAuth = new AtomicReference<>();
+
+        ExecutionInterceptor captor = new ExecutionInterceptor() {
+            @Override
+            public void beforeTransmission(Context.BeforeTransmission context, ExecutionAttributes executionAttributes) {
+                SdkHttpExecutionAttributes httpAttrs =
+                    executionAttributes.getAttribute(SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES);
+                if (httpAttrs != null) {
+                    capturedUseS3ExpressAuth.set(httpAttrs.getAttribute(S3InternalSdkHttpExecutionAttribute.USE_S3_EXPRESS_AUTH));
+                }
+                throw new RuntimeException("STOP");
+            }
+        };
+
+        DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder builder =
+            (DefaultS3CrtAsyncClient.DefaultS3CrtClientBuilder) S3CrtAsyncClient.builder();
+        builder.addExecutionInterceptor(captor);
+
+        try (S3AsyncClient client = builder
+            .region(Region.US_EAST_1)
+            .credentialsProvider(StaticCredentialsProvider.create(
+                AwsBasicCredentials.create("key", "secret")))
+            .disableS3ExpressSessionAuth(true)
+            .build()) {
+
+            assertThatThrownBy(() -> client.getObject(
+                r -> r.bucket("my-bucket--usw2-az1--x-s3").key("key"),
+                AsyncResponseTransformer.toBytes()).join())
+                .hasMessageContaining("STOP");
+        }
+
+        assertThat(capturedUseS3ExpressAuth.get()).isFalse();
     }
 }

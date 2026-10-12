@@ -129,7 +129,7 @@ public class MoveQueryParamsToBodyTest {
                                         .build();
 
         ArgumentCaptor<AsyncExecuteRequest> requestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
-        asyncClient.membersInQueryParams(r -> r.stringQueryParam("hello"));
+        assertThatThrownBy(asyncClient.membersInQueryParams(r -> r.stringQueryParam("hello"))::join);
 
         verify(asyncMockHttpClient, atLeast(1)).execute(requestCaptor.capture());
         verifyParametersMovedToBody_asyncClient(requestCaptor);
@@ -164,7 +164,7 @@ public class MoveQueryParamsToBodyTest {
 
         ArgumentCaptor<AsyncExecuteRequest> requestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
 
-        asyncClient.membersInQueryParams(r -> r.stringQueryParam("hello").overrideConfiguration(createOverrideConfigWithQueryParams()));
+        assertThatThrownBy(asyncClient.membersInQueryParams(r -> r.stringQueryParam("hello").overrideConfiguration(createOverrideConfigWithQueryParams()))::join);
         verify(asyncMockHttpClient, atLeast(1)).execute(requestCaptor.capture());
         verifyParametersMovedToBody_asyncClient(requestCaptor);
     }
@@ -199,7 +199,7 @@ public class MoveQueryParamsToBodyTest {
                                               .build();
 
         ArgumentCaptor<AsyncExecuteRequest> requestCaptor = ArgumentCaptor.forClass(AsyncExecuteRequest.class);
-        asyncClient.allTypes(r -> r.stringMember("hello"));
+        assertThatThrownBy(asyncClient.allTypes(r -> r.stringMember("hello"))::join);
 
         verify(asyncMockHttpClient, atLeast(1)).execute(requestCaptor.capture());
 

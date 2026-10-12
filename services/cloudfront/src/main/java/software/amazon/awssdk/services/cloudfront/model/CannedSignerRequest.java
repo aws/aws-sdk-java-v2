@@ -24,6 +24,7 @@ import software.amazon.awssdk.annotations.NotThreadSafe;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
 import software.amazon.awssdk.services.cloudfront.internal.utils.SigningUtils;
+import software.amazon.awssdk.services.cloudfront.utils.SigningHashAlgorithm;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -40,12 +41,14 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
     private final PrivateKey privateKey;
     private final String keyPairId;
     private final Instant expirationDate;
+    private final SigningHashAlgorithm hashAlgorithm;
 
     private CannedSignerRequest(DefaultBuilder builder) {
         this.resourceUrl = builder.resourceUrl;
         this.privateKey = builder.privateKey;
         this.keyPairId = builder.keyPairId;
         this.expirationDate = builder.expirationDate;
+        this.hashAlgorithm = builder.hashAlgorithm != null ? builder.hashAlgorithm : SigningHashAlgorithm.SHA1;
     }
 
     /**
@@ -81,6 +84,11 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
     }
 
     @Override
+    public SigningHashAlgorithm hashAlgorithm() {
+        return hashAlgorithm;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -93,7 +101,8 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         return Objects.equals(resourceUrl, cookie.resourceUrl)
                && Objects.equals(privateKey, cookie.privateKey)
                && Objects.equals(keyPairId, cookie.keyPairId)
-               && Objects.equals(expirationDate, cookie.expirationDate);
+               && Objects.equals(expirationDate, cookie.expirationDate)
+               && hashAlgorithm == cookie.hashAlgorithm;
     }
 
     @Override
@@ -102,6 +111,7 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         result = 31 * result + (privateKey != null ? privateKey.hashCode() : 0);
         result = 31 * result + (keyPairId != null ? keyPairId.hashCode() : 0);
         result = 31 * result + (expirationDate != null ? expirationDate.hashCode() : 0);
+        result = 31 * result + (hashAlgorithm != null ? hashAlgorithm.hashCode() : 0);
         return result;
     }
 
@@ -142,6 +152,11 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
          * Configure the expiration date of the signed URL or signed cookie
          */
         Builder expirationDate(Instant expirationDate);
+
+        /**
+         * Configure the hash algorithm used to sign the policy. Defaults to {@link SigningHashAlgorithm#SHA1}.
+         */
+        Builder hashAlgorithm(SigningHashAlgorithm hashAlgorithm);
     }
 
     private static final class DefaultBuilder implements Builder {
@@ -149,6 +164,7 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         private PrivateKey privateKey;
         private String keyPairId;
         private Instant expirationDate;
+        private SigningHashAlgorithm hashAlgorithm;
 
         private DefaultBuilder() {
         }
@@ -158,6 +174,7 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
             this.privateKey = request.privateKey;
             this.keyPairId = request.keyPairId;
             this.expirationDate = request.expirationDate;
+            this.hashAlgorithm = request.hashAlgorithm;
         }
 
         @Override
@@ -187,6 +204,12 @@ public final class CannedSignerRequest implements CloudFrontSignerRequest,
         @Override
         public Builder expirationDate(Instant expirationDate) {
             this.expirationDate = expirationDate;
+            return this;
+        }
+
+        @Override
+        public Builder hashAlgorithm(SigningHashAlgorithm hashAlgorithm) {
+            this.hashAlgorithm = hashAlgorithm;
             return this;
         }
 

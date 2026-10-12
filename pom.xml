@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.42.5-SNAPSHOT</version>
+    <version>2.55.16-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -74,12 +74,14 @@
         <module>third-party</module>
         <module>v2-migration</module>
         <module>test/http-client-tests</module>
+        <module>test/warmup-tests</module>
         <module>test/protocol-tests</module>
         <module>test/protocol-tests-core</module>
         <module>test/service-test-utils</module>
         <module>test/test-utils</module>
         <module>test/codegen-generated-classes-test</module>
         <module>test/sdk-benchmarks</module>
+        <module>test/sdk-standard-benchmarks</module>
         <module>test/http-client-benchmarks</module>
         <module>test/module-path-tests</module>
         <module>test/tests-coverage-reporting</module>
@@ -87,9 +89,8 @@
         <module>test/sdk-native-image-test</module>
         <module>test/s3-benchmarks</module>
         <module>test/auth-tests</module>
-        <module>test/region-testing</module>
         <module>test/ruleset-testing-core</module>
-        <module>test/old-client-version-compatibility-test</module>
+        <module>test/service-client-backward-compat-test</module>
         <module>test/bundle-logging-bridge-binding-test</module>
         <module>test/v2-migration-tests</module>
         <module>test/bundle-shading-tests</module>
@@ -103,15 +104,12 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.42.4</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.42.3</awsjavasdk.previous-previous.version>
-        <jackson.version>2.20.2</jackson.version>
-        <jackson.databind.version>2.20.2</jackson.databind.version>
-        <jacksonjr.version>2.20.2</jacksonjr.version>
-        <jackson.annotations.version>2.20</jackson.annotations.version>
-        <jackson.version>2.18.5</jackson.version>
-        <jackson.databind.version>2.18.5</jackson.databind.version>
-        <jacksonjr.version>2.18.5</jacksonjr.version>
+        <awsjavasdk.previous.version>2.55.15</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.55.14</awsjavasdk.previous-previous.version>
+        <jackson.version>2.21.7</jackson.version>
+        <jackson.databind.version>2.21.7</jackson.databind.version>
+        <jacksonjr.version>2.21.7</jacksonjr.version>
+        <jackson.annotations.version>2.21</jackson.annotations.version>
         <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
@@ -121,7 +119,7 @@
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.130.Final</netty.version>
+        <netty.version>4.1.138.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -133,7 +131,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.43.4</awscrt.version>
+        <awscrt.version>0.48.5</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>
@@ -146,7 +144,7 @@
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.6</commons-lang.verson>
-        <netty-open-ssl-version>2.0.74.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.84.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.16.RELEASE</blockhound.version>
@@ -154,10 +152,11 @@
         <bytebuddy.version>1.17.5</bytebuddy.version>
         <archunit.version>1.3.0</archunit.version>
         <json-schema-validator.version>1.5.4</json-schema-validator.version>
+        <kerby.version>2.0.3</kerby.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.1.2</maven.surefire.version>
-        <maven-compiler-plugin.version>3.8.1</maven-compiler-plugin.version>
+        <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
@@ -179,6 +178,7 @@
         <maven-wrapper-plugin.version>3.2.0</maven-wrapper-plugin.version>
         <ant.version>1.10.14</ant.version>
         <maven-velocity-plugin.version>0.9</maven-velocity-plugin.version>
+        <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
 
         <!-- These properties are used by Step functions for its dependencies -->
         <json-path.version>2.4.0</json-path.version>
@@ -191,15 +191,15 @@
         <jre.version>1.8</jre.version>
         <httpcomponents.httpclient.version>4.5.13</httpcomponents.httpclient.version>
         <httpcomponents.httpcore.version>4.4.16</httpcomponents.httpcore.version>
-        <httpcomponents.client5.version>5.6</httpcomponents.client5.version>
-        <httpcomponents.core5.version>5.4.1</httpcomponents.core5.version>
+        <httpcomponents.client5.version>5.6.4</httpcomponents.client5.version>
+        <httpcomponents.core5.version>5.4.3</httpcomponents.core5.version>
         <!-- Reactive Streams version -->
         <reactive-streams.version>1.0.4</reactive-streams.version>
 
         <!-- S3 Access Grants plugin version -->
         <s3accessgrants.version>2.4.1</s3accessgrants.version>
 
-        <lakeformations3accessgrants.version>1.3</lakeformations3accessgrants.version>
+        <lakeformations3accessgrants.version>1.4.3</lakeformations3accessgrants.version>
 
         <skip.unit.tests>${skipTests}</skip.unit.tests>
         <v2.migration.tests.skip>true</v2.migration.tests.skip>
@@ -215,6 +215,15 @@
 
     <dependencies>
         <!-- Internal dependencies are managed in the bom-internal module. -->
+
+        <!-- reactive-streams-tck brings TestNG, which is needed globally so the surefire-testng provider
+             can discover TCK tests in any module without per-module surefire configuration. -->
+        <dependency>
+            <groupId>org.reactivestreams</groupId>
+            <artifactId>reactive-streams-tck</artifactId>
+            <version>${reactive-streams.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -304,12 +313,24 @@
                             <include>**/*TestCase.java</include>
                         </includes>
                         <skipTests>${skip.unit.tests}</skipTests>
+                        <!-- Prevent TestNG from re-running JUnit tests -->
+                        <properties>
+                            <property>
+                                <name>junit</name>
+                                <value>false</value>
+                            </property>
+                        </properties>
                     </configuration>
                     <!-- Have to explicitly set surefire provider because reactivestreamsTCK is using TestNG-->
                     <dependencies>
                         <dependency>
                             <groupId>org.apache.maven.surefire</groupId>
                             <artifactId>surefire-junit-platform</artifactId>
+                            <version>${maven.surefire.version}</version>
+                        </dependency>
+                        <dependency>
+                            <groupId>org.apache.maven.surefire</groupId>
+                            <artifactId>surefire-testng</artifactId>
                             <version>${maven.surefire.version}</version>
                         </dependency>
                     </dependencies>
@@ -388,6 +409,82 @@
                                         <targetPath>META-INF</targetPath>
                                     </resource>
                                 </resources>
+                            </configuration>
+                        </execution>
+                        <!-- version.properties generation, see the note on maven-resources-plugin below. -->
+                        <execution>
+                            <id>parse-sdk-version</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>parse-version</goal>
+                            </goals>
+                            <configuration>
+                                <versionString>${awsjavasdk.version}</versionString>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- Generates META-INF/software.amazon.awssdk/<artifactId>/version.properties into
+                     generated-resources/sdk-resources, which add-generated-resources registers as a resource root. Build
+                     tooling reads the SDK minor version (for example 2.56.x) from this output directory and from the jar,
+                     so do not change the output directory, resource path, key, or value format without coordinating with
+                     that tooling. The parse-sdk-version, generate-version-properties, and require-version-properties
+                     executions are unbound (phase none) here; core/pom.xml and services/pom.xml bind them in profiles so
+                     that only those module families produce the file. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>generate-version-properties</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>copy-resources</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}</outputDirectory>
+                                <overwrite>true</overwrite>
+                                <resources>
+                                    <resource>
+                                        <directory>${maven.multiModuleProjectDirectory}/build-tools/src/main/templates</directory>
+                                        <includes>
+                                            <include>version.properties</include>
+                                        </includes>
+                                        <filtering>true</filtering>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- The resources plugin silently skips a template directory that does not resolve, and leaves an
+                     unresolved ${parsedVersion.*} placeholder in place if parse-sdk-version did not run. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>require-version-properties</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireFilesExist>
+                                        <message>version.properties was not generated. Check that ${maven.multiModuleProjectDirectory}/build-tools/src/main/templates/version.properties exists.</message>
+                                        <files>
+                                            <file>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}/version.properties</file>
+                                        </files>
+                                    </requireFilesExist>
+                                    <requireProperty>
+                                        <property>parsedVersion.minorVersion</property>
+                                        <message>The SDK minor version could not be parsed from ${awsjavasdk.version}, so version.properties would contain an unresolved placeholder. Check that the parse-sdk-version execution is bound in the same profile as generate-version-properties.</message>
+                                        <regex>\d+</regex>
+                                        <regexMessage>The SDK minor version parsed from ${awsjavasdk.version} is "${parsedVersion.minorVersion}", not a number, so version.properties would contain an invalid version.</regexMessage>
+                                    </requireProperty>
+                                </rules>
                             </configuration>
                         </execution>
                     </executions>
@@ -633,6 +730,7 @@
                             <includeModule>s3-transfer-manager</includeModule>
                             <includeModule>iam-policy-builder</includeModule>
                             <includeModule>s3-event-notifications</includeModule>
+                            <includeModule>sns-message-manager</includeModule>
 
                             <!-- Service modules that are heavily customized should be included -->
                              <includeModule>s3</includeModule>

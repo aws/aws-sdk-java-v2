@@ -28,11 +28,18 @@ public final class RequestBatchConfiguration {
     public static final int DEFAULT_MAX_BUFFER_SIZE = 500;
     public static final Duration DEFAULT_MAX_BATCH_OPEN_IN_MS = Duration.ofMillis(200);
 
+    /**
+     * Time {@code close()} waits for in-flight batch sends to complete so their callers receive real results before
+     * outstanding requests are cancelled.
+     */
+    public static final Duration DEFAULT_SHUTDOWN_TIMEOUT = Duration.ofSeconds(5);
+
     private final Integer maxBatchItems;
     private final Integer maxBatchKeys;
     private final Integer maxBufferSize;
     private final Duration sendRequestFrequency;
     private final Integer maxBatchBytesSize;
+    private final Duration shutdownTimeout;
 
     private RequestBatchConfiguration(Builder builder) {
 
@@ -43,6 +50,8 @@ public final class RequestBatchConfiguration {
                                                   builder.sendRequestFrequency :
                                          DEFAULT_MAX_BATCH_OPEN_IN_MS;
         this.maxBatchBytesSize = builder.maxBatchBytesSize != null ? builder.maxBatchBytesSize : DEFAULT_MAX_BATCH_BYTES_SIZE;
+        this.shutdownTimeout = builder.shutdownTimeout != null ?
+                                   builder.shutdownTimeout : DEFAULT_SHUTDOWN_TIMEOUT;
 
     }
 
@@ -80,6 +89,10 @@ public final class RequestBatchConfiguration {
         return maxBatchBytesSize;
     }
 
+    public Duration shutdownTimeout() {
+        return shutdownTimeout;
+    }
+
     public static final class Builder {
 
         private Integer maxBatchItems;
@@ -87,6 +100,7 @@ public final class RequestBatchConfiguration {
         private Integer maxBufferSize;
         private Duration sendRequestFrequency;
         private Integer maxBatchBytesSize;
+        private Duration shutdownTimeout;
 
         private Builder() {
         }
@@ -113,6 +127,11 @@ public final class RequestBatchConfiguration {
 
         public Builder maxBatchBytesSize(Integer maxBatchBytesSize) {
             this.maxBatchBytesSize = maxBatchBytesSize;
+            return this;
+        }
+
+        public Builder shutdownTimeout(Duration shutdownTimeout) {
+            this.shutdownTimeout = shutdownTimeout;
             return this;
         }
 

@@ -34,6 +34,7 @@ import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.signer.Signer;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
 import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.utils.ImmutableMap;
 
@@ -75,6 +76,7 @@ public class RequestOverrideConfigurationTest {
                 .apiCallTimeout(Duration.ofSeconds(1))
                 .apiCallAttemptTimeout(Duration.ofSeconds(1))
                 .signer(new NoOpSigner())
+                .authSchemeProvider(mock(AuthSchemeProvider.class))
                 .executionAttributes(ExecutionAttributes.builder().put(testAttribute, expectedValue).build())
                 .addMetricPublisher(mock(MetricPublisher.class))
                 .build();
@@ -328,6 +330,46 @@ public class RequestOverrideConfigurationTest {
         assertThat(request1Override).isEqualTo(request1Override);
         assertThat(request1Override).isEqualTo(request2Override);
         assertThat(request1Override).isNotEqualTo(null);
+    }
+
+    @Test
+    public void authSchemeProvider_setOnBuilder_isPresent() {
+        AuthSchemeProvider provider = mock(AuthSchemeProvider.class);
+        RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
+                .authSchemeProvider(provider)
+                .build();
+
+        assertThat(configuration.authSchemeProvider()).isPresent();
+        assertThat(configuration.authSchemeProvider().get()).isSameAs(provider);
+    }
+
+    @Test
+    public void authSchemeProvider_notSet_isEmpty() {
+        RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
+                .build();
+
+        assertThat(configuration.authSchemeProvider()).isEmpty();
+    }
+
+    @Test
+    public void authSchemeProvider_setToNull_isEmpty() {
+        RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
+                .authSchemeProvider(null)
+                .build();
+
+        assertThat(configuration.authSchemeProvider()).isEmpty();
+    }
+
+    @Test
+    public void authSchemeProvider_toBuilder_roundTrips() {
+        AuthSchemeProvider provider = mock(AuthSchemeProvider.class);
+        RequestOverrideConfiguration configuration = SdkRequestOverrideConfiguration.builder()
+                .authSchemeProvider(provider)
+                .build();
+
+        RequestOverrideConfiguration rebuilt = configuration.toBuilder().build();
+        assertThat(rebuilt.authSchemeProvider()).isPresent();
+        assertThat(rebuilt.authSchemeProvider().get()).isSameAs(provider);
     }
 
     private static class NoOpSigner implements Signer {

@@ -76,11 +76,14 @@ public class S3NativeClientConfiguration implements SdkAutoCloseable {
             TlsContextOptions.createDefaultClient()
                              .withCipherPreference(TlsCipherPreference.TLS_CIPHER_SYSTEM_DEFAULT);
 
-        if (builder.httpConfiguration != null
-            && builder.httpConfiguration.trustAllCertificatesEnabled() != null) {
-            log.warn(() -> "SSL Certificate verification is disabled. "
-                           + "This is not a safe setting and should only be used for testing.");
-            clientTlsContextOptions.withVerifyPeer(!builder.httpConfiguration.trustAllCertificatesEnabled());
+        if (builder.httpConfiguration != null &&
+            builder.httpConfiguration.trustAllCertificatesEnabled() != null) {
+            Boolean trustAllCertificatesEnabled = builder.httpConfiguration.trustAllCertificatesEnabled();
+            if (Boolean.TRUE.equals(trustAllCertificatesEnabled)) {
+                log.warn(() -> "SSL Certificate verification is disabled. "
+                               + "This is not a safe setting and should only be used for testing.");
+            }
+            clientTlsContextOptions.withVerifyPeer(!trustAllCertificatesEnabled);
         }
         this.tlsContext = new TlsContext(clientTlsContextOptions);
         this.credentialProviderAdapter = new CrtCredentialsProviderAdapter(

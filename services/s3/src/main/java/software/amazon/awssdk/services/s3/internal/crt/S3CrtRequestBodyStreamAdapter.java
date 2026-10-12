@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.crt.http.HttpRequestBodyStream;
@@ -30,12 +31,14 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
     private static final long MINIMUM_BYTES_BUFFERED = 16 * 1024 * 1024L;
     private final SdkHttpContentPublisher bodyPublisher;
     private final ByteBufferStoringSubscriber requestBodySubscriber;
+    private final CompletableFuture<Void> executeFuture;
 
     private final AtomicBoolean subscribed = new AtomicBoolean(false);
 
-    public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher) {
+    public S3CrtRequestBodyStreamAdapter(SdkHttpContentPublisher bodyPublisher, CompletableFuture<Void> executeFuture) {
         this.bodyPublisher = bodyPublisher;
         this.requestBodySubscriber = new ByteBufferStoringSubscriber(MINIMUM_BYTES_BUFFERED);
+        this.executeFuture = executeFuture;
     }
 
     @Override
@@ -44,7 +47,14 @@ public final class S3CrtRequestBodyStreamAdapter implements HttpRequestBodyStrea
             bodyPublisher.subscribe(requestBodySubscriber);
         }
 
-        return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+        try {
+            return requestBodySubscriber.transferTo(outBuffer) == ByteBufferStoringSubscriber.TransferResult.END_OF_STREAM;
+        } catch (RuntimeException e) {
+            // This is a native JNI upcall: an escaping exception is printed to stderr and discarded by CRT (#6715).
+            // Fail the operation with the original publisher error instead; completing executeFuture cancels the meta request.
+            executeFuture.completeExceptionally(e);
+            return false;
+        }
     }
 
     @Override
