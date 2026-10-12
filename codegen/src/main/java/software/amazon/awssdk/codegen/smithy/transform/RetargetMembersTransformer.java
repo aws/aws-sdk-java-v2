@@ -45,6 +45,12 @@ import software.amazon.smithy.model.shapes.ShapeId;
  *   }
  * }
  * }</pre>
+ *
+ * <p>Replaces {@code shapeModifiers.<shape>.modify[].<member>.emitAsType} and
+ * {@code shapeSubstitutions.<shape>.emitAsShape} or {@code emitAsType} in {@code customization.config}, applied by
+ * {@code ShapeModifiersProcessor} and {@code ShapeSubstitutionsProcessor} on the C2J path. For {@code emitAsType}, the
+ * scalar target shape is added first with {@code addShapes}. {@code shapeSubstitutions.emitFromMember} and
+ * {@code skipMarshallPathForShapes} change only the intermediate model and are not handled here.
  */
 @SdkInternalApi
 public final class RetargetMembersTransformer implements ProjectionTransformer {

@@ -61,6 +61,9 @@ import software.amazon.smithy.model.shapes.ShapeId;
  *
  * <p>An injected member is appended to its container, as it is on the C2J path. Its target must already exist, so a
  * shape added by {@code addShapes} must be added earlier in the transform list.
+ *
+ * <p>Replaces {@code shapeModifiers.<shape>.inject} in {@code customization.config}, applied by
+ * {@code ShapeModifiersProcessor} on the C2J path.
  */
 @SdkInternalApi
 public final class InjectMembersTransformer implements ProjectionTransformer {

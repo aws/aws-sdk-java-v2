@@ -34,8 +34,10 @@ import software.amazon.smithy.model.traits.Trait;
 import software.amazon.smithy.model.traits.TraitFactory;
 
 /**
- * Argument parsing and shape rebuilding shared by the codegen transforms. Every failure names the transform, so a
- * misconfigured {@code smithy-build.json} points at the entry to fix.
+ * Argument parsing and shape rebuilding shared by the codegen transforms. Errors these helpers raise name the
+ * transform, so a misconfigured {@code smithy-build.json} points at the entry to fix. Malformed {@code args}, such as
+ * an unknown key or a value of the wrong JSON type, fail with Smithy's own {@code ObjectNode} error, which names the
+ * key instead.
  */
 @SdkInternalApi
 final class TransformSupport {

@@ -66,6 +66,11 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  * when the old name was the wire name, so the rename changes only the generated Java. A renamed member moves to the
  * end of its container, as it does on the C2J path. URI and host-prefix labels bound to the member are renamed with
  * it, because Smithy requires a label to match its member's name.
+ *
+ * <p>On the C2J path, {@code customization.config} renames a member with
+ * {@code shapeModifiers.<shape>.modify[].<member>.emitPropertyName}, applied by {@code ShapeModifiersProcessor}. That
+ * processor keeps the old wire name itself by setting the member's {@code locationName} to the old name when none is
+ * set. This transform does not, so the caller passes {@code @jsonName} or {@code @xmlName} in {@code traits}.
  */
 @SdkInternalApi
 public final class RenameMembersTransformer implements ProjectionTransformer {

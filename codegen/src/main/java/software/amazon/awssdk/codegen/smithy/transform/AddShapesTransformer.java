@@ -56,6 +56,9 @@ import software.amazon.smithy.model.validation.ValidatedResult;
  * }</pre>
  *
  * <p>A shape that already exists is rejected rather than replaced.
+ *
+ * <p>Replaces {@code customSdkShapes} in {@code customization.config}, applied by {@code CustomSdkShapesProcessor} on
+ * the C2J path. It also adds the scalar shapes that {@code emitAsType} retargets need.
  */
 @SdkInternalApi
 public final class AddShapesTransformer implements ProjectionTransformer {
