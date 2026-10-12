@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.smithy;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -146,6 +147,44 @@ class SmithyIntermediateModelBuilderTest {
         assertThat(model.getShapes().get("Color").getEnums())
             .extracting(EnumModel::getValue)
             .containsExactly("red", "dark-blue");
+        assertThat(model.getShapes().get("OpRequest").findMemberModelByC2jName("color").getEnumType())
+            .isEqualTo("Color");
+    }
+
+    @Test
+    void enumValueSmithyCannotName_isTranslatedAsEnum() {
+        String src =
+            "$version: \"2.0\"\nnamespace demo\n\n"
+            + "use aws.api#service\n"
+            + "use aws.auth#sigv4\n"
+            + "use aws.protocols#restJson1\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@sigv4(name: \"demo\")\n"
+            + "@restJson1\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest { color: Color }\n"
+            + "structure OpResponse {}\n"
+            // Smithy cannot synthesize a member name for "1.0" because it starts with a digit.
+            + "@enum([{ value: \"1.0\" }, { value: \"red\" }])\n"
+            + "string Color\n";
+        Model smithyModel = Model.assembler()
+                                 .discoverModels(Model.class.getClassLoader())
+                                 .addUnparsedModel("test.smithy", src)
+                                 .assemble()
+                                 .unwrap();
+
+        IntermediateModel model = new SmithyIntermediateModelBuilder(
+            SmithyModels.builder()
+                        .model(smithyModel)
+                        .customizationConfig(CustomizationConfig.create())
+                        .build()).build();
+
+        assertThat(model.getShapes().get("Color").getType()).isEqualTo(ShapeType.Enum.getValue());
+        assertThat(model.getShapes().get("Color").getEnums())
+            .extracting(EnumModel::getName, EnumModel::getValue)
+            .containsExactly(tuple("VALUE_1_0", "1.0"), tuple("RED", "red"));
         assertThat(model.getShapes().get("OpRequest").findMemberModelByC2jName("color").getEnumType())
             .isEqualTo("Color");
     }

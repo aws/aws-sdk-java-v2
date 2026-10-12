@@ -48,9 +48,14 @@ import software.amazon.awssdk.utils.CollectionUtils;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.knowledge.ServiceIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
+import software.amazon.smithy.model.shapes.EnumShape;
 import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ServiceShape;
+import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.shapes.StringShape;
+import software.amazon.smithy.model.traits.EnumDefinition;
+import software.amazon.smithy.model.traits.EnumTrait;
 import software.amazon.smithy.model.transform.ModelTransformer;
 import software.amazon.smithy.rulesengine.traits.ClientContextParamsTrait;
 
@@ -79,7 +84,7 @@ public final class SmithyIntermediateModelBuilder {
 
     public SmithyIntermediateModelBuilder(SmithyModels models) {
         // Shipped models still use Smithy 1.0 enums (string with @enum); the translator reads only enum shapes.
-        this.model = ModelTransformer.create().changeStringEnumsToEnumShapes(models.model(), true);
+        this.model = ModelTransformer.create().changeStringEnumsToEnumShapes(nameUnconvertibleEnums(models.model()), true);
         this.service = resolveService(model);
         this.customConfig = models.customizationConfig();
         this.namingStrategy = new DefaultSmithyNamingStrategy(model, service, customConfig);
@@ -98,6 +103,26 @@ public final class SmithyIntermediateModelBuilder {
                 "Expected exactly one service in the Smithy model but found " + services.size());
         }
         return services.iterator().next();
+    }
+
+    /**
+     * Names the values of each Smithy 1.0 enum that Smithy cannot name itself, so every enum converts.
+     * The names never reach generated code: enum constant names come from the values, as on C2J.
+     */
+    private static Model nameUnconvertibleEnums(Model model) {
+        List<Shape> named = new ArrayList<>();
+        for (StringShape shape : model.getStringShapesWithTrait(EnumTrait.class)) {
+            if (EnumShape.canConvertToEnum(shape, true)) {
+                continue;
+            }
+            EnumTrait.Builder trait = EnumTrait.builder();
+            List<EnumDefinition> values = shape.expectTrait(EnumTrait.class).getValues();
+            for (int i = 0; i < values.size(); i++) {
+                trait.addEnum(values.get(i).toBuilder().name("VALUE_" + i).build());
+            }
+            named.add(shape.toBuilder().addTrait(trait.build()).build());
+        }
+        return ModelTransformer.create().replaceShapes(model, named);
     }
 
     /**

@@ -18,9 +18,12 @@ package software.amazon.awssdk.codegen.smithy;
 import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -40,6 +43,8 @@ import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.naming.ShapeInfo;
 import software.amazon.smithy.aws.traits.clientendpointdiscovery.ClientEndpointDiscoveryIdTrait;
 import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.knowledge.EventStreamIndex;
+import software.amazon.smithy.model.knowledge.EventStreamInfo;
 import software.amazon.smithy.model.knowledge.HttpBinding;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
 import software.amazon.smithy.model.knowledge.OperationIndex;
@@ -111,6 +116,9 @@ abstract class AddSmithyShapes {
     private final String protocol;
     private final TypeUtils typeUtils;
 
+    /** {@code @error} structures that appear as event stream members. */
+    private final Set<ShapeId> eventStreamErrors;
+
     /**
      * Structures that appear as members of any event stream reachable from
      * the service. An event stream is a {@link UnionShape} carrying
@@ -130,43 +138,34 @@ abstract class AddSmithyShapes {
         this.customConfig = customConfig;
         this.protocol = protocol;
         this.typeUtils = typeUtils;
-        this.eventStructures = collectEventStructures(model, service);
+        Set<ShapeId> events = new LinkedHashSet<>();
+        Set<ShapeId> errors = new LinkedHashSet<>();
+        collectEventStreamMembers(model, service, events, errors);
+        this.eventStructures = Collections.unmodifiableSet(events);
+        this.eventStreamErrors = Collections.unmodifiableSet(errors);
     }
 
     /**
-     * Walks every operation reachable from the service and collects the
-     * structure shape ids that appear as members of an event stream. The
-     * result lets {@link #generateShapeModel} set the event flag with a
-     * simple membership check instead of a reverse lookup per shape.
+     * Sorts each event stream member into {@code events} or, for an {@code @error}
+     * structure, {@code errors}. One place feeds both sets so they cannot drift apart.
      */
-    private static Set<ShapeId> collectEventStructures(Model model, ServiceShape service) {
-        Set<ShapeId> events = new HashSet<>();
-        TopDownIndex topDown = TopDownIndex.of(model);
-        for (OperationShape op : topDown.getContainedOperations(service)) {
-            collectEventStructuresFromShape(model, op.getInputShape(), events);
-            collectEventStructuresFromShape(model, op.getOutputShape(), events);
-        }
-        return events;
-    }
-
-    private static void collectEventStructuresFromShape(Model model, ShapeId shapeId, Set<ShapeId> events) {
-        if (shapeId == null) {
-            return;
-        }
-        Shape shape = model.getShape(shapeId).orElse(null);
-        if (shape == null || !shape.isStructureShape()) {
-            return;
-        }
-        for (MemberShape member : shape.members()) {
-            Shape target = model.expectShape(member.getTarget());
-            if (target.isUnionShape() && target.hasTrait(StreamingTrait.class)) {
-                for (MemberShape eventMember : target.asUnionShape().get().members()) {
-                    if (!model.expectShape(eventMember.getTarget()).hasTrait(ErrorTrait.class)) {
-                        events.add(eventMember.getTarget());
-                    }
-                }
+    private static void collectEventStreamMembers(Model model, ServiceShape service,
+                                                  Set<ShapeId> events, Set<ShapeId> errors) {
+        EventStreamIndex index = EventStreamIndex.of(model);
+        for (OperationShape op : TopDownIndex.of(model).getContainedOperations(service)) {
+            for (Optional<EventStreamInfo> info : Arrays.asList(index.getInputInfo(op), index.getOutputInfo(op))) {
+                info.ifPresent(stream -> stream.getEvents().values().forEach(
+                    member -> (member.hasTrait(ErrorTrait.class) ? errors : events).add(member.getId())));
             }
         }
+    }
+
+    private static boolean isEventStream(Shape shape) {
+        return shape.isUnionShape() && shape.hasTrait(StreamingTrait.class);
+    }
+
+    final Set<ShapeId> eventStreamErrors() {
+        return eventStreamErrors;
     }
 
     protected final Model getModel() {
@@ -257,8 +256,7 @@ abstract class AddSmithyShapes {
         shapeModel.withIsUnion(smithyShape.isUnionShape());
 
 
-        boolean isEventStream = smithyShape.isUnionShape() && smithyShape.hasTrait(StreamingTrait.class);
-        shapeModel.withIsEventStream(isEventStream);
+        shapeModel.withIsEventStream(isEventStream(smithyShape));
         shapeModel.withIsEvent(eventStructures.contains(smithyShape.getId()));
 
         smithyShape.getTrait(XmlNamespaceTrait.class)

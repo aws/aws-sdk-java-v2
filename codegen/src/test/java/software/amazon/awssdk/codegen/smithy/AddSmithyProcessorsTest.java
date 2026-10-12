@@ -275,6 +275,40 @@ class AddSmithyProcessorsTest {
     }
 
     @Test
+    void errorInTwoEventStreamsAndOperationErrors_producesOneExceptionShapeThatIsNotAnEvent() {
+        Model model = loadModel(
+            "service DemoService { version: \"2024-01-01\", operations: [Subscribe, Watch] }\n"
+            + "@http(method: \"POST\", uri: \"/subscribe\")\n"
+            + "operation Subscribe { input: Unit, output: SubscribeOutput, errors: [StreamFailure] }\n"
+            + "@http(method: \"POST\", uri: \"/watch\")\n"
+            + "operation Watch { input: Unit, output: WatchOutput }\n"
+            + "structure SubscribeOutput { @httpPayload events: Events }\n"
+            + "structure WatchOutput { @httpPayload events: MoreEvents }\n"
+            + "@streaming\n"
+            + "union Events { tick: Tick, failure: StreamFailure }\n"
+            + "@streaming\n"
+            + "union MoreEvents { tock: Tock, failure: StreamFailure }\n"
+            + "structure Tick { seq: Integer }\n"
+            + "structure Tock { seq: Integer }\n"
+            + "@error(\"server\")\n"
+            + "structure StreamFailure { message: String }\n");
+
+        Map<String, ShapeModel> shapes = runProcessorChain(model, "rest-json");
+
+        assertThat(shapes.values())
+            .filteredOn(shape -> "StreamFailure".equals(shape.getC2jName()))
+            .singleElement()
+            .satisfies(shape -> {
+                assertThat(shape.getType()).isEqualTo(ShapeType.Exception.getValue());
+                assertThat(shape.isEvent()).isFalse();
+            });
+        assertThat(shapes.get("Tick").isEvent()).isTrue();
+        assertThat(shapes.get("Tock").isEvent()).isTrue();
+        assertThat(shapes.get("Events").isEventStream()).isTrue();
+        assertThat(shapes.get("MoreEvents").isEventStream()).isTrue();
+    }
+
+    @Test
     void unionMemberTargetingUnit_producesEmptyUnitShape() {
         Model model = loadModel(
             "service DemoService { version: \"2024-01-01\", operations: [Put] }\n"
