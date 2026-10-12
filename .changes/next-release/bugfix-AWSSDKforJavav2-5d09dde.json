@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "S3 Transfer Manager",
-    "contributor": "",
-    "description": "Fixed `S3TransferManager.resumeDownloadFile` to correctly compute the Range header when resuming ranged downloads."
-}

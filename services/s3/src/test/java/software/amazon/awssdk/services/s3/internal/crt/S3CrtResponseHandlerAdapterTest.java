@@ -242,6 +242,22 @@ public class S3CrtResponseHandlerAdapterTest {
     }
 
     @Test
+    public void errorWithHttp200StatusAndEmptyPayload_shouldCompleteFutureExceptionally() {
+        responseHandlerAdapter.onResponseHeaders(200, new HttpHeader[0]);
+        responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld".getBytes(StandardCharsets.UTF_8)), 0, 0);
+
+        responseHandlerAdapter.onFinished(stubResponseContext(1, 200, new byte[0]));
+
+        Throwable exceptionFromResponseHandler = sdkResponseHandler.error;
+        assertThat(exceptionFromResponseHandler).isInstanceOf(SdkClientException.class)
+                                                .hasMessageContaining("Failed to send the request");
+        assertThat(sdkResponseHandler.subscriber.error).isEqualTo(exceptionFromResponseHandler);
+        assertThat(future).isCompletedExceptionally();
+        assertThatThrownBy(() -> future.join()).hasRootCause(exceptionFromResponseHandler);
+        verify(s3MetaRequest).close();
+    }
+
+    @Test
     public void requestFailedWithCause_shouldCompleteFutureExceptionallyWithCause() {
         RuntimeException cause = new RuntimeException("error");
         S3FinishedResponseContext s3FinishedResponseContext = stubResponseContext(1, 0, null);
