@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Omni",
+    "contributor": "",
+    "description": "Adds support for updating agentCoreEvaluationRoleArn in UpdateSpace API"
+}
