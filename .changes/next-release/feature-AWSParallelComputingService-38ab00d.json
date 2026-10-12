@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Parallel Computing Service",
+    "contributor": "",
+    "description": "Adding scheduler version to RegisterComputeNodeGroup API. A compute node uses this value to run the matching scheduler version."
+}
