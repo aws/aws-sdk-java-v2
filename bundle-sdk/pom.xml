@@ -95,10 +95,6 @@
                     <artifactId>cloudwatch-metric-publisher</artifactId>
                 </exclusion>
                 <exclusion>
-                    <groupId>software.amazon.eventstream</groupId>
-                    <artifactId>eventstream</artifactId>
-                </exclusion>
-                <exclusion>
                     <groupId>org.slf4j</groupId>
                     <artifactId>slf4j-api</artifactId>
                 </exclusion>
@@ -197,10 +193,6 @@
                 <exclusion>
                     <groupId>software.amazon.awssdk</groupId>
                     <artifactId>cloudwatch-metric-publisher</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>software.amazon.eventstream</groupId>
-                    <artifactId>eventstream</artifactId>
                 </exclusion>
                 <exclusion>
                     <groupId>org.slf4j</groupId>
