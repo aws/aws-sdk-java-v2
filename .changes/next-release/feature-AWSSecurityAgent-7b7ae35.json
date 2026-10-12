@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Security Agent",
+    "contributor": "",
+    "description": "Adds support for Jira integration provider in AWS Security Agent."
+}
