@@ -523,9 +523,9 @@ abstract class AddSmithyShapes {
         String listImpl = TypeUtils.getDataTypeMapping(TypeUtils.TypeKey.LIST_DEFAULT_IMPL);
         String listIface = TypeUtils.getDataTypeMapping(TypeUtils.TypeKey.LIST_INTERFACE);
 
-        String memberLocationName = listMember.getTrait(XmlNameTrait.class)
-                                              .map(XmlNameTrait::getValue)
-                                              .orElse(null);
+        String memberLocationName = SmithyWireNames.usesXmlNames(protocol)
+                                    ? listMember.getTrait(XmlNameTrait.class).map(XmlNameTrait::getValue).orElse(null)
+                                    : null;
 
         return new ListModel(elementType, memberLocationName, listImpl, listIface, elementMember);
     }

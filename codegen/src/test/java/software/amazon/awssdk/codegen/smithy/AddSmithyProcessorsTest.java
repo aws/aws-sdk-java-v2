@@ -49,6 +49,13 @@ class AddSmithyProcessorsTest {
         + "@restJson1\n"
         + "@sigv4(name: \"demo\")\n";
 
+    private static final String THROTTLED_OPERATION =
+        "@http(method: \"POST\", uri: \"/op\")\n"
+        + "operation Op { input: Unit, output: Unit, errors: [Throttled] }\n"
+        + "@error(\"client\")\n"
+        + "@aws.protocols#awsQueryError(code: \"Throttling\", httpResponseCode: 400)\n"
+        + "structure Throttled { message: String }\n";
+
     private static Model loadModel(String body) {
         return Model.assembler()
                     .discoverModels(Model.class.getClassLoader())
@@ -208,6 +215,30 @@ class AddSmithyProcessorsTest {
         assertThat(shapes.get("BoomException").getErrorCode()).isEqualTo("Boom");
         assertThat(shapes.get("BoomException").getHttpStatusCode()).isEqualTo(500);
         assertThat(shapes.get("BoomException").isFault()).isTrue();
+    }
+
+    @Test
+    void awsQueryErrorCode_isIgnored_whenServiceHasNoQueryProtocol() {
+        Model model = loadModel(
+            "service DemoService { version: \"2024-01-01\", operations: [Op] }\n"
+            + THROTTLED_OPERATION);
+
+        Map<String, ShapeModel> shapes = runProcessorChain(model, "rest-json");
+
+        assertThat(shapes.get("ThrottledException").getErrorCode()).isEqualTo("Throttled");
+    }
+
+    @Test
+    void awsQueryErrorCode_isUsed_forAwsQueryService() {
+        Model model = loadModel(
+            "@aws.protocols#awsQuery\n"
+            + "@xmlNamespace(uri: \"https://demo.amazonaws.com/doc/2024-01-01/\")\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n"
+            + THROTTLED_OPERATION);
+
+        Map<String, ShapeModel> shapes = runProcessorChain(model, "query");
+
+        assertThat(shapes.get("ThrottledException").getErrorCode()).isEqualTo("Throttling");
     }
 
     @Test
