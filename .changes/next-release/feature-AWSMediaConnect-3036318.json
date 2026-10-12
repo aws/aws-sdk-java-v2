@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "AWS MediaConnect",
-    "contributor": "",
-    "description": "This release adds support for MediaConnect Router high-bitrate tiers. It also adds a configurable audio reference level for NDI flows, and enhanced source metadata that includes color information and transport stream ID."
-}

@@ -1,4 +1,82 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.15__ __2026-10-12__
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds support for the includedData field in GetAgentSpace and ListAgentSpaces APIs
+
+## __AWS Glue__
+  - ### Features
+    - Adds new AWS Glue Data Quality APIs to retrieve and list data quality evaluation results. The new GetDataQualityResultV2, BatchGetDataQualityResultV2, and ListDataQualityResultsV2 operations return data quality results published from any supported data processing engine.
+
+## __AWS Lambda__
+  - ### Features
+    - Doc updates to reposition Lambda Functions as Lambda Event Functions
+
+## __AWS Lambda Core__
+  - ### Features
+    - Lambda Network Connector now supports Lambda Web Functions, letting them reach private VPC resources, and adds versioning, each connector update creates an immutable version that revisions pin to, so customers can roll out and roll back networking changes without affecting running workloads
+
+## __AWS MediaConnect__
+  - ### Features
+    - This release adds support for MediaConnect Router high-bitrate tiers. It also adds a configurable audio reference level for NDI flows, and enhanced source metadata that includes color information and transport stream ID.
+
+## __AWS Parallel Computing Service__
+  - ### Features
+    - Adding scheduler version to RegisterComputeNodeGroup API. A compute node uses this value to run the matching scheduler version.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - The SDK's core modules (such as `sdk-core`, `aws-core`, `regions`, `auth`, and the protocol modules) and service modules (such as `s3` and `dynamodb`) now include a generated `META-INF/software.amazon.awssdk/<artifactId>/version.properties` resource whose `version` key contains the SDK minor version (for example `2.56.x`).
+
+## __AWS Security Agent__
+  - ### Features
+    - Adds support for Jira integration provider in AWS Security Agent.
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - AgentCore Memory now supports Long-Term Memory Time-to-Live on Batch APIs.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - AgentCore Memory now supports configuring Long-Term Memory Time-to-Live (TTL) on Memory Strategies.
+
+## __Amazon DynamoDB Enhanced Client__
+  - ### Bugfixes
+    - Fixed DurationAttributeConverter negative fractional duration serialization and parsing. Values like Duration.ofMillis(-1) now serialize as -0.001000000 and round trip correctly. Previously stored values are not corrected, and older SDK versions will read negative sub-second values written by this version with the wrong sign. Fixes [#7060](https://github.com/aws/aws-sdk-java-v2/issues/7060).
+        - Contributed by: [@Arnab Nandy](https://github.com/Arnab Nandy)
+
+## __Amazon Omics__
+  - ### Features
+    - AWS HealthOmics now supports private workflow runs using VPC resources shared across accounts via AWS RAM. A new optional vpcOwnerAccountId field in CreateConfiguration's VpcConfig allows customers to specify the account that owns the shared subnets and security groups.
+
+## __Amazon Pinpoint SMS Voice V2__
+  - ### Features
+    - DescribePhoneNumbers and DescribeSenderIds now return an optional PricingTier field that indicates whether a phone number, sender ID, short code, or long code is classified as Domestic or International, enabling customers to identify origination identities eligible for local pricing.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Amazon SageMaker Training Session is a managed service for training on shared GPU infrastructure. It provides full lifecycle management of training sessions and exposes low-level primitive APIs for operations like forward-backward passes, optimizer steps, and state management.
+
+## __CloudWatch Observability Admin Service__
+  - ### Features
+    - Adding support for TransactionSearch telemetry rules.
+
+## __CloudWatch Omni__
+  - ### Features
+    - Adds support for updating agentCoreEvaluationRoleArn in UpdateSpace API
+
+## __Lambda Web__
+  - ### Features
+    - Lambda Web Functions GA launch. Lambda Web Functions enable customers to run web applications and API backends
+
+## __SageMaker Training Session Runtime__
+  - ### Features
+    - Amazon SageMaker Training Session Runtime provides APIs for executing operations within active training sessions, including asynchronous training operations, sampling and inference requests, and streaming real-time model responses, enabling programmatic control over the training loop.
+
+## __Contributors__
+Special thanks to the following contributors to this release: 
+
+[@Arnab Nandy](https://github.com/Arnab Nandy)
 # __2.55.14__ __2026-10-09__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
