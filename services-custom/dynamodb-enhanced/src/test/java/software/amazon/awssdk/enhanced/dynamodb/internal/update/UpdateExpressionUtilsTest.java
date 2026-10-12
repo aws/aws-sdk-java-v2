@@ -16,8 +16,12 @@
 package software.amazon.awssdk.enhanced.dynamodb.internal.update;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.ifNotExists;
 import static software.amazon.awssdk.enhanced.dynamodb.internal.update.UpdateExpressionUtils.operationExpression;
@@ -92,6 +96,80 @@ public class UpdateExpressionUtilsTest {
         // check expression values
         assertThat(action.expressionValues()).hasSize(1);
         assertThat(action.expressionValues()).containsEntry(":AMZN_MAPPED_parent_child", AttributeValue.fromS("value"));
+    }
+
+    @Test
+    public void setActionsFor_withUnresolvedNestedSchema_doesNotUseRootFieldUpdateBehavior() {
+        lenient().when(root.tableMetadata()).thenReturn(tableMetadata);
+        lenient().when(tableMetadata.customMetadataObject("UpdateBehavior:name", UpdateBehavior.class))
+                 .thenReturn(Optional.of(UpdateBehavior.WRITE_IF_NOT_EXISTS));
+
+        Map<String, AttributeValue> attributes = new HashMap<>();
+        attributes.put("children_NESTED_ATTR_UPDATE_entry_NESTED_ATTR_UPDATE_name", AttributeValue.fromS("new-name"));
+
+        List<SetAction> actions = operationExpression(attributes, root, Collections.emptyList()).setActions();
+
+        assertThat(actions).hasSize(1);
+        assertThat(actions.get(0).path())
+            .isEqualTo("#AMZN_MAPPED_children.#AMZN_MAPPED_entry.#AMZN_MAPPED_name");
+        assertThat(actions.get(0).value()).isEqualTo(":AMZN_MAPPED_children_entry_name");
+        verify(root, never()).tableMetadata();
+    }
+
+    @Test
+    public void setActionsFor_withMissingDeepSchema_doesNotUseIntermediateFieldUpdateBehavior() {
+        when(root.converterForAttribute("parent")).thenReturn(attributeConverter);
+        when(attributeConverter.type()).thenReturn(enhancedType);
+        when(enhancedType.tableSchema()).thenReturn(Optional.of(tableSchema));
+        lenient().when(tableSchema.tableMetadata()).thenReturn(tableMetadata);
+        lenient().when(tableMetadata.customMetadataObject("UpdateBehavior:name", UpdateBehavior.class))
+                 .thenReturn(Optional.of(UpdateBehavior.WRITE_IF_NOT_EXISTS));
+
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "parent_NESTED_ATTR_UPDATE_unknown_NESTED_ATTR_UPDATE_name", AttributeValue.fromS("new-name"));
+
+        List<SetAction> actions = operationExpression(attributes, root, Collections.emptyList()).setActions();
+
+        assertThat(actions).hasSize(1);
+        assertThat(actions.get(0).value()).isEqualTo(":AMZN_MAPPED_parent_unknown_name");
+        verify(tableSchema, never()).tableMetadata();
+    }
+
+    @Test
+    public void setActionsFor_withUnsupportedConverterLookup_writesNestedLeafWithoutTag() {
+        when(root.converterForAttribute("child")).thenThrow(new UnsupportedOperationException());
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "child_NESTED_ATTR_UPDATE_name", AttributeValue.fromS("new-name"));
+
+        List<SetAction> actions = operationExpression(attributes, root, Collections.emptyList()).setActions();
+
+        assertThat(actions).hasSize(1);
+        assertThat(actions.get(0).value()).isEqualTo(":AMZN_MAPPED_child_name");
+        verify(root, never()).tableMetadata();
+    }
+
+    @Test
+    public void setActionsFor_withNullConverterLookup_writesNestedLeafWithoutTag() {
+        when(root.converterForAttribute("child")).thenReturn(null);
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "child_NESTED_ATTR_UPDATE_name", AttributeValue.fromS("new-name"));
+
+        List<SetAction> actions = operationExpression(attributes, root, Collections.emptyList()).setActions();
+
+        assertThat(actions).hasSize(1);
+        assertThat(actions.get(0).value()).isEqualTo(":AMZN_MAPPED_child_name");
+        verify(root, never()).tableMetadata();
+    }
+
+    @Test
+    public void setActionsFor_withUnexpectedConverterFailure_propagatesException() {
+        when(root.converterForAttribute("child")).thenThrow(new IllegalStateException("converter failed"));
+        Map<String, AttributeValue> attributes = Collections.singletonMap(
+            "child_NESTED_ATTR_UPDATE_name", AttributeValue.fromS("new-name"));
+
+        assertThatThrownBy(() -> operationExpression(attributes, root, Collections.emptyList()))
+            .isInstanceOf(IllegalStateException.class)
+            .hasMessage("converter failed");
     }
 
     @Test

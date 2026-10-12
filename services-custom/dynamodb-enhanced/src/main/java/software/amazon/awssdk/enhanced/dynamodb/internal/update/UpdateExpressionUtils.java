@@ -91,16 +91,23 @@ public final class UpdateExpressionUtils {
                 TableSchema currentSchema = tableSchema;
                 List<String> pathFieldNames = Arrays.asList(PATTERN.split(key));
                 String attributeName = pathFieldNames.get(pathFieldNames.size() - 1);
+                // For a path like childrenByName.entry.name, the map entry has no child schema.
+                // A name tag in the parent schema belongs to another field, so use WRITE_ALWAYS.
+                boolean schemaResolved = true;
 
                 for (int i = 0; i < pathFieldNames.size() - 1; i++) {
                     Optional<? extends TableSchema<?>> nestedSchema = getNestedSchema(currentSchema, pathFieldNames.get(i));
-                    if (nestedSchema.isPresent()) {
-                        currentSchema = nestedSchema.get();
+                    if (!nestedSchema.isPresent()) {
+                        schemaResolved = false;
+                        break;
                     }
+                    currentSchema = nestedSchema.get();
                 }
 
                 actions.add(setValue(key, value,
-                                     UpdateBehaviorTag.resolveForAttribute(attributeName, currentSchema.tableMetadata())));
+                                     schemaResolved
+                                     ? UpdateBehaviorTag.resolveForAttribute(attributeName, currentSchema.tableMetadata())
+                                     : UpdateBehavior.WRITE_ALWAYS));
             } else {
                 actions.add(setValue(key, value, UpdateBehaviorTag.resolveForAttribute(key, tableSchema.tableMetadata())));
             }

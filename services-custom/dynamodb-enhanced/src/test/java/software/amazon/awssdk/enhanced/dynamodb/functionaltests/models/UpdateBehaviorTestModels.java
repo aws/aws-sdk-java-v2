@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeConverter;
 import software.amazon.awssdk.enhanced.dynamodb.AttributeValueType;
@@ -145,6 +146,32 @@ public final class UpdateBehaviorTestModels {
     }
 
     @DynamoDbBean
+    public static class BeanWithTaggedNamedChild {
+        private String id;
+        private NestedBeanChild child;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public BeanWithTaggedNamedChild setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
+        public NestedBeanChild getChild() {
+            return child;
+        }
+
+        public BeanWithTaggedNamedChild setChild(NestedBeanChild child) {
+            this.child = child;
+            return this;
+        }
+    }
+
+    @DynamoDbBean
     public static class SimpleBeanChild {
         private String id;
         private String childAlwaysUpdate;
@@ -182,6 +209,67 @@ public final class UpdateBehaviorTestModels {
     }
 
     @DynamoDbBean
+    public static class CollectionWithTaggedChildren {
+        private String id;
+        private List<SimpleBeanChild> childList;
+        private Map<String, SimpleBeanChild> childrenByName;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public CollectionWithTaggedChildren setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
+        public List<SimpleBeanChild> getChildList() {
+            return childList;
+        }
+
+        public CollectionWithTaggedChildren setChildList(List<SimpleBeanChild> childList) {
+            this.childList = childList;
+            return this;
+        }
+
+        @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
+        public Map<String, SimpleBeanChild> getChildrenByName() {
+            return childrenByName;
+        }
+
+        public CollectionWithTaggedChildren setChildrenByName(Map<String, SimpleBeanChild> childrenByName) {
+            this.childrenByName = childrenByName;
+            return this;
+        }
+    }
+
+    @DynamoDbBean
+    public static class BeanWithTaggedChildSet {
+        private String id;
+        private Set<SimpleBeanChild> childSet;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        @DynamoDbUpdateBehavior(UpdateBehavior.WRITE_IF_NOT_EXISTS)
+        public Set<SimpleBeanChild> getChildSet() {
+            return childSet;
+        }
+
+        public void setChildSet(Set<SimpleBeanChild> childSet) {
+            this.childSet = childSet;
+        }
+    }
+
+    @DynamoDbBean
     public static class NestedBeanChild {
         private String childAlwaysUpdate;
         private String childWriteOnce;
@@ -204,6 +292,96 @@ public final class UpdateBehaviorTestModels {
         public NestedBeanChild setChildWriteOnce(String childWriteOnce) {
             this.childWriteOnce = childWriteOnce;
             return this;
+        }
+    }
+
+    @DynamoDbBean
+    public static class BeanWithImmutableChild {
+        private String id;
+        private String note;
+        private NestedImmutableChild child;
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public BeanWithImmutableChild setId(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public BeanWithImmutableChild setNote(String note) {
+            this.note = note;
+            return this;
+        }
+
+        public NestedImmutableChild getChild() {
+            return child;
+        }
+
+        public BeanWithImmutableChild setChild(NestedImmutableChild child) {
+            this.child = child;
+            return this;
+        }
+    }
+
+    @DynamoDbImmutable(builder = ImmutableWithBeanChild.Builder.class)
+    public static final class ImmutableWithBeanChild {
+        private final String id;
+        private final String note;
+        private final NestedBeanChild child;
+
+        private ImmutableWithBeanChild(Builder builder) {
+            this.id = builder.id;
+            this.note = builder.note;
+            this.child = builder.child;
+        }
+
+        @DynamoDbPartitionKey
+        public String getId() {
+            return id;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public NestedBeanChild getChild() {
+            return child;
+        }
+
+        public static Builder builder() {
+            return new Builder();
+        }
+
+        public static final class Builder {
+            private String id;
+            private String note;
+            private NestedBeanChild child;
+
+            public Builder id(String id) {
+                this.id = id;
+                return this;
+            }
+
+            public Builder note(String note) {
+                this.note = note;
+                return this;
+            }
+
+            public Builder child(NestedBeanChild child) {
+                this.child = child;
+                return this;
+            }
+
+            public ImmutableWithBeanChild build() {
+                return new ImmutableWithBeanChild(this);
+            }
         }
     }
 
@@ -755,71 +933,8 @@ public final class UpdateBehaviorTestModels {
             .setWriteAlwaysField("initial_writeAlways")
             .setWriteOnceField("initial_writeOnce")
             .setChild(new NestedBeanChild()
-                           .setChildAlwaysUpdate("child_initial_writeAlways")
-                           .setChildWriteOnce("child_initial_writeOnce"));
-    }
-
-    /**
-     * Creates a SimpleImmutableRecord with initial values for testing update behavior.
-     */
-    public static SimpleImmutableRecord createSimpleImmutableRecord() {
-        return SimpleImmutableRecord
-            .builder()
-            .id("1")
-            .writeAlwaysField("initial_writeAlways")
-            .writeOnceField("initial_writeOnce")
-            .childList(Arrays.asList(
-                SimpleImmutableChild.builder()
-                    .id("child1")
-                    .childAlwaysUpdate("child1_initial_writeAlways")
-                    .childWriteOnce("child1_initial_writeOnce")
-                    .build(),
-                SimpleImmutableChild.builder()
-                    .id("child2")
-                    .childAlwaysUpdate("child2_initial_writeAlways")
-                    .childWriteOnce("child2_initial_writeOnce")
-                    .build()))
-            .build();
-    }
-
-    /**
-     * Creates a NestedImmutableRecord with initial values for testing update behavior.
-     */
-    public static NestedImmutableRecord createNestedImmutableRecord() {
-        return NestedImmutableRecord
-            .builder()
-            .id("1")
-            .writeAlwaysField("initial_writeAlways")
-            .writeOnceField("initial_writeOnce")
-            .child(NestedImmutableChild
-                .builder()
-                .childAlwaysUpdate("child_initial_writeAlways")
-                .childWriteOnce("child_initial_writeOnce")
-                .build())
-            .build();
-    }
-
-    /**
-     * Creates a SimpleStaticRecord with initial values for testing update behavior.
-     */
-    public static SimpleStaticRecord createSimpleStaticRecord() {
-        return new SimpleStaticRecord()
-            .setId("1")
-            .setWriteAlwaysField("initial_writeAlways")
-            .setWriteOnceField("initial_writeOnce");
-    }
-
-    /**
-     * Creates a NestedStaticRecord with initial values for testing update behavior.
-     */
-    public static NestedStaticRecord createNestedStaticRecord() {
-        return new NestedStaticRecord()
-            .setId("1")
-            .setWriteAlwaysField("initial_writeAlways")
-            .setWriteOnceField("initial_writeOnce")
-            .setChild(new NestedStaticChildRecord()
-                .setChildAlwaysUpdate("child_initial_writeAlways")
-                .setChildWriteOnce("child_initial_writeOnce"));
+                          .setChildAlwaysUpdate("child_initial_writeAlways")
+                          .setChildWriteOnce("child_initial_writeOnce"));
     }
 
     /**
