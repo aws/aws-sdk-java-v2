@@ -514,7 +514,7 @@ class GenericS3TransferManager implements S3TransferManager {
 
         return new DefaultFileDownload(returnFuture,
                                        new ResumeTransferProgress(progressFuture),
-                                       () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture, originalDownloadRequest),
+                                       () -> originalDownloadRequest,
                                        resumableFileDownload);
     }
 
@@ -530,15 +530,6 @@ class GenericS3TransferManager implements S3TransferManager {
                                        new DefaultTransferProgress(completedProgressSnapshot),
                                        resumableFileDownload::downloadFileRequest,
                                        resumableFileDownload);
-    }
-
-    DownloadFileRequest newOrOriginalRequestForPause(CompletableFuture<DownloadFileRequest> newDownloadFuture,
-                                                     DownloadFileRequest originalDownloadRequest) {
-        try {
-            return newDownloadFuture.getNow(originalDownloadRequest);
-        } catch (CompletionException e) {
-            return originalDownloadRequest;
-        }
     }
 
     static void handleException(CompletableFuture<CompletedFileDownload> returnFuture,

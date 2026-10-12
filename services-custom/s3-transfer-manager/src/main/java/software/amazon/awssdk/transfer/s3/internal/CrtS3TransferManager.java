@@ -22,6 +22,7 @@ import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncC
 import static software.amazon.awssdk.services.s3.internal.crt.DefaultS3CrtAsyncClient.RESPONSE_FILE_PATH;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.CRT_PAUSE_RESUME_TOKEN;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.canResumeDownload;
+import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.hasUnresumableRange;
 import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.toCrtDownloadFileRequest;
 
 import java.util.concurrent.CompletableFuture;
@@ -193,7 +194,11 @@ class CrtS3TransferManager extends GenericS3TransferManager {
 
         headFuture.thenAccept(headObjectResponse -> {
             boolean restartFromBeginning = !canResumeDownload(resumableFileDownload, headObjectResponse)
-                                           || hasCompletedParts(resumableFileDownload);
+                                           || hasCompletedParts(resumableFileDownload)
+                                           || hasUnresumableRange(originalDownloadRequest,
+                                                                  resumableFileDownload.bytesTransferred(),
+                                                                  headObjectResponse.contentLength())
+                                           || getObjectRequest.partNumber() != null;
 
             DownloadFileRequest newDownloadFileRequest = toCrtDownloadFileRequest(resumableFileDownload, headObjectResponse,
                                                                                  originalDownloadRequest,
@@ -221,8 +226,7 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         return new CrtFileDownload(returnFuture,
                                    new ResumeTransferProgress(progressFuture),
                                    observable,
-                                   () -> newOrOriginalRequestForPause(newDownloadFileRequestFuture,
-                                                                      originalDownloadRequest),
+                                   () -> originalDownloadRequest,
                                    resumableFileDownload);
     }
 
