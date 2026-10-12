@@ -2448,6 +2448,11 @@
                 <artifactId>lambdaweb</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>sagemakertrainingsessionruntime</artifactId>
+                <version>${awsjavasdk.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

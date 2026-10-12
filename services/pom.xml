@@ -457,6 +457,7 @@
         <module>eventbridgev2</module>
         <module>endusermessaging</module>
         <module>lambdaweb</module>
+        <module>sagemakertrainingsessionruntime</module>
     </modules>
     <description>The AWS Java SDK services</description>
     <url>https://aws.amazon.com/sdkforjava</url>
