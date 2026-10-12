@@ -24,12 +24,14 @@ import junit.framework.Assert;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import software.amazon.awssdk.services.apigateway.model.ApiKey;
 import software.amazon.awssdk.services.apigateway.model.CreateApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.CreateApiKeyResponse;
 import software.amazon.awssdk.services.apigateway.model.CreateResourceRequest;
 import software.amazon.awssdk.services.apigateway.model.CreateResourceResponse;
 import software.amazon.awssdk.services.apigateway.model.CreateRestApiRequest;
 import software.amazon.awssdk.services.apigateway.model.CreateRestApiResponse;
+import software.amazon.awssdk.services.apigateway.model.DeleteApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.DeleteRestApiRequest;
 import software.amazon.awssdk.services.apigateway.model.GetApiKeyRequest;
 import software.amazon.awssdk.services.apigateway.model.GetApiKeyResponse;
@@ -72,6 +74,7 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
 
     @BeforeClass
     public static void createRestApi() {
+        deleteStaleApiKeys();
         deleteStaleRestApis();
         CreateRestApiResponse createRestApiResult = apiGateway.createRestApi(
                 CreateRestApiRequest.builder().name(NAME)
@@ -136,6 +139,47 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                                      success.get(), failure.get()));
     }
 
+    /**
+     * Deletes API keys leaked by earlier runs of {@link #testCreateUpdateRetrieveApiKey()}. That test deletes its key as
+     * soon as it finishes, so any matching key older than {@code maxKeyAge} is safe to remove without affecting a
+     * concurrently running build.
+     */
+    private static void deleteStaleApiKeys() {
+        Instant startTime = Instant.now();
+        Duration maxRunTime = Duration.ofMinutes(1);
+        Duration maxKeyAge = Duration.ofDays(1);
+        AtomicInteger success = new AtomicInteger();
+        AtomicInteger failure = new AtomicInteger();
+
+        log.info(() -> String.format("Searching for stale API keys older than %s days...", maxKeyAge.toDays()));
+        for (ApiKey key : apiGateway.getApiKeysPaginator().items()) {
+            if (Instant.now().isAfter(startTime.plus(maxRunTime))) {
+                log.info(() -> String.format("More than %s has elapsed trying to delete stale API keys, giving up for this run. "
+                                             + "Successfully deleted: %s. Failed to delete: %s.",
+                                             maxRunTime, success.get(), failure.get()));
+                return;
+            }
+            if (key.name() == null || !key.name().startsWith(NAME_PREFIX) || key.createdDate() == null) {
+                continue;
+            }
+            Duration keyAge = Duration.between(key.createdDate(), Instant.now());
+            if (keyAge.compareTo(maxKeyAge) > 0) {
+                try {
+                    apiGateway.deleteApiKey(r -> r.apiKey(key.id()));
+                    log.info(() -> String.format("Successfully deleted API key %s (%s) which was %s days old.",
+                                                 key.name(), key.id(), keyAge.toDays()));
+                    success.incrementAndGet();
+                } catch (Exception e) {
+                    log.error(() -> String.format("Failed to delete API key %s (%s) which is %s days old.",
+                                                  key.name(), key.id(), keyAge.toDays()), e);
+                    failure.incrementAndGet();
+                }
+            }
+        }
+        log.info(() -> String.format("Finished searching for stale API keys. Successfully deleted: %s. Failed to delete: %s.",
+                                     success.get(), failure.get()));
+    }
+
     @Test
     public void testUpdateRetrieveRestApi() {
         PatchOperation patch = PatchOperation.builder().op(Op.REPLACE)
@@ -161,38 +205,54 @@ public class ServiceIntegrationTest extends IntegrationTestBase {
                 .createApiKey(CreateApiKeyRequest.builder().name(NAME)
                                                        .description(DESCRIPTION).build());
 
-        Assert.assertNotNull(createApiKeyResult);
-        Assert.assertNotNull(createApiKeyResult.description());
-        Assert.assertNotNull(createApiKeyResult.id());
-        Assert.assertNotNull(createApiKeyResult.name());
-        Assert.assertNotNull(createApiKeyResult.createdDate());
-        Assert.assertNotNull(createApiKeyResult.enabled());
-        Assert.assertNotNull(createApiKeyResult.lastUpdatedDate());
-        Assert.assertNotNull(createApiKeyResult.stageKeys());
-
+        // Capture the ID before any assertion so the key is always deleted, even if an assertion fails.
         String apiKeyId = createApiKeyResult.id();
-        Assert.assertEquals(createApiKeyResult.name(), NAME);
-        Assert.assertEquals(createApiKeyResult.description(), DESCRIPTION);
+        try {
+            Assert.assertNotNull(createApiKeyResult.description());
+            Assert.assertNotNull(apiKeyId);
+            Assert.assertNotNull(createApiKeyResult.name());
+            Assert.assertNotNull(createApiKeyResult.createdDate());
+            Assert.assertNotNull(createApiKeyResult.enabled());
+            Assert.assertNotNull(createApiKeyResult.lastUpdatedDate());
+            Assert.assertNotNull(createApiKeyResult.stageKeys());
+            Assert.assertEquals(createApiKeyResult.name(), NAME);
+            Assert.assertEquals(createApiKeyResult.description(), DESCRIPTION);
 
-        PatchOperation patch = PatchOperation.builder().op(Op.REPLACE)
-                                                   .path("/description").value("updatedDesc").build();
-        apiGateway.updateApiKey(UpdateApiKeyRequest.builder().apiKey(apiKeyId)
-                                                         .patchOperations(patch).build());
+            PatchOperation patch = PatchOperation.builder().op(Op.REPLACE)
+                                                 .path("/description").value("updatedDesc").build();
+            apiGateway.updateApiKey(UpdateApiKeyRequest.builder().apiKey(apiKeyId)
+                                                       .patchOperations(patch).build());
 
-        GetApiKeyResponse getApiKeyResult = apiGateway
-                .getApiKey(GetApiKeyRequest.builder().apiKey(apiKeyId).build());
+            GetApiKeyResponse getApiKeyResult = apiGateway
+                    .getApiKey(GetApiKeyRequest.builder().apiKey(apiKeyId).build());
 
-        Assert.assertNotNull(getApiKeyResult);
-        Assert.assertNotNull(getApiKeyResult.description());
-        Assert.assertNotNull(getApiKeyResult.id());
-        Assert.assertNotNull(getApiKeyResult.name());
-        Assert.assertNotNull(getApiKeyResult.createdDate());
-        Assert.assertNotNull(getApiKeyResult.enabled());
-        Assert.assertNotNull(getApiKeyResult.lastUpdatedDate());
-        Assert.assertNotNull(getApiKeyResult.stageKeys());
-        Assert.assertEquals(getApiKeyResult.id(), apiKeyId);
-        Assert.assertEquals(getApiKeyResult.name(), NAME);
-        Assert.assertEquals(getApiKeyResult.description(), "updatedDesc");
+            Assert.assertNotNull(getApiKeyResult);
+            Assert.assertNotNull(getApiKeyResult.description());
+            Assert.assertNotNull(getApiKeyResult.id());
+            Assert.assertNotNull(getApiKeyResult.name());
+            Assert.assertNotNull(getApiKeyResult.createdDate());
+            Assert.assertNotNull(getApiKeyResult.enabled());
+            Assert.assertNotNull(getApiKeyResult.lastUpdatedDate());
+            Assert.assertNotNull(getApiKeyResult.stageKeys());
+            Assert.assertEquals(getApiKeyResult.id(), apiKeyId);
+            Assert.assertEquals(getApiKeyResult.name(), NAME);
+            Assert.assertEquals(getApiKeyResult.description(), "updatedDesc");
+        } finally {
+            deleteApiKey(apiKeyId);
+        }
+    }
+
+    private static void deleteApiKey(String apiKeyId) {
+        if (apiKeyId == null) {
+            return;
+        }
+        try {
+            apiGateway.deleteApiKey(DeleteApiKeyRequest.builder().apiKey(apiKeyId).build());
+        } catch (Exception e) {
+            // Don't mask the test's own failure. Leaked keys are removed by a future 'deleteStaleApiKeys' execution.
+            log.warn(() -> String.format("Failed to delete API key %s (%s). This key should be deleted automatically in a "
+                                         + "future 'deleteStaleApiKeys' execution.", NAME, apiKeyId), e);
+        }
     }
 
     @Test
