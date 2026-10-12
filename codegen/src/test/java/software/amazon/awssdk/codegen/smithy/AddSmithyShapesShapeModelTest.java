@@ -213,6 +213,31 @@ class AddSmithyShapesShapeModelTest {
         assertThat(plainModel.isEventStream()).isFalse();
     }
 
+    @Test
+    void errorMemberOfStreamingUnion_isNotAnEvent() {
+        Model model = modelWithOp(
+            "@http(method: \"POST\", uri: \"/subscribe\")\n"
+            + "operation Op { input: In, output: Out }\n"
+            + "structure In {}\n"
+            + "structure Out {\n"
+            + "    @httpPayload events: EventStream\n"
+            + "}\n"
+            + "\n"
+            + "@streaming\n"
+            + "union EventStream {\n"
+            + "    tick: TickEvent\n"
+            + "    failure: StreamFailure\n"
+            + "}\n"
+            + "structure TickEvent { seq: Integer }\n"
+            + "@error(\"server\")\n"
+            + "structure StreamFailure { message: String }\n");
+
+        Probe p = probe(model, "rest-json");
+
+        assertThat(p.translate("TickEvent", shape(model, "TickEvent"), null).isEvent()).isTrue();
+        assertThat(p.translate("StreamFailureException", shape(model, "StreamFailure"), null).isEvent()).isFalse();
+    }
+
     // ---- Exception fields -------------------------------------------------
 
     @Test

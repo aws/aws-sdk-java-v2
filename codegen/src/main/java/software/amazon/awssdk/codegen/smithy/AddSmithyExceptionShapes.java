@@ -40,7 +40,8 @@ import software.amazon.smithy.model.traits.HttpErrorTrait;
 
 /**
  * Builds an exception {@link ShapeModel} for every error shape referenced by a reachable
- * operation. An error shared by several operations is translated once.
+ * operation or by an event stream in an operation's input or output. An error shared by several
+ * operations is translated once.
  */
 final class AddSmithyExceptionShapes extends AddSmithyShapes implements IntermediateModelShapeProcessor {
 
@@ -74,20 +75,35 @@ final class AddSmithyExceptionShapes extends AddSmithyShapes implements Intermed
                     continue;
                 }
 
-                ShapeModel shapeModel = generateShapeModel(javaClassName, errorShape,
-                                                           httpBindingsHonored()
-                                                               ? bindingIndex.getResponseBindings(errorId)
-                                                               : Collections.emptyMap());
-                shapeModel.setType(ShapeType.Exception.getValue());
-                shapeModel.setErrorCode(resolveErrorCode(errorShape));
-                errorShape.getTrait(HttpErrorTrait.class)
-                          .ifPresent(t -> shapeModel.setHttpStatusCode(t.getCode()));
-
-                shapes.put(javaClassName, shapeModel);
+                shapes.put(javaClassName, exceptionShapeModel(javaClassName, errorShape, bindingIndex));
             }
         }
 
+        // Errors that appear only in an event stream are not listed by any operation.
+        for (ShapeId streamErrorId : eventStreamErrors()) {
+            StructureShape errorShape = model.expectShape(streamErrorId, StructureShape.class);
+            String javaClassName = naming.getExceptionName(errorShape.getId().getName());
+            if (shapes.containsKey(javaClassName) || currentShapes.containsKey(javaClassName)) {
+                continue;
+            }
+            shapes.put(javaClassName, exceptionShapeModel(javaClassName, errorShape, bindingIndex));
+        }
+
         return shapes;
+    }
+
+    private ShapeModel exceptionShapeModel(String javaClassName,
+                                           StructureShape errorShape,
+                                           HttpBindingIndex bindingIndex) {
+        ShapeModel shapeModel = generateShapeModel(javaClassName, errorShape,
+                                                   httpBindingsHonored()
+                                                       ? bindingIndex.getResponseBindings(errorShape.getId())
+                                                       : Collections.emptyMap());
+        shapeModel.setType(ShapeType.Exception.getValue());
+        shapeModel.setErrorCode(resolveErrorCode(errorShape));
+        errorShape.getTrait(HttpErrorTrait.class)
+                  .ifPresent(t -> shapeModel.setHttpStatusCode(t.getCode()));
+        return shapeModel;
     }
 
     /**

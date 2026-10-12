@@ -18,9 +18,12 @@ package software.amazon.awssdk.codegen.smithy;
 import static software.amazon.awssdk.codegen.internal.Utils.capitalize;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
@@ -40,8 +43,11 @@ import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.naming.ShapeInfo;
 import software.amazon.smithy.aws.traits.clientendpointdiscovery.ClientEndpointDiscoveryIdTrait;
 import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.knowledge.EventStreamIndex;
+import software.amazon.smithy.model.knowledge.EventStreamInfo;
 import software.amazon.smithy.model.knowledge.HttpBinding;
 import software.amazon.smithy.model.knowledge.HttpBindingIndex;
+import software.amazon.smithy.model.knowledge.OperationIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
 import software.amazon.smithy.model.shapes.EnumShape;
 import software.amazon.smithy.model.shapes.IntEnumShape;
@@ -59,7 +65,9 @@ import software.amazon.smithy.model.traits.EnumValueTrait;
 import software.amazon.smithy.model.traits.ErrorTrait;
 import software.amazon.smithy.model.traits.EventHeaderTrait;
 import software.amazon.smithy.model.traits.EventPayloadTrait;
+import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.IdempotencyTokenTrait;
+import software.amazon.smithy.model.traits.MediaTypeTrait;
 import software.amazon.smithy.model.traits.RequiredTrait;
 import software.amazon.smithy.model.traits.RequiresLengthTrait;
 import software.amazon.smithy.model.traits.RetryableTrait;
@@ -97,7 +105,7 @@ import software.amazon.smithy.rulesengine.traits.ContextParamTrait;
  *
  * <p>Event stream membership has no dedicated trait, so it is computed once
  * at construction: a union carrying {@code @streaming} is an event stream,
- * and the structures that appear as its members are events.
+ * and the structures that appear as its members are events, except errors.
  */
 abstract class AddSmithyShapes {
 
@@ -107,6 +115,9 @@ abstract class AddSmithyShapes {
     private final CustomizationConfig customConfig;
     private final String protocol;
     private final TypeUtils typeUtils;
+
+    /** {@code @error} structures that appear as event stream members. */
+    private final Set<ShapeId> eventStreamErrors;
 
     /**
      * Structures that appear as members of any event stream reachable from
@@ -127,41 +138,34 @@ abstract class AddSmithyShapes {
         this.customConfig = customConfig;
         this.protocol = protocol;
         this.typeUtils = typeUtils;
-        this.eventStructures = collectEventStructures(model, service);
+        Set<ShapeId> events = new LinkedHashSet<>();
+        Set<ShapeId> errors = new LinkedHashSet<>();
+        collectEventStreamMembers(model, service, events, errors);
+        this.eventStructures = Collections.unmodifiableSet(events);
+        this.eventStreamErrors = Collections.unmodifiableSet(errors);
     }
 
     /**
-     * Walks every operation reachable from the service and collects the
-     * structure shape ids that appear as members of an event stream. The
-     * result lets {@link #generateShapeModel} set the event flag with a
-     * simple membership check instead of a reverse lookup per shape.
+     * Sorts each event stream member into {@code events} or, for an {@code @error}
+     * structure, {@code errors}. One place feeds both sets so they cannot drift apart.
      */
-    private static Set<ShapeId> collectEventStructures(Model model, ServiceShape service) {
-        Set<ShapeId> events = new HashSet<>();
-        TopDownIndex topDown = TopDownIndex.of(model);
-        for (OperationShape op : topDown.getContainedOperations(service)) {
-            collectEventStructuresFromShape(model, op.getInputShape(), events);
-            collectEventStructuresFromShape(model, op.getOutputShape(), events);
-        }
-        return events;
-    }
-
-    private static void collectEventStructuresFromShape(Model model, ShapeId shapeId, Set<ShapeId> events) {
-        if (shapeId == null) {
-            return;
-        }
-        Shape shape = model.getShape(shapeId).orElse(null);
-        if (shape == null || !shape.isStructureShape()) {
-            return;
-        }
-        for (MemberShape member : shape.members()) {
-            Shape target = model.expectShape(member.getTarget());
-            if (target.isUnionShape() && target.hasTrait(StreamingTrait.class)) {
-                for (MemberShape eventMember : target.asUnionShape().get().members()) {
-                    events.add(eventMember.getTarget());
-                }
+    private static void collectEventStreamMembers(Model model, ServiceShape service,
+                                                  Set<ShapeId> events, Set<ShapeId> errors) {
+        EventStreamIndex index = EventStreamIndex.of(model);
+        for (OperationShape op : TopDownIndex.of(model).getContainedOperations(service)) {
+            for (Optional<EventStreamInfo> info : Arrays.asList(index.getInputInfo(op), index.getOutputInfo(op))) {
+                info.ifPresent(stream -> stream.getEvents().values().forEach(
+                    member -> (member.hasTrait(ErrorTrait.class) ? errors : events).add(member.getId())));
             }
         }
+    }
+
+    private static boolean isEventStream(Shape shape) {
+        return shape.isUnionShape() && shape.hasTrait(StreamingTrait.class);
+    }
+
+    final Set<ShapeId> eventStreamErrors() {
+        return eventStreamErrors;
     }
 
     protected final Model getModel() {
@@ -252,8 +256,7 @@ abstract class AddSmithyShapes {
         shapeModel.withIsUnion(smithyShape.isUnionShape());
 
 
-        boolean isEventStream = smithyShape.isUnionShape() && smithyShape.hasTrait(StreamingTrait.class);
-        shapeModel.withIsEventStream(isEventStream);
+        shapeModel.withIsEventStream(isEventStream(smithyShape));
         shapeModel.withIsEvent(eventStructures.contains(smithyShape.getId()));
 
         smithyShape.getTrait(XmlNamespaceTrait.class)
@@ -416,6 +419,12 @@ abstract class AddSmithyShapes {
         memberModel.setRequired(member.hasTrait(RequiredTrait.class));
 
         memberModel.setSensitive(isSensitive(member, targetShape));
+
+        // C2J's jsonvalue, which the Smithy models carry as @mediaType("application/json").
+        memberModel.setJsonValue(targetShape.isStringShape()
+                                 && targetShape.getTrait(MediaTypeTrait.class)
+                                               .map(mediaType -> "application/json".equals(mediaType.getValue()))
+                                               .orElse(false));
 
         if (member.hasTrait(IdempotencyTokenTrait.class)) {
             if (!variableType.equals(String.class.getSimpleName())) {
@@ -616,17 +625,28 @@ abstract class AddSmithyShapes {
         boolean flattened = member.hasTrait(XmlFlattenedTrait.class)
                             || targetShape.hasTrait(XmlFlattenedTrait.class);
 
-        // TODO(smithy-migration): isGreedy is left false. It applies only to @httpLabel members
-        // bound to a greedy URI segment ({member+}) and requires threading the operation's request
-        // URI into this per-member builder. Zero first-batch impact; needed for the S3 family.
         mapping.withLocation(location)
                .withPayload(isPayload)
                .withStreaming(streaming)
                .withRequiresLength(requiresLength)
                .withFlattened(flattened)
                .withUnmarshallLocationName(unmarshallLocationName)
-               .withMarshallLocationName(marshallLocationName);
+               .withMarshallLocationName(marshallLocationName)
+               .withIsGreedy(location == Location.URI && isGreedyLabel(member));
 
         return mapping;
+    }
+
+    private boolean isGreedyLabel(MemberShape member) {
+        for (OperationShape operation : OperationIndex.of(model).getInputBindings(member.getContainer())) {
+            boolean greedy = operation.getTrait(HttpTrait.class)
+                                      .flatMap(http -> http.getUri().getGreedyLabel())
+                                      .filter(label -> label.getContent().equals(member.getMemberName()))
+                                      .isPresent();
+            if (greedy) {
+                return true;
+            }
+        }
+        return false;
     }
 }
