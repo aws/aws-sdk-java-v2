@@ -49,7 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
-import software.amazon.awssdk.core.exception.AbortedException;
+import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -78,6 +78,7 @@ public class MakeAsyncHttpRequestStageTest {
     private ScheduledExecutorService timeoutExecutor;
 
     private CompletableFuture<Void> clientExecuteFuture = CompletableFuture.completedFuture(null);
+    private CompletableFuture<Void> abortSignal;
 
     @Mock
     private ScheduledFuture future;
@@ -86,6 +87,7 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Before
     public void setup() {
+        abortSignal = new CompletableFuture<>();
         when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
         when(timeoutExecutor.schedule(any(Runnable.class), anyLong(), any(TimeUnit.class))).thenReturn(future);
     }
@@ -95,7 +97,8 @@ public class MakeAsyncHttpRequestStageTest {
         stage = new MakeAsyncHttpRequestStage<>(
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-            clientDependencies(Duration.ofMillis(1000)));
+            clientDependencies(Duration.ofMillis(1000)),
+            abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
                 ValidSdkObjects.sdkHttpFullRequest().build());
@@ -109,7 +112,8 @@ public class MakeAsyncHttpRequestStageTest {
         stage = new MakeAsyncHttpRequestStage<>(
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-            clientDependencies(null));
+            clientDependencies(null),
+            abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
                 ValidSdkObjects.sdkHttpFullRequest().build());
@@ -121,7 +125,6 @@ public class MakeAsyncHttpRequestStageTest {
 
     @Test
     public void execute_abortSignalFails_abortsHttpRequestWithContext() throws Exception {
-        CompletableFuture<Void> abortSignal = new CompletableFuture<>();
         clientExecuteFuture = new CompletableFuture<>();
         when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
         stage = new MakeAsyncHttpRequestStage<>(
@@ -136,7 +139,7 @@ public class MakeAsyncHttpRequestStageTest {
         abortSignal.completeExceptionally(requestFailure);
 
         assertThatThrownBy(clientExecuteFuture::join)
-            .hasCauseInstanceOf(AbortedException.class)
+            .hasCauseExactlyInstanceOf(SdkClientException.class)
             .hasMessageContaining("request execution failed")
             .hasRootCause(requestFailure);
     }
@@ -146,7 +149,8 @@ public class MakeAsyncHttpRequestStageTest {
         stage = new MakeAsyncHttpRequestStage<>(
                 combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-                clientDependencies(null));
+                clientDependencies(null),
+                abortSignal);
 
         SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)
@@ -202,7 +206,7 @@ public class MakeAsyncHttpRequestStageTest {
         CompletableFuture prepareFuture = new CompletableFuture();
         when(mockHandler.prepare()).thenReturn(prepareFuture);
 
-        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies, abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
             ValidSdkObjects.sdkHttpFullRequest().build());
@@ -237,7 +241,7 @@ public class MakeAsyncHttpRequestStageTest {
         CompletableFuture prepareFuture = spy(new CompletableFuture());
         when(mockHandler.prepare()).thenReturn(prepareFuture);
 
-        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies);
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies, abortSignal);
 
         CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
             ValidSdkObjects.sdkHttpFullRequest().build());
@@ -267,7 +271,8 @@ public class MakeAsyncHttpRequestStageTest {
         stage = new MakeAsyncHttpRequestStage<>(
             combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
                                          AsyncResponseHandlerTestUtils.noOpResponseHandler()),
-            clientDependencies(null));
+            clientDependencies(null),
+            abortSignal);
 
         SdkHttpFullRequest sdkHttpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.POST)

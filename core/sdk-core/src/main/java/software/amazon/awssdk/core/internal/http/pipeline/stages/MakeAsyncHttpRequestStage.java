@@ -35,7 +35,6 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
-import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -79,11 +78,6 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
     private final CompletableFuture<Void> abortSignal;
-
-    public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
-                                     HttpClientDependencies dependencies) {
-        this(responseHandler, dependencies, new CompletableFuture<>());
-    }
 
     public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                      HttpClientDependencies dependencies,
@@ -219,8 +213,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
         CompletableFutureUtils.forwardTransformedExceptionTo(
             abortSignal,
             httpClientFuture,
-            cause -> AbortedException.create("The async HTTP request was aborted because request execution failed.",
-                                             cause));
+            cause -> SdkClientException.create("The async HTTP request was aborted because request execution failed.",
+                                               cause));
 
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long d = System.nanoTime() - startTime;
