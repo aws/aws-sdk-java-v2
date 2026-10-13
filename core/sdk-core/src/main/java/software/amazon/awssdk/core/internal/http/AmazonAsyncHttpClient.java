@@ -29,9 +29,9 @@ import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.internal.http.pipeline.RequestPipelineBuilder;
+import software.amazon.awssdk.core.internal.http.pipeline.stages.AfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyTransactionIdStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.ApplyUserAgentStage;
-import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncAfterExecutionInterceptorsStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallAttemptMetricCollectionStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncApiCallTimeoutTrackingStage;
 import software.amazon.awssdk.core.internal.http.pipeline.stages.AsyncBeforeTransmissionExecutionInterceptorsStage;
@@ -51,6 +51,7 @@ import software.amazon.awssdk.core.internal.http.pipeline.stages.QueryParameters
 import software.amazon.awssdk.core.internal.http.pipeline.stages.UnwrapResponseContainer;
 import software.amazon.awssdk.core.internal.util.ThrowableUtils;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
+import software.amazon.awssdk.utils.CompletableFutureUtils;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 
 @ThreadSafe
@@ -189,11 +190,10 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
         public <OutputT> CompletableFuture<OutputT> execute(
             TransformingAsyncResponseHandler<Response<OutputT>> responseHandler) {
 
-            AsyncAfterExecutionInterceptorsStage<OutputT> afterExecutionInterceptorsStage =
-                new AsyncAfterExecutionInterceptorsStage<>();
+            CompletableFuture<Void> abortSignal = new CompletableFuture<>();
 
             try {
-                return RequestPipelineBuilder
+                CompletableFuture<OutputT> result = RequestPipelineBuilder
                         .first(RequestPipelineBuilder
                                 .first(MakeRequestMutableStage::new)
                                 .then(ApplyTransactionIdStage::new)
@@ -209,18 +209,21 @@ public final class AmazonAsyncHttpClient implements SdkAutoCloseable {
                                 .then(RequestPipelineBuilder
                                         .first(AsyncSigningStage::new)
                                         .then(AsyncBeforeTransmissionExecutionInterceptorsStage::new)
-                                        .then(d -> new MakeAsyncHttpRequestStage<>(
-                                            responseHandler, d, afterExecutionInterceptorsStage::activeHttpClientFuture))
+                                        .then(d -> new MakeAsyncHttpRequestStage<>(responseHandler, d, abortSignal))
                                         .wrappedWith(AsyncApiCallAttemptMetricCollectionStage::new)
                                         .wrappedWith((deps, wrapped) -> new AsyncRetryableStage<>(responseHandler, deps,
                                                                                                   wrapped))
                                         .then(async(() -> new UnwrapResponseContainer<>()))
-                                        .then(async(() -> afterExecutionInterceptorsStage))
+                                        .then(async(() -> new AfterExecutionInterceptorsStage<>()))
                                         .wrappedWith(AsyncExecutionFailureExceptionReportingStage::new)
                                         // Note: API_CALL_DURATION is measured by BaseAsyncClientHandler
                                         .wrappedWith(AsyncApiCallTimeoutTrackingStage::new)::build)::build)
                         .build(httpClientDependencies)
                         .execute(request, createRequestExecutionDependencies());
+
+                // A pipeline can fail after the HTTP layer has succeeded, before a streaming body is subscribed to.
+                // Forward that failure to the active HTTP request so the transport releases its resources.
+                return CompletableFutureUtils.forwardExceptionTo(result, abortSignal);
             } catch (RuntimeException e) {
                 throw ThrowableUtils.asSdkException(e);
             } catch (Exception e) {

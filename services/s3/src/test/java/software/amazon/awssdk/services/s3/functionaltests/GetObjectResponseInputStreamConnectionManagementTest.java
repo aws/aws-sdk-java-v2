@@ -172,12 +172,15 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             @Override
             public void afterTransmission(Context.AfterTransmission context,
                                           ExecutionAttributes executionAttributes) {
-                throw new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+                if (context.request() instanceof GetObjectRequest) {
+                    throw new RuntimeException(INTERCEPTOR_FAILURE_MESSAGE);
+                }
             }
         };
 
-        try (S3Client s3 = S3Client.builder()
-                                   .httpClient(httpClient)
+        try (SdkHttpClient managedHttpClient = httpClient;
+             S3Client s3 = S3Client.builder()
+                                   .httpClient(managedHttpClient)
                                    .region(Region.US_EAST_1)
                                    .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                    .forcePathStyle(true)
@@ -194,6 +197,9 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             assertThat(elapsed)
                 .as("%s interceptor failure latency", name)
                 .isLessThan(MAX_INTERCEPTOR_FAILURE_LATENCY);
+
+            HeadObjectResponse headResponse = s3.headObject(r -> r.bucket(BUCKET).key(KEY));
+            assertThat(headResponse.sdkHttpResponse().isSuccessful()).isTrue();
         }
     }
 
@@ -215,8 +221,9 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             }
         };
 
-        try (S3AsyncClient s3 = S3AsyncClient.builder()
-                                             .httpClient(httpClient)
+        try (SdkAsyncHttpClient managedHttpClient = httpClient;
+             S3AsyncClient s3 = S3AsyncClient.builder()
+                                             .httpClient(managedHttpClient)
                                              .region(Region.US_EAST_1)
                                              .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                              .forcePathStyle(true)
@@ -245,8 +252,9 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             String name, SdkHttpClient httpClient, WireMockRuntimeInfo wm) throws Exception {
         stubSlowGetAndHead();
 
-        try (S3Client s3 = S3Client.builder()
-                                   .httpClient(httpClient)
+        try (SdkHttpClient managedHttpClient = httpClient;
+             S3Client s3 = S3Client.builder()
+                                   .httpClient(managedHttpClient)
                                    .region(Region.US_EAST_1)
                                    .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                    .forcePathStyle(true)
@@ -268,8 +276,9 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             String name, SdkAsyncHttpClient httpClient, WireMockRuntimeInfo wm) throws Exception {
         stubSlowGetAndHead();
 
-        try (S3AsyncClient s3 = S3AsyncClient.builder()
-                                             .httpClient(httpClient)
+        try (SdkAsyncHttpClient managedHttpClient = httpClient;
+             S3AsyncClient s3 = S3AsyncClient.builder()
+                                             .httpClient(managedHttpClient)
                                              .region(Region.US_EAST_1)
                                              .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                              .forcePathStyle(true)
@@ -292,8 +301,9 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             String name, SdkHttpClient httpClient, WireMockRuntimeInfo wm) throws Exception {
         stubGetAndHead();
 
-        try (S3Client s3 = S3Client.builder()
-                                   .httpClient(httpClient)
+        try (SdkHttpClient managedHttpClient = httpClient;
+             S3Client s3 = S3Client.builder()
+                                   .httpClient(managedHttpClient)
                                    .region(Region.US_EAST_1)
                                    .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                    .forcePathStyle(true)
@@ -315,8 +325,9 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             String name, SdkAsyncHttpClient httpClient, WireMockRuntimeInfo wm) throws Exception {
         stubGetAndHead();
 
-        try (S3AsyncClient s3 = S3AsyncClient.builder()
-                                             .httpClient(httpClient)
+        try (SdkAsyncHttpClient managedHttpClient = httpClient;
+             S3AsyncClient s3 = S3AsyncClient.builder()
+                                             .httpClient(managedHttpClient)
                                              .region(Region.US_EAST_1)
                                              .endpointOverride(URI.create(wm.getHttpBaseUrl()))
                                              .forcePathStyle(true)
@@ -382,12 +393,11 @@ class GetObjectResponseInputStreamConnectionManagementTest {
             server.stubFor(com.github.tomakehurst.wiremock.client.WireMock.head(anyUrl())
                                .willReturn(aResponse().withStatus(200)));
 
-            SdkHttpClient httpClient = AwsCrtHttpClient.builder()
-                                                       .connectionAcquisitionTimeout(CONNECTION_ACQUIRE_TIMEOUT)
-                                                       .maxConcurrency(1)
-                                                       .build();
-
-            try (S3Client s3 = S3Client.builder()
+            try (SdkHttpClient httpClient = AwsCrtHttpClient.builder()
+                                                           .connectionAcquisitionTimeout(CONNECTION_ACQUIRE_TIMEOUT)
+                                                           .maxConcurrency(1)
+                                                           .build();
+                 S3Client s3 = S3Client.builder()
                                        .httpClient(httpClient)
                                        .region(Region.US_EAST_1)
                                        .endpointOverride(URI.create("http://localhost:" + server.port()))

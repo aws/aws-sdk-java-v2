@@ -50,6 +50,7 @@ import software.amazon.awssdk.core.async.SdkPublisher;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.HttpResponseHandler;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -218,7 +219,10 @@ public class AsyncClientHandlerTest {
         assertThatThrownBy(() -> responseFuture.get(1, TimeUnit.SECONDS))
             .hasRootCause(interceptorException);
         assertThat(activeHttpRequest).isCompletedExceptionally();
-        assertThat(transformer.failure).isSameAs(interceptorException);
+        assertThat(transformer.failure)
+            .isInstanceOf(AbortedException.class)
+            .hasMessageContaining("request execution failed")
+            .hasRootCause(interceptorException);
         assertThat(transformer.failureCount).isEqualTo(1);
     }
 

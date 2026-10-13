@@ -185,6 +185,81 @@ public class SyncClientHandlerTest {
     }
 
     @Test
+    public void beforeUnmarshallingThrows_whenModifyHttpResponseContentReturnsEmpty_closesOriginalResponseBody()
+        throws Exception {
+        RuntimeException interceptorException = new RuntimeException("interceptor failure");
+        TrackableInputStream responseBody = new TrackableInputStream();
+        expectRetrievalFromMocks();
+        when(httpClientCall.call()).thenReturn(
+            HttpExecuteResponse.builder()
+                               .response(SdkHttpResponse.builder().statusCode(200).build())
+                               .responseBody(AbortableInputStream.create(responseBody))
+                               .build());
+
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
+                                                                   ExecutionAttributes executionAttributes) {
+                return Optional.empty();
+            }
+
+            @Override
+            public void beforeUnmarshalling(Context.BeforeUnmarshalling context,
+                                            ExecutionAttributes executionAttributes) {
+                throw interceptorException;
+            }
+        };
+        SdkSyncClientHandler handler =
+            new SdkSyncClientHandler(clientConfiguration().toBuilder()
+                                                          .option(SdkClientOption.EXECUTION_INTERCEPTORS,
+                                                                  singletonList(interceptor))
+                                                          .build());
+
+        assertThatThrownBy(() -> handler.execute(clientExecutionParams()))
+            .isSameAs(interceptorException);
+        assertThat(responseBody.closed).isTrue();
+    }
+
+    @Test
+    public void afterExecutionThrows_whenModifyHttpResponseContentReturnsEmpty_closesOriginalResponseBody()
+        throws Exception {
+        RuntimeException interceptorException = new RuntimeException("interceptor failure");
+        TrackableInputStream responseBody = new TrackableInputStream();
+        expectRetrievalFromMocks();
+        when(httpClientCall.call()).thenReturn(
+            HttpExecuteResponse.builder()
+                               .response(SdkHttpResponse.builder().statusCode(200).build())
+                               .responseBody(AbortableInputStream.create(responseBody))
+                               .build());
+        when(responseHandler.handle(any(), any())).thenReturn(VoidSdkResponse.builder().build());
+
+        ExecutionInterceptor interceptor = new ExecutionInterceptor() {
+            @Override
+            public Optional<InputStream> modifyHttpResponseContent(Context.ModifyHttpResponse context,
+                                                                   ExecutionAttributes executionAttributes) {
+                return Optional.empty();
+            }
+
+            @Override
+            public void afterExecution(Context.AfterExecution context,
+                                       ExecutionAttributes executionAttributes) {
+                throw interceptorException;
+            }
+        };
+        SdkSyncClientHandler handler =
+            new SdkSyncClientHandler(clientConfiguration().toBuilder()
+                                                          .option(SdkClientOption.EXECUTION_INTERCEPTORS,
+                                                                  singletonList(interceptor))
+                                                          .build());
+        ResponseTransformer<SdkResponse, ResponseInputStream<SdkResponse>> transformer =
+            ResponseTransformer.toInputStream(Duration.ZERO);
+
+        assertThatThrownBy(() -> handler.execute(clientExecutionParams(), transformer))
+            .isSameAs(interceptorException);
+        assertThat(responseBody.closed).isTrue();
+    }
+
+    @Test
     public void afterExecutionThrows_streamingResponse_closesResponseBody() throws Exception {
         RuntimeException interceptorException = new RuntimeException("interceptor failure");
         TrackableInputStream responseBody = new TrackableInputStream();

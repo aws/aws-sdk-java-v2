@@ -27,7 +27,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -36,6 +35,7 @@ import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -62,7 +62,6 @@ import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
 import software.amazon.awssdk.metrics.MetricCollector;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
-import software.amazon.awssdk.utils.FunctionalUtils;
 import software.amazon.awssdk.utils.Logger;
 
 /**
@@ -79,23 +78,23 @@ public final class MakeAsyncHttpRequestStage<OutputT>
     private final Executor futureCompletionExecutor;
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
-    private final Consumer<CompletableFuture<Void>> activeHttpClientFutureConsumer;
+    private final CompletableFuture<Void> abortSignal;
 
     public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                      HttpClientDependencies dependencies) {
-        this(responseHandler, dependencies, FunctionalUtils.noOpConsumer());
+        this(responseHandler, dependencies, new CompletableFuture<>());
     }
 
     public MakeAsyncHttpRequestStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
                                      HttpClientDependencies dependencies,
-                                     Consumer<CompletableFuture<Void>> activeHttpClientFutureConsumer) {
+                                     CompletableFuture<Void> abortSignal) {
         this.responseHandler = responseHandler;
         this.futureCompletionExecutor =
                 dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
         this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
         this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
-        this.activeHttpClientFutureConsumer = activeHttpClientFutureConsumer;
+        this.abortSignal = abortSignal;
     }
 
     @Override
@@ -217,7 +216,11 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         long startTime = MetricUtils.resetApiCallAttemptStartNanoTime(context);
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
-        activeHttpClientFutureConsumer.accept(httpClientFuture);
+        CompletableFutureUtils.forwardTransformedExceptionTo(
+            abortSignal,
+            httpClientFuture,
+            cause -> AbortedException.create("The async HTTP request was aborted because request execution failed.",
+                                             cause));
 
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long d = System.nanoTime() - startTime;

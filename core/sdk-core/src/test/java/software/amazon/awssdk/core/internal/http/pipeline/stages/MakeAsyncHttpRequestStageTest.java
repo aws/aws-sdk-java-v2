@@ -49,6 +49,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
+import software.amazon.awssdk.core.exception.AbortedException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.http.NoopTestRequest;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
@@ -116,6 +117,28 @@ public class MakeAsyncHttpRequestStageTest {
         stage.execute(requestFuture, requestContext());
 
         verify(timeoutExecutor, never()).schedule(any(Runnable.class), anyLong(), any(TimeUnit.class));
+    }
+
+    @Test
+    public void execute_abortSignalFails_abortsHttpRequestWithContext() throws Exception {
+        CompletableFuture<Void> abortSignal = new CompletableFuture<>();
+        clientExecuteFuture = new CompletableFuture<>();
+        when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null),
+            abortSignal);
+        RuntimeException requestFailure = new RuntimeException("request failure");
+
+        stage.execute(CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build()),
+                      requestContext());
+        abortSignal.completeExceptionally(requestFailure);
+
+        assertThatThrownBy(clientExecuteFuture::join)
+            .hasCauseInstanceOf(AbortedException.class)
+            .hasMessageContaining("request execution failed")
+            .hasRootCause(requestFailure);
     }
 
     @Test
