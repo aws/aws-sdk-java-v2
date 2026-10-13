@@ -1,4 +1,73 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.55.16__ __2026-10-13__
+## __ARC - Region switch__
+  - ### Features
+    - Adds support for SSM Execution Block in Region switch plans
+
+## __AWS CRT-based S3 client__
+  - ### Bugfixes
+    - Fixed an issue where a failed request body (for example, a cancelled `AsyncRequestBody.forBlockingOutputStream` upload) caused the CRT-based S3 client to keep a CRT event loop thread busy and hang later requests. See [#7437](https://github.com/aws/aws-sdk-java-v2/issues/7437).
+
+## __AWS DataSync__
+  - ### Features
+    - AWS DataSync Enhanced mode now supports FSx for OpenZFS, NFS 4.2, and object metadata controls
+
+## __AWS Glue__
+  - ### Features
+    - Amazon Glue releasing support for adding custom namespace for S3 Tables in Glue zero-ETL integration
+
+## __AWS Lake Formation__
+  - ### Features
+    - Added new LakeFormation APIs and documentation updates for Simple Row-level Security (RLS).
+
+## __AWS Resilience Hub V2__
+  - ### Features
+    - Adds support for DevOpsAgent integration where users can specify the agent space ARN at service level and launch investigations directly from Resilience Hub v2.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+
+## __AWS SecurityHub__
+  - ### Features
+    - Adds and updates APIs to support criticality. This feature allows customers to create automation rules to assign criticality to resources matching a criteria. With this release, resources and exposure findings will include the criticality.
+
+## __Agent Registry Control__
+  - ### Features
+    - AWS Agent Registry is improving recently launched custom metadata schema feature to make shared attributes easier to manage.
+
+## __Amazon AppIntegrations Service__
+  - ### Features
+    - This release adds the Connect JWT authentication type and the AudienceOverride field to AuthConfig, letting A2A server applications authenticate with JWTs issued by Amazon Connect.
+
+## __Amazon AppStream__
+  - ### Features
+    - Adds support for administrators to require users to re-authenticate OneDrive and Google Drive storage connectors when a streaming session is reused.
+
+## __Amazon Connect Service__
+  - ### Features
+    - New APIs to support aliases and versions for ContactFlow.
+
+## __Amazon GameLift__
+  - ### Features
+    - Adds support for new instance types in the C8a, C8i, C9g, M8a, M8i, and M9g families for managed EC2 and container fleets
+
+## __Amazon Omics__
+  - ### Features
+    - With Expanded container registry support, you can use container images from registries such as Seqera (Wave), NVIDIA NGC, and Google Artifact Registry with AWS HealthOmics private workflows, without manually migrating images into Amazon ECR or editing your workflow definitions.
+
+## __Amazon Route 53 Domains__
+  - ### Features
+    - Route 53 Domains now supports premium domains. This release adds consent objects to operations on premium domains and a new GetDomainPrices API. Also, the Flags and PublicKey fields were deprecated from the DnssecKey response.
+
+## __Amazon SageMaker Service__
+  - ### Features
+    - Adds Amazon Athena, Cleanup, ForEach, and Amazon EMR Serverless step metadata, ForEach iteration context, and the CompletedWithFailures execution status to SageMaker Pipelines.
+
+## __Lambda Web__
+  - ### Features
+    - Documentation update to include common use cases.
+
 # __2.55.15__ __2026-10-12__
 ## __AWS DevOps Agent Service__
   - ### Features
