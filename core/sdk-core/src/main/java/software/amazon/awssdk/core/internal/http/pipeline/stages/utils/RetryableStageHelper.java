@@ -29,6 +29,7 @@ import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkStandardLogger;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.NonRetryableException;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
@@ -158,6 +159,11 @@ public final class RetryableStageHelper {
      * code should not retry.
      */
     public Either<Duration, Duration> tryRefreshToken(Duration suggestedDelay) {
+        // Retry predicates may otherwise classify a wrapped cause as retryable.
+        if (lastException instanceof NonRetryableException) {
+            return Either.right(Duration.ZERO);
+        }
+
         RetryToken retryToken;
         Duration attemptDelay;
         try {
@@ -194,6 +200,11 @@ public final class RetryableStageHelper {
     }
 
     public CompletableFuture<Either<Duration, Duration>> tryRefreshTokenAsync(Duration suggestedDelay) {
+        // Retry predicates may otherwise classify a wrapped cause as retryable.
+        if (lastException instanceof NonRetryableException) {
+            return CompletableFuture.completedFuture(Either.right(Duration.ZERO));
+        }
+
         CompletableFuture<Either<Duration, Duration>> cf = new CompletableFuture<>();
 
         RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
