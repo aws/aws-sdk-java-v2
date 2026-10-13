@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS Lake Formation",
+    "contributor": "",
+    "description": "Added new LakeFormation APIs and documentation updates for Simple Row-level Security (RLS)."
+}
