@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "ARC - Region switch",
+    "contributor": "",
+    "description": "Adds support for SSM Execution Block in Region switch plans"
+}
