@@ -218,15 +218,14 @@ public class S3CrtResponseHandlerAdapterMetricsTest {
     }
 
     private static S3CrtResponseHandlerAdapter adapterPublishingTo(MetricPublisher... publishers) {
-        SdkHttpExecutionAttributes attributes =
-            SdkHttpExecutionAttributes.builder()
-                                      .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS, Arrays.asList(publishers))
-                                      .put(S3InternalSdkHttpExecutionAttribute.CRT_MAX_CONCURRENCY, MAX_CONCURRENCY)
-                                      .build();
-        return new S3CrtResponseHandlerAdapter(new CompletableFuture<>(),
-                                               mock(SdkAsyncHttpResponseHandler.class),
-                                               attributes,
-                                               new CompletableFuture<>());
+        return S3CrtResponseHandlerAdapter.builder()
+                                          .executeFuture(new CompletableFuture<>())
+                                          .responseHandler(mock(SdkAsyncHttpResponseHandler.class))
+                                          .httpExecutionAttributes(SdkHttpExecutionAttributes.builder().build())
+                                          .metaRequestFuture(new CompletableFuture<>())
+                                          .metricPublishers(Arrays.asList(publishers))
+                                          .maxConcurrency(MAX_CONCURRENCY)
+                                          .build();
     }
 
     private static MetricCollection childNamed(MetricCollection parent, String name) {

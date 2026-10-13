@@ -36,7 +36,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.core.SdkBytes;
@@ -91,31 +90,16 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
     // the later cancel-derived AWS_ERROR_S3_CANCELED must not re-notify. See #6715.
     private final AtomicBoolean responseHandlerNotified = new AtomicBoolean(false);
 
-    public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
-                                       SdkAsyncHttpResponseHandler responseHandler,
-                                       SdkHttpExecutionAttributes httpExecutionAttributes,
-                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
-        this(executeFuture, responseHandler, httpExecutionAttributes, metaRequestFuture, META_REQUEST_TIMEOUT);
-    }
-
-    @SdkTestInternalApi
-    public S3CrtResponseHandlerAdapter(CompletableFuture<Void> executeFuture,
-                                       SdkAsyncHttpResponseHandler responseHandler,
-                                       SdkHttpExecutionAttributes httpExecutionAttributes,
-                                       CompletableFuture<S3MetaRequestWrapper> metaRequestFuture,
-                                       Duration s3MetaRequestTimeout) {
-        this.resultFuture = executeFuture;
-        this.metaRequestFuture = metaRequestFuture;
-        this.responseHandler = responseHandler;
+    private S3CrtResponseHandlerAdapter(Builder builder) {
+        this.resultFuture = builder.executeFuture;
+        this.metaRequestFuture = builder.metaRequestFuture;
+        this.responseHandler = builder.responseHandler;
         PublisherListener<S3MetaRequestProgress> progressListener =
-            httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER);
+            builder.httpExecutionAttributes.getAttribute(CRT_PROGRESS_LISTENER);
         this.progressListener = progressListener == null ? new NoOpPublisherListener() : progressListener;
-        List<MetricPublisher> publishers =
-            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
-        this.metricPublishers = publishers == null ? Collections.emptyList() : publishers;
-        this.maxConcurrency =
-            httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.CRT_MAX_CONCURRENCY);
-        this.s3MetaRequestTimeout = s3MetaRequestTimeout;
+        this.metricPublishers = builder.metricPublishers;
+        this.maxConcurrency = builder.maxConcurrency;
+        this.s3MetaRequestTimeout = builder.s3MetaRequestTimeout;
 
         // Registered last: the callback reads responseHandler and s3MetaRequestTimeout, so all fields must be assigned
         // first in case resultFuture is already complete and the callback runs synchronously here.
@@ -134,6 +118,62 @@ public final class S3CrtResponseHandlerAdapter implements S3MetaRequestResponseH
             }
             s3MetaRequest.close();
         });
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static final class Builder {
+        private CompletableFuture<Void> executeFuture;
+        private SdkAsyncHttpResponseHandler responseHandler;
+        private SdkHttpExecutionAttributes httpExecutionAttributes;
+        private CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
+        private Duration s3MetaRequestTimeout = META_REQUEST_TIMEOUT;
+        private List<MetricPublisher> metricPublishers = Collections.emptyList();
+        private Integer maxConcurrency;
+
+        private Builder() {
+        }
+
+        public Builder executeFuture(CompletableFuture<Void> executeFuture) {
+            this.executeFuture = executeFuture;
+            return this;
+        }
+
+        public Builder responseHandler(SdkAsyncHttpResponseHandler responseHandler) {
+            this.responseHandler = responseHandler;
+            return this;
+        }
+
+        public Builder httpExecutionAttributes(SdkHttpExecutionAttributes httpExecutionAttributes) {
+            this.httpExecutionAttributes = httpExecutionAttributes;
+            return this;
+        }
+
+        public Builder metaRequestFuture(CompletableFuture<S3MetaRequestWrapper> metaRequestFuture) {
+            this.metaRequestFuture = metaRequestFuture;
+            return this;
+        }
+
+        public Builder s3MetaRequestTimeout(Duration s3MetaRequestTimeout) {
+            this.s3MetaRequestTimeout = s3MetaRequestTimeout;
+            return this;
+        }
+
+        public Builder metricPublishers(List<MetricPublisher> metricPublishers) {
+            this.metricPublishers = metricPublishers;
+            return this;
+        }
+
+        public Builder maxConcurrency(Integer maxConcurrency) {
+            this.maxConcurrency = maxConcurrency;
+            return this;
+        }
+
+        public S3CrtResponseHandlerAdapter build() {
+            return new S3CrtResponseHandlerAdapter(this);
+        }
     }
 
     private S3MetaRequestWrapper s3MetaRequest() {
