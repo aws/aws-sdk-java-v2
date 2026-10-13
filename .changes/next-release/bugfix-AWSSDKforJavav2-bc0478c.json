@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Updated SdkUri TRACE log messages to include only the scheme, host, port and path of the URI."
+}
