@@ -18,9 +18,15 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.any;
 import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
+import static com.github.tomakehurst.wiremock.client.WireMock.delete;
+import static com.github.tomakehurst.wiremock.client.WireMock.deleteRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.findAll;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
 import static com.github.tomakehurst.wiremock.client.WireMock.head;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.client.WireMock.postRequestedFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -34,12 +40,15 @@ import com.github.tomakehurst.wiremock.http.HttpHeader;
 import com.github.tomakehurst.wiremock.http.HttpHeaders;
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
+import com.github.tomakehurst.wiremock.matching.RequestPatternBuilder;
 import com.github.tomakehurst.wiremock.stubbing.Scenario;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.AfterEach;
@@ -54,12 +63,14 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CompleteMultipartUploadResponse;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
 /**
@@ -72,6 +83,7 @@ public class S3CrtClientWiremockTest {
     private static final String BUCKET = "Example-Bucket";
     private static final String KEY = "Example-Object";
     private static final String E_TAG = "\"3858f62230ac3c915f300c664312c11f-9\"";
+    private static final String UPLOAD_ID = "test-upload-id";
     private static final String XML_RESPONSE_BODY = String.format(
         "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         + "<CompleteMultipartUploadResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
@@ -235,26 +247,7 @@ public class S3CrtClientWiremockTest {
 
         // A small, known content length keeps this a single-part PutObject (avoids the @BeforeEach client's tiny part
         // size that would otherwise force a multipart CreateMultipartUpload before the body is ever read).
-        AsyncRequestBody erroringBody = new AsyncRequestBody() {
-            @Override
-            public Optional<Long> contentLength() {
-                return Optional.of(16L);
-            }
-
-            @Override
-            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
-                subscriber.onSubscribe(new Subscription() {
-                    @Override
-                    public void request(long n) {
-                        subscriber.onError(bodyError);
-                    }
-
-                    @Override
-                    public void cancel() {
-                    }
-                });
-            }
-        };
+        AsyncRequestBody erroringBody = erroringBody(16L, bodyError);
 
         try (S3AsyncClient singlePartClient =
                  S3AsyncClient.crtBuilder()
@@ -269,6 +262,67 @@ public class S3CrtClientWiremockTest {
                                                      .get(5, TimeUnit.SECONDS))
                 .hasRootCauseInstanceOf(IllegalArgumentException.class)
                 .hasRootCauseMessage("test error");
+        }
+    }
+
+    @Test
+    void putObject_requestBodyErrorsWithMaxConcurrencyOne_laterRequestStillCompletes(WireMockRuntimeInfo wiremock)
+        throws Exception {
+        stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("ETag", E_TAG)));
+        IllegalArgumentException bodyError = new IllegalArgumentException("test error");
+
+        try (S3AsyncClient client =
+                 S3AsyncClient.crtBuilder()
+                              .region(Region.US_EAST_1)
+                              .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                              .credentialsProvider(
+                                  StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                              .maxConcurrency(1)
+                              .build()) {
+            assertThatThrownBy(() -> client.putObject(r -> r.bucket(BUCKET).key(KEY), erroringBody(16L, bodyError))
+                                           .get(10, TimeUnit.SECONDS))
+                .hasRootCauseInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseMessage("test error");
+
+            // #7437: the failed request's body read used to spin forever on the event loop, holding the client's only
+            // prepare slot, so this request was never sent.
+            PutObjectResponse response = client.putObject(r -> r.bucket(BUCKET).key("second-object"),
+                                                          AsyncRequestBody.fromString("hello"))
+                                               .get(10, TimeUnit.SECONDS);
+            assertThat(response.eTag()).isEqualTo(E_TAG);
+        }
+    }
+
+    @Test
+    void putObject_unknownLengthBodyCancelled_abortsMultipartUpload(WireMockRuntimeInfo wiremock) throws Exception {
+        stubFor(post(anyUrl()).willReturn(aResponse().withStatus(200).withBody(
+            "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+            + "<InitiateMultipartUploadResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">"
+            + "<Bucket>" + BUCKET + "</Bucket><Key>" + KEY + "</Key><UploadId>" + UPLOAD_ID + "</UploadId>"
+            + "</InitiateMultipartUploadResult>")));
+        stubFor(put(anyUrl()).willReturn(aResponse().withStatus(200).withHeader("ETag", E_TAG)));
+        stubFor(delete(anyUrl()).willReturn(aResponse().withStatus(204)));
+
+        try (S3AsyncClient client =
+                 S3AsyncClient.crtBuilder()
+                              .region(Region.US_EAST_1)
+                              .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                              .credentialsProvider(
+                                  StaticCredentialsProvider.create(AwsBasicCredentials.create("key", "secret")))
+                              .build()) {
+            // Unknown length forces a multipart upload; the body fails while CRT prepares the first UploadPart.
+            BlockingOutputStreamAsyncRequestBody body = AsyncRequestBody.forBlockingOutputStream(null);
+            CompletableFuture<PutObjectResponse> upload = client.putObject(r -> r.bucket(BUCKET).key(KEY), body);
+            body.outputStream().cancel();
+
+            assertThatThrownBy(() -> upload.get(10, TimeUnit.SECONDS))
+                .hasStackTraceContaining("Output stream has been cancelled");
+            // Sanity: this really was a multipart upload (CreateMultipartUpload is the only POST this test can send).
+            assertThat(findAll(postRequestedFor(anyUrl()))).hasSize(1);
+
+            // #7437: the meta request never finished, so CRT never sent AbortMultipartUpload.
+            awaitRequest(deleteRequestedFor(anyUrl()).withQueryParam("uploadId", equalTo(UPLOAD_ID)),
+                         Duration.ofSeconds(10));
         }
     }
 
@@ -358,6 +412,38 @@ public class S3CrtClientWiremockTest {
                 .hasCauseInstanceOf(SdkClientException.class)
                 .hasMessageContaining("Invalid response status");
         }
+    }
+
+    /** A body that signals {@code error} on the first request(n), i.e. on CRT's first sendRequestBody read. */
+    private static AsyncRequestBody erroringBody(Long contentLength, RuntimeException error) {
+        return new AsyncRequestBody() {
+            @Override
+            public Optional<Long> contentLength() {
+                return Optional.ofNullable(contentLength);
+            }
+
+            @Override
+            public void subscribe(Subscriber<? super ByteBuffer> subscriber) {
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long n) {
+                        subscriber.onError(error);
+                    }
+
+                    @Override
+                    public void cancel() {
+                    }
+                });
+            }
+        };
+    }
+
+    private static void awaitRequest(RequestPatternBuilder pattern, Duration timeout) throws InterruptedException {
+        long deadline = System.nanoTime() + timeout.toNanos();
+        while (findAll(pattern).isEmpty() && System.nanoTime() < deadline) {
+            Thread.sleep(50);
+        }
+        assertThat(findAll(pattern)).as("requests matching %s within %s", pattern.build(), timeout).hasSize(1);
     }
 
     private static void stubRangedPart(int part, byte[] body, int partSize, int objectSize, String eTag) {
