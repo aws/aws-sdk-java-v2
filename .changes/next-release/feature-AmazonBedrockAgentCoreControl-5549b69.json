@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon Bedrock AgentCore Control",
+    "contributor": "",
+    "description": "This release supports scoping Amazon Bedrock AgentCore Gateway rate limits by request header or request body field."
+}
