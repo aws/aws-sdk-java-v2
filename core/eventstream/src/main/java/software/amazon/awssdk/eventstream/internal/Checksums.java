@@ -13,19 +13,19 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventstream;
+package software.amazon.awssdk.eventstream.internal;
 
 import java.nio.ByteBuffer;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 
 @SdkInternalApi
-final class Checksums {
+public final class Checksums {
 
     private Checksums() {
     }
 
-    static void update(Checksum checksum, ByteBuffer buffer) {
+    public static void update(Checksum checksum, ByteBuffer buffer) {
         if (buffer.hasArray()) {
             int pos = buffer.position();
             int off = buffer.arrayOffset();

@@ -18,8 +18,8 @@ package software.amazon.awssdk.eventstream;
 import static java.util.Objects.requireNonNull;
 import static software.amazon.awssdk.eventstream.HeaderType.TIMESTAMP;
 import static software.amazon.awssdk.eventstream.HeaderType.fromTypeId;
-import static software.amazon.awssdk.eventstream.Utils.writeBytes;
-import static software.amazon.awssdk.eventstream.Utils.writeString;
+import static software.amazon.awssdk.eventstream.internal.Utils.writeBytes;
+import static software.amazon.awssdk.eventstream.internal.Utils.writeString;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -30,6 +30,7 @@ import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.eventstream.internal.Utils;
 
 /**
  * A typed header value. The underlying value can be obtained by calling the
@@ -134,14 +135,14 @@ public abstract class HeaderValue {
         throw new IllegalStateException("Expected UUID, but type was " + getType().name());
     }
 
-    void encode(DataOutputStream dos) throws IOException {
+    public void encode(DataOutputStream dos) throws IOException {
         dos.writeByte(getType().headerTypeId);
         encodeValue(dos);
     }
 
     abstract void encodeValue(DataOutputStream dos) throws IOException;
 
-    static HeaderValue decode(ByteBuffer buf) {
+    public static HeaderValue decode(ByteBuffer buf) {
         HeaderType type = fromTypeId(buf.get());
         switch (type) {
             case TRUE:
@@ -517,7 +518,7 @@ public abstract class HeaderValue {
             this.value = requireNonNull(value);
         }
 
-        static TimestampValue decode(ByteBuffer buf) {
+        public static TimestampValue decode(ByteBuffer buf) {
             long epochMillis = buf.getLong();
             return new TimestampValue(Instant.ofEpochMilli(epochMillis));
         }
@@ -570,7 +571,7 @@ public abstract class HeaderValue {
             this.value = requireNonNull(value);
         }
 
-        static UuidValue decode(ByteBuffer buf) {
+        public static UuidValue decode(ByteBuffer buf) {
             long msb = buf.getLong();
             long lsb = buf.getLong();
             return new UuidValue(new UUID(msb, lsb));

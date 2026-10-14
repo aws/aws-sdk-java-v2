@@ -21,6 +21,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.eventstream.internal.Prelude;
 
 /**
  * A simple decoder that accumulates chunks of bytes and emits eventstream

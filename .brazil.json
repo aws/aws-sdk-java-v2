@@ -155,7 +155,6 @@
         "org.reactivestreams:reactive-streams": { "packageName": "Maven-org-reactivestreams_reactive-streams", "packageVersion": "1.x" },
         "org.slf4j:slf4j-api": { "packageName": "Slf4j", "packageVersion": "1.7" },
         "software.amazon.awssdk.crt:aws-crt": { "packageName": "Aws-crt-java", "packageVersion": "1.0.x" },
-        "software.amazon.eventstream:eventstream": { "packageName": "AwsFlowJava", "packageVersion": "1.0" },
         "software.amazon.ion:ion-java": { "packageName": "Maven-software-amazon-ion_ion-java", "packageVersion": "1.x" },
         "software.amazon:flow": { "packageName": "AwsFlowJava", "packageVersion": "1.0" },
         "org.junit.jupiter:junit-jupiter": { "packageName": "JUnit5", "packageVersion": "5.x" },

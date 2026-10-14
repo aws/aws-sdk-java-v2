@@ -40,8 +40,9 @@
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>
-            <groupId>software.amazon.eventstream</groupId>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>eventstream</artifactId>
+            <version>${awsjavasdk.version}</version>
         </dependency>
     </dependencies>
 
@@ -66,7 +67,7 @@
                     <!-- This module is meant to bring in dependency on eventstream but does not have any code that
                      explicitly uses it -->
                     <ignoredUnusedDeclaredDependencies>
-                        <ignoredUnusedDeclaredDependency>software.amazon.eventstream:eventstream</ignoredUnusedDeclaredDependency>
+                        <ignoredUnusedDeclaredDependency>software.amazon.awssdk:eventstream</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>

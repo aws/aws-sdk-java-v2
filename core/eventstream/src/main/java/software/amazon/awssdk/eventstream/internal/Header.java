@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-package software.amazon.awssdk.eventstream;
+package software.amazon.awssdk.eventstream.internal;
 
 import static java.util.Objects.requireNonNull;
 
@@ -22,9 +22,10 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.eventstream.HeaderValue;
 
 @SdkInternalApi
-class Header {
+public class Header {
     private final String name;
     private final HeaderValue value;
 
@@ -45,12 +46,12 @@ class Header {
         return value;
     }
 
-    static Header decode(ByteBuffer buf) {
+    public static Header decode(ByteBuffer buf) {
         String name = Utils.readShortString(buf);
         return new Header(name, HeaderValue.decode(buf));
     }
 
-    static void encode(Map.Entry<String, HeaderValue> header, DataOutputStream dos) throws IOException {
+    public static void encode(Map.Entry<String, HeaderValue> header, DataOutputStream dos) throws IOException {
         new Header(header.getKey(), header.getValue()).encode(dos);
     }
 

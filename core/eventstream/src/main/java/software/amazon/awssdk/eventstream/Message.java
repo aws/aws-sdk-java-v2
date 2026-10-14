@@ -34,6 +34,9 @@ import java.util.zip.CRC32;
 import java.util.zip.CheckedOutputStream;
 import java.util.zip.Checksum;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
+import software.amazon.awssdk.eventstream.internal.Checksums;
+import software.amazon.awssdk.eventstream.internal.Header;
+import software.amazon.awssdk.eventstream.internal.Prelude;
 
 /**
  * An eventstream message.
@@ -41,7 +44,7 @@ import software.amazon.awssdk.annotations.SdkProtectedApi;
 @SdkProtectedApi
 public class Message {
     private static final int TRAILING_CRC_LENGTH = 4;
-    static final int MESSAGE_OVERHEAD = Prelude.LENGTH_WITH_CRC + TRAILING_CRC_LENGTH;
+    public static final int MESSAGE_OVERHEAD = Prelude.LENGTH_WITH_CRC + TRAILING_CRC_LENGTH;
 
     private final Map<String, HeaderValue> headers;
     private final byte[] payload;

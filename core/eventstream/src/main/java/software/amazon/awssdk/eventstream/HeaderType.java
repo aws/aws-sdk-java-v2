@@ -15,10 +15,10 @@
 
 package software.amazon.awssdk.eventstream;
 
-import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.annotations.SdkProtectedApi;
 
-@SdkInternalApi
-enum HeaderType {
+@SdkProtectedApi
+public enum HeaderType {
     TRUE(0),
     FALSE(1),
     BYTE(2),
