@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
@@ -31,8 +32,12 @@ import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.async.SimplePublisher;
 
 /**
- * A {@link SubAsyncRequestBody} implementation that supports resubscribe/retry once all data has been published to the first
- * subscriber
+ * A {@link SubAsyncRequestBody} implementation that supports resubscribe/retry once the part has completed, i.e. all of its
+ * data was received through {@link #send} and {@link #complete()} was called before {@link #error}.
+ *
+ * <p>A part is terminated exactly once: by {@link #complete()} or by {@link #error}, whichever comes first. A part failed
+ * through {@link #error} before it completed cannot be retried: a resubscribe fails with {@link NonRetryableException}. A
+ * later {@link #error} on a completed part is ignored, and the part keeps its retry buffer.
  */
 @SdkInternalApi
 public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
@@ -47,6 +52,14 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
     private final String sourceBodyName;
 
     private volatile long bufferedLength = 0;
+    /**
+     * The first of {@link #complete()} and {@link #error} wins and decides whether the part can be retried.
+     */
+    private final AtomicReference<Termination> termination = new AtomicReference<>(Termination.NONE);
+    /**
+     * The retry body. Only set once the part completed (and was not errored first); {@code null} means a resubscribe fails
+     * with {@link NonRetryableException}. It shares {@link #buffers}.
+     */
     private volatile ByteBuffersAsyncRequestBody bufferedAsyncRequestBody;
     private List<ByteBuffer> buffers = new ArrayList<>();
     private final AtomicBoolean subscribeCalled = new AtomicBoolean(false);
@@ -95,7 +108,23 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
         // ByteBuffersAsyncRequestBody MUST be created before we complete the current
         // request because retry may happen right after
         synchronized (buffersLock) {
-            bufferedAsyncRequestBody = ByteBuffersAsyncRequestBody.of(buffers, bufferedLength);
+            // Errored before complete: do not build a retry body.
+            if (termination.get() == Termination.NONE) {
+                bufferedAsyncRequestBody = ByteBuffersAsyncRequestBody.of(buffers, bufferedLength);
+            }
+        }
+        if (!termination.compareAndSet(Termination.NONE, Termination.COMPLETED)) {
+            if (termination.get() == Termination.ERRORED) {
+                // error() won the race. Drop the retry body; close() still releases the part's bytes.
+                synchronized (buffersLock) {
+                    bufferedAsyncRequestBody = null;
+                }
+                log.debug(() -> "Ignoring complete() for part number " + partNumber + ", it already failed");
+            } else {
+                // SplittingPublisher can complete the last part twice (onNext and onComplete); keep the retry body.
+                log.debug(() -> "Ignoring repeated complete() for part number " + partNumber);
+            }
+            return;
         }
         delegate.complete().exceptionally(e -> {
             delegate.error(e);
@@ -110,7 +139,12 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
 
     @Override
     public void error(Throwable error) {
-        delegate.error(error);
+        // Set ERRORED before delegate.error() delivers onError, so a retry triggered by that error never sees a retry body.
+        if (termination.compareAndSet(Termination.NONE, Termination.ERRORED)) {
+            delegate.error(error);
+        } else {
+            log.debug(() -> "Ignoring error() for part number " + partNumber + ", it already terminated", error);
+        }
     }
 
     @Override
@@ -125,13 +159,14 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
             delegate.subscribe(s);
         } else {
             log.debug(() -> "Resubscribe for part number " + partNumber);
-            if (bufferedAsyncRequestBody == null) {
+            ByteBuffersAsyncRequestBody retryBody = bufferedAsyncRequestBody;
+            if (termination.get() == Termination.ERRORED || retryBody == null) {
                 s.onSubscribe(new NoopSubscription(s));
                 s.onError(NonRetryableException.create(
                     "A retry was attempted, but data is not buffered successfully for retry for partNumber: " + partNumber));
                 return;
             }
-            bufferedAsyncRequestBody.subscribe(s);
+            retryBody.subscribe(s);
         }
     }
 
@@ -164,4 +199,9 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
         return sourceBodyName;
     }
 
+    private enum Termination {
+        NONE,
+        COMPLETED,
+        ERRORED
+    }
 }
