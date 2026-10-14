@@ -69,10 +69,14 @@ public class S3CrtResponseHandlerAdapterTest {
     public void setup() {
         future = new CompletableFuture<>();
         sdkResponseHandler = spy(new TestResponseHandler());
-        responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                 sdkResponseHandler,
-                                                                 SdkHttpExecutionAttributes.builder().build(),
-                                                                 CompletableFuture.completedFuture(s3MetaRequest));
+        responseHandlerAdapter = S3CrtResponseHandlerAdapter.builder()
+                                                            .executeFuture(future)
+                                                            .responseHandler(sdkResponseHandler)
+                                                            .httpExecutionAttributes(
+                                                                SdkHttpExecutionAttributes.builder().build())
+                                                            .metaRequestFuture(
+                                                                CompletableFuture.completedFuture(s3MetaRequest))
+                                                            .build();
     }
 
     @Test
@@ -102,11 +106,14 @@ public class S3CrtResponseHandlerAdapterTest {
 
     @Test
     public void s3MetaRequestNotFinish_shouldFailFuture() throws Exception {
-        S3CrtResponseHandlerAdapter responseHandlerAdapter = new S3CrtResponseHandlerAdapter(future,
-                                                                                             sdkResponseHandler,
-                                                                                             SdkHttpExecutionAttributes.builder().build(),
-                                                                                             new CompletableFuture<>(),
-                                                                                             Duration.ofMillis(10));
+        S3CrtResponseHandlerAdapter responseHandlerAdapter =
+            S3CrtResponseHandlerAdapter.builder()
+                                       .executeFuture(future)
+                                       .responseHandler(sdkResponseHandler)
+                                       .httpExecutionAttributes(SdkHttpExecutionAttributes.builder().build())
+                                       .metaRequestFuture(new CompletableFuture<>())
+                                       .s3MetaRequestTimeout(Duration.ofMillis(10))
+                                       .build();
         int statusCode = 200;
         responseHandlerAdapter.onResponseHeaders(statusCode, new HttpHeader[0]);
         responseHandlerAdapter.onResponseBody(ByteBuffer.wrap("helloworld1".getBytes()), 1, 2);

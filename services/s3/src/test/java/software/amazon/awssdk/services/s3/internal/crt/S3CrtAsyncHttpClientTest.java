@@ -39,6 +39,7 @@ import java.net.URI;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -67,11 +68,15 @@ import software.amazon.awssdk.crt.s3.S3Client;
 import software.amazon.awssdk.crt.s3.S3ClientOptions;
 import software.amazon.awssdk.crt.s3.S3MetaRequest;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
+import software.amazon.awssdk.crt.s3.S3RequestMetrics;
+import software.amazon.awssdk.http.HttpMetric;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpResponseHandler;
 import software.amazon.awssdk.http.async.SdkHttpContentPublisher;
+import software.amazon.awssdk.metrics.MetricCollection;
+import software.amazon.awssdk.metrics.MetricPublisher;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.testutils.RandomTempFile;
@@ -148,6 +153,29 @@ public class S3CrtAsyncHttpClientTest {
         S3MetaRequestOptions actual = makeRequest(asyncExecuteRequest);
         assertThat(actual.getMetaRequestType()).isEqualTo(S3MetaRequestOptions.MetaRequestType.GET_OBJECT);
         assertThat(actual.getOperationName()).isEqualTo("GetObject");
+    }
+
+    @Test
+    public void execute_withMetricPublisher_publishesCrtMaxConcurrency() {
+        int expectedMaxConcurrency = 64;
+        MetricPublisher publisher = Mockito.mock(MetricPublisher.class);
+        when(s3Client.getMaxActiveConnections()).thenReturn(expectedMaxConcurrency);
+        asyncHttpClient = new S3CrtAsyncHttpClient(
+            s3Client,
+            S3CrtAsyncHttpClient.builder()
+                                .s3ClientConfiguration(s3NativeClientConfiguration)
+                                .metricPublishers(Collections.singletonList(publisher)));
+
+        S3MetaRequestOptions requestOptions = makeRequest(getExecuteRequestBuilder().build());
+        requestOptions.getResponseHandler().onTelemetry(Mockito.mock(S3RequestMetrics.class));
+
+        ArgumentCaptor<MetricCollection> metricCollectionCaptor = ArgumentCaptor.forClass(MetricCollection.class);
+        verify(publisher).publish(metricCollectionCaptor.capture());
+        MetricCollection attempt =
+            metricCollectionCaptor.getValue().childrenWithName("ApiCallAttempt").findFirst().orElseThrow(AssertionError::new);
+        MetricCollection httpClient =
+            attempt.childrenWithName("HttpClient").findFirst().orElseThrow(AssertionError::new);
+        assertThat(httpClient.metricValues(HttpMetric.MAX_CONCURRENCY)).containsExactly(expectedMaxConcurrency);
     }
 
     @Test

@@ -174,19 +174,17 @@ public final class S3CrtAsyncHttpClient implements SdkAsyncHttpClient {
             httpExecutionAttributes.getAttribute(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS);
         List<MetricPublisher> effectivePublishers = resolveEffectiveMetricPublishers(requestMetricPublishers,
                                                                                      metricPublishers);
-        SdkHttpExecutionAttributes adapterAttributes = httpExecutionAttributes;
-        if (!effectivePublishers.isEmpty()) {
-            adapterAttributes = httpExecutionAttributes.toBuilder()
-                                                       .put(S3InternalSdkHttpExecutionAttribute.METRIC_PUBLISHERS,
-                                                            effectivePublishers)
-                                                       .build();
-        }
 
         S3CrtResponseHandlerAdapter responseHandler =
-            new S3CrtResponseHandlerAdapter(executeFuture,
-                                            asyncRequest.responseHandler(),
-                                            adapterAttributes,
-                                            s3MetaRequestFuture);
+            S3CrtResponseHandlerAdapter.builder()
+                                       .executeFuture(executeFuture)
+                                       .responseHandler(asyncRequest.responseHandler())
+                                       .httpExecutionAttributes(httpExecutionAttributes)
+                                       .metaRequestFuture(s3MetaRequestFuture)
+                                       .metricPublishers(effectivePublishers)
+                                       .maxConcurrency(effectivePublishers.isEmpty() ?
+                                                       null : crtS3Client.getMaxActiveConnections())
+                                       .build();
 
         URI endpoint = getEndpoint(uri);
 
