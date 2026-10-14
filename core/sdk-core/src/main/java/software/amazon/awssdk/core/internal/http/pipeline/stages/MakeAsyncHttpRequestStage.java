@@ -210,11 +210,15 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
         long startTime = MetricUtils.resetApiCallAttemptStartNanoTime(context);
         CompletableFuture<Void> httpClientFuture = sdkAsyncHttpClient.execute(executeRequest);
-        CompletableFutureUtils.forwardTransformedExceptionTo(
-            abortSignal,
-            httpClientFuture,
-            cause -> SdkClientException.create("The async HTTP request was aborted because request execution failed.",
-                                               cause));
+        abortSignal.whenComplete((ignored, cause) -> {
+            if (abortSignal.isCancelled()) {
+                httpClientFuture.cancel(true);
+            } else if (cause != null) {
+                httpClientFuture.completeExceptionally(
+                    SdkClientException.create("The async HTTP request was aborted because request execution failed.",
+                                              cause));
+            }
+        });
 
         CompletableFuture<Void> result = httpClientFuture.whenComplete((r, t) -> {
             long d = System.nanoTime() - startTime;

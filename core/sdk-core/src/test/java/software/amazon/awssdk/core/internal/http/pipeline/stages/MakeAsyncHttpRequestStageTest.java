@@ -145,6 +145,23 @@ public class MakeAsyncHttpRequestStageTest {
     }
 
     @Test
+    public void execute_abortSignalCancelled_cancelsHttpRequest() throws Exception {
+        clientExecuteFuture = new CompletableFuture<>();
+        when(sdkAsyncHttpClient.execute(any())).thenReturn(clientExecuteFuture);
+        stage = new MakeAsyncHttpRequestStage<>(
+            combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
+                                         AsyncResponseHandlerTestUtils.noOpResponseHandler()),
+            clientDependencies(null),
+            abortSignal);
+
+        stage.execute(CompletableFuture.completedFuture(ValidSdkObjects.sdkHttpFullRequest().build()),
+                      requestContext());
+        abortSignal.cancel(true);
+
+        assertThat(clientExecuteFuture.isCancelled()).isTrue();
+    }
+
+    @Test
     public void testExecute_contextContainsMetricCollector_addsChildToExecuteRequest() {
         stage = new MakeAsyncHttpRequestStage<>(
                 combinedAsyncResponseHandler(AsyncResponseHandlerTestUtils.noOpResponseHandler(),
