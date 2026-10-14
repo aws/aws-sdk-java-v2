@@ -196,6 +196,45 @@ class RetryableSubAsyncRequestBodyTest {
     }
 
     @Test
+    void close_whenCalledTwice_shouldReleaseBytesOnce() {
+        requestBody.send(ByteBuffer.wrap("test data".getBytes()));
+
+        requestBody.close();
+        requestBody.close();
+
+        verify(onNumBytesConsumed, times(1)).accept(any());
+        verify(onNumBytesConsumed).accept(9L);
+    }
+
+    @Test
+    void send_whenAfterClose_shouldReleaseBytesImmediately() {
+        requestBody.send(ByteBuffer.wrap("hello".getBytes()));
+        requestBody.close();
+
+        requestBody.send(ByteBuffer.wrap(" world".getBytes()));
+
+        verify(onNumBytesConsumed).accept(5L);
+        verify(onNumBytesConsumed).accept(6L);
+        assertThat(requestBody.receivedBytesLength()).isEqualTo(11L);
+    }
+
+    @Test
+    void complete_whenAfterClose_shouldNotRetainRetryBuffer() {
+        requestBody.send(ByteBuffer.wrap("hello".getBytes()));
+        requestBody.close();
+        requestBody.send(ByteBuffer.wrap(" world".getBytes()));
+        requestBody.complete();
+
+        Flowable.fromPublisher(requestBody).forEach(buffer -> {});
+        Subscriber<ByteBuffer> retrySubscriber = mock(Subscriber.class);
+        requestBody.subscribe(retrySubscriber);
+
+        ArgumentCaptor<Throwable> errorCaptor = ArgumentCaptor.forClass(Throwable.class);
+        verify(retrySubscriber).onError(errorCaptor.capture());
+        assertThat(errorCaptor.getValue()).isInstanceOf(NonRetryableException.class);
+    }
+
+    @Test
     @Timeout(30)
     void error_whenBeforeComplete_shouldFailFirstSubscriberAndRetry() throws Exception {
         requestBody.send(ByteBuffer.wrap("hello".getBytes()));
@@ -292,6 +331,53 @@ class RetryableSubAsyncRequestBodyTest {
                     assertThat(retry.bytes.get()).as("iteration %d", i).isEqualTo(5);
                 }
                 body.close();
+            }
+        } finally {
+            threads.shutdownNow();
+        }
+    }
+
+    @Test
+    @Timeout(120)
+    void sendAndClose_whenRacing_shouldReleaseEveryByteExactlyOnce() throws Exception {
+        ExecutorService threads = Executors.newFixedThreadPool(2);
+        try {
+            for (int i = 0; i < 2000; i++) {
+                AtomicLong received = new AtomicLong();
+                AtomicLong consumed = new AtomicLong();
+                RetryableSubAsyncRequestBody body = new RetryableSubAsyncRequestBody(
+                    SubAsyncRequestBodyConfiguration.builder()
+                                                    .contentLengthKnown(true)
+                                                    .maxLength(1024L)
+                                                    .partNumber(1)
+                                                    .onNumBytesReceived(received::addAndGet)
+                                                    .onNumBytesConsumed(consumed::addAndGet)
+                                                    .sourceBodyName("test-body")
+                                                    .build());
+                CountDownLatch start = new CountDownLatch(1);
+                Future<Long> sender = threads.submit(() -> {
+                    start.await();
+                    long sent = 0;
+                    for (int n = 1; n <= 8; n++) {
+                        body.send(ByteBuffer.allocate(n));
+                        sent += n;
+                    }
+                    return sent;
+                });
+                Future<?> closer = threads.submit(() -> {
+                    start.await();
+                    body.close();
+                    return null;
+                });
+                start.countDown();
+                long sent = sender.get(5, TimeUnit.SECONDS);
+                closer.get(5, TimeUnit.SECONDS);
+
+                assertThat(received.get()).as("iteration %d: bytes received", i).isEqualTo(sent);
+                assertThat(consumed.get()).as("iteration %d: bytes released", i).isEqualTo(sent);
+
+                body.close();
+                assertThat(consumed.get()).as("iteration %d: bytes released after second close", i).isEqualTo(sent);
             }
         } finally {
             threads.shutdownNow();

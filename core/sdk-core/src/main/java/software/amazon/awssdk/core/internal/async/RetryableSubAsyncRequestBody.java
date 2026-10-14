@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
@@ -43,6 +44,10 @@ import software.amazon.awssdk.utils.async.SimplePublisher;
 public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
     private static final Logger log = Logger.loggerFor(RetryableSubAsyncRequestBody.class);
     /**
+     * Sentinel for {@link #unreleasedBytes} once {@link #close()} has run.
+     */
+    private static final long CLOSED = -1;
+    /**
      * The maximum length of the content this AsyncRequestBody can hold. If the upstream content length is known, this is
      * the same as totalLength
      */
@@ -53,12 +58,18 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
 
     private volatile long bufferedLength = 0;
     /**
+     * Bytes counted through {@code onNumBytesReceived} and not yet given back through {@code onNumBytesConsumed}, or
+     * {@link #CLOSED}. Each byte is released exactly once: by {@link #close()}, or right away by {@link #send} after close.
+     */
+    private final AtomicLong unreleasedBytes = new AtomicLong();
+    /**
      * The first of {@link #complete()} and {@link #error} wins and decides whether the part can be retried.
      */
     private final AtomicReference<Termination> termination = new AtomicReference<>(Termination.NONE);
     /**
-     * The retry body. Only set once the part completed (and was not errored first); {@code null} means a resubscribe fails
-     * with {@link NonRetryableException}. It shares {@link #buffers}.
+     * The retry body. Only set once the part completed (and was not closed or errored first); {@code null} means a
+     * resubscribe fails with {@link NonRetryableException}. It shares {@link #buffers}, whose bytes {@link #close()}
+     * releases.
      */
     private volatile ByteBuffersAsyncRequestBody bufferedAsyncRequestBody;
     private List<ByteBuffer> buffers = new ArrayList<>();
@@ -98,7 +109,14 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
             }
         });
         synchronized (buffersLock) {
-            buffers.add(data.asReadOnlyBuffer());
+            // After close() there is no retry buffer to fill.
+            if (buffers != null) {
+                buffers.add(data.asReadOnlyBuffer());
+            }
+        }
+        if (unreleasedBytes.getAndUpdate(v -> v == CLOSED ? CLOSED : v + length) == CLOSED) {
+            // Already closed: nobody will release these bytes later, so give them back now.
+            onNumBytesConsumed.accept(length);
         }
     }
 
@@ -108,14 +126,14 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
         // ByteBuffersAsyncRequestBody MUST be created before we complete the current
         // request because retry may happen right after
         synchronized (buffersLock) {
-            // Errored before complete: do not build a retry body.
-            if (termination.get() == Termination.NONE) {
+            // Closed or errored before complete: do not build a retry body.
+            if (buffers != null && termination.get() == Termination.NONE) {
                 bufferedAsyncRequestBody = ByteBuffersAsyncRequestBody.of(buffers, bufferedLength);
             }
         }
         if (!termination.compareAndSet(Termination.NONE, Termination.COMPLETED)) {
             if (termination.get() == Termination.ERRORED) {
-                // error() won the race. Drop the retry body; close() still releases the part's bytes.
+                // error() won the race. Drop the retry body; it shares buffers, which close() still clears and releases.
                 synchronized (buffersLock) {
                     bufferedAsyncRequestBody = null;
                 }
@@ -172,15 +190,23 @@ public final class RetryableSubAsyncRequestBody implements SubAsyncRequestBody {
 
     @Override
     public void close() {
+        long unreleased = unreleasedBytes.getAndSet(CLOSED);
+        if (unreleased == CLOSED) {
+            log.debug(() -> "Body " + partNumber + " already closed");
+            return;
+        }
         try {
             log.debug(() -> "Closing current body " + partNumber);
-            onNumBytesConsumed.accept(bufferedLength);
-            if (bufferedAsyncRequestBody != null) {
-                synchronized (buffersLock) {
+            onNumBytesConsumed.accept(unreleased);
+            synchronized (buffersLock) {
+                if (buffers != null) {
                     buffers.clear();
                     buffers = null;
                 }
-                bufferedAsyncRequestBody.close();
+            }
+            ByteBuffersAsyncRequestBody retryBody = bufferedAsyncRequestBody;
+            if (retryBody != null) {
+                retryBody.close();
                 bufferedAsyncRequestBody = null;
             }
         } catch (Throwable e) {
