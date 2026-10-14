@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "This release adds a new \"IpAddressType\" field to \"VPCOriginEndpointConfig\", allowing customers to specify whether their VPC origin accepts IPv4-only or dualstack connections."
-}
