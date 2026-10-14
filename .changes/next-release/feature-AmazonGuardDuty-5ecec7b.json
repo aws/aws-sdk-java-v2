@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon GuardDuty",
-    "contributor": "",
-    "description": "Releasing support for Custom Detection Rule Runtime Monitoring"
-}
