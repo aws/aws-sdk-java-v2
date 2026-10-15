@@ -26,6 +26,11 @@
 
     <artifactId>eventstream</artifactId>
     <name>AWS Java SDK :: EventStream</name>
+    <description>
+        The AWS SDK for Java - EventStream module holds the classes that are used serializing and deserializing
+        'application/vnd.amazon.eventstream' request and response streams.
+    </description>
+    <url>https://aws.amazon.com/sdkforjava</url>
     <build>
         <plugins>
             <plugin>
