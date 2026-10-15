@@ -2458,7 +2458,6 @@
                 <artifactId>sagemakertrainingsessionruntime</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
-            <dependency>
         </dependencies>
     </dependencyManagement>
 </project>
