@@ -41,6 +41,7 @@ import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadDirectoryRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.DownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.FailedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.PresignedDownloadFileRequest;
@@ -593,8 +594,16 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * successfully.
      *
      * <p>
-     * The SDK will create the destination directory if it does not already exist. If a specific file
-     * already exists, the existing content will be replaced with the corresponding S3 object content.
+     * An object whose key can't be mapped to a path inside the destination directory, for example because its relative path
+     * resolves outside the destination directory or isn't a valid path on the destination's file system, is not downloaded.
+     * It is reported as a {@link FailedFileDownload} in {@link CompletedDirectoryDownload#failedTransfers()}, and the other
+     * objects are still downloaded. See {@link FailedFileDownload#request()} for the destination reported for such an object.
+     *
+     * <p>
+     * The SDK creates the destination directory, and any subdirectories it needs, as objects are downloaded. If no object is
+     * downloaded (for example, the listing is empty, or every object is filtered out or fails), the destination directory
+     * might not be created. If a specific file already exists, the existing content will be replaced with the corresponding S3
+     * object content.
      *
      * <p>
      * The current user must have write access to all directories and files
