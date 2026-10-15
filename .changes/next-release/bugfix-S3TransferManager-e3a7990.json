@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Fixed an issue where `S3TransferManager#downloadDirectory` failed the entire directory download when an object's key mapped to a path outside the destination directory or to a path that is not valid on the local file system. Such objects are now skipped and reported in `CompletedDirectoryDownload#failedTransfers()`, and the remaining objects are still downloaded."
+}
