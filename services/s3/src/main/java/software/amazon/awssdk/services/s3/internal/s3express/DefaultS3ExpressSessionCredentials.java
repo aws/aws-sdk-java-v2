@@ -15,6 +15,9 @@
 
 package software.amazon.awssdk.services.s3.internal.s3express;
 
+import java.time.Instant;
+import java.util.Objects;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.services.s3.s3express.S3ExpressSessionCredentials;
 import software.amazon.awssdk.utils.Validate;
@@ -27,11 +30,18 @@ public class DefaultS3ExpressSessionCredentials implements S3ExpressSessionCrede
     private final String accessKeyId;
     private final String secretAccessKey;
     private final String sessionToken;
+    private final Instant expirationTime;
 
     public DefaultS3ExpressSessionCredentials(String accessKeyId, String secretAccessKey, String sessionToken) {
+        this(accessKeyId, secretAccessKey, sessionToken, null);
+    }
+
+    public DefaultS3ExpressSessionCredentials(String accessKeyId, String secretAccessKey, String sessionToken,
+                                              Instant expirationTime) {
         this.accessKeyId = Validate.notBlank(accessKeyId, "Parameter accessKeyId cannot be blank");
         this.secretAccessKey = Validate.notBlank(secretAccessKey, "Parameter secretAccessKey cannot be blank");
         this.sessionToken = sessionToken;
+        this.expirationTime = expirationTime;
     }
 
     @Override
@@ -47,6 +57,11 @@ public class DefaultS3ExpressSessionCredentials implements S3ExpressSessionCrede
     @Override
     public String sessionToken() {
         return sessionToken;
+    }
+
+    @Override
+    public Optional<Instant> expirationTime() {
+        return Optional.ofNullable(expirationTime);
     }
 
     @Override
@@ -67,7 +82,10 @@ public class DefaultS3ExpressSessionCredentials implements S3ExpressSessionCrede
         if (!secretAccessKey.equals(that.secretAccessKey())) {
             return false;
         }
-        return sessionToken != null ? sessionToken.equals(that.sessionToken()) : that.sessionToken() == null;
+        if (sessionToken != null ? !sessionToken.equals(that.sessionToken()) : that.sessionToken() != null) {
+            return false;
+        }
+        return Objects.equals(expirationTime, that.expirationTime().orElse(null));
     }
 
     @Override
@@ -75,6 +93,7 @@ public class DefaultS3ExpressSessionCredentials implements S3ExpressSessionCrede
         int result = accessKeyId.hashCode();
         result = 31 * result + secretAccessKey.hashCode();
         result = 31 * result + (sessionToken != null ? sessionToken.hashCode() : 0);
+        result = 31 * result + Objects.hashCode(expirationTime);
         return result;
     }
 }

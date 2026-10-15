@@ -179,15 +179,24 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         U requestToPresign,
         Function<U, SdkHttpFullRequest.Builder> requestMarshaller
     ) {
-        ExecutionAttributes execAttrs = createExecutionAttributes(presignRequest, requestToPresign);
+        AwsCredentialsIdentity identity = resolveCredentials(resolveCredentialsProvider(requestToPresign));
+        Validate.validState(identity != null, "Credential providers must never return null.");
+
+        // A presigned request cannot outlive the credentials that signed it, so cap both the signed and reported expiration.
+        Instant signingInstant = signingClock.instant();
+        Duration effectiveDuration = CredentialUtils.calculateDurationCappedAtExpiration(
+            presignRequest.signatureDuration(), signingInstant, identity.expirationTime().orElse(null));
+        Instant effectiveExpiration = signingInstant.plus(effectiveDuration);
+
+        ExecutionAttributes execAttrs = createExecutionAttributes(identity, signingInstant, effectiveExpiration);
         SdkHttpFullRequest marshalledRequest = marshallRequest(requestToPresign, requestMarshaller);
         Presigner presigner = resolvePresigner(requestToPresign);
         SdkHttpFullRequest signedHttpRequest = null;
         if (presigner != null) {
             signedHttpRequest = presignRequest(presigner, marshalledRequest, execAttrs);
         } else {
-            SelectedAuthScheme<AwsCredentialsIdentity> authScheme = selectedAuthScheme(requestToPresign, execAttrs);
-            signedHttpRequest = doSraPresign(marshalledRequest, authScheme, presignRequest.signatureDuration());
+            SelectedAuthScheme<AwsCredentialsIdentity> authScheme = selectedAuthScheme(identity, execAttrs);
+            signedHttpRequest = doSraPresign(marshalledRequest, authScheme, effectiveDuration);
         }
         initializePresignedRequest(presignedRequest, execAttrs, signedHttpRequest);
         return presignedRequest;
@@ -248,10 +257,9 @@ public final class DefaultPollyPresigner implements PollyPresigner {
         return toSdkHttpFullRequest(signedRequest);
     }
 
-    private SelectedAuthScheme<AwsCredentialsIdentity> selectedAuthScheme(PollyRequest requestToPresign,
+    private SelectedAuthScheme<AwsCredentialsIdentity> selectedAuthScheme(AwsCredentialsIdentity credentialsIdentity,
                                                                           ExecutionAttributes attributes) {
         AuthScheme<AwsCredentialsIdentity> authScheme = AwsV4AuthScheme.create();
-        AwsCredentialsIdentity credentialsIdentity = resolveCredentials(resolveCredentialsProvider(requestToPresign));
         AuthSchemeOption.Builder optionBuilder = AuthSchemeOption.builder()
                                                                  .schemeId(authScheme.schemeId());
         optionBuilder.putSignerProperty(AwsV4FamilyHttpSigner.SERVICE_SIGNING_NAME, SERVICE_NAME);
@@ -276,16 +284,12 @@ public final class DefaultPollyPresigner implements PollyPresigner {
                                  .build();
     }
 
-    private ExecutionAttributes createExecutionAttributes(PresignRequest presignRequest, PollyRequest requestToPresign) {
+    private ExecutionAttributes createExecutionAttributes(AwsCredentialsIdentity credentials,
+                                                          Instant signingInstant,
+                                                          Instant signatureExpiration) {
         // A fixed signingClock is used, so that the current time used by the signing logic, as well as to determine expiration
         // are the same.
-        Instant signingInstant = signingClock.instant();
         Clock signingClockOverride = Clock.fixed(signingInstant, ZoneOffset.UTC);
-        Duration expirationDuration = presignRequest.signatureDuration();
-        Instant signatureExpiration = signingInstant.plus(expirationDuration);
-
-        AwsCredentialsIdentity credentials = resolveCredentials(resolveCredentialsProvider(requestToPresign));
-        Validate.validState(credentials != null, "Credential providers must never return null.");
 
         return new ExecutionAttributes()
             .putAttribute(AwsSignerExecutionAttribute.AWS_CREDENTIALS, CredentialUtils.toCredentials(credentials))
