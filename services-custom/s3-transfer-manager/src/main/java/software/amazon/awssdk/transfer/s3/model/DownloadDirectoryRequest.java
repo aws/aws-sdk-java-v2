@@ -262,7 +262,14 @@ public final class DownloadDirectoryRequest
          * prefixes</a>
          *
          * <p>
-         * When a non-empty prefix is provided, the prefix is stripped from the directory structure of the files.
+         * When a non-empty prefix is provided, Transfer Manager strips it from each key to compute the file's path under the
+         * destination directory. The delimiter used for this is the {@code delimiter} of the {@code ListObjectsV2Request}, or
+         * {@code "/"} if none is set. The prefix is stripped as follows:
+         * <ul>
+         *     <li>A key that doesn't contain the delimiter anywhere keeps its full name, including the prefix.</li>
+         *     <li>Any other key has the prefix removed from its start. If the prefix doesn't end with the delimiter and the
+         *     rest of the key starts with one, that one delimiter is removed too.</li>
+         * </ul>
          * <p>
          * For example, assume that you have the following keys in your bucket:
          * <ul>
@@ -273,8 +280,8 @@ public final class DownloadDirectoryRequest
          *     <li>photos/2022/February/sample3.jpg</li>
          * </ul>
          *
-         * Given a request to download the bucket to a destination with a prefix of "/photos" and destination path of "test", the
-         * downloaded directory would like this
+         * Given a request to download the bucket to a destination with a prefix of "photos/" and destination path of "test", the
+         * downloaded directory would look like this
          *
          * <pre>
          *   {@code
@@ -290,10 +297,47 @@ public final class DownloadDirectoryRequest
          * </pre>
          *
          * <p>
+         * A prefix that doesn't end with the delimiter is stripped only from keys that contain the delimiter, and it can cut
+         * into the first path segment. For example, with the prefix {@code "top-"} and the default delimiter:
+         * <ul>
+         *     <li>{@code top-level/sub/1.txt} is downloaded to {@code level/sub/1.txt}</li>
+         *     <li>{@code top-/1.txt} is downloaded to {@code 1.txt}</li>
+         *     <li>{@code top-file.txt} is downloaded to {@code top-file.txt}, because the key doesn't contain the delimiter</li>
+         * </ul>
+         * <p>
+         * The delimiter check covers the whole key, including the prefix, so a prefix that contains the delimiter is stripped
+         * from every key. With the prefix {@code "data/top-"}, {@code data/top-file.txt} is downloaded to {@code file.txt}.
+         * <p>
+         * With a prefix that doesn't end with the delimiter, two keys can map to the same local file. For example, with the
+         * prefix {@code "abc"}, both {@code abc/def/x.txt} and {@code abcdef/x.txt} map to {@code def/x.txt}, and both
+         * {@code abc/abcd} and {@code abcd} map to {@code abcd}. We recommend using a prefix that ends with the delimiter, such
+         * as {@code "photos/"}. Every key listed under such a prefix contains the delimiter, so the prefix is stripped from all
+         * of them in the same way.
+         * <p>
+         * A prefix that ends with the delimiter doesn't prevent every conflict. Under any prefix, or with no prefix:
+         * <ul>
+         *     <li>Keys that differ only in empty or dot segments, such as {@code photos/a//b.jpg}, {@code photos/a/./b.jpg} and
+         *     {@code photos/a/b.jpg}, map to the same local file.</li>
+         *     <li>A key whose local path resolves outside the destination directory is not downloaded. For example, with the
+         *     prefix {@code "photos/"}, the key {@code photos//x.jpg} maps to {@code /x.jpg}.</li>
+         * </ul>
+         * <p>
+         * When two keys map to the same local file, the downloads overwrite each other, and the conflict isn't reported in
+         * {@link CompletedDirectoryDownload#failedTransfers()}.
+         * <p>
+         * To choose different local paths, use {@link #downloadFileRequestTransformer(Consumer)}. Transfer Manager works with
+         * the path it computed, not the destination set by the transformer: it refuses a computed path outside the destination
+         * directory, and it creates only the computed path's parent directories. Directories for the transformer's destination
+         * must already exist, and keeping destinations distinct is up to the transformer.
+         *
+         * <p>
          * <b>Delimiter:</b>
          * {@code ListObjectsV2Request}'s {@code delimiter} specifies the delimiter that will be used to retrieve the objects
          * within the provided bucket. A delimiter causes a list operation to roll up all the keys that share a common prefix
-         * into a single summary list result. It's null by default.
+         * into a single summary list result. It's null by default, in which case Transfer Manager uses {@code "/"} when it
+         * strips the prefix and maps keys to local paths. Each occurrence of the delimiter in the stripped key is replaced
+         * with the file system's separator. Only the delimiter is replaced, so with a delimiter other than {@code "/"}, a
+         * {@code "/"} in a key still creates a subdirectory on Unix-like systems.
          *
          * For example, assume that you have the following keys in your bucket:
          *
