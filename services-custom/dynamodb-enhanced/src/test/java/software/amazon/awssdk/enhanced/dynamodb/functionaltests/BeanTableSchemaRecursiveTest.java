@@ -23,9 +23,28 @@ import org.junit.Test;
 import software.amazon.awssdk.enhanced.dynamodb.TableSchema;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecursiveRecordBean;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.RecursiveRecordImmutable;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
 
 public class BeanTableSchemaRecursiveTest {
+    @Test
+    public void transitiveRecursiveBean_document() {
+        TableSchema<TransitiveRecursiveParent> tableSchema = TableSchema.fromBean(TransitiveRecursiveParent.class);
+
+        TransitiveRecursiveChild child = new TransitiveRecursiveChild();
+        child.setName("child");
+
+        TransitiveRecursiveParent parent = new TransitiveRecursiveParent();
+        parent.setName("parent");
+        parent.setChild(child);
+
+        TransitiveRecursiveParent roundTrip = tableSchema.mapToItem(tableSchema.itemToMap(parent, true));
+
+        assertThat(roundTrip.getName()).isEqualTo("parent");
+        assertThat(roundTrip.getChild().getName()).isEqualTo("child");
+        assertThat(roundTrip.getChild().getParent()).isNull();
+    }
+
     @Test
     public void recursiveRecord_document() {
         TableSchema<RecursiveRecordBean> tableSchema = TableSchema.fromClass(RecursiveRecordBean.class);
@@ -88,5 +107,49 @@ public class BeanTableSchemaRecursiveTest {
                 assertThat(listAv.m()).containsEntry("attribute", AttributeValue.builder().n("2").build());
             });
         });
+    }
+
+    @DynamoDbBean
+    public static class TransitiveRecursiveParent {
+        private String name;
+        private TransitiveRecursiveChild child;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public TransitiveRecursiveChild getChild() {
+            return child;
+        }
+
+        public void setChild(TransitiveRecursiveChild child) {
+            this.child = child;
+        }
+    }
+
+    @DynamoDbBean
+    public static class TransitiveRecursiveChild {
+        private String name;
+        private TransitiveRecursiveParent parent;
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public TransitiveRecursiveParent getParent() {
+            return parent;
+        }
+
+        public void setParent(TransitiveRecursiveParent parent) {
+            this.parent = parent;
+        }
     }
 }
