@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import java.io.InputStream;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.interceptor.InterceptorContext;
 import software.amazon.awssdk.core.internal.http.InterruptMonitor;
@@ -32,18 +33,24 @@ public class AfterTransmissionExecutionInterceptorsStage
     public Pair<SdkHttpFullRequest, SdkHttpFullResponse> execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                                                  RequestExecutionContext context) throws Exception {
         InterruptMonitor.checkInterrupted(input.right());
+        InputStream originalResponseBody = input.right().content().orElse(null);
+
         // Update interceptor context
         InterceptorContext interceptorContext =
                 context.executionContext().interceptorContext().copy(b -> b.httpResponse(input.right())
-                                                                           .responseBody(input.right()
-                                                                                              .content()
-                                                                                              .orElse(null)));
+                                                                           .responseBody(originalResponseBody));
 
         // interceptors.afterTransmission
         context.interceptorChain().afterTransmission(interceptorContext, context.executionAttributes());
 
         // interceptors.modifyHttpResponse
         interceptorContext = context.interceptorChain().modifyHttpResponse(interceptorContext, context.executionAttributes());
+
+        // When no replacement is returned, the response retains its original body. Keep the context aligned with the
+        // actual response so later interceptor failures can clean up that body.
+        if (!interceptorContext.responseBody().isPresent() && originalResponseBody != null) {
+            interceptorContext = interceptorContext.copy(b -> b.responseBody(originalResponseBody));
+        }
 
         // Store updated context
         context.executionContext().interceptorContext(interceptorContext);

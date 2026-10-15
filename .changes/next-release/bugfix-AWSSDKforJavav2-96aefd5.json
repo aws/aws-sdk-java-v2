@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Releases HTTP response resources when an execution interceptor fails during response processing, preventing connection-pool leaks in synchronous and asynchronous clients."
+}
