@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon S3",
+    "contributor": "",
+    "description": "Fixes presigned multipart downloads to fail promptly when the server returns an invalid or excessively large `Content-Range` total, preventing stalled downloads and excessive range-request planning."
+}
