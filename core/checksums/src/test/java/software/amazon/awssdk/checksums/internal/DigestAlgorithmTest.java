@@ -169,4 +169,46 @@ class DigestAlgorithmTest {
         CloseableMessageDigest digest = DigestAlgorithm.SHA1.getDigest();
         assertThat(digest).isNotNull();
     }
+
+    @Test
+    void cacheUsesNonBlockingDeque() throws Exception {
+        // Regression for #6590: LinkedBlockingDeque acquires ReentrantLock on poll/offer, which
+        // BlockHound reports as blocking on async event-loop threads. ConcurrentLinkedDeque is lock-free.
+        java.lang.reflect.Field cacheField = DigestAlgorithm.class.getDeclaredField("digestCache");
+        cacheField.setAccessible(true);
+        Object cache = cacheField.get(DigestAlgorithm.SHA256);
+        assertThat(cache).isInstanceOf(java.util.concurrent.ConcurrentLinkedDeque.class);
+        assertThat(cache).isNotInstanceOf(java.util.concurrent.BlockingDeque.class);
+    }
+
+    @Test
+    void concurrentGetAndClose_reusesDigestsWithoutBlocking() throws Exception {
+        int threads = 32;
+        int iterations = 200;
+        java.util.concurrent.ExecutorService pool = java.util.concurrent.Executors.newFixedThreadPool(threads);
+        java.util.concurrent.CountDownLatch start = new java.util.concurrent.CountDownLatch(1);
+        java.util.concurrent.atomic.AtomicReference<Throwable> failure = new java.util.concurrent.atomic.AtomicReference<>();
+        java.util.List<java.util.concurrent.Future<?>> futures = new java.util.ArrayList<>();
+        for (int t = 0; t < threads; t++) {
+            futures.add(pool.submit(() -> {
+                try {
+                    start.await();
+                    for (int i = 0; i < iterations; i++) {
+                        CloseableMessageDigest digest = DigestAlgorithm.SHA256.getDigest();
+                        digest.messageDigest().update((byte) i);
+                        digest.digest();
+                    }
+                } catch (Throwable e) {
+                    failure.compareAndSet(null, e);
+                }
+            }));
+        }
+        start.countDown();
+        for (java.util.concurrent.Future<?> f : futures) {
+            f.get(30, java.util.concurrent.TimeUnit.SECONDS);
+        }
+        pool.shutdownNow();
+        assertThat(failure.get()).isNull();
+    }
+
 }
