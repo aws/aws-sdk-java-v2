@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.smithy.transform;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.tuple;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.REST_JSON_PREFIX;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.model;
 
@@ -25,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -78,6 +80,82 @@ class SmithyBuildTransformsTest {
         + "  \"demo#UploadRequest$SdkPartType\": {\"target\": \"demo#SdkPartType\"}}}},"
         + "{\"name\": \"retargetMembers\", \"args\": {\"targets\": {\"demo#UploadRequest$Amount\": \"smithy.api#BigDecimal\"}}}"
         + "]}}}";
+
+    private static final Model TRAITS_MODEL = model(
+        REST_JSON_PREFIX
+        + "service DemoService { version: \"2024-01-01\", operations: [Copy] }\n"
+        + "@http(method: \"POST\", uri: \"/copy\")\n"
+        + "operation Copy { input: CopyRequest, output: CopyResponse }\n"
+        + "structure CopyRequest {\n"
+        + "  Bucket: String\n"
+        + "  Value: AttributeValue\n"
+        + "  Expires: Timestamp\n"
+        + "  Filter: FilterRuleName\n"
+        + "  Version: ClientVersion\n"
+        + "}\n"
+        + "structure CopyResponse {}\n"
+        + "union AttributeValue { S: String, NULL: Boolean }\n"
+        + "enum FilterRuleName {\n  PREFIX = \"prefix\"\n}\n"
+        + "enum ClientVersion {\n  V5_1 = \"5.1\"\n}\n");
+
+    private static final String TRAITS_CONFIG =
+        "{\"version\": \"1.0\", \"projections\": {\"sdk\": {\"transforms\": ["
+        + "{\"name\": \"addShapes\", \"args\": {\"shapes\": {\"demo#SdkPartType\": {\"type\": \"enum\", \"members\": {"
+        + "  \"DEFAULT\": {\"target\": \"smithy.api#Unit\", \"traits\": {\"smithy.api#enumValue\": \"DEFAULT\"}}}}}}},"
+        + "{\"name\": \"renameMembers\", \"args\": {\"renamed\": {"
+        + "  \"demo#CopyRequest$Bucket\": {\"name\": \"DestinationBucket\", \"traits\": {"
+        + "    \"smithy.api#jsonName\": \"Bucket\", \"software.amazon.awssdk.codegen#deprecatedName\": \"Bucket\"}},"
+        + "  \"demo#AttributeValue$NULL\": {\"name\": \"NUL\", \"traits\": {"
+        + "    \"smithy.api#jsonName\": \"NULL\","
+        + "    \"software.amazon.awssdk.codegen#alternateBeanPropertyName\": \"Null\"}}}}},"
+        + "{\"name\": \"addTraits\", \"args\": {\"traits\": {"
+        + "  \"demo#SdkPartType\": {\"software.amazon.awssdk.codegen#synthetic\": {}},"
+        + "  \"demo#CopyRequest$Expires\": {\"software.amazon.awssdk.codegen#ignoreDataTypeConversionFailures\": {}},"
+        + "  \"demo#ClientVersion$V5_1\": {\"software.amazon.awssdk.codegen#enumConstantName\": \"FIVE_ONE\"},"
+        + "  \"demo#FilterRuleName$PREFIX\": {\"smithy.api#enumValue\": \"Prefix\","
+        + "                                  \"software.amazon.awssdk.codegen#enumConstantName\": \"PREFIX\"}}}},"
+        + "{\"name\": \"injectMembers\", \"args\": {\"members\": {"
+        + "  \"demo#CopyRequest$SdkPartType\": {\"target\": \"demo#SdkPartType\"}}}}"
+        + "]}}}";
+
+    @Test
+    void codegenTraits_reachTheIntermediateModel(@TempDir Path output) {
+        SmithyBuildResult result = SmithyBuild.create(LOADER)
+                                              .config(SmithyBuildConfig.fromNode(Node.parse(TRAITS_CONFIG)))
+                                              .model(TRAITS_MODEL)
+                                              .outputDirectory(output)
+                                              .build();
+        assertThat(result.anyBroken())
+            .as("projection events: %s", result.getProjectionResult("sdk").get().getEvents())
+            .isFalse();
+
+        IntermediateModel model = new SmithyIntermediateModelBuilder(
+            SmithyModels.builder()
+                        .model(result.getProjectionResult("sdk").get().getModel())
+                        .customizationConfig(CustomizationConfig.create())
+                        .build())
+            .build();
+
+        ShapeModel request = Utils.findShapeModelByC2jName(model, "CopyRequest");
+        MemberModel bucket = request.findMemberModelByC2jName("DestinationBucket");
+        assertThat(bucket.getDeprecatedName()).isEqualTo("Bucket");
+        assertThat(bucket.getDeprecatedBeanStyleSetterMethodName()).isEqualTo("setBucket");
+        assertThat(bucket.getHttp().getMarshallLocationName()).isEqualTo("Bucket");
+        assertThat(request.findMemberModelByC2jName("Expires").ignoreDataTypeConversionFailures()).isTrue();
+        assertThat(request.findMemberModelByC2jName("SdkPartType").isSynthetic()).isTrue();
+        assertThat(request.findMemberModelByC2jName("Filter").isSynthetic()).isFalse();
+
+        MemberModel nul = Utils.findShapeModelByC2jName(model, "AttributeValue").findMemberModelByC2jName("NUL");
+        assertThat(nul.getAdditionalBeanStyleSetterName()).isEqualTo("setNull");
+        assertThat(nul.getHttp().getMarshallLocationName()).isEqualTo("NULL");
+
+        assertThat(Utils.findShapeModelByC2jName(model, "ClientVersion").getEnums())
+            .extracting(EnumModel::getName, EnumModel::getValue)
+            .containsExactly(tuple("FIVE_ONE", "5.1"));
+        assertThat(Utils.findShapeModelByC2jName(model, "FilterRuleName").getEnums())
+            .extracting(EnumModel::getName, EnumModel::getValue)
+            .containsExactly(tuple("PREFIX", "Prefix"));
+    }
 
     @Test
     void codegenTransforms_areDiscoveredByName() {

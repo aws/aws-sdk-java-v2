@@ -318,7 +318,8 @@ abstract class AddSmithyShapes {
         if (smithyShape instanceof EnumShape) {
             for (MemberShape enumMember : ((EnumShape) smithyShape).members()) {
                 String value = enumMember.expectTrait(EnumValueTrait.class).expectStringValue();
-                shapeModel.addEnum(new EnumModel(namingStrategy.getEnumValueName(value), value));
+                String name = SmithyCodegenTraits.enumConstantName(enumMember, value, namingStrategy);
+                shapeModel.addEnum(new EnumModel(name, value));
             }
         }
 
@@ -450,6 +451,10 @@ abstract class AddSmithyShapes {
         });
 
         memberModel.setEndpointDiscoveryId(member.hasTrait(ClientEndpointDiscoveryIdTrait.class));
+        SmithyCodegenTraits.applySynthetic(memberModel, targetShape);
+        SmithyCodegenTraits.applyAlternateBeanPropertyName(memberModel, member);
+        SmithyCodegenTraits.applyIgnoreDataTypeConversionFailures(memberModel, member);
+        SmithyCodegenTraits.applyDeprecatedName(memberModel, member, targetShape, namingStrategy, parentCtx, shapeCtx);
 
         // Only string enums map to a Java enum. C2J has no int-enum concept: an intEnum is written
         // as a plain integer shape, so a member targeting one is a plain Integer with no enumType.
