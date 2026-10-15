@@ -25,10 +25,12 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.model.AnnotationDirective;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.transfer.s3.internal.TransferManagerFactory;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
@@ -648,6 +650,19 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * For multipart copy requests, source object metadata is copied by default. To provide your own metadata, set it using
      * {@link CopyObjectRequest.Builder#metadata(Map)} and set
      * {@link CopyObjectRequest.Builder#metadataDirective(MetadataDirective)} to {@code REPLACE}.
+     *
+     * <p>
+     * For multipart copy requests, source object tags are not copied by default, unlike a single {@code CopyObject} request,
+     * for which S3's default tagging directive is {@code COPY}. To copy them, set
+     * {@link CopyObjectRequest.Builder#taggingDirective(TaggingDirective)} to {@code COPY}. The source object's tags are then
+     * read with {@code GetObjectTagging} before the copy and, if the source object has tags, written to the destination
+     * object with {@code PutObjectTagging} after it completes. This requires the {@code s3:GetObjectTagging} permission, and
+     * the {@code s3:PutObjectTagging} permission if the source object has tags. These requests include the version ID that
+     * S3 returns for a versioned bucket, so {@code s3:GetObjectVersionTagging} and {@code s3:PutObjectVersionTagging} may
+     * also be required. The destination object exists without the source object's tags until {@code PutObjectTagging}
+     * completes. If that request fails, the copy fails and the destination object is not deleted. Similarly, source object
+     * annotations are copied only when
+     * {@link CopyObjectRequest.Builder#annotationDirective(AnnotationDirective)} is set to {@code COPY}.
      *
      * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
