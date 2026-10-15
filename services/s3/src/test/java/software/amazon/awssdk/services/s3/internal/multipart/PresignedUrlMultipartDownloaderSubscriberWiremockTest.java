@@ -277,20 +277,6 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
         verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
     }
 
-    @ParameterizedTest(name = "presignedUrlDownload_contentRangeTotalExceedsMaxObjectSize_shouldFail [{0}]")
-    @MethodSource("transformerTypes")
-    void presignedUrlDownload_contentRangeTotalExceedsMaxObjectSize_shouldFail(String transformerType) {
-        stubFirstPartWithContentRange("bytes 0-15/" + Long.MAX_VALUE);
-        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
-                                                                         .presignedUrl(presignedUrl)
-                                                                         .build();
-        assertThatThrownBy(() -> executeDownload(request, transformerType).get(10, TimeUnit.SECONDS))
-            .isInstanceOf(ExecutionException.class)
-            .hasRootCauseInstanceOf(SdkClientException.class)
-            .hasMessageContaining("exceeds the maximum S3 object size");
-        verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
-    }
-
     private void stubFirstPartWithContentRange(String contentRange) {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
                     .withHeader("Range", matching("bytes=0-15"))

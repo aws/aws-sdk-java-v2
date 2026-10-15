@@ -181,13 +181,6 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
                     return;
                 }
 
-                Optional<SdkClientException> totalSizeError =
-                    PresignedUrlDownloadHelper.validateTotalContentLength(parsedTotal.get(), contentRange);
-                if (totalSizeError.isPresent()) {
-                    handlePartError(totalSizeError.get(), 0L);
-                    return;
-                }
-
                 this.totalContentLength = parsedTotal.get();
                 this.totalParts = MultipartDownloadUtils.calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
                 log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));

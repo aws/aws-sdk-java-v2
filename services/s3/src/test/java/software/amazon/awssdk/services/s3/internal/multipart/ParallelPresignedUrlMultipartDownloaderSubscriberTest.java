@@ -434,24 +434,6 @@ class ParallelPresignedUrlMultipartDownloaderSubscriberTest {
         verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
     }
 
-    @Test
-    void contentRangeTotalExceedsMaxObjectSize_shouldFailWithoutFurtherRequests() {
-        stubFirstPartWithContentRange("bytes 0-15/" + Long.MAX_VALUE);
-
-        tempFile = createTempFileUnchecked();
-        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
-                                                                        .presignedUrl(presignedUrl)
-                                                                        .build();
-
-        assertThatThrownBy(() -> s3AsyncClient.presignedUrlExtension()
-            .getObject(request, AsyncResponseTransformer.toFile(tempFile))
-            .get(10, TimeUnit.SECONDS))
-            .isInstanceOf(ExecutionException.class)
-            .hasRootCauseInstanceOf(SdkClientException.class)
-            .hasMessageContaining("exceeds the maximum S3 object size");
-        verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
-    }
-
     private static void stubFirstPartWithContentRange(String contentRange) {
         stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
                     .withHeader("Range", matching("bytes=0-15"))

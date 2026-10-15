@@ -180,16 +180,6 @@ public class PresignedUrlMultipartDownloaderSubscriber
                 return false;
             }
 
-            Optional<SdkClientException> totalSizeError =
-                PresignedUrlDownloadHelper.validateTotalContentLength(parsedContentLength.get(), responseContentRange);
-            if (totalSizeError.isPresent()) {
-                SdkClientException error = totalSizeError.get();
-                log.debug(() -> "Content range total size exceeds maximum object size", error);
-                asyncResponseTransformer.exceptionOccurred(error);
-                handleError(error);
-                return false;
-            }
-
             this.totalContentLength = parsedContentLength.get();
             this.totalParts = MultipartDownloadUtils.calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
             log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
