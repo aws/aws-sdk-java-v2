@@ -32,8 +32,10 @@ import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.crt.S3CrtHttpConfiguration;
 import software.amazon.awssdk.services.s3.crt.S3CrtRetryConfiguration;
+import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.SdkBuilder;
 
@@ -320,6 +322,12 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      * recommended to use a single connection for the upload. See
      * <a href="https://docs.aws.amazon.com/AmazonS3/latest/userguide/mpuoverview.html">Uploading and copying objects using
      * multipart upload</a>.
+     *
+     * <p>
+     * When {@code copyObject} performs a multipart copy, it copies the source object's tags only when
+     * {@link CopyObjectRequest.Builder#taggingDirective(TaggingDirective)} is set to {@code COPY}. A copy at or under the
+     * threshold or the part size is a single {@code CopyObject} request, for which S3's default tagging directive is
+     * {@code COPY}.
      *
      * <p>
      * By default, it is the same as {@link #minimumPartSizeInBytes(Long)}.
