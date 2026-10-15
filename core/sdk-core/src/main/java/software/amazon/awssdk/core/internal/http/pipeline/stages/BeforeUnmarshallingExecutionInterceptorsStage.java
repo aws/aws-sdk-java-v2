@@ -23,6 +23,8 @@ import software.amazon.awssdk.core.internal.http.pipeline.RequestPipeline;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
+import software.amazon.awssdk.utils.IoUtils;
+import software.amazon.awssdk.utils.Logger;
 import software.amazon.awssdk.utils.Pair;
 
 /**
@@ -32,12 +34,21 @@ import software.amazon.awssdk.utils.Pair;
 @SdkInternalApi
 public class BeforeUnmarshallingExecutionInterceptorsStage
     implements RequestPipeline<Pair<SdkHttpFullRequest, SdkHttpFullResponse>, SdkHttpFullResponse> {
+    private static final Logger LOG = Logger.loggerFor(BeforeUnmarshallingExecutionInterceptorsStage.class);
 
     @Override
     public SdkHttpFullResponse execute(Pair<SdkHttpFullRequest, SdkHttpFullResponse> input,
                                 RequestExecutionContext context) throws Exception {
-        context.interceptorChain().beforeUnmarshalling(context.executionContext().interceptorContext(),
-                                                       context.executionAttributes());
+        boolean completed = false;
+        try {
+            context.interceptorChain().beforeUnmarshalling(context.executionContext().interceptorContext(),
+                                                           context.executionAttributes());
+            completed = true;
+        } finally {
+            if (!completed) {
+                input.right().content().ifPresent(stream -> IoUtils.closeQuietlyV2(stream, LOG));
+            }
+        }
         InterruptMonitor.checkInterrupted(input.right());
         return input.right();
     }
