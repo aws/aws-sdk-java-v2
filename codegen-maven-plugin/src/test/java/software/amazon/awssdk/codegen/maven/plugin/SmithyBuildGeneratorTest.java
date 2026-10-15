@@ -150,6 +150,39 @@ class SmithyBuildGeneratorTest {
         assertNull(System.getProperty("AWS_SDK_JAVA_VERSION"));
     }
 
+    /**
+     * This module's test classpath has codegen's compile dependencies but not its test dependencies, as the plugin
+     * does in a real build. If smithy-waiters were missing, {@code @waitable} would be dropped and the override would
+     * name a waiter that does not exist.
+     */
+    @Test
+    void waitableTrait_generatesAWaiter() throws Exception {
+        write(moduleDir.resolve("model.smithy"),
+              SERVICE + REQUEST
+              + "apply Op @smithy.waiters#waitable(OpDone: { acceptors: [{ state: \"success\", "
+              + "matcher: { success: true } }] })\n"
+              + "apply Op @software.amazon.awssdk.codegen#waiterOverrides(OpDone: { maxAttempts: 5 })\n");
+        Path configFile = write(moduleDir.resolve("smithy-build.json"), config(SOURCES, PLUGIN));
+
+        generate(project(moduleDir), configFile);
+
+        assertTrue(containsFileEndingWith(outputDirectory(), "DefaultDemoWaiter.java"));
+    }
+
+    @Test
+    void waitableTraitWithoutMaxAttempts_fails() throws Exception {
+        write(moduleDir.resolve("model.smithy"),
+              SERVICE + REQUEST
+              + "apply Op @smithy.waiters#waitable(OpDone: { acceptors: [{ state: \"success\", "
+              + "matcher: { success: true } }] })\n");
+        Path configFile = write(moduleDir.resolve("smithy-build.json"), config(SOURCES, PLUGIN));
+
+        MojoExecutionException e = assertThrows(MojoExecutionException.class,
+                                                () -> generate(project(moduleDir), configFile));
+        String messages = messages(e);
+        assertTrue(messages.contains("OpDone") && messages.contains("has no maxAttempts"), messages);
+    }
+
     private void generate(MavenProject project, Path configFile) throws MojoExecutionException {
         new SmithyBuildGenerator(project, new SystemStreamLog()).generate(configFile, outputDirectory());
     }

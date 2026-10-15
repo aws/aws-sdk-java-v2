@@ -171,4 +171,74 @@ class AwsSdkJavaCodegenPluginTest {
         String client = new String(Files.readAllBytes(generated.get("DemoClient.java")), StandardCharsets.UTF_8);
         assertThat(client).contains("listThingsPaginator(").contains("listPartsPaginator(");
     }
+
+    @Test
+    void waitableAndOverriddenWaiters_generateWaiters(@TempDir Path outputDir) throws IOException {
+        String waiterModel =
+            "$version: \"2.0\"\nnamespace demo\n\n"
+            + "use aws.api#service\n"
+            + "use aws.auth#sigv4\n"
+            + "use aws.protocols#restJson1\n"
+            + "use smithy.waiters#waitable\n"
+            + "use software.amazon.awssdk.codegen#waiterOverrides\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@sigv4(name: \"demo\")\n"
+            + "@restJson1\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [GetThing] }\n\n"
+            + "@waitable(\n"
+            + "  ThingReady: { minDelay: 15, acceptors: [\n"
+            + "    { state: \"success\", matcher: { output: { path: \"status\", expected: \"READY\", "
+            + "comparator: \"stringEquals\" } } }\n"
+            + "  ]}\n"
+            + "  ThingExists: { acceptors: [{ state: \"success\", matcher: { success: true } }] }\n"
+            + ")\n"
+            + "@waiterOverrides(\n"
+            + "  ThingReady: { maxAttempts: 7 }\n"
+            + "  ThingExists: { maxAttempts: 20, delay: 5, acceptors: [\n"
+            + "    { matcher: \"status\", expected: 200, state: \"success\" }\n"
+            + "    { matcher: \"status\", expected: 404, state: \"retry\" }\n"
+            + "  ]}\n"
+            + ")\n"
+            + "@readonly @http(method: \"GET\", uri: \"/thing\")\n"
+            + "operation GetThing { input: GetThingRequest, output: GetThingResponse }\n"
+            + "structure GetThingRequest {}\n"
+            + "structure GetThingResponse { status: String }\n";
+        Model model = Model.assembler(LOADER)
+                           .discoverModels(LOADER)
+                           .addUnparsedModel("test.smithy", waiterModel)
+                           .assemble()
+                           .unwrap();
+        ProjectionConfig sdk = ProjectionConfig.builder()
+                                               .plugins(Collections.singletonMap(AwsSdkJavaCodegenPlugin.NAME,
+                                                                                 Node.objectNode()))
+                                               .build();
+        SmithyBuildResult result = SmithyBuild.create(LOADER)
+                                              .config(SmithyBuildConfig.builder()
+                                                                       .version("1.0")
+                                                                       .projections(Collections.singletonMap("sdk", sdk))
+                                                                       .build())
+                                              .model(model)
+                                              .outputDirectory(outputDir)
+                                              .build();
+
+        assertThat(result.anyBroken()).as("smithy-build should not be broken").isFalse();
+        Map<String, Path> generated = result.getProjectionResult("sdk").get()
+                                            .getPluginManifest(AwsSdkJavaCodegenPlugin.NAME).get()
+                                            .getFiles().stream()
+                                            .collect(Collectors.toMap(p -> p.getFileName().toString(), p -> p,
+                                                                      (first, second) -> first));
+        assertThat(generated).containsKeys("DemoWaiter.java", "DefaultDemoWaiter.java", "DemoAsyncWaiter.java");
+        String waiter = new String(Files.readAllBytes(generated.get("DefaultDemoWaiter.java")), StandardCharsets.UTF_8);
+        // Translated waiter: maxAttempts from the override, fixed delay from minDelay.
+        assertThat(waiter).contains("waitUntilThingReady(")
+                          .contains(".orElse(7)")
+                          .contains("Duration.ofSeconds(15)")
+                          .contains("\"READY\"");
+        // Replacing override: its delay and status acceptors.
+        assertThat(waiter).contains("waitUntilThingExists(")
+                          .contains(".orElse(20)")
+                          .contains("Duration.ofSeconds(5)")
+                          .contains("ResponseStatusAcceptor(200, WaiterState.SUCCESS)")
+                          .contains("ResponseStatusAcceptor(404, WaiterState.RETRY)");
+    }
 }
