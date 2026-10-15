@@ -18,6 +18,7 @@ package software.amazon.awssdk.codegen.smithy;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.tuple;
 
+import java.util.Collections;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
@@ -27,11 +28,13 @@ import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
 import software.amazon.smithy.model.Model;
 
 /**
- * Covers the endpoint models reaching the intermediate model from the service's traits. The Smithy
- * path takes no sidecar input, so a service without the traits lands on the same defaults the C2J
- * path uses when the sidecar files are absent.
+ * Covers what the builder takes from the service model instead of C2J sidecar files: the endpoint models, and the
+ * paginators with the {@code isPaginated} flag that must agree with them. A service without the endpoint traits
+ * lands on the same defaults the C2J path uses when the sidecar files are absent.
  */
 class SmithyIntermediateModelBuilderTest {
+
+    private static final ClassLoader LOADER = SmithyIntermediateModelBuilderTest.class.getClassLoader();
 
     /**
      * {@code clientContextParams} binds the rule-set parameter to the service model, which the
@@ -112,6 +115,74 @@ class SmithyIntermediateModelBuilderTest {
             .usingRecursiveComparison()
             .isEqualTo(EndpointRuleSetModel.defaultRules(model.getMetadata().getEndpointPrefix()));
         assertThat(model.getEndpointTestSuiteModel().getTestCases()).isEmpty();
+    }
+
+    private static IntermediateModel buildPaginated(CustomizationConfig config) {
+        String src =
+            "$version: \"2.0\"\nnamespace demo\n\n"
+            + "use aws.api#service\n"
+            + "use aws.auth#sigv4\n"
+            + "use aws.protocols#restJson1\n"
+            + "use software.amazon.awssdk.codegen#paginatorOverride\n"
+            + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+            + "@sigv4(name: \"demo\")\n"
+            + "@restJson1\n"
+            + "service DemoService { version: \"2024-01-01\", operations: [ListThings, ListOld, ListExpr, Get] }\n\n"
+            + "@paginated(inputToken: \"nextToken\", outputToken: \"nextToken\", items: \"things\")\n"
+            + "@readonly @http(method: \"GET\", uri: \"/things\")\n"
+            + "operation ListThings { input: ListRequest, output: ListResponse }\n"
+            + "@paginated(inputToken: \"nextToken\", outputToken: \"nextToken\", items: \"things\")\n"
+            + "@readonly @http(method: \"GET\", uri: \"/old\")\n"
+            + "operation ListOld { input: ListRequest, output: ListResponse }\n"
+            + "@paginatorOverride(inputToken: [\"nextToken\"], outputToken: [\"nextToken || things[-1]\"])\n"
+            + "@readonly @http(method: \"GET\", uri: \"/expr\")\n"
+            + "operation ListExpr { input: ListRequest, output: ListResponse }\n"
+            + "@readonly @http(method: \"GET\", uri: \"/get\")\n"
+            + "operation Get { input: ListRequest, output: ListResponse }\n"
+            + "structure ListRequest { @httpQuery(\"nextToken\") nextToken: String }\n"
+            + "structure ListResponse { nextToken: String, things: Things }\n"
+            + "list Things { member: String }\n";
+        Model smithyModel = Model.assembler(LOADER)
+                                 .discoverModels(LOADER)
+                                 .addUnparsedModel("test.smithy", src)
+                                 .assemble()
+                                 .unwrap();
+        return new SmithyIntermediateModelBuilder(
+            SmithyModels.builder().model(smithyModel).customizationConfig(config).build()).build();
+    }
+
+    @Test
+    void paginatedOperations_areMarkedPaginatedAndHaveDefinitions() {
+        IntermediateModel model = buildPaginated(CustomizationConfig.create());
+
+        assertThat(model.getPaginators()).containsOnlyKeys("ListThings", "ListOld", "ListExpr");
+        assertThat(model.getPaginators().get("ListThings").getResultKey()).containsExactly("things");
+        assertThat(model.getOperation("ListThings").isPaginated()).isTrue();
+        assertThat(model.getOperation("ListOld").isPaginated()).isTrue();
+        assertThat(model.getOperation("Get").isPaginated()).isFalse();
+    }
+
+    /**
+     * C2J keeps such a definition in the map but generates nothing for it, so {@code isPaginated} must be false too:
+     * the client interface would otherwise reference a paginator class that does not exist.
+     */
+    @Test
+    void definitionCodegenCannotGenerate_isNotMarkedPaginated() {
+        IntermediateModel model = buildPaginated(CustomizationConfig.create());
+
+        assertThat(model.getPaginators().get("ListExpr").hasAllRequiredFields()).isFalse();
+        assertThat(model.getOperation("ListExpr").isPaginated()).isFalse();
+    }
+
+    @Test
+    void deprecatedOperation_losesItsPaginator() {
+        CustomizationConfig config = CustomizationConfig.create();
+        config.setDeprecatedOperations(Collections.singletonList("ListOld"));
+
+        IntermediateModel model = buildPaginated(config);
+
+        assertThat(model.getOperations()).doesNotContainKey("ListOld");
+        assertThat(model.getPaginators()).containsOnlyKeys("ListThings", "ListExpr");
     }
 
     @Test

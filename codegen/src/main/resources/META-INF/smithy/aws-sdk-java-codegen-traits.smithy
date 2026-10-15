@@ -26,3 +26,21 @@ string enumConstantName
 @trait(selector: ":is(simpleType, list, map, structure, union)")
 structure synthetic {}
 
+
+/// Replaces the paginator that @paginated produces for this operation, for a paginator @paginated cannot express.
+/// Each member means what the paginators-1.json field of the same name means, and names members by their Smithy
+/// member names. With skip, no paginator is generated.
+@trait(selector: "operation")
+structure paginatorOverride {
+    skip: Boolean
+    inputToken: PaginatorMemberPaths
+    outputToken: PaginatorMemberPaths
+    resultKey: PaginatorMemberPaths
+    moreResults: String
+    limitKey: String
+}
+
+@private
+list PaginatorMemberPaths {
+    member: String
+}

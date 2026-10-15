@@ -16,6 +16,7 @@
 package software.amazon.awssdk.codegen.smithy.traits;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.util.Arrays;
@@ -27,7 +28,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.smithy.model.Model;
+import software.amazon.smithy.model.node.ArrayNode;
+import software.amazon.smithy.model.node.ExpectationNotMetException;
 import software.amazon.smithy.model.node.Node;
+import software.amazon.smithy.model.node.ObjectNode;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.StringTrait;
 import software.amazon.smithy.model.traits.Trait;
@@ -40,6 +44,7 @@ class SmithyCodegenTraitsTest {
 
     private static final ClassLoader LOADER = SmithyCodegenTraitsTest.class.getClassLoader();
     private static final ShapeId TARGET = ShapeId.from("demo#Shape$member");
+    private static final ShapeId OPERATION = ShapeId.from("demo#Op");
 
     static Stream<Arguments> traits() {
         return Stream.of(Arguments.of(DeprecatedNameTrait.ID, Node.from("Bucket"), DeprecatedNameTrait.class),
@@ -64,12 +69,76 @@ class SmithyCodegenTraitsTest {
     }
 
     @Test
+    void traitService_createsPaginatorOverrideTrait() {
+        Node value = Node.objectNodeBuilder()
+                         .withMember("inputToken", ArrayNode.fromStrings(Arrays.asList("KeyMarker", "UploadIdMarker")))
+                         .withMember("outputToken", ArrayNode.fromStrings(Arrays.asList("NextKeyMarker",
+                                                                                        "NextUploadIdMarker")))
+                         .withMember("resultKey", ArrayNode.fromStrings(Arrays.asList("Uploads", "CommonPrefixes")))
+                         .withMember("moreResults", "IsTruncated")
+                         .withMember("limitKey", "MaxUploads")
+                         .build();
+
+        Trait trait = TraitFactory.createServiceFactory(LOADER).createTrait(PaginatorOverrideTrait.ID, OPERATION, value)
+                                  .orElse(null);
+
+        assertThat(trait).isInstanceOf(PaginatorOverrideTrait.class);
+        PaginatorOverrideTrait override = (PaginatorOverrideTrait) trait;
+        assertThat(override.isSkip()).isFalse();
+        assertThat(override.getInputToken()).containsExactly("KeyMarker", "UploadIdMarker");
+        assertThat(override.getOutputToken()).containsExactly("NextKeyMarker", "NextUploadIdMarker");
+        assertThat(override.getResultKey()).hasValue(Arrays.asList("Uploads", "CommonPrefixes"));
+        assertThat(override.getMoreResults()).hasValue("IsTruncated");
+        assertThat(override.getLimitKey()).hasValue("MaxUploads");
+        assertThat(override.toNode()).isEqualTo(value);
+    }
+
+    @Test
+    void paginatorOverrideSkip_hasNoTokens() {
+        PaginatorOverrideTrait override =
+            new PaginatorOverrideTrait(Node.objectNode().withMember("skip", Node.from(true)));
+
+        assertThat(override.isSkip()).isTrue();
+        assertThat(override.getInputToken()).isEmpty();
+        assertThat(override.getResultKey()).isEmpty();
+    }
+
+    static Stream<Arguments> invalidPaginatorOverrides() {
+        return Stream.of(
+            Arguments.of("skip with tokens", "{\"skip\": true, \"inputToken\": [\"a\"], \"outputToken\": [\"a\"]}",
+                         "skip cannot be combined"),
+            Arguments.of("no outputToken", "{\"inputToken\": [\"a\"]}", "needs inputToken and outputToken"),
+            Arguments.of("skip false alone", "{\"skip\": false}", "Remove the trait to use @paginated"),
+            Arguments.of("empty inputToken", "{\"inputToken\": [], \"outputToken\": [\"a\"]}",
+                         "needs inputToken and outputToken"),
+            Arguments.of("unknown member", "{\"inputToken\": [\"a\"], \"outputToken\": [\"a\"], \"items\": \"b\"}",
+                         "items"));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("invalidPaginatorOverrides")
+    void invalidPaginatorOverride_isRejected(String description, String json, String message) {
+        ObjectNode node = Node.parse(json).expectObjectNode();
+
+        assertThatThrownBy(() -> new PaginatorOverrideTrait(node))
+            .isInstanceOf(ExpectationNotMetException.class)
+            .hasMessageContaining(message);
+    }
+
+    @Test
+    void paginatorOverrideOnStructure_isATraitTargetError() {
+        assertThat(errors("@paginatorOverride(skip: true) structure Shape { member: String }"))
+            .extracting(ValidationEvent::getId, e -> e.getShapeId().get())
+            .containsExactly(tuple("TraitTarget", ShapeId.from("demo#Shape")));
+    }
+
+    @Test
     void discoverModels_loadsTheTraitDefinitions() {
         Model model = Model.assembler(LOADER).discoverModels(LOADER).assemble().unwrap();
 
         for (ShapeId id : Arrays.asList(DeprecatedNameTrait.ID, AlternateBeanPropertyNameTrait.ID,
                                         EnumConstantNameTrait.ID, IgnoreDataTypeConversionFailuresTrait.ID,
-                                        SyntheticTrait.ID)) {
+                                        SyntheticTrait.ID, PaginatorOverrideTrait.ID)) {
             assertThat(model.getShape(id)).as("definition of %s", id).isPresent();
             assertThat(model.expectShape(id).hasTrait(TraitDefinition.class)).as("%s is a trait", id).isTrue();
         }
@@ -112,7 +181,10 @@ class SmithyCodegenTraitsTest {
                           + "}\n"
                           + "@synthetic enum Kind {\n  @enumConstantName(\"FIVE_ONE\")\n  A = \"5.1\"\n}\n"
                           + "@synthetic string Name\n"
-                          + "@synthetic structure Payload { member: String }\n"))
+                          + "@synthetic structure Payload { member: String }\n"
+                          + "@paginatorOverride(inputToken: [\"a\", \"b\"], outputToken: [\"c || d\"], "
+                          + "resultKey: [\"e\"], moreResults: \"f\", limitKey: \"g\")\n"
+                          + "operation Op {}\n"))
             .isEmpty();
     }
 
@@ -122,6 +194,7 @@ class SmithyCodegenTraitsTest {
                      + "use software.amazon.awssdk.codegen#deprecatedName\n"
                      + "use software.amazon.awssdk.codegen#enumConstantName\n"
                      + "use software.amazon.awssdk.codegen#ignoreDataTypeConversionFailures\n"
+                     + "use software.amazon.awssdk.codegen#paginatorOverride\n"
                      + "use software.amazon.awssdk.codegen#synthetic\n\n"
                      + shapes + "\n";
         return Model.assembler(LOADER)
