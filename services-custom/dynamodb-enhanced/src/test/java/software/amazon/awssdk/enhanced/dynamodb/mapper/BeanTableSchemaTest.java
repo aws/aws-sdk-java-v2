@@ -493,6 +493,65 @@ public class BeanTableSchemaTest {
     }
 
     @Test
+    public void documentBean_map_nullDocumentValue_roundTripsAsNullAttribute() {
+        // Repro for https://github.com/aws/aws-sdk-java-v2/issues/2282:
+        // Bean schemas store null map entries for DynamoDB NUL document values; putItem must
+        // serialize them back to NUL instead of NPE inside DocumentAttributeConverter.
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractBean abstractBean = new AbstractBean();
+        abstractBean.setAttribute2("two");
+
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+
+        Map<String, AbstractBean> abstractBeanMap = new HashMap<>();
+        abstractBeanMap.put("key1", abstractBean);
+        abstractBeanMap.put("keyNull", null);
+        documentBean.setAbstractBeanMap(abstractBeanMap);
+
+        AttributeValue expectedDocument = AttributeValue.builder()
+                                                        .m(singletonMap("attribute2", stringValue("two")))
+                                                        .build();
+        Map<String, AttributeValue> expectedAttributeValueMap = new HashMap<>();
+        expectedAttributeValueMap.put("key1", expectedDocument);
+        expectedAttributeValueMap.put("keyNull", nullAttributeValue());
+        AttributeValue expectedMap = AttributeValue.builder().m(expectedAttributeValueMap).build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, false);
+        assertThat(itemMap).containsEntry("abstractBeanMap", expectedMap);
+
+        DocumentBean roundTripped = beanTableSchema.mapToItem(itemMap);
+        assertThat(roundTripped.getAbstractBeanMap()).containsEntry("key1", abstractBean);
+        assertThat(roundTripped.getAbstractBeanMap()).containsEntry("keyNull", null);
+    }
+
+    @Test
+    public void documentBean_list_nullDocumentValue_roundTripsAsNullAttribute() {
+        BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
+        AbstractBean abstractBean = new AbstractBean();
+        abstractBean.setAttribute2("two");
+
+        DocumentBean documentBean = new DocumentBean();
+        documentBean.setId("id-value");
+        documentBean.setAttribute1("one");
+        documentBean.setAbstractBeanList(Arrays.asList(abstractBean, null));
+
+        AttributeValue expectedDocument = AttributeValue.builder()
+                                                        .m(singletonMap("attribute2", stringValue("two")))
+                                                        .build();
+        AttributeValue expectedList = AttributeValue.builder()
+                                                    .l(expectedDocument, nullAttributeValue())
+                                                    .build();
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(documentBean, false);
+        assertThat(itemMap).containsEntry("abstractBeanList", expectedList);
+
+        DocumentBean roundTripped = beanTableSchema.mapToItem(itemMap);
+        assertThat(roundTripped.getAbstractBeanList()).containsExactly(abstractBean, null);
+    }
+
+    @Test
     public void documentBean_correctlyMapsImmutableAttributes() {
         BeanTableSchema<DocumentBean> beanTableSchema = BeanTableSchema.create(DocumentBean.class);
         AbstractImmutable abstractImmutable = AbstractImmutable.builder().attribute2("two").build();
