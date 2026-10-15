@@ -124,6 +124,41 @@ class PresignedUrlDownloadHelperTest {
     }
 
     @Test
+    void validateTotalContentLength_atMaximum_shouldReturnEmpty() {
+        long max = PresignedUrlDownloadHelper.MAX_OBJECT_SIZE_IN_BYTES;
+        assertThat(PresignedUrlDownloadHelper.validateTotalContentLength(max, "bytes 0-15/" + max)).isEmpty();
+        assertThat(PresignedUrlDownloadHelper.validateTotalContentLength(0L, "bytes 0-0/0")).isEmpty();
+    }
+
+    @Test
+    void validateTotalContentLength_aboveMaximum_shouldReturnError() {
+        long tooLarge = PresignedUrlDownloadHelper.MAX_OBJECT_SIZE_IN_BYTES + 1;
+        Optional<SdkClientException> result =
+            PresignedUrlDownloadHelper.validateTotalContentLength(tooLarge, "bytes 0-15/" + tooLarge);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getMessage())
+            .contains("exceeds the maximum S3 object size")
+            .contains("bytes 0-15/" + tooLarge);
+        assertThat(PresignedUrlDownloadHelper.validateTotalContentLength(Long.MAX_VALUE, "bytes 0-15/" + Long.MAX_VALUE))
+            .isPresent();
+    }
+
+    @Test
+    void validatePartResponse_oversizedStartByte_shouldReturnInvalidContentRange() {
+        GetObjectResponse response = GetObjectResponse.builder()
+                                                      .contentRange("bytes 99999999999999999999-15/32")
+                                                      .contentLength(16L)
+                                                      .build();
+
+        Optional<SdkClientException> result = PresignedUrlDownloadHelper.validatePartResponse(
+            response, 0, 16L, 32L, 2L);
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getMessage()).contains("Invalid Content-Range header");
+    }
+
+    @Test
     void createRangedGetRequest_firstPart_shouldNotIncludeIfMatch() throws MalformedURLException {
         URL url = new URL("https://bucket.s3.amazonaws.com/key?X-Amz-Signature=abc");
         PresignedUrlDownloadRequest original = PresignedUrlDownloadRequest.builder()

@@ -18,9 +18,11 @@ package software.amazon.awssdk.services.s3.internal.multipart;
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
 import static com.github.tomakehurst.wiremock.client.WireMock.absent;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.matching;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
+import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -38,6 +40,8 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -257,6 +261,46 @@ class PresignedUrlMultipartDownloaderSubscriberWiremockTest {
                                                                          .build();
         assertThatThrownBy(() -> executeDownload(request, transformerType).join())
             .hasRootCauseInstanceOf(SdkClientException.class);
+    }
+
+    @ParameterizedTest(name = "presignedUrlDownload_contentRangeTotalOverflowsLong_shouldFailInsteadOfHanging [{0}]")
+    @MethodSource("transformerTypes")
+    void presignedUrlDownload_contentRangeTotalOverflowsLong_shouldFailInsteadOfHanging(String transformerType) {
+        stubFirstPartWithContentRange("bytes 0-15/99999999999999999999");
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+        assertThatThrownBy(() -> executeDownload(request, transformerType).get(10, TimeUnit.SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("Invalid Content-Range header");
+        verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
+    }
+
+    @ParameterizedTest(name = "presignedUrlDownload_contentRangeTotalExceedsMaxObjectSize_shouldFail [{0}]")
+    @MethodSource("transformerTypes")
+    void presignedUrlDownload_contentRangeTotalExceedsMaxObjectSize_shouldFail(String transformerType) {
+        stubFirstPartWithContentRange("bytes 0-15/" + Long.MAX_VALUE);
+        PresignedUrlDownloadRequest request = PresignedUrlDownloadRequest.builder()
+                                                                         .presignedUrl(presignedUrl)
+                                                                         .build();
+        assertThatThrownBy(() -> executeDownload(request, transformerType).get(10, TimeUnit.SECONDS))
+            .isInstanceOf(ExecutionException.class)
+            .hasRootCauseInstanceOf(SdkClientException.class)
+            .hasMessageContaining("exceeds the maximum S3 object size");
+        verify(1, getRequestedFor(urlEqualTo(PRESIGNED_URL_PATH)));
+    }
+
+    private void stubFirstPartWithContentRange(String contentRange) {
+        stubFor(get(urlEqualTo(PRESIGNED_URL_PATH))
+                    .withHeader("Range", matching("bytes=0-15"))
+                    .willReturn(aResponse()
+                                    .withStatus(206)
+                                    .withHeader("Content-Type", "application/octet-stream")
+                                    .withHeader("Content-Length", "16")
+                                    .withHeader("Content-Range", contentRange)
+                                    .withHeader("ETag", "\"test-etag\"")
+                                    .withBody(Arrays.copyOfRange(TEST_DATA, 0, 16))));
     }
 
     @Test

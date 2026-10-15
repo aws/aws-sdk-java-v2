@@ -146,64 +146,76 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             inFlightRequests.remove(0L);
             inFlightPermits.release();
 
-            if (error != null) {
-                if (PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
-                    resultFuture.completeExceptionally(
-                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+            try {
+                if (error != null) {
+                    if (PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
+                        resultFuture.completeExceptionally(
+                            new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                        synchronized (subscriptionLock) {
+                            subscription.cancel();
+                        }
+                    } else {
+                        handlePartError(error, 0L);
+                    }
+                    return;
+                }
+
+                if (downloadFailed.get()) {
+                    return;
+                }
+
+                completedParts.incrementAndGet();
+
+                this.eTag = res.eTag();
+                this.firstResponse = res;
+
+                String contentRange = res.contentRange();
+                if (contentRange == null) {
+                    handlePartError(PresignedUrlDownloadHelper.missingContentRangeHeader(), 0L);
+                    return;
+                }
+
+                Optional<Long> parsedTotal = MultipartDownloadUtils.parseContentRangeForTotalSize(contentRange);
+                if (!parsedTotal.isPresent()) {
+                    handlePartError(PresignedUrlDownloadHelper.invalidContentRangeHeader(contentRange), 0L);
+                    return;
+                }
+
+                Optional<SdkClientException> totalSizeError =
+                    PresignedUrlDownloadHelper.validateTotalContentLength(parsedTotal.get(), contentRange);
+                if (totalSizeError.isPresent()) {
+                    handlePartError(totalSizeError.get(), 0L);
+                    return;
+                }
+
+                this.totalContentLength = parsedTotal.get();
+                this.totalParts = MultipartDownloadUtils.calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
+                log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
+
+                Optional<SdkClientException> validationError = validatePartResponse(res, 0L);
+                if (validationError.isPresent()) {
+                    handlePartError(validationError.get(), 0L);
+                    return;
+                }
+
+                if (totalParts <= 1) {
+                    resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(firstResponse));
                     synchronized (subscriptionLock) {
                         subscription.cancel();
                     }
-                } else {
-                    handlePartError(error, 0L);
+                    return;
                 }
-                return;
-            }
 
-            if (downloadFailed.get()) {
-                return;
-            }
+                processPendingTransformers();
 
-            completedParts.incrementAndGet();
-
-            this.eTag = res.eTag();
-            this.firstResponse = res;
-
-            String contentRange = res.contentRange();
-            if (contentRange == null) {
-                handlePartError(PresignedUrlDownloadHelper.missingContentRangeHeader(), 0L);
-                return;
-            }
-
-            Optional<Long> parsedTotal = MultipartDownloadUtils.parseContentRangeForTotalSize(contentRange);
-            if (!parsedTotal.isPresent()) {
-                handlePartError(PresignedUrlDownloadHelper.invalidContentRangeHeader(contentRange), 0L);
-                return;
-            }
-
-            this.totalContentLength = parsedTotal.get();
-            this.totalParts = MultipartDownloadUtils.calculateTotalParts(totalContentLength, configuredPartSizeInBytes);
-            log.debug(() -> String.format("Total content length: %d, Total parts: %d", totalContentLength, totalParts));
-
-            Optional<SdkClientException> validationError = validatePartResponse(res, 0L);
-            if (validationError.isPresent()) {
-                handlePartError(validationError.get(), 0L);
-                return;
-            }
-
-            if (totalParts <= 1) {
-                resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(firstResponse));
+                long remainingParts = totalParts - 1;
+                long toRequest = Math.min(remainingParts, maxInFlightParts);
                 synchronized (subscriptionLock) {
-                    subscription.cancel();
+                    subscription.request(toRequest);
                 }
-                return;
-            }
-
-            processPendingTransformers();
-
-            long remainingParts = totalParts - 1;
-            long toRequest = Math.min(remainingParts, maxInFlightParts);
-            synchronized (subscriptionLock) {
-                subscription.request(toRequest);
+            } catch (Throwable t) {
+                log.debug(() -> "Unexpected error while handling response for first part", t);
+                handlePartError(t, 0L);
             }
         });
     }
@@ -243,34 +255,39 @@ public class ParallelPresignedUrlMultipartDownloaderSubscriber
             inFlightRequests.remove(partIndex);
             inFlightPermits.release();
 
-            if (error != null) {
-                handlePartError(error, partIndex);
-                return;
-            }
-            if (downloadFailed.get()) {
-                log.debug(() -> "Ignoring late completion for part " + partIndex + ", download already failed");
-                return;
-            }
-
-            Optional<SdkClientException> validationError = validatePartResponse(res, partIndex);
-            if (validationError.isPresent()) {
-                handlePartError(validationError.get(), partIndex);
-                return;
-            }
-
-            log.debug(() -> "Completed part: " + partIndex);
-            long totalComplete = completedParts.incrementAndGet();
-
-            if (totalComplete == totalParts) {
-                resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(firstResponse));
-                synchronized (subscriptionLock) {
-                    subscription.cancel();
+            try {
+                if (error != null) {
+                    handlePartError(error, partIndex);
+                    return;
                 }
-            } else {
-                processPendingTransformers();
-                synchronized (subscriptionLock) {
-                    subscription.request(1);
+                if (downloadFailed.get()) {
+                    log.debug(() -> "Ignoring late completion for part " + partIndex + ", download already failed");
+                    return;
                 }
+
+                Optional<SdkClientException> validationError = validatePartResponse(res, partIndex);
+                if (validationError.isPresent()) {
+                    handlePartError(validationError.get(), partIndex);
+                    return;
+                }
+
+                log.debug(() -> "Completed part: " + partIndex);
+                long totalComplete = completedParts.incrementAndGet();
+
+                if (totalComplete == totalParts) {
+                    resultFuture.complete(MultipartDownloadUtils.toFullObjectResponse(firstResponse));
+                    synchronized (subscriptionLock) {
+                        subscription.cancel();
+                    }
+                } else {
+                    processPendingTransformers();
+                    synchronized (subscriptionLock) {
+                        subscription.request(1);
+                    }
+                }
+            } catch (Throwable t) {
+                log.debug(() -> "Unexpected error while handling response for part " + partIndex, t);
+                handlePartError(t, partIndex);
             }
         });
     }

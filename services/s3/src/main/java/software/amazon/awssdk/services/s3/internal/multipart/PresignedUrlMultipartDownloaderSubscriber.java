@@ -134,21 +134,26 @@ public class PresignedUrlMultipartDownloaderSubscriber
                                                                            .getObject(partRequest, asyncResponseTransformer);
         getObjectFutures.add(responseFuture);
         responseFuture.whenComplete((response, error) -> {
-            if (error != null) {
-                if (partIndex == 0 && PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
-                    log.debug(() -> "Received 416 on first range request, object is empty");
-                    resultFuture.completeExceptionally(
-                        new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
-                    synchronized (lock) {
-                        subscription.cancel();
+            try {
+                if (error != null) {
+                    if (partIndex == 0 && PresignedUrlDownloadHelper.isRangeNotSatisfiable(error)) {
+                        log.debug(() -> "Received 416 on first range request, object is empty");
+                        resultFuture.completeExceptionally(
+                            new PresignedUrlDownloadHelper.EmptyObjectRangeNotSatisfiableException(error));
+                        synchronized (lock) {
+                            subscription.cancel();
+                        }
+                    } else {
+                        handleError(error);
                     }
-                } else {
-                    handleError(error);
+                    return;
                 }
-                return;
-            }
-            if (validatePart(response, partIndex, asyncResponseTransformer)) {
-                requestMoreIfNeeded(nextPartIndex.get());
+                if (validatePart(response, partIndex, asyncResponseTransformer)) {
+                    requestMoreIfNeeded(nextPartIndex.get());
+                }
+            } catch (Throwable t) {
+                log.debug(() -> "Unexpected error while handling response for part " + partIndex, t);
+                handleError(t);
             }
         });
     }
@@ -170,6 +175,16 @@ public class PresignedUrlMultipartDownloaderSubscriber
             if (!parsedContentLength.isPresent()) {
                 SdkClientException error = PresignedUrlDownloadHelper.invalidContentRangeHeader(responseContentRange);
                 log.debug(() -> "Failed to parse content range", error);
+                asyncResponseTransformer.exceptionOccurred(error);
+                handleError(error);
+                return false;
+            }
+
+            Optional<SdkClientException> totalSizeError =
+                PresignedUrlDownloadHelper.validateTotalContentLength(parsedContentLength.get(), responseContentRange);
+            if (totalSizeError.isPresent()) {
+                SdkClientException error = totalSizeError.get();
+                log.debug(() -> "Content range total size exceeds maximum object size", error);
                 asyncResponseTransformer.exceptionOccurred(error);
                 handleError(error);
                 return false;

@@ -32,6 +32,9 @@ import software.amazon.awssdk.utils.Validate;
 
 @SdkInternalApi
 public class PresignedUrlDownloadHelper {
+    /** Maximum allowed object size in bytes. */
+    static final long MAX_OBJECT_SIZE_IN_BYTES = 50L * 1024 * 1024 * 1024 * 1024;
+
     private static final Logger log = Logger.loggerFor(PresignedUrlDownloadHelper.class);
     private static final int DEFAULT_MAX_IN_FLIGHT_PARTS = 10;
 
@@ -145,6 +148,26 @@ public class PresignedUrlDownloadHelper {
 
     static SdkClientException invalidContentLength() {
         return SdkClientException.create("Invalid or missing Content-Length in response");
+    }
+
+    static SdkClientException contentRangeTotalSizeTooLarge(long totalContentLength, String contentRange) {
+        return SdkClientException.create(
+            String.format("Content-Range total size %d exceeds the maximum S3 object size of %d bytes: %s",
+                          totalContentLength, MAX_OBJECT_SIZE_IN_BYTES, contentRange));
+    }
+
+    /**
+     * Validates the total object size parsed from a Content-Range header against the maximum S3 object size.
+     *
+     * @param totalContentLength the total size parsed from the Content-Range header
+     * @param contentRange       the raw Content-Range header value, used in the error message
+     * @return empty if valid, or an SdkClientException if the total exceeds the maximum object size
+     */
+    static Optional<SdkClientException> validateTotalContentLength(long totalContentLength, String contentRange) {
+        if (totalContentLength > MAX_OBJECT_SIZE_IN_BYTES) {
+            return Optional.of(contentRangeTotalSizeTooLarge(totalContentLength, contentRange));
+        }
+        return Optional.empty();
     }
 
     /**
