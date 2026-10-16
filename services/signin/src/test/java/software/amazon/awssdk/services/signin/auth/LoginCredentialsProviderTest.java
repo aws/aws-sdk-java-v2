@@ -416,14 +416,9 @@ public class LoginCredentialsProviderTest {
                  }
              });
 
-        // Second call: the cached value is stale (handleFetchedSuccess extended it with jitter, but
-        // we wait for it to expire). Since the stale time was extended 1-10 minutes into the future,
-        // we instead rely on the prefetch window triggering a synchronous OneCallerBlocks refresh.
-        // With OneCallerBlocks, the refresh happens inline and the InvalidTokenException propagates.
-        // Give a brief pause and then call again - the prefetch time should already be in the past
-        // since the credentials expired in 30s and handleFetchedSuccess sets prefetch = stale time.
-        // Actually, with the extended stale time, the value enters prefetch window immediately.
-        // With OneCallerBlocks, the failing refresh throws through to the caller.
+        // Second call: the cached credentials expire in 30s, which is inside the mandatory refresh window, so this
+        // call refreshes inline. The token cache file is gone, so the refresh fails with an InvalidTokenException,
+        // which is non-recoverable and propagates to the caller.
         SdkClientException e = assertThrows(SdkClientException.class,
                                             () -> syncProvider.resolveCredentials());
         assertTrue(e.getMessage().contains("not found"));

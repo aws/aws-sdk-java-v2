@@ -151,21 +151,13 @@ public class ContainerCredentialsProviderTest {
      */
     @Test
     public void testRefreshFailureReturnsCachedCredentials_whenCacheIsStale() {
-        // First call succeeds with credentials that are already expired (stale immediately on next get)
-        String alreadyExpiredBody = "{\"AccessKeyId\":\"ACCESS_KEY_ID\"," +
-                                    "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\"," +
-                                    "\"Token\":\"TOKEN_TOKEN_TOKEN\"," +
-                                    "\"Expiration\":\"2020-01-01T00:00:00Z\"}";
-
-        stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
-                    .willReturn(aResponse()
-                                    .withStatus(200)
-                                    .withHeader("Content-Type", "application/json")
-                                    .withBody(alreadyExpiredBody)));
-
-        // First call succeeds (initial fetch always succeeds even if credentials are expired)
+        // First call succeeds with valid credentials
+        stubForSuccessResponse();
         AwsCredentials firstCredentials = credentialsProvider.resolveCredentials();
         assertThat(firstCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+
+        // Invalidate the cached credentials so the next call must refresh them (mandatory refresh)
+        credentialsProvider.invalidate(AwsBasicCredentials.create(ACCESS_KEY_ID, SECRET_ACCESS_KEY)).join();
 
         // Now stub the endpoint to return a 500 error (simulating container metadata endpoint failure)
         stubFor(get(urlPathEqualTo(CREDENTIALS_PATH))
@@ -173,11 +165,49 @@ public class ContainerCredentialsProviderTest {
                                     .withStatus(500)
                                     .withBody("Internal Server Error")));
 
-        // Second call: cache is stale (expiration is in the past), refresh fails with 500,
+        // Second call: cache is stale (invalidated), refresh fails with 500,
         // but ALLOW behavior should return the cached credentials
         AwsCredentials secondCredentials = credentialsProvider.resolveCredentials();
         assertThat(secondCredentials.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
         assertThat(secondCredentials.secretAccessKey()).isEqualTo(SECRET_ACCESS_KEY);
+    }
+
+    /**
+     * When the very first call to the endpoint returns credentials that are already expired, they are cached and returned
+     * instead of being treated as a failure, without a refresh backoff. The next call refreshes; if the endpoint returns
+     * expired credentials again, that is a failed refresh: the cached credentials are kept and the refresh backoff
+     * (60-90 seconds) is armed, so the call after that does not contact the endpoint.
+     */
+    @Test
+    public void resolveCredentials_initialFetchReturnsExpiredCredentials_returnsThemAndBacksOffAfterNextFailedRefresh() {
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID, "2020-01-01T00:00:00Z"));
+        mockServer.resetRequests();
+
+        AwsSessionCredentials first = (AwsSessionCredentials) credentialsProvider.resolveCredentials();
+        assertThat(first.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        assertThat(first.expirationTime()).contains(Instant.parse("2020-01-01T00:00:00Z"));
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+
+        AwsCredentials second = credentialsProvider.resolveCredentials();
+        assertThat(second.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+
+        AwsCredentials third = credentialsProvider.resolveCredentials();
+        assertThat(third.accessKeyId()).isEqualTo(ACCESS_KEY_ID);
+        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * When the very first call to the endpoint returns credentials that are already expired, the next call refreshes them and
+     * adopts the valid credentials the endpoint returns.
+     */
+    @Test
+    public void resolveCredentials_initialFetchReturnsExpiredCredentials_nextCallAdoptsFreshCredentials() {
+        stubFor200Response(credentialsBody("expired", "2020-01-01T00:00:00Z"));
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo("expired");
+
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID, EXPIRATION_TIME));
+        assertThat(credentialsProvider.resolveCredentials().accessKeyId()).isEqualTo(ACCESS_KEY_ID);
     }
 
     /**

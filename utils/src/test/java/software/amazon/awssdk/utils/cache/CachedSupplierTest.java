@@ -46,6 +46,7 @@ import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1688,12 +1689,27 @@ public class CachedSupplierTest {
     }
 
     /**
-     * Caches "original", moves the clock past its stale time, then has {@link #CONCURRENT_CALLERS} threads call
-     * {@link CachedSupplier#get()} at once. The first caller to reach the source blocks there until every caller is waiting
-     * (one in the source, the rest on the refresh lock), then completes with {@code refreshOutcome}. Asserts that the source
-     * was called exactly once for the refresh, and returns what each caller received.
+     * Caches "original", moves the clock past its stale time, then runs the concurrent refresh described in
+     * {@link #runConcurrentMandatoryRefresh(Function, long, Supplier)}.
      */
     private List<String> runConcurrentMandatoryRefresh(Supplier<RefreshResult<String>> refreshOutcome)
+        throws InterruptedException {
+        return runConcurrentMandatoryRefresh(
+            now -> RefreshResult.builder("original").staleTime(now.plusSeconds(60)).prefetchTime(now.plusSeconds(30)).build(),
+            61,
+            refreshOutcome);
+    }
+
+    /**
+     * Caches the value returned by {@code initialValue} (given the start time), moves the clock forward by
+     * {@code refreshDelaySeconds}, then has {@link #CONCURRENT_CALLERS} threads call {@link CachedSupplier#get()} at once. The
+     * first caller to reach the source blocks there until every caller is waiting (one in the source, the rest on the refresh
+     * lock), then completes with {@code refreshOutcome}. Asserts that the source was called exactly once for the refresh, and
+     * returns what each caller received.
+     */
+    private List<String> runConcurrentMandatoryRefresh(Function<Instant, RefreshResult<String>> initialValue,
+                                                       long refreshDelaySeconds,
+                                                       Supplier<RefreshResult<String>> refreshOutcome)
         throws InterruptedException {
         AdjustableClock clock = new AdjustableClock();
         Instant now = Instant.parse("2024-01-01T00:00:00Z");
@@ -1701,8 +1717,8 @@ public class CachedSupplierTest {
 
         AtomicInteger refreshCalls = new AtomicInteger(0);
         CountDownLatch releaseSource = new CountDownLatch(1);
-        AtomicReference<Supplier<RefreshResult<String>>> source = new AtomicReference<>(
-            () -> RefreshResult.builder("original").staleTime(now.plusSeconds(60)).prefetchTime(now.plusSeconds(30)).build());
+        RefreshResult<String> initial = initialValue.apply(now);
+        AtomicReference<Supplier<RefreshResult<String>>> source = new AtomicReference<>(() -> initial);
 
         List<String> results = Collections.synchronizedList(new ArrayList<>());
         List<Thread> callers = new ArrayList<>();
@@ -1712,9 +1728,9 @@ public class CachedSupplierTest {
                                                           .clock(clock)
                                                           .prefetchJitterEnabled(false)
                                                           .build()) {
-            assertThat(cache.get()).isEqualTo("original");
+            assertThat(cache.get()).isEqualTo(initial.value());
 
-            clock.time = now.plusSeconds(61);
+            clock.time = now.plusSeconds(refreshDelaySeconds);
             source.set(() -> {
                 refreshCalls.incrementAndGet();
                 // Must be shorter than the 5 second refresh lock wait, so waiting callers are still waiting when this returns.
@@ -2406,6 +2422,291 @@ public class CachedSupplierTest {
         assertThat(CachedSupplier.remainingLifetimeSeconds(nullStaleTime, now)).isEqualTo(1200);
         assertThat(CachedSupplier.refreshBackoffSeconds(1200, new BoundaryRandom(true)))
             .isEqualTo(LONG_LIVED_BACKOFF_MAX_SECONDS);
+    }
+
+    // --- initial fetch returns already-expired value tests ---
+
+    @Test
+    public void get_whenInitialFetchReturnsExpiredValue_returnsItWithoutThrowing() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = allowModeSupplier(supplier, clock, "initialExpiredReturned")) {
+            supplier.set(expiredInitialValue(now));
+
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+        }
+    }
+
+    @ParameterizedTest(name = "expiration={0}s, stale={1}s, prefetch={2}s")
+    @CsvSource({
+        // Prefetch at a fixed window before expiration, in the past (STS, SSO, Login, Container)
+        "-60, -120, -960",
+        // No prefetch time (IMDS for expired credentials)
+        "-60, -120, ",
+        // No expiration: the stale time is the expiration
+        ", -60, -60"
+    })
+    public void get_whenInitialFetchReturnsExpiredValue_nextCallRefreshesWithoutBackoff(Long expirationOffsetSeconds,
+                                                                                       long staleOffsetSeconds,
+                                                                                       Long prefetchOffsetSeconds) {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+
+        try (CachedSupplier<String> cachedSupplier = allowModeSupplier(supplier, clock, "initialExpiredNoBackoff")) {
+            supplier.set(RefreshResult.builder("expired")
+                                      .expiration(offsetOrNull(now, expirationOffsetSeconds))
+                                      .staleTime(now.plusSeconds(staleOffsetSeconds))
+                                      .prefetchTime(offsetOrNull(now, prefetchOffsetSeconds))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            // The initial fetch did not arm the refresh backoff: the very next call, at the same instant, refreshes.
+            supplier.set(RefreshResult.builder("fresh")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("fresh");
+        }
+    }
+
+    @Test
+    public void get_whenInitialFetchReturnsExpiredValue_logsWarnWithoutRetryTime() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "initialExpiredWarn";
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = allowModeSupplier(supplier, clock, name)) {
+            RefreshResult<String> expired = expiredInitialValue(now);
+            supplier.set(expired);
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            List<LogEvent> warnings = logs.warnEventsFor(name);
+            assertThat(warnings).hasSize(1);
+            String message = warnings.get(0).getMessage().getFormattedMessage();
+            assertThat(message).doesNotContain("Credential refresh failed")
+                               .contains("The credential source returned credentials that expired at "
+                                         + expired.expiration())
+                               .contains("No other credentials are cached, so the SDK will use them.");
+            assertThat(warnings.get(0).getThrown()).isNull();
+            assertThat(message).contains("The next call will attempt to refresh these credentials.")
+                               .doesNotContain("attempted again after");
+        }
+    }
+
+    @Test
+    public void get_whenInitialExpiredValueRefreshReturnsExpiredAgain_treatedAsFailedRefreshWithBackoff() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "initialExpiredThenExpiredAgain";
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = allowModeSupplier(supplier, clock, name)) {
+            supplier.set(expiredInitialValue(now));
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            // The next call refreshes. A value is now cached, so another expired value is a failed refresh: the cached
+            // value is kept and the backoff for an expired value (60-90 seconds) is armed.
+            Instant failureTime = now.plusSeconds(1);
+            clock.time = failureTime;
+            Instant expiredAgainAt = failureTime.minusSeconds(10);
+            supplier.set(RefreshResult.builder("expired-again")
+                                      .expiration(expiredAgainAt)
+                                      .staleTime(expiredAgainAt.minusSeconds(60))
+                                      .prefetchTime(expiredAgainAt.minusSeconds(900))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            List<LogEvent> warnings = logs.warnEventsFor(name);
+            assertThat(warnings).hasSize(2);
+            assertRefreshFailureWarning(warnings.get(1), "Credential refresh failed: the credential source returned "
+                                                         + "credentials that expired at " + expiredAgainAt,
+                                        EXPIRED_BACKOFF_MIN_SECONDS, EXPIRED_BACKOFF_MAX_SECONDS);
+            assertSourceNotContactedUntilBackoffElapses(cachedSupplier, clock, supplier, failureTime,
+                                                        retryAfterSeconds(warnings.get(1)), "expired");
+        }
+    }
+
+    @Test
+    public void get_whenInitialExpiredValueRefreshFails_returnsCachedValueAndBacksOff() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "initialExpiredThenFails";
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = allowModeSupplier(supplier, clock, name)) {
+            supplier.set(expiredInitialValue(now));
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            // The next call refreshes and fails: the cached expired value is returned and the backoff is armed.
+            Instant failureTime = now.plusSeconds(1);
+            clock.time = failureTime;
+            supplier.set(new RuntimeException("source down"));
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            List<LogEvent> warnings = logs.warnEventsFor(name);
+            assertThat(warnings).hasSize(2);
+            assertRefreshFailureWarning(warnings.get(1), "Credential refresh failed: source down",
+                                        EXPIRED_BACKOFF_MIN_SECONDS, EXPIRED_BACKOFF_MAX_SECONDS);
+            assertSourceNotContactedUntilBackoffElapses(cachedSupplier, clock, supplier, failureTime,
+                                                        retryAfterSeconds(warnings.get(1)), "expired");
+        }
+    }
+
+    @Test
+    public void get_whenInitialExpiredValueRefreshSucceeds_replacesIt() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "initialExpiredThenSucceeds";
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = allowModeSupplier(supplier, clock, name)) {
+            supplier.set(expiredInitialValue(now));
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            // The next call refreshes and gets valid credentials, which replace the cached expired value.
+            Instant refreshTime = now.plusSeconds(1);
+            clock.time = refreshTime;
+            supplier.set(RefreshResult.builder("fresh")
+                                      .expiration(refreshTime.plusSeconds(3600))
+                                      .staleTime(refreshTime.plusSeconds(3540))
+                                      .prefetchTime(refreshTime.plusSeconds(2700))
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("fresh");
+
+            // The fresh value is used until its prefetch time, then refreshed without any backoff.
+            supplier.set(RefreshResult.builder("next")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            clock.time = refreshTime.plusSeconds(2699);
+            assertThat(cachedSupplier.get()).isEqualTo("fresh");
+            clock.time = refreshTime.plusSeconds(2700);
+            assertThat(cachedSupplier.get()).isEqualTo("next");
+
+            assertThat(logs.warnEventsFor(name)).hasSize(1);
+        }
+    }
+
+    @Test
+    public void get_whenInitialFetchReturnsExpiredValueInStrictMode_refreshesAfterOneSecond() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "initialExpiredStrict";
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .cachedValueName(name)
+                                                                   .staleValueBehavior(STRICT)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // No prefetch time, so only the stale time decides when the source is called again.
+            supplier.set(RefreshResult.builder("expired")
+                                      .expiration(now.minusSeconds(60))
+                                      .staleTime(now.minusSeconds(120))
+                                      .prefetchTime(null)
+                                      .build());
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            supplier.set(RefreshResult.builder("fresh")
+                                      .staleTime(Instant.MAX)
+                                      .prefetchTime(Instant.MAX)
+                                      .build());
+            clock.time = now.plusMillis(999);
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+            clock.time = now.plusSeconds(1);
+            assertThat(cachedSupplier.get()).isEqualTo("fresh");
+
+            assertThat(logs.warnEventsFor(name)).isEmpty();
+        }
+    }
+
+    @Test
+    public void get_whenInitialFetchReturnsExpiredValueAfterNonRecoverableError_returnsItAndClearsTheError() {
+        AdjustableClock clock = new AdjustableClock();
+        MutableSupplier supplier = new MutableSupplier();
+        Instant now = Instant.parse("2024-01-01T00:00:00Z");
+        clock.time = now;
+        String name = "initialExpiredAfterNonRecoverable";
+
+        try (CapturingAppender logs = new CapturingAppender();
+             CachedSupplier<String> cachedSupplier = CachedSupplier.builder(supplier)
+                                                                   .cachedValueName(name)
+                                                                   .staleValueBehavior(ALLOW)
+                                                                   .nonRecoverableErrorPredicate(
+                                                                       e -> e instanceof CacheInvalidatingRuntimeException)
+                                                                   .clock(clock)
+                                                                   .prefetchJitterEnabled(false)
+                                                                   .build()) {
+            // The first initial fetch fails with a non-recoverable error, which is cached.
+            CacheInvalidatingRuntimeException nonRecoverableError = new CacheInvalidatingRuntimeException("token expired");
+            supplier.set(nonRecoverableError);
+            assertThatThrownBy(cachedSupplier::get).isEqualTo(nonRecoverableError);
+
+            // After the error cache window, the initial fetch returns expired credentials: they are returned, not the error.
+            Instant initialFetchTime = now.plusSeconds(PAST_NON_RECOVERABLE_ERROR_CACHE);
+            clock.time = initialFetchTime;
+            supplier.set(expiredInitialValue(initialFetchTime));
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            // The next call refreshes. A recoverable failure keeps the expired value and arms the backoff; the earlier
+            // non-recoverable error is not re-raised.
+            Instant failureTime = initialFetchTime.plusSeconds(1);
+            clock.time = failureTime;
+            supplier.set(new RuntimeException("source down"));
+            assertThat(cachedSupplier.get()).isEqualTo("expired");
+
+            List<LogEvent> warnings = logs.warnEventsFor(name);
+            assertThat(warnings).hasSize(2);
+            assertRefreshFailureWarning(warnings.get(1), "Credential refresh failed: source down",
+                                        EXPIRED_BACKOFF_MIN_SECONDS, EXPIRED_BACKOFF_MAX_SECONDS);
+            assertSourceNotContactedUntilBackoffElapses(cachedSupplier, clock, supplier, failureTime,
+                                                        retryAfterSeconds(warnings.get(1)), "expired");
+        }
+    }
+
+    @Test
+    public void get_whenConcurrentRefreshOfInitialExpiredValueReturnsExpiredAgain_sourceCalledOnce()
+        throws InterruptedException {
+        List<String> results = runConcurrentMandatoryRefresh(CachedSupplierTest::expiredInitialValue, 1, () -> {
+            Instant expiredAgainAt = Instant.parse("2024-01-01T00:00:00Z");
+            return RefreshResult.builder("expired-again")
+                                .expiration(expiredAgainAt)
+                                .staleTime(expiredAgainAt.minusSeconds(60))
+                                .prefetchTime(expiredAgainAt.minusSeconds(900))
+                                .build();
+        });
+
+        assertThat(results).hasSize(CONCURRENT_CALLERS).containsOnly("expired");
+    }
+
+    /**
+     * A value whose expiration, stale time, and prefetch time are all before {@code now}, shaped like the credentials an STS
+     * or container credential provider would cache.
+     */
+    private static RefreshResult<String> expiredInitialValue(Instant now) {
+        Instant expiration = now.minusSeconds(60);
+        return RefreshResult.builder("expired")
+                            .expiration(expiration)
+                            .staleTime(expiration.minusSeconds(60))
+                            .prefetchTime(expiration.minusSeconds(900))
+                            .build();
     }
 
     private static Instant offsetOrNull(Instant time, Long offsetSeconds) {

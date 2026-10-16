@@ -399,8 +399,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
      * but has not expired, so it is used and the next call refreshes again.
      *
      * <p>Otherwise the credential source returned credentials that are already expired (expiration, or staleTime if no
-     * expiration is specified, at or before now). In ALLOW mode this is treated the same as a failed refresh: the SDK
-     * retains the previously cached credentials and applies the refresh backoff.
+     * expiration is specified, at or before now). In ALLOW mode, if a value is already cached, this is treated the same as a
+     * failed refresh: the SDK retains the previously cached credentials and applies the refresh backoff. If no value is cached
+     * (the initial fetch), this is not a failure: the expired value is cached as-is and returned, and no refresh backoff is
+     * applied. The next call finds the cached value stale and refreshes it; if that refresh fails or returns expired
+     * credentials again, it is a failed refresh and the refresh backoff applies.
      */
     private RefreshResult<T> handleFetchedSuccess(RefreshResult<T> fetch) {
         Instant now = clock.instant();
@@ -425,8 +428,8 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                                "). Using expiration of " + newStale);
                 return fetch.toBuilder().staleTime(newStale).build(); // Refresh again in 1 second
             case ALLOW:
-                // Per spec: a response with Expiration at or before now MUST be treated the same as a failed refresh.
-                // Retain previously cached credentials and apply the refresh backoff.
+                // Per spec: when credentials are already cached, a response with Expiration at or before now MUST be treated
+                // the same as a failed refresh. Retain previously cached credentials and apply the refresh backoff.
                 Instant reportedExpiration = fetch.expiration() != null ? fetch.expiration() : fetch.staleTime();
                 RefreshResult<T> previousCachedValue = this.cachedValue;
                 if (previousCachedValue != null) {
@@ -436,14 +439,16 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
                                         null);
                     return previousCachedValue;
                 }
-                // No previous value — accept the stale credentials with extended stale time (initial fetch edge case)
+                // Initial fetch: this is not a failure. Cache the expired credentials as-is and use them (static stability).
+                // No refresh backoff is applied: the cached value is stale, so the next call refreshes it. If that refresh
+                // fails or returns expired credentials again, a value is cached and it is a failed refresh with backoff.
                 this.nextAllowedRefreshTime = null;
-                Instant newStaleTime = jitterTime(now, Duration.ofMinutes(1), Duration.ofMinutes(10));
-                log.debug(() -> "(" + cachedValueName + ") Initial fetch returned already-expired credentials ("
-                               + reportedExpiration + "). Extending expiration to " + newStaleTime);
-                return fetch.toBuilder()
-                            .staleTime(newStaleTime)
-                            .build();
+                this.cachedNonRecoverableError = null;
+                this.cachedNonRecoverableErrorExpiresAt = null;
+                log.warn(() -> "(" + cachedValueName + ") The credential source returned credentials that expired at "
+                               + reportedExpiration + ". No other credentials are cached, so the SDK will use them. The next "
+                               + "call will attempt to refresh these credentials.");
+                return fetch;
             default:
                 throw new IllegalStateException("Unknown stale-value-behavior: " + staleValueBehavior);
         }
@@ -843,8 +848,11 @@ public class CachedSupplier<T> implements Supplier<T>, SdkAutoCloseable {
          * expires backs off 1-10 minutes. Until the backoff has passed, {@link CachedSupplier#get()} returns the cached value
          * without calling the underlying supplier. The cached value's stale and prefetch times are not changed.
          *
-         * <p>A fetched value whose {@link RefreshResult#expiration()} (or, if not specified, whose
-         * {@link RefreshResult#staleTime()}) is at or before now counts as a failed refresh.
+         * <p>When a value is already cached, a fetched value whose {@link RefreshResult#expiration()} (or, if not specified,
+         * whose {@link RefreshResult#staleTime()}) is at or before now counts as a failed refresh. On the initial fetch, when
+         * no value is cached, such a value is not a failure: it is cached and returned as-is without a refresh backoff, so the
+         * next {@link CachedSupplier#get()} calls the underlying supplier again. If that call fails or also returns an expired
+         * value, it is a failed refresh and the backoff applies.
          *
          * <p>If a {@link Builder#nonRecoverableErrorPredicate(Predicate)} is configured and returns {@code true}
          * for the exception, it is re-thrown immediately and no backoff is set. The error is cached for 1-5 seconds, during

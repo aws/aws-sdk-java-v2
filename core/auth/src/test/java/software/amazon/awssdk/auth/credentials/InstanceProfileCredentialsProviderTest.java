@@ -468,7 +468,7 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     @Test
-    void resolveCredentials_onlyCallsImdsOnceEvenWithExpiredCredentials() {
+    void resolveCredentials_withExpiredCredentials_callsImdsOnceMoreThenBacksOff() {
         String credentialsResponse =
             "{"
             + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
@@ -480,16 +480,85 @@ public class InstanceProfileCredentialsProviderTest {
 
         AwsCredentialsProvider credentialsProvider = InstanceProfileCredentialsProvider.builder().build();
 
+        // The initial fetch returns expired credentials. They are used, and no refresh backoff is applied.
         credentialsProvider.resolveCredentials();
-
         int requestCountAfterOneRefresh = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
 
+        // The next call refreshes, and IMDS returns expired credentials again: a failed refresh, which arms the backoff.
         credentialsProvider.resolveCredentials();
-        credentialsProvider.resolveCredentials();
+        int requestCountAfterTwoRefreshes = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
+        assertThat(requestCountAfterTwoRefreshes).isGreaterThan(requestCountAfterOneRefresh);
 
+        // During the backoff, IMDS is not called.
+        credentialsProvider.resolveCredentials();
         int requestCountAfterThreeRefreshes = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
+        assertThat(requestCountAfterThreeRefreshes).isEqualTo(requestCountAfterTwoRefreshes);
+    }
 
-        assertThat(requestCountAfterThreeRefreshes).isEqualTo(requestCountAfterOneRefresh);
+    @Test
+    void resolveCredentials_initialFetchExpired_nextCallAdoptsFreshCredentials() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+
+        // The initial fetch returns expired credentials: they are cached and used rather than treated as a failure.
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(expiredImdsCredentials(now, "SECRET_ACCESS_KEY")));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        // No refresh backoff was applied, so the next call refreshes and adopts the fresh credentials.
+        clock.time = now.plusSeconds(1);
+        stubSecureCredentialsResponse(aResponse().withBody(freshImdsCredentials(now, "SECRET_ACCESS_KEY2")));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    @Test
+    void resolveCredentials_initialFetchExpiredThenExpiredAgain_callsImdsAgainAfterBackoff() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant now = Instant.now();
+
+        // The initial fetch returns expired credentials: they are cached and used rather than treated as a failure.
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(expiredImdsCredentials(now, "SECRET_ACCESS_KEY")));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        int requestCountAfterInitialFetch = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
+
+        // The next call refreshes, and IMDS returns expired credentials again. That is a failed refresh: the cached
+        // credentials are kept and the refresh backoff for expired values (60-90 seconds) is armed.
+        Instant failureTime = now.plusSeconds(1);
+        clock.time = failureTime;
+        stubSecureCredentialsResponse(aResponse().withBody(expiredImdsCredentials(now, "SECRET_ACCESS_KEY_EXPIRED_AGAIN")));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        int requestCountAfterFailedRefresh = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
+        assertThat(requestCountAfterFailedRefresh).isGreaterThan(requestCountAfterInitialFetch);
+
+        // IMDS is not called before the shortest possible backoff has elapsed.
+        stubSecureCredentialsResponse(aResponse().withBody(freshImdsCredentials(now, "SECRET_ACCESS_KEY2")));
+        clock.time = failureTime.plusSeconds(59);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount())
+            .isEqualTo(requestCountAfterFailedRefresh);
+
+        // Once the longest possible backoff has elapsed, IMDS is called again and the fresh credentials are adopted.
+        clock.time = failureTime.plusSeconds(91);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    private static String expiredImdsCredentials(Instant now, String secretAccessKey) {
+        return imdsCredentials(secretAccessKey, now.minus(Duration.ofHours(1)));
+    }
+
+    private static String freshImdsCredentials(Instant now, String secretAccessKey) {
+        return imdsCredentials(secretAccessKey, now.plus(6, HOURS));
+    }
+
+    private static String imdsCredentials(String secretAccessKey, Instant expiration) {
+        return "{"
+               + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+               + "\"SecretAccessKey\":\"" + secretAccessKey + "\","
+               + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+               + "}";
     }
 
     @Test
