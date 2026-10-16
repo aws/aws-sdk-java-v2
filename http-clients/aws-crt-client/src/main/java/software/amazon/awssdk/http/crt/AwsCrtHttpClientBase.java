@@ -19,6 +19,8 @@ import static software.amazon.awssdk.crtcore.CrtConfigurationUtils.resolveProxy;
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.PROTOCOL;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildSocketOptions;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.buildTlsConnectionOptions;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.createTlsContext;
+import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.overrideTrustStoreFromSystemProperties;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveCipherPreference;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMinTlsVersion;
 import static software.amazon.awssdk.http.crt.internal.AwsCrtConfigurationUtils.resolveMonitoringOptions;
@@ -112,18 +114,25 @@ abstract class AwsCrtHttpClientBase implements SdkAutoCloseable {
             clientBootstrap = new ClientBootstrap(eventLoopGroup, null);
             clientSocketOptions = buildSocketOptions(builder.getTcpKeepAliveConfiguration(),
                                                      config.get(SdkHttpConfigurationOption.CONNECTION_TIMEOUT));
+            boolean trustAllCertificates = config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES);
             clientTlsContextOptions =
                 TlsContextOptions.createDefaultClient()
                                  .withCipherPreference(resolveCipherPreference(builder.getPostQuantumTlsEnabled()))
                                  .withMinimumTlsVersion(resolveMinTlsVersion(builder.getMinTlsVersion()))
-                                 .withVerifyPeer(!config.get(SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES));
+                                 .withVerifyPeer(!trustAllCertificates);
             this.protocol = config.get(PROTOCOL);
             if (protocol == Protocol.HTTP2) {
                 clientTlsContextOptions = clientTlsContextOptions.withAlpnList("h2");
             }
 
+            boolean trustStoreFromSystemProperties =
+                Boolean.TRUE.equals(builder.getUseTrustStoreSystemProperties()) && !trustAllCertificates;
+            if (trustStoreFromSystemProperties) {
+                overrideTrustStoreFromSystemProperties(clientTlsContextOptions);
+            }
+
             this.tlsContextOptions = registerOwnedResource(clientTlsContextOptions);
-            clientTlsContext = new TlsContext(clientTlsContextOptions);
+            clientTlsContext = createTlsContext(clientTlsContextOptions, trustStoreFromSystemProperties);
 
             // The bootstrap holds a native reference to its event-loop group, so the group is registered before (and thus
             // closed after) the bootstrap to keep CRT teardown ordering correct. A null group leaves the shared static

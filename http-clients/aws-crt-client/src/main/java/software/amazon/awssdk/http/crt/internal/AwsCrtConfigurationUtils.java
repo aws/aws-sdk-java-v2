@@ -18,6 +18,7 @@ package software.amazon.awssdk.http.crt.internal;
 
 import java.time.Duration;
 import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.crt.CrtRuntimeException;
 import software.amazon.awssdk.crt.http.HttpMonitoringOptions;
 import software.amazon.awssdk.crt.io.SocketOptions;
 import software.amazon.awssdk.crt.io.TlsCipherPreference;
@@ -37,6 +38,8 @@ public final class AwsCrtConfigurationUtils {
 
     // CRT rejects a throughput-failure interval below two seconds (HttpMonitoringOptions).
     private static final int MIN_MONITORING_FAILURE_INTERVAL_SECONDS = 2;
+
+    private static final String TRUST_STORE_PROPERTY = "javax.net.ssl.trustStore";
 
     private AwsCrtConfigurationUtils() {
     }
@@ -142,4 +145,32 @@ public final class AwsCrtConfigurationUtils {
         }
     }
 
+    /**
+     * Replaces the OS trust store in {@code tlsContextOptions} with the trust store specified by the JSSE trust store system
+     * properties. The CRT keeps the OS trust store when {@code javax.net.ssl.trustStore} is unset or empty.
+     */
+    public static void overrideTrustStoreFromSystemProperties(TlsContextOptions tlsContextOptions) {
+        try {
+            tlsContextOptions.overrideDefaultTrustStoreFromJavaSystemProperties();
+        } catch (CrtRuntimeException | IllegalArgumentException e) {
+            throw new IllegalStateException("Unable to load the trust store specified by the " + TRUST_STORE_PROPERTY
+                                            + " system property: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Creates the {@link TlsContext}. When {@code trustStoreFromSystemProperties} is true, a failure is reported as an
+     * {@link IllegalStateException}, since the native TLS layer only parses the trust store's certificates at this point.
+     */
+    public static TlsContext createTlsContext(TlsContextOptions tlsContextOptions, boolean trustStoreFromSystemProperties) {
+        try {
+            return new TlsContext(tlsContextOptions);
+        } catch (CrtRuntimeException e) {
+            if (trustStoreFromSystemProperties) {
+                throw new IllegalStateException("Unable to create the TLS context with useTrustStoreSystemProperties enabled: "
+                                                + e.getMessage(), e);
+            }
+            throw e;
+        }
+    }
 }
