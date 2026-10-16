@@ -19,9 +19,11 @@ import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_C
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
 
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
-import software.amazon.awssdk.http.HttpTestUtils;
+import software.amazon.awssdk.http.RecordingResponseHandler;
+import software.amazon.awssdk.http.async.AsyncExecuteRequest;
 import software.amazon.awssdk.http.async.SdkAsyncHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
 
@@ -52,11 +54,19 @@ class AwsCrtAsyncHttpClientTrustStoreSystemPropertiesTest
     }
 
     @Override
-    protected void executeGet(SdkAsyncHttpClient client, URI uri) throws Exception {
+    protected GetResponse executeGet(SdkAsyncHttpClient client, URI uri) throws Exception {
+        RecordingResponseHandler recorder = new RecordingResponseHandler();
+        CompletableFuture<Void> execution = client.execute(AsyncExecuteRequest.builder()
+                                                                              .request(createRequest(uri))
+                                                                              .requestContentPublisher(new EmptyPublisher())
+                                                                              .responseHandler(recorder)
+                                                                              .build());
         try {
-            HttpTestUtils.sendRequest(client, createRequest(uri)).get(30, TimeUnit.SECONDS);
+            execution.get(30, TimeUnit.SECONDS);
+            recorder.completeFuture().get(30, TimeUnit.SECONDS);
         } catch (ExecutionException e) {
             throw (Exception) e.getCause();
         }
+        return new GetResponse(recorder.responses().get(0).statusCode(), recorder.fullResponseAsString());
     }
 }

@@ -22,7 +22,6 @@ import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMoc
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.time.temporal.ChronoUnit.DAYS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.liveEventLoopGroups;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.newEventLoopGroups;
@@ -87,6 +86,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
     private static final String[] TRUST_STORE_PROPERTIES = {TRUST_STORE, TRUST_STORE_PASSWORD, TRUST_STORE_TYPE,
                                                             TRUST_STORE_PROVIDER};
     private static final String PASSWORD = "changeit";
+    private static final String STUB_BODY = "ok";
     // The CRT accepts at most 1024 certificates in a trust store, the s2n default chain limit.
     private static final int MAX_TRUST_STORE_CERTIFICATES = 1024;
     // Well above a loopback handshake (milliseconds) and well below s2n's 10s minimum blinding delay.
@@ -112,7 +112,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
 
     protected abstract T buildClientWithPrivateEventLoopGroup(Boolean useTrustStoreSystemProperties);
 
-    protected abstract void executeGet(T client, URI uri) throws Exception;
+    protected abstract GetResponse executeGet(T client, URI uri) throws Exception;
 
     @BeforeAll
     static void setUpServer() throws Exception {
@@ -145,7 +145,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
                                                     .keyManagerPassword(PASSWORD)
                                                     .keystoreType("PKCS12"));
         server.start();
-        server.stubFor(get(urlPathEqualTo("/")).willReturn(aResponse().withStatus(200).withBody("ok")));
+        server.stubFor(get(urlPathEqualTo("/")).willReturn(aResponse().withStatus(200).withBody(STUB_BODY)));
     }
 
     @AfterAll
@@ -183,7 +183,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
         setTrustStoreProperties(serverCertTrustStore, PASSWORD);
 
         try (T client = buildClient(true)) {
-            assertThatCode(() -> executeGet(client, serverUri())).doesNotThrowAnyException();
+            assertStubResponse(executeGet(client, serverUri()));
         }
     }
 
@@ -192,7 +192,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
         setTrustStoreProperties(serverKeyStore, PASSWORD);
 
         try (T client = buildClient(true)) {
-            assertThatCode(() -> executeGet(client, serverUri())).doesNotThrowAnyException();
+            assertStubResponse(executeGet(client, serverUri()));
         }
     }
 
@@ -202,7 +202,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
         System.setProperty(TRUST_STORE_TYPE, "JKS");
 
         try (T client = buildClient(true)) {
-            assertThatCode(() -> executeGet(client, serverUri())).doesNotThrowAnyException();
+            assertStubResponse(executeGet(client, serverUri()));
         }
     }
 
@@ -312,7 +312,7 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
         System.setProperty(TRUST_STORE, missingTrustStore());
 
         try (T client = buildClientTrustingAllCertificates(true)) {
-            assertThatCode(() -> executeGet(client, serverUri())).doesNotThrowAnyException();
+            assertStubResponse(executeGet(client, serverUri()));
         }
     }
 
@@ -323,8 +323,13 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
         try (T client = buildClient(true)) {
             setTrustStoreProperties(unrelatedCertTrustStore, PASSWORD);
 
-            assertThatCode(() -> executeGet(client, serverUri())).doesNotThrowAnyException();
+            assertStubResponse(executeGet(client, serverUri()));
         }
+    }
+
+    private static void assertStubResponse(GetResponse response) {
+        assertThat(response.statusCode()).isEqualTo(200);
+        assertThat(response.body()).isEqualTo(STUB_BODY);
     }
 
     // s2n reports a rejected certificate only after its 10-30s blinding delay, so the acquisition timeout can fire first.
@@ -405,5 +410,23 @@ abstract class CrtTrustStoreSystemPropertiesTestSuite<T extends SdkAutoCloseable
             keyStore.store(out, PASSWORD.toCharArray());
         }
         return file;
+    }
+
+    protected static final class GetResponse {
+        private final int statusCode;
+        private final String body;
+
+        GetResponse(int statusCode, String body) {
+            this.statusCode = statusCode;
+            this.body = body;
+        }
+
+        int statusCode() {
+            return statusCode;
+        }
+
+        String body() {
+            return body;
+        }
     }
 }

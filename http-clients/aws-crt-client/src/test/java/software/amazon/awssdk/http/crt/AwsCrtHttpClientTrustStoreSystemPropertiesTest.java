@@ -17,13 +17,14 @@ package software.amazon.awssdk.http.crt;
 
 import static software.amazon.awssdk.http.SdkHttpConfigurationOption.TRUST_ALL_CERTIFICATES;
 import static software.amazon.awssdk.http.crt.CrtHttpClientTestUtils.createRequest;
-import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 
 import java.net.URI;
+import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.HttpExecuteRequest;
 import software.amazon.awssdk.http.HttpExecuteResponse;
 import software.amazon.awssdk.http.SdkHttpClient;
 import software.amazon.awssdk.utils.AttributeMap;
+import software.amazon.awssdk.utils.IoUtils;
 
 class AwsCrtHttpClientTrustStoreSystemPropertiesTest extends CrtTrustStoreSystemPropertiesTestSuite<SdkHttpClient> {
 
@@ -51,11 +52,13 @@ class AwsCrtHttpClientTrustStoreSystemPropertiesTest extends CrtTrustStoreSystem
     }
 
     @Override
-    protected void executeGet(SdkHttpClient client, URI uri) throws Exception {
+    protected GetResponse executeGet(SdkHttpClient client, URI uri) throws Exception {
         HttpExecuteResponse response = client.prepareRequest(HttpExecuteRequest.builder()
                                                                                .request(createRequest(uri))
                                                                                .build())
                                              .call();
-        response.responseBody().ifPresent(body -> invokeSafely(body::close));
+        try (AbortableInputStream body = response.responseBody().orElseThrow(IllegalStateException::new)) {
+            return new GetResponse(response.httpResponse().statusCode(), IoUtils.toUtf8String(body));
+        }
     }
 }
