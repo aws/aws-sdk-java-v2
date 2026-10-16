@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import software.amazon.awssdk.http.SdkHttpFullResponse;
 import software.amazon.awssdk.http.SdkHttpResponse;
@@ -159,6 +160,30 @@ public class AwsServiceExceptionTest {
                                                    .requestId("requestId")
                                                    .build();
         assertThat(e.getMessage()).isEqualTo("(Service: serviceName, Status Code: 500, Request ID: requestId)");
+    }
+
+    @ParameterizedTest
+    @CsvSource({"ExpiredToken, true",
+                "ExpiredTokenException, true",
+                "InvalidToken, false",
+                "AccessDenied, false",
+                "UnrecognizedClientException, false"})
+    void isAuthenticationError_whenErrorCode_returnsExpected(String errorCode, boolean expected) {
+        AwsServiceException e = AwsServiceException.builder()
+                                                   .awsErrorDetails(AwsErrorDetails.builder()
+                                                                                   .errorCode(errorCode)
+                                                                                   .build())
+                                                   .statusCode(400)
+                                                   .build();
+
+        assertThat(e.isAuthenticationError()).isEqualTo(expected);
+    }
+
+    @Test
+    void isAuthenticationError_whenNoErrorDetails_returnsFalse() {
+        AwsServiceException e = AwsServiceException.builder().statusCode(400).build();
+
+        assertThat(e.isAuthenticationError()).isFalse();
     }
 
     public void assertSkewed(int clientSideTimeOffset,

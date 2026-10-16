@@ -60,10 +60,11 @@ import software.amazon.awssdk.utils.StringInputStream;
  * Functional tests for how the SDK handles a service rejecting a request's credentials, and how it resolves credentials on
  * retries:
  * <ul>
- *     <li>An {@code ExpiredToken} or {@code InvalidToken} rejection invalidates the provider's cached credentials, and the
+ *     <li>An {@code ExpiredToken} or {@code ExpiredTokenException} rejection invalidates the provider's cached credentials, and the
  *     request is retried. The retry attempt resolves the credentials again, so it is signed with the refreshed credentials.</li>
  *     <li>Every retry attempt resolves the credentials again, whatever the reason for the retry.</li>
- *     <li>Authorization errors such as {@code AccessDenied} neither invalidate the credentials nor are retried.</li>
+ *     <li>Other errors, such as the authorization error {@code AccessDenied} or {@code InvalidToken}, neither invalidate the
+ *     credentials nor are retried.</li>
  * </ul>
  */
 public class AuthErrorInvalidationFunctionalTest {
@@ -71,7 +72,7 @@ public class AuthErrorInvalidationFunctionalTest {
     private static final int STANDARD_MAX_ATTEMPTS = 3;
 
     @ParameterizedTest
-    @ValueSource(strings = {"ExpiredToken", "InvalidToken"})
+    @ValueSource(strings = {"ExpiredToken", "ExpiredTokenException"})
     public void authError_invalidatesCredentials_andRetryUsesRefreshedCredentials(String errorCode) {
         MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
         TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
@@ -125,7 +126,7 @@ public class AuthErrorInvalidationFunctionalTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"ExpiredToken", "InvalidToken"})
+    @ValueSource(strings = {"ExpiredToken", "ExpiredTokenException"})
     public void async_authError_invalidatesCredentials_andRetryUsesRefreshedCredentials(String errorCode) {
         MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
         TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
@@ -326,36 +327,38 @@ public class AuthErrorInvalidationFunctionalTest {
         }
     }
 
-    @Test
-    public void accessDenied_doesNotInvalidateCredentials_andIsNotRetried() {
+    @ParameterizedTest
+    @ValueSource(strings = {"AccessDenied", "InvalidToken"})
+    public void nonAuthenticationError_doesNotInvalidateCredentials_andIsNotRetried(String errorCode) {
         MockSyncHttpClient mockHttpClient = new MockSyncHttpClient();
         TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
 
         try (ProtocolRestJsonClient client = syncClient(mockHttpClient, credentialsProvider)) {
-            mockHttpClient.stubResponses(authErrorResponse("AccessDenied"));
+            mockHttpClient.stubResponses(authErrorResponse(errorCode));
 
             assertThatThrownBy(client::allTypes)
                 .isInstanceOf(AwsServiceException.class)
                 .satisfies(e -> assertThat(((AwsServiceException) e).awsErrorDetails().errorCode())
-                    .isEqualTo("AccessDenied"));
+                    .isEqualTo(errorCode));
 
             assertThat(credentialsProvider.invalidateCallCount()).isZero();
             assertThat(mockHttpClient.getRequests()).hasSize(1);
         }
     }
 
-    @Test
-    public void async_accessDenied_doesNotInvalidateCredentials_andIsNotRetried() {
+    @ParameterizedTest
+    @ValueSource(strings = {"AccessDenied", "InvalidToken"})
+    public void async_nonAuthenticationError_doesNotInvalidateCredentials_andIsNotRetried(String errorCode) {
         MockAsyncHttpClient mockHttpClient = new MockAsyncHttpClient();
         TrackingCredentialsProvider credentialsProvider = TrackingCredentialsProvider.refreshedOnInvalidate();
 
         try (ProtocolRestJsonAsyncClient client = asyncClient(mockHttpClient, credentialsProvider)) {
-            mockHttpClient.stubResponses(authErrorResponse("AccessDenied"));
+            mockHttpClient.stubResponses(authErrorResponse(errorCode));
 
             assertThatThrownBy(() -> client.allTypes().join())
                 .hasCauseInstanceOf(AwsServiceException.class)
                 .satisfies(e -> assertThat(((AwsServiceException) e.getCause()).awsErrorDetails().errorCode())
-                    .isEqualTo("AccessDenied"));
+                    .isEqualTo(errorCode));
 
             assertThat(credentialsProvider.invalidateCallCount()).isZero();
             assertThat(mockHttpClient.getRequests()).hasSize(1);

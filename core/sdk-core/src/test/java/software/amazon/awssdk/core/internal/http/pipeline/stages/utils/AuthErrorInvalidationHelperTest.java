@@ -54,7 +54,7 @@ import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 public class AuthErrorInvalidationHelperTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"ExpiredToken", "InvalidToken"})
+    @ValueSource(strings = {"ExpiredToken", "ExpiredTokenException"})
     void invalidateIfAuthError_whenAuthErrorCode_triggersInvalidation(String errorCode) {
         TrackingIdentityProvider provider = new TrackingIdentityProvider();
         TestIdentity identity = new TestIdentity();
@@ -73,6 +73,18 @@ public class AuthErrorInvalidationHelperTest {
         TestIdentity identity = new TestIdentity();
         RequestExecutionContext context = contextWithProvider(provider, identity);
         Throwable exception = serviceExceptionWithErrorCode("AccessDenied");
+
+        AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
+
+        assertThat(provider.invalidateCalled()).isFalse();
+    }
+
+    @Test
+    void invalidateIfAuthError_whenInvalidToken_doesNotTriggerInvalidation() {
+        TrackingIdentityProvider provider = new TrackingIdentityProvider();
+        TestIdentity identity = new TestIdentity();
+        RequestExecutionContext context = contextWithProvider(provider, identity);
+        Throwable exception = serviceExceptionWithErrorCode("InvalidToken");
 
         AuthErrorInvalidationHelper.invalidateIfAuthError(exception, context);
 
@@ -359,7 +371,7 @@ public class AuthErrorInvalidationHelperTest {
      */
     private static class TestAwsServiceException extends SdkServiceException {
         private static final Set<String> AUTH_ERROR_CODES = new HashSet<>(Arrays.asList(
-            "ExpiredToken", "InvalidToken"
+            "ExpiredToken", "ExpiredTokenException"
         ));
 
         private final String errorCode;

@@ -93,13 +93,13 @@ public class AwsRetryStrategyTest {
 
     @ParameterizedTest
     @CsvSource({"STANDARD, false, ExpiredToken",
-                "STANDARD, false, InvalidToken",
+                "STANDARD, false, ExpiredTokenException",
                 "STANDARD, true, ExpiredToken",
-                "STANDARD, true, InvalidToken",
+                "STANDARD, true, ExpiredTokenException",
                 "ADAPTIVE_V2, false, ExpiredToken",
-                "ADAPTIVE_V2, true, InvalidToken",
+                "ADAPTIVE_V2, true, ExpiredTokenException",
                 "LEGACY, false, ExpiredToken",
-                "LEGACY, false, InvalidToken"})
+                "LEGACY, false, ExpiredTokenException"})
     void forRetryMode_authenticationErrorCode_isRetried(RetryMode mode, boolean newRetries2026Enabled, String errorCode) {
         RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, newRetries2026Enabled);
 
@@ -115,8 +115,9 @@ public class AwsRetryStrategyTest {
     @ParameterizedTest
     @CsvSource({"STANDARD, AccessDenied",
                 "STANDARD, AccessDeniedException",
-                "STANDARD, ExpiredTokenException",
-                "LEGACY, AccessDenied"})
+                "STANDARD, InvalidToken",
+                "LEGACY, AccessDenied",
+                "LEGACY, InvalidToken"})
     void forRetryMode_errorCodeThatIsNotAnAuthenticationError_isNotRetried(RetryMode mode, String errorCode) {
         RetryStrategy strategy = AwsRetryStrategy.forRetryMode(mode, false);
 
