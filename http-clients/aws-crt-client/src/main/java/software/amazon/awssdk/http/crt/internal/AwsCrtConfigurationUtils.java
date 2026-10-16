@@ -157,20 +157,4 @@ public final class AwsCrtConfigurationUtils {
                                             + " system property: " + e.getMessage(), e);
         }
     }
-
-    /**
-     * Creates the {@link TlsContext}. When {@code trustStoreFromSystemProperties} is true, a failure is reported as an
-     * {@link IllegalStateException}, since the native TLS layer only parses the trust store's certificates at this point.
-     */
-    public static TlsContext createTlsContext(TlsContextOptions tlsContextOptions, boolean trustStoreFromSystemProperties) {
-        try {
-            return new TlsContext(tlsContextOptions);
-        } catch (CrtRuntimeException e) {
-            if (trustStoreFromSystemProperties) {
-                throw new IllegalStateException("Unable to create the TLS context with useTrustStoreSystemProperties enabled: "
-                                                + e.getMessage(), e);
-            }
-            throw e;
-        }
-    }
 }
