@@ -63,4 +63,23 @@ class UploadPartCopyRequestIterableTest {
         assertThat(requests.get(0).copySourceRange()).isEqualTo("bytes=0-1023");
         assertThat(requests.get(1).copySourceRange()).isEqualTo("bytes=1024-1024");
     }
+
+    @Test
+    void partSizeInBytes_shouldMatchEachRequestRange() {
+        CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                                                               .destinationKey("destination")
+                                                               .destinationBucket("destinationBucket")
+                                                               .sourceKey("source")
+                                                               .sourceBucket("sourceBucket")
+                                                               .build();
+        UploadPartCopyRequestIterable uploadPartCopyRequests = new UploadPartCopyRequestIterable("id",
+                                                                                                 1024L,
+                                                                                                 copyObjectRequest,
+                                                                                                 3000L);
+
+        List<Long> partSizes = uploadPartCopyRequests.stream()
+                                                     .map(UploadPartCopyRequestIterable::partSizeInBytes)
+                                                     .collect(Collectors.toList());
+        assertThat(partSizes).containsExactly(1024L, 1024L, 952L);
+    }
 }
