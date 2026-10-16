@@ -43,18 +43,30 @@ import software.amazon.awssdk.services.protocolrestjson.ProtocolRestJsonClientBu
 import software.amazon.awssdk.services.protocolrestjson.model.AllTypesResponse;
 import software.amazon.awssdk.services.protocolrestjson.model.ProtocolRestJsonException;
 
-public class RetryStrategySetupUsingRetryMode {
+public class RetryStrategySetupUsingRetryModeTest {
 
     private WireMockServer wireMock = new WireMockServer(0);
 
     @Test
-    public void sdkRetryStrategyDoesNotRetryOnAWSRetryableErrors() {
-        // Configuring the client to use an non-AWS aware retry strategy won't retry on AWS retryable conditions.
+    public void sdkRetryStrategy_optingOutOfClientDefaults_doesNotRetryOnAwsRetryableErrors() {
+        // A non-AWS aware retry strategy that opts out of the client defaults won't retry on AWS retryable conditions.
         ProtocolRestJsonClient client =
-            client(b -> b.overrideConfiguration(o -> o.retryStrategy(SdkDefaultRetryStrategy.standardRetryStrategy())));
+            client(b -> b.overrideConfiguration(o -> o.retryStrategy(SdkDefaultRetryStrategy.standardRetryStrategyBuilder()
+                                                                                            .useClientDefaults(false)
+                                                                                            .build())));
         assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client));
         // One request, i.e., no retries.
         verifyRequestCount(1);
+    }
+
+    @Test
+    public void sdkRetryStrategy_usingClientDefaults_retriesOnAwsRetryableErrors() {
+        // By default, the client adds the AWS retry conditions to a user-provided non-AWS aware retry strategy.
+        ProtocolRestJsonClient client =
+            client(b -> b.overrideConfiguration(o -> o.retryStrategy(SdkDefaultRetryStrategy.standardRetryStrategy())));
+        assertThrows(ProtocolRestJsonException.class, () -> callAllTypes(client));
+        // Three requests, i.e., there were retries.
+        verifyRequestCount(3);
     }
 
     @Test
@@ -168,8 +180,9 @@ public class RetryStrategySetupUsingRetryMode {
                              .willReturn(
                                  aResponse()
                                      .withStatus(400)
-                                     // This is an AWS retryable error typ but 4xx are not retryable status codes. A normal SDK
-                                     // retry strategy will not retry this response whereas an AWS retry strategy will.
+                                     // This is an AWS retryable error type but 4xx are not retryable status codes. An SDK
+                                     // retry strategy that opts out of the client defaults will not retry this response
+                                     // whereas an AWS retry strategy will.
                                      .withHeader("x-amzn-ErrorType", "PriorRequestNotComplete")
                                      .withBody("\"{\"__type\":\"PriorRequestNotComplete\",\"message\":\"Blah "
                                                + "error\"}\"")));
