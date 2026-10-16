@@ -39,6 +39,7 @@ public final class SmithyIntermediateModelPostprocessor {
 
     public static SmithyIntermediateModelPostprocessor create(CustomizationConfig config) {
         List<CodegenCustomizationProcessor> processors = new ArrayList<>();
+        processors.add(new MetadataModifiersProcessor(config.getCustomServiceMetadata()));
         processors.add(new RemoveExceptionMessagePropertyProcessor());
         processors.add(new UseLegacyEventGenerationSchemeProcessor());
         processors.add(new EventStreamSharedEventProcessor(config.getDuplicateAndRenameSharedEvents()));

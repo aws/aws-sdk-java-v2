@@ -17,14 +17,18 @@ package software.amazon.awssdk.codegen.smithy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.tuple;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.codegen.internal.Jackson;
 import software.amazon.awssdk.codegen.internal.Utils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
+import software.amazon.awssdk.codegen.model.intermediate.EnumModel;
 import software.amazon.awssdk.codegen.model.intermediate.IntermediateModel;
 import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.validation.ModelInvalidException;
@@ -100,6 +104,37 @@ class SmithyIntermediateModelPostprocessorTest {
             .isInstanceOf(ModelInvalidException.class)
             .matches(e -> ((ModelInvalidException) e).validationEntries().get(0).getErrorId()
                           == ValidationErrorId.SHARED_EVENTSTREAM_EVENT);
+    }
+
+    /**
+     * These settings reach the Smithy path as codegen traits written by the smithy-build.json generator. Set only in
+     * the config, with no traits in the model, they change nothing, so ShapeModifiersProcessor is off this path.
+     */
+    @Test
+    void javaOnlyShapeModifiersInConfigWithoutTraits_leaveTheModelUnchanged() throws IOException {
+        String smithy = REST_JSON_SERVICE
+                        + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n"
+                        + "@http(method: \"POST\", uri: \"/op\")\n"
+                        + "operation Op { input: OpRequest, output: OpResponse }\n"
+                        + "structure OpRequest { Expires: Timestamp, Kind: Kind, Part: SdkPartType }\n"
+                        + "structure OpResponse {}\n"
+                        + "enum Kind {\n  A = \"5.1\"\n}\n"
+                        + "enum SdkPartType {\n  DEFAULT\n}\n";
+        CustomizationConfig config = Jackson.load(CustomizationConfig.class,
+            "{\"customSdkShapes\": {\"shapes\": {\"SdkPartType\": {\"type\": \"string\", \"enum\": [\"DEFAULT\"]}}},"
+            + "\"shapeModifiers\": {"
+            + "  \"Kind\": {\"modify\": [{\"5.1\": {\"emitEnumName\": \"FIVE_ONE\", \"emitEnumValue\": \"5.one\"}}]},"
+            + "  \"OpRequest\": {\"modify\": [{\"Expires\": {\"ignoreDataTypeConversionFailures\": true}}]}}}");
+
+        IntermediateModel model = build(smithy, config);
+
+        MemberModel expires = Utils.findShapeModelByC2jName(model, "OpRequest").findMemberModelByC2jName("Expires");
+        assertThat(expires.ignoreDataTypeConversionFailures()).isFalse();
+        assertThat(Utils.findShapeModelByC2jName(model, "OpRequest").findMemberModelByC2jName("Part").isSynthetic())
+            .isFalse();
+        assertThat(Utils.findShapeModelByC2jName(model, "Kind").getEnums())
+            .extracting(EnumModel::getName, EnumModel::getValue)
+            .containsExactly(tuple("VALUE_5_1", "5.1"));
     }
 
     private static String sqsReceiveMessageService() {

@@ -1,0 +1,5 @@
+software.amazon.awssdk.codegen.smithy.traits.AlternateBeanPropertyNameTrait$Provider
+software.amazon.awssdk.codegen.smithy.traits.DeprecatedNameTrait$Provider
+software.amazon.awssdk.codegen.smithy.traits.EnumConstantNameTrait$Provider
+software.amazon.awssdk.codegen.smithy.traits.IgnoreDataTypeConversionFailuresTrait$Provider
+software.amazon.awssdk.codegen.smithy.traits.SyntheticTrait$Provider
