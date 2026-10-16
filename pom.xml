@@ -130,7 +130,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.48.5</awscrt.version>
+        <awscrt.version>0.49.0</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>
@@ -152,6 +152,9 @@
         <archunit.version>1.3.0</archunit.version>
         <json-schema-validator.version>1.5.4</json-schema-validator.version>
         <kerby.version>2.0.3</kerby.version>
+        <bouncycastle-bcpkix.version>1.80</bouncycastle-bcpkix.version>
+        <!-- bcpkix 1.80 resolves bcutil 1.80.2, which requires bcprov 1.80.2 -->
+        <bouncycastle-bcprov.version>1.80.2</bouncycastle-bcprov.version>
 
         <!-- build plugin dependencies-->
         <maven.surefire.version>3.1.2</maven.surefire.version>
