@@ -562,8 +562,9 @@ public class InstanceProfileCredentialsProviderTest {
         stubSecureCredentialsResponse(aResponse().withStatus(500));
         AwsCredentials credentials10MinutesAgo = credentialsProvider.resolveCredentials();
 
-        // The failed refresh arms the 5-10 minute refresh backoff, so IMDS must not be called again while it is in effect,
-        // even as the credentials approach expiration. A minute later the backoff is still active for any backoff value.
+        // The failed refresh arms the refresh backoff (20-30% of the 10 minutes left, i.e. 120-180 seconds), so IMDS must not
+        // be called again while it is in effect, even as the credentials approach expiration. A minute later the backoff is
+        // still active for any backoff value.
         clock.time = now.minus(9, MINUTES);
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
         AwsCredentials credentials9MinutesAgo = credentialsProvider.resolveCredentials();
