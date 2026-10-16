@@ -211,31 +211,141 @@ public class ContainerCredentialsProviderTest {
     }
 
     /**
-     * The advisory refresh window must be honored exactly, rather than being jittered to some later point. Here the
-     * configured window covers the credential's entire lifetime, so the advisory window opens the moment the credentials are
-     * issued and the very next call must contact the endpoint. A jittered window would instead open at a random point up to a
-     * minute before the mandatory refresh window, and the second call would be served from the cache.
+     * The prefetch time is 15 minutes before expiration, capped at 1 hour from now, and jittered to a random point no later
+     * than 1 minute before the stale time. For credentials that expire in 90 seconds, the prefetch time and its whole jitter
+     * range are already in the past, while the stale time (1 minute before expiration) is not, so the next call prefetches.
      */
     @Test
-    public void resolveCredentials_advisoryWindowIsNotJittered() {
-        Duration lifetime = Duration.ofMinutes(10);
-        stubFor200Response("{\"AccessKeyId\":\"" + ACCESS_KEY_ID + "\"," +
-                           "\"SecretAccessKey\":\"" + SECRET_ACCESS_KEY + "\"," +
-                           "\"Token\":\"" + TOKEN + "\"," +
-                           "\"Expiration\":\"" + DateUtils.formatIso8601Date(Instant.now().plus(lifetime)) + "\"}");
+    public void resolveCredentials_credentialsExpiringWithinFifteenMinutes_refreshedOnNextCall() {
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID, DateUtils.formatIso8601Date(Instant.now().plusSeconds(90))));
         mockServer.resetRequests();
 
+        credentialsProvider.resolveCredentials();
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+
+        credentialsProvider.resolveCredentials();
+        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * For credentials that expire in 2 hours, the prefetch time is capped at 1 hour from now, so the next call is served from
+     * the cache.
+     */
+    @Test
+    public void resolveCredentials_longLivedCredentials_notRefreshedOnNextCall() {
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID,
+                                           DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofHours(2)))));
+        mockServer.resetRequests();
+
+        credentialsProvider.resolveCredentials();
+        credentialsProvider.resolveCredentials();
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    /**
+     * Without a configured prefetch time, the default prefetch time is jittered. For credentials that expire in 10 minutes,
+     * the default prefetch time (15 minutes before expiration) is in the past, and is jittered to a random point up to 2
+     * minutes before expiration, so a provider only refreshes on its next call if the jittered point is also in the past. At
+     * least one of several providers must serve its next call from the cache. Without jitter, every provider would refresh.
+     */
+    @Test
+    public void resolveCredentials_prefetchTimeNotConfigured_defaultPrefetchTimeIsJittered() {
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID,
+                                           DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(10)))));
+        int providersStillCached = 0;
+        for (int i = 0; i < 20; i++) {
+            ContainerCredentialsProvider provider =
+                ContainerCredentialsProvider.builder()
+                                            .endpoint("http://localhost:" + mockServer.port())
+                                            .build();
+            mockServer.resetRequests();
+
+            provider.resolveCredentials();
+            provider.resolveCredentials();
+            if (mockServer.findAll(getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH))).size() == 1) {
+                providersStillCached++;
+            }
+        }
+
+        assertThat(providersStillCached).isPositive();
+    }
+
+    /**
+     * A configured prefetch time is honored exactly, rather than being jittered to some later point. Here the configured
+     * window covers the credentials' entire lifetime, so the advisory window opens the moment the credentials are issued and
+     * the very next call must contact the endpoint. A jittered window would instead open at a random point up to 2 minutes
+     * before expiration, and the next call would usually be served from the cache. Each run uses a new provider so that
+     * jitter, if applied, would be detected.
+     */
+    @Test
+    public void resolveCredentials_prefetchTimeConfigured_advisoryWindowIsNotJittered() {
+        Duration lifetime = Duration.ofMinutes(10);
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID, DateUtils.formatIso8601Date(Instant.now().plus(lifetime))));
+        for (int i = 0; i < 10; i++) {
+            ContainerCredentialsProvider provider =
+                ContainerCredentialsProvider.builder()
+                                            .endpoint("http://localhost:" + mockServer.port())
+                                            .prefetchTime(lifetime)
+                                            .build();
+            mockServer.resetRequests();
+
+            provider.resolveCredentials();
+            mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+
+            provider.resolveCredentials();
+            mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+        }
+    }
+
+    /**
+     * A configured prefetch time replaces the default prefetch time. For credentials that expire in 10 minutes, the default
+     * (15 minutes before expiration) is already in the past, but a configured 1 minute window does not open for 9 minutes, so
+     * the next call is served from the cache.
+     */
+    @Test
+    public void resolveCredentials_prefetchTimeConfigured_replacesDefaultPrefetchTime() {
+        stubFor200Response(credentialsBody(ACCESS_KEY_ID,
+                                           DateUtils.formatIso8601Date(Instant.now().plus(Duration.ofMinutes(10)))));
+        mockServer.resetRequests();
         ContainerCredentialsProvider provider =
             ContainerCredentialsProvider.builder()
                                         .endpoint("http://localhost:" + mockServer.port())
-                                        .prefetchTime(lifetime)
+                                        .prefetchTime(Duration.ofMinutes(1))
                                         .build();
 
         provider.resolveCredentials();
-        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
-
         provider.resolveCredentials();
-        mockServer.verify(2, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+        mockServer.verify(1, getRequestedFor(urlPathEqualTo(CREDENTIALS_PATH)));
+    }
+
+    @Test
+    public void build_staleTimeGreaterThanPrefetchTime_throwsException() {
+        assertThatThrownBy(() -> ContainerCredentialsProvider.builder()
+                                                             .staleTime(Duration.ofMinutes(10))
+                                                             .prefetchTime(Duration.ofMinutes(5))
+                                                             .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("staleTime (PT10M) must be less than or equal to prefetchTime (PT5M)");
+    }
+
+    @Test
+    public void build_staleTimeWithoutPrefetchTime_isNotValidatedAgainstDefaultPrefetchTime() {
+        assertThat(ContainerCredentialsProvider.builder()
+                                               .staleTime(Duration.ofMinutes(30))
+                                               .build())
+            .isNotNull();
+    }
+
+    @Test
+    public void toBuilder_prefetchTimeConfigured_copiesPrefetchTime() {
+        ContainerCredentialsProvider provider = ContainerCredentialsProvider.builder()
+                                                                            .prefetchTime(Duration.ofMinutes(5))
+                                                                            .build();
+
+        // The copied prefetch time is validated against the new stale time.
+        assertThatThrownBy(() -> provider.toBuilder().staleTime(Duration.ofMinutes(10)).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must be less than or equal to prefetchTime (PT5M)");
     }
 
     /**

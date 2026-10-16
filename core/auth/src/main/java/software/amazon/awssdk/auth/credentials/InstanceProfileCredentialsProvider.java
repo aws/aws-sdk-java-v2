@@ -16,6 +16,7 @@
 package software.amazon.awssdk.auth.credentials;
 
 import static java.time.temporal.ChronoUnit.MINUTES;
+import static software.amazon.awssdk.utils.ComparableUtils.maximum;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
@@ -51,7 +52,6 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
-import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -131,20 +131,24 @@ public final class InstanceProfileCredentialsProvider
                             "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
         }
 
+        // A configured advisory refresh window is a fixed distance from expiration and must be honored exactly, so the
+        // prefetch jitter is only applied to the default prefetch time.
+        boolean prefetchJitterEnabled = this.prefetchTime == null;
+
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
                                                   .staleValueBehavior(ALLOW)
-                                                  .prefetchJitterEnabled(false)
+                                                  .prefetchJitterEnabled(prefetchJitterEnabled)
                                                   .clock(clock)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .staleValueBehavior(ALLOW)
-                                                  .prefetchJitterEnabled(false)
+                                                  .prefetchJitterEnabled(prefetchJitterEnabled)
                                                   .clock(clock)
                                                   .build();
         }
@@ -223,14 +227,15 @@ public final class InstanceProfileCredentialsProvider
             return null;
         }
 
-        // Use dynamic window when user has not explicitly configured prefetchTime
-        Duration effectivePrefetchWindow = CacheRefreshUtils.computePrefetchWindow(expiration, prefetchTime, now);
-
-        // If remaining lifetime < the advisory window, refresh immediately.
-        if (timeUntilExpiration.compareTo(effectivePrefetchWindow) < 0) {
-            return now;
+        if (prefetchTime != null) {
+            // If remaining lifetime < the configured advisory window, refresh immediately.
+            if (timeUntilExpiration.compareTo(prefetchTime) < 0) {
+                return now;
+            }
+            return expiration.minus(prefetchTime);
         }
-        return expiration.minus(effectivePrefetchWindow);
+
+        return now.plus(maximum(timeUntilExpiration.dividedBy(2), Duration.ofMinutes(5)));
     }
 
     @Override
@@ -386,7 +391,7 @@ public final class InstanceProfileCredentialsProvider
          * provider will block all callers until a refresh attempt completes. If the refresh attempt fails, the provider
          * returns the cached credentials and will not attempt another refresh until a backoff period has elapsed.
          *
-         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}. Setting this equal to
+         * <p>This value must be less than or equal to {@link #prefetchTime(Duration)}, when that is set. Setting this equal to
          * {@code prefetchTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
          *
          * <p>By default, this is 1 minute.
@@ -406,12 +411,13 @@ public final class InstanceProfileCredentialsProvider
          * the refresh while other callers receive the current cached credentials.
          *
          * <p>This value must be greater than or equal to {@link #staleTime(Duration)}. Setting this equal to
-         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking).
+         * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking). When set, the
+         * advisory refresh starts exactly this long before expiration, without jitter.
          *
-         * <p>If not explicitly set, the advisory refresh window is computed dynamically based on the credential's
-         * remaining lifetime: 5 minutes for credentials with 20 minutes or less remaining, 15 minutes for 20-90
-         * minutes remaining, and 60 minutes for 90+ minutes remaining. This dynamic window is recomputed on each
-         * successful refresh.
+         * <p>If not explicitly set, the provider proactively refreshes credentials after half of their remaining lifetime has
+         * passed, but no sooner than 5 minutes after they were retrieved (60 minutes if IMDS does not return an expiration).
+         * This time is jittered to a random later point, no later than 1 minute before the mandatory refresh window
+         * ({@link #staleTime(Duration)}) begins, so that many clients do not refresh at the same moment.
          *
          * @param duration the duration before expiration that triggers advisory (proactive) refresh
          */

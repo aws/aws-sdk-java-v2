@@ -59,6 +59,7 @@ import org.junit.jupiter.api.condition.EnabledForJreRange;
 import org.junit.jupiter.api.condition.JRE;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mockito;
 import software.amazon.awssdk.core.SdkSystemSetting;
@@ -626,130 +627,185 @@ public class InstanceProfileCredentialsProviderTest {
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
         AwsCredentials credentials24HoursAgo = credentialsProvider.resolveCredentials();
 
-        // Set the time to 10 minutes before expiration, and fail to call IMDS
-        clock.time = now.minus(10, MINUTES);
+        // Set the time to 2 minutes before expiration, and fail to call IMDS. The prefetch time (half the 24 hour lifetime,
+        // jittered to at most 1 minute before the 1 minute stale time) has certainly passed, so IMDS is called.
+        Instant failureTime = now.minus(2, MINUTES);
+        clock.time = failureTime;
         stubSecureCredentialsResponse(aResponse().withStatus(500));
-        AwsCredentials credentials10MinutesAgo = credentialsProvider.resolveCredentials();
+        AwsCredentials credentials2MinutesAgo = credentialsProvider.resolveCredentials();
 
-        // The failed refresh arms the refresh backoff (20-30% of the 10 minutes left, i.e. 120-180 seconds), so IMDS must not
-        // be called again while it is in effect, even as the credentials approach expiration. A minute later the backoff is
-        // still active for any backoff value.
-        clock.time = now.minus(9, MINUTES);
+        // The failed refresh arms the refresh backoff (2 minutes left, so 60-90 seconds), so IMDS must not be called again
+        // before the shortest possible backoff has elapsed.
+        clock.time = failureTime.plusSeconds(59);
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-        AwsCredentials credentials9MinutesAgo = credentialsProvider.resolveCredentials();
+        AwsCredentials credentialsDuringBackoff = credentialsProvider.resolveCredentials();
 
-        // Once the backoff has certainly elapsed, IMDS is called again and the new credentials are adopted.
-        clock.time = now.plus(11, MINUTES);
+        // Once the longest possible backoff has elapsed, 29 seconds before expiration, IMDS is called again to try to get
+        // credentials in at the last moment before expiration, and the new credentials are adopted.
+        clock.time = failureTime.plusSeconds(91);
         AwsCredentials credentialsAfterBackoff = credentialsProvider.resolveCredentials();
 
-        assertThat(credentials24HoursAgo).isEqualTo(credentials10MinutesAgo);
-        assertThat(credentials24HoursAgo).isEqualTo(credentials9MinutesAgo);
+        assertThat(credentials24HoursAgo).isEqualTo(credentials2MinutesAgo);
+        assertThat(credentials24HoursAgo).isEqualTo(credentialsDuringBackoff);
         assertThat(credentials24HoursAgo.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
         assertThat(credentialsAfterBackoff.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
     }
 
+    /**
+     * The prefetch time is half the remaining credential lifetime, but at least 5 minutes, jittered to a random point no later
+     * than 1 minute before the stale time. The stale time is 1 minute before expiration. Each case runs several times to account
+     * for the prefetch jitter.
+     *
+     * <ul>
+     *     <li>6 hour credentials: prefetch at a random point from 3 hours to 2 minutes before expiration.</li>
+     *     <li>8 minute credentials: the 5 minute floor applies, so prefetch at a random point from 5 to 6 minutes.</li>
+     *     <li>3 minute credentials: the 5 minute floor is after the stale time, so the only refresh is the mandatory one when
+     *     the stale time (1 minute before expiration) is reached.</li>
+     * </ul>
+     */
+    @ParameterizedTest(name = "lifetime={0}s")
+    @CsvSource({
+        "21600, 10799, 21480",
+        "480, 299, 360",
+        "180, 119, 120"
+    })
+    void resolveCredentials_withCredentialLifetime_refreshesOnlyBetweenPrefetchBounds(long lifetimeSeconds,
+                                                                                       long lastCachedSecond,
+                                                                                       long firstRefreshedSecond) {
+        for (int i = 0; i < 10; i++) {
+            AdjustableClock clock = new AdjustableClock();
+            AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+            Instant now = Instant.now();
+
+            clock.time = now;
+            stubSecureCredentialsResponse(aResponse().withBody(
+                credentialsResponse("SECRET_ACCESS_KEY", now.plusSeconds(lifetimeSeconds))));
+            assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+            // Before the earliest possible prefetch time, IMDS is not called again.
+            stubSecureCredentialsResponse(aResponse().withBody(
+                credentialsResponse("SECRET_ACCESS_KEY2", now.plus(12, HOURS))));
+            clock.time = now.plusSeconds(lastCachedSecond);
+            assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+            // By the latest possible refresh time, IMDS is called and the new credentials are adopted.
+            clock.time = now.plusSeconds(firstRefreshedSecond);
+            assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+        }
+    }
+
+    /**
+     * Without a configured prefetch time, the default prefetch time (half of the 6 hour lifetime) is jittered to a random point
+     * between 3 hours and 2 minutes before expiration. A minute after the unjittered prefetch time, at least one of several
+     * providers must still be serving its cached credentials. Without jitter, every provider would have refreshed.
+     */
     @Test
-    void resolveCredentials_advisoryWindowIsNotJittered() {
-        // A 30 minute lifetime selects the 15 minute advisory refresh window, which must be honored exactly. A jittered
-        // window would open at a random point between 15 and 2 minutes before expiration instead, so the refresh below
-        // would not happen when the window opens.
+    void resolveCredentials_prefetchTimeNotConfigured_defaultPrefetchTimeIsJittered() {
+        Instant now = Instant.now().truncatedTo(SECONDS);
+        int providersStillCached = 0;
+        for (int i = 0; i < 10; i++) {
+            AdjustableClock clock = new AdjustableClock();
+            AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+
+            clock.time = now;
+            stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY", now.plus(6, HOURS))));
+            credentialsProvider.resolveCredentials();
+
+            stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY2", now.plus(12, HOURS))));
+            clock.time = now.plus(3, HOURS).plus(1, MINUTES);
+            if ("SECRET_ACCESS_KEY".equals(credentialsProvider.resolveCredentials().secretAccessKey())) {
+                providersStillCached++;
+            }
+        }
+
+        assertThat(providersStillCached).isPositive();
+    }
+
+    /**
+     * A configured prefetch time replaces the default prefetch time and is honored exactly, rather than being jittered to some
+     * later point. Here the 15 minute window for 30 minute credentials opens 15 minutes after they are retrieved. With jitter,
+     * it would open at a random point between then and 2 minutes before expiration, so the refresh would almost never happen
+     * exactly when the window opens. Each run uses a new provider so that jitter, if applied, would be detected.
+     */
+    @Test
+    void resolveCredentials_prefetchTimeConfigured_advisoryWindowIsHonoredExactly() {
+        for (int i = 0; i < 10; i++) {
+            AdjustableClock clock = new AdjustableClock();
+            AwsCredentialsProvider credentialsProvider = credentialsProviderWithPrefetchTime(clock, Duration.ofMinutes(15));
+            Instant now = Instant.now().truncatedTo(SECONDS);
+            Instant expiration = now.plus(30, MINUTES);
+            Instant advisoryWindowOpens = expiration.minus(15, MINUTES);
+
+            clock.time = now;
+            stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY", expiration)));
+            assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+            // One second before the advisory window opens, IMDS must not be called again.
+            stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY2", now.plus(6, HOURS))));
+            clock.time = advisoryWindowOpens.minusSeconds(1);
+            assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+            // Exactly when the advisory window opens, IMDS must be called.
+            clock.time = advisoryWindowOpens;
+            assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+        }
+    }
+
+    /**
+     * If the credentials' remaining lifetime is shorter than the configured prefetch time, they are inside their advisory
+     * refresh window as soon as they arrive, so the provider refreshes on the next call.
+     */
+    @Test
+    void resolveCredentials_prefetchTimeConfiguredAndLongerThanLifetime_refreshesOnNextCall() {
         AdjustableClock clock = new AdjustableClock();
-        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithPrefetchTime(clock, Duration.ofMinutes(5));
         Instant now = Instant.now();
-        Instant expiration = now.plus(30, MINUTES);
-        Instant advisoryWindowOpens = expiration.minus(15, MINUTES);
-
-        String initialCredentialsResponse =
-            "{"
-            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
-            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
-            + "}";
-
-        String refreshedCredentialsResponse =
-            "{"
-            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
-            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
-            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
-            + "}";
 
         clock.time = now;
-        stubSecureCredentialsResponse(aResponse().withBody(initialCredentialsResponse));
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY", now.plus(3, MINUTES))));
         assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
 
-        // One second before the advisory window opens, IMDS must not be called again.
-        clock.time = advisoryWindowOpens.minusSeconds(1);
-        stubSecureCredentialsResponse(aResponse().withBody(refreshedCredentialsResponse));
-        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-
-        // Exactly when the advisory window opens, IMDS must be called.
-        clock.time = advisoryWindowOpens;
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY2", now.plus(6, HOURS))));
         assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
     }
 
     @Test
-    void resolveCredentials_immediateRefreshWhenRemainingLifetimeLessThanAdvisoryWindow() {
-        // IMDS sessions are never shorter than the 5 minute advisory refresh window in practice, but if one is, the
-        // credentials are inside their advisory window as soon as they arrive and the provider refreshes right away.
-        AdjustableClock clock = new AdjustableClock();
-        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
-        Instant now = Instant.now();
-        String shortLivedCredentialsResponse =
-            "{"
-            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
-            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(3, MINUTES)) + '"'
-            + "}";
-
-        String refreshedCredentialsResponse =
-            "{"
-            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
-            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
-            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(now.plus(6, HOURS)) + '"'
-            + "}";
-
-        clock.time = now;
-        stubSecureCredentialsResponse(aResponse().withBody(shortLivedCredentialsResponse));
-        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
-
-        stubSecureCredentialsResponse(aResponse().withBody(refreshedCredentialsResponse));
-        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    void build_staleTimeGreaterThanPrefetchTime_throwsException() {
+        assertThatThrownBy(() -> InstanceProfileCredentialsProvider.builder()
+                                                                   .staleTime(Duration.ofMinutes(10))
+                                                                   .prefetchTime(Duration.ofMinutes(5))
+                                                                   .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("staleTime (PT10M) must be less than or equal to prefetchTime (PT5M)");
     }
 
     @Test
-    void imdsCallFrequencyIsLimited() {
-        // Verify that IMDS is not called again if we haven't reached the prefetch window
-        AdjustableClock clock = new AdjustableClock();
-        AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
-        Instant now = Instant.now();
-        Instant expiration = now.plus(6, HOURS);
-        String successfulCredentialsResponse1 =
-            "{"
-            + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
-            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY\","
-            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
-            + "}";
+    void build_staleTimeEqualToPrefetchTime_succeeds() {
+        assertThat(InstanceProfileCredentialsProvider.builder()
+                                                     .staleTime(Duration.ofMinutes(5))
+                                                     .prefetchTime(Duration.ofMinutes(5))
+                                                     .build())
+            .isNotNull();
+    }
 
-        String successfulCredentialsResponse2 =
-            "{"
-            + "\"AccessKeyId\":\"ACCESS_KEY_ID2\","
-            + "\"SecretAccessKey\":\"SECRET_ACCESS_KEY2\","
-            + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration.plus(6, HOURS)) + '"'
-            + "}";
+    @Test
+    void build_staleTimeWithoutPrefetchTime_isNotValidatedAgainstDefaultPrefetchTime() {
+        assertThat(InstanceProfileCredentialsProvider.builder()
+                                                     .staleTime(Duration.ofHours(1))
+                                                     .build())
+            .isNotNull();
+    }
 
-        // Prime the cache at the current time
-        clock.time = now;
-        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
-        AwsCredentials credentialsAtStart = credentialsProvider.resolveCredentials();
+    @Test
+    void toBuilder_prefetchTimeConfigured_copiesPrefetchTime() {
+        InstanceProfileCredentialsProvider provider = InstanceProfileCredentialsProvider.builder()
+                                                                                         .prefetchTime(Duration.ofMinutes(5))
+                                                                                         .build();
 
-        // Move time forward but still before the prefetch window (60 min before expiry for 6h credentials).
-        // Since dynamic prefetchTime = expiration - 60min = now + 5h, anything before that should not trigger refresh.
-        clock.time = now.plus(4, HOURS);
-        stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse2));
-        AwsCredentials credentialsLater = credentialsProvider.resolveCredentials();
-
-        assertThat(credentialsLater).isEqualTo(credentialsAtStart);
-        assertThat(credentialsAtStart.secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        // The copied prefetch time is validated against the new stale time.
+        assertThatThrownBy(() -> provider.toBuilder().staleTime(Duration.ofMinutes(10)).build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("must be less than or equal to prefetchTime (PT5M)");
     }
 
     @Test
@@ -775,7 +831,7 @@ public class InstanceProfileCredentialsProviderTest {
 
 
         Duration staleTime = Duration.ofMinutes(5);
-        AwsCredentialsProvider provider = credentialsProviderWithClock(clock, staleTime, Duration.ofMinutes(10));
+        AwsCredentialsProvider provider = credentialsProviderWithClock(clock, staleTime);
 
         // cache expiration with expiration = 6 hours
         clock.time = now;
@@ -848,16 +904,27 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     private AwsCredentialsProvider credentialsProviderWithClock(Clock clock, Duration staleTime) {
-        return credentialsProviderWithClock(clock, staleTime, Duration.ofMinutes(5));
-    }
-
-    private AwsCredentialsProvider credentialsProviderWithClock(Clock clock, Duration staleTime, Duration prefetchTime) {
         InstanceProfileCredentialsProvider.BuilderImpl builder =
             (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
         builder.clock(clock);
         builder.staleTime(staleTime);
+        return builder.build();
+    }
+
+    private AwsCredentialsProvider credentialsProviderWithPrefetchTime(Clock clock, Duration prefetchTime) {
+        InstanceProfileCredentialsProvider.BuilderImpl builder =
+            (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
+        builder.clock(clock);
         builder.prefetchTime(prefetchTime);
         return builder.build();
+    }
+
+    private static String credentialsResponse(String secretAccessKey, Instant expiration) {
+        return "{"
+               + "\"AccessKeyId\":\"ACCESS_KEY_ID\","
+               + "\"SecretAccessKey\":\"" + secretAccessKey + "\","
+               + "\"Expiration\":\"" + DateUtils.formatIso8601Date(expiration) + '"'
+               + "}";
     }
 
 
