@@ -94,9 +94,9 @@
             <optional>true</optional>
         </dependency>
         <dependency>
-            <groupId>software.amazon.eventstream</groupId>
+            <groupId>software.amazon.awssdk</groupId>
             <artifactId>eventstream</artifactId>
-            <version>${eventstream.version}</version>
+            <version>${awsjavasdk.version}</version>
             <optional>true</optional>
         </dependency>
 

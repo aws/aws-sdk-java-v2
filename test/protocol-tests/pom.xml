@@ -234,13 +234,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>software.amazon.eventstream</groupId>
-            <artifactId>eventstream</artifactId>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>service-test-utils</artifactId>
+            <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>service-test-utils</artifactId>
+            <artifactId>eventstream</artifactId>
             <version>${awsjavasdk.version}</version>
             <scope>test</scope>
         </dependency>
@@ -294,11 +295,6 @@
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
             <version>1.80</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.eventstream</groupId>
-            <artifactId>eventstream</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
