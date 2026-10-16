@@ -1,0 +1,61 @@
+/*
+ * Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License").
+ * You may not use this file except in compliance with the License.
+ * A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ * or in the "license" file accompanying this file. This file is distributed
+ * on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ * express or implied. See the License for the specific language governing
+ * permissions and limitations under the License.
+ */
+
+package software.amazon.awssdk.services.s3.internal.crt;
+
+import java.nio.ByteBuffer;
+import java.util.concurrent.CompletableFuture;
+import software.amazon.awssdk.annotations.SdkInternalApi;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.async.AsyncResponseTransformer;
+import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+
+/**
+ * Reusable request descriptor replaced with a new borrowed-buffer transformer for each CRT client call.
+ */
+@SdkInternalApi
+public final class S3CrtBorrowedBufferResponseTransformer
+    implements AsyncResponseTransformer<GetObjectResponse, ResponseInputStream<GetObjectResponse>> {
+
+    @Override
+    public CompletableFuture<ResponseInputStream<GetObjectResponse>> prepare() {
+        throw unsupportedOperation();
+    }
+
+    @Override
+    public void onResponse(GetObjectResponse response) {
+        throw unsupportedOperation();
+    }
+
+    @Override
+    public void onStream(SdkPublisher<ByteBuffer> publisher) {
+        throw unsupportedOperation();
+    }
+
+    @Override
+    public void exceptionOccurred(Throwable error) {
+    }
+
+    @Override
+    public String name() {
+        return TransformerType.STREAM.getName();
+    }
+
+    private static UnsupportedOperationException unsupportedOperation() {
+        return new UnsupportedOperationException(
+            "This transformer requires an S3 CRT async client with a configured direct buffer pool");
+    }
+}
