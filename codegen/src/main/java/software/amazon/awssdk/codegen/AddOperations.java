@@ -171,7 +171,7 @@ final class AddOperations {
             operationModel.setDocumentation(op.getDocumentation());
             operationModel.setIsAuthenticated(isAuthenticated(op));
             operationModel.setAuthType(op.getAuthtype());
-            operationModel.setPaginated(isPaginated(op));
+            operationModel.setPaginated(isPaginated(operationName));
             operationModel.setEndpointOperation(op.isEndpointoperation());
             operationModel.setEndpointDiscovery(op.getEndpointdiscovery());
             operationModel.setEndpointTrait(op.getEndpoint());
@@ -277,7 +277,8 @@ final class AddOperations {
         return errorTrait == null ? null : errorTrait.getHttpStatusCode();
     }
 
-    private boolean isPaginated(Operation op) {
-        return paginators.containsKey(op.getName()) && paginators.get(op.getName()).hasAllRequiredFields();
+    private boolean isPaginated(String operationName) {
+        PaginatorDefinition paginator = paginators.get(operationName);
+        return paginator != null && paginator.hasAllRequiredFields();
     }
 }

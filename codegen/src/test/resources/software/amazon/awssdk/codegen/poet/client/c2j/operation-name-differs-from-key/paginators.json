@@ -1,0 +1,9 @@
+{
+  "pagination": {
+    "ListThings": {
+      "input_token": "Marker",
+      "output_token": "NextMarker",
+      "result_key": "Items"
+    }
+  }
+}
