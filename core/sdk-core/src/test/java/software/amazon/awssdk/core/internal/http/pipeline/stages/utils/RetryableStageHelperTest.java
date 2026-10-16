@@ -16,6 +16,7 @@
 package software.amazon.awssdk.core.internal.http.pipeline.stages.utils;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -24,6 +25,7 @@ import static org.mockito.Mockito.when;
 import java.net.URI;
 import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,8 +35,10 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.SelectedAuthScheme;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
+import software.amazon.awssdk.core.exception.SdkServiceException;
 import software.amazon.awssdk.core.http.ExecutionContext;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -42,6 +46,11 @@ import software.amazon.awssdk.core.internal.http.HttpClientDependencies;
 import software.amazon.awssdk.core.internal.http.RequestExecutionContext;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
+import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeOption;
+import software.amazon.awssdk.http.auth.spi.signer.HttpSigner;
+import software.amazon.awssdk.identity.spi.Identity;
+import software.amazon.awssdk.identity.spi.IdentityProvider;
+import software.amazon.awssdk.identity.spi.ResolveIdentityRequest;
 import software.amazon.awssdk.retries.api.AcquireInitialTokenResponse;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenRequest;
 import software.amazon.awssdk.retries.api.RefreshRetryTokenResponse;
@@ -177,6 +186,117 @@ public class RetryableStageHelperTest {
         assertThat(helper.tryRefreshTokenAsync(Duration.ZERO).join().right()).hasValue(failureAcquireDuration);
     }
 
+    @Test
+    void resolveIdentityForAttempt_onFirstAttempt_keepsIdentity() {
+        TrackingIdentityProvider provider = new TrackingIdentityProvider(CompletableFuture.completedFuture(null));
+        SelectedAuthScheme<TestIdentity> scheme = schemeWith(provider);
+        ExecutionAttributes attributes = ExecutionAttributes.builder()
+                                                            .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME, scheme)
+                                                            .build();
+        RetryableStageHelper helper = makeTestHelper(attributes);
+
+        helper.startingAttempt();
+        helper.resolveIdentityForAttempt();
+
+        assertThat(provider.resolveCount()).isZero();
+        assertThat(attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME)).isSameAs(scheme);
+    }
+
+    @Test
+    void resolveIdentityForAttempt_onEachRetryAttempt_resolvesIdentityAgain() {
+        TrackingIdentityProvider provider = new TrackingIdentityProvider(CompletableFuture.completedFuture(null));
+        ExecutionAttributes attributes = ExecutionAttributes.builder()
+                                                            .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                                                 schemeWith(provider))
+                                                            .build();
+        RetryableStageHelper helper = makeTestHelper(attributes);
+
+        helper.startingAttempt();
+        helper.resolveIdentityForAttempt();
+        helper.startingAttempt();
+        helper.resolveIdentityForAttempt();
+        helper.startingAttempt();
+        helper.resolveIdentityForAttempt();
+
+        assertThat(provider.resolveCount()).isEqualTo(2);
+        SelectedAuthScheme<?> current = attributes.getAttribute(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME);
+        assertThat(current.identity().join()).isSameAs(provider.lastResolvedIdentity());
+    }
+
+    /**
+     * Invalidation is best-effort: an invalidation that never completes must not block the retry.
+     */
+    @Test
+    void tryRefreshToken_onAuthError_invalidatesWithoutWaitingForInvalidationToComplete() {
+        CompletableFuture<Void> neverCompletingInvalidation = new CompletableFuture<>();
+        TrackingIdentityProvider provider = new TrackingIdentityProvider(neverCompletingInvalidation);
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder()
+                                                                        .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                                                             schemeWith(provider))
+                                                                        .build());
+        stubAcquireInitialToken();
+
+        RefreshRetryTokenResponse mockRefreshResponse = mock(RefreshRetryTokenResponse.class);
+        when(mockRefreshResponse.delay()).thenReturn(Duration.ofMillis(5));
+        when(mockRetryStrategy.refreshRetryToken(any())).thenReturn(mockRefreshResponse);
+
+        helper.acquireInitialToken();
+        helper.setLastException(new AuthErrorException());
+
+        Either<Duration, Duration> backoff =
+            assertTimeoutPreemptively(Duration.ofSeconds(5), () -> helper.tryRefreshToken(Duration.ZERO));
+
+        assertThat(backoff.left()).hasValue(Duration.ofMillis(5));
+        assertThat(provider.invalidateCount()).isEqualTo(1);
+        assertThat(neverCompletingInvalidation).isNotDone();
+    }
+
+    /**
+     * Invalidation is best-effort: an invalidation that never completes must not delay the retry.
+     */
+    @Test
+    void tryRefreshTokenAsync_onAuthError_invalidatesWithoutWaitingForInvalidationToComplete() {
+        CompletableFuture<Void> neverCompletingInvalidation = new CompletableFuture<>();
+        TrackingIdentityProvider provider = new TrackingIdentityProvider(neverCompletingInvalidation);
+        RetryableStageHelper helper = makeTestHelper(ExecutionAttributes.builder()
+                                                                        .put(SdkInternalExecutionAttribute.SELECTED_AUTH_SCHEME,
+                                                                             schemeWith(provider))
+                                                                        .build());
+        stubAcquireInitialToken();
+
+        RefreshRetryTokenResponse mockRefreshResponse = mock(RefreshRetryTokenResponse.class);
+        when(mockRefreshResponse.delay()).thenReturn(Duration.ofMillis(5));
+        when(mockRetryStrategy.refreshRetryTokenAsync(any()))
+            .thenReturn(CompletableFuture.completedFuture(mockRefreshResponse));
+
+        helper.acquireInitialToken();
+        helper.setLastException(new AuthErrorException());
+
+        CompletableFuture<Either<Duration, Duration>> backoff = helper.tryRefreshTokenAsync(Duration.ZERO);
+
+        assertThat(provider.invalidateCount()).isEqualTo(1);
+        assertThat(backoff).isCompleted();
+        assertThat(backoff.join().left()).hasValue(Duration.ofMillis(5));
+        assertThat(neverCompletingInvalidation).isNotDone();
+    }
+
+    private void stubAcquireInitialToken() {
+        AcquireInitialTokenResponse mockAcquireResponse = mock(AcquireInitialTokenResponse.class);
+        RetryToken token = mock(RetryToken.class);
+        when(mockAcquireResponse.token()).thenReturn(token);
+        when(mockRetryStrategy.acquireInitialToken(any())).thenReturn(mockAcquireResponse);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static SelectedAuthScheme<TestIdentity> schemeWith(IdentityProvider<TestIdentity> provider) {
+        return SelectedAuthScheme.<TestIdentity>builder()
+                                 .identity(CompletableFuture.completedFuture(new TestIdentity()))
+                                 .signer((HttpSigner<TestIdentity>) mock(HttpSigner.class))
+                                 .authSchemeOption(AuthSchemeOption.builder().schemeId("test").build())
+                                 .identityProvider(provider)
+                                 .build();
+    }
+
     RetryableStageHelper makeTestHelper(ExecutionAttributes executionAttributes) {
         SdkHttpFullRequest httpRequest = SdkHttpFullRequest.builder()
                                                            .method(SdkHttpMethod.GET)
@@ -219,5 +339,66 @@ public class RetryableStageHelperTest {
             Arguments.of(null, Duration.ofSeconds(1)),
             Arguments.of(Duration.ofSeconds(1), null)
         );
+    }
+
+    private static final class TestIdentity implements Identity {
+    }
+
+    /**
+     * An identity provider that counts identity resolutions, and whose invalidation completes with a given future.
+     */
+    private static final class TrackingIdentityProvider implements IdentityProvider<TestIdentity> {
+        private final CompletableFuture<Void> invalidation;
+        private final AtomicInteger resolveCount = new AtomicInteger();
+        private final AtomicInteger invalidateCount = new AtomicInteger();
+        private volatile TestIdentity lastResolvedIdentity;
+
+        TrackingIdentityProvider(CompletableFuture<Void> invalidation) {
+            this.invalidation = invalidation;
+        }
+
+        @Override
+        public Class<TestIdentity> identityType() {
+            return TestIdentity.class;
+        }
+
+        @Override
+        public CompletableFuture<TestIdentity> resolveIdentity(ResolveIdentityRequest request) {
+            resolveCount.incrementAndGet();
+            lastResolvedIdentity = new TestIdentity();
+            return CompletableFuture.completedFuture(lastResolvedIdentity);
+        }
+
+        @Override
+        public CompletableFuture<Void> invalidate(TestIdentity identity) {
+            invalidateCount.incrementAndGet();
+            return invalidation;
+        }
+
+        int resolveCount() {
+            return resolveCount.get();
+        }
+
+        int invalidateCount() {
+            return invalidateCount.get();
+        }
+
+        TestIdentity lastResolvedIdentity() {
+            return lastResolvedIdentity;
+        }
+    }
+
+    /**
+     * A service exception that reports itself as an authentication error.
+     */
+    private static final class AuthErrorException extends SdkServiceException {
+        AuthErrorException() {
+            super(SdkServiceException.builder().message("expired").statusCode(400));
+        }
+
+        @Override
+        public boolean isAuthenticationError() {
+            return true;
+        }
     }
 }

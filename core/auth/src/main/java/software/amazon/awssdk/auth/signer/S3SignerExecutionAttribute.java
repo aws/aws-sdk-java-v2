@@ -103,11 +103,11 @@ public final class S3SignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED,
-                                                                                 enableChunkedEncoding)));
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.CHUNK_ENCODING_ENABLED,
+                                                                                    enableChunkedEncoding)))
+                         .build();
     }
 
     private static Boolean enablePayloadSigningReadMapping(SelectedAuthScheme<?> authScheme) {
@@ -132,12 +132,11 @@ public final class S3SignerExecutionAttribute extends SdkExecutionAttribute {
                                                             .build());
         }
 
-        return new SelectedAuthScheme<>(authScheme.identity(),
-                                        authScheme.signer(),
-                                        authScheme.authSchemeOption()
-                                                  .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED,
-                                                                                 payloadSigningEnabled))
-        );
+        return authScheme.toBuilder()
+                         .authSchemeOption(authScheme.authSchemeOption()
+                                                     .copy(o -> o.putSignerProperty(AwsV4FamilyHttpSigner.PAYLOAD_SIGNING_ENABLED,
+                                                                                    payloadSigningEnabled)))
+                         .build();
     }
 
     private static class UnsetIdentity implements Identity {

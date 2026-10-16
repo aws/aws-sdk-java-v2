@@ -103,6 +103,17 @@ public final class RetryableStageHelper {
     }
 
     /**
+     * Invoke after {@link #startingAttempt()} and before executing the attempt. Identity is only re-resolved on retry attempts.
+     * The first attempt uses the identity resolved when the auth scheme was selected.
+     */
+    public void resolveIdentityForAttempt() {
+        if (isInitialAttempt()) {
+            return;
+        }
+        IdentityResolutionHelper.reResolveIdentityForRetry(context.executionAttributes());
+    }
+
+    /**
      * Invoke when starting the first attempt. This method will acquire the initial token and store it as an execution attribute.
      * This method returns a delay that the caller have to wait before attempting the first request. If this method returns
      * {@link Duration#ZERO} if the calling code does not have to wait. As of today the only strategy that might return a non-zero
@@ -158,6 +169,10 @@ public final class RetryableStageHelper {
      * code should not retry.
      */
     public Either<Duration, Duration> tryRefreshToken(Duration suggestedDelay) {
+        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates.
+        // Not awaited: invalidation is best-effort and must not delay or block the retry path.
+        AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context);
+
         RetryToken retryToken;
         Duration attemptDelay;
         try {
@@ -194,6 +209,10 @@ public final class RetryableStageHelper {
     }
 
     public CompletableFuture<Either<Duration, Duration>> tryRefreshTokenAsync(Duration suggestedDelay) {
+        // Invalidate cached credentials if this failure is an auth error, before the retry strategy evaluates.
+        // Not awaited: invalidation is best-effort and must not delay or block the retry path.
+        AuthErrorInvalidationHelper.invalidateIfAuthError(this.lastException, context);
+
         CompletableFuture<Either<Duration, Duration>> cf = new CompletableFuture<>();
 
         RetryToken retryToken = context.executionAttributes().getAttribute(RETRY_TOKEN);
