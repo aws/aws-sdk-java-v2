@@ -18,10 +18,15 @@ package software.amazon.awssdk.services.s3.internal.crt;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.COPY_SOURCE_CONTENT_LENGTH_LISTENER;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -38,10 +43,13 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InOrder;
+import org.apache.logging.log4j.Level;
 import org.mockito.Mockito;
 import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
@@ -63,6 +71,7 @@ import software.amazon.awssdk.services.s3.model.Tag;
 import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyResponse;
+import software.amazon.awssdk.testutils.LogCaptor;
 import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
@@ -975,6 +984,184 @@ class CopyObjectHelperTest {
         future.cancel(true);
 
         assertThat(createMpuFuture).isCompletedExceptionally();
+    }
+
+    @Test
+    void singlePartCopy_withProgressListener_reportsLengthBytesAndCompletion() {
+        PublisherListener<Long> progressListener = mock(PublisherListener.class);
+        Consumer<Long> lengthListener = mock(Consumer.class);
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, lengthListener);
+
+        stubSuccessfulHeadObjectCall(512L);
+        CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
+        when(s3AsyncClient.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(expectedResponse));
+
+        CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
+
+        assertThat(future.join()).isEqualTo(expectedResponse);
+        InOrder inOrder = inOrder(lengthListener, progressListener);
+        inOrder.verify(lengthListener).accept(512L);
+        inOrder.verify(progressListener).subscriberOnNext(512L);
+        inOrder.verify(progressListener).subscriberOnComplete();
+        verify(progressListener, never()).subscriberOnError(any());
+    }
+
+    @Test
+    void singlePartCopy_zeroByteSource_reportsNoBytesButCompletes() {
+        PublisherListener<Long> progressListener = mock(PublisherListener.class);
+        Consumer<Long> lengthListener = mock(Consumer.class);
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, lengthListener);
+
+        stubSuccessfulHeadObjectCall(0L);
+        when(s3AsyncClient.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(CopyObjectResponse.builder().build()));
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        verify(lengthListener).accept(0L);
+        verify(progressListener, never()).subscriberOnNext(any());
+        verify(progressListener).subscriberOnComplete();
+    }
+
+    @Test
+    void singlePartCopy_copyFails_shouldNotReportProgressOrCompletion() {
+        PublisherListener<Long> progressListener = mock(PublisherListener.class);
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, mock(Consumer.class));
+
+        stubSuccessfulHeadObjectCall(512L);
+        SdkClientException exception = SdkClientException.create("failed");
+        when(s3AsyncClient.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFutureUtils.failedFuture(exception));
+
+        CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
+
+        assertThatThrownBy(future::join).hasCause(exception);
+        verify(progressListener, never()).subscriberOnNext(any());
+        verify(progressListener, never()).subscriberOnComplete();
+    }
+
+    @Test
+    void multiPartCopy_withProgressListener_reportsEachPartSizeAfterLength() {
+        PublisherListener<Long> progressListener = mock(PublisherListener.class);
+        Consumer<Long> lengthListener = mock(Consumer.class);
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, lengthListener);
+
+        stubSuccessfulHeadObjectCall(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        copyHelper.copyObject(copyObjectRequest).join();
+
+        InOrder inOrder = inOrder(lengthListener, progressListener);
+        inOrder.verify(lengthListener).accept(4000L);
+        ArgumentCaptor<Long> bytesCaptor = ArgumentCaptor.forClass(Long.class);
+        inOrder.verify(progressListener, times(4)).subscriberOnNext(bytesCaptor.capture());
+        inOrder.verify(progressListener).subscriberOnComplete();
+        assertThat(bytesCaptor.getAllValues()).containsExactlyInAnyOrder(1024L, 1024L, 1024L, 928L);
+        assertThat(bytesCaptor.getAllValues().stream().mapToLong(Long::longValue).sum()).isEqualTo(4000L);
+    }
+
+    @Test
+    void multiPartCopy_partNotCompleted_shouldNotReportItsBytes() {
+        PublisherListener<Long> progressListener = mock(PublisherListener.class);
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, mock(Consumer.class));
+
+        stubSuccessfulHeadObjectCall(4000L);
+        stubSuccessfulCreateMulipartCall();
+
+        CompletableFuture<UploadPartCopyResponse> part1 =
+            CompletableFuture.completedFuture(UploadPartCopyResponse.builder()
+                                                                    .copyPartResult(CopyPartResult.builder().build())
+                                                                    .build());
+        SdkClientException exception = SdkClientException.create("failed");
+        CompletableFuture<UploadPartCopyResponse> part2 = CompletableFutureUtils.failedFuture(exception);
+        CompletableFuture<UploadPartCopyResponse> part3 = new CompletableFuture<>();
+        CompletableFuture<UploadPartCopyResponse> part4 = new CompletableFuture<>();
+        when(s3AsyncClient.uploadPartCopy(any(UploadPartCopyRequest.class))).thenReturn(part1, part2, part3, part4);
+        when(s3AsyncClient.abortMultipartUpload(any(AbortMultipartUploadRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(AbortMultipartUploadResponse.builder().build()));
+
+        CompletableFuture<CopyObjectResponse> future = copyHelper.copyObject(copyObjectRequest);
+
+        assertThatThrownBy(future::join).hasCause(exception);
+        verify(progressListener, times(1)).subscriberOnNext(any());
+        verify(progressListener).subscriberOnNext(1024L);
+        verify(progressListener, never()).subscriberOnComplete();
+    }
+
+    @Test
+    void singlePartCopy_throwingListeners_shouldNotFailCopy() {
+        PublisherListener<Long> progressListener = throwingProgressListener();
+        Consumer<Long> lengthListener = throwingLengthListener();
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, lengthListener);
+
+        stubSuccessfulHeadObjectCall(512L);
+        CopyObjectResponse expectedResponse = CopyObjectResponse.builder().build();
+        when(s3AsyncClient.copyObject(any(CopyObjectRequest.class)))
+            .thenReturn(CompletableFuture.completedFuture(expectedResponse));
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.ERROR)) {
+            assertThat(copyHelper.copyObject(copyObjectRequest).join()).isEqualTo(expectedResponse);
+
+            verify(progressListener).subscriberOnNext(512L);
+            verify(progressListener).subscriberOnComplete();
+            assertListenerErrorsLogged(logCaptor, 3);
+        }
+    }
+
+    @Test
+    void multiPartCopy_throwingListeners_shouldNotFailCopy() {
+        PublisherListener<Long> progressListener = throwingProgressListener();
+        Consumer<Long> lengthListener = throwingLengthListener();
+        CopyObjectRequest copyObjectRequest = copyRequestWithListeners(progressListener, lengthListener);
+
+        stubSuccessfulHeadObjectCall(4000L);
+        stubSuccessfulCreateMulipartCall();
+        stubSuccessfulUploadPartCopyCalls();
+        stubSuccessfulCompleteMultipartCall();
+
+        try (LogCaptor logCaptor = LogCaptor.create(Level.ERROR)) {
+            assertThat(copyHelper.copyObject(copyObjectRequest).join()).isNotNull();
+
+            verify(s3AsyncClient, times(4)).uploadPartCopy(any(UploadPartCopyRequest.class));
+            verify(progressListener, times(4)).subscriberOnNext(any());
+            verify(progressListener).subscriberOnComplete();
+            assertListenerErrorsLogged(logCaptor, 6);
+        }
+    }
+
+    private static PublisherListener<Long> throwingProgressListener() {
+        PublisherListener<Long> progressListener = mock(PublisherListener.class);
+        doThrow(new IllegalStateException("listener failed")).when(progressListener).subscriberOnNext(any());
+        doThrow(new IllegalStateException("listener failed")).when(progressListener).subscriberOnComplete();
+        return progressListener;
+    }
+
+    private static Consumer<Long> throwingLengthListener() {
+        Consumer<Long> lengthListener = mock(Consumer.class);
+        doThrow(new IllegalStateException("listener failed")).when(lengthListener).accept(any());
+        return lengthListener;
+    }
+
+    private static void assertListenerErrorsLogged(LogCaptor logCaptor, int expectedCount) {
+        assertThat(logCaptor.loggedEvents())
+            .filteredOn(event -> event.getMessage().getFormattedMessage()
+                                      .equals("Exception thrown by the copy progress listener. It will be ignored."))
+            .hasSize(expectedCount)
+            .allSatisfy(event -> {
+                assertThat(event.getLevel()).isEqualTo(Level.ERROR);
+                assertThat(event.getThrown()).isInstanceOf(IllegalStateException.class);
+            });
+    }
+
+    private static CopyObjectRequest copyRequestWithListeners(PublisherListener<Long> progressListener,
+                                                              Consumer<Long> lengthListener) {
+        return copyRequestBuilder()
+            .overrideConfiguration(o -> o.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressListener)
+                                         .putExecutionAttribute(COPY_SOURCE_CONTENT_LENGTH_LISTENER, lengthListener))
+            .build();
     }
 
     private static CopyObjectRequest.Builder copyRequestBuilder() {

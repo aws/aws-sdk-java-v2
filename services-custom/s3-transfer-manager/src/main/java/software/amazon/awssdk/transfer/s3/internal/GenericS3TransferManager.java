@@ -16,6 +16,7 @@
 package software.amazon.awssdk.transfer.s3.internal;
 
 import static software.amazon.awssdk.services.s3.internal.multipart.MultipartDownloadUtils.multipartDownloadResumeContext;
+import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.COPY_SOURCE_CONTENT_LENGTH_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.JAVA_PROGRESS_LISTENER;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.MULTIPART_DOWNLOAD_RESUME_CONTEXT;
 import static software.amazon.awssdk.services.s3.multipart.S3MultipartExecutionAttribute.PAUSE_OBSERVABLE;
@@ -568,20 +569,18 @@ class GenericS3TransferManager implements S3TransferManager {
 
         CompletableFuture<CompletedCopy> returnFuture = new CompletableFuture<>();
 
-        // set length to 10000 as reference value, since we don't make HeadObject call yet
-        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, 10000L);
+        // The total size is not known yet. Clients that copy through CopyObjectHelper report it from their HeadObject call
+        // through COPY_SOURCE_CONTENT_LENGTH_LISTENER. Other clients ignore these attributes.
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(copyRequest, null);
 
-        // TransferListener is not supported for CRT-based client, so we'll only initiate and register completion when using
-        // the Java-based client with multipart enabled
-        if (isS3ClientMultipartEnabled()) {
-            Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
-                b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener());
-            CopyObjectRequest copyObjectRequest = attachSdkAttribute(copyRequest.copyObjectRequest(), attachProgressListener);
-            copyRequest = copyRequest.toBuilder().copyObjectRequest(copyObjectRequest).build();
+        Consumer<AwsRequestOverrideConfiguration.Builder> attachProgressListener =
+            b -> b.putExecutionAttribute(JAVA_PROGRESS_LISTENER, progressUpdater.multipartClientProgressListener())
+                  .putExecutionAttribute(COPY_SOURCE_CONTENT_LENGTH_LISTENER, progressUpdater::updateTotalBytes);
+        CopyObjectRequest copyObjectRequest = attachSdkAttribute(copyRequest.copyObjectRequest(), attachProgressListener);
+        copyRequest = copyRequest.toBuilder().copyObjectRequest(copyObjectRequest).build();
 
-            progressUpdater.transferInitiated();
-            progressUpdater.registerCompletion(returnFuture);
-        }
+        progressUpdater.transferInitiated();
+        progressUpdater.registerCompletionWithoutEndOfStream(returnFuture);
 
         try {
             assertNotUnsupportedArn(copyRequest.copyObjectRequest().sourceBucket(), "copy sourceBucket");
