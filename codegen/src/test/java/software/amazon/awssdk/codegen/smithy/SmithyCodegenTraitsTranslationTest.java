@@ -16,7 +16,6 @@
 package software.amazon.awssdk.codegen.smithy;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.api.Assertions.tuple;
 
 import java.io.IOException;
@@ -48,8 +47,7 @@ class SmithyCodegenTraitsTranslationTest {
         + "service DemoService { version: \"2024-01-01\", operations: [Copy] }\n"
         + "@http(method: \"POST\", uri: \"/copy\")\n"
         + "operation Copy { input: CopyRequest, output: CopyResponse }\n"
-        + "structure CopyResponse {}\n"
-        + "list TagList { member: String }\n";
+        + "structure CopyResponse {}\n";
 
     private static final String MODEL =
         PREFIX
@@ -61,7 +59,6 @@ class SmithyCodegenTraitsTranslationTest {
         + "  Filter: FilterRuleName\n"
         + "  Version: ClientVersion\n"
         + "  @ignoreDataTypeConversionFailures Expires: Timestamp\n"
-        + "  Tags: TagList\n"
         + "}\n"
         + "@synthetic enum SdkPartType {\n  DEFAULT\n  LAST\n}\n"
         + "enum FilterRuleName {\n"
@@ -88,14 +85,6 @@ class SmithyCodegenTraitsTranslationTest {
     void renamedMemberWithoutDeprecatedName_hasNoDeprecatedName() {
         assertThat(member(build(MODEL, CustomizationConfig.create()), "CopyRequest", "DestinationKey")
                        .getDeprecatedName()).isNull();
-    }
-
-    @Test
-    void deprecatedNameOnList_fails() {
-        String model = PREFIX + "structure CopyRequest { @deprecatedName(\"OldTags\") Tags: TagList }\n";
-
-        assertThatThrownBy(() -> build(model, CustomizationConfig.create()))
-            .hasMessage("Member Tags is a list and has a deprecated name. Codegen does not support this.");
     }
 
     @Test

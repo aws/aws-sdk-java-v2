@@ -25,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.smithy.model.Model;
 import software.amazon.smithy.model.node.Node;
 import software.amazon.smithy.model.shapes.ShapeId;
@@ -81,11 +82,25 @@ class SmithyCodegenTraitsTest {
             .containsExactly(tuple("TraitTarget", TARGET));
     }
 
-    @Test
-    void syntheticOnStructure_isATraitTargetError() {
-        assertThat(errors("@synthetic structure Shape { member: String }"))
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"list Target { member: String }",
+                            "map Target { key: String, value: String }",
+                            "enum Target { A }",
+                            "@enum([{value: \"a\"}]) string Target"})
+    void deprecatedNameOnUnsupportedTarget_isATraitTargetError(String target) {
+        assertThat(errors("structure Shape { @deprecatedName(\"Old\") member: Target }\n" + target))
             .extracting(ValidationEvent::getId, e -> e.getShapeId().get())
-            .containsExactly(tuple("TraitTarget", ShapeId.from("demo#Shape")));
+            .containsExactly(tuple("TraitTarget", TARGET));
+    }
+
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"structure Shape { @deprecatedName(\"\") member: String }",
+                            "structure Shape { @alternateBeanPropertyName(\"\") member: String }",
+                            "enum Shape { @enumConstantName(\"\") member }"})
+    void emptyStringTraitValue_isATraitValueError(String shapes) {
+        assertThat(errors(shapes))
+            .extracting(ValidationEvent::getId, e -> e.getShapeId().get())
+            .containsExactly(tuple("TraitValue", TARGET));
     }
 
     @Test
@@ -96,7 +111,8 @@ class SmithyCodegenTraitsTest {
                           + "  member: String\n"
                           + "}\n"
                           + "@synthetic enum Kind {\n  @enumConstantName(\"FIVE_ONE\")\n  A = \"5.1\"\n}\n"
-                          + "@synthetic string Name\n"))
+                          + "@synthetic string Name\n"
+                          + "@synthetic structure Payload { member: String }\n"))
             .isEmpty();
     }
 

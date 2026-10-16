@@ -108,7 +108,7 @@ class SmithyBuildTransformsTest {
         + "  \"demo#AttributeValue$NULL\": {\"name\": \"NUL\", \"traits\": {"
         + "    \"smithy.api#jsonName\": \"NULL\","
         + "    \"software.amazon.awssdk.codegen#alternateBeanPropertyName\": \"Null\"}}}}},"
-        + "{\"name\": \"addTraits\", \"args\": {\"traits\": {"
+        + "{\"name\": \"addOrOverrideTraits\", \"args\": {\"traits\": {"
         + "  \"demo#SdkPartType\": {\"software.amazon.awssdk.codegen#synthetic\": {}},"
         + "  \"demo#CopyRequest$Expires\": {\"software.amazon.awssdk.codegen#ignoreDataTypeConversionFailures\": {}},"
         + "  \"demo#ClientVersion$V5_1\": {\"software.amazon.awssdk.codegen#enumConstantName\": \"FIVE_ONE\"},"

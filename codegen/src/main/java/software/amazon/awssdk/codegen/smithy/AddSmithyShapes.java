@@ -454,7 +454,7 @@ abstract class AddSmithyShapes {
         SmithyCodegenTraits.applySynthetic(memberModel, targetShape);
         SmithyCodegenTraits.applyAlternateBeanPropertyName(memberModel, member);
         SmithyCodegenTraits.applyIgnoreDataTypeConversionFailures(memberModel, member);
-        SmithyCodegenTraits.applyDeprecatedName(memberModel, member, targetShape, namingStrategy, parentCtx, shapeCtx);
+        SmithyCodegenTraits.applyDeprecatedName(memberModel, member, namingStrategy, parentCtx, shapeCtx);
 
         // Only string enums map to a Java enum. C2J has no int-enum concept: an intEnum is written
         // as a plain integer shape, so a member targeting one is a plain Integer with no enumType.

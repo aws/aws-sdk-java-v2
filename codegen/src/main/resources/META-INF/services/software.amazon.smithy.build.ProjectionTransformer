@@ -1,5 +1,5 @@
 software.amazon.awssdk.codegen.smithy.transform.AddShapesTransformer
-software.amazon.awssdk.codegen.smithy.transform.AddTraitsTransformer
+software.amazon.awssdk.codegen.smithy.transform.AddOrOverrideTraitsTransformer
 software.amazon.awssdk.codegen.smithy.transform.InjectMembersTransformer
 software.amazon.awssdk.codegen.smithy.transform.RenameMembersTransformer
 software.amazon.awssdk.codegen.smithy.transform.RetargetMembersTransformer

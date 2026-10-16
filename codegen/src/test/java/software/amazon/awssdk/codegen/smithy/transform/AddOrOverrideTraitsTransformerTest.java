@@ -28,7 +28,7 @@ import software.amazon.smithy.model.traits.DeprecatedTrait;
 import software.amazon.smithy.model.traits.DocumentationTrait;
 import software.amazon.smithy.model.traits.SensitiveTrait;
 
-class AddTraitsTransformerTest {
+class AddOrOverrideTraitsTransformerTest {
 
     private static final Model MODEL = model(
         REST_JSON_PREFIX
@@ -39,11 +39,17 @@ class AddTraitsTransformerTest {
         + "structure CopyResponse {}\n"
         + "string Secret\n");
 
-    private final AddTraitsTransformer transformer = new AddTraitsTransformer();
+    private static final Model MIXIN_MODEL = model(
+        "$version: \"2.0\"\nnamespace demo\n"
+        + "@mixin\n"
+        + "structure Base { a: String }\n"
+        + "structure Uses with [Base] { b: String }\n");
+
+    private final AddOrOverrideTraitsTransformer transformer = new AddOrOverrideTraitsTransformer();
 
     @Test
-    void name_isAddTraits() {
-        assertThat(transformer.getName()).isEqualTo("addTraits");
+    void name_isAddOrOverrideTraits() {
+        assertThat(transformer.getName()).isEqualTo("addOrOverrideTraits");
     }
 
     @Test
@@ -71,6 +77,29 @@ class AddTraitsTransformerTest {
         assertThatThrownBy(() -> apply(transformer, MODEL,
                                        "{\"traits\": {\"demo#CopyRequest$Nope\": {\"smithy.api#sensitive\": {}}}}"))
             .hasMessageContaining("shape 'demo#CopyRequest$Nope' does not exist");
+    }
+
+    @Test
+    void memberInheritedFromMixin_fails() {
+        assertThatThrownBy(() -> apply(transformer, MIXIN_MODEL,
+                                       "{\"traits\": {\"demo#Uses$a\": {\"smithy.api#sensitive\": {}}}}"))
+            .hasMessage("Transform 'addOrOverrideTraits': 'demo#Uses$a' belongs to 'demo#Uses', which uses mixins; "
+                        + "mixins are not supported");
+    }
+
+    @Test
+    void mixinMember_fails() {
+        assertThatThrownBy(() -> apply(transformer, MIXIN_MODEL,
+                                       "{\"traits\": {\"demo#Base$a\": {\"smithy.api#sensitive\": {}}}}"))
+            .hasMessage("Transform 'addOrOverrideTraits': 'demo#Base$a' belongs to 'demo#Base', which is a mixin; "
+                        + "mixins are not supported");
+    }
+
+    @Test
+    void shapeThatUsesMixins_fails() {
+        assertThatThrownBy(() -> apply(transformer, MIXIN_MODEL,
+                                       "{\"traits\": {\"demo#Uses\": {\"smithy.api#documentation\": \"docs\"}}}"))
+            .hasMessage("Transform 'addOrOverrideTraits': 'demo#Uses' uses mixins; mixins are not supported");
     }
 
     @Test

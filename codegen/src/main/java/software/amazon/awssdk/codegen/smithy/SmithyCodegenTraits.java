@@ -54,15 +54,14 @@ final class SmithyCodegenTraits {
         }
     }
 
-    static void applyDeprecatedName(MemberModel memberModel, MemberShape member, Shape targetShape,
-                                    NamingStrategy namingStrategy, ShapeInfo parentCtx, ShapeInfo shapeCtx) {
+    static void applyDeprecatedName(MemberModel memberModel, MemberShape member, NamingStrategy namingStrategy,
+                                    ShapeInfo parentCtx, ShapeInfo shapeCtx) {
         String deprecatedName = member.getTrait(DeprecatedNameTrait.class)
                                       .map(DeprecatedNameTrait::getValue)
                                       .orElse(null);
         if (StringUtils.isBlank(deprecatedName)) {
             return;
         }
-        checkForValidDeprecatedName(member.getMemberName(), targetShape);
         memberModel.setDeprecatedName(deprecatedName);
         memberModel.setDeprecatedFluentGetterMethodName(
             namingStrategy.getFluentGetterMethodName(deprecatedName, parentCtx, shapeCtx));
@@ -79,20 +78,5 @@ final class SmithyCodegenTraits {
         return enumMember.getTrait(EnumConstantNameTrait.class)
                          .map(EnumConstantNameTrait::getValue)
                          .orElseGet(() -> namingStrategy.getEnumValueName(value));
-    }
-
-    private static void checkForValidDeprecatedName(String memberName, Shape targetShape) {
-        if (targetShape.isEnumShape()) {
-            throw new IllegalStateException(String.format(
-                "Member %s has enum values and a deprecated name. Codegen does not support this.", memberName));
-        }
-        if (targetShape.isListShape()) {
-            throw new IllegalStateException(String.format(
-                "Member %s is a list and has a deprecated name. Codegen does not support this.", memberName));
-        }
-        if (targetShape.isMapShape()) {
-            throw new IllegalStateException(String.format(
-                "Member %s is a map and has a deprecated name. Codegen does not support this.", memberName));
-        }
     }
 }
