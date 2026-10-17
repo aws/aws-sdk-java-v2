@@ -1,0 +1,6 @@
+{
+    "type": "documentation",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "description": "Add a README example that shows how to store a list of objects inside an item as a DynamoDB list of maps, by using annotations or a StaticTableSchema. See [#2265](https://github.com/aws/aws-sdk-java-v2/issues/2265).",
+    "contributor": "adev-code"
+}
