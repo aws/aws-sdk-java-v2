@@ -68,6 +68,10 @@ final class TransformSupport {
         return id;
     }
 
+    static ShapeId parseShapeOrMemberId(String transform, String value) {
+        return parseId(transform, value);
+    }
+
     static Shape expectShape(String transform, Model model, ShapeId id) {
         return model.getShape(id).orElseThrow(() -> error(transform, "shape '" + id + "' does not exist in the model"));
     }
