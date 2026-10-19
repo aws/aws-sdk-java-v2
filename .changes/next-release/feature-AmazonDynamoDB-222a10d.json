@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon DynamoDB",
-    "contributor": "",
-    "description": "Enable account endpoint generation for existing CN and GovCloud regions"
-}

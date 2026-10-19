@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "Amazon CloudFront",
-    "contributor": "",
-    "description": "Fixed an issue where `CloudFrontClient` and `CloudFrontAsyncClient` had no paginator methods"
-}

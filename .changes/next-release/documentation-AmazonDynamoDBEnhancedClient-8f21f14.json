@@ -1,6 +1,0 @@
-{
-    "type": "documentation",
-    "category": "Amazon DynamoDB Enhanced Client",
-    "description": "Clarified in the UpdateItemEnhancedRequest Javadoc that ignoreNulls and IgnoreNullsMode don't apply to the version attribute.",
-    "contributor": "adev-code"
-}
