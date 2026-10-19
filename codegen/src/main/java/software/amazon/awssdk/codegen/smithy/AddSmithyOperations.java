@@ -199,8 +199,7 @@ final class AddSmithyOperations {
     // service default). Resolving effective schemes would populate auth on every operation.
     private void translateAuth(OperationShape op, OperationModel operationModel) {
         // @optionalAuth (unsigned-capable ops) -> C2J authtype=none: AuthType.NONE, unauthenticated.
-        // Takes precedence over the empty @auth list these ops also carry. An empty @auth list on its
-        // own also means no auth scheme applies.
+        // Takes precedence over the empty @auth list these ops also carry.
         if (op.hasTrait(OptionalAuthTrait.class) || hasEmptyAuth(op)) {
             operationModel.setIsAuthenticated(false);
             operationModel.setAuthType(AuthType.NONE);

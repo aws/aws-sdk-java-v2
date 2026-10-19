@@ -181,10 +181,6 @@ final class AddSmithyInputShapes extends AddSmithyShapes implements Intermediate
                     .orElse(input.getId().getName());
     }
 
-    /**
-     * Sets the service XML namespace on a request payload member that targets a structure or union, as C2J does. The
-     * XML marshaller uses it for the request's {@code xmlns} when the request has no body members.
-     */
     private void addPayloadXmlNamespace(StructureShape input, ShapeModel shapeModel) {
         String serviceNamespace = getService().getTrait(XmlNamespaceTrait.class)
                                               .map(XmlNamespaceTrait::getUri)
