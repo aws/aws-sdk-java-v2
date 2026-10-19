@@ -34,6 +34,7 @@ import software.amazon.smithy.model.node.StringNode;
 import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.MixinTrait;
 
 /**
  * Changes the target of individual members, keeping their traits.
@@ -81,6 +82,9 @@ public final class RetargetMembersTransformer implements ProjectionTransformer {
             if (targetShape.isMemberShape() || targetShape.isOperationShape() || targetShape.isServiceShape()
                 || targetShape.isResourceShape()) {
                 throw error(NAME, "'" + target + "' is a " + targetShape.getType() + " and cannot be a member target");
+            }
+            if (targetShape.hasTrait(MixinTrait.class)) {
+                throw error(NAME, "'" + target + "' is a mixin and cannot be a member target");
             }
             model = context.getTransformer().replaceShapes(model, Collections.singleton(
                 member.toBuilder().target(target).build()));

@@ -38,6 +38,7 @@ import software.amazon.smithy.model.node.StringNode;
 import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
+import software.amazon.smithy.model.traits.MixinTrait;
 
 /**
  * Adds members to existing structures and unions.
@@ -110,6 +111,9 @@ public final class InjectMembersTransformer implements ProjectionTransformer {
         if (targetShape.isMemberShape() || targetShape.isOperationShape() || targetShape.isServiceShape()
             || targetShape.isResourceShape()) {
             throw error(NAME, "'" + target + "' is a " + targetShape.getType() + " and cannot be a member target");
+        }
+        if (targetShape.hasTrait(MixinTrait.class)) {
+            throw error(NAME, "'" + target + "' is a mixin and cannot be a member target");
         }
 
         MemberShape member = MemberShape.builder()

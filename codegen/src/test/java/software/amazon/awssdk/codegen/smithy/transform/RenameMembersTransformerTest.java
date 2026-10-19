@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.smithy.transform;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.MIXIN_SHAPES;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.REST_JSON_PREFIX;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.apply;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.model;
@@ -162,5 +163,12 @@ class RenameMembersTransformerTest {
     void unknownSetting_fails() {
         assertThatThrownBy(() -> apply(transformer, MODEL, "{\"renamed\": {}, \"extra\": true}"))
             .hasMessageContaining("extra");
+    }
+
+    @Test
+    void memberOfShapeThatUsesMixins_fails() {
+        assertThatThrownBy(() -> apply(transformer, model(MIXIN_SHAPES),
+                                       "{\"renamed\": {\"demo#Uses$b\": {\"name\": \"c\"}}}"))
+            .hasMessage("Transform 'renameMembers': 'demo#Uses' uses mixins; mixins are not supported");
     }
 }

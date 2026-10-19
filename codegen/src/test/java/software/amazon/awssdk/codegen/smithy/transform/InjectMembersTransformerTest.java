@@ -17,6 +17,7 @@ package software.amazon.awssdk.codegen.smithy.transform;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.MIXIN_SHAPES;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.REST_JSON_PREFIX;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.apply;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformTestSupport.model;
@@ -106,5 +107,19 @@ class InjectMembersTransformerTest {
         assertThatThrownBy(() -> apply(transformer, MODEL,
                                        "{\"members\": {\"demo#GetRequest$x\": {\"target\": \"demo#Get\"}}}"))
             .hasMessageContaining("cannot be a member target");
+    }
+
+    @Test
+    void intoShapeThatUsesMixins_fails() {
+        assertThatThrownBy(() -> apply(transformer, model(MIXIN_SHAPES),
+                                       "{\"members\": {\"demo#Uses$c\": {\"target\": \"smithy.api#String\"}}}"))
+            .hasMessage("Transform 'injectMembers': 'demo#Uses' uses mixins; mixins are not supported");
+    }
+
+    @Test
+    void mixinTarget_fails() {
+        assertThatThrownBy(() -> apply(transformer, model(MIXIN_SHAPES),
+                                       "{\"members\": {\"demo#Holder$c\": {\"target\": \"demo#Base\"}}}"))
+            .hasMessage("Transform 'injectMembers': 'demo#Base' is a mixin and cannot be a member target");
     }
 }
