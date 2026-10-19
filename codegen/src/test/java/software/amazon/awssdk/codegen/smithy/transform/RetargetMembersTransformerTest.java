@@ -89,6 +89,6 @@ class RetargetMembersTransformerTest {
     void mixinTarget_fails() {
         assertThatThrownBy(() -> apply(transformer, model(MIXIN_SHAPES),
                                        "{\"targets\": {\"demo#Holder$m\": \"demo#Base\"}}"))
-            .hasMessage("Transform 'retargetMembers': 'demo#Base' is a mixin and cannot be a member target");
+            .hasMessage("Transform 'retargetMembers': 'demo#Base' is a mixin; mixins are not supported");
     }
 }

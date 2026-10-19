@@ -120,6 +120,6 @@ class InjectMembersTransformerTest {
     void mixinTarget_fails() {
         assertThatThrownBy(() -> apply(transformer, model(MIXIN_SHAPES),
                                        "{\"members\": {\"demo#Holder$c\": {\"target\": \"demo#Base\"}}}"))
-            .hasMessage("Transform 'injectMembers': 'demo#Base' is a mixin and cannot be a member target");
+            .hasMessage("Transform 'injectMembers': 'demo#Base' is a mixin; mixins are not supported");
     }
 }

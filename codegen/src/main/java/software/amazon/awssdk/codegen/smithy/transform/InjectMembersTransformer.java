@@ -19,6 +19,7 @@ import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.e
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.expectNamedMembersContainer;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.expectShape;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.memberId;
+import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.rejectMixins;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.shapeId;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.traits;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.withMembers;
@@ -38,7 +39,6 @@ import software.amazon.smithy.model.node.StringNode;
 import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
-import software.amazon.smithy.model.traits.MixinTrait;
 
 /**
  * Adds members to existing structures and unions.
@@ -112,9 +112,7 @@ public final class InjectMembersTransformer implements ProjectionTransformer {
             || targetShape.isResourceShape()) {
             throw error(NAME, "'" + target + "' is a " + targetShape.getType() + " and cannot be a member target");
         }
-        if (targetShape.hasTrait(MixinTrait.class)) {
-            throw error(NAME, "'" + target + "' is a mixin and cannot be a member target");
-        }
+        rejectMixins(NAME, model, target, targetShape);
 
         MemberShape member = MemberShape.builder()
                                         .id(id)
