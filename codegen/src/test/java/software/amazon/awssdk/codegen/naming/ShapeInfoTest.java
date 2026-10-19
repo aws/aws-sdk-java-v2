@@ -159,7 +159,7 @@ class ShapeInfoTest {
     }
 
     @Test
-    void ofSmithy_intEnumIsAlsoOrContainsEnum() {
+    void ofSmithy_intEnumIsNotOrContainsEnum() {
         Model model = smithyModel(
             "intEnum Priority {\n"
             + "    LOW = 1\n"
@@ -168,8 +168,8 @@ class ShapeInfoTest {
             + "list Priorities { member: Priority }\n");
 
         assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#Priority")), model).isOrContainsEnum())
-            .isTrue();
+            .isFalse();
         assertThat(ShapeInfo.ofSmithy(model.expectShape(ShapeId.from("demo#Priorities")), model).isOrContainsEnum())
-            .isTrue();
+            .isFalse();
     }
 }

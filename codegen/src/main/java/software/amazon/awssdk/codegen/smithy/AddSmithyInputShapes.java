@@ -22,6 +22,7 @@ import software.amazon.awssdk.codegen.IntermediateModelShapeProcessor;
 import software.amazon.awssdk.codegen.internal.TypeUtils;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
 import software.amazon.awssdk.codegen.model.intermediate.EndpointDiscovery;
+import software.amazon.awssdk.codegen.model.intermediate.MemberModel;
 import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.OperationModel;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
@@ -38,6 +39,7 @@ import software.amazon.smithy.model.knowledge.HttpBindingIndex;
 import software.amazon.smithy.model.knowledge.TopDownIndex;
 import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.ServiceShape;
+import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.traits.HttpTrait;
@@ -85,6 +87,9 @@ final class AddSmithyInputShapes extends AddSmithyShapes implements Intermediate
                                           : Collections.emptyMap();
                 shapeModel = generateShapeModel(javaClassName, inputShape, requestBindings);
                 shapeModel.setEndpointDiscovery(endpointDiscovery(op));
+                if (Protocol.REST_XML.getValue().equals(getProtocol())) {
+                    addPayloadXmlNamespace(inputShape, shapeModel);
+                }
             }
             shapeModel.setType(ShapeType.Request.getValue());
             shapeModel.setMarshaller(buildMarshaller(op, bindingIndex, /* synthetic */ UNIT.equals(inputId)));
@@ -174,6 +179,23 @@ final class AddSmithyInputShapes extends AddSmithyShapes implements Intermediate
         return input.getTrait(XmlNameTrait.class)
                     .map(XmlNameTrait::getValue)
                     .orElse(input.getId().getName());
+    }
+
+    /**
+     * Sets the service XML namespace on a request payload member that targets a structure or union, as C2J does. The
+     * XML marshaller uses it for the request's {@code xmlns} when the request has no body members.
+     */
+    private void addPayloadXmlNamespace(StructureShape input, ShapeModel shapeModel) {
+        String serviceNamespace = getService().getTrait(XmlNamespaceTrait.class)
+                                              .map(XmlNamespaceTrait::getUri)
+                                              .orElse(null);
+        for (MemberModel member : shapeModel.getMembers()) {
+            Shape target = getModel().expectShape(input.getMember(member.getC2jName()).get().getTarget());
+            if (member.getHttp().getIsPayload() && member.getXmlNameSpaceUri() == null
+                && (target.isStructureShape() || target.isUnionShape())) {
+                member.setXmlNameSpaceUri(serviceNamespace);
+            }
+        }
     }
 
     /**

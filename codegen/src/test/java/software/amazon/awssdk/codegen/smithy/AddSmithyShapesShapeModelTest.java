@@ -214,6 +214,29 @@ class AddSmithyShapesShapeModelTest {
     }
 
     @Test
+    void eventStream_isNotAUnionAndItsMemberIsNotStreaming() {
+        Model model = modelWithOp(
+            "@http(method: \"POST\", uri: \"/subscribe\")\n"
+            + "operation Op { input: In, output: Out }\n"
+            + "structure In {}\n"
+            + "structure Out {\n"
+            + "    @httpPayload events: EventStream\n"
+            + "}\n"
+            + "\n"
+            + "@streaming\n"
+            + "union EventStream {\n"
+            + "    tick: TickEvent\n"
+            + "}\n"
+            + "structure TickEvent { seq: Integer }\n");
+
+        Probe p = probe(model, "rest-json");
+        ShapeModel out = p.translate("Out", shape(model, "Out"), null);
+
+        assertThat(p.translate("EventStream", shape(model, "EventStream"), null).isUnion()).isFalse();
+        assertThat(out.getMemberByC2jName("events").getHttp().getIsStreaming()).isFalse();
+    }
+
+    @Test
     void errorMemberOfStreamingUnion_isNotAnEvent() {
         Model model = modelWithOp(
             "@http(method: \"POST\", uri: \"/subscribe\")\n"

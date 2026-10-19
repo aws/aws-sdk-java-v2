@@ -253,7 +253,8 @@ abstract class AddSmithyShapes {
             dep.getMessage().ifPresent(shapeModel::setDeprecatedMessage);
         });
 
-        shapeModel.withIsUnion(smithyShape.isUnionShape());
+        // C2J models an event stream as a structure, so only a non-streaming union is a union.
+        shapeModel.withIsUnion(smithyShape.isUnionShape() && !isEventStream(smithyShape));
 
 
         shapeModel.withIsEventStream(isEventStream(smithyShape));
@@ -476,22 +477,23 @@ abstract class AddSmithyShapes {
     /**
      * Reports whether a member is sensitive. True when the member itself or
      * its target is marked {@link SensitiveTrait}, or, for a list or map
-     * target, when the element, key, or value shape is marked sensitive.
+     * target, when an element, key, or value is sensitive at any depth, as
+     * C2J's {@code AddShapes.isSensitiveShapeOrContainer} recurses. Smithy
+     * rejects a list or map cycle that does not pass through a structure or
+     * union, so the recursion ends.
      */
     private boolean isSensitive(MemberShape member, Shape targetShape) {
         if (member.hasTrait(SensitiveTrait.class) || targetShape.hasTrait(SensitiveTrait.class)) {
             return true;
         }
         if (targetShape.isListShape()) {
-            Shape listMember = model.expectShape(
-                targetShape.asListShape().get().getMember().getTarget());
-            return listMember.hasTrait(SensitiveTrait.class);
+            MemberShape listMember = targetShape.asListShape().get().getMember();
+            return isSensitive(listMember, model.expectShape(listMember.getTarget()));
         }
         if (targetShape.isMapShape()) {
             MapShape map = targetShape.asMapShape().get();
-            Shape key = model.expectShape(map.getKey().getTarget());
-            Shape value = model.expectShape(map.getValue().getTarget());
-            return key.hasTrait(SensitiveTrait.class) || value.hasTrait(SensitiveTrait.class);
+            return isSensitive(map.getKey(), model.expectShape(map.getKey().getTarget()))
+                   || isSensitive(map.getValue(), model.expectShape(map.getValue().getTarget()));
         }
         return false;
     }
@@ -554,10 +556,14 @@ abstract class AddSmithyShapes {
         String mapImpl = TypeUtils.getDataTypeMapping(TypeUtils.TypeKey.MAP_DEFAULT_IMPL);
         String mapIface = TypeUtils.getDataTypeMapping(TypeUtils.TypeKey.MAP_INTERFACE);
 
+        // As for list members, @xmlName names map entries only on the XML protocols.
+        boolean xmlNames = SmithyWireNames.usesXmlNames(protocol);
         String keyLocation = keyMember.getTrait(XmlNameTrait.class)
+                                      .filter(t -> xmlNames)
                                       .map(XmlNameTrait::getValue)
                                       .orElse("key");
         String valueLocation = valueMember.getTrait(XmlNameTrait.class)
+                                          .filter(t -> xmlNames)
                                           .map(XmlNameTrait::getValue)
                                           .orElse("value");
 
@@ -624,7 +630,8 @@ abstract class AddSmithyShapes {
         String unmarshallLocationName =
             SmithyWireNames.unmarshallLocationName(protocol, member, memberName, bindingLocationName);
 
-        boolean streaming = targetShape.hasTrait(StreamingTrait.class);
+        // @streaming on a union marks an event stream, which C2J does not treat as a streaming member.
+        boolean streaming = targetShape.hasTrait(StreamingTrait.class) && !targetShape.isUnionShape();
         boolean requiresLength = targetShape.hasTrait(RequiresLengthTrait.class)
                                  || member.hasTrait(RequiresLengthTrait.class);
         boolean flattened = member.hasTrait(XmlFlattenedTrait.class)

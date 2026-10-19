@@ -375,7 +375,51 @@ class AddSmithyOperationsTest {
     }
 
     @Test
-    void unsignedPayload_setsFlag() {
+    void emptyAuthWithoutOptionalAuth_mapsToNoneAndUnauthenticated() {
+        Model model = modelOf(
+            "@auth([])\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest {}\n"
+            + "structure OpResponse {}\n");
+        OperationModel op = op(model, "rest-json");
+
+        assertThat(op.getAuth()).containsExactly(AuthType.NONE);
+        assertThat(op.getAuthType()).isEqualTo(AuthType.NONE);
+        assertThat(op.isAuthenticated()).isFalse();
+    }
+
+    @Test
+    void authRepeatingServiceAuth_isTreatedAsAbsent() {
+        Model model = modelOf(
+            "@auth([sigv4])\n" + SERVICE_HEADER,
+            "@auth([sigv4])\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest {}\n"
+            + "structure OpResponse {}\n");
+        OperationModel op = op(model, "rest-json");
+
+        assertThat(op.getAuth()).isEmpty();
+        assertThat(op.getAuthType()).isNull();
+        assertThat(op.isAuthenticated()).isTrue();
+    }
+
+    @Test
+    void authInADifferentOrderFromServiceAuth_isKept() {
+        Model model = modelOf(
+            "@auth([sigv4, httpBearerAuth])\n@httpBearerAuth\n" + SERVICE_HEADER,
+            "@auth([httpBearerAuth, sigv4])\n"
+            + "@http(method: \"POST\", uri: \"/op\")\n"
+            + "operation Op { input: OpRequest, output: OpResponse }\n"
+            + "structure OpRequest {}\n"
+            + "structure OpResponse {}\n");
+
+        assertThat(op(model, "rest-json").getAuth()).containsExactly(AuthType.BEARER, AuthType.V4);
+    }
+
+    @Test
+    void unsignedPayload_setsFlagAndV4UnsignedBodyAuth() {
         Model model = modelOf(
             "use aws.auth#unsignedPayload\n\n"
             + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
@@ -387,7 +431,12 @@ class AddSmithyOperationsTest {
             + "operation Op { input: OpRequest, output: OpResponse }\n"
             + "structure OpRequest {}\n"
             + "structure OpResponse {}\n");
-        assertThat(op(model, "rest-json").isUnsignedPayload()).isTrue();
+        OperationModel op = op(model, "rest-json");
+
+        assertThat(op.isUnsignedPayload()).isTrue();
+        assertThat(op.getAuth()).containsExactly(AuthType.V4_UNSIGNED_BODY);
+        assertThat(op.getAuthType()).isEqualTo(AuthType.V4_UNSIGNED_BODY);
+        assertThat(op.isAuthenticated()).isTrue();
     }
 
     // ---- Pagination (deferred to PR 15) -----------------------------------
