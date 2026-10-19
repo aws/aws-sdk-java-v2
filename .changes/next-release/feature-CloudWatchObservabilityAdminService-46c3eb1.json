@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "CloudWatch Observability Admin Service",
+    "contributor": "",
+    "description": "Adding support for EKS Container Insights Telemetry Rules"
+}
