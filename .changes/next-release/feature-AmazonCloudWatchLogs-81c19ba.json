@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon CloudWatch Logs",
+    "contributor": "",
+    "description": "Amazon CloudWatch Logs now supports filtering DescribeDeliverySources by resourceArns, DescribeDeliveryDestinations by names, and DescribeDeliveries by deliverySourceNames."
+}
