@@ -1,0 +1,330 @@
+{
+    "version": "1.1",
+    "parameters": {
+        "Region": {
+            "builtIn": "AWS::Region",
+            "required": false,
+            "documentation": "The AWS region used to dispatch the request.",
+            "type": "string"
+        },
+        "UseDualStack": {
+            "builtIn": "AWS::UseDualStack",
+            "required": true,
+            "default": false,
+            "documentation": "When true, use the dual-stack endpoint. If the configured endpoint does not support dual-stack, dispatching the request MAY return an error.",
+            "type": "boolean"
+        },
+        "UseFIPS": {
+            "builtIn": "AWS::UseFIPS",
+            "required": true,
+            "default": false,
+            "documentation": "When true, send this request to the FIPS-compliant regional endpoint. If the configured endpoint does not have a FIPS compliant endpoint, dispatching the request will return an error.",
+            "type": "boolean"
+        },
+        "Endpoint": {
+            "builtIn": "SDK::Endpoint",
+            "required": false,
+            "documentation": "Override the endpoint used to send this request",
+            "type": "string"
+        },
+        "AccountId": {
+            "builtIn": "AWS::Auth::AccountId",
+            "required": false,
+            "documentation": "The AWS account ID, read off the resolved identity.",
+            "type": "string"
+        },
+        "AccountIdEndpointMode": {
+            "builtIn": "AWS::Auth::AccountIdEndpointMode",
+            "required": false,
+            "documentation": "Whether the account ID may be used in the endpoint.",
+            "type": "string"
+        },
+        "clientStringParam": {
+            "required": false,
+            "documentation": "A client context parameter, so the cache key compares it early as reference-stable.",
+            "type": "string"
+        },
+        "staticStringParam": {
+            "required": false,
+            "documentation": "Bound to a per-operation static literal.",
+            "type": "string"
+        },
+        "requestStringParam": {
+            "required": false,
+            "documentation": "Bound to a request member, so it can change per request.",
+            "type": "string"
+        },
+        "resourceArnList": {
+            "required": false,
+            "documentation": "Read only as resourceArnList[0], so the cache key compares just the first element. This is the DynamoDB shape.",
+            "type": "stringArray"
+        },
+        "unusedStringParam": {
+            "required": false,
+            "documentation": "Declared but read by no condition and no result, so the cache key must leave it out.",
+            "type": "string"
+        },
+        "wholeArnList": {
+            "required": false,
+            "documentation": "Read as a whole, so the cache key compares every element.",
+            "type": "stringArray"
+        }
+    },
+    "conditions": [
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "Endpoint"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "Region"
+                }
+            ]
+        },
+        {
+            "fn": "aws.partition",
+            "argv": [
+                {
+                    "ref": "Region"
+                }
+            ],
+            "assign": "PartitionResult"
+        },
+        {
+            "fn": "booleanEquals",
+            "argv": [
+                {
+                    "ref": "UseFIPS"
+                },
+                true
+            ]
+        },
+        {
+            "fn": "booleanEquals",
+            "argv": [
+                {
+                    "ref": "UseDualStack"
+                },
+                true
+            ]
+        },
+        {
+            "fn": "booleanEquals",
+            "argv": [
+                {
+                    "fn": "getAttr",
+                    "argv": [
+                        {
+                            "ref": "PartitionResult"
+                        },
+                        "supportsDualStack"
+                    ]
+                },
+                true
+            ]
+        },
+        {
+            "fn": "booleanEquals",
+            "argv": [
+                {
+                    "fn": "getAttr",
+                    "argv": [
+                        {
+                            "ref": "PartitionResult"
+                        },
+                        "supportsFIPS"
+                    ]
+                },
+                true
+            ]
+        },
+        {
+            "fn": "stringEquals",
+            "argv": [
+                {
+                    "fn": "getAttr",
+                    "argv": [
+                        {
+                            "ref": "PartitionResult"
+                        },
+                        "name"
+                    ]
+                },
+                "aws-us-gov"
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "AccountId"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "AccountIdEndpointMode"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "clientStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "staticStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "requestStringParam"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "resourceArnList"
+                },
+                "[0]"
+            ],
+            "assign": "FirstArn"
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "wholeArnList"
+                }
+            ]
+        },
+        {
+            "fn": "isSet",
+            "argv": [
+                {
+                    "ref": "resourceArnList"
+                }
+            ]
+        },
+        {
+            "fn": "getAttr",
+            "argv": [
+                {
+                    "ref": "wholeArnList"
+                },
+                "[1]"
+            ],
+            "assign": "SecondArn"
+        }
+    ],
+    "results": [
+        {
+            "conditions": [],
+            "error": "Invalid Configuration: FIPS and custom endpoint are not supported",
+            "type": "error"
+        },
+        {
+            "conditions": [],
+            "error": "Invalid Configuration: Dualstack and custom endpoint are not supported",
+            "type": "error"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": {
+                    "ref": "Endpoint"
+                },
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": "https://connect-fips.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "error": "FIPS and DualStack are enabled, but this partition does not support one or both",
+            "type": "error"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": "https://connect.{Region}.amazonaws.com",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": "https://connect-fips.{Region}.{PartitionResult#dnsSuffix}",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "error": "FIPS is enabled but this partition does not support FIPS",
+            "type": "error"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": "https://connect.{Region}.{PartitionResult#dualStackDnsSuffix}",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "error": "DualStack is enabled but this partition does not support DualStack",
+            "type": "error"
+        },
+        {
+            "conditions": [],
+            "endpoint": {
+                "url": "https://connect.{Region}.{PartitionResult#dnsSuffix}",
+                "properties": {},
+                "headers": {}
+            },
+            "type": "endpoint"
+        },
+        {
+            "conditions": [],
+            "error": "Invalid Configuration: Missing Region",
+            "type": "error"
+        }
+    ],
+    "root": 23,
+    "nodeCount": 23,
+    "nodes": "/////wAAAAH/////AAAAAAAAAA0AAAADAAAAAQAAAAQF9eEMAAAAAgAAAAUF9eEMAAAAAwAAAAgAAAAGAAAABAAAAAcF9eELAAAABQX14QkF9eEKAAAABAAAAAsAAAAJAAAABgAAAAoF9eEIAAAABwX14QYF9eEHAAAABQAAAAwF9eEFAAAABgX14QQF9eEFAAAAAwX14QEAAAAOAAAABAX14QIF9eEDAAAACAAAABAAAAAQAAAACQAAABEAAAARAAAACgAAABIAAAASAAAACwAAABMAAAATAAAADAAAABQAAAAUAAAADQAAAAIAAAACAAAADgAAAA8AAAAPAAAADwAAABUAAAAVAAAAEAAAABYAAAAW"
+}

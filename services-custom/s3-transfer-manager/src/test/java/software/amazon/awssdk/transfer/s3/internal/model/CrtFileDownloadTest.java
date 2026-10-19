@@ -44,6 +44,7 @@ import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgr
 import software.amazon.awssdk.transfer.s3.internal.progress.DefaultTransferProgressSnapshot;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
+import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.ResumableFileDownload;
 import software.amazon.awssdk.transfer.s3.progress.TransferProgress;
 import software.amazon.awssdk.utils.CompletableFutureUtils;
@@ -100,15 +101,22 @@ class CrtFileDownloadTest {
     }
 
     @Test
-    void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredIsAbsoluteObjectOffset() {
-        // A resumed download issues a ranged GET, so CRT reports the gap-free prefix relative to the range start rather than
-        // to the start of the object.
-        ResumeToken token = downloadResumeToken(2000, 1500);
+    void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredMatchesFileSize() {
+        // For bytes=2000- resumed from 3500: getObjectRangeStart()=3500, getContinuesDownloadedBytes()=1000.
+        // bytesTransferred = 3500 + 1000 - 2000 = 2500 (total file size on disk).
+        DownloadFileRequest rangedRequest = DownloadFileRequest.builder()
+                                                               .getObjectRequest(r -> r.bucket("bucket").key("key")
+                                                                                        .range("bytes=2000-"))
+                                                               .destination(file)
+                                                               .build();
+        ResumeToken token = downloadResumeToken(3500, 1000);
         when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
 
-        ResumableFileDownload resumable = fileDownload(null).pause();
+        FileDownload download = new CrtFileDownload(completionFuture, progress(), observable,
+                                                    () -> rangedRequest, null);
+        ResumableFileDownload resumable = download.pause();
 
-        assertThat(resumable.bytesTransferred()).isEqualTo(3500L);
+        assertThat(resumable.bytesTransferred()).isEqualTo(2500L);
     }
 
     @Test

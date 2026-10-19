@@ -5668,6 +5668,10 @@
         }
       }
     },
+    "BlueprintCategory":{
+      "type":"string",
+      "enum":["TOOLING"]
+    },
     "Boolean":{
       "type":"boolean",
       "box":true
@@ -6321,7 +6325,10 @@
         "AMAZON_Q",
         "MLFLOW",
         "VPC",
-        "GIT"
+        "GIT",
+        "ICEBERGRESTCATALOG",
+        "SNOWFLAKEICEBERGRESTCATALOG",
+        "DATABRICKSICEBERGRESTCATALOG"
       ]
     },
     "ConnectivityProperties":{
@@ -7819,6 +7826,10 @@
         "userParameters":{
           "shape":"CustomParameterList",
           "documentation":"<p>The user parameters of this Amazon DataZone blueprint.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the Amazon DataZone blueprint. The only valid value is <code>TOOLING</code>, which creates a blueprint that provisions the tooling resources of a project.</p>"
         }
       }
     },
@@ -7862,6 +7873,10 @@
         "glossaryTerms":{
           "shape":"GlossaryTerms",
           "documentation":"<p>The glossary terms attached to this Amazon DataZone blueprint.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the Amazon DataZone blueprint. The only valid value is <code>TOOLING</code>, which indicates a blueprint that provisions the tooling resources of a project.</p>"
         },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
@@ -8564,6 +8579,10 @@
           "shape":"Description",
           "documentation":"<p>The description of the notebook.</p>"
         },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
         "metadata":{
           "shape":"Metadata",
           "documentation":"<p>The metadata for the notebook, specified as key-value pairs. You can specify up to 50 entries, with keys up to 128 characters and values up to 1024 characters.</p>"
@@ -8613,6 +8632,10 @@
         "status":{
           "shape":"NotebookStatus",
           "documentation":"<p>The status of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
         },
         "description":{
           "shape":"Description",
@@ -10547,9 +10570,15 @@
         },
         "skipDeletionCheck":{
           "shape":"Boolean",
-          "documentation":"<p>Specifies the optional flag to delete all child entities within the domain.</p>",
+          "documentation":"<p>Specifies whether to skip the check that prevents deletion of a domain that still contains resources. When you use this parameter, Amazon DataZone deletes the domain but might not remove its associated resources, which can leave orphaned resources behind. To delete a domain and fully clean up its associated resources, use <code>cascadeDelete</code> instead. You can't use this parameter together with <code>cascadeDelete</code>.</p>",
           "location":"querystring",
           "locationName":"skipDeletionCheck"
+        },
+        "cascadeDelete":{
+          "shape":"Boolean",
+          "documentation":"<p>Specifies whether to delete the domain along with all of its associated resources. When you use this parameter, Amazon DataZone deletes the domain and cleanly removes its associated resources without leaving orphaned resources behind. Amazon DataZone reports deletion progress in the <code>deleteProgress</code> field. Amazon DataZone reports any resources that it can't delete in the <code>failureReasons</code> field of the <code>GetDomain</code> response. You can't use this parameter together with <code>skipDeletionCheck</code>. If you don't specify a value, the default is <code>false</code>.</p>",
+          "location":"querystring",
+          "locationName":"cascadeDelete"
         }
       }
     },
@@ -10866,6 +10895,16 @@
     "DeleteNotebookOutput":{
       "type":"structure",
       "members":{}
+    },
+    "DeleteProgress":{
+      "type":"structure",
+      "members":{
+        "successfullyDeletedProjectCount":{
+          "shape":"Integer",
+          "documentation":"<p>The number of projects that Amazon DataZone successfully deleted during the domain deletion.</p>"
+        }
+      },
+      "documentation":"<p>The progress of a domain deletion, including the number of projects that Amazon DataZone successfully deleted. Amazon DataZone returns this structure in the response to a <code>GetDomain</code> request while a cascade deletion is in progress.</p>"
     },
     "DeleteProjectInput":{
       "type":"structure",
@@ -11827,6 +11866,10 @@
         "updatedAt":{
           "shape":"SyntheticTimestamp_date_time",
           "documentation":"<p>The timestamp of when the blueprint was enabled.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the environment blueprint. The only valid value is <code>TOOLING</code>.</p>"
         }
       },
       "documentation":"<p>The details of an environment blueprint summary.</p>"
@@ -12292,9 +12335,28 @@
       },
       "documentation":"<p>Specifies the error message that is returned if the operation cannot be successfully completed.</p>"
     },
+    "FailureReason":{
+      "type":"structure",
+      "members":{
+        "id":{
+          "shape":"String",
+          "documentation":"<p>The identifier of the resource that failed to delete.</p>"
+        },
+        "message":{
+          "shape":"String",
+          "documentation":"<p>The error message associated with the resource that failed to delete.</p>"
+        }
+      },
+      "documentation":"<p>The details of a resource deletion failure during a cascade deletion of the domain.</p>"
+    },
     "FailureReasons":{
       "type":"list",
       "member":{"shape":"ProjectDeletionError"}
+    },
+    "FailureReasonsList":{
+      "type":"list",
+      "member":{"shape":"FailureReason"},
+      "documentation":"<p>A list of <code>FailureReason</code> objects that describe the resources that Amazon DataZone could not delete during a cascade deletion. Amazon DataZone returns this list in the <code>failureReasons</code> field of the <code>GetDomain</code> response.</p>"
     },
     "FileFormat":{
       "type":"string",
@@ -13549,6 +13611,14 @@
         "serviceRole":{
           "shape":"RoleArn",
           "documentation":"<p>The service role of the domain.</p>"
+        },
+        "failureReasons":{
+          "shape":"FailureReasonsList",
+          "documentation":"<p>The list of failure reasons for resources that Amazon DataZone could not delete during a cascade deletion of the domain.</p>"
+        },
+        "deleteProgress":{
+          "shape":"DeleteProgress",
+          "documentation":"<p>The progress of the current domain deletion, including the number of projects that Amazon DataZone successfully deleted.</p>"
         }
       }
     },
@@ -13827,6 +13897,10 @@
         "glossaryTerms":{
           "shape":"GlossaryTerms",
           "documentation":"<p>The glossary terms attached to this Amazon DataZone blueprint.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of this Amazon DataZone blueprint. The only valid value is <code>TOOLING</code>, which indicates a blueprint that provisions the tooling resources of a project.</p>"
         },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
@@ -14944,6 +15018,10 @@
           "shape":"NotebookStatus",
           "documentation":"<p>The status of the notebook.</p>"
         },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the notebook.</p>"
@@ -15088,6 +15166,10 @@
         "storageConfiguration":{
           "shape":"StorageConfig",
           "documentation":"<p>The storage configuration of the notebook run, including the Amazon Simple Storage Service path and KMS key ARN.</p>"
+        },
+        "notificationConfiguration":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>The notification configuration of the notebook run, including the notebook run states that trigger notifications.</p>"
         },
         "triggerSource":{
           "shape":"TriggerSource",
@@ -16520,7 +16602,10 @@
         "SAPHANA",
         "SQLSERVER",
         "TERADATA",
-        "VERTICA"
+        "VERTICA",
+        "ICEBERGRESTCATALOG",
+        "SNOWFLAKEICEBERGRESTCATALOG",
+        "DATABRICKSICEBERGRESTCATALOG"
       ]
     },
     "GlueOAuth2Credentials":{
@@ -16922,6 +17007,10 @@
         "glueLineageSyncEnabled":{
           "shape":"Boolean",
           "documentation":"<p>Specifies whether Amazon Web Services Glue lineage sync is enabled for a connection.</p>"
+        },
+        "roleArn":{
+          "shape":"RoleArn",
+          "documentation":"<p>The ARN of the IAM role to associate with the connection as the project user role. To use this operation, you must have <code>iam:PassRole</code> permission for this role.</p>"
         }
       },
       "documentation":"<p>The IAM properties of a connection.</p>"
@@ -19006,6 +19095,12 @@
           "location":"querystring",
           "locationName":"status"
         },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type to filter notebooks by.</p>",
+          "location":"querystring",
+          "locationName":"type"
+        },
         "nextToken":{
           "shape":"PaginationToken",
           "documentation":"<p>When the number of notebooks is greater than the default value for the <code>MaxResults</code> parameter, or if you explicitly specify a value for <code>MaxResults</code> that is less than the number of notebooks, the response includes a pagination token named <code>NextToken</code>. You can specify this <code>NextToken</code> value in a subsequent call to <code>ListNotebooks</code> to list the next set of notebooks.</p>",
@@ -20718,6 +20813,10 @@
           "shape":"NotebookStatus",
           "documentation":"<p>The status of the notebook.</p>"
         },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
+        },
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the notebook.</p>"
@@ -20744,6 +20843,25 @@
     "NotebookSummaryList":{
       "type":"list",
       "member":{"shape":"NotebookSummary"}
+    },
+    "NotebookType":{
+      "type":"string",
+      "documentation":"<p>The type of a notebook in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "DATA",
+        "SQL"
+      ]
+    },
+    "NotificationConfig":{
+      "type":"structure",
+      "required":["notifyOn"],
+      "members":{
+        "notifyOn":{
+          "shape":"NotifyOnStates",
+          "documentation":"<p>Notebook run states that trigger notifications. Ordering is not significant.</p>"
+        }
+      },
+      "documentation":"<p>The notification configuration for a notebook run in Amazon SageMaker Unified Studio.</p>"
     },
     "NotificationOutput":{
       "type":"structure",
@@ -20856,6 +20974,25 @@
     "NotificationsList":{
       "type":"list",
       "member":{"shape":"NotificationOutput"}
+    },
+    "NotifyOnState":{
+      "type":"string",
+      "documentation":"<p>A notebook run state that triggers a notification in Amazon SageMaker Unified Studio.</p>",
+      "enum":[
+        "SUCCEEDED",
+        "FAILED",
+        "STOPPED",
+        "QUEUED",
+        "STARTING",
+        "RUNNING",
+        "STOPPING"
+      ]
+    },
+    "NotifyOnStates":{
+      "type":"list",
+      "member":{"shape":"NotifyOnState"},
+      "max":7,
+      "min":0
     },
     "OAuth2ClientApplication":{
       "type":"structure",
@@ -23308,6 +23445,13 @@
       "min":0,
       "pattern":"[a-zA-Z0-9\\-]+"
     },
+    "S3BucketName":{
+      "type":"string",
+      "max":63,
+      "min":3,
+      "pattern":"[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]",
+      "sensitive":true
+    },
     "S3Destination":{
       "type":"structure",
       "members":{
@@ -23317,6 +23461,41 @@
         }
       },
       "documentation":"<p>The Amazon Simple Storage Service destination for a notebook export in Amazon SageMaker Unified Studio.</p>"
+    },
+    "S3File":{
+      "type":"structure",
+      "required":["key"],
+      "members":{
+        "key":{
+          "shape":"S3ObjectKey",
+          "documentation":"<p>The key of the Amazon Simple Storage Service object to import.</p>"
+        }
+      },
+      "documentation":"<p>A single Amazon Simple Storage Service object to import as a notebook cell.</p>"
+    },
+    "S3FileList":{
+      "type":"list",
+      "member":{"shape":"S3File"},
+      "max":100,
+      "min":1
+    },
+    "S3FilesLocation":{
+      "type":"structure",
+      "required":[
+        "bucket",
+        "fileList"
+      ],
+      "members":{
+        "bucket":{
+          "shape":"S3BucketName",
+          "documentation":"<p>The name of the Amazon Simple Storage Service bucket that contains the files to import.</p>"
+        },
+        "fileList":{
+          "shape":"S3FileList",
+          "documentation":"<p>The files to import. Cells are created in the order in which you list the files. You can specify between 1 and 100 files.</p>"
+        }
+      },
+      "documentation":"<p>The Amazon Simple Storage Service objects to import as the cells of a notebook, specified as a bucket and an ordered list of object keys.</p>"
     },
     "S3Location":{
       "type":"string",
@@ -23329,6 +23508,12 @@
       "member":{"shape":"S3Location"},
       "max":20,
       "min":0
+    },
+    "S3ObjectKey":{
+      "type":"string",
+      "max":1024,
+      "min":1,
+      "sensitive":true
     },
     "S3Path":{
       "type":"string",
@@ -24156,6 +24341,10 @@
         "s3":{
           "shape":"S3SourceLocation",
           "documentation":"<p>The Amazon Simple Storage Service URI of the notebook source file.</p>"
+        },
+        "s3Files":{
+          "shape":"S3FilesLocation",
+          "documentation":"<p>The Amazon Simple Storage Service objects to import as the notebook's cells. One cell is created for each object, in the order in which you list them.</p>"
         }
       },
       "documentation":"<p>The source location for a notebook import in Amazon SageMaker Unified Studio.</p>",
@@ -24798,7 +24987,7 @@
         },
         "sourceLocation":{
           "shape":"SourceLocation",
-          "documentation":"<p>The source location of the notebook to import. This specifies the Amazon Simple Storage Service URI of the notebook file.</p>"
+          "documentation":"<p>The source location of the notebook to import. Specify either a single Amazon Simple Storage Service URI, or a list of objects to import as the notebook's cells.</p>"
         },
         "name":{
           "shape":"NotebookName",
@@ -24807,6 +24996,10 @@
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the imported notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook to import. If not specified, defaults to <code>DATA</code>.</p>"
         },
         "clientToken":{
           "shape":"ClientToken",
@@ -24841,6 +25034,10 @@
         "description":{
           "shape":"Description",
           "documentation":"<p>The description of the imported notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the imported notebook.</p>"
         },
         "sourceLocation":{
           "shape":"SourceLocation",
@@ -24893,6 +25090,10 @@
         "timeoutConfiguration":{
           "shape":"TimeoutConfig",
           "documentation":"<p>The timeout configuration for the notebook run. The default timeout is 720 minutes (12 hours) and the maximum is 1440 minutes (24 hours).</p>"
+        },
+        "notificationConfiguration":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>The notification configuration for the notebook run. Use this to specify the notebook run states that trigger notifications.</p>"
         },
         "triggerSource":{
           "shape":"TriggerSource",
@@ -24978,6 +25179,10 @@
         "storageConfiguration":{
           "shape":"StorageConfig",
           "documentation":"<p>The storage configuration of the notebook run, including the Amazon Simple Storage Service path and KMS key ARN.</p>"
+        },
+        "notificationConfiguration":{
+          "shape":"NotificationConfig",
+          "documentation":"<p>The notification configuration of the notebook run, including the notebook run states that trigger notifications.</p>"
         },
         "triggerSource":{
           "shape":"TriggerSource",
@@ -27142,6 +27347,10 @@
         "userParameters":{
           "shape":"CustomParameterList",
           "documentation":"<p>The user parameters to be updated as part of the <code>UpdateEnvironmentBlueprint</code> action.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category to update. The only valid value is <code>TOOLING</code>.</p>"
         }
       }
     },
@@ -27185,6 +27394,10 @@
         "glossaryTerms":{
           "shape":"GlossaryTerms",
           "documentation":"<p>The glossary terms to be updated as part of the <code>UpdateEnvironmentBlueprint</code> action.</p>"
+        },
+        "blueprintCategory":{
+          "shape":"BlueprintCategory",
+          "documentation":"<p>The category of the environment blueprint. The only valid value is <code>TOOLING</code>.</p>"
         },
         "createdAt":{
           "shape":"SyntheticTimestamp_date_time",
@@ -27706,6 +27919,10 @@
           "shape":"CellOrder",
           "documentation":"<p>The updated ordered list of cells in the notebook.</p>"
         },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The updated type of the notebook.</p>"
+        },
         "metadata":{
           "shape":"Metadata",
           "documentation":"<p>The updated metadata for the notebook, specified as key-value pairs.</p>"
@@ -27759,6 +27976,10 @@
         "status":{
           "shape":"NotebookStatus",
           "documentation":"<p>The status of the notebook.</p>"
+        },
+        "type":{
+          "shape":"NotebookType",
+          "documentation":"<p>The type of the notebook.</p>"
         },
         "description":{
           "shape":"Description",

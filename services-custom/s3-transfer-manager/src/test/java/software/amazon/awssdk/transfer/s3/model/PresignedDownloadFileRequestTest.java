@@ -103,6 +103,29 @@ class PresignedDownloadFileRequestTest {
                       .verify();
     }
 
+    @Test
+    void toString_redactsPresignedUrlQueryString() {
+        URL url = createSignedTestUrl();
+        Path path = Paths.get("destination-file.txt");
+
+        PresignedDownloadFileRequest request =
+            PresignedDownloadFileRequest.builder()
+                                        .destination(path)
+                                        .presignedUrlDownloadRequest(b -> b.presignedUrl(url))
+                                        .build();
+
+        assertThat(request.toString())
+            .doesNotContain("X-Amz-Signature")
+            .doesNotContain("deadbeef")
+            .doesNotContain("X-Amz-Credential")
+            .doesNotContain("AKIAEXAMPLE")
+            .doesNotContain("X-Amz-Security-Token")
+            .doesNotContain("SESSIONTOKENEXAMPLE")
+            .doesNotContain(url.getQuery())
+            .contains("destination-file.txt")
+            .contains("*** Sensitive Data Redacted ***");
+    }
+
     private PresignedUrlDownloadRequest createPresignedRequest() {
         return PresignedUrlDownloadRequest.builder()
                                          .presignedUrl(createTestUrl())
@@ -112,6 +135,18 @@ class PresignedDownloadFileRequestTest {
     private URL createTestUrl() {
         try {
             return new URL("https://example.com/test");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private URL createSignedTestUrl() {
+        try {
+            return new URL("https://bucket.s3.us-east-1.amazonaws.com/dir/key.txt?"
+                           + "X-Amz-Algorithm=AWS4-HMAC-SHA256&"
+                           + "X-Amz-Credential=AKIAEXAMPLE%2F20240101%2Fus-east-1%2Fs3%2Faws4_request&"
+                           + "X-Amz-Security-Token=SESSIONTOKENEXAMPLE&"
+                           + "X-Amz-Signature=deadbeefdeadbeef");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

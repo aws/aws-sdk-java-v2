@@ -35,7 +35,7 @@ import software.amazon.awssdk.utils.Logger;
 public final class EmittingSubscription<T> implements Subscription {
     private static final Logger log = Logger.loggerFor(EmittingSubscription.class);
 
-    private Subscriber<? super T> downstreamSubscriber;
+    private final Subscriber<? super T> downstreamSubscriber;
     private final AtomicBoolean emitting;
     private final AtomicLong outstandingDemand;
     private final Runnable onCancel;
@@ -74,7 +74,6 @@ public final class EmittingSubscription<T> implements Subscription {
     @Override
     public void cancel() {
         isCancelled.set(true);
-        downstreamSubscriber = null;
         onCancel.run();
     }
 

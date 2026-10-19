@@ -16,6 +16,7 @@
 package software.amazon.awssdk.endpoints;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.net.URI;
 import java.util.Arrays;
@@ -132,5 +133,106 @@ public class EndpointTest {
         assertThat(endpointUrl.port()).isEqualTo(443);
         assertThat(endpointUrl.encodedPath()).isEqualTo("/bucket");
         assertThat(endpointUrl.queryAndFragment()).isEmpty();
+    }
+
+    @Test
+    public void build_noHeadersOrAttributes_returnsEmptyMaps() {
+        Endpoint endpoint = Endpoint.builder()
+                                    .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                    .build();
+
+        assertThat(endpoint.headers()).isEmpty();
+        assertThat(endpoint.attribute(TEST_STRING_ATTR)).isNull();
+    }
+
+    @Test
+    public void headers_isUnmodifiable() {
+        Endpoint noHeaders = Endpoint.builder()
+                                     .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                     .build();
+        Endpoint withHeaders = Endpoint.builder()
+                                       .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                       .putHeader("foo", "bar")
+                                       .build();
+
+        assertThatThrownBy(() -> noHeaders.headers().put("a", Arrays.asList("b")))
+            .isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> withHeaders.headers().put("a", Arrays.asList("b")))
+            .isInstanceOf(UnsupportedOperationException.class);
+    }
+
+    /**
+     * A single attribute is staged inline rather than in a map, so exercise the read path for one, two and
+     * three attributes as well as overwriting the staged entry.
+     */
+    @Test
+    public void putAttribute_variousArities_allReadable() {
+        EndpointAttributeKey<String> second = new EndpointAttributeKey<>("Second", String.class);
+        EndpointAttributeKey<String> third = new EndpointAttributeKey<>("Third", String.class);
+
+        Endpoint one = Endpoint.builder()
+                               .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                               .putAttribute(TEST_STRING_ATTR, "a")
+                               .build();
+        assertThat(one.attribute(TEST_STRING_ATTR)).isEqualTo("a");
+        assertThat(one.attribute(second)).isNull();
+
+        Endpoint two = Endpoint.builder()
+                               .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                               .putAttribute(TEST_STRING_ATTR, "a")
+                               .putAttribute(second, "b")
+                               .build();
+        assertThat(two.attribute(TEST_STRING_ATTR)).isEqualTo("a");
+        assertThat(two.attribute(second)).isEqualTo("b");
+
+        Endpoint three = Endpoint.builder()
+                                 .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                 .putAttribute(TEST_STRING_ATTR, "a")
+                                 .putAttribute(second, "b")
+                                 .putAttribute(third, "c")
+                                 .build();
+        assertThat(three.attribute(TEST_STRING_ATTR)).isEqualTo("a");
+        assertThat(three.attribute(second)).isEqualTo("b");
+        assertThat(three.attribute(third)).isEqualTo("c");
+    }
+
+    @Test
+    public void putAttribute_sameKeyTwice_lastValueWins() {
+        EndpointAttributeKey<String> second = new EndpointAttributeKey<>("Second", String.class);
+
+        Endpoint staged = Endpoint.builder()
+                                  .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                  .putAttribute(TEST_STRING_ATTR, "first")
+                                  .putAttribute(TEST_STRING_ATTR, "second")
+                                  .build();
+        assertThat(staged.attribute(TEST_STRING_ATTR)).isEqualTo("second");
+
+        // Same key overwritten after the builder has been promoted to a map.
+        Endpoint promoted = Endpoint.builder()
+                                    .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                    .putAttribute(TEST_STRING_ATTR, "first")
+                                    .putAttribute(second, "other")
+                                    .putAttribute(TEST_STRING_ATTR, "second")
+                                    .build();
+        assertThat(promoted.attribute(TEST_STRING_ATTR)).isEqualTo("second");
+        assertThat(promoted.attribute(second)).isEqualTo("other");
+    }
+
+    @Test
+    public void toBuilder_roundTripsAllAttributeArities() {
+        EndpointAttributeKey<String> second = new EndpointAttributeKey<>("Second", String.class);
+
+        Endpoint none = Endpoint.builder()
+                                .endpointUrl(EndpointUrl.fromString("https://example.com"))
+                                .build();
+        assertThat(none.toBuilder().build()).isEqualTo(none);
+
+        Endpoint one = none.toBuilder().putAttribute(TEST_STRING_ATTR, "a").build();
+        assertThat(one.toBuilder().build()).isEqualTo(one);
+
+        Endpoint two = one.toBuilder().putAttribute(second, "b").build();
+        assertThat(two.toBuilder().build()).isEqualTo(two);
+        assertThat(two.attribute(TEST_STRING_ATTR)).isEqualTo("a");
+        assertThat(two.attribute(second)).isEqualTo("b");
     }
 }

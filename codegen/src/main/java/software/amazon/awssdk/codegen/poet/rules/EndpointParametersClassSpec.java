@@ -126,7 +126,7 @@ public class EndpointParametersClassSpec implements ClassSpec {
     }
 
     private Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 
     private MethodSpec ctor() {

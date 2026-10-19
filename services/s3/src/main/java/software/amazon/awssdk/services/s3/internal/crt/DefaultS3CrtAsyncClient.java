@@ -91,6 +91,8 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
     public static final ExecutionAttribute<Path> RESPONSE_FILE_PATH = new ExecutionAttribute<>("responseFilePath");
     public static final ExecutionAttribute<S3MetaRequestOptions.ResponseFileOption> RESPONSE_FILE_OPTION =
         new ExecutionAttribute<>("responseFileOption");
+    public static final ExecutionAttribute<Boolean> RESPONSE_FILE_DELETE_ON_FAILURE =
+        new ExecutionAttribute<>("responseFileDeleteOnFailure");
     private static final String CRT_CLIENT_CLASSPATH = "software.amazon.awssdk.crt.s3.S3Client";
     private final CopyObjectHelper copyObjectHelper;
 
@@ -124,10 +126,12 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
 
         AwsRequestOverrideConfiguration overrideConfig =
             getObjectRequest.overrideConfiguration()
-                            .map(config -> config.toBuilder().putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath))
-                            .orElseGet(() -> AwsRequestOverrideConfiguration.builder()
-                                                                            .putExecutionAttribute(RESPONSE_FILE_PATH,
-                                                                                                   destinationPath))
+                            .map(AwsRequestOverrideConfiguration::toBuilder)
+                            .orElseGet(AwsRequestOverrideConfiguration::builder)
+                            .putExecutionAttribute(RESPONSE_FILE_PATH, destinationPath)
+                            .putExecutionAttribute(RESPONSE_FILE_OPTION,
+                                                   S3MetaRequestOptions.ResponseFileOption.CREATE_NEW)
+                            .putExecutionAttribute(RESPONSE_FILE_DELETE_ON_FAILURE, true)
                             .build();
 
         return getObject(getObjectRequest.toBuilder().overrideConfiguration(overrideConfig).build(), responseTransformer);
@@ -439,7 +443,9 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                    .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_PATH,
                         executionAttributes.getAttribute(RESPONSE_FILE_PATH))
                    .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_OPTION,
-                        executionAttributes.getAttribute(RESPONSE_FILE_OPTION));
+                        executionAttributes.getAttribute(RESPONSE_FILE_OPTION))
+                   .put(S3InternalSdkHttpExecutionAttribute.RESPONSE_FILE_DELETE_ON_FAILURE,
+                        executionAttributes.getAttribute(RESPONSE_FILE_DELETE_ON_FAILURE));
 
             SdkRequest request = context.request();
             if (request instanceof AwsRequest) {

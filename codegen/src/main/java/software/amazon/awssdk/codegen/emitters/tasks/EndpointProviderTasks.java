@@ -24,7 +24,6 @@ import software.amazon.awssdk.codegen.emitters.GeneratorTask;
 import software.amazon.awssdk.codegen.emitters.GeneratorTaskParams;
 import software.amazon.awssdk.codegen.emitters.PoetGeneratorTask;
 import software.amazon.awssdk.codegen.model.config.customization.CustomizationConfig;
-import software.amazon.awssdk.codegen.model.rules.endpoints.ParameterModel;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.poet.rules.ClientContextParamsClassSpec;
 import software.amazon.awssdk.codegen.poet.rules.DefaultPartitionDataProviderSpec;
@@ -34,7 +33,7 @@ import software.amazon.awssdk.codegen.poet.rules.EndpointProviderSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointProviderTestSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointResolverUtilsSpec;
 import software.amazon.awssdk.codegen.poet.rules.EndpointRulesClientTestSpec;
-import software.amazon.awssdk.codegen.poet.rules2.EndpointProviderSpec2;
+import software.amazon.awssdk.codegen.poet.rules.bdd.BddEndpointProviderSpec;
 
 public final class EndpointProviderTasks extends BaseGeneratorTasks {
     private final GeneratorTaskParams generatorTaskParams;
@@ -49,14 +48,12 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         List<GeneratorTask> tasks = new ArrayList<>();
         tasks.add(generateInterface());
         tasks.add(generateParams());
-        if (shouldGenerateCompiledEndpointRules()) {
-            tasks.add(generateDefaultProvider2());
-            tasks.add(new RulesEngineRuntimeLiteGeneratorTask(generatorTaskParams));
-            tasks.add(new RulesEngineRuntimeGeneratorTask2(generatorTaskParams));
+        if (generatorTaskParams.getModel().getEndpointBddModel() != null) {
+            tasks.add(generateDefaultProviderBdd());
         } else {
-            tasks.add(generateDefaultProvider());
-            tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
+            tasks.add(generateDefaultProvider2());
         }
+        tasks.add(new RulesEngineRuntimeGeneratorTask(generatorTaskParams));
         if (shouldGenerateJmesPathRuntime()) {
             tasks.add(new JmesPathRuntimeGeneratorTask(generatorTaskParams));
         }
@@ -82,12 +79,16 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
         return new PoetGeneratorTask(endpointRulesDir(), model.getFileHeader(), new EndpointParametersClassSpec(model));
     }
 
-    private GeneratorTask generateDefaultProvider() {
+    private GeneratorTask generateDefaultProvider2() {
         return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec(model));
     }
 
-    private GeneratorTask generateDefaultProvider2() {
-        return new PoetGeneratorTask(endpointRulesInternalDir(), model.getFileHeader(), new EndpointProviderSpec2(model));
+    private GeneratorTask generateDefaultProviderBdd() {
+        return new PoetGeneratorTask(
+            endpointRulesInternalDir(),
+            model.getFileHeader(),
+            new BddEndpointProviderSpec(model)
+        );
     }
 
     private GeneratorTask generateDefaultPartitionsProvider() {
@@ -95,10 +96,6 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
                                      new DefaultPartitionDataProviderSpec(model));
     }
 
-    private boolean shouldGenerateCompiledEndpointRules() {
-        CustomizationConfig customizationConfig = generatorTaskParams.getModel().getCustomizationConfig();
-        return customizationConfig.isEnableGenerateCompiledEndpointRules();
-    }
 
     private Collection<GeneratorTask> generateInterceptors() {
         return Arrays.asList(
@@ -157,8 +154,9 @@ public final class EndpointProviderTasks extends BaseGeneratorTasks {
             return true;
         }
 
-        Map<String, ParameterModel> endpointParameters = model.getEndpointRuleSetModel().getParameters();
-        if (endpointParameters == null) {
+        // Operation context params are JMESPath expressions over the request that feed endpoint parameters, so a
+        // service declaring no endpoint parameters has nothing for them to bind to.
+        if (model.getEndpointParameters().isEmpty()) {
             return false;
         }
 

@@ -235,7 +235,7 @@ public final class AuthSchemeParamsSpec implements ClassSpec {
     }
 
     private Map<String, ParameterModel> parameters() {
-        return intermediateModel.getEndpointRuleSetModel().getParameters();
+        return intermediateModel.getEndpointParameters();
     }
 
     private TypeName toCopyableBuilderInterface() {

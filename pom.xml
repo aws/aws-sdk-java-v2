@@ -20,7 +20,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>software.amazon.awssdk</groupId>
     <artifactId>aws-sdk-java-pom</artifactId>
-    <version>2.54.5-SNAPSHOT</version>
+    <version>2.57.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>AWS Java SDK :: Parent</name>
     <description>The Amazon Web Services SDK for Java provides Java APIs
@@ -104,13 +104,12 @@
     </scm>
     <properties>
         <awsjavasdk.version>${project.version}</awsjavasdk.version>
-        <awsjavasdk.previous.version>2.54.4</awsjavasdk.previous.version>
-        <awsjavasdk.previous-previous.version>2.54.3</awsjavasdk.previous-previous.version>
-        <jackson.version>2.21.4</jackson.version>
-        <jackson.databind.version>2.21.6</jackson.databind.version>
-        <jacksonjr.version>2.21.4</jacksonjr.version>
+        <awsjavasdk.previous.version>2.57.0</awsjavasdk.previous.version>
+        <awsjavasdk.previous-previous.version>2.56.0</awsjavasdk.previous-previous.version>
+        <jackson.version>2.21.7</jackson.version>
+        <jackson.databind.version>2.21.7</jackson.databind.version>
+        <jacksonjr.version>2.21.7</jacksonjr.version>
         <jackson.annotations.version>2.21</jackson.annotations.version>
-        <eventstream.version>1.0.1</eventstream.version>
         <commons.lang.version>3.14.0</commons.lang.version>
         <wiremock.version>2.32.0</wiremock.version>
         <slf4j.version>1.7.36</slf4j.version>
@@ -119,7 +118,7 @@
         <equalsverifier.version>3.15.1</equalsverifier.version>
         <!-- Update netty-open-ssl-version accordingly whenever we update netty version-->
         <!-- https://github.com/netty/netty/blob/4.1/pom.xml search "tcnative.version" -->
-        <netty.version>4.1.137.Final</netty.version>
+        <netty.version>4.1.138.Final</netty.version>
         <unitils.version>3.4.6</unitils.version>
         <xmlunit.version>1.3</xmlunit.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -131,7 +130,7 @@
         <rxjava3.version>3.1.5</rxjava3.version>
         <commons-codec.verion>1.17.1</commons-codec.verion>
         <jmh.version>1.37</jmh.version>
-        <awscrt.version>0.48.4</awscrt.version>
+        <awscrt.version>0.48.5</awscrt.version>
 
         <!--Test dependencies -->
         <junit5.version>5.10.3</junit5.version>
@@ -144,7 +143,7 @@
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
         <commons-lang.verson>2.6</commons-lang.verson>
-        <netty-open-ssl-version>2.0.81.Final</netty-open-ssl-version>
+        <netty-open-ssl-version>2.0.84.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
         <sqllite.version>1.0.392</sqllite.version>
         <blockhound.version>1.0.16.RELEASE</blockhound.version>
@@ -178,6 +177,7 @@
         <maven-wrapper-plugin.version>3.2.0</maven-wrapper-plugin.version>
         <ant.version>1.10.14</ant.version>
         <maven-velocity-plugin.version>0.9</maven-velocity-plugin.version>
+        <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
 
         <!-- These properties are used by Step functions for its dependencies -->
         <json-path.version>2.4.0</json-path.version>
@@ -408,6 +408,82 @@
                                         <targetPath>META-INF</targetPath>
                                     </resource>
                                 </resources>
+                            </configuration>
+                        </execution>
+                        <!-- version.properties generation, see the note on maven-resources-plugin below. -->
+                        <execution>
+                            <id>parse-sdk-version</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>parse-version</goal>
+                            </goals>
+                            <configuration>
+                                <versionString>${awsjavasdk.version}</versionString>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- Generates META-INF/software.amazon.awssdk/<artifactId>/version.properties into
+                     generated-resources/sdk-resources, which add-generated-resources registers as a resource root. Build
+                     tooling reads the SDK minor version (for example 2.56.x) from this output directory and from the jar,
+                     so do not change the output directory, resource path, key, or value format without coordinating with
+                     that tooling. The parse-sdk-version, generate-version-properties, and require-version-properties
+                     executions are unbound (phase none) here; core/pom.xml and services/pom.xml bind them in profiles so
+                     that only those module families produce the file. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-resources-plugin</artifactId>
+                    <executions>
+                        <execution>
+                            <id>generate-version-properties</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>copy-resources</goal>
+                            </goals>
+                            <configuration>
+                                <outputDirectory>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}</outputDirectory>
+                                <overwrite>true</overwrite>
+                                <resources>
+                                    <resource>
+                                        <directory>${maven.multiModuleProjectDirectory}/build-tools/src/main/templates</directory>
+                                        <includes>
+                                            <include>version.properties</include>
+                                        </includes>
+                                        <filtering>true</filtering>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+                <!-- The resources plugin silently skips a template directory that does not resolve, and leaves an
+                     unresolved ${parsedVersion.*} placeholder in place if parse-sdk-version did not run. -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-enforcer-plugin</artifactId>
+                    <version>${maven-enforcer-plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>require-version-properties</id>
+                            <phase>none</phase>
+                            <goals>
+                                <goal>enforce</goal>
+                            </goals>
+                            <configuration>
+                                <rules>
+                                    <requireFilesExist>
+                                        <message>version.properties was not generated. Check that ${maven.multiModuleProjectDirectory}/build-tools/src/main/templates/version.properties exists.</message>
+                                        <files>
+                                            <file>${project.build.directory}/generated-resources/sdk-resources/META-INF/software.amazon.awssdk/${project.artifactId}/version.properties</file>
+                                        </files>
+                                    </requireFilesExist>
+                                    <requireProperty>
+                                        <property>parsedVersion.minorVersion</property>
+                                        <message>The SDK minor version could not be parsed from ${awsjavasdk.version}, so version.properties would contain an unresolved placeholder. Check that the parse-sdk-version execution is bound in the same profile as generate-version-properties.</message>
+                                        <regex>\d+</regex>
+                                        <regexMessage>The SDK minor version parsed from ${awsjavasdk.version} is "${parsedVersion.minorVersion}", not a number, so version.properties would contain an invalid version.</regexMessage>
+                                    </requireProperty>
+                                </rules>
                             </configuration>
                         </execution>
                     </executions>
@@ -647,6 +723,7 @@
                             <includeModule>imds</includeModule>
                             <includeModule>retries</includeModule>
                             <includeModule>retries-spi</includeModule>
+                            <includeModule>eventstream</includeModule>
 
                             <!-- High level libraries -->
                             <includeModule>dynamodb-enhanced</includeModule>

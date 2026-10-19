@@ -18,6 +18,7 @@ package software.amazon.awssdk.core.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,12 +26,27 @@ import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.utils.IoUtils;
 
 public final class VersionInfoTest {
 
     @Test
     public void versionIsTheSameAsMavenProject() throws Exception {
         assertThat(VersionInfo.SDK_VERSION).isEqualTo(getSdkVersionFromPom());
+    }
+
+    @Test
+    public void versionProperties_content_isExactlySdkMinorVersion() throws IOException {
+        String resource = "META-INF/software.amazon.awssdk/sdk-core/version.properties";
+        String content;
+        try (InputStream propertiesFile = VersionInfo.class.getClassLoader().getResourceAsStream(resource)) {
+            assertThat(propertiesFile).as(resource + " on classpath").isNotNull();
+            content = IoUtils.toUtf8String(propertiesFile);
+        }
+
+        String[] versionParts = VersionInfo.SDK_VERSION.split("\\.");
+        String minorVersion = versionParts[0] + "." + versionParts[1] + ".x";
+        assertThat(content.replaceFirst("\\r?\\n$", "")).isEqualTo("version=" + minorVersion);
     }
 
     private String getSdkVersionFromPom() throws URISyntaxException, IOException {

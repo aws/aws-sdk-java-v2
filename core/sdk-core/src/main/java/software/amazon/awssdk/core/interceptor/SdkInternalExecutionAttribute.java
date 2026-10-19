@@ -38,6 +38,7 @@ import software.amazon.awssdk.core.useragent.AdditionalMetadata;
 import software.amazon.awssdk.core.useragent.BusinessMetricCollection;
 import software.amazon.awssdk.endpoints.Endpoint;
 import software.amazon.awssdk.endpoints.EndpointProvider;
+import software.amazon.awssdk.endpoints.EndpointUrl;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthScheme;
 import software.amazon.awssdk.http.auth.spi.scheme.AuthSchemeProvider;
@@ -212,11 +213,29 @@ public final class SdkInternalExecutionAttribute extends SdkExecutionAttribute {
         new ExecutionAttribute<>("EndpointResolver");
 
     /**
-     * The HTTP request URI captured before modifyHttpRequest interceptors run.
-     * Used by EndpointResolutionStage to detect if a customer interceptor modified the URL.
+     * The HTTP request endpoint (scheme, host, port and path) captured before modifyHttpRequest interceptors run.
+     * Used by EndpointResolutionStage to detect if a customer interceptor modified the endpoint.
      */
+    public static final ExecutionAttribute<EndpointUrl> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY =
+        new ExecutionAttribute<>("HttpRequestEndpointBeforeModify");
+
+    /**
+     * The HTTP request URI captured before modifyHttpRequest interceptors run. Writing this replaces
+     * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} with the written URI's components.
+     *
+     * @deprecated Use {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} instead. This is a view over that attribute, so the
+     * value recorded by the SDK carries only the scheme, host, port and path: the query string is absent, and the port
+     * is present even when it is the protocol's default. Reading it builds a {@link URI}, which
+     * {@link #HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY} lets you avoid.
+     */
+    @Deprecated
     public static final ExecutionAttribute<URI> HTTP_REQUEST_URI_BEFORE_MODIFY =
-        new ExecutionAttribute<>("HttpRequestUriBeforeModify");
+        ExecutionAttribute.derivedBuilder("HttpRequestUriBeforeModify",
+                                          URI.class,
+                                          () -> HTTP_REQUEST_ENDPOINT_BEFORE_MODIFY)
+                          .readMapping(endpoint -> endpoint != null ? endpoint.toUri() : null)
+                          .writeMapping((endpoint, uri) -> uri != null ? EndpointUrl.fromUri(uri) : null)
+                          .build();
 
     /**
      * The selected auth scheme for a request.
