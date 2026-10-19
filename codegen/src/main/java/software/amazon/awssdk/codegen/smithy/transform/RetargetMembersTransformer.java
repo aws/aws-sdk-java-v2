@@ -19,6 +19,7 @@ import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.e
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.expectMember;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.expectShape;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.memberId;
+import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.rejectMixins;
 import static software.amazon.awssdk.codegen.smithy.transform.TransformSupport.shapeId;
 
 import java.util.Collections;
@@ -75,6 +76,7 @@ public final class RetargetMembersTransformer implements ProjectionTransformer {
             ShapeId target = shapeId(NAME, entry.getValue().expectStringNode().getValue());
 
             MemberShape member = expectMember(NAME, model, id);
+            rejectMixins(NAME, model, id, member);
             Shape targetShape = expectShape(NAME, model, target);
             if (targetShape.isMemberShape() || targetShape.isOperationShape() || targetShape.isServiceShape()
                 || targetShape.isResourceShape()) {

@@ -30,6 +30,7 @@ import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.shapes.ShapeIdSyntaxException;
 import software.amazon.smithy.model.shapes.StructureShape;
 import software.amazon.smithy.model.shapes.UnionShape;
+import software.amazon.smithy.model.traits.MixinTrait;
 import software.amazon.smithy.model.traits.Trait;
 import software.amazon.smithy.model.traits.TraitFactory;
 
@@ -82,18 +83,35 @@ final class TransformSupport {
     }
 
     /**
-     * Returns the structure or union that can own named members, rejecting shapes that use mixins because their
-     * inherited members cannot be renamed or reordered in place.
+     * Returns the structure or union that can own named members, rejecting mixins and the shapes that use them (see
+     * {@link #rejectMixins(String, Model, ShapeId, Shape)}).
      */
     static Shape expectNamedMembersContainer(String transform, Model model, ShapeId id) {
         Shape container = expectShape(transform, model, id);
         if (!container.isStructureShape() && !container.isUnionShape()) {
             throw error(transform, "'" + id + "' is a " + container.getType() + "; only structures and unions are supported");
         }
-        if (!container.getMixins().isEmpty()) {
-            throw error(transform, "'" + id + "' uses mixins, which are not supported");
-        }
+        rejectMixins(transform, model, id, container);
         return container;
+    }
+
+    /**
+     * Rejects a target that is a mixin, uses mixins, or is a member of either. A change to a mixin member reaches
+     * every structure that uses the mixin, and later transforms in the same projection see the model before
+     * smithy-build applies the mixin again.
+     */
+    static void rejectMixins(String transform, Model model, ShapeId id, Shape shape) {
+        Shape owner = shape.asMemberShape().map(member -> model.expectShape(member.getContainer())).orElse(shape);
+        String problem;
+        if (owner.hasTrait(MixinTrait.class)) {
+            problem = "is a mixin";
+        } else if (!owner.getMixins().isEmpty()) {
+            problem = "uses mixins";
+        } else {
+            return;
+        }
+        String subject = owner == shape ? "'" + id + "'" : "'" + id + "' belongs to '" + owner.getId() + "', which";
+        throw error(transform, subject + " " + problem + "; mixins are not supported");
     }
 
     /**
