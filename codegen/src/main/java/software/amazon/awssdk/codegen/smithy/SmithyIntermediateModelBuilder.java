@@ -40,6 +40,7 @@ import software.amazon.awssdk.codegen.model.rules.endpoints.EndpointTestSuiteMod
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.model.service.ClientContextParam;
 import software.amazon.awssdk.codegen.model.service.EndpointRuleSetModel;
+import software.amazon.awssdk.codegen.model.service.PaginatorDefinition;
 import software.amazon.awssdk.codegen.naming.DefaultSmithyNamingStrategy;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
 import software.amazon.awssdk.codegen.utils.ProtocolUtils;
@@ -64,7 +65,7 @@ import software.amazon.smithy.rulesengine.traits.ClientContextParamsTrait;
  * {@link software.amazon.awssdk.codegen.IntermediateModelBuilder}.
  *
  * <p>Source-model customizations are expected to have been applied to the model as smithy-build
- * transforms. Paginators and waiters are not applied yet.
+ * transforms. Paginators come from {@code @paginated} and codegen overrides; waiters are not applied yet.
  */
 public final class SmithyIntermediateModelBuilder {
 
@@ -143,6 +144,11 @@ public final class SmithyIntermediateModelBuilder {
             new TreeMap<>(new AddSmithyOperations(model, service, namingStrategy, customConfig, protocol)
                               .constructOperations());
 
+        Map<String, PaginatorDefinition> paginators = AddSmithyPaginators.paginators(model, service);
+        // The client methods follow isPaginated and the paginator classes follow the map, so the two must agree.
+        operations.forEach((name, operation) -> operation.setPaginated(
+            paginators.containsKey(name) && paginators.get(name).hasAllRequiredFields()));
+
         OperationModel endpointOperation = null;
         boolean endpointCacheRequired = false;
         for (OperationModel o : operations.values()) {
@@ -164,6 +170,7 @@ public final class SmithyIntermediateModelBuilder {
         }
 
         operations.entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
+        paginators.entrySet().removeIf(e -> customConfig.getDeprecatedOperations().contains(e.getKey()));
 
         log.info("{} shapes found in total.", shapes.size());
 
@@ -172,7 +179,7 @@ public final class SmithyIntermediateModelBuilder {
         IntermediateModel fullModel = new IntermediateModel(
             AddSmithyMetadata.constructMetadata(model, service, serviceIndex, namingStrategy, customConfig),
             operations, shapes, customConfig, endpointOperation,
-            Collections.emptyMap(), namingStrategy, Collections.emptyMap(),
+            paginators, namingStrategy, Collections.emptyMap(),
             endpointRuleSet, endpointTestSuiteModel, clientContextParams);
 
         SmithyIntermediateModelPostprocessor.create(customConfig).postprocess(fullModel);
