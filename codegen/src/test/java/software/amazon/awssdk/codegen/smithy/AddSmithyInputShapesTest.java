@@ -135,6 +135,27 @@ class AddSmithyInputShapesTest {
     }
 
     @Test
+    void restXml_structurePayloadMember_getsServiceXmlNamespace() {
+        Model model = modelOf(
+            "use aws.protocols#restXml\n",
+            "@restXml\n@xmlNamespace(uri: \"https://demo.amazonaws.com/doc/2024-01-01/\")\n",
+            "@http(method: \"POST\", uri: \"/config\")\n"
+            + "operation BodyOp { input: BodyOpRequest, output: BodyOpResponse }\n"
+            + "structure BodyOpRequest { @httpPayload Config: Config }\n"
+            + "structure Config { Comment: String }\n"
+            + "structure BodyOpResponse {}\n"
+            + "@http(method: \"PUT\", uri: \"/blob\")\n"
+            + "operation UriOnlyOp { input: UriOnlyOpRequest, output: UriOnlyOpResponse }\n"
+            + "structure UriOnlyOpRequest { @httpPayload Body: Blob }\n"
+            + "structure UriOnlyOpResponse {}\n");
+        Map<String, ShapeModel> inputs = inputs(model, "rest-xml");
+
+        assertThat(inputs.get("BodyOpRequest").getMemberByC2jName("Config").getXmlNameSpaceUri())
+            .isEqualTo("https://demo.amazonaws.com/doc/2024-01-01/");
+        assertThat(inputs.get("UriOnlyOpRequest").getMemberByC2jName("Body").getXmlNameSpaceUri()).isNull();
+    }
+
+    @Test
     void rpcProtocol_ignoresHttpBindings_postToRootWithBodyMembers() {
         // An RPC service may still carry @http/@httpLabel; the bindings must be ignored, so every
         // member goes in the body. The rpcv2Cbor URI is applied later by the deferred processor.

@@ -104,8 +104,8 @@ public interface ShapeInfo {
      * Adapts a Smithy {@link Shape} into a {@link ShapeInfo}. Predicates are
      * derived from the shape's type (union, list, map) and traits (exception
      * via {@link ErrorTrait}); enum recursion looks at Smithy 2.0
-     * {@code EnumShape}/{@code IntEnumShape} members through list and map
-     * targets using the provided {@code Model}.
+     * {@code EnumShape} members through list and map targets using the
+     * provided {@code Model}.
      *
      * @param shape the Smithy shape (must not be null when the caller
      *              intends to query any of the shape-relative predicates).
@@ -143,10 +143,10 @@ public interface ShapeInfo {
 
     /**
      * Recursively determines whether a Smithy shape is (or transitively
-     * contains) a Smithy 2.0 enum shape.
+     * contains) a Smithy 2.0 string enum shape.
      */
     static boolean isOrContainsEnumSmithy(Shape shape, Model model) {
-        if (shape.isEnumShape() || shape.isIntEnumShape()) {
+        if (shape.isEnumShape()) {
             return true;
         }
         if (shape.isListShape()) {

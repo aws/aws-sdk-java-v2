@@ -200,14 +200,21 @@ final class AddSmithyOperations {
     private void translateAuth(OperationShape op, OperationModel operationModel) {
         // @optionalAuth (unsigned-capable ops) -> C2J authtype=none: AuthType.NONE, unauthenticated.
         // Takes precedence over the empty @auth list these ops also carry.
-        if (op.hasTrait(OptionalAuthTrait.class)) {
+        if (op.hasTrait(OptionalAuthTrait.class) || hasEmptyAuth(op)) {
             operationModel.setIsAuthenticated(false);
             operationModel.setAuthType(AuthType.NONE);
             operationModel.setAuth(Collections.singletonList(AuthType.NONE));
             return;
         }
 
-        if (!op.hasTrait(AuthTrait.class)) {
+        if (op.hasTrait(UnsignedPayloadTrait.class)) {
+            operationModel.setIsAuthenticated(true);
+            operationModel.setAuthType(AuthType.V4_UNSIGNED_BODY);
+            operationModel.setAuth(Collections.singletonList(AuthType.V4_UNSIGNED_BODY));
+            return;
+        }
+
+        if (!op.hasTrait(AuthTrait.class) || repeatsServiceAuth(op)) {
             operationModel.setIsAuthenticated(true);
             operationModel.setAuthType(null);
             operationModel.setAuth(Collections.emptyList());
@@ -219,14 +226,17 @@ final class AddSmithyOperations {
             authTypes.add(AuthType.fromValue(schemeId.toString()));
         }
         operationModel.setAuth(authTypes);
+        operationModel.setAuthType(authTypes.get(0));
+        operationModel.setIsAuthenticated(authTypes.get(0) != AuthType.NONE);
+    }
 
-        if (authTypes.isEmpty()) {
-            operationModel.setIsAuthenticated(true);
-            operationModel.setAuthType(null);
-        } else {
-            operationModel.setAuthType(authTypes.get(0));
-            operationModel.setIsAuthenticated(authTypes.get(0) != AuthType.NONE);
-        }
+    private static boolean hasEmptyAuth(OperationShape op) {
+        return op.getTrait(AuthTrait.class).map(auth -> auth.getValues().isEmpty()).orElse(false);
+    }
+
+    private boolean repeatsServiceAuth(OperationShape op) {
+        List<ShapeId> serviceAuth = service.getTrait(AuthTrait.class).map(AuthTrait::getValues).orElse(null);
+        return op.expectTrait(AuthTrait.class).getValues().equals(serviceAuth);
     }
 
     private HttpChecksum translateHttpChecksum(OperationShape op) {

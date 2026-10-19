@@ -213,6 +213,21 @@ class AddSmithyShapesMemberModelTest {
         assertThat(mm.isSensitive()).isTrue();
     }
 
+    @Test
+    void sensitiveNestedInListsAndMaps_carriesFlag() {
+        Model model = modelOf(
+            "@sensitive string SecretString\n"
+            + "list SecretList { member: SecretString }\n"
+            + "list SecretLists { member: SecretList }\n"
+            + "map SecretListsByName { key: String, value: SecretLists }\n"
+            + "structure Parent { nested: SecretLists, byName: SecretListsByName }\n");
+        Probe probe = probe(model, "rest-json");
+        StructureShape parent = struct(model, "Parent");
+
+        assertThat(probe.translate(parent.getMember("nested").get(), parent, null).isSensitive()).isTrue();
+        assertThat(probe.translate(parent.getMember("byName").get(), parent, null).isSensitive()).isTrue();
+    }
+
     // ---- Idempotency token ------------------------------------------------
 
     @Test
@@ -298,6 +313,8 @@ class AddSmithyShapesMemberModelTest {
 
         assertThat(mm.getEnumType()).isNull();
         assertThat(mm.getVariable().getVariableType()).isEqualTo("Integer");
+        assertThat(mm.getFluentEnumGetterMethodName()).isNull();
+        assertThat(mm.getFluentEnumSetterMethodName()).isNull();
     }
 
     // ---- List / map -------------------------------------------------------
@@ -326,6 +343,23 @@ class AddSmithyShapesMemberModelTest {
         assertThat(mm.getMapModel()).isNotNull();
         assertThat(mm.getMapModel().getKeyModel().getC2jName()).isEqualTo("key");
         assertThat(mm.getMapModel().getValueModel().getC2jName()).isEqualTo("value");
+    }
+
+    @Test
+    void mapEntryXmlNames_areUsedOnlyOnXmlProtocols() {
+        Model model = modelOf(
+            "map Attributes { @xmlName(\"Name\") key: String, @xmlName(\"Value\") value: String }\n"
+            + "structure Parent { attributes: Attributes }\n");
+        StructureShape parent = struct(model, "Parent");
+        MemberShape member = parent.getMember("attributes").get();
+
+        MemberModel json = probe(model, "json").translate(member, parent, null);
+        MemberModel query = probe(model, "query").translate(member, parent, null);
+
+        assertThat(json.getMapModel().getKeyLocationName()).isEqualTo("key");
+        assertThat(json.getMapModel().getValueLocationName()).isEqualTo("value");
+        assertThat(query.getMapModel().getKeyLocationName()).isEqualTo("Name");
+        assertThat(query.getMapModel().getValueLocationName()).isEqualTo("Value");
     }
 
     // ---- HTTP bindings ----------------------------------------------------
