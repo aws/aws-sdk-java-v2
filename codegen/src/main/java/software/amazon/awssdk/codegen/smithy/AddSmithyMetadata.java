@@ -26,7 +26,6 @@ import software.amazon.awssdk.codegen.model.intermediate.Metadata;
 import software.amazon.awssdk.codegen.model.intermediate.Protocol;
 import software.amazon.awssdk.codegen.model.service.AuthType;
 import software.amazon.awssdk.codegen.naming.NamingStrategy;
-import software.amazon.awssdk.codegen.utils.ProtocolUtils;
 import software.amazon.awssdk.utils.Pair;
 import software.amazon.awssdk.utils.StringUtils;
 import software.amazon.smithy.aws.traits.ServiceTrait;
@@ -66,13 +65,12 @@ final class AddSmithyMetadata {
                                       ServiceShape service,
                                       ServiceIndex serviceIndex,
                                       NamingStrategy namingStrategy,
-                                      CustomizationConfig customizationConfig) {
+                                      CustomizationConfig customizationConfig,
+                                      String protocol) {
         Metadata metadata = new Metadata();
 
         String serviceName = namingStrategy.getServiceName();
         configurePackageName(metadata, namingStrategy, customizationConfig);
-
-        String protocol = ProtocolUtils.resolveProtocol(serviceIndex, service);
 
         metadata.withApiVersion(service.getVersion())
                 .withAsyncClient(String.format(Constant.ASYNC_CLIENT_CLASS_NAME_PATTERN, serviceName))

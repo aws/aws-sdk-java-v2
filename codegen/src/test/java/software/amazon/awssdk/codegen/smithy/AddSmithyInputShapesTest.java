@@ -158,7 +158,7 @@ class AddSmithyInputShapesTest {
     @Test
     void rpcProtocol_ignoresHttpBindings_postToRootWithBodyMembers() {
         // An RPC service may still carry @http/@httpLabel; the bindings must be ignored, so every
-        // member goes in the body. The rpcv2Cbor URI is applied later by the deferred processor.
+        // member goes in the body and the request URI is the rpcv2Cbor operation path.
         Model model = modelOf(
             "use smithy.protocols#rpcv2Cbor\n",
             "@rpcv2Cbor\n",
@@ -174,7 +174,7 @@ class AddSmithyInputShapesTest {
         ShapeModel req = inputs(model, "smithy-rpc-v2-cbor").get("BodyOpRequest");
 
         assertThat(req.getMarshaller().getVerb()).isEqualTo("POST");
-        assertThat(req.getMarshaller().getRequestUri()).isEqualTo("/");
+        assertThat(req.getMarshaller().getRequestUri()).isEqualTo("/service/DemoService/operation/BodyOp");
 
         MemberModel id = req.getMembersAsMap().get("Id");
         // @httpLabel ignored: no URI location, and the wire name is the member name, not a label.
