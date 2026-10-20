@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon EC2 Container Service",
-    "contributor": "",
-    "description": "ECS Service Gateway makes it easier for developers to deploy ECS services without having to worry about complex ingress networking constructs."
-}

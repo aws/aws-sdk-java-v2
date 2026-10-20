@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "CloudWatch Omni",
-    "contributor": "",
-    "description": "Updating max value for maxResults in SearchPrincipals API"
-}
