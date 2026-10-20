@@ -26,6 +26,7 @@ import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequest
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -487,6 +488,7 @@ class GenericS3TransferManager implements S3TransferManager {
         GetObjectRequest getObjectRequest = originalDownloadRequest.getObjectRequest();
         CompletableFuture<TransferProgress> progressFuture = new CompletableFuture<>();
         CompletableFuture<DownloadFileRequest> newDownloadFileRequestFuture = new CompletableFuture<>();
+        AtomicReference<DownloadFileRequest> requestToSaveOnPauseRef = new AtomicReference<>(originalDownloadRequest);
 
         CompletableFuture<HeadObjectResponse> headFuture =
             s3AsyncClient.headObject(b -> b.bucket(getObjectRequest.bucket()).key(getObjectRequest.key()));
@@ -500,6 +502,7 @@ class GenericS3TransferManager implements S3TransferManager {
                                                                   originalDownloadRequest);
 
             DownloadFileRequest newDownloadFileRequest = requestPair.left();
+            requestToSaveOnPauseRef.set(requestToSaveOnPause(originalDownloadRequest, newDownloadFileRequest));
             newDownloadFileRequestFuture.complete(newDownloadFileRequest);
             log.debug(() -> "Sending downloadFileRequest " + newDownloadFileRequest);
 
@@ -514,8 +517,41 @@ class GenericS3TransferManager implements S3TransferManager {
 
         return new DefaultFileDownload(returnFuture,
                                        new ResumeTransferProgress(progressFuture),
-                                       () -> originalDownloadRequest,
+                                       requestToSaveOnPauseRef::get,
                                        resumableFileDownload);
+    }
+
+    /**
+     * Returns the request to save in the {@link ResumableFileDownload} if this resumed download is paused again.
+     *
+     * <p>This is the user's original request rather than {@code newDownloadFileRequest}, because the new request can carry a
+     * range and conditions ({@code If-Match}, {@code If-Unmodified-Since}) computed for this resume only, and saving them
+     * would break the next resume. The only thing taken from {@code newDownloadFileRequest} is its
+     * {@link MultipartDownloadResumeContext}, because that is the context the running download records completed parts in.
+     * When the download restarted from the beginning, that is a new context, not the original one. For the CRT-based client,
+     * which does not record parts in the context, this only ensures that a restart does not save the original context, which
+     * the Java-based client would otherwise use to skip parts when resuming the token.
+     */
+    DownloadFileRequest requestToSaveOnPause(DownloadFileRequest originalDownloadRequest,
+                                             DownloadFileRequest newDownloadFileRequest) {
+        MultipartDownloadResumeContext newResumeContext =
+            multipartDownloadResumeContext(newDownloadFileRequest.getObjectRequest()).orElse(null);
+        MultipartDownloadResumeContext originalResumeContext =
+            multipartDownloadResumeContext(originalDownloadRequest.getObjectRequest()).orElse(null);
+        // Compare by identity, not equality: a new empty context must not be mistaken for the original one, because only
+        // the new one records the parts this download completes.
+        if (newResumeContext == null || newResumeContext == originalResumeContext) {
+            return originalDownloadRequest;
+        }
+        return attachResumeContext(originalDownloadRequest, newResumeContext);
+    }
+
+    private DownloadFileRequest attachResumeContext(DownloadFileRequest downloadRequest,
+                                                    MultipartDownloadResumeContext resumeContext) {
+        GetObjectRequest getObjectRequest = attachSdkAttribute(
+            downloadRequest.getObjectRequest(),
+            b -> b.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, resumeContext));
+        return downloadRequest.copy(b -> b.getObjectRequest(getObjectRequest));
     }
 
     private FileDownload completedDownload(ResumableFileDownload resumableFileDownload, MultipartDownloadResumeContext ctx) {
