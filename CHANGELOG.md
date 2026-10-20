@@ -1,4 +1,49 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.1__ __2026-10-20__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release allows customers and their partners to easily collaborate with data stored in Databricks, without having to move or share their underlying data among collaborators.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Adds ListEntities filter, sort, and summary support for the ExpressPrivateOfferConfiguration entity type, including filtering by ProductId.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Guardrails now supports a configurable tier for the contextual grounding policy via a new tier option. Select the Standard tier for grounding that better supports conversations and reasoning, with expanded language coverage.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Amazon CloudWatch now supports two new anomaly detector settings. AdaptationSpeed (FAST, NORMAL, SLOW) controls how fast the model adapts to baseline changes, and OutlierFilteringStrength (MINIMAL, MODERATE, STRICT) controls how aggressively outliers are filtered.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds support for disassociating a replica from an Amazon DynamoDB multi-Region eventual consistency global table, so you can keep it as a single-Region table with its existing data. Also adds disassociation protection, on by default, to help prevent accidental disassociation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - ECS Service Gateway makes it easier for developers to deploy ECS services without having to worry about complex ingress networking constructs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - LiveMigration enables customers to migrate from self-hosted EC2 Redis and Valkey clusters to ElastiCache Serverless with near-zero downtime. Customers control the migration through three API-driven phases (prepare, start, complete) that handle traffic proxying, data replication, and cutover.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS now supports On-Demand Capacity Reservations for DB instances.
+
+## __Amazon S3 Files__
+  - ### Features
+    - S3 Files adds support for the "Misconfigured" file system status.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Documentation update release for AWS service
+
+## __CloudWatch Omni__
+  - ### Features
+    - Updating max value for maxResults in SearchPrincipals API
+
 # __2.57.0__ __2026-10-19__
 ## __AWS Amplify__
   - ### Features
