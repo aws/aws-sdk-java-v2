@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Amazon S3 Files",
+    "contributor": "",
+    "description": "S3 Files adds support for the \"Misconfigured\" file system status."
+}
