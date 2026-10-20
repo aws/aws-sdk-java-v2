@@ -159,7 +159,7 @@ public final class CrtFileDownload implements FileDownload {
             // converts from object offset to file offset.
             long userStart = userRangeStart(request, token.getObjectSize());
             builder.bytesTransferred(token.getObjectRangeStart() + token.getContinuesDownloadedBytes() - userStart)
-                   .s3ObjectEtag(emptyToNull(token.getEtag()))
+                   .s3ObjectEtag(s3ObjectEtag(token))
                    .s3ObjectLastModified(s3ObjectLastModified(token))
                    .totalSizeInBytes(positiveOrNull(token.getObjectSize()));
             return builder.build();
@@ -199,6 +199,18 @@ public final class CrtFileDownload implements FileDownload {
      */
     private static boolean isDownloadResumeToken(ResumeToken token) {
         return token != null && token.getType() == S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
+    }
+
+    /**
+     * CRT leaves the ETag out of the resume token when the request already carried If-Match, which a resumed download does:
+     * it is pinned to the ETag of the download being resumed, so that ETag still describes the bytes on disk.
+     */
+    private String s3ObjectEtag(ResumeToken token) {
+        String etag = emptyToNull(token.getEtag());
+        if (etag == null && resumedDownload != null) {
+            return resumedDownload.s3ObjectEtag().orElse(null);
+        }
+        return etag;
     }
 
     private static Instant s3ObjectLastModified(ResumeToken token) {

@@ -203,6 +203,30 @@ class CrtTransferManagerPauseAndResumeTest {
     }
 
     @Test
+    void resumeDownloadFile_shouldSetIfMatchToResumedETag() {
+        DownloadFileRequest downloadFileRequest = DownloadFileRequest.builder()
+                                                                     .getObjectRequest(getObjectRequest())
+                                                                     .destination(file)
+                                                                     .build();
+        Instant s3ObjectLastModified = Instant.now();
+        String etag = "\"etag\"";
+        when(mockS3Crt.getObject(any(GetObjectRequest.class), any(AsyncResponseTransformer.class)))
+            .thenReturn(CompletableFuture.completedFuture(GetObjectResponse.builder().build()));
+        when(mockS3Crt.headObject(any(Consumer.class)))
+            .thenReturn(CompletableFuture.completedFuture(headObjectResponse(s3ObjectLastModified, etag)));
+
+        tm.resumeDownloadFile(r -> r.bytesTransferred(file.length())
+                                    .downloadFileRequest(downloadFileRequest)
+                                    .fileLastModified(Instant.ofEpochMilli(file.lastModified()))
+                                    .s3ObjectLastModified(s3ObjectLastModified)
+                                    .s3ObjectEtag(etag))
+          .completionFuture()
+          .join();
+
+        assertThat(capturedGetObjectRequest().ifMatch()).isEqualTo(etag);
+    }
+
+    @Test
     void pauseAfterRestartedResume_shouldNotKeepPausedDownloadContext() {
         MultipartDownloadResumeContext pausedContext = new MultipartDownloadResumeContext();
         pausedContext.addCompletedPart(1);

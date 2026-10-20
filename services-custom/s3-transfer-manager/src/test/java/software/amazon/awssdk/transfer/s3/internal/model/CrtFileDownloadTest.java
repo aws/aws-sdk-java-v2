@@ -101,6 +101,17 @@ class CrtFileDownloadTest {
     }
 
     @Test
+    void pause_resumedDownloadTokenWithoutETag_takesETagFromResumedDownload() {
+        ResumeToken token = downloadResumeToken(0, 1500);
+        when(token.getEtag()).thenReturn("");
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(token));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload()).pause();
+
+        assertThat(resumable.s3ObjectEtag()).hasValue(ETAG);
+    }
+
+    @Test
     void pause_withDownloadResumeTokenForRangedDownload_bytesTransferredMatchesFileSize() {
         // For bytes=2000- resumed from 3500: getObjectRangeStart()=3500, getContinuesDownloadedBytes()=1000.
         // bytesTransferred = 3500 + 1000 - 2000 = 2500 (total file size on disk).

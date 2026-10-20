@@ -139,7 +139,8 @@ public final class ResumableRequestConverter {
      * CRT rather than by an {@link AsyncResponseTransformer}. Unlike
      * {@link #toDownloadFileRequestAndTransformer(ResumableFileDownload, HeadObjectResponse, DownloadFileRequest)} there is no
      * transformer to pair the request with, and no part-GET variant to consider, since the CRT-based client always downloads
-     * an object with a single meta request.
+     * an object with a single meta request. A resumed range GET gets {@code If-Match} with the ETag of the paused download;
+     * a restart from the beginning does not.
      *
      * @param restartFromBeginning whether the whole object should be downloaded again rather than only the remaining bytes
      */
@@ -161,7 +162,7 @@ public final class ResumableRequestConverter {
                             + "'. The SDK will re-download the object from the beginning.");
             return newDownloadFileRequest(originalDownloadRequest, getObjectRequest, headObjectResponse);
         }
-        return resumed;
+        return attachIfMatch(resumed, resumableFileDownload);
     }
 
     /**
