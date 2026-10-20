@@ -32,6 +32,13 @@ final class TransformTestSupport {
         + "@sigv4(name: \"demo\")\n"
         + "@restJson1\n";
 
+    static final String MIXIN_SHAPES =
+        "$version: \"2.0\"\nnamespace demo\n"
+        + "@mixin\n"
+        + "structure Base { a: String }\n"
+        + "structure Uses with [Base] { b: String }\n"
+        + "structure Holder { m: String }\n";
+
     private TransformTestSupport() {
     }
 
