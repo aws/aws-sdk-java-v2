@@ -1,4 +1,77 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.2__ __2026-10-21__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Improved the `UnsupportedOperationException` message thrown by `presignedUrlExtension()` on the AWS CRT-based S3 client to explain that presigned URL downloads are not supported and to suggest using a non-CRT `S3AsyncClient`, such as one built with `S3AsyncClient.builder().multipartEnabled(true)`.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds support for Microsoft Teams as a notification service. Associations can now be created and updated with a Microsoft Teams team and channel configuration using the DevOps Agent API and SDKs.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds AV1 CBR rate control and scene change detection. New sliding window peak bitrate setting for all codecs. DASH adaptation set grouping update. Option to disable the AV1 perceptual quality filter. Support for vertical (portrait) AV1 encoding.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Adds support for Network Firewall Resolved IP validation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade Jackson (jackson-core, jackson-databind, jackson-dataformat-cbor) to 2.21.8
+
+## __AWS Step Functions__
+  - ### Features
+    - Release minor updates to API model
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for AWS-managed security profiles.
+
+## __Amazon DataZone__
+  - ### Features
+    - Added custom designations support with new CRUD APIs. The designation field in project membership and policy grant APIs supports a new enum for custom designations. These APIs also support a new field for custom designation id.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds new response fields to DescribeInstanceStatus and Network Insights analysis results.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Update the UpdateProfileWithAgent API to return a streaming response to provide more frequent updates on what the agent is doing.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Adds support for Assisted NLU - Dialog Manager mode allowing usage of LLMs as the default NLU system and dialog management
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for metrics related to system-disk performance.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voices - Kenneth (en-US), Nate (en-US), Tina (de-DE), Carlos (es-US), Carolina (pt-BR), Leo (pt-BR), Curtis (en-AU), Kiara (en-IN), Arjun (en-IN) and Hyunduk (ko-KR). They are available as a Generative voices only.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds support for SharePoint and OneDrive two-legged OAuth certificate credentials and Google Workspace service account credentials when creating data sources
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling now supports account settings, letting you manage account-level configuration for Auto Scaling.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Add Redshift QueryUUID field to DescribeStatement response
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed how `S3TransferManager#resumeDownloadFile` handles an object that changes during a paused download when using the Java-based S3 async client.
+
+  - ### Documentations
+    - Corrected the `S3TransferManager` Javadoc: `downloadFileWithPresignedUrl` and `downloadWithPresignedUrl` do not currently support AWS CRT-based S3 clients, and `S3TransferManager.create()` falls back to a multipart-enabled `S3AsyncClient` when AWS CRT is not on the classpath.
+
 # __2.57.1__ __2026-10-20__
 ## __AWS Clean Rooms Service__
   - ### Features
