@@ -982,6 +982,22 @@
         </profile>
 
         <profile>
+            <!-- Fast local verification of a single module: keeps checkstyle and unit tests, skips checks that CI
+                 still runs (spotbugs, dependency analysis, japicmp, javadoc, jacoco), and runs test classes in
+                 parallel forks. CI keeps using the default build. Usage: mvn verify -pl :<module> -P dev -->
+            <id>dev</id>
+            <properties>
+                <spotbugs.skip>true</spotbugs.skip>
+                <mdep.analyze.skip>true</mdep.analyze.skip>
+                <japicmp.skip>true</japicmp.skip>
+                <maven.javadoc.skip>true</maven.javadoc.skip>
+                <jacoco.skip>true</jacoco.skip>
+                <forkCount>1C</forkCount>
+                <reuseForks>true</reuseForks>
+            </properties>
+        </profile>
+
+        <profile>
             <id>migration-tests</id>
             <activation>
                 <activeByDefault>false</activeByDefault>
