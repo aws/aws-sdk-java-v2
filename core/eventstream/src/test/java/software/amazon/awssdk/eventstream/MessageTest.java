@@ -36,7 +36,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.emptyMap;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MessageTest {
     private static final ThreadMXBean threadMXBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
@@ -190,8 +190,8 @@ public class MessageTest {
         double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
 
         double expectedOverhead = 6.7;
-        assertTrue("Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead,
-                (overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON);
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+                   "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
     }
 
     @Test
@@ -210,8 +210,8 @@ public class MessageTest {
         double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
 
         double expectedOverhead = 4.5;
-        assertTrue("Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead,
-                (overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON);
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+                   "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
     }
 
     @Test
@@ -232,8 +232,8 @@ public class MessageTest {
         double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
 
         double expectedOverhead = 2.1;
-        assertTrue("Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead,
-                (overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON);
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+            "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
     }
 
     @Test
@@ -252,8 +252,8 @@ public class MessageTest {
         double overhead = ((double) totalAllocatedBytes / encodedBytes) - 1;
 
         double expectedOverhead = 0.1;
-        assertTrue("Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead,
-                (overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON);
+        assertTrue((overhead - expectedOverhead) < ALLOCATION_RATE_EPSILON,
+            "Allocation overhead should be close to " + expectedOverhead + ", but was " + overhead);
     }
 
     static void roundTrip(Message expected) {
