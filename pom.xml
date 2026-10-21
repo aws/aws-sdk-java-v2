@@ -142,6 +142,7 @@
         <guava.version>29.0-jre</guava.version>
         <jimfs.version>1.1</jimfs.version>
         <testng.version>7.1.0</testng.version> <!-- TCK Tests -->
+        <testng-engine.version>1.1.0</testng-engine.version> <!-- Runs the TCK tests on the JUnit Platform -->
         <commons-lang.verson>2.6</commons-lang.verson>
         <netty-open-ssl-version>2.0.84.Final</netty-open-ssl-version>
         <dynamodb-local.version>1.25.0</dynamodb-local.version>
@@ -154,7 +155,7 @@
         <kerby.version>2.0.3</kerby.version>
 
         <!-- build plugin dependencies-->
-        <maven.surefire.version>3.1.2</maven.surefire.version>
+        <maven.surefire.version>3.5.6</maven.surefire.version>
         <maven-compiler-plugin.version>3.14.1</maven-compiler-plugin.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <maven-failsafe-plugin.version>3.0.0-M5</maven-failsafe-plugin.version>
@@ -215,12 +216,19 @@
     <dependencies>
         <!-- Internal dependencies are managed in the bom-internal module. -->
 
-        <!-- reactive-streams-tck brings TestNG, which is needed globally so the surefire-testng provider
-             can discover TCK tests in any module without per-module surefire configuration. -->
+        <!-- reactive-streams-tck brings TestNG, and testng-engine runs TestNG tests on the JUnit Platform. Both are
+             needed globally so surefire's JUnit Platform provider runs the TCK tests in any module, in the same test
+             run (and the same forks) as the JUnit tests, without per-module surefire configuration. -->
         <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams-tck</artifactId>
             <version>${reactive-streams.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.support</groupId>
+            <artifactId>testng-engine</artifactId>
+            <version>${testng-engine.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -312,27 +320,10 @@
                             <include>**/*TestCase.java</include>
                         </includes>
                         <skipTests>${skip.unit.tests}</skipTests>
-                        <!-- Prevent TestNG from re-running JUnit tests -->
-                        <properties>
-                            <property>
-                                <name>junit</name>
-                                <value>false</value>
-                            </property>
-                        </properties>
                     </configuration>
-                    <!-- Have to explicitly set surefire provider because reactivestreamsTCK is using TestNG-->
-                    <dependencies>
-                        <dependency>
-                            <groupId>org.apache.maven.surefire</groupId>
-                            <artifactId>surefire-junit-platform</artifactId>
-                            <version>${maven.surefire.version}</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.apache.maven.surefire</groupId>
-                            <artifactId>surefire-testng</artifactId>
-                            <version>${maven.surefire.version}</version>
-                        </dependency>
-                    </dependencies>
+                    <!-- No provider dependency: surefire auto-detects the JUnit Platform provider (JUnit Jupiter, Vintage
+                         and, through testng-engine, the TestNG TCK tests) and aligns its launcher with the project's
+                         JUnit Platform version. A pinned surefire-junit-platform brings its own launcher version. -->
                 </plugin>
                 <plugin>
                     <groupId>org.codehaus.mojo</groupId>
