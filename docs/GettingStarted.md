@@ -47,6 +47,32 @@ appropriate properties:
 $ mvn install -Dfindbugs.skip=true -Dcheckstyle.skip=true
 ```
 
+#### Fast iteration on a single module
+To check a change to one module quickly, build its dependencies once and then
+verify only that module with the `dev` profile:
+
+```sh
+# once, and again after pulling or after changing a module it depends on
+# (for example test/service-test-utils or the code generator)
+mvn install -P quick -pl :<module> -am -T 1C
+
+# then, while iterating
+mvn verify -pl :<module> -P dev
+```
+
+The `dev` profile keeps Checkstyle and the unit tests, and runs test classes in
+parallel JVM forks (`forkCount=1C`). It skips SpotBugs, dependency analysis,
+japicmp, Javadoc, and JaCoCo. CI still runs all of these, so a full
+`mvn clean install` remains the final check before you open a pull request.
+
+Leaving out `clean` lets Checkstyle and the compiler reuse earlier work. Run
+`clean` after changing the code generator or a service model: the generator
+refuses to overwrite a generated file from an earlier build when its content
+changes ("Attempted to clobber existing file").
+
+Optionally, [mvnd](https://github.com/apache/maven-mvnd) (the Maven Daemon) can
+run the same command with a warm JVM: `mvnd verify -pl :<module> -P dev`.
+
 ### Testing
 #### Unit Tests
 As described in the project structure, tests are split between unit and

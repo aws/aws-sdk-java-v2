@@ -164,6 +164,14 @@ To iterate faster, build only the modules you're working on:
 mvn clean install -pl :dynamodb-enhanced -am
 ```
 
+To verify a single module quickly while iterating (Checkstyle and unit tests in
+parallel forks, other checks left to CI), use the `dev` profile. See
+[Fast iteration on a single module](docs/GettingStarted.md#fast-iteration-on-a-single-module):
+
+```sh
+mvn verify -pl :dynamodb-enhanced -P dev
+```
+
 #### Integration Tests
 
 Integration tests make real AWS API calls and will incur costs to the account owner. 
