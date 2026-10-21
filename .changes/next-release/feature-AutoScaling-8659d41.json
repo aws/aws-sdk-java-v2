@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "Auto Scaling",
+    "contributor": "",
+    "description": "EC2 Auto Scaling now supports account settings, letting you manage account-level configuration for Auto Scaling."
+}
