@@ -16,7 +16,9 @@
 package software.amazon.awssdk.eventstream;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -38,6 +40,14 @@ public class TestUtils {
         return new Message(randomHeaders(), randomPayload());
     }
 
+    public List<Message> randomMessages(int count, int maxPayloadSize) {
+        ArrayList<Message> messages = new ArrayList<>();
+        for (int i = 0; i < count; i++) {
+            messages.add(randomMessage(rand.nextInt(maxPayloadSize + 1)));
+        }
+        return messages;
+    }
+
     public Message randomMessage(int payloadSize) {
         return new Message(randomHeaders(), randomPayload(payloadSize));
     }
@@ -51,28 +61,38 @@ public class TestUtils {
         return headers;
     }
 
-    private HeaderValue randomHeaderValue() {
-        switch (rand.nextInt(7)) {
-            case 0:
-                return HeaderValue.fromInteger(rand.nextInt(Integer.MAX_VALUE));
-            case 1:
+    public HeaderValue randomHeaderValue(HeaderType type) {
+        switch (type) {
+            case TRUE:
+                return HeaderValue.fromBoolean(true);
+            case FALSE:
+                return HeaderValue.fromBoolean(false);
+            case BYTE:
+                return HeaderValue.fromByte((byte) rand.nextInt());
+            case SHORT:
+                return HeaderValue.fromShort((short) rand.nextInt());
+            case INTEGER:
+                return HeaderValue.fromInteger(rand.nextInt());
+            case LONG:
+                return HeaderValue.fromLong(rand.nextLong());
+            case BYTE_ARRAY:
                 int bytes = rand.nextInt(maxHeaderSize + 1) + 1;
                 byte[] buf = new byte[bytes];
                 rand.nextBytes(buf);
                 return HeaderValue.fromByteArray(buf);
-            case 2:
+            case STRING:
                 return HeaderValue.fromString("asdf");
-            case 3:
-                return HeaderValue.fromBoolean(true);
-            case 4:
-                return HeaderValue.fromBoolean(false);
-            case 5:
+            case TIMESTAMP:
                 return HeaderValue.fromTimestamp(Instant.ofEpochMilli(rand.nextLong()));
-            case 6:
+            case UUID:
                 return HeaderValue.fromUuid(new UUID(rand.nextLong(), rand.nextLong()));
-            default:
-                throw new IllegalStateException();
         }
+        throw new RuntimeException("unknown header type: " + type);
+    }
+
+    private HeaderValue randomHeaderValue() {
+        HeaderType type = HeaderType.fromTypeId((byte) rand.nextInt(10));
+        return randomHeaderValue(type);
     }
 
     private byte[] randomPayload() {
