@@ -36,7 +36,11 @@ public enum HeaderType {
         this.headerTypeId = (byte) headerTypeId;
     }
 
-    static HeaderType fromTypeId(byte headerTypeId) {
+    public byte headerTypeId() {
+        return headerTypeId;
+    }
+
+    public static HeaderType fromTypeId(byte headerTypeId) {
         switch (headerTypeId) {
             case 0: return TRUE;
             case 1: return FALSE;

@@ -31,9 +31,9 @@ import software.amazon.awssdk.eventstream.internal.Prelude;
 public final class MessageDecoder {
 
     /**
-     * Initial buffer size is 2MB. Will grow as needed to accommodate larger messages.
+     * Initial buffer size is 2kB. Will grow as needed to accommodate larger messages.
      */
-    private static final int INITIAL_BUFFER_SIZE = 2048 * 1024;
+    private static final int INITIAL_BUFFER_SIZE = 2048;
 
     private final Consumer<Message> messageConsumer;
     private List<Message> bufferedOutput;
