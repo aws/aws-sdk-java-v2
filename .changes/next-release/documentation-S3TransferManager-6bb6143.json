@@ -1,0 +1,6 @@
+{
+    "type": "documentation",
+    "category": "S3 Transfer Manager",
+    "contributor": "",
+    "description": "Corrected the `S3TransferManager` Javadoc: `downloadFileWithPresignedUrl` and `downloadWithPresignedUrl` do not currently support AWS CRT-based S3 clients, and `S3TransferManager.create()` falls back to a multipart-enabled `S3AsyncClient` when AWS CRT is not on the classpath."
+}
