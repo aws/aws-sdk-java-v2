@@ -1465,16 +1465,6 @@
             </dependency>
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
-                <artifactId>finspacedata</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>finspace</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
                 <artifactId>ssmincidents</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
@@ -1811,11 +1801,6 @@
             <dependency>
                 <groupId>software.amazon.awssdk</groupId>
                 <artifactId>imds</artifactId>
-                <version>${awsjavasdk.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>software.amazon.awssdk</groupId>
-                <artifactId>tnb</artifactId>
                 <version>${awsjavasdk.version}</version>
             </dependency>
             <dependency>

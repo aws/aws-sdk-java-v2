@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "FinSpace User Environment Management service",
+    "contributor": "",
+    "description": "Remove end-of-life service client: `finspace`"
+}
