@@ -541,9 +541,11 @@ static final TableSchema<Customer> CUSTOMER_TABLE_SCHEMA =
 ```
 
 ### Store a list of objects inside an item
-To store a `List` of your own objects inside a single attribute, instead of
-flattening their fields to the top level of the item, pass a schema for the nested class to the enhanced client. Each object is saved as a map, and the attribute
-is saved as a DynamoDB list of those maps (simplified):
+To store a `List` of your own objects inside a single attribute, pass a schema
+for the nested class to the enhanced client. Each object is saved as a map, and
+the attribute is saved as a DynamoDB list of those maps. The stored item looks
+like this (shown without DynamoDB's type labels, such as `L` for list and `M`
+for map):
 
 ```
 name: "ABC"
