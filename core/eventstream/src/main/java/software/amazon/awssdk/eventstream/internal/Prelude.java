@@ -49,13 +49,12 @@ public final class Prelude {
                 wirePreludeCrc, computedPreludeCrc));
         }
 
-        if (headersLength < 0 || headersLength > 131_072) {
+        if (headersLength < 0 || headersLength > 131_072) { // 128 KB
             throw new IllegalArgumentException("Illegal headers_length value: " + headersLength);
         }
 
         long payloadLength = (totalLength - headersLength) - Message.MESSAGE_OVERHEAD;
-        // This implementation temporarily accepts larger payloads than the spec permits.
-        if (payloadLength < 0 || payloadLength > 25_165_824) {
+        if (payloadLength < 0 || payloadLength > 25_165_824) { // 24 MB
             throw new IllegalArgumentException("Illegal payload size: " + payloadLength);
         }
 

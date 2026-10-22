@@ -1,4 +1,192 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.3__ __2026-10-22__
+## __AWS Continuum__
+  - ### Features
+    - Releasing Continuum for Code Vulnerabilities APIs for SDKs
+
+## __AWS Elemental Inference__
+  - ### Features
+    - Elemental Inference now supports feed scheduling, letting you apply feed configuration changes at a time you choose instead of building your own automation.
+
+## __AWS Glue__
+  - ### Features
+    - Add support for large worker types in AWS Glue
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda durable functions now supports payloads up to 1 MB for checkpoints, callback completion, and error details.
+
+## __AWS Network Manager__
+  - ### Features
+    - AWS Cloud WAN now provides managed one-to-one NAT directly on it's core network attachments, through integration with Regional Private NAT Gateway. Use UpdateAttachmentNatConfiguration to enable NAT and configure NAT rules, and ListAttachmentNatConfigurations to view them.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Port upstream changes to eventstream serde into the `eventstreams` module.
+    - Updated endpoint and partition metadata.
+
+## __AWS Telco Network Builder__
+  - ### Removals
+    - Remove end-of-life service client: `tnb`
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds the dimension name to evaluation results and batch evaluation summaries. For multi-dimensional LLM-as-a-Judge evaluators, each result and summary now identifies which dimension it corresponds to.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds model-based routing and fallback to AgentCore Gateway rules. Rules can match the requested model, route to a specific model, and fall back across inference targets with an optional circuit breaker. Adds multi-dimensional rating scales for AgentCore Evaluations LLM-as-a-Judge evaluators.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for customer queryable replication errors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Transit Gateway now provides managed one-to-one NAT directly on its attachments, through integration with Regional Private NAT Gateway. Use ModifyTransitGatewayAttachmentNatConfiguration to enable NAT and configure NAT rules, and GetTransitGatewayAttachmentNatConfiguration to view them.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Adds RevokeConnectionToken operation for Amazon IVS Real-Time Streaming.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where presigned multipart downloads could hang when the server returned a Content-Range value outside the long range.
+
+## __FinSpace Public API__
+  - ### Removals
+    - Remove end-of-life service client: `finspacedata`
+
+## __FinSpace User Environment Management service__
+  - ### Removals
+    - Remove end-of-life service client: `finspace`
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Amazon MSK Connect now supports pausing and resuming connectors via the asynchronous PauseConnector and ResumeConnector APIs. Paused connectors keep their configuration and committed offsets and resume where they left off. Each call returns an operation ARN to track with DescribeConnectorOperation.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Adds APIs to create, get, list, and cancel ingestion jobs, and to create, get, list, and delete ingestion streams, for ingesting data from Amazon S3 into OpenSearch Serverless collections.
+
+# __2.57.2__ __2026-10-21__
+## __AWS CRT-based S3 Client__
+  - ### Bugfixes
+    - Improved the `UnsupportedOperationException` message thrown by `presignedUrlExtension()` on the AWS CRT-based S3 client to explain that presigned URL downloads are not supported and to suggest using a non-CRT `S3AsyncClient`, such as one built with `S3AsyncClient.builder().multipartEnabled(true)`.
+
+## __AWS DevOps Agent Service__
+  - ### Features
+    - Adds support for Microsoft Teams as a notification service. Associations can now be created and updated with a Microsoft Teams team and channel configuration using the DevOps Agent API and SDKs.
+
+## __AWS Elemental MediaConvert__
+  - ### Features
+    - Adds AV1 CBR rate control and scene change detection. New sliding window peak bitrate setting for all codecs. DASH adaptation set grouping update. Option to disable the AV1 perceptual quality filter. Support for vertical (portrait) AV1 encoding.
+
+## __AWS Network Firewall__
+  - ### Features
+    - Adds support for Network Firewall Resolved IP validation.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Updated endpoint and partition metadata.
+    - Upgrade Jackson (jackson-core, jackson-databind, jackson-dataformat-cbor) to 2.21.8
+
+## __AWS Step Functions__
+  - ### Features
+    - Release minor updates to API model
+
+## __Amazon Connect Service__
+  - ### Features
+    - Added support for AWS-managed security profiles.
+
+## __Amazon DataZone__
+  - ### Features
+    - Added custom designations support with new CRUD APIs. The designation field in project membership and policy grant APIs supports a new enum for custom designations. These APIs also support a new field for custom designation id.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - Adds new response fields to DescribeInstanceStatus and Network Insights analysis results.
+
+## __Amazon HealthLake__
+  - ### Features
+    - Update the UpdateProfileWithAgent API to return a streaming response to provide more frequent updates on what the agent is doing.
+
+## __Amazon Lex Model Building V2__
+  - ### Features
+    - Adds support for Assisted NLU - Dialog Manager mode allowing usage of LLMs as the default NLU system and dialog management
+
+## __Amazon Lightsail__
+  - ### Features
+    - This release adds support for metrics related to system-disk performance.
+
+## __Amazon Polly__
+  - ### Features
+    - Added support for the new voices - Kenneth (en-US), Nate (en-US), Tina (de-DE), Carlos (es-US), Carolina (pt-BR), Leo (pt-BR), Curtis (en-AU), Kiara (en-IN), Arjun (en-IN) and Hyunduk (ko-KR). They are available as a Generative voices only.
+
+## __Amazon QuickSight__
+  - ### Features
+    - Adds support for SharePoint and OneDrive two-legged OAuth certificate credentials and Google Workspace service account credentials when creating data sources
+
+## __Auto Scaling__
+  - ### Features
+    - EC2 Auto Scaling now supports account settings, letting you manage account-level configuration for Auto Scaling.
+
+## __Redshift Data API Service__
+  - ### Features
+    - Add Redshift QueryUUID field to DescribeStatement response
+
+## __S3 Transfer Manager__
+  - ### Bugfixes
+    - Fixed how `S3TransferManager#resumeDownloadFile` handles an object that changes during a paused download when using the Java-based S3 async client.
+
+  - ### Documentations
+    - Corrected the `S3TransferManager` Javadoc: `downloadFileWithPresignedUrl` and `downloadWithPresignedUrl` do not currently support AWS CRT-based S3 clients, and `S3TransferManager.create()` falls back to a multipart-enabled `S3AsyncClient` when AWS CRT is not on the classpath.
+
+# __2.57.1__ __2026-10-20__
+## __AWS Clean Rooms Service__
+  - ### Features
+    - This release allows customers and their partners to easily collaborate with data stored in Databricks, without having to move or share their underlying data among collaborators.
+
+## __AWS Marketplace Catalog Service__
+  - ### Features
+    - Adds ListEntities filter, sort, and summary support for the ExpressPrivateOfferConfiguration entity type, including filtering by ProductId.
+
+## __Amazon Bedrock__
+  - ### Features
+    - Amazon Bedrock Guardrails now supports a configurable tier for the contextual grounding policy via a new tier option. Select the Standard tier for grounding that better supports conversations and reasoning, with expanded language coverage.
+
+## __Amazon CloudWatch__
+  - ### Features
+    - Amazon CloudWatch now supports two new anomaly detector settings. AdaptationSpeed (FAST, NORMAL, SLOW) controls how fast the model adapts to baseline changes, and OutlierFilteringStrength (MINIMAL, MODERATE, STRICT) controls how aggressively outliers are filtered.
+
+## __Amazon DynamoDB__
+  - ### Features
+    - Adds support for disassociating a replica from an Amazon DynamoDB multi-Region eventual consistency global table, so you can keep it as a single-Region table with its existing data. Also adds disassociation protection, on by default, to help prevent accidental disassociation.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - ECS Service Gateway makes it easier for developers to deploy ECS services without having to worry about complex ingress networking constructs.
+
+## __Amazon ElastiCache__
+  - ### Features
+    - LiveMigration enables customers to migrate from self-hosted EC2 Redis and Valkey clusters to ElastiCache Serverless with near-zero downtime. Customers control the migration through three API-driven phases (prepare, start, complete) that handle traffic proxying, data replication, and cutover.
+
+## __Amazon Relational Database Service__
+  - ### Features
+    - Amazon RDS now supports On-Demand Capacity Reservations for DB instances.
+
+## __Amazon S3 Files__
+  - ### Features
+    - S3 Files adds support for the "Misconfigured" file system status.
+
+## __Amazon Workspaces Instances__
+  - ### Features
+    - Documentation update release for AWS service
+
+## __CloudWatch Omni__
+  - ### Features
+    - Updating max value for maxResults in SearchPrincipals API
+
 # __2.57.0__ __2026-10-19__
 ## __AWS Amplify__
   - ### Features

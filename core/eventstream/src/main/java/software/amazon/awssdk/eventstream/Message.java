@@ -57,8 +57,17 @@ public class Message {
      * @param payload a non-null byte array containing zero or more bytes
      */
     public Message(Map<String, HeaderValue> headers, byte[] payload) {
+        this(headers, payload, true);
+    }
+
+    private Message(Map<String, HeaderValue> headers, byte[] payload, boolean clonePayload) {
         this.headers = requireNonNull(headers, "headers");
-        this.payload = requireNonNull(payload, "payload").clone();
+        requireNonNull(payload, "payload");
+        if (clonePayload) {
+            this.payload = payload.clone();
+        } else {
+            this.payload = payload;
+        }
     }
 
     /**
@@ -105,7 +114,7 @@ public class Message {
         buf.get(payload);
         buf.getInt(); // skip past the message CRC
 
-        return new Message(headers, payload);
+        return new Message(headers, payload, false);
     }
 
     private static void validateMessageCrc(ByteBuffer buf, int totalLength) {
@@ -134,27 +143,43 @@ public class Message {
     }
 
     public ByteBuffer toByteBuffer() {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            encode(baos);
-            baos.close();
-            return ByteBuffer.wrap(baos.toByteArray());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        byte[] encodedHeaders = encodeHeaders(headers.entrySet());
+        int totalLength = Prelude.LENGTH_WITH_CRC + encodedHeaders.length + payload.length + 4;
+        CompactByteArrayOutputStream out = new CompactByteArrayOutputStream(totalLength);
+        encode(out, encodedHeaders);
+        return out.toByteBuffer();
     }
 
     public void encode(OutputStream os) {
+        encode(os, encodeHeaders(headers.entrySet()));
+    }
+
+    private void encode(OutputStream os, byte[] encodedHeaders) {
         try {
             CheckedOutputStream checkedOutputStream = new CheckedOutputStream(os, new CRC32());
-            encodeOrThrow(checkedOutputStream);
-            long messageCrc = checkedOutputStream.getChecksum().getValue();
-            os.write((int) (0xFF & messageCrc >> 24));
-            os.write((int) (0xFF & messageCrc >> 16));
-            os.write((int) (0xFF & messageCrc >> 8));
-            os.write((int) (0xFF & messageCrc));
+            int totalLength = Prelude.LENGTH_WITH_CRC + encodedHeaders.length + payload.length + 4;
+            {
+                byte[] preludeBytes = getPrelude(totalLength, encodedHeaders.length);
+                Checksum crc = new CRC32();
+                crc.update(preludeBytes, 0, preludeBytes.length);
 
-            os.flush();
+                DataOutputStream dos = new DataOutputStream(checkedOutputStream);
+                dos.write(preludeBytes);
+                long value = crc.getValue();
+                int value1 = (int) value;
+                dos.writeInt(value1);
+                dos.flush();
+            }
+
+            checkedOutputStream.write(encodedHeaders);
+            checkedOutputStream.write(payload);
+            long messageCrc = checkedOutputStream.getChecksum().getValue();
+            checkedOutputStream.write((int) (0xFF & messageCrc >> 24));
+            checkedOutputStream.write((int) (0xFF & messageCrc >> 16));
+            checkedOutputStream.write((int) (0xFF & messageCrc >> 8));
+            checkedOutputStream.write((int) (0xFF & messageCrc));
+
+            checkedOutputStream.flush();
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }
@@ -180,30 +205,10 @@ public class Message {
         }
     }
 
-    private void encodeOrThrow(OutputStream os) throws IOException {
-        ByteArrayOutputStream headersAndPayload = new ByteArrayOutputStream();
-        headersAndPayload.write(encodeHeaders(headers.entrySet()));
-        headersAndPayload.write(payload);
-
-        int totalLength = Prelude.LENGTH_WITH_CRC + headersAndPayload.size() + 4;
-
-        byte[] preludeBytes = getPrelude(totalLength);
-        Checksum crc = new CRC32();
-        crc.update(preludeBytes, 0, preludeBytes.length);
-
-        DataOutputStream dos = new DataOutputStream(os);
-        dos.write(preludeBytes);
-        dos.writeInt((int) crc.getValue());
-        dos.flush();
-
-        headersAndPayload.writeTo(os);
-    }
-
-    private byte[] getPrelude(int totalLength) throws IOException {
+    private static byte[] getPrelude(int totalLength, int headerLength) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream(8);
         DataOutputStream dos = new DataOutputStream(baos);
 
-        int headerLength = totalLength - Message.MESSAGE_OVERHEAD - payload.length;
         dos.writeInt(totalLength);
         dos.writeInt(headerLength);
 
@@ -216,7 +221,6 @@ public class Message {
         if (this == o) {
             return true;
         }
-
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
@@ -226,7 +230,6 @@ public class Message {
         if (!headers.equals(message.headers)) {
             return false;
         }
-
         return Arrays.equals(payload, message.payload);
     }
 
@@ -258,5 +261,30 @@ public class Message {
         }
         ret.append('\n');
         return ret.toString();
+    }
+
+    /**
+     * A ByteArrayOutputStream optimized for returning a ByteBuffer with low copy/allocation.
+     *
+     * Normally, to get a ByteBuffer from a ByteArrayOutputStream you might use:
+     * ByteBuffer.wrap(ByteArrayOutputStream.toByteArray())
+     * However, toByteArray() does a copy of the buffer contents for two reasons:
+     * 1. Not to leak the internal buffer; could cause issues if it's used externally while the stream is in use.
+     * 2. Because the buffer may have unused space at the end, which needs to be trimmed.
+     *
+     * These are not an issue for us, so we can avoid the wasted allocation.
+     * 1. We will not use the stream after we have exposed the buffer externally.
+     * 2. We will pre-size the stream to avoid unused space in the buffer
+     *    (We also set the ByteBuffer limit to the used space, so incorrect pre-sizing is not unsafe, just not optimal)
+     *
+     */
+    private static class CompactByteArrayOutputStream extends ByteArrayOutputStream {
+        CompactByteArrayOutputStream(int size) {
+            super(size);
+        }
+
+        ByteBuffer toByteBuffer() {
+            return ByteBuffer.wrap(this.buf, 0, this.count);
+        }
     }
 }

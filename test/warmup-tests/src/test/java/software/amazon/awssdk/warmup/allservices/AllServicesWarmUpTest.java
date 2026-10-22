@@ -55,7 +55,6 @@ class AllServicesWarmUpTest {
     private static final Set<String> KNOWN_NO_OP_SERVICES = new HashSet<>(Arrays.asList(
         // All APIs are deprecated
         "cloudhsm",
-        "finspacedata",
         "iotthingsgraph",
         "lexmodelbuilding",
         "proton",
