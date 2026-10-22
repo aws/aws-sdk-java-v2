@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Interactive Video Service RealTime",
-    "contributor": "",
-    "description": "Adds RevokeConnectionToken operation for Amazon IVS Real-Time Streaming."
-}

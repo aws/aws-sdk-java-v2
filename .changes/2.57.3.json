@@ -1,0 +1,114 @@
+{
+    "version": "2.57.3",
+    "date": "2026-10-22",
+    "entries": [
+        {
+            "type": "feature",
+            "category": "AWS Continuum",
+            "contributor": "",
+            "description": "Releasing Continuum for Code Vulnerabilities APIs for SDKs"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Interactive Video Service RealTime",
+            "contributor": "",
+            "description": "Adds RevokeConnectionToken operation for Amazon IVS Real-Time Streaming."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Elemental Inference",
+            "contributor": "",
+            "description": "Elemental Inference now supports feed scheduling, letting you apply feed configuration changes at a time you choose instead of building your own automation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Port upstream changes to eventstream serde into the `eventstreams` module."
+        },
+        {
+            "type": "feature",
+            "category": "OpenSearch Service Serverless",
+            "contributor": "",
+            "description": "Adds APIs to create, get, list, and cancel ingestion jobs, and to create, get, list, and delete ingestion streams, for ingesting data from Amazon S3 into OpenSearch Serverless collections."
+        },
+        {
+            "type": "removal",
+            "category": "FinSpace User Environment Management service",
+            "contributor": "",
+            "description": "Remove end-of-life service client: `finspace`"
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore",
+            "contributor": "",
+            "description": "Adds the dimension name to evaluation results and batch evaluation summaries. For multi-dimensional LLM-as-a-Judge evaluators, each result and summary now identifies which dimension it corresponds to."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Lambda",
+            "contributor": "",
+            "description": "AWS Lambda durable functions now supports payloads up to 1 MB for checkpoints, callback completion, and error details."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Bedrock AgentCore Control",
+            "contributor": "",
+            "description": "Adds model-based routing and fallback to AgentCore Gateway rules. Rules can match the requested model, route to a specific model, and fall back across inference targets with an optional circuit breaker. Adds multi-dimensional rating scales for AgentCore Evaluations LLM-as-a-Judge evaluators."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Elastic Compute Cloud",
+            "contributor": "",
+            "description": "AWS Transit Gateway now provides managed one-to-one NAT directly on its attachments, through integration with Regional Private NAT Gateway. Use ModifyTransitGatewayAttachmentNatConfiguration to enable NAT and configure NAT rules, and GetTransitGatewayAttachmentNatConfiguration to view them."
+        },
+        {
+            "type": "feature",
+            "category": "Amazon Connect Service",
+            "contributor": "",
+            "description": "Adds support for customer queryable replication errors."
+        },
+        {
+            "type": "feature",
+            "category": "AWS Glue",
+            "contributor": "",
+            "description": "Add support for large worker types in AWS Glue"
+        },
+        {
+            "type": "feature",
+            "category": "AWS Network Manager",
+            "contributor": "",
+            "description": "AWS Cloud WAN now provides managed one-to-one NAT directly on it's core network attachments, through integration with Regional Private NAT Gateway. Use UpdateAttachmentNatConfiguration to enable NAT and configure NAT rules, and ListAttachmentNatConfigurations to view them."
+        },
+        {
+            "type": "bugfix",
+            "category": "Amazon S3",
+            "contributor": "",
+            "description": "Fixed an issue where presigned multipart downloads could hang when the server returned a Content-Range value outside the long range."
+        },
+        {
+            "type": "removal",
+            "category": "AWS Telco Network Builder",
+            "contributor": "",
+            "description": "Remove end-of-life service client: `tnb`"
+        },
+        {
+            "type": "removal",
+            "category": "FinSpace Public API",
+            "contributor": "",
+            "description": "Remove end-of-life service client: `finspacedata`"
+        },
+        {
+            "type": "feature",
+            "category": "Managed Streaming for Kafka Connect",
+            "contributor": "",
+            "description": "Amazon MSK Connect now supports pausing and resuming connectors via the asynchronous PauseConnector and ResumeConnector APIs. Paused connectors keep their configuration and committed offsets and resume where they left off. Each call returns an operation ARN to track with DescribeConnectorOperation."
+        },
+        {
+            "type": "feature",
+            "category": "AWS SDK for Java v2",
+            "contributor": "",
+            "description": "Updated endpoint and partition metadata."
+        }
+    ]
+}

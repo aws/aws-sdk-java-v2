@@ -1,6 +1,0 @@
-{
-    "type": "removal",
-    "category": "AWS Telco Network Builder",
-    "contributor": "",
-    "description": "Remove end-of-life service client: `tnb`"
-}

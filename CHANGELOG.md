@@ -1,4 +1,74 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.3__ __2026-10-22__
+## __AWS Continuum__
+  - ### Features
+    - Releasing Continuum for Code Vulnerabilities APIs for SDKs
+
+## __AWS Elemental Inference__
+  - ### Features
+    - Elemental Inference now supports feed scheduling, letting you apply feed configuration changes at a time you choose instead of building your own automation.
+
+## __AWS Glue__
+  - ### Features
+    - Add support for large worker types in AWS Glue
+
+## __AWS Lambda__
+  - ### Features
+    - AWS Lambda durable functions now supports payloads up to 1 MB for checkpoints, callback completion, and error details.
+
+## __AWS Network Manager__
+  - ### Features
+    - AWS Cloud WAN now provides managed one-to-one NAT directly on it's core network attachments, through integration with Regional Private NAT Gateway. Use UpdateAttachmentNatConfiguration to enable NAT and configure NAT rules, and ListAttachmentNatConfigurations to view them.
+
+## __AWS SDK for Java v2__
+  - ### Features
+    - Port upstream changes to eventstream serde into the `eventstreams` module.
+    - Updated endpoint and partition metadata.
+
+## __AWS Telco Network Builder__
+  - ### Removals
+    - Remove end-of-life service client: `tnb`
+
+## __Amazon Bedrock AgentCore__
+  - ### Features
+    - Adds the dimension name to evaluation results and batch evaluation summaries. For multi-dimensional LLM-as-a-Judge evaluators, each result and summary now identifies which dimension it corresponds to.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds model-based routing and fallback to AgentCore Gateway rules. Rules can match the requested model, route to a specific model, and fall back across inference targets with an optional circuit breaker. Adds multi-dimensional rating scales for AgentCore Evaluations LLM-as-a-Judge evaluators.
+
+## __Amazon Connect Service__
+  - ### Features
+    - Adds support for customer queryable replication errors.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - AWS Transit Gateway now provides managed one-to-one NAT directly on its attachments, through integration with Regional Private NAT Gateway. Use ModifyTransitGatewayAttachmentNatConfiguration to enable NAT and configure NAT rules, and GetTransitGatewayAttachmentNatConfiguration to view them.
+
+## __Amazon Interactive Video Service RealTime__
+  - ### Features
+    - Adds RevokeConnectionToken operation for Amazon IVS Real-Time Streaming.
+
+## __Amazon S3__
+  - ### Bugfixes
+    - Fixed an issue where presigned multipart downloads could hang when the server returned a Content-Range value outside the long range.
+
+## __FinSpace Public API__
+  - ### Removals
+    - Remove end-of-life service client: `finspacedata`
+
+## __FinSpace User Environment Management service__
+  - ### Removals
+    - Remove end-of-life service client: `finspace`
+
+## __Managed Streaming for Kafka Connect__
+  - ### Features
+    - Amazon MSK Connect now supports pausing and resuming connectors via the asynchronous PauseConnector and ResumeConnector APIs. Paused connectors keep their configuration and committed offsets and resume where they left off. Each call returns an operation ARN to track with DescribeConnectorOperation.
+
+## __OpenSearch Service Serverless__
+  - ### Features
+    - Adds APIs to create, get, list, and cancel ingestion jobs, and to create, get, list, and delete ingestion streams, for ingesting data from Amazon S3 into OpenSearch Serverless collections.
+
 # __2.57.2__ __2026-10-21__
 ## __AWS CRT-based S3 Client__
   - ### Bugfixes
