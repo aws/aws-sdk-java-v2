@@ -52,12 +52,12 @@ import org.reactivestreams.Subscription;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.signer.internal.SignerTestUtils;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.eventstream.HeaderValue;
+import software.amazon.awssdk.eventstream.Message;
+import software.amazon.awssdk.eventstream.MessageDecoder;
 import software.amazon.awssdk.http.SdkHttpFullRequest;
 import software.amazon.awssdk.http.SdkHttpMethod;
 import software.amazon.awssdk.utils.BinaryUtils;
-import software.amazon.eventstream.HeaderValue;
-import software.amazon.eventstream.Message;
-import software.amazon.eventstream.MessageDecoder;
 
 /**
  * Unit tests for the {@link EventStreamAws4Signer}.

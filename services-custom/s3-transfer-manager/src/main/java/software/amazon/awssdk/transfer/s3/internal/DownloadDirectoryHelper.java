@@ -21,9 +21,11 @@ import static software.amazon.awssdk.transfer.s3.internal.TransferConfigurationO
 import java.io.IOException;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Queue;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -172,7 +174,12 @@ public class DownloadDirectoryHelper {
                 SdkClientException.create("Download was cancelled before file could be started"));
         }
 
-        Path destinationPath = determineDestinationPath(downloadDirectoryRequest, listRequest, s3Object);
+        Path destinationPath;
+        try {
+            destinationPath = determineDestinationPath(downloadDirectoryRequest, listRequest, s3Object);
+        } catch (SdkClientException | InvalidPathException e) {
+            return refuseKey(downloadDirectoryRequest, failedFileDownloads, s3Object, e);
+        }
 
         DownloadFileRequest downloadFileRequest = downloadFileRequest(downloadDirectoryRequest, s3Object, destinationPath);
 
@@ -202,6 +209,42 @@ public class DownloadDirectoryHelper {
         }
     }
 
+
+    /**
+     * Reports a key that can't be mapped to a path inside the destination directory as a single failed download, without
+     * sending a request or creating any directory for it.
+     */
+    private static CompletableFuture<CompletedFileDownload> refuseKey(DownloadDirectoryRequest downloadDirectoryRequest,
+                                                                      Collection<FailedFileDownload> failedFileDownloads,
+                                                                      S3Object s3Object,
+                                                                      RuntimeException cause) {
+        SdkClientException failure = cause instanceof SdkClientException
+                                     ? (SdkClientException) cause
+                                     : SdkClientException.create("Cannot download key " + s3Object.key()
+                                                                 + ", it is not a valid path on this file system", cause);
+        log.debug(() -> "Skipping download of key " + s3Object.key() + ", it is reported in failedTransfers(): "
+                        + failure.getMessage());
+
+        // Both fields of FailedFileDownload are required, so the request needs some destination. It is never the refused
+        // path, and never the destination directory itself. Instead it is a placeholder under the destination directory
+        // whose parent directory does not exist and is not created by the SDK. A caller that retries failedTransfers() verbatim
+        // through downloadFile(f.request()) then fails without writing anything, and a caller that deletes
+        // f.request().destination() to clean up partial files deletes nothing. The downloadFileRequestTransformer is not
+        // applied because this request is never sent.
+        Path placeholder = downloadDirectoryRequest.destination()
+                                                   .resolve(".s3tm-refused-" + UUID.randomUUID())
+                                                   .resolve("refused");
+        DownloadFileRequest refused =
+            DownloadFileRequest.builder()
+                               .getObjectRequest(b -> b.bucket(downloadDirectoryRequest.bucket()).key(s3Object.key()))
+                               .destination(placeholder)
+                               .build();
+        failedFileDownloads.add(FailedFileDownload.builder()
+                                                  .exception(failure)
+                                                  .request(refused)
+                                                  .build());
+        return CompletableFutureUtils.failedFuture(failure);
+    }
 
     private static String getRelativePath(FileSystem fileSystem, String delimiter, String key) {
         if (delimiter == null) {
