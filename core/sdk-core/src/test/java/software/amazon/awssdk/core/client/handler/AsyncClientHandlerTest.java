@@ -191,8 +191,8 @@ public class AsyncClientHandlerTest {
             new SdkAsyncClientHandler(clientConfiguration().toBuilder()
                                                            .option(SdkClientOption.EXECUTION_INTERCEPTORS,
                                                                    Collections.singletonList(interceptor))
-                                                           .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR,
-                                                                   Runnable::run)
+                                                           .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                                                   (command, executionAttributes) -> command.run())
                                                            .build());
         CompletableFuture<Void> activeHttpRequest = new CompletableFuture<>();
         ArgumentCaptor<AsyncExecuteRequest> executeRequest = ArgumentCaptor.forClass(AsyncExecuteRequest.class);

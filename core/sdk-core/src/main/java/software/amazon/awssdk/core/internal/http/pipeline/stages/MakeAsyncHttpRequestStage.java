@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.internal.http.pipeline.stages;
 
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.core.internal.http.timers.TimerUtils.resolveTimeoutInMillis;
 import static software.amazon.awssdk.http.Header.CONTENT_LENGTH;
@@ -24,7 +25,6 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.Supplier;
@@ -33,7 +33,7 @@ import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
-import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.ApiCallAttemptTimeoutException;
 import software.amazon.awssdk.core.exception.SdkClientException;
@@ -74,7 +74,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
 
     private final SdkAsyncHttpClient sdkAsyncHttpClient;
     private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
-    private final Executor futureCompletionExecutor;
+    private final ExecutionAwareExecutor futureCompletionExecutor;
     private final ScheduledExecutorService timeoutExecutor;
     private final Duration apiCallAttemptTimeout;
     private final CompletableFuture<Void> abortSignal;
@@ -84,7 +84,7 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                                      CompletableFuture<Void> abortSignal) {
         this.responseHandler = responseHandler;
         this.futureCompletionExecutor =
-                dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
+                dependencies.clientConfiguration().option(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR);
         this.sdkAsyncHttpClient = dependencies.clientConfiguration().option(SdkClientOption.ASYNC_HTTP_CLIENT);
         this.apiCallAttemptTimeout = dependencies.clientConfiguration().option(SdkClientOption.API_CALL_ATTEMPT_TIMEOUT);
         this.timeoutExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
@@ -175,7 +175,8 @@ public final class MakeAsyncHttpRequestStage<OutputT>
                 completeResponseFuture(responseFuture, r, t);
                 return null;
             },
-                                              futureCompletionExecutor);
+                                              command -> futureCompletionExecutor.execute(command,
+                                                                                          context.executionAttributes()));
 
         // It's possible the async execution above fails. If so, log a warning,
         // and just complete it synchronously.

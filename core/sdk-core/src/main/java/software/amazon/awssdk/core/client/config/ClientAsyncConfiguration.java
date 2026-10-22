@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.core.client.config;
 
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 
 import java.util.Map;
@@ -23,6 +24,7 @@ import software.amazon.awssdk.annotations.Immutable;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.utils.AttributeMap;
 import software.amazon.awssdk.utils.ExecutorUtils;
+import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
 
@@ -40,6 +42,10 @@ public final class ClientAsyncConfiguration
 
     private ClientAsyncConfiguration(DefaultBuilder builder) {
         this.advancedOptions = builder.advancedOptions.build();
+        Validate.mutuallyExclusive("Only one of FUTURE_COMPLETION_EXECUTOR or EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR "
+                                   + "may be configured, but both were defined",
+                                   advancedOptions.get(FUTURE_COMPLETION_EXECUTOR),
+                                   advancedOptions.get(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR));
     }
 
     public static Builder builder() {
@@ -90,10 +96,20 @@ public final class ClientAsyncConfiguration
             if (option == FUTURE_COMPLETION_EXECUTOR) {
                 Executor executor = FUTURE_COMPLETION_EXECUTOR.convertValue(value);
                 this.advancedOptions.put(FUTURE_COMPLETION_EXECUTOR, ExecutorUtils.unmanagedExecutor(executor));
+            } else if (option == EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR) {
+                ExecutionAwareExecutor executor = EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR.convertValue(value);
+                this.advancedOptions.put(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR, unmanagedExecutionAwareExecutor(executor));
             } else {
                 this.advancedOptions.put(option, value);
             }
             return this;
+        }
+
+        /**
+         * Wrap the user-provided executor so that the SDK never closes it, even if it is {@link AutoCloseable}.
+         */
+        private static ExecutionAwareExecutor unmanagedExecutionAwareExecutor(ExecutionAwareExecutor executor) {
+            return executor == null ? null : executor::execute;
         }
 
         @Override

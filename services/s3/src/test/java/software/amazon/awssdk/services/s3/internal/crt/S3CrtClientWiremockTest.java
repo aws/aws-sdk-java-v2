@@ -51,6 +51,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -64,7 +65,10 @@ import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.BlockingOutputStreamAsyncRequestBody;
+import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.exception.SdkClientException;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.SdkExecutionAttribute;
 import software.amazon.awssdk.crt.Log;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -346,6 +350,43 @@ public class S3CrtClientWiremockTest {
 
             verify(mockExecutor).execute(any(Runnable.class));
         }
+    }
+
+    @Test
+    void executionAwareFutureCompletionExecutor_shouldCompleteWithCustomExecutor(WireMockRuntimeInfo wiremock) {
+        AtomicReference<ExecutionAttributes> receivedAttributes = new AtomicReference<>();
+        ExecutionAwareExecutor executor = (command, executionAttributes) -> {
+            receivedAttributes.set(executionAttributes);
+            command.run();
+        };
+
+        try (S3AsyncClient s3AsyncClient = S3AsyncClient.crtBuilder()
+                                                        .region(Region.US_EAST_1)
+                                                        .endpointOverride(URI.create("http://localhost:" + wiremock.getHttpPort()))
+                                                        .executionAwareFutureCompletionExecutor(executor)
+                                                        .credentialsProvider(
+                                                            StaticCredentialsProvider.create(AwsBasicCredentials.create("key",
+                                                                                                                        "secret")))
+                                                        .build()) {
+            stubFor(any(anyUrl()).willReturn(aResponse().withStatus(200).withBody(XML_RESPONSE_BODY)));
+
+            s3AsyncClient.completeMultipartUpload(r -> r.bucket(BUCKET).key(KEY).uploadId("upload-id")).join();
+
+            assertThat(receivedAttributes.get()).isNotNull();
+            assertThat(receivedAttributes.get().getAttribute(SdkExecutionAttribute.OPERATION_NAME))
+                .isEqualTo("CompleteMultipartUpload");
+        }
+    }
+
+    @Test
+    void build_withBothFutureCompletionExecutors_shouldThrowException() {
+        assertThatThrownBy(() -> S3AsyncClient.crtBuilder()
+                                              .region(Region.US_EAST_1)
+                                              .futureCompletionExecutor(Runnable::run)
+                                              .executionAwareFutureCompletionExecutor((command, attributes) -> command.run())
+                                              .build())
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessageContaining("Only one of FUTURE_COMPLETION_EXECUTOR or EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR");
     }
 
     @Test
