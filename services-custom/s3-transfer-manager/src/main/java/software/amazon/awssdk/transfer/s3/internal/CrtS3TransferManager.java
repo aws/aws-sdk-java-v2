@@ -29,12 +29,14 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions.ResponseFileOption;
 import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.internal.crt.CrtResponseFileResponseTransformer;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
@@ -45,12 +47,16 @@ import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.CrtFileUpload;
+import software.amazon.awssdk.transfer.s3.internal.model.DefaultDownload;
 import software.amazon.awssdk.transfer.s3.internal.model.DefaultUpload;
 import software.amazon.awssdk.transfer.s3.internal.progress.ResumeTransferProgress;
 import software.amazon.awssdk.transfer.s3.internal.progress.TransferProgressUpdater;
+import software.amazon.awssdk.transfer.s3.model.CompletedDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
+import software.amazon.awssdk.transfer.s3.model.Download;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
 import software.amazon.awssdk.transfer.s3.model.FileUpload;
@@ -156,6 +162,39 @@ class CrtS3TransferManager extends GenericS3TransferManager {
         return uploadFile(uploadFileRequest.toBuilder()
                                            .putObjectRequest(modifiedPutObjectRequest)
                                            .build());
+    }
+
+    /**
+     * Passes the pooled transformer to the client unwrapped, because the client rejects a wrapped one, and reports progress and
+     * completion from CRT instead.
+     */
+    @Override
+    Download<ResponseInputStream<GetObjectResponse>> doDownloadWithDirectBufferPool(
+        DirectBufferPoolDownloadRequest downloadRequest) {
+        CompletableFuture<CompletedDownload<ResponseInputStream<GetObjectResponse>>> returnFuture = new CompletableFuture<>();
+        TransferProgressUpdater progressUpdater = new TransferProgressUpdater(downloadRequest, null);
+        progressUpdater.transferInitiated();
+        progressUpdater.registerCompletion(returnFuture);
+
+        try {
+            assertNotUnsupportedArn(downloadRequest.getObjectRequest().bucket(), "download");
+
+            GetObjectRequest getObjectRequest = attachCrtSdkAttribute(
+                downloadRequest.getObjectRequest(),
+                b -> b.put(CRT_PROGRESS_LISTENER, progressUpdater.crtStreamProgressListener()));
+            CompletableFuture<ResponseInputStream<GetObjectResponse>> future = s3AsyncClient.getObject(
+                getObjectRequest, S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool());
+
+            CompletableFutureUtils.forwardExceptionTo(returnFuture, future);
+            CompletableFutureUtils.forwardTransformedResultTo(future, returnFuture, r -> {
+                progressUpdater.downloadResponseReceived(r.response());
+                return CompletedDownload.builder().result(r).build();
+            });
+        } catch (Throwable throwable) {
+            returnFuture.completeExceptionally(throwable);
+        }
+
+        return new DefaultDownload<>(returnFuture, progressUpdater.progress());
     }
 
     /**

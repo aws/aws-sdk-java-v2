@@ -41,7 +41,8 @@ import software.amazon.awssdk.utils.Validate;
 /**
  * Adapts borrowed-buffer {@link GetObjectResponse} callbacks to a {@link S3CrtBorrowedBufferStreamHandler}.
  *
- * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}.
+ * <p>Headers, progress and request completion go through {@link S3CrtResponseHandlerAdapter}. A failure after the stream starts
+ * is also reported to the progress listener.
  */
 @SdkInternalApi
 public final class S3CrtBorrowedBufferResponseHandlerAdapter
@@ -51,6 +52,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
     private final S3CrtResponseHandlerAdapter delegate;
     private final CompletableFuture<Void> executeFuture;
     private final S3CrtBorrowedBufferStreamHandler streamHandler;
+    private final PublisherListener<S3MetaRequestProgress> progressListener;
     private final CompletableFuture<S3MetaRequestWrapper> metaRequestFuture;
     private final AtomicLong responseBytesRead;
     private final AtomicBoolean streamInitiated = new AtomicBoolean();
@@ -69,6 +71,7 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
         this.delegate = new S3CrtResponseHandlerAdapter(this.executeFuture, responseHandler, progressListener,
                                                        metaRequestFuture);
         this.streamHandler = Validate.paramNotNull(streamHandler, "streamHandler");
+        this.progressListener = progressListener;
         this.metaRequestFuture = metaRequestFuture;
         this.responseBytesRead = responseBytesRead;
         // A timeout or cancellation discards queued data. Other failures reach the reader after queued data.
@@ -85,6 +88,11 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
                     }
                 } catch (Throwable notificationFailure) {
                     addSuppressed(error, notificationFailure);
+                }
+                // A failure before publication reaches the caller through the getObject future instead, and a redirected
+                // attempt never publishes a stream.
+                if (streamInitiated.get()) {
+                    notifyProgressListenerOnError(error);
                 }
             }
         });
@@ -259,6 +267,17 @@ public final class S3CrtBorrowedBufferResponseHandlerAdapter
     private static void addSuppressed(Throwable failure, Throwable additional) {
         if (failure != additional) {
             failure.addSuppressed(additional);
+        }
+    }
+
+    private void notifyProgressListenerOnError(Throwable error) {
+        if (progressListener == null) {
+            return;
+        }
+        try {
+            progressListener.subscriberOnError(error);
+        } catch (Throwable notificationFailure) {
+            addSuppressed(error, notificationFailure);
         }
     }
 

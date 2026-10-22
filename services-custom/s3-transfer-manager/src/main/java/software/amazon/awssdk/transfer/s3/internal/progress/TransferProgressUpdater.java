@@ -21,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Consumer;
 import org.reactivestreams.Subscriber;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.SplittingTransformerConfiguration;
@@ -159,7 +160,18 @@ public class TransferProgressUpdater {
     }
 
     public PublisherListener<S3MetaRequestProgress> crtProgressListener() {
+        return crtProgressListener(this::transferFailed);
+    }
 
+    /**
+     * Returns a CRT progress listener for a download whose stream is returned before CRT finishes the request. A failure
+     * completes the end of the stream exceptionally, so {@link #registerCompletion} reports at most one terminal event.
+     */
+    public PublisherListener<S3MetaRequestProgress> crtStreamProgressListener() {
+        return crtProgressListener(endOfStreamFuture::completeExceptionally);
+    }
+
+    private PublisherListener<S3MetaRequestProgress> crtProgressListener(Consumer<Throwable> onError) {
         return new PublisherListener<S3MetaRequestProgress>() {
             @Override
             public void publisherSubscribe(Subscriber<? super S3MetaRequestProgress> subscriber) {
@@ -181,7 +193,7 @@ public class TransferProgressUpdater {
 
             @Override
             public void subscriberOnError(Throwable t) {
-                transferFailed(t);
+                onError.accept(t);
             }
 
             @Override
@@ -362,6 +374,19 @@ public class TransferProgressUpdater {
 
     private void resetBytesTransferred() {
         progress.updateAndGet(b -> b.transferredBytes(0L));
+    }
+
+    /**
+     * Records the response of a download whose transformer is not wrapped for progress, so the completion event can report
+     * it.
+     */
+    public void downloadResponseReceived(GetObjectResponse response) {
+        Long contentLength = response.contentLength();
+        if (contentLength != null) {
+            updateTotalBytes(contentLength, response);
+        } else {
+            progress.updateAndGet(b -> b.sdkResponse(response));
+        }
     }
 
     public void incrementBytesTransferred(long numBytes) {

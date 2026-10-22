@@ -21,6 +21,7 @@ import java.util.concurrent.Executor;
 import java.util.function.Consumer;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.ThreadSafe;
+import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
 import software.amazon.awssdk.services.s3.model.AnnotationDirective;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.TaggingDirective;
@@ -37,6 +39,7 @@ import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
+import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
@@ -333,6 +336,57 @@ public interface S3TransferManager extends SdkAutoCloseable {
      */
     default <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
         throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Downloads an object identified by the bucket and key from S3 as a blocking {@link ResponseInputStream} delivered through
+     * the direct buffer pool of a CRT-based S3 client. See
+     * {@link software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer#toBlockingInputStreamFromDirectBufferPool()}
+     * for how the stream uses the pool.
+     * <p>
+     * The transfer manager must be built on an {@link S3AsyncClient} created by {@link S3AsyncClient#crtBuilder()} with
+     * {@link S3CrtAsyncClientBuilder#directBufferPoolConfiguration} set. Otherwise the transfer fails before request
+     * transmission.
+     * <p>
+     * The returned future completes when the response stream is ready. Always close the stream to release unread buffers and
+     * cancel remaining download work. Progress counts bytes CRT has received, which the application may not have read yet.
+     * {@link TransferListener#transferComplete} is called when CRT finishes the request, and closing the stream before then
+     * reports {@link TransferListener#transferFailed}.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * {@snippet :
+     *         S3AsyncClient s3 = S3AsyncClient.crtBuilder()
+     *                                         .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.auto())
+     *                                         .build();
+     *         S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3).build();
+     *
+     *         Download<ResponseInputStream<GetObjectResponse>> download =
+     *             transferManager.downloadWithDirectBufferPool(b -> b.getObjectRequest(req -> req.bucket("bucket").key("key")));
+     *
+     *         try (ResponseInputStream<GetObjectResponse> in = download.completionFuture().join().result()) {
+     *             // Read the object.
+     *         }
+     * }
+     *
+     * @param downloadRequest the download request, containing a {@link GetObjectRequest}
+     * @return A {@link Download} that can be used to track the ongoing transfer
+     * @see #downloadWithDirectBufferPool(Consumer)
+     */
+    default Download<ResponseInputStream<GetObjectResponse>> downloadWithDirectBufferPool(
+        DirectBufferPoolDownloadRequest downloadRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This is a convenience method that creates an instance of the {@link DirectBufferPoolDownloadRequest} builder, avoiding the
+     * need to create one manually via {@link DirectBufferPoolDownloadRequest#builder()}.
+     *
+     * @see #downloadWithDirectBufferPool(DirectBufferPoolDownloadRequest)
+     */
+    default Download<ResponseInputStream<GetObjectResponse>> downloadWithDirectBufferPool(
+        Consumer<DirectBufferPoolDownloadRequest.Builder> request) {
+        return downloadWithDirectBufferPool(DirectBufferPoolDownloadRequest.builder().applyMutation(request).build());
     }
 
     /**
