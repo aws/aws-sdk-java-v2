@@ -15,6 +15,7 @@
 
 package software.amazon.awssdk.services.s3.internal.multipart;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
@@ -200,6 +201,49 @@ class ParallelMultipartDownloaderSubscriberWiremockTest {
         assertThat(getObjectResponse).isNotNull();
 
         verifyCorrectRequestsMade(numParts, completedParts);
+    }
+
+    @Test
+    void whenResumingAfterFirstPart_shouldSendIfMatchWithResumedETagOnRemainingParts() throws Exception {
+        int partSize = 1024;
+        int numParts = 3;
+        Files.write(testFile, new byte[partSize * numParts]);
+        stubAllPartsWithCompleted(testBucket, testKey, numParts, partSize, Sets.newHashSet(1));
+
+        MultipartDownloadResumeContext context = new MultipartDownloadResumeContext(Sets.newHashSet(1), (long) partSize);
+        context.totalParts(numParts);
+        context.response(GetObjectResponse.builder().eTag("test-etag").partsCount(numParts).build());
+
+        FileTransformerConfiguration fileTransformerConfiguration = FileTransformerConfiguration
+            .builder()
+            .fileWriteOption(FileTransformerConfiguration.FileWriteOption.WRITE_TO_POSITION)
+            .failureBehavior(FileTransformerConfiguration.FailureBehavior.LEAVE)
+            .position(0L)
+            .build();
+        AsyncResponseTransformer<GetObjectResponse, GetObjectResponse> transformer =
+            AsyncResponseTransformer.toFile(testFile, fileTransformerConfiguration);
+        AsyncResponseTransformer.SplitResult<GetObjectResponse, GetObjectResponse> split = transformer.split(
+            SplittingTransformerConfiguration.builder()
+                                             .bufferSizeInBytes(1024 * 32L)
+                                             .build());
+
+        CompletableFuture<GetObjectResponse> resultFuture = new CompletableFuture<>();
+        Subscriber<AsyncResponseTransformer<GetObjectResponse, GetObjectResponse>> subscriber =
+            new ParallelMultipartDownloaderSubscriber(
+                s3AsyncClient,
+                GetObjectRequest.builder()
+                                .overrideConfiguration(c -> c.putExecutionAttribute(MULTIPART_DOWNLOAD_RESUME_CONTEXT, context))
+                                .bucket(testBucket)
+                                .key(testKey)
+                                .build(),
+                resultFuture,
+                50);
+
+        split.publisher().subscribe(subscriber);
+        resultFuture.join();
+
+        verify(getRequestedFor(urlMatching(".*partNumber=2\\b.*")).withHeader("If-Match", equalTo("test-etag")));
+        verify(getRequestedFor(urlMatching(".*partNumber=3\\b.*")).withHeader("If-Match", equalTo("test-etag")));
     }
 
     private void verifyCorrectRequestsMade(int numParts, Set<Integer> completedParts) {

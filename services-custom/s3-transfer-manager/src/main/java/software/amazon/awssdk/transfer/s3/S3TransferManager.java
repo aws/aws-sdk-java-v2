@@ -25,10 +25,12 @@ import software.amazon.awssdk.core.async.AsyncRequestBody;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3CrtAsyncClientBuilder;
+import software.amazon.awssdk.services.s3.model.AnnotationDirective;
 import software.amazon.awssdk.services.s3.model.CopyObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.MetadataDirective;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.TaggingDirective;
 import software.amazon.awssdk.services.s3.model.UploadPartCopyRequest;
 import software.amazon.awssdk.transfer.s3.internal.TransferManagerFactory;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
@@ -65,8 +67,9 @@ import software.amazon.awssdk.utils.Validate;
  * monitor a transfer's progress in real-time, as well as pause the transfer for execution at a later time.
  *
  * <h2>Instantiate the S3 Transfer Manager</h2>
- * <b>Create a transfer manager instance with SDK default settings. Note that it's recommended
- * to add {@code software.amazon.awssdk.crt:aws-crt} dependency so that automatic multipart feature can be enabled</b>
+ * <b>Create a transfer manager instance with SDK default settings. An AWS CRT-based S3 client is used if
+ * {@code software.amazon.awssdk.crt:aws-crt} is in the classpath; otherwise, a Java-based S3 multipart client
+ * ({@code S3AsyncClient.builder().multipartEnabled(true).build()}) is used</b>
  * {@snippet :
  *      S3TransferManager transferManager = S3TransferManager.create();
  * }
@@ -659,6 +662,19 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * {@link CopyObjectRequest.Builder#metadataDirective(MetadataDirective)} to {@code REPLACE}.
      *
      * <p>
+     * For multipart copy requests, source object tags are not copied by default, unlike a single {@code CopyObject} request,
+     * for which S3's default tagging directive is {@code COPY}. To copy them, set
+     * {@link CopyObjectRequest.Builder#taggingDirective(TaggingDirective)} to {@code COPY}. The source object's tags are then
+     * read with {@code GetObjectTagging} before the copy and, if the source object has tags, written to the destination
+     * object with {@code PutObjectTagging} after it completes. This requires the {@code s3:GetObjectTagging} permission, and
+     * the {@code s3:PutObjectTagging} permission if the source object has tags. These requests include the version ID that
+     * S3 returns for a versioned bucket, so {@code s3:GetObjectVersionTagging} and {@code s3:PutObjectVersionTagging} may
+     * also be required. The destination object exists without the source object's tags until {@code PutObjectTagging}
+     * completes. If that request fails, the copy fails and the destination object is not deleted. Similarly, source object
+     * annotations are copied only when
+     * {@link CopyObjectRequest.Builder#annotationDirective(AnnotationDirective)} is set to {@code COPY}.
+     *
+     * <p>
      * While this API supports {@link TransferListener}s, they will not receive {@code bytesTransferred} callback-updates due to
      * the way the {@link CopyObjectRequest} API behaves. When copying an object, S3 performs the byte copying on your behalf
      * while keeping the connection alive. The progress of the copy is not known until it fully completes and S3 sends a response
@@ -717,9 +733,14 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Downloads an object using a pre-signed URL to a local file. For non-file-based downloads, you may use
      * {@link #downloadWithPresignedUrl(PresignedDownloadRequest)} instead.
      * <p>
-     * This method supports multipart downloads when using a CRT-based or multipart-enabled S3 client,
-     * providing enhanced throughput and reliability for large objects. Progress can be monitored
-     * through {@link TransferListener}s attached to the request.
+     * This method supports multipart downloads when using a multipart-enabled S3 client
+     * ({@code S3AsyncClient.builder().multipartEnabled(true).build()}), providing enhanced throughput and reliability for
+     * large objects. Progress can be monitored through {@link TransferListener}s attached to the request.
+     * <p>
+     * AWS CRT-based S3 clients are not currently supported for presigned URL downloads; the returned future completes
+     * exceptionally with an {@link UnsupportedOperationException}. Because {@link #create()} uses an AWS CRT-based S3 client
+     * when AWS CRT is on the classpath, configure a multipart-enabled S3 client via {@link Builder#s3Client(S3AsyncClient)}
+     * instead.
      * <p>
      * The SDK will create a new file if the provided destination doesn't exist. If the file already exists,
      * it will be replaced. In the event of an error, the SDK will <b>NOT</b> attempt to delete
@@ -730,7 +751,12 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <p>
      * <b>Usage Example:</b>
      * {@snippet :
-     *         S3TransferManager transferManager = S3TransferManager.create();
+     *         S3AsyncClient s3AsyncClient = S3AsyncClient.builder()
+     *                                                    .multipartEnabled(true)
+     *                                                    .build();
+     *         S3TransferManager transferManager = S3TransferManager.builder()
+     *                                                              .s3Client(s3AsyncClient)
+     *                                                              .build();
      *         
      *         // Create presigned URL (typically done by another service)
      *         PresignedUrlDownloadRequest presignedRequest = PresignedUrlDownloadRequest.builder()
@@ -776,16 +802,26 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * Downloads an object using a pre-signed URL through the given {@link AsyncResponseTransformer}. For downloading
      * to a file, you may use {@link #downloadFileWithPresignedUrl(PresignedDownloadFileRequest)} instead.
      * <p>
-     * This method supports multipart downloads when using a CRT-based or multipart-enabled S3 client,
-     * providing enhanced throughput and reliability for large objects. Progress can be monitored
-     * through {@link TransferListener}s attached to the request.
+     * This method supports multipart downloads when using a multipart-enabled S3 client
+     * ({@code S3AsyncClient.builder().multipartEnabled(true).build()}), providing enhanced throughput and reliability for
+     * large objects. Progress can be monitored through {@link TransferListener}s attached to the request.
+     * <p>
+     * AWS CRT-based S3 clients are not currently supported for presigned URL downloads; the returned future completes
+     * exceptionally with an {@link UnsupportedOperationException}. Because {@link #create()} uses an AWS CRT-based S3 client
+     * when AWS CRT is on the classpath, configure a multipart-enabled S3 client via {@link Builder#s3Client(S3AsyncClient)}
+     * instead.
      * <p>
      * Note: The result of the operation doesn't support pause and resume functionality.
      * </p>
      * <p>
      * <b>Usage Example (downloading to memory - not suitable for large objects):</b>
      * {@snippet :
-     *         S3TransferManager transferManager = S3TransferManager.create();
+     *         S3AsyncClient s3AsyncClient = S3AsyncClient.builder()
+     *                                                    .multipartEnabled(true)
+     *                                                    .build();
+     *         S3TransferManager transferManager = S3TransferManager.builder()
+     *                                                              .s3Client(s3AsyncClient)
+     *                                                              .build();
      *         
      *         // Create presigned URL (typically done by another service)
      *         PresignedUrlDownloadRequest presignedRequest = PresignedUrlDownloadRequest.builder()
@@ -819,9 +855,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * <p>
      * The type of {@link S3AsyncClient} used depends on if AWS Common Runtime (CRT) library
      * {@code software.amazon.awssdk.crt:aws-crt} is in the classpath. If AWS CRT is available, an AWS CRT-based S3 client will
-     * be created via ({@link S3AsyncClient#crtCreate()}). Otherwise, a standard S3 client({@link S3AsyncClient#create()}) will
-     * be created. Note that only AWS CRT-based S3 client supports parallel transfer, i.e, leveraging multipart upload/download
-     * for now, so it's recommended to add AWS CRT as a dependency.
+     * be created via ({@link S3AsyncClient#crtCreate()}). Otherwise, a Java-based S3 multipart client
+     * ({@code S3AsyncClient.builder().multipartEnabled(true).build()}) will be created. Both clients support parallel transfer,
+     * i.e, leveraging multipart upload/download.
      */
     static S3TransferManager create() {
         return builder().build();
@@ -844,8 +880,9 @@ public interface S3TransferManager extends SdkAutoCloseable {
          * {@link S3AsyncClient} if not provided.
          *
          * <p>
-         * It's highly recommended to use {@link S3AsyncClient#crtBuilder()} to create an {@link S3AsyncClient} instance to
-         * benefit from multipart upload/download feature and maximum throughput.
+         * It's highly recommended to use {@link S3AsyncClient#crtBuilder()} or
+         * {@code S3AsyncClient.builder().multipartEnabled(true)} to create an {@link S3AsyncClient} instance to benefit from
+         * multipart upload/download feature and maximum throughput.
          *
          * <p>
          * Note: the provided {@link S3AsyncClient} will not be closed when the transfer manager is closed; it must be closed by

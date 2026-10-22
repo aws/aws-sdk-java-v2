@@ -259,6 +259,14 @@ public final class UploadDirectoryRequest
          *
          * the object keys will be "foo/obj1.txt" and "foo/obj2.txt" as apposed to "foo//obj1.txt" and "foo//obj2.txt"
          *
+         * <p>
+         * Note: the delimiter should not occur in local file or directory names. Two files whose names differ only where the
+         * delimiter appears map to the same key. For example, with the delimiter {@code "-"}, the files {@code a/b} and
+         * {@code a-b} both map to the key {@code a-b}. In that case, only the first of those files is uploaded, and each later
+         * one is reported as a {@link FailedFileUpload} in {@link CompletedDirectoryUpload#failedTransfers()}. That failure's
+         * request has the real key, which is the key that the first file was uploaded to: retrying it overwrites that object,
+         * and deleting its key deletes that object.
+         *
          * @param s3Delimiter the delimiter
          * @return This builder for method chaining.
          * @see #s3Prefix(String)

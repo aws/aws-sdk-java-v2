@@ -120,8 +120,6 @@ emr-serverless
 entitlement.marketplace
 es
 events
-finspace
-finspace-api
 firehose
 fms
 forecast
@@ -288,7 +286,6 @@ tagging
 tax
 textract
 thinclient
-tnb
 transcribe
 transcribestreaming
 transfer
