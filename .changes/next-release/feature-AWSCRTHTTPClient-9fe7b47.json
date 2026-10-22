@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT HTTP Client",
+    "contributor": "",
+    "description": "Add `useTrustStoreSystemProperties` to `AwsCrtHttpClient.Builder` and `AwsCrtAsyncHttpClient.Builder`. When enabled, the client trusts the certificates in the trust store specified by the `javax.net.ssl.trustStore*` JSSE system properties instead of the OS trust store. Disabled by default."
+}
