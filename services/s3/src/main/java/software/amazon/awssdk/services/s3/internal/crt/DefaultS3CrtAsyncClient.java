@@ -36,7 +36,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -367,8 +366,14 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             return this;
         }
 
-        @SdkTestInternalApi
-        DefaultS3CrtClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
+        @Override
+        public DefaultS3CrtClientBuilder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+            this.executionInterceptors = executionInterceptors == null ? null : new ArrayList<>(executionInterceptors);
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
             if (executionInterceptors == null) {
                 this.executionInterceptors = new ArrayList<>();
             }

@@ -17,6 +17,7 @@ package software.amazon.awssdk.services.s3;
 
 import java.net.URI;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -28,6 +29,7 @@ import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.IdentityProvider;
 import software.amazon.awssdk.regions.Region;
@@ -380,6 +382,35 @@ public interface S3CrtAsyncClientBuilder extends SdkBuilder<S3CrtAsyncClientBuil
      */
     default S3CrtAsyncClientBuilder executionAwareFutureCompletionExecutor(
         ExecutionAwareExecutor executionAwareFutureCompletionExecutor) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Configure a list of execution interceptors that will have access to view and modify the request and response objects as
+     * they are processed by the SDK. These will replace any interceptors configured previously with this method or
+     * {@link #addExecutionInterceptor(ExecutionInterceptor)}.
+     * <p>
+     * The provided interceptors are executed in the order they are configured, after the interceptors used internally by the
+     * client. Signing, retries and the transfer of the request and response are performed by the AWS Common Runtime (CRT), so
+     * interceptor hooks that modify the HTTP request or response may not be applied to what is actually sent or received.
+     *
+     * @param executionInterceptors the execution interceptors
+     * @return an instance of this builder.
+     * @see ExecutionInterceptor
+     */
+    default S3CrtAsyncClientBuilder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Add an execution interceptor that will have access to view and modify the request and response objects as they are
+     * processed by the SDK.
+     *
+     * @param executionInterceptor the execution interceptor
+     * @return an instance of this builder.
+     * @see #executionInterceptors(List)
+     */
+    default S3CrtAsyncClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
         throw new UnsupportedOperationException();
     }
 
