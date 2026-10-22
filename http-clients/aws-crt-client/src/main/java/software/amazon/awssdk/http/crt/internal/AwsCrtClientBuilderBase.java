@@ -36,6 +36,7 @@ public class AwsCrtClientBuilderBase<BuilderT> {
     private Boolean postQuantumTlsEnabled;
     private TlsVersion minTlsVersion;
     private Integer numEventLoopThreads;
+    private Boolean useTrustStoreSystemProperties;
 
     protected AwsCrtClientBuilderBase() {
     }
@@ -163,6 +164,15 @@ public class AwsCrtClientBuilderBase<BuilderT> {
 
     public TlsVersion getMinTlsVersion() {
         return this.minTlsVersion;
+    }
+
+    public BuilderT useTrustStoreSystemProperties(Boolean useTrustStoreSystemProperties) {
+        this.useTrustStoreSystemProperties = useTrustStoreSystemProperties;
+        return thisBuilder();
+    }
+
+    public Boolean getUseTrustStoreSystemProperties() {
+        return this.useTrustStoreSystemProperties;
     }
 
     public BuilderT proxyConfiguration(Consumer<ProxyConfiguration.Builder> proxyConfigurationBuilderConsumer) {
