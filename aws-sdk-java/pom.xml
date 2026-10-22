@@ -1245,16 +1245,6 @@ Amazon AutoScaling, etc).</description>
         </dependency>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
-            <artifactId>finspacedata</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>finspace</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
             <artifactId>ssmincidents</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
@@ -1586,11 +1576,6 @@ Amazon AutoScaling, etc).</description>
         <dependency>
             <groupId>software.amazon.awssdk</groupId>
             <artifactId>cloudtraildata</artifactId>
-            <version>${awsjavasdk.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>software.amazon.awssdk</groupId>
-            <artifactId>tnb</artifactId>
             <version>${awsjavasdk.version}</version>
         </dependency>
         <dependency>

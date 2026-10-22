@@ -1,0 +1,6 @@
+{
+    "type": "removal",
+    "category": "FinSpace Public API",
+    "contributor": "",
+    "description": "Remove end-of-life service client: `finspacedata`"
+}

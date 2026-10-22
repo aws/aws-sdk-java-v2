@@ -1651,12 +1651,6 @@ recipeList:
       newVersion: ${sdkVersion}
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-finspace
-      newGroupId: software.amazon.awssdk
-      newArtifactId: finspace
-      newVersion: ${sdkVersion}
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-detective
       newGroupId: software.amazon.awssdk
       newArtifactId: detective
@@ -2245,12 +2239,6 @@ recipeList:
       newVersion: ${sdkVersion}
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-finspacedata
-      newGroupId: software.amazon.awssdk
-      newArtifactId: finspacedata
-      newVersion: ${sdkVersion}
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.amazonaws
       oldArtifactId: aws-java-sdk-marketplacecatalog
       newGroupId: software.amazon.awssdk
       newArtifactId: marketplacecatalog
@@ -2278,12 +2266,6 @@ recipeList:
       oldArtifactId: aws-java-sdk-codegurusecurity
       newGroupId: software.amazon.awssdk
       newArtifactId: codegurusecurity
-      newVersion: ${sdkVersion}
-  - org.openrewrite.java.dependencies.ChangeDependency:
-      oldGroupId: com.amazonaws
-      oldArtifactId: aws-java-sdk-tnb
-      newGroupId: software.amazon.awssdk
-      newArtifactId: tnb
       newVersion: ${sdkVersion}
   - org.openrewrite.java.dependencies.ChangeDependency:
       oldGroupId: com.amazonaws
