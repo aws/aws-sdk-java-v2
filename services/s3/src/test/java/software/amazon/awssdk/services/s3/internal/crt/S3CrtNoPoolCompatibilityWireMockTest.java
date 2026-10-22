@@ -74,8 +74,8 @@ class S3CrtNoPoolCompatibilityWireMockTest {
                 r -> r.bucket("bucket").key("key"),
                 S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool()).join())
                 .hasRootCauseInstanceOf(IllegalStateException.class)
-                .hasRootCauseMessage("A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using the "
-                                     + "borrowed buffer response transformer");
+                .hasRootCauseMessage("A direct buffer pool must be configured on S3CrtAsyncClientBuilder before using direct "
+                                     + "buffer pool downloads");
         }
     }
 }

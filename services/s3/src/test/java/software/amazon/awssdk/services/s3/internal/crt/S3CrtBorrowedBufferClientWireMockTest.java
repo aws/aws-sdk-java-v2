@@ -27,6 +27,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlMatching;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static software.amazon.awssdk.services.s3.crt.S3CrtSdkHttpExecutionAttribute.CRT_PROGRESS_LISTENER;
 
 import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
@@ -44,6 +45,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -51,10 +53,13 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.async.AsyncResponseTransformer;
 import software.amazon.awssdk.core.async.SdkPublisher;
+import software.amazon.awssdk.core.async.listener.PublisherListener;
 import software.amazon.awssdk.core.interceptor.Context;
 import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
 import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
+import software.amazon.awssdk.crt.s3.S3MetaRequestProgress;
+import software.amazon.awssdk.http.SdkHttpExecutionAttributes;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.crt.S3CrtAsyncResponseTransformer;
@@ -137,6 +142,22 @@ class S3CrtBorrowedBufferClientWireMockTest {
         }
 
         assertThat(responseBytesRead).hasValue(PART_SIZE);
+    }
+
+    @Test
+    void borrowedDownload_withCrtProgressListener_shouldReportProgressAndCompletion(WireMockRuntimeInfo wireMock)
+        throws Exception {
+        stubMultipartObject(CONTENT);
+        RecordingProgressListener progressListener = new RecordingProgressListener();
+
+        try (S3AsyncClient client = newClient(wireMock);
+             ResponseInputStream<GetObjectResponse> stream = getObject(client, progressListener)) {
+            assertThat(readAll(stream)).containsExactly(CONTENT);
+        }
+
+        assertThat(progressListener.completed.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(progressListener.bytesTransferred).hasValue(CONTENT.length);
+        assertThat(progressListener.error).hasValue(null);
     }
 
     @Test
@@ -411,6 +432,19 @@ class S3CrtBorrowedBufferClientWireMockTest {
         return getObjectFuture(client).get(10, TimeUnit.SECONDS);
     }
 
+    private static ResponseInputStream<GetObjectResponse> getObject(S3AsyncClient client,
+                                                                   PublisherListener<S3MetaRequestProgress> progressListener)
+        throws Exception {
+        SdkHttpExecutionAttributes httpAttributes = SdkHttpExecutionAttributes.builder()
+                                                                              .put(CRT_PROGRESS_LISTENER, progressListener)
+                                                                              .build();
+        return client.getObject(r -> r.bucket("bucket").key("key")
+                                      .overrideConfiguration(o -> o.putExecutionAttribute(
+                                          SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES, httpAttributes)),
+                                S3CrtAsyncResponseTransformer.toBlockingInputStreamFromDirectBufferPool())
+                     .get(10, TimeUnit.SECONDS);
+    }
+
     private static void stubMultipartObject(byte[] content) {
         stubHeadObject(content.length);
         for (int part = 0; part < PART_COUNT; part++) {
@@ -503,6 +537,27 @@ class S3CrtBorrowedBufferClientWireMockTest {
             result[i] = (byte) (i % 251);
         }
         return result;
+    }
+
+    private static final class RecordingProgressListener implements PublisherListener<S3MetaRequestProgress> {
+        private final AtomicLong bytesTransferred = new AtomicLong();
+        private final AtomicReference<Throwable> error = new AtomicReference<>();
+        private final CountDownLatch completed = new CountDownLatch(1);
+
+        @Override
+        public void subscriberOnNext(S3MetaRequestProgress progress) {
+            bytesTransferred.addAndGet(progress.getBytesTransferred());
+        }
+
+        @Override
+        public void subscriberOnError(Throwable t) {
+            error.set(t);
+        }
+
+        @Override
+        public void subscriberOnComplete() {
+            completed.countDown();
+        }
     }
 
     private static final class ForwardingTransformer
