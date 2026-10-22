@@ -628,6 +628,11 @@ Don't use `addAttribute(List.class, ...)` for this attribute. `List.class` doesn
 tell the enhanced client the element type, so building the schema fails with an
 `IndexOutOfBoundsException`.
 
+If your classes are immutable, annotate both classes with `@DynamoDbImmutable`
+and build the schema with `TableSchema.fromImmutableClass(...)`. The list is
+stored the same way. For details, see
+[Working with immutable data classes](#working-with-immutable-data-classes).
+
 For more examples, see [Save complex types](https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/ddb-en-client-adv-features-nested.html#ddb-en-client-adv-features-nested-mapping)
 in the *AWS SDK for Java 2.x Developer Guide*.
 
