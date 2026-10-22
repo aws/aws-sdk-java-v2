@@ -34,7 +34,7 @@ class AwsChunkedResponseDecoderTest {
     // Success cases from SEP
 
     @Test
-    void singleChunkWithTrailer() throws IOException {
+    void read_whenSingleChunkWithTrailer_decodesDataAndExtractsTrailer() throws IOException {
         String encoded = "5\r\nhello\r\n0\r\ntrailer-key:abc123==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -43,7 +43,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void multipleChunksWithTrailer() throws IOException {
+    void read_whenMultipleChunksWithTrailer_decodesAllChunks() throws IOException {
         String encoded = "5\r\nhello\r\n6\r\n world\r\n0\r\ntrailer-key:AAAA==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -52,7 +52,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void chunkDataContainingCrlf() throws IOException {
+    void read_whenChunkDataContainsCrlf_treatsAsData() throws IOException {
         // Data is "a\r\nbc" (5 bytes) — the embedded \r\n is data, not a boundary
         String encoded = "5\r\na\r\nbc\r\n0\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
@@ -61,7 +61,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void trailerValueSurroundedByWhitespace() throws IOException {
+    void read_whenTrailerValueHasWhitespace_trimsValue() throws IOException {
         String encoded = "3\r\nfoo\r\n0\r\ntrailer-key:  abc123==  \r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -70,7 +70,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void chunkExtensions() throws IOException {
+    void read_whenChunkHasExtensions_ignoresExtensions() throws IOException {
         String encoded = "5;chunk-signature=abc;date=20260101\r\nhello\r\n0;chunk-signature=def\r\ntrailer-key:xyz==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -79,7 +79,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void multipleTrailers() throws IOException {
+    void read_whenMultipleTrailers_extractsAllInOrder() throws IOException {
         String encoded = "5\r\nhello\r\n0\r\nfirst-trailer:value1\r\nsecond-trailer:value2\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -90,7 +90,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void emptyDataZeroLengthContent() throws IOException {
+    void read_whenZeroLengthContent_returnsEmptyAndExtractsTrailer() throws IOException {
         String encoded = "0\r\ntrailer-key:abc==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -99,7 +99,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void noTrailer() throws IOException {
+    void read_whenNoTrailer_returnsDataWithEmptyTrailers() throws IOException {
         String encoded = "5\r\nhello\r\n0\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -110,7 +110,7 @@ class AwsChunkedResponseDecoderTest {
     // Error cases from SEP
 
     @Test
-    void invalidHexInChunkSize() {
+    void read_whenInvalidHexInChunkSize_throwsException() {
         String encoded = "ZZ\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -120,7 +120,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void missingCrlfAfterChunkData() {
+    void read_whenMissingCrlfAfterChunkData_throwsException() {
         String encoded = "3\r\nfooX";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -130,7 +130,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void malformedTrailerNoColon() {
+    void read_whenMalformedTrailerNoColon_throwsException() {
         String encoded = "0\r\nnot-a-valid-trailer\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -140,7 +140,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void decodedContentLengthMismatch() {
+    void read_whenDecodedContentLengthMismatch_throwsException() {
         String encoded = "5\r\nhello\r\n0\r\ntrailer-key:abc==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = new AwsChunkedResponseDecoder(
             new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8)), 100);
@@ -151,7 +151,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void dataAfterTerminalChunkAndTrailer() {
+    void read_whenDataAfterTerminalChunk_throwsException() {
         String encoded = "3\r\nfoo\r\n0\r\ntrailer-key:abc==\r\n\r\nextra garbage";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -161,7 +161,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void multipleZeroSizeChunks() {
+    void read_whenMultipleZeroSizeChunks_throwsException() {
         String encoded = "0\r\n0\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -172,7 +172,7 @@ class AwsChunkedResponseDecoderTest {
     // Content length validation
 
     @Test
-    void contentLengthMatchesDecodedBytes() throws IOException {
+    void read_whenContentLengthMatchesDecodedBytes_succeeds() throws IOException {
         String encoded = "5\r\nhello\r\n0\r\n\r\n";
         AwsChunkedResponseDecoder decoder = new AwsChunkedResponseDecoder(
             new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8)), 5);
@@ -183,7 +183,7 @@ class AwsChunkedResponseDecoderTest {
     // Incremental decoding (byte-at-a-time)
 
     @Test
-    void incrementalDecodingProducesSameResultAsFullRead() throws IOException {
+    void read_whenByteAtATime_producesSameResultAsFullRead() throws IOException {
         String encoded = "5\r\nhello\r\n6\r\n world\r\n0\r\ntrailer-key:abc==\r\n\r\n";
 
         // Full read
@@ -201,7 +201,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void bulkReadAcrossChunkBoundaries() throws IOException {
+    void read_whenBulkReadAcrossChunkBoundaries_decodesAllChunks() throws IOException {
         // Two 5-byte chunks — bulk read with buffer larger than one chunk
         String encoded = "5\r\nhello\r\n5\r\nworld\r\n0\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
@@ -216,8 +216,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void truncatedStreamBeforeTerminalChunk() {
-        // Stream ends mid-body — no terminal 0\r\n
+    void read_whenStreamTruncatedBeforeTerminalChunk_throwsException() {
         String encoded = "5\r\nhel";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -227,8 +226,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void truncatedStreamMidTrailer() {
-        // Stream ends in the middle of a trailer
+    void read_whenStreamTruncatedMidTrailer_throwsException() {
         String encoded = "0\r\ntrailer-key:ab";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -238,8 +236,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void trailerNameCaseInsensitiveWithLocaleRoot() throws IOException {
-        // Trailer name with uppercase — should be lowercased with Locale.ROOT
+    void read_whenTrailerNameHasUpperCase_lowercasesWithLocaleRoot() throws IOException {
         String encoded = "3\r\nfoo\r\n0\r\nX-Amz-Checksum-CRC32:abc==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -248,7 +245,7 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void chunkSizeWithLeadingPlusIsRejected() {
+    void read_whenChunkSizeHasLeadingPlus_throwsException() {
         String encoded = "+5\r\nhello\r\n0\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
@@ -258,18 +255,16 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void closeClosesUnderlyingStream() throws IOException {
+    void close_whenCalled_closesUnderlyingStream() throws IOException {
         ByteArrayInputStream underlying = new ByteArrayInputStream(
             "5\r\nhello\r\n0\r\n\r\n".getBytes(StandardCharsets.UTF_8));
         AwsChunkedResponseDecoder decoder = new AwsChunkedResponseDecoder(underlying, -1);
 
-        // Verify close() delegates to underlying stream without error
         decoder.close();
     }
 
     @Test
-    void shortReadFromUnderlyingStream() throws IOException {
-        // Simulate a stream that returns 1 byte at a time (like a network socket)
+    void read_whenUnderlyingStreamReturnsOneByteAtATime_decodesCorrectly() throws IOException {
         String encoded = "A\r\n1234567890\r\n0\r\n\r\n";
         InputStream slowStream = new OneByteAtATimeInputStream(
             new ByteArrayInputStream(encoded.getBytes(StandardCharsets.UTF_8)));
@@ -285,13 +280,14 @@ class AwsChunkedResponseDecoderTest {
     }
 
     @Test
-    void trailersBeforeEofReturnsEmpty() {
+    void trailers_whenCalledBeforeEof_returnsEmpty() {
         String encoded = "5\r\nhello\r\n0\r\ntrailer-key:abc==\r\n\r\n";
         AwsChunkedResponseDecoder decoder = createDecoder(encoded);
 
-        // Before reading anything, trailers should be empty (not null, not error)
         assertThat(decoder.trailers()).isEmpty();
     }
+
+    // Helpers
 
     /**
      * InputStream wrapper that returns at most 1 byte per read() call,
@@ -311,7 +307,6 @@ class AwsChunkedResponseDecoderTest {
 
         @Override
         public int read(byte[] buf, int off, int len) throws IOException {
-            // Always return at most 1 byte
             return delegate.read(buf, off, Math.min(1, len));
         }
     }

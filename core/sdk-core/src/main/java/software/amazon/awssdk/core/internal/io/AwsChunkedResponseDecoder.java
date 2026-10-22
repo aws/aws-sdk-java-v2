@@ -24,6 +24,7 @@ import java.util.Map;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.http.Abortable;
+import software.amazon.awssdk.utils.Validate;
 
 /**
  * Decodes an aws-chunked encoded response body, stripping chunk framing and extracting trailers.
@@ -45,6 +46,7 @@ public final class AwsChunkedResponseDecoder extends InputStream implements Abor
     private Map<String, String> trailerMap;
 
     public AwsChunkedResponseDecoder(InputStream in, long expectedDecodedLength) {
+        Validate.paramNotNull(in, "in");
         this.in = in;
         this.expectedDecodedLength = expectedDecodedLength;
     }
