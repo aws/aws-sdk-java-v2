@@ -260,8 +260,6 @@
         <module>fis</module>
         <module>mgn</module>
         <module>lookoutequipment</module>
-        <module>finspacedata</module>
-        <module>finspace</module>
         <module>ssmincidents</module>
         <module>ssmcontacts</module>
         <module>applicationcostprofiler</module>
@@ -329,7 +327,6 @@
         <module>kendraranking</module>
         <module>cleanrooms</module>
         <module>cloudtraildata</module>
-        <module>tnb</module>
         <module>internetmonitor</module>
         <module>ivsrealtime</module>
         <module>vpclattice</module>
