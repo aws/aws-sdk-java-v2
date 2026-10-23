@@ -158,19 +158,23 @@ While not required before opening a PR, running these locally helps catch issues
 mvn clean install
 ```
 
-To iterate faster, build only the modules you're working on:
+To iterate faster, build the dependencies of the module you're working on once,
+then verify only that module with the `dev` profile (Checkstyle and unit tests
+in parallel forks, other checks left to CI):
 
 ```sh
-mvn clean install -pl :dynamodb-enhanced -am
-```
-
-To verify a single module quickly while iterating (Checkstyle and unit tests in
-parallel forks, other checks left to CI), use the `dev` profile. See
-[Fast iteration on a single module](docs/GettingStarted.md#fast-iteration-on-a-single-module):
-
-```sh
+mvn install -pl :dynamodb-enhanced -am -P quick -T 1C -Dmaven.test.skip=true
 mvn verify -pl :dynamodb-enhanced -P dev
 ```
+
+Before opening the PR, run every CI check for the modules you changed:
+
+```sh
+mvn clean verify -pl :dynamodb-enhanced
+```
+
+See [Building and Testing](docs/guidelines/building-and-testing.md) for running
+one test, changing an upstream module, and changing the code generator.
 
 #### Integration Tests
 
@@ -187,10 +191,10 @@ If this profile is not found, the tests fall back to the default credential prov
 
 ```sh
 # All integration tests
-mvn clean install -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip
+mvn clean install -Dskip.unit.tests -P integration-tests -Dspotbugs.skip -Dcheckstyle.skip
 
 # Specific module
-mvn clean install -pl :dynamodb-enhanced -am -Dskip.unit.tests -P integration-tests -Dfindbugs.skip -Dcheckstyle.skip
+mvn clean install -pl :dynamodb-enhanced -am -Dskip.unit.tests -P integration-tests -Dspotbugs.skip -Dcheckstyle.skip
 ```
 
 ## Automated Tools

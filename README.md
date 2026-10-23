@@ -123,17 +123,20 @@ Linux:
 ```sh
 ./mvnw clean install
 
-# Skip tests, checkstyles, findbugs, etc for quick build
+# Skip tests, Checkstyle, SpotBugs, etc. for a quick build
 ./mvnw clean install -P quick
 
-# Build a specific service module
-./mvnw clean install -pl :s3 -P quick --am
+# Build a specific service module and its dependencies
+./mvnw install -pl :s3 -am -P quick -T 1C -Dmaven.test.skip=true
 ```
 
 Windows:
 ```sh
 ./mvnw.cmd clean install
 ```
+
+To change the SDK and verify your changes quickly, see
+[Building and Testing](docs/guidelines/building-and-testing.md).
 
 ## Sample Code
 You can find sample code for v2 in the following places:
