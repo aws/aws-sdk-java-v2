@@ -94,11 +94,12 @@
             <version>${blockhound.version}</version>
             <scope>compile</scope>
         </dependency>
+        <!-- Needed to compile BlockHoundInstallingTestExecutionListener. The JUnit Platform runner (surefire or the IDE)
+             supplies the launcher at runtime, which is also how blockhound-junit-platform is packaged. -->
         <dependency>
-            <groupId>io.projectreactor.tools</groupId>
-            <artifactId>blockhound-junit-platform</artifactId>
-            <version>${blockhound.version}</version>
-            <scope>compile</scope>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.hamcrest</groupId>
@@ -118,7 +119,6 @@
                         <ignoredUnusedDeclaredDependency>software.amazon.awssdk:test-utils:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.jupiter:*</ignoredUnusedDeclaredDependency>
                         <ignoredUnusedDeclaredDependency>org.junit.vintage:*</ignoredUnusedDeclaredDependency>
-                        <ignoredUnusedDeclaredDependency>io.projectreactor.tools:blockhound-junit-platform:*</ignoredUnusedDeclaredDependency>
                     </ignoredUnusedDeclaredDependencies>
                 </configuration>
             </plugin>
