@@ -105,7 +105,8 @@ public class AsyncClientHandlerInterceptorExceptionTest {
                 .option(SdkClientOption.EXECUTION_INTERCEPTORS, Collections.singletonList(hook.interceptor()))
                 .option(SdkClientOption.ASYNC_HTTP_CLIENT, asyncHttpClient)
                 .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
-                .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                        (command, executionAttributes) -> command.run())
                 .build();
 
         clientHandler = new SdkAsyncClientHandler(config);

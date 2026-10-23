@@ -16,6 +16,7 @@
 package software.amazon.awssdk.services.s3.internal.crt;
 
 import static software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute.SERVICE_SIGNING_NAME;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute.SDK_HTTP_EXECUTION_ATTRIBUTES;
 import static software.amazon.awssdk.services.s3.internal.crt.S3InternalSdkHttpExecutionAttribute.HTTP_CHECKSUM;
@@ -35,7 +36,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import software.amazon.awssdk.annotations.SdkInternalApi;
-import software.amazon.awssdk.annotations.SdkTestInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.signer.AwsSignerExecutionAttribute;
@@ -48,6 +48,7 @@ import software.amazon.awssdk.core.checksums.ChecksumValidation;
 import software.amazon.awssdk.core.checksums.RequestChecksumCalculation;
 import software.amazon.awssdk.core.checksums.ResponseChecksumValidation;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkAdvancedClientOption;
 import software.amazon.awssdk.core.interceptor.Context;
@@ -181,10 +182,15 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
                          .disableS3ExpressSessionAuth(finalBuilder.disableS3ExpressSessionAuth);
 
 
-        if (finalBuilder.futureCompletionExecutor != null) {
-            s3AsyncClientBuilder.asyncConfiguration(b -> b.advancedOption(FUTURE_COMPLETION_EXECUTOR,
-                                                                          finalBuilder.futureCompletionExecutor));
-        }
+        // Both executors are set through a single asyncConfiguration call, so that configuring both is rejected
+        s3AsyncClientBuilder.asyncConfiguration(b -> {
+            if (finalBuilder.futureCompletionExecutor != null) {
+                b.advancedOption(FUTURE_COMPLETION_EXECUTOR, finalBuilder.futureCompletionExecutor);
+            }
+            if (finalBuilder.executionAwareFutureCompletionExecutor != null) {
+                b.advancedOption(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR, finalBuilder.executionAwareFutureCompletionExecutor);
+            }
+        });
         return s3AsyncClientBuilder.build();
     }
 
@@ -264,6 +270,7 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         private boolean crossRegionAccessEnabled;
         private Long thresholdInBytes;
         private Executor futureCompletionExecutor;
+        private ExecutionAwareExecutor executionAwareFutureCompletionExecutor;
         private Boolean disableS3ExpressSessionAuth;
 
         private AttributeMap.Builder advancedOptions = AttributeMap.builder();
@@ -359,8 +366,14 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
             return this;
         }
 
-        @SdkTestInternalApi
-        DefaultS3CrtClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
+        @Override
+        public DefaultS3CrtClientBuilder executionInterceptors(List<ExecutionInterceptor> executionInterceptors) {
+            this.executionInterceptors = executionInterceptors == null ? null : new ArrayList<>(executionInterceptors);
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder addExecutionInterceptor(ExecutionInterceptor executionInterceptor) {
             if (executionInterceptors == null) {
                 this.executionInterceptors = new ArrayList<>();
             }
@@ -389,6 +402,13 @@ public final class DefaultS3CrtAsyncClient extends DelegatingS3AsyncClient imple
         @Override
         public DefaultS3CrtClientBuilder futureCompletionExecutor(Executor futureCompletionExecutor) {
             this.futureCompletionExecutor = futureCompletionExecutor;
+            return this;
+        }
+
+        @Override
+        public DefaultS3CrtClientBuilder executionAwareFutureCompletionExecutor(
+            ExecutionAwareExecutor executionAwareFutureCompletionExecutor) {
+            this.executionAwareFutureCompletionExecutor = executionAwareFutureCompletionExecutor;
             return this;
         }
 

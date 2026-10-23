@@ -17,6 +17,7 @@ package software.amazon.awssdk.core.client.builder;
 
 import static software.amazon.awssdk.core.ClientType.ASYNC;
 import static software.amazon.awssdk.core.ClientType.SYNC;
+import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_PREFIX;
 import static software.amazon.awssdk.core.client.config.SdkAdvancedClientOption.USER_AGENT_SUFFIX;
@@ -83,6 +84,7 @@ import software.amazon.awssdk.core.SdkPlugin;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.client.config.ClientAsyncConfiguration;
 import software.amazon.awssdk.core.client.config.ClientOverrideConfiguration;
+import software.amazon.awssdk.core.client.config.ExecutionAwareExecutor;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.interceptor.ClasspathInterceptorChainFactory;
@@ -334,6 +336,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     private SdkClientConfiguration finalizeAsyncConfiguration(SdkClientConfiguration config) {
         return config.toBuilder()
                      .lazyOptionIfAbsent(FUTURE_COMPLETION_EXECUTOR, this::resolveAsyncFutureCompletionExecutor)
+                     .lazyOptionIfAbsent(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                         this::resolveExecutionAwareFutureCompletionExecutor)
                      .option(HTTP_CLIENT_CONFIG_TYPE, resolveAsyncHttpClientConfigType(config))
                      .lazyOption(ASYNC_HTTP_CLIENT, c -> resolveAsyncHttpClient(c, config))
                      .option(SdkClientOption.CLIENT_TYPE, ASYNC)
@@ -543,6 +547,16 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
     }
 
     /**
+     * When no execution-aware executor was configured, adapt the future completion executor (either user-provided or
+     * {@link #resolveAsyncFutureCompletionExecutor SDK-managed}) so that the client always completes its futures through a
+     * execution-aware executor.
+     */
+    private ExecutionAwareExecutor resolveExecutionAwareFutureCompletionExecutor(LazyValueSource config) {
+        Executor executor = config.get(FUTURE_COMPLETION_EXECUTOR);
+        return (command, executionAttributes) -> executor.execute(command);
+    }
+
+    /**
      * Finalize the internal SDK scheduled executor service that is used for scheduling tasks such as async retry attempts and
      * timeout task.
      */
@@ -592,6 +606,8 @@ public abstract class SdkDefaultClientBuilder<B extends SdkClientBuilder<B, C>, 
 
     public final B asyncConfiguration(ClientAsyncConfiguration asyncConfiguration) {
         clientConfiguration.option(FUTURE_COMPLETION_EXECUTOR, asyncConfiguration.advancedOption(FUTURE_COMPLETION_EXECUTOR));
+        clientConfiguration.option(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                   asyncConfiguration.advancedOption(EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR));
         return thisBuilder();
     }
 

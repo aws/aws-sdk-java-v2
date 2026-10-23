@@ -92,7 +92,8 @@ public class AsyncClientHandlerExceptionTest {
                 .option(SdkClientOption.ASYNC_HTTP_CLIENT, asyncHttpClient)
                 .option(SdkClientOption.RETRY_POLICY, RetryPolicy.none())
                 .option(SdkClientOption.RETRY_STRATEGY, DefaultRetryStrategy.doNotRetry())
-                .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                        (command, executionAttributes) -> command.run())
                 .build();
 
         clientHandler = new SdkAsyncClientHandler(config);

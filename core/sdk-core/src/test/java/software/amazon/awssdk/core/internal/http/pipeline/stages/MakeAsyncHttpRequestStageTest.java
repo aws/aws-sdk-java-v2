@@ -40,6 +40,7 @@ import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -214,7 +215,8 @@ public class MakeAsyncHttpRequestStageTest {
 
         SdkClientConfiguration config =
             SdkClientConfiguration.builder()
-                .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, mockExecutor)
+                .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                        (command, executionAttributes) -> mockExecutor.execute(command))
                 .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
                 .build();
         HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(config).build();
@@ -242,6 +244,37 @@ public class MakeAsyncHttpRequestStageTest {
     }
 
     @Test
+    public void execute_executionAwareFutureCompletionExecutor_receivesRequestExecutionAttributes() {
+        AtomicReference<ExecutionAttributes> receivedAttributes = new AtomicReference<>();
+        SdkClientConfiguration config =
+            SdkClientConfiguration.builder()
+                .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                        (command, executionAttributes) -> {
+                            receivedAttributes.set(executionAttributes);
+                            command.run();
+                        })
+                .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
+                .build();
+        HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(config).build();
+
+        TransformingAsyncResponseHandler mockHandler = mock(TransformingAsyncResponseHandler.class);
+        CompletableFuture prepareFuture = new CompletableFuture();
+        when(mockHandler.prepare()).thenReturn(prepareFuture);
+
+        stage = new MakeAsyncHttpRequestStage<>(mockHandler, dependencies, abortSignal);
+
+        CompletableFuture<SdkHttpFullRequest> requestFuture = CompletableFuture.completedFuture(
+            ValidSdkObjects.sdkHttpFullRequest().build());
+        RequestExecutionContext context = requestContext();
+
+        CompletableFuture executeFuture = stage.execute(requestFuture, context);
+        prepareFuture.complete(null);
+        executeFuture.join();
+
+        assertThat(receivedAttributes.get()).isSameAs(context.executionAttributes());
+    }
+
+    @Test
     public void execute_handlerFutureCompletedExceptionally_doesNotAttemptSynchronousComplete() {
         String threadNamePrefix = "async-handle-test";
         ExecutorService mockExecutor = Executors.newSingleThreadExecutor(
@@ -249,7 +282,8 @@ public class MakeAsyncHttpRequestStageTest {
 
         SdkClientConfiguration config =
             SdkClientConfiguration.builder()
-                                  .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, mockExecutor)
+                                  .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                          (command, executionAttributes) -> mockExecutor.execute(command))
                                   .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
                                   .build();
         HttpClientDependencies dependencies = HttpClientDependencies.builder().clientConfiguration(config).build();
@@ -328,7 +362,8 @@ public class MakeAsyncHttpRequestStageTest {
 
     private HttpClientDependencies clientDependencies(Duration timeout) {
         SdkClientConfiguration configuration = SdkClientConfiguration.builder()
-                                                                     .option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR, Runnable::run)
+                                                                     .option(SdkAdvancedAsyncClientOption.EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR,
+                                                                             (command, executionAttributes) -> command.run())
                                                                      .option(ASYNC_HTTP_CLIENT, sdkAsyncHttpClient)
                                                                      .option(SCHEDULED_EXECUTOR_SERVICE, timeoutExecutor)
                                                                      .option(API_CALL_ATTEMPT_TIMEOUT, timeout)

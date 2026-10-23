@@ -21,6 +21,9 @@ import java.util.concurrent.ThreadPoolExecutor;
 import software.amazon.awssdk.annotations.SdkAdvancedApi;
 import software.amazon.awssdk.annotations.SdkAdvancedApi.Usage;
 import software.amazon.awssdk.annotations.SdkPublicApi;
+import software.amazon.awssdk.core.interceptor.ExecutionAttribute;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 
 /**
  * A collection of advanced options that can be configured on an async AWS client via
@@ -53,6 +56,9 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
      * We strongly <strong>discourage</strong> using {@code Runnable::run}, which executes the future-completion directly from
      * within the I/O thread because it may block the I/O thread and cause deadlock, especially if you are sending
      * another SDK request in the {@link CompletableFuture} chain since the SDK may perform blocking calls in some cases.
+     * <p>
+     * This option is mutually exclusive with {@link #EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR}. A user-provided
+     * {@link Executor} is never shut down by the SDK.
      */
     @SdkAdvancedApi(
         cautionWhen = Usage.CONFIGURED,
@@ -63,6 +69,34 @@ public final class SdkAdvancedAsyncClientOption<T> extends ClientOption<T> {
         saferAlternative = "Leave unset to use the SDK-managed per-client ThreadPoolExecutor.")
     public static final SdkAdvancedAsyncClientOption<Executor> FUTURE_COMPLETION_EXECUTOR =
             new SdkAdvancedAsyncClientOption<>(Executor.class);
+
+    /**
+     * Configure the {@link ExecutionAwareExecutor} that should be used to complete the {@link CompletableFuture} that is returned
+     * by the async service client. Unlike {@link #FUTURE_COMPLETION_EXECUTOR}, the executor is given the
+     * {@link ExecutionAttributes} of the execution (i.e. the API call) whose future it is completing.
+     * <p>
+     * You should typically only want to configure this option to propagate context bound to the caller's thread (e.g. a
+     * logging MDC, a tracing context or the thread context class loader) to the thread completing the future. The context can
+     * be captured into an {@link ExecutionAttribute} by an {@link ExecutionInterceptor#beforeExecution}, which runs on the
+     * caller's thread, and restored by this executor. See {@link ExecutionAwareExecutor} for an example.
+     * <p>
+     * The configured {@link ExecutionAwareExecutor} will be invoked by the async HTTP client's I/O threads (e.g., EventLoops),
+     * which must be reserved for non-blocking behavior. The same warnings as for {@link #FUTURE_COMPLETION_EXECUTOR} apply.
+     * <p>
+     * This option is mutually exclusive with {@link #FUTURE_COMPLETION_EXECUTOR}. When it is not configured, the SDK completes
+     * futures on the {@link #FUTURE_COMPLETION_EXECUTOR}. Like any other async option, it is replaced by a subsequent call to
+     * the client builder's {@code asyncConfiguration(...)}. A user-provided {@link ExecutionAwareExecutor} is never closed by
+     * the SDK.
+     */
+    @SdkAdvancedApi(
+        cautionWhen = Usage.CONFIGURED,
+        guidance = "An executor that does not dispatch to a separate thread (e.g. running the command inline) "
+              + "runs the completion on the I/O thread and can deadlock the client, especially when the "
+              + "future chain issues another SDK request. If you set a custom executor, verify it under your "
+              + "own load tests, including request chains that issue further SDK calls.",
+        saferAlternative = "Leave unset to use the SDK-managed per-client ThreadPoolExecutor.")
+    public static final SdkAdvancedAsyncClientOption<ExecutionAwareExecutor> EXECUTION_AWARE_FUTURE_COMPLETION_EXECUTOR =
+            new SdkAdvancedAsyncClientOption<>(ExecutionAwareExecutor.class);
 
     /**
      * Advanced configuration for the native S3CrtAsyncClient, which only applies for file-based multipart uploads.
