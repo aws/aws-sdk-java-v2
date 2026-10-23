@@ -18,6 +18,8 @@ package software.amazon.awssdk.transfer.s3.internal.model;
 import java.io.File;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,7 @@ import software.amazon.awssdk.crt.s3.ResumeToken;
 import software.amazon.awssdk.crt.s3.S3MetaRequestOptions;
 import software.amazon.awssdk.services.s3.internal.crt.S3MetaRequestPauseObservable;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileDownload;
 import software.amazon.awssdk.transfer.s3.model.DownloadFileRequest;
 import software.amazon.awssdk.transfer.s3.model.FileDownload;
@@ -150,7 +153,8 @@ public final class CrtFileDownload implements FileDownload {
         ResumableFileDownload.Builder builder =
             ResumableFileDownload.builder()
                                  .downloadFileRequest(request)
-                                 .fileLastModified(Instant.ofEpochMilli(destination.lastModified()));
+                                 .fileLastModified(Instant.ofEpochMilli(destination.lastModified()))
+                                 .completedParts(completedPartsToSaveOnPause(destination));
 
         if (isDownloadResumeToken(token)) {
             // bytesTransferred must equal the total bytes on disk.
@@ -199,6 +203,19 @@ public final class CrtFileDownload implements FileDownload {
      */
     private static boolean isDownloadResumeToken(ResumeToken token) {
         return token != null && token.getType() == S3MetaRequestOptions.MetaRequestType.GET_OBJECT;
+    }
+
+    /**
+     * The completed parts to save in the pause token. CRT never records completed parts itself, but the token being resumed
+     * can have them: a download paused with the Java-based multipart client, whose parts were written at their own offsets,
+     * so the file may have gaps between them. If this CRT download has not written to the file yet, those parts still
+     * describe the file on disk and are kept, so that the next resume restarts from the beginning instead of continuing
+     * from the end of a file with gaps. Once CRT has written to the file, it holds only what CRT wrote, in order, and no
+     * parts are kept.
+     */
+    private List<Integer> completedPartsToSaveOnPause(File destination) {
+        return ResumableRequestConverter.completedPartsToSaveOnPause(Collections.emptyList(), resumedDownload,
+                                                                     destination.toPath());
     }
 
     private static Instant s3ObjectLastModified(ResumeToken token) {

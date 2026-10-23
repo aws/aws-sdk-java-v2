@@ -24,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -110,6 +111,25 @@ class DefaultFileDownloadTest {
     }
 
     @Test
+    void pause_resumedDownloadNotYetWritten_shouldKeepCompletedPartsOfResumedDownload() {
+        ResumableFileDownload resumedDownload = resumedDownloadWithCompletedParts(Instant.ofEpochMilli(file.lastModified()));
+
+        ResumableFileDownload pause = pausedBeforeAnyResponse(resumedDownload);
+
+        assertThat(pause.completedParts()).containsExactly(1, 3);
+    }
+
+    @Test
+    void pause_resumedDownloadAlreadyWritten_shouldNotKeepCompletedPartsOfResumedDownload() {
+        ResumableFileDownload resumedDownload =
+            resumedDownloadWithCompletedParts(Instant.ofEpochMilli(file.lastModified()).minusSeconds(10));
+
+        ResumableFileDownload pause = pausedBeforeAnyResponse(resumedDownload);
+
+        assertThat(pause.completedParts()).isEmpty();
+    }
+
+    @Test
     void pauseTwice_shouldReturnTheSame() {
         CompletableFuture<CompletedFileDownload> future =
             new CompletableFuture<>();
@@ -156,6 +176,25 @@ class DefaultFileDownloadTest {
 
         progressFuture.complete(transferProgress);
         assertThat(fileDownload.progress().snapshot()).isEqualTo(snapshot);
+    }
+
+    private ResumableFileDownload resumedDownloadWithCompletedParts(Instant fileLastModified) {
+        return ResumableFileDownload.builder()
+                                    .downloadFileRequest(getDownloadFileRequest())
+                                    .bytesTransferred(file.length())
+                                    .fileLastModified(fileLastModified)
+                                    .completedParts(Arrays.asList(1, 3))
+                                    .build();
+    }
+
+    private ResumableFileDownload pausedBeforeAnyResponse(ResumableFileDownload resumedDownload) {
+        TransferProgress transferProgress = Mockito.mock(TransferProgress.class);
+        Mockito.when(transferProgress.snapshot()).thenReturn(DefaultTransferProgressSnapshot.builder()
+                                                                                            .transferredBytes(0L)
+                                                                                            .build());
+        return new DefaultFileDownload(new CompletableFuture<>(), transferProgress, this::getDownloadFileRequest,
+                                       resumedDownload)
+            .pause();
     }
 
     private DownloadFileRequest getDownloadFileRequest() {
