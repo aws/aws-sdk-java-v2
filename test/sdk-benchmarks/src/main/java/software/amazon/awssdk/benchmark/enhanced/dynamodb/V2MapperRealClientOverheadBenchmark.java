@@ -50,9 +50,9 @@ import software.amazon.awssdk.utils.IoUtils;
 
 /**
  * Drives the v2 mapper through a real {@link DynamoDbClient} backed by a mocked {@code SdkHttpClient}, so the full
- * client pipeline (including classpath execution interceptors such as the mapper's user agent interceptor) runs on
- * every call. The {@code V2TestDynamoDb*Client} stubs used by the V1 mapper comparison benchmarks implement
- * {@link DynamoDbClient} directly and bypass that pipeline.
+ * client pipeline runs on every call, including the user agent stage that turns the mapper's per-request
+ * {@code DYNAMODB_MAPPER_V2} tag into the {@code User-Agent} business metric. The {@code V2TestDynamoDb*Client} stubs
+ * used by the V1 mapper comparison benchmarks implement {@link DynamoDbClient} directly and bypass that pipeline.
  */
 @BenchmarkMode(Mode.Throughput)
 @Warmup(iterations = 5)

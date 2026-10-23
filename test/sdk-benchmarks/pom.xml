@@ -414,11 +414,6 @@
                                 <!-- This is important to run h2 server -->
                                 <!-- https://github.com/jetty-project/embedded-jetty-live-war/blob/master/theserver/pom.xml -->
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                                <!-- dynamodb-enhanced and dynamodb-mapper both register a classpath interceptor here;
-                                     without appending, shade keeps only one of the two files. -->
-                                <transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
-                                    <resource>software/amazon/awssdk/services/dynamodb/execution.interceptors</resource>
-                                </transformer>
                             </transformers>
                             <filters>
                                 <filter>
