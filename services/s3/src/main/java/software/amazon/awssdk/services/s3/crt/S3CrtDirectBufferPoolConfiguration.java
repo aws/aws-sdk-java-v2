@@ -27,8 +27,8 @@ import software.amazon.awssdk.utils.Validate;
  *
  * <p>Downloads that use {@link S3CrtAsyncResponseTransformer#toBlockingInputStreamFromDirectBufferPool()}, except
  * {@code GetObject} requests with {@code partNumber}, hold pool memory until the application reads or closes them. Size the
- * pool for the expected concurrent pooled downloads and leave headroom for ordinary downloads and multipart uploads if they
- * share the client. A starting point is the number of concurrent pooled downloads times
+ * pool for the expected concurrent pooled downloads and leave headroom for ordinary downloads and multipart uploads on the
+ * same client. A starting point is the number of concurrent pooled downloads times
  * ({@code initialReadBufferSizeInBytes} plus one part size), because each download can have one requested part beyond its
  * read window. If the pool is too small for the concurrent pooled downloads, some downloads can stop receiving data until
  * other downloads finish. The SDK does not time out a download that stops after its stream is returned. The application can
@@ -58,10 +58,8 @@ import software.amazon.awssdk.utils.Validate;
  * Single-part uploads do not use the pool. Every request that uses the pool takes at least one full part of pool memory
  * while it runs, so a 1 KiB download still uses an 8 MiB part with the default part size.</p>
  *
- * <p>Use a client with a pool only for downloads that use
- * {@link S3CrtAsyncResponseTransformer#toBlockingInputStreamFromDirectBufferPool()}, and a separate client without a pool
- * for other requests. Other requests on a pooled client share its memory, so a slow reader of a pooled download can delay
- * them, and uploads are limited by the pool's part size.</p>
+ * <p>Other requests on a pooled client share its memory, so a slow reader of a pooled download can delay them, and uploads
+ * are limited by the pool's part size. Size the pool for all requests on the client.</p>
  */
 @SdkPublicApi
 @Immutable
