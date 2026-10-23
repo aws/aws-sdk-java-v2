@@ -22,15 +22,19 @@ import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.sameInstance;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.Test;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
 import software.amazon.awssdk.core.ApiName;
 import software.amazon.awssdk.core.RequestOverrideConfiguration;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.services.dynamodb.model.DynamoDbRequest;
 import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
 import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
 
 public class MapperUserAgentTest {
@@ -61,6 +65,47 @@ public class MapperUserAgentTest {
         ScanRequest nextPage = tagged.toBuilder().segment(1).build();
 
         assertThat(sdkMetricsVersions(nextPage), contains(BusinessMetricFeatureId.DYNAMODB_MAPPER_V2.value()));
+    }
+
+    @Test
+    public void applyUserAgent_builderWithCallerOverride_keepsCallerOverrideAndAddsTag() {
+        ApiName callerApiName = ApiName.builder().name("caller-lib").version("1.0").build();
+        Duration timeout = Duration.ofSeconds(42);
+        QueryRequest.Builder builder = QueryRequest.builder()
+                                                   .overrideConfiguration(o -> o.apiCallTimeout(timeout)
+                                                                                .addApiName(callerApiName)
+                                                                                .putHeader("x-caller", "kept"));
+
+        QueryRequest request = MapperUserAgent.applyUserAgent(builder).build();
+
+        AwsRequestOverrideConfiguration override = request.overrideConfiguration().get();
+        assertThat(override.apiCallTimeout(), is(Optional.of(timeout)));
+        assertThat(override.headers().get("x-caller"), contains("kept"));
+        assertThat(override.apiNames(), hasItem(callerApiName));
+        assertThat(sdkMetricsVersions(request), contains(BusinessMetricFeatureId.DYNAMODB_MAPPER_V2.value()));
+    }
+
+    @Test
+    public void applyUserAgent_appliedOnEveryDerivedPage_tagAppearsOnce() {
+        ApiName callerApiName = ApiName.builder().name("caller-lib").version("1.0").build();
+        ScanRequest page = ScanRequest.builder().overrideConfiguration(o -> o.addApiName(callerApiName)).build();
+
+        for (int i = 0; i < 3; i++) {
+            page = MapperUserAgent.applyUserAgent(page.toBuilder()).segment(i).build();
+        }
+
+        assertThat(sdkMetricsVersions(page), contains(BusinessMetricFeatureId.DYNAMODB_MAPPER_V2.value()));
+        assertThat(page.overrideConfiguration().get().apiNames(), hasItem(callerApiName));
+    }
+
+    @Test
+    public void applyUserAgent_alreadyTaggedBuilder_leavesOverrideUnchanged() {
+        GetItemRequest tagged = MapperUserAgent.applyUserAgent(GetItemRequest.builder()).build();
+        AwsRequestOverrideConfiguration before = tagged.overrideConfiguration().get();
+
+        GetItemRequest.Builder builder = MapperUserAgent.applyUserAgent(tagged.toBuilder());
+
+        assertThat(builder.overrideConfiguration(), is(sameInstance(before)));
     }
 
     private static List<String> sdkMetricsVersions(DynamoDbRequest request) {

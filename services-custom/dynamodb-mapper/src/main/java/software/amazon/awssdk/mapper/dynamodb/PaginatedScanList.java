@@ -86,7 +86,8 @@ public final class PaginatedScanList<T> extends PaginatedList<T> {
 
     @Override
     protected synchronized List<T> fetchNextPage() {
-        // Tag here too: the public constructor accepts a request the mapper did not build.
+        // Tag here too: the public constructor accepts a request the mapper did not build. applyUserAgent keeps the
+        // caller's override configuration and adds the tag only once.
         scanRequest = applyUserAgent(scanRequest.toBuilder()).exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
         scanResult = dynamo.scan(scanRequest);
         return mapper.marshallIntoObjects(mapper.toParameters(

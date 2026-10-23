@@ -16,6 +16,8 @@
 package software.amazon.awssdk.mapper.dynamodb;
 
 import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasItem;
@@ -25,6 +27,7 @@ import static org.hamcrest.Matchers.not;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +35,7 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,6 +47,13 @@ import org.junit.runners.Parameterized.Parameter;
 import org.junit.runners.Parameterized.Parameters;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.AwsRequest;
+import software.amazon.awssdk.awscore.AwsRequestOverrideConfiguration;
+import software.amazon.awssdk.core.ApiName;
+import software.amazon.awssdk.core.SdkRequest;
+import software.amazon.awssdk.core.interceptor.Context;
+import software.amazon.awssdk.core.interceptor.ExecutionAttributes;
+import software.amazon.awssdk.core.interceptor.ExecutionInterceptor;
 import software.amazon.awssdk.core.useragent.BusinessMetricFeatureId;
 import software.amazon.awssdk.http.AbortableInputStream;
 import software.amazon.awssdk.http.ExecutableHttpRequest;
@@ -53,16 +64,21 @@ import software.amazon.awssdk.http.SdkHttpRequest;
 import software.amazon.awssdk.http.SdkHttpResponse;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.BatchLoadRetryStrategy;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.BatchWriteRetryStrategy;
+import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.PaginationLoadingStrategy;
 import software.amazon.awssdk.mapper.dynamodb.DynamoDBMapperConfig.SaveBehavior;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
+import software.amazon.awssdk.services.dynamodb.model.QueryRequest;
+import software.amazon.awssdk.services.dynamodb.model.QueryResponse;
+import software.amazon.awssdk.services.dynamodb.model.ScanRequest;
+import software.amazon.awssdk.services.dynamodb.model.ScanResponse;
 import software.amazon.awssdk.services.dynamodb.model.WriteRequest;
 
 /**
  * Proves that the mapper tags the requests it sends, and only those, with the {@code DYNAMODB_MAPPER_V2} business
- * metric in the {@code User-Agent}. The client is built without any interceptor or override, so the metric can only
- * come from the mapper's per-request tagging.
+ * metric in the {@code User-Agent}. The client has no user agent override and no interceptor that touches the user
+ * agent, so the metric can only come from the mapper's per-request tagging.
  */
 @RunWith(Enclosed.class)
 public class DynamoDBMapperUserAgentTest {
@@ -188,6 +204,94 @@ public class DynamoDBMapperUserAgentTest {
         }
     }
 
+    /**
+     * A caller can build a paginated list from its own request. Later pages keep the caller's override configuration
+     * and gain the mapper's metric exactly once, however many pages are fetched.
+     */
+    public static class CallerBuiltPaginatedLists {
+
+        private static final ApiName CALLER_API_NAME = ApiName.builder().name("caller-lib").version("1.0").build();
+        private static final Duration CALLER_API_CALL_TIMEOUT = Duration.ofSeconds(42);
+        private static final String CALLER_HEADER = "x-caller-header";
+        private static final String CALLER_HEADER_VALUE = "kept";
+        private static final ApiName MAPPER_API_NAME =
+            ApiName.builder().name("sdk-metrics").version(BusinessMetricFeatureId.DYNAMODB_MAPPER_V2.value()).build();
+
+        @Test
+        public void paginatedQueryList_callerOverrideConfiguration_laterPagesKeepItAndAddMapperV2MetricOnce() {
+            QueryRequest callerRequest = QueryRequest.builder()
+                                                     .tableName(TABLE_NAME)
+                                                     .overrideConfiguration(CallerBuiltPaginatedLists::callerOverride)
+                                                     .build();
+            QueryResponse firstPage = QueryResponse.builder().items(Collections.emptyList())
+                                                   .lastEvaluatedKey(key("first")).build();
+
+            assertLaterPagesKeepCallerOverride((mapper, client) -> new PaginatedQueryList<>(
+                mapper, Item.class, client, callerRequest, firstPage, PaginationLoadingStrategy.LAZY_LOADING,
+                DynamoDBMapperConfig.DEFAULT).size());
+        }
+
+        @Test
+        public void paginatedScanList_callerOverrideConfiguration_laterPagesKeepItAndAddMapperV2MetricOnce() {
+            ScanRequest callerRequest = ScanRequest.builder()
+                                                   .tableName(TABLE_NAME)
+                                                   .overrideConfiguration(CallerBuiltPaginatedLists::callerOverride)
+                                                   .build();
+            ScanResponse firstPage = ScanResponse.builder().items(Collections.emptyList())
+                                                 .lastEvaluatedKey(key("first")).build();
+
+            assertLaterPagesKeepCallerOverride((mapper, client) -> new PaginatedScanList<>(
+                mapper, Item.class, client, callerRequest, firstPage, PaginationLoadingStrategy.LAZY_LOADING,
+                DynamoDBMapperConfig.DEFAULT).size());
+        }
+
+        private static void callerOverride(AwsRequestOverrideConfiguration.Builder o) {
+            o.apiCallTimeout(CALLER_API_CALL_TIMEOUT)
+             .addApiName(CALLER_API_NAME)
+             .putHeader(CALLER_HEADER, CALLER_HEADER_VALUE);
+        }
+
+        private static void assertLaterPagesKeepCallerOverride(PaginatedListAction iterateAllPages) {
+            // Page 2 has more results and page 3 is the last, so the list sends two requests derived page by page.
+            CapturingHttpClient httpClient = new CapturingHttpClient(Collections.singletonList(FIRST_PAGE_WITH_MORE));
+            List<SdkRequest> sdkRequests = new CopyOnWriteArrayList<>();
+            ExecutionInterceptor capture = new ExecutionInterceptor() {
+                @Override
+                public void beforeExecution(Context.BeforeExecution context, ExecutionAttributes executionAttributes) {
+                    sdkRequests.add(context.request());
+                }
+            };
+            try (DynamoDbClient client = client(httpClient, capture)) {
+                DynamoDBMapper mapper = DynamoDBMapper.builder().dynamoDbClient(client).build();
+
+                iterateAllPages.run(mapper, client);
+            }
+
+            assertThat(sdkRequests, hasSize(2));
+            for (SdkRequest sdkRequest : sdkRequests) {
+                AwsRequestOverrideConfiguration override =
+                    ((AwsRequest) sdkRequest).overrideConfiguration()
+                                             .orElseThrow(() -> new AssertionError("Request lost its override"));
+                assertThat(override.apiCallTimeout(), is(Optional.of(CALLER_API_CALL_TIMEOUT)));
+                assertThat(override.headers().get(CALLER_HEADER), contains(CALLER_HEADER_VALUE));
+                assertThat(override.apiNames(), hasItem(CALLER_API_NAME));
+                assertThat(Collections.frequency(override.apiNames(), MAPPER_API_NAME), is(1));
+            }
+            assertThat(httpClient.requests, hasSize(2));
+            for (SdkHttpRequest request : httpClient.requests) {
+                String userAgent = userAgent(request);
+                assertThat(userAgent, businessMetrics(userAgent),
+                           hasItem(BusinessMetricFeatureId.DYNAMODB_MAPPER_V2.value()));
+                assertThat(userAgent, containsString("caller-lib/1.0"));
+                assertThat(request.firstMatchingHeader(CALLER_HEADER), is(Optional.of(CALLER_HEADER_VALUE)));
+            }
+        }
+
+        interface PaginatedListAction {
+            void run(DynamoDBMapper mapper, DynamoDbClient client);
+        }
+    }
+
     interface MapperAction {
         void run(DynamoDBMapper mapper);
     }
@@ -215,12 +319,13 @@ public class DynamoDBMapperUserAgentTest {
         }
     }
 
-    private static DynamoDbClient client(SdkHttpClient httpClient) {
+    private static DynamoDbClient client(SdkHttpClient httpClient, ExecutionInterceptor... interceptors) {
         return DynamoDbClient.builder()
                              .httpClient(httpClient)
                              .region(Region.US_EAST_1)
                              .credentialsProvider(StaticCredentialsProvider.create(
                                  AwsBasicCredentials.create("akid", "skid")))
+                             .overrideConfiguration(o -> o.executionInterceptors(Arrays.asList(interceptors)))
                              .build();
     }
 
