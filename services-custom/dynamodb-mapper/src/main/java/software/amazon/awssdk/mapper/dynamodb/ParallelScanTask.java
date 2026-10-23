@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static software.amazon.awssdk.mapper.dynamodb.internal.MapperUserAgent.applyUserAgent;
+
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -226,11 +228,14 @@ final class ParallelScanTask {
 
     private ScanResponse scanNextPageOfSegment(int currentSegment, boolean checkLastEvaluatedKey) {
         ScanRequest segmentScanRequest = parallelScanRequests.get(currentSegment);
+        // The mapper already tags the segment requests. Like v1, this also tags each segment page here, which costs
+        // nothing because the builder already exists.
         if (checkLastEvaluatedKey) {
             ScanResponse lastScanResult = segmentScanResults.get(currentSegment);
-            segmentScanRequest = segmentScanRequest.toBuilder().exclusiveStartKey(lastScanResult.lastEvaluatedKey()).build();
+            segmentScanRequest = applyUserAgent(segmentScanRequest.toBuilder())
+                    .exclusiveStartKey(lastScanResult.lastEvaluatedKey()).build();
         } else {
-            segmentScanRequest = segmentScanRequest.toBuilder().exclusiveStartKey(null).build();
+            segmentScanRequest = applyUserAgent(segmentScanRequest.toBuilder()).exclusiveStartKey(null).build();
         }
         ScanResponse scanResult = dynamo.scan(segmentScanRequest);
 
