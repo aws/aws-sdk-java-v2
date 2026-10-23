@@ -95,6 +95,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.function.Consumer;
 
+import static software.amazon.awssdk.mapper.dynamodb.internal.MapperUserAgent.applyUserAgent;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.HASH;
 import static software.amazon.awssdk.services.dynamodb.model.KeyType.RANGE;
 import static software.amazon.awssdk.mapper.dynamodb.TransactionWriteRequest.TransactionWriteOperation;
@@ -446,7 +447,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         Map<String, AttributeValue> key = model.convertKey(keyObject);
 
-        GetItemRequest rq = GetItemRequest.builder()
+        GetItemRequest rq = applyUserAgent(GetItemRequest.builder())
             .key(key)
             .tableName(tableName)
             .consistentRead(config.getConsistentReads() == ConsistentReads.CONSISTENT)
@@ -876,7 +877,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
          * the returned attributes to detect silent failure on the server-side.
          */
         protected UpdateItemResponse doUpdateItem() {
-            UpdateItemRequest req = UpdateItemRequest.builder()
+            UpdateItemRequest req = applyUserAgent(UpdateItemRequest.builder())
                     .tableName(getTableName())
                     .key(getPrimaryKeyAttributeValues())
                     .attributeUpdates(
@@ -913,7 +914,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
                                  this.clazz,
                                  getTableName(),
                                  saveConfig));
-            PutItemRequest req = PutItemRequest.builder()
+            PutItemRequest req = applyUserAgent(PutItemRequest.builder())
                     .tableName(getTableName())
                     .item(attributeValues)
                     .expected(mergeExpectedAttributeValueConditions())
@@ -1084,7 +1085,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             }
         }
 
-        DeleteItemRequest.Builder reqBuilder = DeleteItemRequest.builder()
+        DeleteItemRequest.Builder reqBuilder = applyUserAgent(DeleteItemRequest.builder())
                 .key(key)
                 .tableName(tableName);
 
@@ -1141,7 +1142,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         }
 
-        TransactWriteItemsRequest transactWriteItemsRequest = TransactWriteItemsRequest.builder()
+        TransactWriteItemsRequest transactWriteItemsRequest = applyUserAgent(TransactWriteItemsRequest.builder())
                 .clientRequestToken(transactionWriteRequest.getIdempotencyToken())
                 .transactItems(transactWriteItems)
                 .build();
@@ -1189,7 +1190,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             transactGetItems.add(TransactGetItem.builder().get(getItem.build()).build());
         }
 
-        TransactGetItemsRequest transactGetItemsRequest = TransactGetItemsRequest.builder()
+        TransactGetItemsRequest transactGetItemsRequest = applyUserAgent(TransactGetItemsRequest.builder())
                 .transactItems(transactGetItems)
                 .build();
         TransactGetItemsResponse transactGetItemsResult = db.transactGetItems(transactGetItemsRequest);
@@ -1359,7 +1360,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         while (true) {
             try {
-                result = db.batchWriteItem(BatchWriteItemRequest.builder().requestItems(pendingItems).build());
+                result = db.batchWriteItem(applyUserAgent(BatchWriteItemRequest.builder()).requestItems(pendingItems).build());
             } catch (Exception e) {
                 failedBatch = new FailedBatch();
                 failedBatch.setUnprocessedItems(pendingItems);
@@ -1472,7 +1473,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
             final DynamoDBMapperConfig config) {
 
         BatchGetItemResponse batchGetItemResult = null;
-        BatchGetItemRequest batchGetItemRequest = BatchGetItemRequest.builder()
+        BatchGetItemRequest batchGetItemRequest = applyUserAgent(BatchGetItemRequest.builder())
             .requestItems(requestItems)
             .build();
 
@@ -1488,6 +1489,7 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
                 batchLoadContext.setRetriesAttempted(retries);
                 if (!isNullOrEmpty(batchGetItemResult.unprocessedKeys())) {
                     pause(batchLoadStrategy.getDelayBeforeNextRetry(batchLoadContext));
+                    // toBuilder() keeps the user agent tag on the retry of the unprocessed keys.
                     batchGetItemRequest = batchGetItemRequest.toBuilder()
                         .requestItems(batchGetItemResult.unprocessedKeys())
                         .build();
@@ -1731,7 +1733,9 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
      * @param config never null
      */
     private ScanRequest createScanRequestFromExpression(Class<?> clazz, DynamoDBScanExpression scanExpression, DynamoDBMapperConfig config) {
-        return ScanRequest.builder()
+        // Every scan path (scan, scanPage, count, parallelScan and later pages) derives its requests from this one
+        // with toBuilder(), which keeps the user agent tag.
+        return applyUserAgent(ScanRequest.builder())
                 .tableName(getTableName(clazz, config))
                 .indexName(scanExpression.getIndexName())
                 .scanFilter(scanExpression.getScanFilter())
@@ -1781,7 +1785,9 @@ public final class DynamoDBMapper extends AbstractDynamoDBMapper {
 
         DynamoDBMapperTableModel<T> model = getTableModel(clazz, config);
 
-        QueryRequest.Builder req = QueryRequest.builder();
+        // Every query path (query, queryPage, count and later pages) derives its requests from this one with
+        // toBuilder(), which keeps the user agent tag.
+        QueryRequest.Builder req = applyUserAgent(QueryRequest.builder());
         req.consistentRead(xpress.isConsistentRead());
         req.tableName(getTableName(clazz, xpress.getHashKeyValues(), config));
         req.indexName(xpress.getIndexName());

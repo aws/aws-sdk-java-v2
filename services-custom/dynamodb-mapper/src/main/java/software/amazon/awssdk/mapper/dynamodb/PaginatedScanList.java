@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.mapper.dynamodb;
 
+import static software.amazon.awssdk.mapper.dynamodb.internal.MapperUserAgent.applyUserAgent;
+
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import java.util.List;
 
@@ -84,7 +86,8 @@ public final class PaginatedScanList<T> extends PaginatedList<T> {
 
     @Override
     protected synchronized List<T> fetchNextPage() {
-        scanRequest = scanRequest.toBuilder().exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
+        // Tag here too: the public constructor accepts a request the mapper did not build.
+        scanRequest = applyUserAgent(scanRequest.toBuilder()).exclusiveStartKey(scanResult.lastEvaluatedKey()).build();
         scanResult = dynamo.scan(scanRequest);
         return mapper.marshallIntoObjects(mapper.toParameters(
             scanResult.items(),
