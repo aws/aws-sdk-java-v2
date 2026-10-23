@@ -7,10 +7,10 @@ AWS protocol types.
 ## Building
 
 ```bash
-mvn clean install -P quick -pl :sdk-standard-benchmarks --am
+mvn clean install -P quick -pl :sdk-standard-benchmarks -am
 ```
 
-The `--am` flag builds all upstream dependencies (codegen plugin, protocol modules,
+The `-am` flag builds all upstream dependencies (codegen plugin, protocol modules,
 etc.). You only need it on the first build or after upstream changes. Subsequent
 builds can omit it:
 
