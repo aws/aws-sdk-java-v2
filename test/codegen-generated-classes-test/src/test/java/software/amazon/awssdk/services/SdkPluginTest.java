@@ -40,6 +40,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -593,6 +594,15 @@ public class SdkPluginTest {
 
         assertThat(timesPluginCalled).hasValue(1);
         assertThat(timesInterceptorCalled).hasValueGreaterThanOrEqualTo(1);
+    }
+
+    @Test
+    public void pluginSetRegionIsUsed() {
+        ProtocolRestJsonClient client = ProtocolRestJsonClient.builder()
+            .addPlugin(config -> ((ProtocolRestJsonServiceClientConfiguration.Builder) config).region(Region.US_EAST_1))
+            .credentialsProvider(DEFAULT_CREDENTIALS)
+            .build();
+        assertThat(client.serviceClientConfiguration().region()).isEqualTo(Region.US_EAST_1);
     }
 
     private static ProtocolRestJsonClientBuilder defaultClientBuilder() {
