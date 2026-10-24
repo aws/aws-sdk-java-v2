@@ -15,10 +15,12 @@
 
 package software.amazon.awssdk.auth.credentials.internal;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.auth.credentials.AwsCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.utils.IoUtils;
 import software.amazon.awssdk.utils.Lazy;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
@@ -43,6 +45,15 @@ public class LazyAwsCredentialsProvider implements AwsCredentialsProvider, SdkAu
     @Override
     public AwsCredentials resolveCredentials() {
         return delegate.getValue().resolveCredentials();
+    }
+
+    @Override
+    public CompletableFuture<Void> invalidate(AwsCredentialsIdentity identity) {
+        if (delegate.hasValue()) {
+            return delegate.getValue().invalidate(identity);
+        }
+        // If not yet initialized, invalidation is a no-op
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

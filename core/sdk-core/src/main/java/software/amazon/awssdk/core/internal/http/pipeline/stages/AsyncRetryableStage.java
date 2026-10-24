@@ -21,11 +21,14 @@ import java.io.IOException;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.async.AsyncRequestBody;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
 import software.amazon.awssdk.core.interceptor.SdkInternalExecutionAttribute;
@@ -51,6 +54,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
     private final TransformingAsyncResponseHandler<Response<OutputT>> responseHandler;
     private final RequestPipeline<SdkHttpFullRequest, CompletableFuture<Response<OutputT>>> requestPipeline;
     private final ScheduledExecutorService scheduledExecutor;
+    private final Executor futureCompletionExecutor;
     private final HttpClientDependencies dependencies;
 
     public AsyncRetryableStage(TransformingAsyncResponseHandler<Response<OutputT>> responseHandler,
@@ -59,6 +63,8 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
         this.responseHandler = responseHandler;
         this.dependencies = dependencies;
         this.scheduledExecutor = dependencies.clientConfiguration().option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE);
+        this.futureCompletionExecutor =
+            dependencies.clientConfiguration().option(SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR);
         this.requestPipeline = requestPipeline;
     }
 
@@ -116,6 +122,7 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
             CompletableFuture<Response<OutputT>> responseFuture;
             try {
                 retryableStageHelper.startingAttempt();
+                retryableStageHelper.resolveIdentityForAttempt();
                 retryableStageHelper.logSendingRequest();
                 responseFuture = requestPipeline.execute(retryableStageHelper.requestToSend(), context);
 
@@ -183,11 +190,32 @@ public final class AsyncRetryableStage<OutputT> implements RequestPipeline<SdkHt
                     Duration successDelay = backoffDelay.left().get();
                     retryableStageHelper.logBackingOff(successDelay);
                     long totalDelayMillis = successDelay.toMillis();
-                    scheduleOrFail(() -> attemptExecute(future), totalDelayMillis, MILLISECONDS, future);
+                    scheduleOrFail(() -> attemptRetryExecute(future), totalDelayMillis, MILLISECONDS, future);
                 } catch (Throwable t) {
                     future.completeExceptionally(t);
                 }
             });
+        }
+
+        /**
+         * Runs a retry attempt on the future completion executor, off the scheduled executor that runs the client's timers.
+         * A retry attempt resolves the identity again, which can block while credentials are refreshed. Falls back to the
+         * current thread if there is no future completion executor or it rejects the attempt.
+         */
+        private void attemptRetryExecute(CompletableFuture<Response<OutputT>> future) {
+            if (futureCompletionExecutor == null) {
+                attemptExecute(future);
+                return;
+            }
+            try {
+                futureCompletionExecutor.execute(() -> attemptExecute(future));
+            } catch (RejectedExecutionException e) {
+                LOG.debug(() -> String.format("Could not run the retry attempt on the provided FUTURE_COMPLETION_EXECUTOR. "
+                                              + "The attempt will run on thread %s. This may be an indication that the "
+                                              + "executor is being overwhelmed by too many requests.",
+                                              Thread.currentThread().getName()), e);
+                attemptExecute(future);
+            }
         }
 
         private void maybeRetryExecute(CompletableFuture<Response<OutputT>> future, Exception exception) {

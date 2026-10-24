@@ -28,7 +28,11 @@ import static org.mockito.Mockito.when;
 import java.io.IOException;
 import java.net.URI;
 import java.time.Duration;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Phaser;
 import java.util.concurrent.RejectedExecutionException;
@@ -47,6 +51,7 @@ import org.mockito.ArgumentCaptor;
 import software.amazon.awssdk.core.Response;
 import software.amazon.awssdk.core.SdkRequest;
 import software.amazon.awssdk.core.SdkResponse;
+import software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption;
 import software.amazon.awssdk.core.client.config.SdkClientConfiguration;
 import software.amazon.awssdk.core.client.config.SdkClientOption;
 import software.amazon.awssdk.core.exception.SdkException;
@@ -518,12 +523,104 @@ public class AsyncRetryableStageTest extends BaseRetryableStageTest {
         verify(mockExec).schedule(any(Runnable.class), eq(0L), eq(TimeUnit.MILLISECONDS));
     }
 
+    @Test
+    void execute_isRetryAttempt_runsAttemptOnFutureCompletionExecutor() throws Exception {
+        ExecutorService completionExecutor = Executors.newSingleThreadExecutor(r -> new Thread(r, "test-completion"));
+        try {
+            List<String> attemptThreads = stubFailingAttemptsRecordingThreads();
+            stubOneRetry();
+
+            AsyncRetryableStage<SdkResponse> retryableStage =
+                createRetryableStage(mockRetryStrategy, executorService, completionExecutor);
+
+            assertThatThrownBy(retryableStage.execute(testRequest(), createRequestExecutionContext(true))::join);
+
+            assertThat(attemptThreads).hasSize(2);
+            assertThat(attemptThreads.get(0)).isEqualTo(Thread.currentThread().getName());
+            assertThat(attemptThreads.get(1)).isEqualTo("test-completion");
+        } finally {
+            completionExecutor.shutdownNow();
+        }
+    }
+
+    @Test
+    void execute_isRetryAttempt_futureCompletionExecutorRejects_runsAttemptOnSchedulerThread() throws Exception {
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(r -> new Thread(r, "test-scheduler"));
+        Executor rejectingExecutor = r -> {
+            throw new RejectedExecutionException("full");
+        };
+        try {
+            List<String> attemptThreads = stubFailingAttemptsRecordingThreads();
+            stubOneRetry();
+
+            AsyncRetryableStage<SdkResponse> retryableStage =
+                createRetryableStage(mockRetryStrategy, scheduler, rejectingExecutor);
+
+            assertThatThrownBy(retryableStage.execute(testRequest(), createRequestExecutionContext(true))::join)
+                .hasRootCauseInstanceOf(SdkException.class);
+
+            assertThat(attemptThreads).hasSize(2);
+            assertThat(attemptThreads.get(1)).isEqualTo("test-scheduler");
+        } finally {
+            scheduler.shutdownNow();
+        }
+    }
+
+    /**
+     * Makes every attempt fail with a retryable 502, and returns the names of the threads that ran each attempt.
+     */
+    private List<String> stubFailingAttemptsRecordingThreads() throws Exception {
+        Response<SdkResponse> response = Response.<SdkResponse>builder()
+                                                 .httpResponse(SdkHttpFullResponse.builder().statusCode(502).build())
+                                                 .isSuccess(false)
+                                                 .exception(SdkException.builder().build())
+                                                 .build();
+        List<String> attemptThreads = new CopyOnWriteArrayList<>();
+        when(mockDelegatePipeline.execute(any(), any())).thenAnswer(i -> {
+            attemptThreads.add(Thread.currentThread().getName());
+            return CompletableFuture.completedFuture(response);
+        });
+        return attemptThreads;
+    }
+
+    /**
+     * Allows exactly one retry, with no backoff delay.
+     */
+    private void stubOneRetry() {
+        AtomicBoolean first = new AtomicBoolean();
+        when(mockRetryStrategy.refreshRetryTokenAsync(any())).thenAnswer(i -> {
+            if (first.compareAndSet(false, true)) {
+                return CompletableFuture.completedFuture(RefreshRetryTokenResponse.create(mockRetryToken, Duration.ZERO));
+            }
+            return CompletableFutureUtils.failedFuture(new TokenAcquisitionFailedException("Acquire failed",
+                                                                                           mockRetryToken,
+                                                                                           null,
+                                                                                           Duration.ZERO));
+        });
+    }
+
+    private static SdkHttpFullRequest testRequest() {
+        return SdkHttpFullRequest.builder()
+                                 .method(SdkHttpMethod.GET)
+                                 .uri(URI.create("https://my-service.amazonaws.com"))
+                                 .build();
+    }
+
     private AsyncRetryableStage<SdkResponse> createRetryableStage(RetryStrategy retryStrategy,
                                                                   ScheduledExecutorService scheduler) {
+        return createRetryableStage(retryStrategy, scheduler, null);
+    }
+
+    private AsyncRetryableStage<SdkResponse> createRetryableStage(RetryStrategy retryStrategy,
+                                                                  ScheduledExecutorService scheduler,
+                                                                  Executor futureCompletionExecutor) {
         SdkClientConfiguration clientConfig = SdkClientConfiguration.builder()
                                                                     .option(SdkClientOption.RETRY_STRATEGY, retryStrategy)
                                                                     .option(SdkClientOption.SCHEDULED_EXECUTOR_SERVICE,
                                                                             scheduler)
+                                                                    .option(SdkAdvancedAsyncClientOption
+                                                                                .FUTURE_COMPLETION_EXECUTOR,
+                                                                            futureCompletionExecutor)
                                                                     .build();
 
         HttpClientDependencies deps = HttpClientDependencies.builder()
