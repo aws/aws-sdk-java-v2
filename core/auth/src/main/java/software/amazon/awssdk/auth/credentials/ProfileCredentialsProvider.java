@@ -118,6 +118,18 @@ public final class ProfileCredentialsProvider
             throw loadException;
         }
 
+        if (credentialsProvider == null) {
+            synchronized (credentialsProviderLock) {
+                if (credentialsProvider == null) {
+                    ProfileFile profileFile = refreshProfileFile();
+                    currentProfileFile = profileFile;
+                    handleProfileFileReload(profileFile);
+                }
+            }
+
+            return credentialsProvider.resolveCredentials();
+        }
+
         ProfileFile cachedOrRefreshedProfileFile = refreshProfileFile();
         if (shouldUpdateCredentialsProvider(cachedOrRefreshedProfileFile)) {
             synchronized (credentialsProviderLock) {
