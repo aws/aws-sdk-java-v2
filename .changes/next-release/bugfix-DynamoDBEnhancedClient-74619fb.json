@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "DynamoDB Enhanced Client",
+    "description": "Fix NPE when serializing null document values inside maps/lists with the DynamoDB Enhanced Client (BeanTableSchema). Null map/list entries now convert to DynamoDB NUL instead of failing inside DocumentAttributeConverter. See [#2282](https://github.com/aws/aws-sdk-java-v2/issues/2282).",
+    "contributor": "tanvir-ux"
+}
