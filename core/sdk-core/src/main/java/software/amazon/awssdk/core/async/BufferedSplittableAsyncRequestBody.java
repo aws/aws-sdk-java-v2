@@ -111,6 +111,11 @@ public final class BufferedSplittableAsyncRequestBody implements AsyncRequestBod
      *
      * <p>The subscriber MUST close each {@link CloseableAsyncRequestBody} to ensure resource is released
      *
+     * <p>Cancellation behaves as described in {@link AsyncRequestBody#splitCloseable(AsyncRequestBodySplitConfiguration)}:
+     * the wrapped body's subscription is cancelled right away and an incomplete part fails with a
+     * {@link java.util.concurrent.CancellationException} after delivering the data already buffered for it. A part that
+     * fails this way cannot be retried.
+     *
      * @param splitConfiguration configuration specifying how to split the request body
      * @return a publisher that emits retryable closable request body parts
      * @see AsyncRequestBodySplitConfiguration

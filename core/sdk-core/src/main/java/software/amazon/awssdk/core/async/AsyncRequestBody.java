@@ -571,6 +571,10 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * than or equal to {@code chunkSizeInBytes}. Note that this behavior may be different if a specific implementation of this
      * interface overrides this method.
      *
+     * <p>
+     * Cancelling the subscription to the returned publisher behaves as described in
+     * {@link #splitCloseable(AsyncRequestBodySplitConfiguration)}.
+     *
      * @deprecated use {@link #splitCloseable(AsyncRequestBodySplitConfiguration)} instead.
      */
     @Deprecated
@@ -596,6 +600,14 @@ public interface AsyncRequestBody extends SdkPublisher<ByteBuffer> {
      * <p>
      * Caller is responsible for closing {@link CloseableAsyncRequestBody} when it is ready to be disposed to release any
      * resources.
+     *
+     * <p>
+     * Cancelling the subscription to the returned publisher stops reading from this {@link AsyncRequestBody} right away: its
+     * subscription is cancelled (or never made, if the cancel happens inside {@code onSubscribe}). A part that was already
+     * delivered but is not yet complete fails: its subscriber receives the data already buffered for that part and then a
+     * {@link java.util.concurrent.CancellationException}. With a known content length, a part is delivered before its data
+     * has arrived, so cancelling after receiving the last wanted part fails that part; drain it before cancelling if it is
+     * needed.
      *
      * <p><b>Note:</b> This method is primarily intended for use by AWS SDK high-level libraries and internal components.
      * SDK customers should typically use higher-level APIs provided by service clients rather than calling this method directly.

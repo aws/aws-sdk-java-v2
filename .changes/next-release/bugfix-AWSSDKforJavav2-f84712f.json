@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "AWS SDK for Java v2",
+    "contributor": "",
+    "description": "Fixed an issue where cancelling a split `AsyncRequestBody`, for example when a multipart upload fails or is cancelled, did not cancel the source body. The source could stay open and the upload could stall instead of failing promptly."
+}
