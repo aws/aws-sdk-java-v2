@@ -79,12 +79,6 @@ public class SdkFilterInputStream extends FilterInputStream implements Releasabl
     }
 
     @Override
-    public void close() throws IOException {
-        in.close();
-        abortIfNeeded();
-    }
-
-    @Override
     public synchronized void mark(int readlimit) {
         abortIfNeeded();
         in.mark(readlimit);
