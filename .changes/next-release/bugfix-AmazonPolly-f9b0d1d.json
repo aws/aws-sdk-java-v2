@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon Polly",
+    "contributor": "",
+    "description": "Fixed an issue where `PollyPresigner` reported and signed an expiration later than the signing credential expiration. `PresignedRequest.expiration()` and `X-Amz-Expires` are now capped at the credential expiration. See [#2379](https://github.com/aws/aws-sdk-java-v2/issues/2379)."
+}

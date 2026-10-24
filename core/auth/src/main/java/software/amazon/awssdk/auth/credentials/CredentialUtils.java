@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.auth.credentials;
 
+import java.time.Duration;
+import java.time.Instant;
 import software.amazon.awssdk.annotations.SdkProtectedApi;
 import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.identity.spi.AwsSessionCredentialsIdentity;
@@ -112,5 +114,24 @@ public final class CredentialUtils {
                 CompletableFutureUtils.joinLikeSync(identityProvider.resolveIdentity());
             return toCredentials(awsCredentialsIdentity);
         };
+    }
+
+    /**
+     * Returns the smaller of {@code duration} and the whole seconds from {@code durationStartTime} to {@code expirationTime}.
+     * Returns {@code duration} unchanged if {@code expirationTime} is null or less than one second after
+     * {@code durationStartTime}.
+     */
+    public static Duration calculateDurationCappedAtExpiration(Duration duration,
+                                                               Instant durationStartTime,
+                                                               Instant expirationTime) {
+        if (expirationTime == null) {
+            return duration;
+        }
+        long secondsUntilExpiration = Duration.between(durationStartTime, expirationTime).getSeconds();
+        if (secondsUntilExpiration <= 0) {
+            return duration;
+        }
+        Duration untilExpiration = Duration.ofSeconds(secondsUntilExpiration);
+        return untilExpiration.compareTo(duration) < 0 ? untilExpiration : duration;
     }
 }
