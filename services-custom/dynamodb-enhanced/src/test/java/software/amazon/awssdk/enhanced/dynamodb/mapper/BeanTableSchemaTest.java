@@ -69,6 +69,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedImmuta
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FlattenedNestedImmutableBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.FluentSetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredAttributeBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.IgnoredConflictingGetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.InvalidBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ListBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.MapBean;
@@ -92,6 +93,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SimpleBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SingleConverterProvidersBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.SortKeyBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.ThreeSortKeyBean;
+import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TransientConflictingGetterBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.TwoPartitionKeyBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorAndGsiBean;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.testbeans.VectorIndexBean;
@@ -183,6 +185,35 @@ public class BeanTableSchemaTest {
 
         assertThat(itemMap.size()).isEqualTo(1);
         assertThat(itemMap).containsEntry("id", stringValue("id-value"));
+    }
+
+    @Test
+    public void dynamoDbIgnore_conflictingBooleanGetterDoesNotHideMappedProperty() {
+        BeanTableSchema<IgnoredConflictingGetterBean> beanTableSchema =
+            BeanTableSchema.create(IgnoredConflictingGetterBean.class);
+        IgnoredConflictingGetterBean bean = new IgnoredConflictingGetterBean();
+        bean.setA(123);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, false);
+
+        assertThat(beanTableSchema.attributeNames()).containsExactly("A");
+        assertThat(itemMap).containsOnlyKeys("A");
+        assertThat(itemMap).containsEntry("A", numberValue(123));
+        assertThat(beanTableSchema.mapToItem(itemMap).getA()).isEqualTo(123);
+    }
+
+    @Test
+    public void transient_conflictingBooleanGetterDoesNotHideMappedProperty() {
+        BeanTableSchema<TransientConflictingGetterBean> beanTableSchema =
+            BeanTableSchema.create(TransientConflictingGetterBean.class);
+        TransientConflictingGetterBean bean = new TransientConflictingGetterBean();
+        bean.setValue(123);
+
+        Map<String, AttributeValue> itemMap = beanTableSchema.itemToMap(bean, false);
+
+        assertThat(itemMap).containsOnlyKeys("value");
+        assertThat(itemMap).containsEntry("value", numberValue(123));
+        assertThat(beanTableSchema.mapToItem(itemMap).getValue()).isEqualTo(123);
     }
 
     @Test
