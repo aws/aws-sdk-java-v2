@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.services.s3.internal.handlers;
 
+import static software.amazon.awssdk.core.http.HttpResponseHandler.X_AMZN_REQUEST_ID_HEADER_ALTERNATE;
+
 import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.awssdk.awscore.exception.AwsErrorDetails;
@@ -45,7 +47,7 @@ public final class ExceptionTranslationInterceptor implements ExecutionIntercept
 
         String requestIdFromHeader = exception.awsErrorDetails()
                                               .sdkHttpResponse()
-                                              .firstMatchingHeader("x-amz-request-id")
+                                              .firstMatchingHeader(X_AMZN_REQUEST_ID_HEADER_ALTERNATE)
                                               .orElse(null);
 
         String requestId = Optional.ofNullable(exception.requestId()).orElse(requestIdFromHeader);
