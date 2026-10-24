@@ -15,6 +15,8 @@
 
 package software.amazon.awssdk.transfer.s3.internal.model;
 
+import static software.amazon.awssdk.transfer.s3.internal.utils.ResumableRequestConverter.completedPartsToSaveOnPause;
+
 import java.io.File;
 import java.time.Instant;
 import java.util.List;
@@ -86,7 +88,9 @@ public final class DefaultFileDownload implements FileDownload {
         File destination = request.destination().toFile();
         long length = destination.length();
         Instant fileLastModified = Instant.ofEpochMilli(destination.lastModified());
-        List<Integer> completedParts = MultipartDownloadUtils.completedParts(request.getObjectRequest());
+        List<Integer> completedParts =
+            completedPartsToSaveOnPause(MultipartDownloadUtils.completedParts(request.getObjectRequest()), resumedDownload,
+                                        destination.toPath());
         return ResumableFileDownload.builder()
                                     .downloadFileRequest(request)
                                     .s3ObjectLastModified(s3objectLastModified)

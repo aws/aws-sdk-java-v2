@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -130,6 +131,16 @@ class CrtFileDownloadTest {
         assertThat(resumable.s3ObjectEtag()).hasValue(ETAG);
         assertThat(resumable.s3ObjectLastModified()).hasValue(S3_OBJECT_LAST_MODIFIED);
         assertThat(resumable.totalSizeInBytes()).hasValue(OBJECT_SIZE);
+    }
+
+    @Test
+    void pause_pauseReturnsNoTokenBeforeFileWritten_keepsCompletedPartsOfResumedDownload() {
+        when(observable.pauseAsync()).thenReturn(CompletableFuture.completedFuture(null));
+        ResumableFileDownload resumedDownload = resumedDownload().copy(b -> b.completedParts(Arrays.asList(1, 3)));
+
+        ResumableFileDownload resumable = fileDownload(resumedDownload).pause();
+
+        assertThat(resumable.completedParts()).containsExactly(1, 3);
     }
 
     @Test
