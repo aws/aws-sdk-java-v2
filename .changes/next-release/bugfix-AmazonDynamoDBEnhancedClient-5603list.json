@@ -1,0 +1,6 @@
+{
+    "type": "bugfix",
+    "category": "Amazon DynamoDB Enhanced Client",
+    "contributor": "",
+    "description": "Fix projection expressions for nested paths containing list indexes so ExpressionAttributeNames map base attribute names and list dereferences remain in the projection expression. Resolves [#5603](https://github.com/aws/aws-sdk-java-v2/issues/5603)."
+}
