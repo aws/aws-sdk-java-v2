@@ -36,18 +36,24 @@ public class ConverterUtils {
 
     /**
      * Validates that a given Double input is a valid double supported by {@link DoubleAttributeConverter}.
-     * @param input
+     * @param input the Double value to validate, may be null
      */
     public static void validateDouble(Double input) {
+        if (input == null) {
+            return;
+        }
         Validate.isTrue(!Double.isNaN(input), "NaN is not supported by the default converters.");
         Validate.isTrue(Double.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }
 
     /**
-     * Validates that a given Float input is a valid double supported by {@link FloatAttributeConverter}.
-     * @param input
+     * Validates that a given Float input is a valid float supported by {@link FloatAttributeConverter}.
+     * @param input the Float value to validate, may be null
      */
     public static void validateFloat(Float input) {
+        if (input == null) {
+            return;
+        }
         Validate.isTrue(!Float.isNaN(input), "NaN is not supported by the default converters.");
         Validate.isTrue(Float.isFinite(input), "Infinite numbers are not supported by the default converters.");
     }
