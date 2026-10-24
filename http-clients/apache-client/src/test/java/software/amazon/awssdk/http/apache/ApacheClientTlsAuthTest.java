@@ -237,6 +237,53 @@ public class ApacheClientTlsAuthTest extends ClientTlsAuthTestBase {
         Mockito.verify(socketFactoryMock).createSocket(Mockito.any());
     }
 
+    /**
+     * Regression for https://github.com/aws/aws-sdk-java-v2/issues/7405:
+     * with a client certificate, pooled connections must be reused across sequential requests.
+     * Without disableConnectionState(), Apache keys idle connections on the TLS principal while
+     * each request leases with a null user token, so every call opens a new connection and the
+     * pool accumulates one idle entry per request.
+     */
+    @Test
+    public void reusesPooledConnectionsWhenClientCertificateConfigured() throws Exception {
+        client = ApacheHttpClient.builder()
+                .tlsKeyManagersProvider(keyManagersProvider)
+                .build();
+
+        final int requests = 5;
+        for (int i = 0; i < requests; i++) {
+            HttpExecuteResponse response = makeRequestWithHttpClient(client);
+            assertThat(response.httpResponse().isSuccessful()).isTrue();
+            // Fully consume + close so Apache returns the connection to the pool.
+            if (response.responseBody().isPresent()) {
+                try (java.io.InputStream body = response.responseBody().get()) {
+                    byte[] buf = new byte[1024];
+                    while (body.read(buf) != -1) {
+                        // drain so the connection can return to the pool
+                    }
+                }
+            }
+        }
+
+        org.apache.http.pool.PoolStats stats = poolStats((ApacheHttpClient) client);
+        assertThat(stats.getLeased())
+                .as("all requests should have completed")
+                .isZero();
+        assertThat(stats.getAvailable())
+                .as("mTLS requests should reuse a single pooled connection (not one per request)")
+                .isEqualTo(1);
+    }
+
+    private static org.apache.http.pool.PoolStats poolStats(ApacheHttpClient httpClient) throws Exception {
+        java.lang.reflect.Field field = ApacheHttpClient.class.getDeclaredField("httpClient");
+        field.setAccessible(true);
+        software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient apache =
+                (software.amazon.awssdk.http.apache.internal.impl.ConnectionManagerAwareHttpClient) field.get(httpClient);
+        org.apache.http.impl.conn.PoolingHttpClientConnectionManager cm =
+                (org.apache.http.impl.conn.PoolingHttpClientConnectionManager) apache.getHttpClientConnectionManager();
+        return cm.getTotalStats();
+    }
+
     private HttpExecuteResponse makeRequestWithHttpClient(SdkHttpClient httpClient) throws IOException {
         SdkHttpRequest httpRequest = SdkHttpFullRequest.builder()
                 .method(SdkHttpMethod.GET)
