@@ -37,6 +37,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import software.amazon.awssdk.awscore.DefaultAwsResponseMetadata;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbEnhancedClientExtension;
 import software.amazon.awssdk.enhanced.dynamodb.DynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.Expression;
@@ -47,6 +48,7 @@ import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItem;
 import software.amazon.awssdk.enhanced.dynamodb.functionaltests.models.FakeItemComposedClass;
 import software.amazon.awssdk.enhanced.dynamodb.internal.extensions.DefaultDynamoDbExtensionContext;
 import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedRequest;
+import software.amazon.awssdk.enhanced.dynamodb.model.PutItemEnhancedResponse;
 import software.amazon.awssdk.enhanced.dynamodb.model.TransactPutItemEnhancedRequest;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
@@ -468,6 +470,28 @@ public class PutItemOperationTest {
         PutItemResponse response = PutItemResponse.builder().build();
 
         putItemOperation.transformResponse(response, FakeItem.getTableSchema(), PRIMARY_CONTEXT, null);
+    }
+
+    @Test
+    public void transformResponse_passingRequestMetadata() {
+        FakeItem item = createUniqueFakeItem();
+
+        PutItemOperation<FakeItem> putItemOperation = PutItemOperation.create(PutItemEnhancedRequest.builder(FakeItem.class)
+                                                                                                    .item(item)
+                                                                                                    .build());
+
+        Map<String, String> metadata = new HashMap<>();
+        metadata.put("foo", "bar");
+
+        DefaultAwsResponseMetadata awsMetadata = DefaultAwsResponseMetadata.create(metadata);
+
+        PutItemResponse response = (PutItemResponse) PutItemResponse.builder()
+                                                                    .responseMetadata(awsMetadata)
+                                                                    .build();
+
+        PutItemEnhancedResponse<FakeItem> enhanced = putItemOperation.transformResponse(response, FakeItem.getTableSchema(),
+                                                                                        PRIMARY_CONTEXT, null);
+        assertThat(enhanced.responseMetadata(), is(response.responseMetadata()));
     }
 
     @Test
