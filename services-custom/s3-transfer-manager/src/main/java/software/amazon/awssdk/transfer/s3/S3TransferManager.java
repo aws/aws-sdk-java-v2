@@ -37,6 +37,7 @@ import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.CompletedDirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Copy;
 import software.amazon.awssdk.transfer.s3.model.CopyRequest;
+import software.amazon.awssdk.transfer.s3.model.DirectBufferPoolDownloadRequest;
 import software.amazon.awssdk.transfer.s3.model.DirectoryDownload;
 import software.amazon.awssdk.transfer.s3.model.DirectoryUpload;
 import software.amazon.awssdk.transfer.s3.model.Download;
@@ -332,6 +333,54 @@ public interface S3TransferManager extends SdkAutoCloseable {
      * @see #downloadFile(DownloadFileRequest)
      */
     default <ResultT> Download<ResultT> download(DownloadRequest<ResultT> downloadRequest) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Downloads an object identified by the bucket and key from S3 through the direct buffer pool of a CRT-based S3 client,
+     * using the given direct buffer pool {@link AsyncResponseTransformer}, such as
+     * {@link software.amazon.awssdk.services.s3.crt.S3CrtResponseTransformerFactory#toBlockingInputStreamFromDirectBufferPool()}.
+     * See the transformer's documentation for when its result is ready and how it uses the pool.
+     * <p>
+     * The transfer manager must be built on an {@link S3AsyncClient} created by {@link S3AsyncClient#crtBuilder()} with
+     * {@link S3CrtAsyncClientBuilder#directBufferPoolConfiguration} set, and the request must hold an unwrapped direct buffer
+     * pool transformer. Otherwise, the transfer fails before request transmission.
+     * <p>
+     * {@link Download#completionFuture()} can complete before the object has finished downloading. With the blocking stream
+     * transformer, it completes when the first bytes of the object arrive, and the rest downloads as the application reads the
+     * stream. For an empty object, it completes when the request finishes. Progress counts bytes CRT has received, which the
+     * application may not have read yet. {@link TransferListener#transferComplete} is called when CRT has received the whole
+     * object, which for a large object depends on the application reading the stream.
+     *
+     * <p>
+     * <b>Usage Example:</b>
+     * {@snippet :
+     *         S3AsyncClient s3 = S3AsyncClient.crtBuilder()
+     *                                         .directBufferPoolConfiguration(S3CrtDirectBufferPoolConfiguration.auto())
+     *                                         .build();
+     *         S3TransferManager transferManager = S3TransferManager.builder().s3Client(s3).build();
+     *
+     *         DirectBufferPoolDownloadRequest<ResponseInputStream<GetObjectResponse>> downloadRequest =
+     *             DirectBufferPoolDownloadRequest.builder()
+     *                                            .getObjectRequest(req -> req.bucket("bucket").key("key"))
+     *                                            .responseTransformer(
+     *                                                S3CrtResponseTransformerFactory.toBlockingInputStreamFromDirectBufferPool())
+     *                                            .build();
+     *
+     *         Download<ResponseInputStream<GetObjectResponse>> download =
+     *             transferManager.downloadWithDirectBufferPool(downloadRequest);
+     *
+     *         try (ResponseInputStream<GetObjectResponse> in = download.completionFuture().join().result()) {
+     *             // Read the object.
+     *         }
+     * }
+     *
+     * @param downloadRequest the download request, containing a {@link GetObjectRequest} and a direct buffer pool
+     *                        {@link AsyncResponseTransformer}
+     * @param <ResultT>       The type of data the {@link AsyncResponseTransformer} produces
+     * @return A {@link Download} that can be used to track the ongoing transfer
+     */
+    default <ResultT> Download<ResultT> downloadWithDirectBufferPool(DirectBufferPoolDownloadRequest<ResultT> downloadRequest) {
         throw new UnsupportedOperationException();
     }
 
