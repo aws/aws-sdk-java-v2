@@ -1,6 +1,0 @@
-{
-    "type": "bugfix",
-    "category": "EC2 Metadata Client",
-    "contributor": "",
-    "description": "Validate that the metadata path passed to `Ec2MetadataClient#get` and `Ec2MetadataAsyncClient#get` cannot change the scheme, host, or port of the configured IMDS endpoint."
-}

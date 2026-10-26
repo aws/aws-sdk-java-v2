@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Lightsail",
-    "contributor": "",
-    "description": "This release adds Web Application Firewall (WAF) support for Lightsail distribution."
-}

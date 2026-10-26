@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon Elastic Kubernetes Service",
-    "contributor": "",
-    "description": "This release adds support for EKS management of Gateway API CRDs (Custom Resource Definitions)"
-}

@@ -1,6 +1,0 @@
-{
-    "type": "feature",
-    "category": "Amazon AppStream",
-    "contributor": "",
-    "description": "Add Windows 11 to PlatformType enum"
-}
