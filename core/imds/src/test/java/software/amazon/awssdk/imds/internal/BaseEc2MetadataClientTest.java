@@ -16,6 +16,7 @@
 package software.amazon.awssdk.imds.internal;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
+import static com.github.tomakehurst.wiremock.client.WireMock.anyUrl;
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.exactly;
 import static com.github.tomakehurst.wiremock.client.WireMock.get;
@@ -23,6 +24,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.getRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.put;
 import static com.github.tomakehurst.wiremock.client.WireMock.putRequestedFor;
 import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
+import static com.github.tomakehurst.wiremock.client.WireMock.urlEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static com.github.tomakehurst.wiremock.client.WireMock.verify;
 import static com.github.tomakehurst.wiremock.stubbing.Scenario.STARTED;
@@ -46,6 +48,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import software.amazon.awssdk.core.SdkSystemSetting;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.retry.backoff.FixedDelayBackoffStrategy;
@@ -401,5 +404,35 @@ abstract class BaseEc2MetadataClientTest<T, B extends Ec2MetadataClientBuilder<B
                 assertThat(exception.rawResponse().asUtf8String()).isEqualTo("Forbidden");
             }
         );
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+        "@localhost:%d" + AMI_ID_RESOURCE,
+        "@evil.example" + AMI_ID_RESOURCE,
+        ":%d@evil.example/x",
+        ".evil.example/x"
+    })
+    void get_pathChangingEndpointAuthority_shouldThrowAndNotSendToken(String pathTemplate) {
+        String path = String.format(pathTemplate, getPort());
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
+        stubFor(get(anyUrl()).willReturn(aResponse().withBody("{}")));
+        failureAssertions(path, SdkClientException.class, e -> {
+            assertThat(e).hasMessageContaining("Invalid metadata path");
+            verify(exactly(0), getRequestedFor(anyUrl()));
+        });
+    }
+
+    @Test
+    void get_pathWithQueryString_shouldSucceed() {
+        stubFor(put(urlPathEqualTo(TOKEN_RESOURCE_PATH)).willReturn(
+            aResponse().withBody("some-token").withHeader(EC2_METADATA_TOKEN_TTL_HEADER, "21600")));
+        stubFor(get(urlPathEqualTo(AMI_ID_RESOURCE)).willReturn(aResponse().withBody("{}")));
+        successAssertions(AMI_ID_RESOURCE + "?foo=bar", response -> {
+            assertThat(response.asString()).isEqualTo("{}");
+            verify(exactly(1), getRequestedFor(urlEqualTo(AMI_ID_RESOURCE + "?foo=bar"))
+                .withHeader(TOKEN_HEADER, equalTo("some-token")));
+        });
     }
 }
