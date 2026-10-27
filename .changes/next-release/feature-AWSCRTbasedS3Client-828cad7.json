@@ -1,0 +1,6 @@
+{
+    "type": "feature",
+    "category": "AWS CRT-based S3 Client",
+    "contributor": "",
+    "description": "Add support for direct buffer pool downloads to the AWS CRT-based S3 client."
+}
