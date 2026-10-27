@@ -1,4 +1,29 @@
  #### 👋 _Looking for changelogs for older versions? You can find them in the [changelogs](./changelogs) directory._
+# __2.57.5__ __2026-10-27__
+## __AWS License Manager__
+  - ### Features
+    - AWS License Manager now supports delegate grants for read-only visibility into license distributions. CreateGrant accepts a new GrantType (BuyerGrant or DelegateGrant) and a desired status at distribution time.
+
+## __Amazon Bedrock AgentCore Control__
+  - ### Features
+    - Adds the ResetTokenVaultKeyMaterial API, which restores a token vault whose customer managed key was deleted by moving it to an AWS owned key. The reset permanently deletes the stored OAuth 2.0 tokens, users must consent again. Adds on-behalf-of token exchange client authentication override option.
+
+## __Amazon EC2 Container Service__
+  - ### Features
+    - ECS now supports GPU sharing via NVIDIA Multi-Process Service (MPS) on ECS Managed Instances and ECS EC2, allowing multiple ECS tasks to share a single Nvidia GPU for improved utilization.
+
+## __Amazon Elastic Compute Cloud__
+  - ### Features
+    - EC2 AMIs can now show vulnerability data and be targeted directly for scanning.
+
+## __Amazon Lightsail__
+  - ### Features
+    - Added the attributeUpdates parameter to the Lightsail StartInstance API, which allows customers to update the attributes of a stopped instance when starting it.
+
+## __Inspector2__
+  - ### Features
+    - Adding support for Machine Image scan
+
 # __2.57.4__ __2026-10-26__
 ## __AWS Billing__
   - ### Features
