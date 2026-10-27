@@ -61,6 +61,47 @@ class SmithyBuildGeneratorTest {
         assertTrue(containsFileEndingWith(outputDirectory(), "Client.java"));
     }
 
+    // Real AWS models use these traits. Codegen must bring their definitions: the plugin's classpath has codegen's
+    // runtime dependencies but not its test ones.
+    @Test
+    void modelUsingAwsEndpointWaiterAndSmokeTestTraits_generates() throws Exception {
+        write(moduleDir.resolve("model.smithy"),
+              "$version: \"2.0\"\nnamespace demo\n\n"
+              + "use aws.api#service\n"
+              + "use aws.auth#sigv4\n"
+              + "use aws.protocols#restJson1\n"
+              + "use smithy.rules#endpointRuleSet\n"
+              + "use smithy.test#smokeTests\n"
+              + "use smithy.waiters#waitable\n"
+              + "@service(sdkId: \"Demo\", arnNamespace: \"demo\")\n"
+              + "@sigv4(name: \"demo\")\n"
+              + "@restJson1\n"
+              + "@endpointRuleSet({\n"
+              + "  version: \"1.0\",\n"
+              + "  parameters: { Region: { type: \"string\", builtIn: \"AWS::Region\", required: true,"
+              + " documentation: \"The region.\" } },\n"
+              + "  rules: [\n"
+              + "    { type: \"endpoint\", conditions: [{ fn: \"aws.partition\", argv: [{ ref: \"Region\" }],"
+              + " assign: \"partition\" }],\n"
+              + "      endpoint: { url: \"https://demo.{Region}.{partition#dnsSuffix}\" } },\n"
+              + "    { type: \"error\", conditions: [], error: \"Invalid region\" }\n"
+              + "  ]\n"
+              + "})\n"
+              + "service DemoService { version: \"2024-01-01\", operations: [Op] }\n\n"
+              + "@http(method: \"POST\", uri: \"/op\")\n"
+              + "@waitable(OpDone: { acceptors: [{ state: \"success\", matcher: { success: true } }] })\n"
+              + "@smokeTests([{ id: \"OpSuccess\", params: {}, vendorParams: { region: \"us-west-2\" },"
+              + " vendorParamsShape: aws.test#AwsVendorParams, expect: { success: {} } }])\n"
+              + "operation Op { input: OpRequest, output: OpResponse }\n"
+              + "structure OpResponse { name: String }\n"
+              + REQUEST);
+        Path configFile = write(moduleDir.resolve("smithy-build.json"), config(SOURCES, PLUGIN));
+
+        generate(project(moduleDir), configFile);
+
+        assertTrue(containsFileEndingWith(outputDirectory(), "DemoClient.java"));
+    }
+
     @Test
     void otherValidationError_failsNamingTheError() throws Exception {
         write(moduleDir.resolve("model.smithy"),

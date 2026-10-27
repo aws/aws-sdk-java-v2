@@ -193,6 +193,39 @@
             <artifactId>smithy-rules-engine</artifactId>
             <version>${smithy.version}</version>
         </dependency>
+        <!-- Trait definitions that real service model.json files use. Without them smithy-build cannot load the
+             model: the endpoint rules fail on the aws.partition function, and @waitable, @rpcv2Cbor and @smokeTests
+             do not resolve. Runtime scope: no codegen class imports them. -->
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-aws-endpoints</artifactId>
+            <version>${smithy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-waiters</artifactId>
+            <version>${smithy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-smoke-test-traits</artifactId>
+            <version>${smithy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-protocol-traits</artifactId>
+            <version>${smithy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>software.amazon.smithy</groupId>
+            <artifactId>smithy-aws-smoke-test-model</artifactId>
+            <version>${smithy.version}</version>
+            <scope>runtime</scope>
+        </dependency>
 
         <dependency>
             <artifactId>org.eclipse.jdt.core</artifactId>

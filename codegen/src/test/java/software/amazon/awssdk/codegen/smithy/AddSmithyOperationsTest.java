@@ -17,7 +17,8 @@ package software.amazon.awssdk.codegen.smithy;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.jr.stree.JrsBoolean;
+import com.fasterxml.jackson.jr.stree.JrsString;
 import java.util.Arrays;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -299,7 +300,7 @@ class AddSmithyOperationsTest {
     // ---- Context params ---------------------------------------------------
 
     @Test
-    void staticContextParams_valueConvertedToTreeNode() {
+    void staticContextParams_valueConvertedToJacksonJrNode() {
         Model model = modelOf(
             "@smithy.rules#staticContextParams(UseFips: { value: true })\n"
             + "@http(method: \"POST\", uri: \"/op\")\n"
@@ -309,11 +310,11 @@ class AddSmithyOperationsTest {
         OperationModel op = op(model, "rest-json");
 
         assertThat(op.getStaticContextParams()).containsKey("UseFips");
-        assertThat(op.getStaticContextParams().get("UseFips").getValue().toString()).isEqualTo("true");
+        assertThat(op.getStaticContextParams().get("UseFips").getValue()).isEqualTo(JrsBoolean.TRUE);
     }
 
     @Test
-    void operationContextParams_pathConvertedToTextNode() {
+    void operationContextParams_pathConvertedToJacksonJrString() {
         Model model = modelOf(
             "@smithy.rules#operationContextParams(Keys: { path: \"keys[*]\" })\n"
             + "@http(method: \"POST\", uri: \"/op\")\n"
@@ -324,7 +325,8 @@ class AddSmithyOperationsTest {
         OperationModel op = op(model, "rest-json");
 
         assertThat(op.getOperationContextParams()).containsKey("Keys");
-        assertThat(((JsonNode) op.getOperationContextParams().get("Keys").getPath()).asText()).isEqualTo("keys[*]");
+        assertThat(op.getOperationContextParams().get("Keys").getPath()).isInstanceOf(JrsString.class);
+        assertThat(((JrsString) op.getOperationContextParams().get("Keys").getPath()).getValue()).isEqualTo("keys[*]");
     }
 
     // ---- Auth (parity-first: operation-explicit only) ---------------------
