@@ -50,6 +50,8 @@ import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterAll;
@@ -627,8 +629,8 @@ public class InstanceProfileCredentialsProviderTest {
         stubSecureCredentialsResponse(aResponse().withBody(successfulCredentialsResponse1));
         AwsCredentials credentials24HoursAgo = credentialsProvider.resolveCredentials();
 
-        // Set the time to 2 minutes before expiration, and fail to call IMDS. The prefetch time (half the 24 hour lifetime,
-        // jittered to at most 1 minute before the 1 minute stale time) has certainly passed, so IMDS is called.
+        // Set the time to 2 minutes before expiration, and fail to call IMDS. The prefetch time (65 to 90 minutes after the
+        // fetch) has certainly passed, so IMDS is called.
         Instant failureTime = now.minus(2, MINUTES);
         clock.time = failureTime;
         stubSecureCredentialsResponse(aResponse().withStatus(500));
@@ -652,73 +654,194 @@ public class InstanceProfileCredentialsProviderTest {
     }
 
     /**
-     * The prefetch time is half the remaining credential lifetime, but at least 5 minutes, jittered to a random point no later
-     * than 1 minute before the stale time. The stale time is 1 minute before expiration. Each case runs several times to account
-     * for the prefetch jitter.
-     *
-     * <ul>
-     *     <li>6 hour credentials: prefetch at a random point from 3 hours to 2 minutes before expiration.</li>
-     *     <li>8 minute credentials: the 5 minute floor applies, so prefetch at a random point from 5 to 6 minutes.</li>
-     *     <li>3 minute credentials: the 5 minute floor is after the stale time, so the only refresh is the mandatory one when
-     *     the stale time (1 minute before expiration) is reached.</li>
-     * </ul>
+     * Without a configured prefetch time, the provider refreshes at a random time between a lower and an upper bound after
+     * the fetch. The bounds depend on the remaining lifetime L of the credentials and the advisory refresh window W for that
+     * lifetime: hi = min(90 min, L - W) and lo = min(65 min, max(L / 2, 5 min), 3/4 * hi), with a 1 minute floor.
      */
     @ParameterizedTest(name = "lifetime={0}s")
     @CsvSource({
-        "21600, 10799, 21480",
-        "480, 299, 360",
-        "180, 119, 120"
+        // lifetime (s), lo (ms), hi (ms)
+        "21600, 3900000, 5400000", // 6 h: 65 to 90 min
+        "9000,  3900000, 5400000", // 2 h 30 min: 65 to 90 min
+        "7200,  2700000, 3600000", // 2 h: hi = L - W = 60 min, lo = 3/4 * hi = 45 min
+        "5400,  1350000, 1800000", // 90 min (W = 60 min): hi = 30 min, lo = 22.5 min
+        "5340,  2670000, 4440000", // 89 min (W = 15 min): hi = 74 min, lo = L / 2 = 44.5 min
+        "3600,  1800000, 2700000", // 1 h: hi = 45 min, lo = 30 min
+        "1200,   600000,  900000", // 20 min (W = 5 min): hi = 15 min, lo = 10 min
+        "600,    225000,  300000", // 10 min: hi = 5 min, lo = 3/4 * hi = 3.75 min
+        "370,     60000,   70000", // 6 min 10 s: hi = 70 s, lo = 52.5 s raised to the 1 minute floor
+        "330,     60000,   60000", // 5 min 30 s: L - W = 30 s is under the floor, so 1 min
+        "300,     60000,   60000", // 5 min: L - W = 0, so 1 min
+        "180,     60000,   60000"  // 3 min: L - W < 0, so 1 min
     })
-    void resolveCredentials_withCredentialLifetime_refreshesOnlyBetweenPrefetchBounds(long lifetimeSeconds,
-                                                                                       long lastCachedSecond,
-                                                                                       long firstRefreshedSecond) {
+    void defaultPrefetchTime_lowestAndHighestRandomFraction_returnsRangeBounds(long lifetimeSeconds, long loMillis,
+                                                                               long hiMillis) {
+        Instant now = Instant.now().truncatedTo(SECONDS);
+        Instant expiration = now.plusSeconds(lifetimeSeconds);
+
+        assertThat(InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, 0))
+            .isEqualTo(now.plusMillis(loMillis));
+        assertThat(InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, 1))
+            .isEqualTo(now.plusMillis(hiMillis));
+
+        Random random = new Random();
+        for (int i = 0; i < 10_000; i++) {
+            assertThat(InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, random.nextDouble()))
+                .isBetween(now.plusMillis(loMillis), now.plusMillis(hiMillis));
+        }
+    }
+
+    /**
+     * For any lifetime, the default prefetch time is no sooner than 1 minute after the fetch. Unless that floor applies (L - W
+     * is less than 1 minute), it is also no later than 90 minutes after the fetch and no later than the start of the advisory
+     * refresh window, W before expiration.
+     */
+    @Test
+    void defaultPrefetchTime_anyLifetime_isNoLaterThanAdvisoryWindowAndNoSoonerThanFloor() {
+        Instant now = Instant.now().truncatedTo(SECONDS);
+        Duration floor = Duration.ofMinutes(1);
+        Random random = new Random();
+        for (int i = 0; i < 100_000; i++) {
+            Duration lifetime = Duration.ofMillis(Duration.ofMinutes(1).toMillis()
+                                                  + (long) (random.nextDouble() * Duration.ofHours(7).toMillis()));
+            Instant expiration = now.plus(lifetime);
+
+            Instant prefetch = InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, random.nextDouble());
+
+            assertThat(prefetch).isAfterOrEqualTo(now.plus(floor));
+            Duration window = advisoryRefreshWindow(lifetime);
+            if (lifetime.minus(window).compareTo(floor) >= 0) {
+                assertThat(prefetch).as("lifetime %s", lifetime)
+                                    .isBeforeOrEqualTo(expiration.minus(window))
+                                    .isBeforeOrEqualTo(now.plus(90, MINUTES));
+            } else {
+                assertThat(prefetch).as("lifetime %s", lifetime).isEqualTo(now.plus(floor));
+            }
+        }
+    }
+
+    /**
+     * The advisory refresh window table of the credential cache specification.
+     */
+    private static Duration advisoryRefreshWindow(Duration lifetime) {
+        if (lifetime.compareTo(Duration.ofMinutes(20)) <= 0) {
+            return Duration.ofMinutes(5);
+        }
+        return lifetime.compareTo(Duration.ofMinutes(90)) < 0 ? Duration.ofMinutes(15) : Duration.ofMinutes(60);
+    }
+
+    /**
+     * Credentials without an expiration are refreshed at a random time 60 to 65 minutes after the fetch.
+     */
+    @Test
+    void noExpirationPrefetchTime_anyRandomFraction_isSixtyToSixtyFiveMinutesAfterFetch() {
+        Instant now = Instant.now().truncatedTo(SECONDS);
+
+        assertThat(InstanceProfileCredentialsProvider.noExpirationPrefetchTime(now, 0)).isEqualTo(now.plus(60, MINUTES));
+        assertThat(InstanceProfileCredentialsProvider.noExpirationPrefetchTime(now, 1)).isEqualTo(now.plus(65, MINUTES));
+
+        Random random = new Random();
+        for (int i = 0; i < 10_000; i++) {
+            assertThat(InstanceProfileCredentialsProvider.noExpirationPrefetchTime(now, random.nextDouble()))
+                .isBetween(now.plus(60, MINUTES), now.plus(65, MINUTES));
+        }
+    }
+
+    /**
+     * With the random fraction pinned to 0 or 1, the provider refreshes exactly at the lower or upper bound of the default
+     * prefetch range, and not a millisecond earlier: no other jitter is applied.
+     */
+    @ParameterizedTest(name = "lifetime={0}s, randomFraction={1}")
+    @CsvSource({
+        "21600, 0, 3900000",
+        "21600, 1, 5400000",
+        "3600,  0, 1800000",
+        "3600,  1, 2700000",
+        "600,   0,  225000",
+        "600,   1,  300000",
+        "180,   0,   60000",
+        "180,   1,   60000"
+    })
+    void resolveCredentials_prefetchTimeNotConfigured_refreshesExactlyAtDefaultPrefetchTime(long lifetimeSeconds,
+                                                                                            double randomFraction,
+                                                                                            long prefetchMillis) {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithPrefetchJitter(clock, () -> randomFraction);
+        Instant now = Instant.now().truncatedTo(SECONDS);
+
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(
+            credentialsResponse("SECRET_ACCESS_KEY", now.plusSeconds(lifetimeSeconds))));
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY2", now.plus(12, HOURS))));
+        clock.time = now.plusMillis(prefetchMillis - 1);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+
+        clock.time = now.plusMillis(prefetchMillis);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
+    }
+
+    /**
+     * With real randomness, the provider does not refresh before the lower bound of the default prefetch range, and has
+     * refreshed by the upper bound. Each case runs several times to account for the jitter.
+     */
+    @ParameterizedTest(name = "lifetime={0}s")
+    @CsvSource({
+        "21600, 3900000, 5400000",
+        "1200,   600000,  900000",
+        "180,     60000,   60000"
+    })
+    void resolveCredentials_prefetchTimeNotConfigured_refreshesWithinDefaultPrefetchRange(long lifetimeSeconds,
+                                                                                         long loMillis,
+                                                                                         long hiMillis) {
         for (int i = 0; i < 10; i++) {
             AdjustableClock clock = new AdjustableClock();
             AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
-            Instant now = Instant.now();
+            Instant now = Instant.now().truncatedTo(SECONDS);
 
             clock.time = now;
             stubSecureCredentialsResponse(aResponse().withBody(
                 credentialsResponse("SECRET_ACCESS_KEY", now.plusSeconds(lifetimeSeconds))));
             assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
 
-            // Before the earliest possible prefetch time, IMDS is not called again.
             stubSecureCredentialsResponse(aResponse().withBody(
                 credentialsResponse("SECRET_ACCESS_KEY2", now.plus(12, HOURS))));
-            clock.time = now.plusSeconds(lastCachedSecond);
+            clock.time = now.plusMillis(loMillis - 1);
             assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
 
-            // By the latest possible refresh time, IMDS is called and the new credentials are adopted.
-            clock.time = now.plusSeconds(firstRefreshedSecond);
+            clock.time = now.plusMillis(hiMillis);
             assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
         }
     }
 
     /**
-     * Without a configured prefetch time, the default prefetch time (half of the 6 hour lifetime) is jittered to a random point
-     * between 3 hours and 2 minutes before expiration. A minute after the unjittered prefetch time, at least one of several
-     * providers must still be serving its cached credentials. Without jitter, every provider would have refreshed.
+     * If IMDS returns the same credentials when the provider refreshes, the next refresh is again 65 to 90 minutes later,
+     * measured from that refresh, rather than on every call.
      */
     @Test
-    void resolveCredentials_prefetchTimeNotConfigured_defaultPrefetchTimeIsJittered() {
+    void resolveCredentials_prefetchTimeNotConfiguredAndImdsReturnsSameCredentials_nextRefreshIsMeasuredFromRefresh() {
+        AdjustableClock clock = new AdjustableClock();
+        AwsCredentialsProvider credentialsProvider = credentialsProviderWithPrefetchJitter(clock, () -> 0);
         Instant now = Instant.now().truncatedTo(SECONDS);
-        int providersStillCached = 0;
-        for (int i = 0; i < 10; i++) {
-            AdjustableClock clock = new AdjustableClock();
-            AwsCredentialsProvider credentialsProvider = credentialsProviderWithClock(clock);
+        Instant firstRefresh = now.plus(65, MINUTES);
 
-            clock.time = now;
-            stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY", now.plus(6, HOURS))));
-            credentialsProvider.resolveCredentials();
+        clock.time = now;
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY", now.plus(6, HOURS))));
+        credentialsProvider.resolveCredentials();
 
-            stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY2", now.plus(12, HOURS))));
-            clock.time = now.plus(3, HOURS).plus(1, MINUTES);
-            if ("SECRET_ACCESS_KEY".equals(credentialsProvider.resolveCredentials().secretAccessKey())) {
-                providersStillCached++;
-            }
-        }
+        clock.time = firstRefresh;
+        credentialsProvider.resolveCredentials();
+        int requestCountAfterFirstRefresh = wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount();
 
-        assertThat(providersStillCached).isPositive();
+        stubSecureCredentialsResponse(aResponse().withBody(credentialsResponse("SECRET_ACCESS_KEY2", now.plus(12, HOURS))));
+        clock.time = firstRefresh.plus(65, MINUTES).minusMillis(1);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY");
+        assertThat(wireMockServer.countRequestsMatching(RequestPattern.everything()).getCount())
+            .isEqualTo(requestCountAfterFirstRefresh);
+
+        clock.time = firstRefresh.plus(65, MINUTES);
+        assertThat(credentialsProvider.resolveCredentials().secretAccessKey()).isEqualTo("SECRET_ACCESS_KEY2");
     }
 
     /**
@@ -916,6 +1039,14 @@ public class InstanceProfileCredentialsProviderTest {
             (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
         builder.clock(clock);
         builder.prefetchTime(prefetchTime);
+        return builder.build();
+    }
+
+    private AwsCredentialsProvider credentialsProviderWithPrefetchJitter(Clock clock, DoubleSupplier prefetchJitterRandom) {
+        InstanceProfileCredentialsProvider.BuilderImpl builder =
+            (InstanceProfileCredentialsProvider.BuilderImpl) InstanceProfileCredentialsProvider.builder();
+        builder.clock(clock);
+        builder.prefetchJitterRandom(prefetchJitterRandom);
         return builder.build();
     }
 

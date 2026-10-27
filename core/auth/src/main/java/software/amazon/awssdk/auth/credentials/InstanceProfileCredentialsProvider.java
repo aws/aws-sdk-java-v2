@@ -15,8 +15,8 @@
 
 package software.amazon.awssdk.auth.credentials;
 
-import static java.time.temporal.ChronoUnit.MINUTES;
 import static software.amazon.awssdk.utils.ComparableUtils.maximum;
+import static software.amazon.awssdk.utils.ComparableUtils.minimum;
 import static software.amazon.awssdk.utils.FunctionalUtils.invokeSafely;
 import static software.amazon.awssdk.utils.cache.CachedSupplier.StaleValueBehavior.ALLOW;
 
@@ -27,7 +27,9 @@ import java.time.Instant;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import software.amazon.awssdk.annotations.SdkPublicApi;
 import software.amazon.awssdk.annotations.SdkTestInternalApi;
@@ -52,6 +54,7 @@ import software.amazon.awssdk.utils.ToString;
 import software.amazon.awssdk.utils.Validate;
 import software.amazon.awssdk.utils.builder.CopyableBuilder;
 import software.amazon.awssdk.utils.builder.ToCopyableBuilder;
+import software.amazon.awssdk.utils.cache.CacheRefreshUtils;
 import software.amazon.awssdk.utils.cache.CachedSupplier;
 import software.amazon.awssdk.utils.cache.NonBlocking;
 import software.amazon.awssdk.utils.cache.RefreshResult;
@@ -79,7 +82,16 @@ public final class InstanceProfileCredentialsProvider
     private static final String EC2_METADATA_TOKEN_TTL_HEADER = "x-aws-ec2-metadata-token-ttl-seconds";
     private static final String DEFAULT_TOKEN_TTL = "21600";
 
+    // Bounds of the default prefetch time, measured from the fetch. See defaultPrefetchTime.
+    private static final Duration DEFAULT_PREFETCH_EARLIEST = Duration.ofMinutes(65);
+    private static final Duration DEFAULT_PREFETCH_LATEST = Duration.ofMinutes(90);
+    private static final Duration DEFAULT_PREFETCH_HALF_LIFETIME_MINIMUM = Duration.ofMinutes(5);
+    private static final Duration DEFAULT_PREFETCH_FLOOR = Duration.ofMinutes(1);
+    private static final Duration DEFAULT_PREFETCH_NO_EXPIRATION = Duration.ofMinutes(60);
+    private static final Duration DEFAULT_PREFETCH_NO_EXPIRATION_JITTER = Duration.ofMinutes(5);
+
     private final Clock clock;
+    private final DoubleSupplier prefetchJitterRandom;
     private final String endpoint;
     private final Ec2MetadataConfigProvider configProvider;
     private final HttpCredentialsLoader httpCredentialsLoader;
@@ -105,6 +117,7 @@ public final class InstanceProfileCredentialsProvider
      */
     private InstanceProfileCredentialsProvider(BuilderImpl builder) {
         this.clock = builder.clock;
+        this.prefetchJitterRandom = Validate.getOrDefault(builder.prefetchJitterRandom, () -> new Random()::nextDouble);
         this.endpoint = builder.endpoint;
         this.asyncCredentialUpdateEnabled = builder.asyncCredentialUpdateEnabled;
         this.asyncThreadName = builder.asyncThreadName;
@@ -131,24 +144,23 @@ public final class InstanceProfileCredentialsProvider
                             "staleTime (%s) must be less than or equal to prefetchTime (%s).", this.staleTime, this.prefetchTime);
         }
 
-        // A configured advisory refresh window is a fixed distance from expiration and must be honored exactly, so the
-        // prefetch jitter is only applied to the default prefetch time.
-        boolean prefetchJitterEnabled = this.prefetchTime == null;
-
+        // CachedSupplier's prefetch jitter is disabled. A configured advisory refresh window is a fixed distance from
+        // expiration and must be honored exactly. The default prefetch time is already jittered by defaultPrefetchTime,
+        // within bounds that CachedSupplier's jitter would not respect.
         if (Boolean.TRUE.equals(builder.asyncCredentialUpdateEnabled)) {
             Validate.paramNotBlank(builder.asyncThreadName, "asyncThreadName");
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .prefetchStrategy(new NonBlocking(builder.asyncThreadName))
                                                   .staleValueBehavior(ALLOW)
-                                                  .prefetchJitterEnabled(prefetchJitterEnabled)
+                                                  .prefetchJitterEnabled(false)
                                                   .clock(clock)
                                                   .build();
         } else {
             this.credentialsCache = CachedSupplier.builder(this::refreshCredentials)
                                                   .cachedValueName(toString())
                                                   .staleValueBehavior(ALLOW)
-                                                  .prefetchJitterEnabled(prefetchJitterEnabled)
+                                                  .prefetchJitterEnabled(false)
                                                   .clock(clock)
                                                   .build();
         }
@@ -218,7 +230,7 @@ public final class InstanceProfileCredentialsProvider
         Instant now = clock.instant();
 
         if (expiration == null) {
-            return now.plus(60, MINUTES);
+            return noExpirationPrefetchTime(now, prefetchJitterRandom.getAsDouble());
         }
 
         Duration timeUntilExpiration = Duration.between(now, expiration);
@@ -235,7 +247,79 @@ public final class InstanceProfileCredentialsProvider
             return expiration.minus(prefetchTime);
         }
 
-        return now.plus(maximum(timeUntilExpiration.dividedBy(2), Duration.ofMinutes(5)));
+        return defaultPrefetchTime(now, expiration, prefetchJitterRandom.getAsDouble());
+    }
+
+    /**
+     * Compute the default prefetch (advisory refresh) time for credentials that expire after {@code now}, when no prefetch
+     * time is configured. With {@code L} the remaining lifetime and {@code W} the advisory refresh window that
+     * {@link CacheRefreshUtils#computePrefetchWindow} selects for {@code L}, the refresh happens at a uniformly random time
+     * between {@code lo} and {@code hi} after the fetch:
+     * <pre>
+     * hi = min(90 min, L - W)
+     * lo = min(65 min, max(L / 2, 5 min), 3/4 * hi)
+     * </pre>
+     * For the common 6 hour IMDS credentials, that is 65 to 90 minutes after the fetch.
+     *
+     * <p>EC2 documents only that new credentials are available at least 5 minutes before the current ones expire, but IMDS
+     * can make new credentials available well before that (often about hourly). Until then it returns the same credentials.
+     * The credentials were issued at or before the fetch, so when IMDS rotates about hourly, a refresh at least an hour
+     * after the fetch gets new ones, and the 65 minute lower bound absorbs drift in the rotation time. Shorter-lived
+     * credentials keep the earlier lower bound of half their remaining lifetime.
+     *
+     * <p>The refresh is never later than {@code L - W}, the point at which the credential cache specification starts the
+     * advisory refresh. A provider may keep its own schedule only when that schedule refreshes earlier. The lower bound is
+     * capped so that at least a quarter of the range is left for the jitter, which spreads out the refreshes of multiple
+     * providers on one host.
+     *
+     * <p>Both bounds are measured from the fetch rather than from expiration. If IMDS returns the same credentials again, the
+     * next refresh moves out by the same interval instead of happening on every call.
+     *
+     * <p>The refresh is never sooner than 1 minute after the fetch. The floor only moves the refresh later than
+     * {@code L - W} when {@code L - W} is less than 1 minute, i.e. when IMDS returns credentials that are already in or
+     * near their advisory refresh window. There it keeps the provider from calling IMDS on every request until IMDS
+     * rotates. This is the only case in which the refresh is later than {@code L - W}. When {@code L - W} is at least
+     * 1 minute but less than 4/3 minutes, the floor can also raise the result, but not past {@code L - W}. The mandatory
+     * refresh at the stale time still applies.
+     *
+     * @param now the time of the fetch
+     * @param expiration the expiration of the fetched credentials, after {@code now}
+     * @param randomFraction where to place the refresh between the lower bound (0) and the upper bound (1)
+     */
+    static Instant defaultPrefetchTime(Instant now, Instant expiration, double randomFraction) {
+        // Reading of SEP lines 735-741: the advisory window W is fixed for credentials the provider already holds. Every
+        // successful fetch, including one that returns the same credentials, recomputes L and W and starts over. Keeping
+        // W fixed for unchanged credentials would leave them inside their advisory window and refresh on every call.
+        Duration lifetime = Duration.between(now, expiration);
+        Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, now);
+
+        Duration latest = minimum(DEFAULT_PREFETCH_LATEST, lifetime.minus(window));
+        if (latest.compareTo(DEFAULT_PREFETCH_FLOOR) < 0) {
+            return now.plus(DEFAULT_PREFETCH_FLOOR);
+        }
+
+        Duration earliest = minimum(DEFAULT_PREFETCH_EARLIEST,
+                                    maximum(lifetime.dividedBy(2), DEFAULT_PREFETCH_HALF_LIFETIME_MINIMUM),
+                                    latest.minus(latest.dividedBy(4)));
+
+        Duration prefetch = earliest.plusMillis(jitterMillis(latest.minus(earliest), randomFraction));
+        return now.plus(maximum(prefetch, DEFAULT_PREFETCH_FLOOR));
+    }
+
+    /**
+     * Compute the prefetch time for credentials without an expiration: a uniformly random time 60 to 65 minutes after the
+     * fetch. This is the schedule that CachedSupplier's prefetch jitter produced before the provider disabled it.
+     *
+     * @param now the time of the fetch
+     * @param randomFraction where to place the refresh between 60 minutes (0) and 65 minutes (1) after the fetch
+     */
+    static Instant noExpirationPrefetchTime(Instant now, double randomFraction) {
+        return now.plus(DEFAULT_PREFETCH_NO_EXPIRATION)
+                  .plusMillis(jitterMillis(DEFAULT_PREFETCH_NO_EXPIRATION_JITTER, randomFraction));
+    }
+
+    private static long jitterMillis(Duration range, double randomFraction) {
+        return (long) (range.toMillis() * randomFraction);
     }
 
     @Override
@@ -414,10 +498,16 @@ public final class InstanceProfileCredentialsProvider
          * {@code staleTime} effectively disables prefetch, causing all refreshes to be mandatory (blocking). When set, the
          * advisory refresh starts exactly this long before expiration, without jitter.
          *
-         * <p>If not explicitly set, the provider proactively refreshes credentials after half of their remaining lifetime has
-         * passed, but no sooner than 5 minutes after they were retrieved (60 minutes if IMDS does not return an expiration).
-         * This time is jittered to a random later point, no later than 1 minute before the mandatory refresh window
-         * ({@link #staleTime(Duration)}) begins, so that many clients do not refresh at the same moment.
+         * <p>If not explicitly set, the provider proactively refreshes credentials at a random time 65 to 90 minutes after
+         * retrieving them. IMDS can make new credentials available well before the current ones expire (often about
+         * hourly), so the provider checks for them well before expiration. The refresh happens no later than the start of
+         * the advisory refresh window that the SDK computes from the remaining lifetime of the credentials: 60 minutes before
+         * expiration for credentials with 90 minutes or more remaining, 15 minutes before expiration for
+         * credentials with more than 20 minutes remaining, and 5 minutes before expiration otherwise. For credentials with less
+         * than 2 hours 30 minutes remaining, the refresh therefore happens sooner than 65 to 90 minutes after retrieval. The
+         * only exception is credentials that are already within about 1 minute of that window when they are retrieved: they
+         * are refreshed 1 minute after retrieval, so that the provider does not call IMDS on every request. If IMDS does not
+         * return an expiration, the credentials are refreshed at a random time 60 to 65 minutes after they were retrieved.
          *
          * @param duration the duration before expiration that triggers advisory (proactive) refresh
          */
@@ -433,6 +523,7 @@ public final class InstanceProfileCredentialsProvider
     @SdkTestInternalApi
     static final class BuilderImpl implements Builder {
         private Clock clock = Clock.systemUTC();
+        private DoubleSupplier prefetchJitterRandom;
         private String endpoint;
         private Boolean asyncCredentialUpdateEnabled;
         private String asyncThreadName;
@@ -448,6 +539,7 @@ public final class InstanceProfileCredentialsProvider
 
         private BuilderImpl(InstanceProfileCredentialsProvider provider) {
             this.clock = provider.clock;
+            this.prefetchJitterRandom = provider.prefetchJitterRandom;
             this.endpoint = provider.endpoint;
             this.asyncCredentialUpdateEnabled = provider.asyncCredentialUpdateEnabled;
             this.asyncThreadName = provider.asyncThreadName;
@@ -460,6 +552,14 @@ public final class InstanceProfileCredentialsProvider
 
         Builder clock(Clock clock) {
             this.clock = clock;
+            return this;
+        }
+
+        /**
+         * The source of the random fraction, from 0 to 1, that places the default prefetch time within its range.
+         */
+        Builder prefetchJitterRandom(DoubleSupplier prefetchJitterRandom) {
+            this.prefetchJitterRandom = prefetchJitterRandom;
             return this;
         }
 
