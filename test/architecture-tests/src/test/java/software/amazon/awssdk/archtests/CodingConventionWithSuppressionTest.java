@@ -41,6 +41,7 @@ import software.amazon.awssdk.services.s3.internal.multipart.CopyObjectHelper;
 import software.amazon.awssdk.services.s3.internal.multipart.KnownContentLengthAsyncRequestBodySubscriber;
 import software.amazon.awssdk.services.s3.internal.multipart.UnknownContentLengthAsyncRequestBodySubscriber;
 import software.amazon.awssdk.utils.Logger;
+import software.amazon.awssdk.utils.cache.CachedSupplier;
 
 /**
  * This test class diffs from {@link CodingConventionTest}; it doesn't use archunit annotations such as {@link ArchTest}
@@ -69,7 +70,8 @@ public class CodingConventionWithSuppressionTest {
                           "software.amazon.awssdk.transfer.s3.internal.model.CrtFileDownload"),
                       ArchUtils.classNameToPattern(CopyObjectHelper.class),
                       ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.WarmUpDiscovery"),
-                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker")));
+                      ArchUtils.classNameToPattern("software.amazon.awssdk.core.internal.warmup.TargetedWarmUpInvoker"),
+                      ArchUtils.classNameToPattern(CachedSupplier.class)));
 
     private static final Set<Pattern> ALLOWED_ERROR_LOG_SUPPRESSION = new HashSet<>(
         Arrays.asList(
