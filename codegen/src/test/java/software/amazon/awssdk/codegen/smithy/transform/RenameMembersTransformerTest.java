@@ -28,9 +28,11 @@ import software.amazon.smithy.model.shapes.MemberShape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.DocumentationTrait;
 import software.amazon.smithy.model.traits.EndpointTrait;
+import software.amazon.smithy.model.traits.ExamplesTrait;
 import software.amazon.smithy.model.traits.HttpQueryTrait;
 import software.amazon.smithy.model.traits.HttpTrait;
 import software.amazon.smithy.model.traits.JsonNameTrait;
+import software.amazon.smithy.model.validation.Severity;
 
 class RenameMembersTransformerTest {
 
@@ -84,6 +86,30 @@ class RenameMembersTransformerTest {
 
         assertThat(result.expectShape(ShapeId.from("demo#Get")).expectTrait(HttpTrait.class).getUri().toString())
             .isEqualTo("/things/{ThingId}");
+    }
+
+    @Test
+    void renamedMember_isRenamedInOperationExamples() {
+        Model model = model(
+            REST_JSON_PREFIX
+            + "service DemoService { version: \"2024-01-01\", operations: [Get] }\n"
+            + "@http(method: \"POST\", uri: \"/things/{Id}\")\n"
+            + "@examples([{title: \"get\", input: {Id: \"1\", other: \"x\"}, output: {value: \"v\"}}])\n"
+            + "operation Get { input: GetRequest, output: GetResponse }\n"
+            + "structure GetRequest { @required @httpLabel Id: String, other: String }\n"
+            + "structure GetResponse { value: String }\n");
+
+        Model result = apply(transformer, model,
+                             "{\"renamed\": {\"demo#GetRequest$Id\": {\"name\": \"ThingId\"},"
+                             + " \"demo#GetResponse$value\": {\"name\": \"Value\"}}}");
+
+        ExamplesTrait.Example example = result.expectShape(ShapeId.from("demo#Get")).expectTrait(ExamplesTrait.class)
+                                              .getExamples().get(0);
+        assertThat(example.getInput().getStringMap().keySet()).containsExactly("ThingId", "other");
+        assertThat(example.getOutput().get().getStringMap().keySet()).containsExactly("Value");
+        ClassLoader loader = getClass().getClassLoader();
+        assertThat(Model.assembler(loader).discoverModels(loader).addModel(result).assemble()
+                        .getValidationEvents(Severity.ERROR)).isEmpty();
     }
 
     @Test

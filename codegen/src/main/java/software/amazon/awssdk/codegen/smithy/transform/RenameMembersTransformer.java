@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import software.amazon.awssdk.annotations.SdkInternalApi;
 import software.amazon.smithy.build.ProjectionTransformer;
 import software.amazon.smithy.build.TransformContext;
@@ -40,6 +41,7 @@ import software.amazon.smithy.model.shapes.OperationShape;
 import software.amazon.smithy.model.shapes.Shape;
 import software.amazon.smithy.model.shapes.ShapeId;
 import software.amazon.smithy.model.traits.EndpointTrait;
+import software.amazon.smithy.model.traits.ExamplesTrait;
 import software.amazon.smithy.model.traits.HostLabelTrait;
 import software.amazon.smithy.model.traits.HttpLabelTrait;
 import software.amazon.smithy.model.traits.HttpTrait;
@@ -64,8 +66,8 @@ import software.amazon.smithy.model.transform.ModelTransformer;
  *
  * <p>{@code traits} are added to the renamed member, replacing any trait with the same ID. They carry the wire name
  * when the old name was the wire name, so the rename changes only the generated Java. A renamed member moves to the
- * end of its container, as it does on the C2J path. URI and host-prefix labels bound to the member are renamed with
- * it, because Smithy requires a label to match its member's name.
+ * end of its container, as it does on the C2J path. URI and host-prefix labels bound to the member, and its key in
+ * operation {@code @examples}, are renamed with it, because Smithy validates both against the member's name.
  *
  * <p>On the C2J path, {@code customization.config} renames a member with
  * {@code shapeModifiers.<shape>.modify[].<member>.emitPropertyName}, applied by {@code ShapeModifiersProcessor}. That
@@ -139,33 +141,77 @@ public final class RenameMembersTransformer implements ProjectionTransformer {
         return transformer.replaceShapes(model, replacements);
     }
 
-    private static List<Shape> relabelOperations(Model model, MemberShape member, ShapeId inputId,
+    /**
+     * Renames the member in the operations that use its container: URI and host-prefix labels of operations whose
+     * input it is, and the member's key in {@code @examples}, which Smithy validates against the container.
+     */
+    private static List<Shape> relabelOperations(Model model, MemberShape member, ShapeId containerId,
                                                  String oldName, String newName) {
         boolean uriLabel = member.hasTrait(HttpLabelTrait.class);
         boolean hostLabel = member.hasTrait(HostLabelTrait.class);
-        if (!uriLabel && !hostLabel) {
-            return Collections.emptyList();
-        }
 
         List<Shape> operations = new ArrayList<>();
         for (OperationShape operation : model.getOperationShapes()) {
-            if (!operation.getInputShape().equals(inputId)) {
-                continue;
-            }
+            boolean isInput = operation.getInputShape().equals(containerId);
+            boolean changed = false;
             OperationShape.Builder builder = operation.toBuilder();
-            if (uriLabel && operation.hasTrait(HttpTrait.class)) {
+            if (isInput && uriLabel && operation.hasTrait(HttpTrait.class)) {
                 HttpTrait http = operation.expectTrait(HttpTrait.class);
                 String uri = relabel(http.getUri().toString(), oldName, newName);
                 builder.addTrait(http.toBuilder().uri(UriPattern.parse(uri)).build());
+                changed = true;
             }
-            if (hostLabel && operation.hasTrait(EndpointTrait.class)) {
+            if (isInput && hostLabel && operation.hasTrait(EndpointTrait.class)) {
                 EndpointTrait endpoint = operation.expectTrait(EndpointTrait.class);
                 String hostPrefix = relabel(endpoint.getHostPrefix().toString(), oldName, newName);
                 builder.addTrait(endpoint.toBuilder().hostPrefix(hostPrefix).build());
+                changed = true;
             }
-            operations.add(builder.build());
+            Optional<ExamplesTrait> examples = operation.getTrait(ExamplesTrait.class);
+            if (examples.isPresent()) {
+                ExamplesTrait renamed = renameInExamples(examples.get(), operation, containerId, oldName, newName);
+                if (!renamed.equals(examples.get())) {
+                    builder.addTrait(renamed);
+                    changed = true;
+                }
+            }
+            if (changed) {
+                operations.add(builder.build());
+            }
         }
         return operations;
+    }
+
+    private static ExamplesTrait renameInExamples(ExamplesTrait trait, OperationShape operation, ShapeId containerId,
+                                                  String oldName, String newName) {
+        ExamplesTrait.Builder builder = ExamplesTrait.builder().sourceLocation(trait.getSourceLocation());
+        for (ExamplesTrait.Example example : trait.getExamples()) {
+            ExamplesTrait.Example.Builder renamed = example.toBuilder();
+            if (operation.getInputShape().equals(containerId)) {
+                renamed.input(renameKey(example.getInput(), oldName, newName));
+            }
+            if (operation.getOutputShape().equals(containerId)) {
+                example.getOutput().ifPresent(output -> renamed.output(renameKey(output, oldName, newName)));
+            }
+            example.getError()
+                   .filter(error -> error.getShapeId().equals(containerId))
+                   .ifPresent(error -> renamed.error(error.toBuilder()
+                                                          .content(renameKey(error.getContent(), oldName, newName))
+                                                          .build()));
+            builder.addExample(renamed.build());
+        }
+        return builder.build();
+    }
+
+    private static ObjectNode renameKey(ObjectNode node, String oldName, String newName) {
+        if (!node.getMember(oldName).isPresent()) {
+            return node;
+        }
+        ObjectNode.Builder renamed = Node.objectNodeBuilder().sourceLocation(node.getSourceLocation());
+        node.getMembers().forEach((key, value) -> renamed.withMember(key.getValue().equals(oldName) ? newName
+                                                                                                    : key.getValue(),
+                                                                     value));
+        return renamed.build();
     }
 
     private static String relabel(String pattern, String oldName, String newName) {
