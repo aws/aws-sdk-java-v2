@@ -283,10 +283,11 @@ public final class InstanceProfileCredentialsProvider
      * @param expiration the expiration of the fetched credentials, after {@code now}
      * @param randomFraction where to place the refresh between the lower bound (0) and the upper bound (1)
      */
+    @SdkTestInternalApi
     static Instant defaultPrefetchTime(Instant now, Instant expiration, double randomFraction) {
-        // Reading of SEP lines 735-741: the advisory window W is fixed for credentials the provider already holds. Every
-        // successful fetch, including one that returns the same credentials, recomputes L and W and starts over. Keeping
-        // W fixed for unchanged credentials would leave them inside their advisory window and refresh on every call.
+        // The advisory window W is fixed for credentials the provider already holds. Every successful fetch, including one
+        // that returns the same credentials, recomputes L and W and starts over. Keeping W fixed for unchanged credentials
+        // would leave them inside their advisory window and refresh on every call.
         Duration lifetime = Duration.between(now, expiration);
         Duration window = CacheRefreshUtils.computePrefetchWindow(expiration, null, now);
 
@@ -310,6 +311,7 @@ public final class InstanceProfileCredentialsProvider
      * @param now the time of the fetch
      * @param randomFraction where to place the refresh between 60 minutes (0) and 65 minutes (1) after the fetch
      */
+    @SdkTestInternalApi
     static Instant noExpirationPrefetchTime(Instant now, double randomFraction) {
         return now.plus(DEFAULT_PREFETCH_NO_EXPIRATION)
                   .plusMillis(jitterMillis(DEFAULT_PREFETCH_NO_EXPIRATION_JITTER, randomFraction));

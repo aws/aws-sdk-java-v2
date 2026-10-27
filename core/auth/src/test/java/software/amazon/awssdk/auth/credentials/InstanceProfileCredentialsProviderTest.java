@@ -685,9 +685,11 @@ public class InstanceProfileCredentialsProviderTest {
         assertThat(InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, 1))
             .isEqualTo(now.plusMillis(hiMillis));
 
-        Random random = new Random();
+        long seed = System.nanoTime();
+        Random random = new Random(seed);
         for (int i = 0; i < 10_000; i++) {
             assertThat(InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, random.nextDouble()))
+                .as("seed %d", seed)
                 .isBetween(now.plusMillis(loMillis), now.plusMillis(hiMillis));
         }
     }
@@ -700,7 +702,8 @@ public class InstanceProfileCredentialsProviderTest {
     @Test
     void defaultPrefetchTime_anyLifetime_isNoLaterThanAdvisoryWindowAndNoSoonerThanFetch() {
         Instant now = Instant.now().truncatedTo(SECONDS);
-        Random random = new Random();
+        long seed = System.nanoTime();
+        Random random = new Random(seed);
         for (int i = 0; i < 100_000; i++) {
             Duration lifetime = Duration.ofMillis(Duration.ofMinutes(1).toMillis()
                                                   + (long) (random.nextDouble() * Duration.ofHours(7).toMillis()));
@@ -708,15 +711,15 @@ public class InstanceProfileCredentialsProviderTest {
 
             Instant prefetch = InstanceProfileCredentialsProvider.defaultPrefetchTime(now, expiration, random.nextDouble());
 
-            assertThat(prefetch).as("lifetime %s", lifetime).isAfterOrEqualTo(now);
+            assertThat(prefetch).as("seed %d, lifetime %s", seed, lifetime).isAfterOrEqualTo(now);
             Duration window = advisoryRefreshWindow(lifetime);
             if (!lifetime.minus(window).isNegative()) {
-                assertThat(prefetch).as("lifetime %s", lifetime)
+                assertThat(prefetch).as("seed %d, lifetime %s", seed, lifetime)
                                     .isBeforeOrEqualTo(expiration.minus(window))
                                     .isBeforeOrEqualTo(now.plus(90, MINUTES));
             }
             if (lifetime.compareTo(window) <= 0) {
-                assertThat(prefetch).as("lifetime %s", lifetime).isEqualTo(now);
+                assertThat(prefetch).as("seed %d, lifetime %s", seed, lifetime).isEqualTo(now);
             }
         }
     }
@@ -760,9 +763,11 @@ public class InstanceProfileCredentialsProviderTest {
         assertThat(InstanceProfileCredentialsProvider.noExpirationPrefetchTime(now, 0)).isEqualTo(now.plus(60, MINUTES));
         assertThat(InstanceProfileCredentialsProvider.noExpirationPrefetchTime(now, 1)).isEqualTo(now.plus(65, MINUTES));
 
-        Random random = new Random();
+        long seed = System.nanoTime();
+        Random random = new Random(seed);
         for (int i = 0; i < 10_000; i++) {
             assertThat(InstanceProfileCredentialsProvider.noExpirationPrefetchTime(now, random.nextDouble()))
+                .as("seed %d", seed)
                 .isBetween(now.plus(60, MINUTES), now.plus(65, MINUTES));
         }
     }
