@@ -40,6 +40,8 @@ import software.amazon.awssdk.identity.spi.AwsCredentialsIdentity;
 import software.amazon.awssdk.services.signin.SigninClient;
 import software.amazon.awssdk.services.signin.internal.AccessTokenManager;
 import software.amazon.awssdk.services.signin.internal.DpopAuthPlugin;
+import software.amazon.awssdk.services.signin.internal.DpopIdentity;
+import software.amazon.awssdk.services.signin.internal.InvalidLoginTokenException;
 import software.amazon.awssdk.services.signin.internal.LoginAccessToken;
 import software.amazon.awssdk.services.signin.internal.LoginCacheDirectorySystemSetting;
 import software.amazon.awssdk.services.signin.internal.OnDiskTokenManager;
@@ -147,12 +149,12 @@ public final class LoginCredentialsProvider implements
     private RefreshResult<AwsCredentials> updateSigninCredentials() {
         // always re-load token from the disk in case it has been updated elsewhere
         LoginAccessToken tokenFromDisc = onDiskTokenManager.loadToken().orElseThrow(
-            () -> new InvalidTokenException("Token cache file for login_session `" + loginSession + "` not found. "
-                                            + "You must re-authenticate."));
+            () -> InvalidLoginTokenException.create("Token cache file for login_session `" + loginSession + "` not found in "
+                                                    + tokenCacheLocation + ". You must re-authenticate."));
 
+        // OnDiskTokenManager already rejects a token without an expiration; this check is defensive.
         Instant currentExpirationTime = tokenFromDisc.getAccessToken().expirationTime().orElseThrow(
-            () -> new InvalidTokenException("Invalid token expiration time. You must re-authenticate.")
-        );
+            () -> invalidToken("required member 'accessToken.expiresAt' not found", null));
 
         Duration effectivePrefetch = CacheRefreshUtils.computePrefetchWindow(currentExpirationTime, prefetchTime, Instant.now());
         if (shouldNotRefresh(currentExpirationTime, staleTime)
@@ -176,7 +178,15 @@ public final class LoginCredentialsProvider implements
     private RefreshResult<AwsCredentials> refreshFromSigninService(LoginAccessToken tokenFromDisc) {
         log.debug(() -> "Credentials are near expiration/expired, refreshing from Signin service.");
 
-        try (SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(tokenFromDisc.getDpopKey())) {
+        // All client-side validation of the token happens before the Sign-In call, so that a failure is reported as
+        // non-recoverable and no request is made. OnDiskTokenManager already rejects a token with a missing or empty account
+        // ID; this check is defensive.
+        String accountId = tokenFromDisc.getAccessToken().accountId().orElseThrow(
+            () -> invalidToken("required member 'accessToken.accountId' not found", null));
+        requireNotEmpty(accountId, "accessToken.accountId");
+        DpopIdentity dpopIdentity = loadDpopIdentity(tokenFromDisc);
+
+        try (SdkPlugin dpopAuthPlugin = DpopAuthPlugin.create(dpopIdentity)) {
             CreateOAuth2TokenRequest refreshRequest =
                 CreateOAuth2TokenRequest
                     .builder()
@@ -195,9 +205,7 @@ public final class LoginCredentialsProvider implements
                 .accessKeyId(createTokenResponse.tokenOutput().accessToken().accessKeyId())
                 .secretAccessKey(createTokenResponse.tokenOutput().accessToken().secretAccessKey())
                 .sessionToken(createTokenResponse.tokenOutput().accessToken().sessionToken())
-                .accountId(tokenFromDisc.getAccessToken().accountId().orElseThrow(
-                    () -> SdkClientException.create("Invalid access token, missing account ID. You must re-authenticate.")
-                ))
+                .accountId(accountId)
                 .expirationTime(newExpiration)
                 .providerName(this.providerName)
                 .build();
@@ -243,17 +251,47 @@ public final class LoginCredentialsProvider implements
         }
     }
 
+    private DpopIdentity loadDpopIdentity(LoginAccessToken token) {
+        // OnDiskTokenManager already rejects a token with a missing or empty dpopKey; this check is defensive.
+        requireNotEmpty(token.getDpopKey(), "dpopKey");
+        try {
+            return DpopIdentity.create(token.getDpopKey());
+        } catch (RuntimeException e) {
+            throw invalidToken("member 'dpopKey' is not a valid EC private key", e);
+        }
+    }
+
+    /**
+     * Rejects a required token member that is empty or whitespace-only, the same way {@link OnDiskTokenManager} does. A
+     * {@code null} value is not checked here; the caller reports it.
+     */
+    private void requireNotEmpty(String value, String member) {
+        if (value != null && StringUtils.isBlank(value)) {
+            throw invalidToken("member '" + member + "' is empty", null);
+        }
+    }
+
+    /**
+     * Creates the exception for a cached token that cannot be used. The message never includes the token contents.
+     */
+    private InvalidLoginTokenException invalidToken(String problem, Throwable cause) {
+        return InvalidLoginTokenException.create("Invalid token cache file for login_session `" + loginSession + "` in "
+                                                 + tokenCacheLocation + ": " + problem + ". You must re-authenticate.",
+                                                 cause);
+    }
+
     /**
      * Determines whether a given exception represents a non-recoverable refresh failure that should bypass
      * static stability. For Login, this includes:
      * <ul>
-     *   <li>Missing or invalid token cache on disk (requires re-authentication)</li>
+     *   <li>The cached login token is missing, unreadable, or invalid (a required member is missing or malformed, or the
+     *       dpopKey is invalid), detected before calling the Sign-In service (requires re-authentication)</li>
      *   <li>An {@link AccessDeniedException} with error code {@link OAuth2ErrorCode#TOKEN_EXPIRED},
      *       {@link OAuth2ErrorCode#USER_CREDENTIALS_CHANGED}, or {@link OAuth2ErrorCode#INSUFFICIENT_PERMISSIONS}</li>
      * </ul>
      */
     private static boolean isNonRecoverableError(RuntimeException e) {
-        if (e instanceof InvalidTokenException) {
+        if (e instanceof InvalidLoginTokenException) {
             return true;
         }
 
@@ -377,7 +415,7 @@ public final class LoginCredentialsProvider implements
          * the cached credentials are within this window (i.e., their remaining lifetime is less than this duration), the
          * provider will attempt to refresh them proactively. If the refresh fails, the provider returns the existing cached
          * credentials without error and will not attempt another refresh until a backoff period has elapsed. If the failure is
-         * non-recoverable (for example, a missing login token cache, or an {@code AccessDeniedException} with
+         * non-recoverable (for example, a missing or invalid login token cache file, or an {@code AccessDeniedException} with
          * {@code TOKEN_EXPIRED}, which require re-authenticating), the error is raised immediately instead and no backoff is
          * applied.
          *
@@ -420,17 +458,6 @@ public final class LoginCredentialsProvider implements
          */
         @Override
         LoginCredentialsProvider build();
-    }
-
-    /**
-     * Exception indicating that the cached login token is missing or invalid, requiring the user to re-authenticate.
-     * This exception bypasses static stability (cache extension on failure) because there is no valid token state
-     * to fall back to.
-     */
-    private static final class InvalidTokenException extends SdkClientException {
-        private InvalidTokenException(String message) {
-            super(builder().message(message));
-        }
     }
 
     protected static final class BuilderImpl implements Builder {
