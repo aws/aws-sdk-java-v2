@@ -225,11 +225,15 @@ final class AddSmithyMetadata {
     }
 
     /**
-     * The legacy single {@code authType}; C2J derives it from the service {@code signatureVersion}.
+     * The legacy single {@code authType}: V4 for a {@code @sigv4} service, including one that also has
+     * {@code @httpBearerAuth}, and BEARER for a bearer-only service.
      */
     private static AuthType authType(ServiceShape service) {
         if (service.hasTrait(SigV4Trait.class)) {
             return AuthType.V4;
+        }
+        if (service.hasTrait(HttpBearerAuthTrait.class)) {
+            return AuthType.BEARER;
         }
         return null;
     }
